@@ -104,46 +104,52 @@ describe('checkContracts', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
-    const subscriptionId = new ObjectID();
-    const sectorId = new ObjectID();
-    const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      customer: (new ObjectID()).toHexString(),
-      type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-02T08:00:00.000Z',
-      endDate: '2019-10-02T10:00:00.000Z',
-      sector: sectorId.toHexString(),
-    };
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: subscriptionId,
-        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
-      }],
-    };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
+  it(
+    'should return false if service event is customer contract and auxiliary doesn\'t have contract with customer',
+    async () => {
+      const subscriptionId = new ObjectID();
+      const sectorId = new ObjectID();
+      const event = {
+        auxiliary: (new ObjectID()).toHexString(),
+        customer: (new ObjectID()).toHexString(),
+        type: INTERVENTION,
+        subscription: subscriptionId.toHexString(),
+        startDate: '2019-10-02T08:00:00.000Z',
+        endDate: '2019-10-02T10:00:00.000Z',
+        sector: sectorId.toHexString(),
+      };
+      const customer = {
+        _id: event.customer,
+        subscriptions: [{
+          _id: subscriptionId,
+          service: {
+            type: CUSTOMER_CONTRACT,
+            versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+          },
+          versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
+        }],
+      };
+      CustomerModel.expects('findOne')
+        .chain('populate')
+        .chain('lean')
+        .once()
+        .returns(customer);
 
-    const contract = new Contract({
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{}],
-      startDate: moment(event.startDate).add(1, 'd'),
-    });
-    findOneContract.returns(contract);
+      const contract = new Contract({
+        user: event.auxiliary,
+        customer: event.customer,
+        versions: [{}],
+        startDate: moment(event.startDate).add(1, 'd'),
+      });
+      findOneContract.returns(contract);
 
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+      const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
-    expect(result).toBeFalsy();
-  });
+      const credentials = {};
+      const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+      expect(result).toBeFalsy();
+    }
+  );
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
     const subscriptionId = new ObjectID();
@@ -162,7 +168,10 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        service: {
+          type: CUSTOMER_CONTRACT,
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
@@ -205,7 +214,10 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        service: {
+          type: COMPANY_CONTRACT,
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
@@ -249,7 +261,10 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        service: {
+          type: COMPANY_CONTRACT,
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
@@ -292,7 +307,10 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: new ObjectID(),
-        service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        service: {
+          type: COMPANY_CONTRACT,
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
         versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
       }],
     };
@@ -332,7 +350,10 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: event.subscription,
-        service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        service: {
+          type: '',
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
       }],
     };
     CustomerModel.expects('findOne')
@@ -407,9 +428,12 @@ describe('hasConflicts', () => {
       auxiliary: new ObjectID(),
     };
 
-    getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', isCancelled: true },
-    ]);
+    getAuxiliaryEventsBetweenDates.returns([{
+      _id: new ObjectID(),
+      startDate: '2019-10-02T08:00:00.000Z',
+      endDate: '2019-10-02T12:00:00.000Z',
+      isCancelled: true,
+    }]);
     const result = await EventsValidationHelper.hasConflicts(event);
 
     expect(result).toBeFalsy();
@@ -426,13 +450,23 @@ describe('hasConflicts', () => {
       company: new ObjectID(),
     };
 
-    getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', type: ABSENCE },
-    ]);
+    getAuxiliaryEventsBetweenDates.returns([{
+      _id: new ObjectID(),
+      startDate: '2019-10-02T08:00:00.000Z',
+      endDate: '2019-10-02T12:00:00.000Z',
+      type: ABSENCE,
+    }]);
 
     await EventsValidationHelper.hasConflicts(event);
 
-    sinon.assert.calledWithExactly(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
+    sinon.assert.calledWithExactly(
+      getAuxiliaryEventsBetweenDates,
+      auxiliaryId,
+      '2019-10-02T09:00:00.000Z',
+      '2019-10-02T11:00:00.000Z',
+      event.company,
+      ABSENCE
+    );
   });
 });
 
@@ -452,14 +486,16 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as event is not absence and not on one day', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const event = {
       auxiliary: (new ObjectID()).toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
@@ -469,13 +505,16 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const event = {
       sector: (new ObjectID()).toHexString(),
       type: ABSENCE,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
@@ -485,13 +524,16 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return true as event has no auxiliary and is intervention', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const event = {
       sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
@@ -501,10 +543,11 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -514,12 +557,15 @@ describe('isCreationAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
       .returns(user);
     checkContracts.returns(false);
 
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -528,10 +574,11 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -541,39 +588,15 @@ describe('isCreationAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, event);
-    sinon.assert.calledWithExactly(checkContracts, event, user);
-  });
-
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const auxiliaryId = new ObjectID();
-    const event = {
-      auxiliary: auxiliaryId.toHexString(),
-      sector: new ObjectID().toHexString(),
-      type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-    const user = { _id: auxiliaryId, sector: new ObjectID() };
-
-    checkContracts.returns(true);
-    hasConflicts.returns(false);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -582,11 +605,12 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return true', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -598,10 +622,13 @@ describe('isCreationAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
@@ -614,6 +641,7 @@ describe('isEditionAllowed', () => {
   let UserModel;
   let checkContracts;
   let hasConflicts;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     UserModel = sinon.mock(User);
     checkContracts = sinon.stub(EventsValidationHelper, 'checkContracts');
@@ -626,11 +654,9 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is billed', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -639,7 +665,8 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -649,10 +676,8 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is absence or availability and auxiliary is updated', async () => {
-    const sectorId = new ObjectID();
     const payload = {
       auxiliary: (new ObjectID()).toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -660,7 +685,8 @@ describe('isEditionAllowed', () => {
       auxiliary: new ObjectID(),
       type: ABSENCE,
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -670,11 +696,9 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is not absence and no on one day', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
@@ -683,7 +707,8 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -704,7 +729,8 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: ABSENCE,
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -725,7 +751,8 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    const credentials = {};
+    UserModel.expects('findOne').never();
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -739,7 +766,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -752,11 +778,13 @@ describe('isEditionAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .once()
       .returns(user);
     checkContracts.returns(false);
-    const credentials = {};
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -770,7 +798,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -783,12 +810,14 @@ describe('isEditionAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .once()
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const credentials = {};
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -802,7 +831,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       shouldUpdateRepetition: true,
@@ -817,11 +845,13 @@ describe('isEditionAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .once()
       .returns(user);
     checkContracts.returns(true);
-    const credentials = {};
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
@@ -835,7 +865,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       shouldUpdateRepetition: true,
@@ -850,47 +879,18 @@ describe('isEditionAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .once()
       .returns(user);
     hasConflicts.returns(true);
     checkContracts.returns(true);
-    const credentials = {};
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
-  });
-
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const auxiliaryId = new ObjectID();
-    const payload = {
-      auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-    const eventFromDB = {
-      auxiliary: auxiliaryId,
-      type: INTERVENTION,
-    };
-    const user = { _id: auxiliaryId, sector: new ObjectID() };
-
-    checkContracts.returns(true);
-    hasConflicts.returns(false);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 
   it('should return true', async () => {
@@ -898,7 +898,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -913,10 +912,12 @@ describe('isEditionAllowed', () => {
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .once()
       .returns(user);
-    const credentials = {};
+
     const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();

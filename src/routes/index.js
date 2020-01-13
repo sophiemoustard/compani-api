@@ -115,4 +115,8 @@ exports.routes = [
     plugin: require('./internalHours'),
     routes: { prefix: '/internalhours' },
   },
+  {
+    plugin: require('./billSlips'),
+    routes: { prefix: '/billslips' },
+  },
 ];

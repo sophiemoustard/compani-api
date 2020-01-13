@@ -1,11 +1,13 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -16,8 +18,10 @@ const auxiliaryId2 = new ObjectID();
 const customerId = new ObjectID();
 const subscriptionId = new ObjectID();
 const serviceId = new ObjectID();
-const sectorId = new ObjectID();
-
+const sectors = [
+  { name: 'Toto', _id: new ObjectID(), company: authCompany._id },
+  { name: 'Titi', _id: new ObjectID(), company: authCompany._id },
+];
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
@@ -28,7 +32,7 @@ const user = {
   company: authCompany._id,
 };
 
-const auxiliary1 = {
+const auxiliaries = [{
   _id: auxiliaryId1,
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456' },
@@ -36,11 +40,8 @@ const auxiliary1 = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId1,
-  sector: sectorId,
   company: authCompany._id,
-};
-
-const auxiliary2 = {
+}, {
   _id: auxiliaryId2,
   identity: { firstname: 'Test8', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456' },
@@ -48,9 +49,8 @@ const auxiliary2 = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
-  sector: sectorId,
   company: authCompany._id,
-};
+}];
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
@@ -60,7 +60,7 @@ const auxiliaryFromOtherCompany = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
-  sector: sectorId,
+  sector: sectors[0]._id,
   company: otherCompany._id,
 };
 
@@ -110,11 +110,18 @@ const event = {
   status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
   endDate: '2019-05-12T11:00:00',
-  auxiliary: auxiliaryId1,
+  auxiliary: auxiliaries[0],
   customer: customerId,
   createdAt: '2019-05-01T09:00:00',
   sector: new ObjectID(),
   subscription: subscriptionId,
+  address: {
+    fullAddress: '37 rue de ponthieu 75008 Paris',
+    zipCode: '75008',
+    city: 'Paris',
+    street: '37 rue de Ponthieu',
+    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  },
 };
 
 const customer = {
@@ -130,6 +137,9 @@ const customer = {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
   subscriptions: [
@@ -161,7 +171,27 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
+const sectorHistories = [
+  {
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: moment('2018-12-10').startOf('day').toDate(),
+    endDate: moment('2019-12-11').endOf('day').toDate(),
+  },
+  {
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: moment('2019-12-12').startOf('day').toDate(),
+  },
+  {
+    auxiliary: auxiliaries[1]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: moment('2018-12-10').startOf('day').toDate(),
+  },
+];
 
 const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
@@ -172,21 +202,23 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await Event.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create([user, auxiliary1, auxiliary2, auxiliaryFromOtherCompany]);
+  await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await Sector.create([sector, sectorFromOtherCompany]);
+  await Sector.create([...sectors, sectorFromOtherCompany]);
+  await SectorHistory.create(sectorHistories);
 };
 
 module.exports = {
   populateDB,
-  auxiliary1,
+  auxiliaries,
   auxiliaryFromOtherCompany,
-  sectorId,
+  sectors,
   sectorFromOtherCompany,
 };

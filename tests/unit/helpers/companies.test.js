@@ -1,11 +1,13 @@
 const sinon = require('sinon');
-const expect = require('expect');
 const flat = require('flat');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
+const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const Drive = require('../../../src/models/Google/Drive');
+const { INTERVENTION } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -35,7 +37,15 @@ describe('createCompany', () => {
     createFolderForCompanyStub.returns({ id: '1234567890' });
     createFolderStub.onCall(0).returns({ id: '0987654321' });
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
-    CompanyMock.expects('create').withExactArgs(createdCompany);
+    CompanyMock.expects('find')
+      .chain('sort')
+      .withExactArgs({ prefixNumber: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([{ _id: new ObjectID(), prefixNumber: 345 }]);
+    CompanyMock.expects('create').withExactArgs({ ...createdCompany, prefixNumber: 346 }).once();
 
     await CompanyHelper.createCompany(payload);
 
@@ -90,5 +100,34 @@ describe('uploadFile', () => {
     });
     sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
     CompanyModel.verify();
+  });
+});
+
+describe('getFirstIntervention', () => {
+  let EventModel;
+  beforeEach(() => {
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventModel.restore();
+  });
+
+  it('should get first intervention', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    EventModel
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, type: INTERVENTION })
+      .chain('sort')
+      .withExactArgs({ startDate: 1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .returns([{ startDate: '2019-11-12' }]);
+
+    const result = await CompanyHelper.getFirstIntervention(credentials);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual([{ startDate: '2019-11-12' }]);
+    EventModel.verify();
   });
 });

@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-
+const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany } = require('./seed/thirdPartyPayersSeed');
 const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
@@ -28,6 +28,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         street: '37 rue de Ponthieu',
         zipCode: '75008',
         city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       email: 'test@test.com',
       unitTTCRate: 75,
@@ -45,7 +46,10 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
+      expect(pick(
+        response.result.data.thirdPartyPayer.toObject(),
+        ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company']
+      )).toEqual({ ...payload, company: authCompany._id });
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
       expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
     });
@@ -111,6 +115,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         street: '4 rue du test',
         zipCode: '92160',
         city: 'Antony',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       email: 't@t.com',
       unitTTCRate: 89,
@@ -135,6 +140,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
           street: '4 rue du test',
           zipCode: '92160',
           city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
         },
         email: 't@t.com',
         unitTTCRate: 89,

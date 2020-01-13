@@ -10,6 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
@@ -36,8 +37,14 @@ const auxiliary = {
   role: rolesList.find(role => role.name === 'admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
   refreshToken: uuidv4(),
+  company: authCompany._id,
+};
+
+const sectorHistory = {
+  auxiliary: auxiliary._id,
   sector: sector._id,
   company: authCompany._id,
+  startDate: '2018-12-10',
 };
 
 const customer = {
@@ -52,12 +59,15 @@ const customer = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
 };
 
 const company = {
+  prefixNumber: 103,
   _id: new ObjectID(),
   name: 'Test',
   tradeName: 'TT',
@@ -126,6 +136,8 @@ const customersList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -171,6 +183,8 @@ const customersList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -189,6 +203,8 @@ const customersList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -226,6 +242,13 @@ const eventList = [
     customer: customer._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -239,6 +262,13 @@ const eventList = [
     customer: customer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -268,6 +298,8 @@ const billsList = [
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
         auxiliary: new ObjectID(),
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
       }],
       hours: 8,
       unitExclTaxes: 9,
@@ -294,6 +326,8 @@ const billsList = [
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
         auxiliary: new ObjectID(),
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
       }],
       service: authBillService,
       hours: 4,
@@ -573,12 +607,25 @@ const populateEvents = async () => {
   await User.deleteMany();
   await Customer.deleteMany();
   await Sector.deleteMany();
+  await SectorHistory.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
   await new Sector(sector).save();
+  await new SectorHistory(sectorHistory).save();
   await new Customer(customer).save();
+};
+
+const populateSectorHistories = async () => {
+  await User.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+
+  await populateDBForAuthentication();
+  await new User(auxiliary).save();
+  await new Sector(sector).save();
+  await new SectorHistory(sectorHistory).save();
 };
 
 const populateBillsAndCreditNotes = async () => {
@@ -655,4 +702,5 @@ module.exports = {
   populateService,
   populateCustomer,
   populateUser,
+  populateSectorHistories,
 };

@@ -2,14 +2,15 @@ const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
+const crypto = require('crypto');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Company = require('../../../src/models/Company');
+const Rum = require('../../../src/models/Rum');
 const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
-const EventsHelper = require('../../../src/helpers/events');
 const UtilsHelper = require('../../../src/helpers/utils');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
@@ -22,30 +23,20 @@ const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('getCustomerBySector', () => {
-  let getListQuery;
   let getCustomersFromEvent;
   beforeEach(() => {
-    getListQuery = sinon.stub(EventsHelper, 'getListQuery');
     getCustomersFromEvent = sinon.stub(EventRepository, 'getCustomersFromEvent');
   });
   afterEach(() => {
-    getListQuery.restore();
     getCustomersFromEvent.restore();
   });
 
   it('should return customer by sector', async () => {
-    const startDate = '2019-04-14T09:00:00';
-    const endDate = '2019-05-14T09:00:00';
-    const sector = 'sector';
-    const query = { startDate };
-    getListQuery.returns(query);
-
+    const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: 'sector' };
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    const queryBySector = { ...query, endDate, sector };
-    await CustomerHelper.getCustomerBySector(queryBySector, credentials);
-    sinon.assert.calledWithExactly(getListQuery, { startDate, endDate, sector, type: 'intervention' }, credentials);
+    await CustomerHelper.getCustomerBySector(query, credentials);
     sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
   });
 });
@@ -349,18 +340,74 @@ describe('getCustomer', () => {
   });
 });
 
+describe('getRumNumber', () => {
+  it('should get RUM number', async () => {
+    const companyId = new ObjectID();
+    const RumMock = sinon.mock(Rum);
+
+    RumMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { prefix: moment().format('YYMM'), company: companyId },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .chain('lean');
+
+    await CustomerHelper.getRumNumber(companyId);
+
+    RumMock.verify();
+    RumMock.restore();
+  });
+});
+
+describe('formatRumNumber', () => {
+  let randomBytesStub;
+
+  beforeEach(() => {
+    randomBytesStub = sinon.stub(crypto, 'randomBytes');
+  });
+
+  afterEach(() => {
+    randomBytesStub.restore();
+  });
+
+  it('should format RUM number', () => {
+    randomBytesStub.returns('0987654321');
+
+    const result = CustomerHelper.formatRumNumber(101, '1219', 1);
+
+    expect(result).toBe('R-1011219000010987654321');
+  });
+
+  it('should format RUM number with 5 digits', () => {
+    randomBytesStub.returns('0987654321');
+
+    const result = CustomerHelper.formatRumNumber(101, '1219', 92345);
+
+    expect(result).toBe('R-1011219923450987654321');
+  });
+});
+
 describe('updateCustomer', () => {
   let CustomerMock;
-  let generateRum;
+  let getRumNumberStub;
+  let formatRumNumberStub;
   let updateMany;
+  let updateOne;
+  const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
-    generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    getRumNumberStub = sinon.stub(CustomerHelper, 'getRumNumber');
+    formatRumNumberStub = sinon.stub(CustomerHelper, 'formatRumNumber');
     updateMany = sinon.stub(Event, 'updateMany');
+    updateOne = sinon.stub(Rum, 'updateOne');
   });
   afterEach(() => {
     CustomerMock.restore();
-    generateRum.restore();
+    getRumNumberStub.restore();
+    formatRumNumberStub.restore();
+    updateOne.restore();
     updateMany.restore();
   });
 
@@ -381,15 +428,19 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customer._id, payload);
+    const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     sinon.assert.notCalled(updateMany);
     expect(result).toBe(customerResult);
   });
 
   it('should generate a new mandate', async () => {
+    const rumNumber = { prefix: '1219', seq: 1 };
+    const formattedRumNumber = 'R-1011219000010987654321';
     const customerId = 'qwertyuiop';
     const customer = {
       payment: {
@@ -410,14 +461,14 @@ describe('updateCustomer', () => {
       .chain('lean')
       .once()
       .returns(customer);
-    const mandate = '1234567890';
-    generateRum.returns(mandate);
+    getRumNumberStub.returns(rumNumber);
+    formatRumNumberStub.returns(formattedRumNumber);
     const customerResult = {
       payment: {
         bankAccountNumber: '',
         iban: 'FR8312739000501844178231W37',
         bic: '',
-        mandates: [mandate],
+        mandates: [formattedRumNumber],
       },
     };
     CustomerMock.expects('findOneAndUpdate')
@@ -425,7 +476,7 @@ describe('updateCustomer', () => {
         { _id: customerId },
         {
           $set: flat(payload, { safe: true }),
-          $push: { 'payment.mandates': { rum: mandate } },
+          $push: { 'payment.mandates': { rum: formattedRumNumber } },
           $unset: { 'payment.bic': '' },
         },
         { new: true }
@@ -434,12 +485,23 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
+    expect(result).toBe(customerResult);
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
-    sinon.assert.calledOnce(generateRum);
-    expect(result).toBe(customerResult);
+    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
+    sinon.assert.calledWithExactly(
+      formatRumNumberStub,
+      credentials.company.prefixNumber,
+      rumNumber.prefix,
+      1
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { prefix: rumNumber.prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
   });
 
   it('shouldn\'t generate a new mandate (update bic)', async () => {
@@ -480,11 +542,13 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -523,11 +587,13 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -560,11 +626,13 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -599,7 +667,7 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     sinon.assert.calledWithExactly(
       updateMany,
@@ -611,7 +679,9 @@ describe('updateCustomer', () => {
       { new: true }
     );
     CustomerMock.verify();
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -646,7 +716,7 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     sinon.assert.calledWithExactly(
       updateMany,
@@ -658,7 +728,9 @@ describe('updateCustomer', () => {
       { new: true }
     );
     CustomerMock.verify();
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -693,11 +765,13 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
     sinon.assert.notCalled(updateMany);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -735,7 +809,7 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     sinon.assert.calledWithExactly(
       updateMany,
@@ -747,7 +821,9 @@ describe('updateCustomer', () => {
       { new: true }
     );
     CustomerMock.verify();
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 
@@ -769,53 +845,70 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(getRumNumberStub);
+    sinon.assert.notCalled(formatRumNumberStub);
     sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(updateOne);
     expect(result).toBe(customerResult);
   });
 });
 
 describe('createCustomer', () => {
-  let generateRum;
+  let getRumNumberStub;
+  let formatRumNumberStub;
   let createFolder;
   let create;
+  let updateOne;
   let CompanyMock;
   beforeEach(() => {
-    generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    getRumNumberStub = sinon.stub(CustomerHelper, 'getRumNumber');
+    formatRumNumberStub = sinon.stub(CustomerHelper, 'formatRumNumber');
     createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
     create = sinon.stub(Customer, 'create');
+    updateOne = sinon.stub(Rum, 'updateOne');
     CompanyMock = sinon.mock(Company);
   });
   afterEach(() => {
-    generateRum.restore();
+    getRumNumberStub.restore();
+    formatRumNumberStub.restore();
     createFolder.restore();
     create.restore();
+    updateOne.restore();
     CompanyMock.restore();
   });
 
   it('should create customer and drive folder', async () => {
-    const credentials = { company: { _id: '1234567890' } };
+    const rumNumber = { prefix: '1219', seq: 1 };
+    const formattedRumNumber = 'R-1011219000010987654321';
+    const credentials = { company: { _id: '0987654321', prefixNumber: 101, customersFolderId: '12345' } };
     const payload = { identity: { lastname: 'Bear', firstname: 'Teddy' } };
-    generateRum.returns('poiuytrewq');
+    getRumNumberStub.returns(rumNumber);
+    formatRumNumberStub.returns(formattedRumNumber);
     createFolder.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
     create.returnsArg(0);
-    CompanyMock.expects('findOne')
-      .withExactArgs({ _id: '1234567890' })
-      .chain('lean')
-      .once()
-      .returns({ _id: '1234567890', customersFolderId: 'qwertyuiop' });
 
     const result = await CustomerHelper.createCustomer(payload, credentials);
 
     expect(result.identity.lastname).toEqual('Bear');
-    expect(result.payment.mandates[0].rum).toEqual('poiuytrewq');
+    expect(result.payment.mandates[0].rum).toEqual(formattedRumNumber);
     expect(result.driveFolder.link).toEqual('http://qwertyuiop');
     expect(result.driveFolder.driveId).toEqual('1234567890');
-    sinon.assert.calledOnce(generateRum);
-    sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, 'qwertyuiop');
+    sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, '12345');
+    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
+    sinon.assert.calledWithExactly(
+      formatRumNumberStub,
+      credentials.company.prefixNumber,
+      rumNumber.prefix,
+      1
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { prefix: rumNumber.prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
     CompanyMock.verify();
   });
 });

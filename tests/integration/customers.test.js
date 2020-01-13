@@ -3,6 +3,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
+const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
@@ -74,7 +75,7 @@ describe('CUSTOMERS ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toMatchObject({
+      expect(pick(res.result.data.customer.toObject(), ['company', 'identity', 'contact'])).toMatchObject({
         company: authCompany._id,
         identity: { lastname: payload.identity.lastname },
         contact: {
@@ -82,6 +83,8 @@ describe('CUSTOMERS ROUTES', () => {
             street: payload.contact.primaryAddress.street,
             zipCode: payload.contact.primaryAddress.zipCode,
             city: payload.contact.primaryAddress.city,
+            fullAddress: payload.contact.primaryAddress.fullAddress,
+            location: payload.contact.primaryAddress.location,
           },
         },
       });
@@ -109,9 +112,7 @@ describe('CUSTOMERS ROUTES', () => {
           method: 'POST',
           url: '/customers',
           payload: omit(cloneDeep(payload), paramPath),
-          headers: {
-            'x-access-token': adminToken,
-          },
+          headers: { 'x-access-token': adminToken },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -1317,7 +1318,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.customer.quotes).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customersList[1]._id);
-      expect(res.result.data.customer.quotes[0].quoteNumber).toEqual(expect.any(String));
+      expect(res.result.data.customer.quotes[0].quoteNumber).toEqual(`DEV-101${moment().format('MMYY')}00001`);
       expect(res.result.data.customer.quotes[0].subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),

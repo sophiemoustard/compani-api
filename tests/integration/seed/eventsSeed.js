@@ -10,6 +10,7 @@ const Service = require('../../../src/models/Service');
 const EventHistory = require('../../../src/models/EventHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 const { EVERY_WEEK, NEVER, COMPANY_CONTRACT, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
@@ -65,8 +66,14 @@ const eventAuxiliary = {
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
+  company: authCompany._id,
+};
+
+const sectorHistory = {
+  auxiliary: auxiliaryId,
   sector: sectors[0]._id,
   company: authCompany._id,
+  startDate: '2018-12-10',
 };
 
 const auxiliaryFromOtherCompany = {
@@ -76,8 +83,14 @@ const auxiliaryFromOtherCompany = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
-  sector: sectors[0]._id,
   company: otherCompany._id,
+};
+
+const sectorHistoryFromOtherCompany = {
+  auxiliary: auxiliaryId,
+  sector: sectors[2]._id,
+  company: otherCompany._id,
+  startDate: '2018-12-10',
 };
 
 const thirdPartyPayer = {
@@ -128,9 +141,11 @@ const customerAuxiliary = {
   ],
   contact: {
     primaryAddress: {
+      street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -145,9 +160,11 @@ const customerFromOtherCompany = {
   ],
   contact: {
     primaryAddress: {
+      street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -164,7 +181,12 @@ const helpersCustomer = {
 };
 
 const repetitionParentId = new ObjectID();
-const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK }, company: authCompany._id }];
+const repetitions = [{
+  _id: new ObjectID(),
+  parentId: repetitionParentId,
+  repetition: { frequency: EVERY_WEEK },
+  company: authCompany._id,
+}];
 
 const eventsList = [
   {
@@ -209,6 +231,13 @@ const eventsList = [
     customer: customerAuxiliary._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -223,6 +252,13 @@ const eventsList = [
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -238,6 +274,13 @@ const eventsList = [
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: true,
     repetition: { frequency: NEVER },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
     bills: {
       thirdPartyPayer: thirdPartyPayer._id,
       inclTaxesCustomer: 20,
@@ -263,6 +306,13 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: true,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
     bills: {
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
@@ -299,6 +349,13 @@ const eventsList = [
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
     },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -317,6 +374,13 @@ const eventsList = [
     bills: {
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
   {
@@ -337,6 +401,13 @@ const eventsList = [
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
     },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -352,6 +423,7 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Repetition.deleteMany({});
   await InternalHour.deleteMany({});
 
@@ -360,6 +432,7 @@ const populateDB = async () => {
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
+  await SectorHistory.insertMany([sectorHistory, sectorHistoryFromOtherCompany]);
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();

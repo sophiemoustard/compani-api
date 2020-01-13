@@ -86,9 +86,14 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find({ company: authCompany });
-      expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
-      expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
+      const creditNotes = await CreditNote.find({ company: authCompany }).lean();
+      const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
+      expect(cnWithlinkedCreditNotes).toBeDefined();
+      expect(cnWithlinkedCreditNotes.length).toEqual(2);
+      expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
+        expect.objectContaining({ number: 'AV-101071900001' }),
+        expect.objectContaining({ number: 'AV-101071900002' }),
+      ]));
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
@@ -107,9 +112,14 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find({ company: authCompany });
-      expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
-      expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
+      const creditNotes = await CreditNote.find({ company: authCompany }).lean();
+      const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
+      expect(cnWithlinkedCreditNotes).toBeDefined();
+      expect(cnWithlinkedCreditNotes.length).toEqual(2);
+      expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
+        expect.objectContaining({ number: 'AV-101071900001' }),
+        expect.objectContaining({ number: 'AV-101071900002' }),
+      ]));
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
@@ -123,7 +133,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find({ company: authCompany._id });
+      const creditNotes = await CreditNote.find({ company: authCompany._id }).lean();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });
 
@@ -137,7 +147,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find({ company: authCompany._id });
+      const creditNotes = await CreditNote.find({ company: authCompany._id }).lean();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });
 

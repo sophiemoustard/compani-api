@@ -12,7 +12,7 @@ const { encode } = require('../helpers/authentication');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
-const { getUsersList, createAndSaveFile, getUser } = require('../helpers/users');
+const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser } = require('../helpers/users');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
@@ -21,7 +21,8 @@ const { language } = translate;
 
 const authenticate = async (req) => {
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() });
+    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() })
+      .lean({ autopopulate: true });
     if (!alenviUser) return Boom.notFound();
 
     if (!alenviUser.refreshToken) return Boom.forbidden();
@@ -84,6 +85,20 @@ const list = async (req) => {
   }
 };
 
+const listWithSectorHistories = async (req) => {
+  try {
+    const users = await getUsersListWithSectorHistories(req.auth.credentials);
+
+    return {
+      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
+      data: { users },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const activeList = async (req) => {
   try {
     const users = await getUsersList(req.query, req.auth.credentials);
@@ -101,7 +116,7 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    const user = await getUser(req.params._id);
+    const user = await getUser(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].userFound,
@@ -115,7 +130,7 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userUpdated,
@@ -134,7 +149,7 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userUpdated,
@@ -183,7 +198,7 @@ const getUserTasks = async (req) => {
     const user = await User.findOne(
       { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
-    ).populate({ path: 'procedure.task', select: 'name _id' });
+    ).populate({ path: 'procedure.task', select: 'name _id' }).lean();
 
     if (!user) return Boom.notFound();
 
@@ -202,7 +217,7 @@ const getUserTasks = async (req) => {
 
 const refreshToken = async (req) => {
   try {
-    const user = await User.findOne({ refreshToken: req.payload.refreshToken });
+    const user = await User.findOne({ refreshToken: req.payload.refreshToken }).lean();
     if (!user) return Boom.notFound(translate[language].refreshTokenNotFound);
 
     const payload = { _id: user._id, role: user.role.name };
@@ -359,6 +374,7 @@ module.exports = {
   authenticate,
   create,
   list,
+  listWithSectorHistories,
   activeList,
   show,
   update,

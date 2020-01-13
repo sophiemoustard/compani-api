@@ -51,7 +51,7 @@ const EventHistorySchema = mongoose.Schema({
     auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     absence: { type: String, enum: ABSENCE_TYPES },
     internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
-    address: addressSchemaDefinition,
+    address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
     misc: { type: String },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },

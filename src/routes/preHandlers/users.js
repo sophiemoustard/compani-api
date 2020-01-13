@@ -4,6 +4,7 @@ const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
+const { SUPER_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -35,13 +36,22 @@ exports.authorizeUserUpdate = async (req) => {
   throw Boom.forbidden();
 };
 
-exports.authorizeUserCreation = (req) => {
+exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
-  const customerId = req.payload.customer;
-  if (!customerId) return null;
 
-  const customer = Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) }).lean();
-  if (!customer) throw Boom.forbidden();
+  if (req.payload.customers && req.payload.customers.length) {
+    const { customers } = req.payload;
+    const customersCount = await Customer.countDocuments({
+      _id: { $in: customers },
+      company: get(credentials, 'company._id', null),
+    });
+    if (customersCount !== customers.length) throw Boom.forbidden();
+  }
+
+  if (req.payload.company && !credentials.scope.includes(SUPER_ADMIN)) {
+    throw Boom.forbidden();
+  }
+
   return null;
 };
 

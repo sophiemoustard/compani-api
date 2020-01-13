@@ -239,8 +239,12 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const paidEvent = {
         ...sortedEvents[i],
-        startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate) ? sortedEvents[i].startDate : query.startDate,
-        endDate: moment(sortedEvents[i].endDate).isSameOrBefore(query.endDate) ? sortedEvents[i].endDate : query.endDate,
+        startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate)
+          ? sortedEvents[i].startDate
+          : query.startDate,
+        endDate: moment(sortedEvents[i].endDate).isSameOrBefore(query.endDate)
+          ? sortedEvents[i].endDate
+          : query.endDate,
         auxiliary,
       };
 

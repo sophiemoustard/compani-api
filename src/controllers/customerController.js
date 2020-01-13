@@ -149,7 +149,7 @@ const remove = async (req) => {
 
 const update = async (req) => {
   try {
-    const customer = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    const customer = await CustomerHelper.updateCustomer(req.params._id, req.payload, req.auth.credentials);
     if (!customer) Boom.notFound(translate[language].customerNotFound);
 
     return {
@@ -266,7 +266,7 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const customer = await QuoteHelper.createQuote(req.params._id, req.payload);
+    const customer = await QuoteHelper.createQuote(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].customerQuoteAdded,

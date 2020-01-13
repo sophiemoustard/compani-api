@@ -7,18 +7,35 @@ const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const {
+  COMPANY_CONTRACT,
+  HOURLY,
+  MONTHLY,
+  ONCE,
+  FIXED,
+  INVOICED_AND_PAID,
+  INVOICED_AND_NOT_PAID,
+  CUSTOMER_INITIATIVE,
+} = require('../../../src/helpers/constants');
 
 const sectorList = [
   {
     _id: new ObjectID(),
+    name: 'Vénus',
     company: authCompany._id,
   },
   {
     _id: new ObjectID(),
+    name: 'Neptune',
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Mars',
     company: otherCompany._id,
   },
 ];
@@ -43,12 +60,49 @@ const userList = [
     local: { email: 'white@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
     inactivityDate: null,
-    sector: sectorList[0]._id,
     contracts: [contractList[0]._id],
     company: authCompany._id,
     refreshToken: uuidv4(),
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Black' },
+    local: { email: 'black@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    inactivityDate: '2019-01-01T23:59:59',
+    company: authCompany._id,
+    refreshToken: uuidv4(),
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Black' },
+    local: { email: 'blue@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    inactivityDate: '2019-01-01T23:59:59',
+    company: otherCompany._id,
+    refreshToken: uuidv4(),
+  },
 ];
+
+const sectorHistoryList = [{
+  auxiliary: userList[0]._id,
+  sector: sectorList[0]._id,
+  company: authCompany._id,
+  startDate: '2019-05-12T23:00:00.000+00:00',
+  endDate: '2019-11-10T22:59:00.000+00:00',
+},
+{
+  auxiliary: userList[0]._id,
+  sector: sectorList[1]._id,
+  company: authCompany._id,
+  startDate: '2019-11-11T23:00:00.000+00:00',
+},
+{
+  auxiliary: userList[1]._id,
+  sector: sectorList[0]._id,
+  company: authCompany._id,
+  startDate: '2019-05-12T23:00:00.000+00:00',
+}];
 
 const serviceList = [{
   _id: new ObjectID(),
@@ -132,6 +186,27 @@ const customerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: serviceList[0]._id,
+    }],
+    identity: { lastname: 'test' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -147,6 +222,8 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -164,6 +241,13 @@ const eventListForFollowUp = [
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
     endDate: '2019-07-01T09:00:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -176,6 +260,70 @@ const eventListForFollowUp = [
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
     endDate: '2019-07-02T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: subscriptionId,
+    auxiliary: userList[1]._id,
+    startDate: '2019-07-02T09:00:00.000+00:00',
+    endDate: '2019-07-02T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: '2019-11-09T09:00:00.000+00:00',
+    endDate: '2019-11-09T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[1]._id,
+    sector: new ObjectID(),
+    subscription: customerList[1].subscriptions[0]._id,
+    auxiliary: userList[0]._id,
+    startDate: '2019-11-13T09:00:00.000+00:00',
+    endDate: '2019-11-13T11:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -223,6 +371,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -235,6 +390,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
     endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -247,6 +409,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
     endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -257,8 +426,18 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
+    isCancelled: true,
+    cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
+    misc: 'test',
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -269,8 +448,18 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
+    isCancelled: true,
+    cancel: { condition: INVOICED_AND_PAID, reason: CUSTOMER_INITIATIVE },
+    misc: 'test',
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
     endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
 ];
 
@@ -289,6 +478,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await Service.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
 
@@ -299,12 +489,14 @@ const populateDB = async () => {
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);
+  await SectorHistory.insertMany(sectorHistoryList);
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
 };
 
 module.exports = {
   customerList,
+  userList,
   sectorList,
   populateDB,
   populateDBWithEventsForFollowup,

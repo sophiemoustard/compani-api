@@ -59,12 +59,29 @@ exports.removeSpaces = (str) => {
   return str.split(' ').join('');
 };
 
-const roundFrenchNumber = (number) => {
-  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' });
+const roundFrenchPrice = (number) => {
+  const nf = new Intl.NumberFormat(
+    'fr-FR',
+    { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' }
+  );
   return nf.format(number);
 };
 
-exports.formatPrice = val => (val ? roundFrenchNumber(val) : roundFrenchNumber(0));
+exports.formatPrice = val => (val ? roundFrenchPrice(val) : roundFrenchPrice(0));
+
+const roundFrenchNumber = (number) => {
+  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'decimal' });
+  return nf.format(number);
+};
+
+exports.formatHour = val => (val ? `${roundFrenchNumber(val)}h` : `${roundFrenchNumber(0)}h`);
+
+const roundFrenchPercentage = (number) => {
+  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
+  return nf.format(number);
+};
+
+exports.formatPercentage = val => (val ? roundFrenchPercentage(val) : roundFrenchPercentage(0));
 
 exports.getFullTitleFromIdentity = (identity) => {
   if (!identity) return '';

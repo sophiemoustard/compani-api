@@ -38,6 +38,8 @@ const paymentCustomerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -77,6 +79,8 @@ const paymentCustomerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -108,7 +112,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REG-1903201',
+    number: 'REG-101031900201',
     date: '2019-05-26T15:47:42',
     customer: paymentCustomerList[0]._id,
     client: paymentTppList[0]._id,
@@ -119,7 +123,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REG-1903202',
+    number: 'REG-101031900202',
     date: '2019-05-24T15:47:42',
     customer: paymentCustomerList[0]._id,
     netInclTaxes: 390,
@@ -129,7 +133,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REG-1903203',
+    number: 'REMB-101031900201',
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,
     client: paymentTppList[1]._id,
@@ -137,6 +141,11 @@ const paymentsList = [
     nature: REFUND,
     type: 'direct_debit',
   },
+];
+
+const paymentNumberList = [
+  { prefix: '0319', seq: 203, nature: 'payment', company: authCompany._id },
+  { prefix: '0319', seq: 202, nature: 'refund', company: authCompany._id },
 ];
 
 const paymentUser = {
@@ -156,6 +165,7 @@ const otherCompany = {
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  prefixNumber: 103,
 };
 
 const userFromOtherCompany = {
@@ -176,6 +186,8 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -200,6 +212,7 @@ const populateDB = async () => {
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
+  await PaymentNumber.insertMany(paymentNumberList);
   await (new User(paymentUser).save());
   await (new User(userFromOtherCompany).save());
   await (new Customer(customerFromOtherCompany).save());

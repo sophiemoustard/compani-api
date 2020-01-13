@@ -1,8 +1,11 @@
 const flat = require('flat');
+const get = require('lodash/get');
 const Company = require('../models/Company');
+const Event = require('../models/Event');
 const GdriveStorageHelper = require('./gdriveStorage');
 const { addFile } = require('../helpers/gdriveStorage');
 const drive = require('../models/Google/Drive');
+const { INTERVENTION } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GdriveStorageHelper.createFolderForCompany(companyPayload.name);
@@ -10,9 +13,11 @@ exports.createCompany = async (companyPayload) => {
     GdriveStorageHelper.createFolder('direct debits', companyFolder.id),
     GdriveStorageHelper.createFolder('customers', companyFolder.id),
   ]);
+  const lastCompany = await Company.find().sort({ prefixNumber: -1 }).limit(1).lean();
 
   return Company.create({
     ...companyPayload,
+    prefixNumber: lastCompany[0].prefixNumber + 1,
     directDebitsFolderId: directDebitsFolder.id,
     folderId: companyFolder.id,
     customersFolderId: customersFolder.id,
@@ -38,4 +43,15 @@ exports.uploadFile = async (payload, params) => {
     },
   };
   return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true }).lean();
+};
+
+exports.getFirstIntervention = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const firstIntervention = await Event
+    .find({ company: companyId, type: INTERVENTION })
+    .sort({ startDate: 1 })
+    .limit(1)
+    .lean();
+
+  return firstIntervention;
 };

@@ -4,6 +4,7 @@ const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
+const get = require('lodash/get');
 
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -46,7 +47,6 @@ const UserSchema = mongoose.Schema({
     autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
     required: true,
   },
-  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: { type: String, trim: true },
     location: { type: [String], trim: true },
@@ -67,7 +67,7 @@ const UserSchema = mongoose.Schema({
     required: true,
   },
   contact: {
-    address: addressSchemaDefinition,
+    address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
     phone: String,
   },
   emergencyPhone: String,
@@ -192,22 +192,50 @@ async function populateAfterSave(doc, next) {
       .populate({
         path: 'role',
         select: '-__v -createdAt -updatedAt',
-        populate: {
-          path: 'role.right_id',
-          select: 'description permission _id',
-        },
+        populate: { path: 'role.right_id', select: 'description permission _id' },
       })
-      .populate({
-        path: 'company',
-        select: '-__v -createdAt -updatedAt',
-      })
+      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+      .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
       .execPopulate();
+
+    if (doc.sector) doc.sector = doc.sector.sector._id;
 
     return next();
   } catch (e) {
     return next(e);
   }
 }
+
+function populateSector(doc, next) {
+  if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
+
+  return next();
+}
+
+function populateSectors(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.sector) {
+      doc.sector = doc.sector.sector;
+    }
+  }
+
+  return next();
+}
+
+UserSchema.virtual('sector', {
+  ref: 'SectorHistory',
+  localField: '_id',
+  foreignField: 'auxiliary',
+  justOne: true,
+  options: { sort: { startDate: -1 } },
+});
+
+UserSchema.virtual('sectorHistories', {
+  ref: 'SectorHistory',
+  localField: '_id',
+  foreignField: 'auxiliary',
+  options: { sort: { startDate: -1 } },
+});
 
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
@@ -217,6 +245,9 @@ UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
 UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('save', populateAfterSave);
+UserSchema.post('findOne', populateSector);
+UserSchema.post('findOneAndUpdate', populateSector);
+UserSchema.post('find', populateSectors);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);

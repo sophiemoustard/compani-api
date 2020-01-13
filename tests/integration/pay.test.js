@@ -2,9 +2,9 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const {
   populateDB,
-  auxiliary1,
+  auxiliaries,
   auxiliaryFromOtherCompany,
-  sectorId,
+  sectors,
   sectorFromOtherCompany,
 } = require('./seed/paySeed');
 const app = require('../../server');
@@ -64,7 +64,7 @@ describe('PAY ROUTES - POST /pay', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [{
-    auxiliary: auxiliary1._id,
+    auxiliary: auxiliaries[0]._id,
     startDate: '2019-04-30T22:00:00',
     endDate: '2019-05-28T14:34:04',
     month: '05-2019',
@@ -191,7 +191,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -222,7 +222,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+          url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -244,12 +244,30 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should get hours to work by sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.hoursToWork).toBeDefined();
+    });
+
+    it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=122019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursToWork).toBeDefined();
+      const oldSectorResult = response.result.data.hoursToWork.find(res =>
+        res.sector.toHexString() === sectors[0]._id.toHexString());
+      const newSectorResult = response.result.data.hoursToWork.find(res =>
+        res.sector.toHexString() === sectors[1]._id.toHexString());
+
+      expect(oldSectorResult.hoursToWork).toEqual(13.5);
+      expect(newSectorResult.hoursToWork).toEqual(24);
     });
 
     it('should not get hours to work if user is not from the same company as sector', async () => {
@@ -275,7 +293,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
           headers: { 'x-access-token': authToken },
         });
 

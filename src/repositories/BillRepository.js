@@ -86,3 +86,76 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
     },
   },
 ]).option({ allCompanies: true });
+
+exports.getBillsSlipList = async companyId => Bill.aggregate([
+  { $match: { client: { $exists: true } } },
+  {
+    $group: {
+      _id: { thirdPartyPayer: '$client', year: { $year: '$date' }, month: { $month: '$date' } },
+      bills: { $push: '$$ROOT' },
+      firstBill: { $first: '$$ROOT' },
+    },
+  },
+  {
+    $addFields: {
+      netInclTaxes: {
+        $reduce: {
+          input: '$bills',
+          initialValue: 0,
+          in: { $add: ['$$value', '$$this.netInclTaxes'] },
+        },
+      },
+      month: { $substr: [{ $dateToString: { date: '$firstBill.date', format: '%d-%m-%Y' } }, 3, -1] },
+    },
+  },
+  {
+    $lookup: {
+      from: 'billslips',
+      as: 'billSlip',
+      let: { thirdPartyPayerId: '$_id.thirdPartyPayer', month: '$month' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$thirdPartyPayer', '$$thirdPartyPayerId'] }, { $eq: ['$month', '$$month'] }],
+            },
+          },
+        },
+      ],
+    },
+  },
+  { $unwind: { path: '$billSlip' } },
+  {
+    $lookup: {
+      from: 'thirdpartypayers',
+      localField: '_id.thirdPartyPayer',
+      foreignField: '_id',
+      as: 'thirdPartyPayer',
+    },
+  },
+  { $unwind: { path: '$thirdPartyPayer' } },
+  {
+    $project: {
+      _id: '$billSlip._id',
+      netInclTaxes: 1,
+      thirdPartyPayer: { _id: 1, name: 1 },
+      month: 1,
+      number: '$billSlip.number',
+    },
+  },
+]).option({ company: companyId });
+
+exports.getBillsFromBillSlip = async (billSlip, companyId) => {
+  const query = {
+    client: billSlip.thirdPartyPayer,
+    date: {
+      $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
+      $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),
+    },
+    company: companyId,
+  };
+
+  return Bill.find(query)
+    .populate({ path: 'customer', select: 'fundings identity' })
+    .lean();
+};

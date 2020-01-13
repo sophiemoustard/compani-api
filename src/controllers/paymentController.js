@@ -24,7 +24,7 @@ const create = async (req) => {
 
 const createList = async (req, h) => {
   try {
-    const [payments] = await PaymentHelper.savePayments(req.payload, req.auth.credentials);
+    const payments = await PaymentHelper.savePayments(req.payload, req.auth.credentials);
 
     return h.file(payments, { confine: false });
   } catch (e) {

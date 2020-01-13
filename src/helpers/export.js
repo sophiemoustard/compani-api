@@ -15,6 +15,7 @@ const {
   HELPER,
   AUXILIARY,
   PLANNING_REFERENT,
+  COMPANY_CONTRACT,
   END_CONTRACT_REASONS,
   SURCHARGES,
 } = require('./constants');
@@ -25,6 +26,7 @@ const Contract = require('../models/Contract');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
@@ -79,7 +81,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       moment(event.endDate).format('DD/MM/YYYY HH:mm'),
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
-      get(event.sector, 'name') || '',
+      get(event, 'sector.name') || get(event, 'auxiliary.sector.name') || '',
       CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
       get(event, 'auxiliary.identity.firstname', ''),
       get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
@@ -123,7 +125,7 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
       ABSENCE_NATURE_LIST[event.absenceNature],
       moment(event.startDate).format(datetimeFormat),
       moment(event.endDate).format(datetimeFormat),
-      get(event.sector, 'name') || '',
+      get(event, 'auxiliary.sector.name') || '',
       CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
       get(event, 'auxiliary.identity.firstname', ''),
       get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
@@ -264,6 +266,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
 
 const contractExportHeader = [
   'Type',
+  'Id de l\'auxiliaire',
   'Titre',
   'Prénom',
   'Nom',
@@ -288,6 +291,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
       if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
+          get(contract, 'user._id', ''),
           CIVILITY_LIST[identity.title] || '',
           identity.firstname || '',
           identity.lastname || '',
@@ -342,7 +346,8 @@ exports.exportCustomers = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ company: companyId })
     .populate({ path: 'subscriptions.service' })
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
+  // need the match as it is a virtual populate
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();
   const rows = [customerExportHeader];
@@ -388,6 +393,7 @@ exports.exportCustomers = async (credentials) => {
 const auxiliaryExportHeader = [
   'Email',
   'Équipe',
+  'Id de l\'auxiliaire',
   'Titre',
   'Nom',
   'Prénom',
@@ -400,44 +406,63 @@ const auxiliaryExportHeader = [
   'Addresse',
   'Téléphone',
   'Nombre de contracts',
+  'Date de début de contrat prestataire',
+  'Date de fin de contrat prestataire',
   'Date d\'inactivité',
   'Date de création',
 ];
 
+const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
+  const nationality = get(aux, 'identity.nationality');
+  const lastname = get(aux, 'identity.lastname');
+  const birthDate = get(aux, 'identity.birthDate');
+  const address = get(aux, 'contact.address.fullAddress');
+  const birthCountry = get(aux, 'identity.birthCountry');
+  const { inactivityDate, createdAt } = aux;
+
+  return [
+    get(aux, 'local.email') || '',
+    get(aux, 'sector.name') || '',
+    aux._id,
+    CIVILITY_LIST[get(aux, 'identity.title')] || '',
+    lastname ? lastname.toUpperCase() : '',
+    get(aux, 'identity.firstname') || '',
+    birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+    countries[birthCountry] || '',
+    get(aux, 'identity.birthState') || '',
+    get(aux, 'identity.birthCity') || '',
+    nationality ? nationalities[nationality] : '',
+    get(aux, 'identity.socialSecurityNumber') || '',
+    address || '',
+    get(aux, 'contact.phone') || '',
+    contractsLength,
+    get(contract, 'startDate', null) ? moment(contract.startDate).format('DD/MM/YYYY') : '',
+    get(contract, 'endDate', null) ? moment(contract.endDate).format('DD/MM/YYYY') : '',
+    inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
+    createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+  ];
+};
+
 exports.exportAuxiliaries = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ role: { $in: roleIds }, company: get(credentials, 'company._id', null) })
-    .populate('sector');
+    .find({ role: { $in: roleIds }, company: companyId })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+    .lean({ autopopulate: true, virtuals: true });
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
-    const nationality = get(aux, 'identity.nationality');
-    const lastname = get(aux, 'identity.lastname');
-    const birthDate = get(aux, 'identity.birthDate');
-    const address = get(aux, 'contact.address.fullAddress');
-    const birthCountry = get(aux, 'identity.birthCountry');
-    const { contracts, inactivityDate, createdAt } = aux;
-
-    data.push([
-      get(aux, 'local.email') || '',
-      get(aux, 'sector.name') || '',
-      CIVILITY_LIST[get(aux, 'identity.title')] || '',
-      lastname ? lastname.toUpperCase() : '',
-      get(aux, 'identity.firstname') || '',
-      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-      countries[birthCountry] || '',
-      get(aux, 'identity.birthState') || '',
-      get(aux, 'identity.birthCity') || '',
-      nationality ? nationalities[nationality] : '',
-      get(aux, 'identity.socialSecurityNumber') || '',
-      address || '',
-      get(aux, 'contact.phone') || '',
-      contracts ? contracts.length : 0,
-      inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
-      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
-    ]);
+    const { contracts } = aux;
+    if (contracts && contracts.length) {
+      for (const contract of contracts) {
+        data.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+      }
+    } else {
+      data.push(getDataForAuxiliariesExport(aux, 0));
+    }
   }
 
   return data;
@@ -486,6 +511,38 @@ exports.exportHelpers = async (credentials) => {
       get(customer, 'contact.primaryAddress.city', ''),
       status,
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
+    ]);
+  }
+
+  return data;
+};
+
+const sectorExportHeader = [
+  'Equipe',
+  'Id de l\'auxiliaire',
+  'Nom',
+  'Prénom',
+  'Date d\'arrivée dans l\'équipe',
+  'Date de départ de l\'équipe',
+];
+
+exports.exportSectors = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectorHistories = await SectorHistory
+    .find({ company: companyId })
+    .populate({ path: 'sector', select: '_id name' })
+    .populate({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
+    .lean();
+  const data = [sectorExportHeader];
+
+  for (const sectorHistory of sectorHistories) {
+    data.push([
+      get(sectorHistory, 'sector.name', null) || '',
+      get(sectorHistory, 'auxiliary._id', null) || '',
+      get(sectorHistory, 'auxiliary.identity.lastname', null) || '',
+      get(sectorHistory, 'auxiliary.identity.firstname', null) || '',
+      moment(sectorHistory.startDate).format('DD/MM/YYYY'),
+      sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
     ]);
   }
 
@@ -582,18 +639,24 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      populate: [
+        { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } },
+        { path: 'contracts' },
+      ],
     })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
 
   const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      populate: [
+        { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } },
+        { path: 'contracts' },
+      ],
     })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
 
   const rows = [payExportHeader];
   const paysAndFinalPay = [...pays, ...finalPays];

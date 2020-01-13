@@ -1,9 +1,11 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
+const momentRange = require('moment-range');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -18,6 +20,8 @@ const {
 
 require('sinon-mongoose');
 
+momentRange.extendMoment(moment);
+
 describe('formatRepeatedPayload', () => {
   let hasConflicts;
   beforeEach(() => {
@@ -28,6 +32,7 @@ describe('formatRepeatedPayload', () => {
   });
 
   it('should format event with auxiliary', async () => {
+    const sector = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const auxiliaryId = new ObjectID();
     const event = {
@@ -43,7 +48,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(false);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
@@ -53,6 +58,7 @@ describe('formatRepeatedPayload', () => {
   });
 
   it('should format intervention without auxiliary', async () => {
+    const sector = new ObjectID();
     const auxiliaryId = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
@@ -69,17 +75,19 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(true);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
     expect(result.auxiliary).not.toBeDefined();
+    expect(result.sector).toEqual(sector);
     expect(result.repetition.frequency).toEqual('never');
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should format internal hour with auxiliary', async () => {
+    const sector = new ObjectID();
     const auxiliaryId = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
@@ -96,19 +104,22 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(false);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeDefined();
+    expect(result.sector).not.toBeDefined();
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should not called hasConflicts if event is not affected', async () => {
+    const sector = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       startDate: moment('2019-07-14').startOf('d'),
       endDate: moment('2019-07-15').startOf('d'),
       type: 'intervention',
+      sector: sector.toHexString(),
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
@@ -117,13 +128,15 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(false);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
+    expect(result.sector).toEqual(sector);
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should return null if event has conflict', async () => {
+    const sector = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       startDate: moment('2019-07-14').startOf('d'),
@@ -136,7 +149,7 @@ describe('formatRepeatedPayload', () => {
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
@@ -144,6 +157,7 @@ describe('formatRepeatedPayload', () => {
   });
 
   it('should return null if event is an internal hour and auxiliary has conflict', async () => {
+    const sector = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       _id: new ObjectID(),
@@ -158,13 +172,14 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(true);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeNull();
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should return null if event is an unavailability and auxiliary has conflict', async () => {
+    const sector = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       _id: new ObjectID(),
@@ -179,7 +194,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(true);
-    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeNull();
     sinon.assert.calledWithExactly(hasConflicts, payload);
@@ -199,9 +214,10 @@ describe('createRepetitionsEveryDay', () => {
   });
 
   it('should create repetition every day', async () => {
+    const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00' };
     formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
-    await EventsRepetitionHelper.createRepetitionsEveryDay(event);
+    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
 
     sinon.assert.callCount(formatRepeatedPayload, 90);
     sinon.assert.callCount(insertMany, 1);
@@ -221,9 +237,10 @@ describe('createRepetitionsEveryWeekDay', () => {
   });
 
   it('should create repetition every day', async () => {
+    const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
     formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
-    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event);
+    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
 
     sinon.assert.callCount(formatRepeatedPayload, 64);
     sinon.assert.callCount(insertMany, 1);
@@ -242,140 +259,230 @@ describe('createRepetitionsByWeek', () => {
     insertMany.restore();
   });
 
-  it('should create repetition every day', async () => {
+  it('should create repetition every week', async () => {
+    const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
     formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
-    await EventsRepetitionHelper.createRepetitionsByWeek(event);
+    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
 
-    sinon.assert.callCount(formatRepeatedPayload, 13);
+    sinon.assert.callCount(formatRepeatedPayload, 12);
     sinon.assert.callCount(insertMany, 1);
   });
 });
 
 describe('createRepetitions', () => {
-  let findOneAndUpdate;
+  let updateOne;
   let createRepetitionsEveryDay;
   let createRepetitionsEveryWeekDay;
   let createRepetitionsByWeek;
   let saveRepetition;
+  let UserMock;
   beforeEach(() => {
-    findOneAndUpdate = sinon.stub(Event, 'findOneAndUpdate');
+    updateOne = sinon.stub(Event, 'updateOne');
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     createRepetitionsEveryWeekDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryWeekDay');
     createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
     saveRepetition = sinon.stub(Repetition.prototype, 'save');
+    UserMock = sinon.mock(User);
   });
   afterEach(() => {
-    findOneAndUpdate.restore();
+    updateOne.restore();
     createRepetitionsEveryDay.restore();
     createRepetitionsEveryWeekDay.restore();
     createRepetitionsByWeek.restore();
     saveRepetition.restore();
+    UserMock.restore();
   });
 
-  it('should call createRepetitionsEveryDay', async () => {
+  it('should call updateOne', async () => {
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectID() });
+    const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectID(), auxiliary: auxiliaryId });
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs('sector')
+      .chain('lean')
+      .once()
+      .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
-    sinon.assert.called(findOneAndUpdate);
+    sinon.assert.called(updateOne);
     sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsEveryDay', async () => {
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    const event = new Event({ company: new ObjectID() });
+    const event = new Event({ company: new ObjectID(), auxiliary: auxiliaryId });
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs('sector')
+      .chain('lean')
+      .once()
+      .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
+
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
-    sinon.assert.notCalled(findOneAndUpdate);
+    sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryDay);
+    sinon.assert.calledWithExactly(createRepetitionsEveryDay, payload, sectorId);
     sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsEveryWeekDay', async () => {
+    const sectorId = new ObjectID();
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
-    const event = new Event({ company: new ObjectID() });
+    const event = new Event({ company: new ObjectID(), sector: sectorId });
+    UserMock.expects('findOne').never();
+
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
-    sinon.assert.notCalled(findOneAndUpdate);
+    sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryWeekDay);
+    sinon.assert.calledWithExactly(createRepetitionsEveryWeekDay, payload, sectorId);
     sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsByWeek to repeat every week', async () => {
+    const sectorId = new ObjectID();
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
-    const event = new Event({ company: new ObjectID() });
+    const event = new Event({ company: new ObjectID(), sector: sectorId });
+    UserMock.expects('findOne').never();
+
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
-    sinon.assert.notCalled(findOneAndUpdate);
-    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, 1);
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 1);
     sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
+    const sectorId = new ObjectID();
     const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
-    const event = new Event({ company: new ObjectID() });
+    const event = new Event({ company: new ObjectID(), sector: sectorId });
+    UserMock.expects('findOne').never();
+
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
-    sinon.assert.notCalled(findOneAndUpdate);
-    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, 2);
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 2);
     sinon.assert.called(saveRepetition);
   });
 });
 
 describe('updateRepetition', () => {
   let hasConflicts;
-  let findEvent;
+  let EventMock;
   let findOneAndUpdateEvent;
   let updateRepetitions;
+  let UserMock;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    findEvent = sinon.stub(Event, 'find');
-    findOneAndUpdateEvent = sinon.stub(Event, 'findOneAndUpdate');
+    EventMock = sinon.mock(Event);
+    findOneAndUpdateEvent = sinon.stub(Event, 'updateOne');
     updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
+    UserMock = sinon.mock(User);
   });
   afterEach(() => {
     hasConflicts.restore();
-    findEvent.restore();
+    EventMock.restore();
     findOneAndUpdateEvent.restore();
     updateRepetitions.restore();
+    UserMock.restore();
   });
 
   it('should update repetition', async () => {
-    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', type: INTERVENTION };
-    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
-    const events = [
-      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', _id: 'asdfghjk' },
-      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },
-      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-25T09:00:00.000Z', endDate: '2019-03-25T11:00:00.000Z', _id: '654321' },
-    ];
-    findEvent.returns(events);
-    hasConflicts.returns(false);
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
+    const event = {
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00.000Z',
+      type: INTERVENTION,
+      sector: new ObjectID(),
+    };
     const credentials = { company: { _id: new ObjectID() } };
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      findEvent,
+    const payload = {
+      startDate: '2019-03-23T10:00:00.000Z',
+      endDate: '2019-03-23T11:00:00.000Z',
+      auxiliary: '1234567890',
+    };
+    const events = [
       {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-23T09:00:00.000Z',
+        endDate: '2019-03-23T11:00:00.000Z',
+        _id: 'asdfghjk',
+      },
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T09:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        _id: '123456',
+      },
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-25T09:00:00.000Z',
+        endDate: '2019-03-25T11:00:00.000Z',
+        _id: '654321',
+      },
+    ];
+    UserMock.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns({ sector: { _id: sectorId }, _id: auxiliaryId });
+    EventMock.expects('find')
+      .withExactArgs({
         'repetition.parentId': 'qwertyuiop',
         'repetition.frequency': { $not: { $eq: 'never' } },
         startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
         company: credentials.company._id,
-      }
-    );
+      })
+      .chain('lean')
+      .returns(events);
+    hasConflicts.returns(false);
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
+
     sinon.assert.calledThrice(hasConflicts);
     sinon.assert.calledThrice(findOneAndUpdateEvent);
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
   });
 
   it('should unassign intervention in conflict', async () => {
-    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', type: INTERVENTION };
-    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
+    const event = {
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00.000Z',
+      type: INTERVENTION,
+      auxiliary: auxiliaryId,
+    };
+    const payload = {
+      startDate: '2019-03-23T10:00:00.000Z',
+      endDate: '2019-03-23T11:00:00.000Z',
+      auxiliary: '1234567890',
+    };
     const events = [
-      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T09:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        _id: '123456',
+      },
     ];
-    findEvent.returns(events);
+    EventMock.expects('find')
+      .chain('lean')
+      .returns(events);
     hasConflicts.returns(true);
+    UserMock.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns({ sector: { _id: sectorId }, _id: auxiliaryId });
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -392,7 +499,16 @@ describe('updateRepetition', () => {
     sinon.assert.calledWithExactly(
       findOneAndUpdateEvent,
       { _id: '123456' },
-      { $set: { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }, $unset: { auxiliary: '', repetition: '' } }
+      {
+        $set: {
+          _id: '123456',
+          startDate: '2019-03-24T10:00:00.000Z',
+          endDate: '2019-03-24T11:00:00.000Z',
+          sector: sectorId,
+          'repetition.frequency': 'never',
+        },
+        $unset: { auxiliary: '' },
+      }
     );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
   });

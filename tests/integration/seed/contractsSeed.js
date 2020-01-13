@@ -4,6 +4,8 @@ const { DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
@@ -22,6 +24,8 @@ const contractCustomer = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0123456789',
   },
@@ -58,7 +62,10 @@ const otherCompanyContractUser = {
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: otherCompany._id,
+  prefixNumber: 103,
 };
+
+const sector = { _id: new ObjectID(), company: authCompany._id };
 
 const contractUsers = [{
   _id: new ObjectID(),
@@ -67,9 +74,10 @@ const contractUsers = [{
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: rolesList[0]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
+  sector: sector._id,
 },
 {
   _id: new ObjectID(),
@@ -78,10 +86,18 @@ const contractUsers = [{
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: rolesList[0]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
+  sector: sector._id,
 }];
+
+const sectorHistories = contractUsers.map(user => ({
+  auxiliary: user._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+}));
 
 const otherCompanyContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
@@ -124,6 +140,8 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -234,10 +252,7 @@ const contractEvents = [
     auxiliary: contractUsers[0]._id,
     customer: contractCustomer._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    internalHour: {
-      _id: new ObjectID(),
-      name: 'Formation',
-    },
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
   },
   {
     _id: new ObjectID(),
@@ -263,6 +278,13 @@ const contractEvents = [
     customer: contractCustomer._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: contractCustomer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -276,6 +298,13 @@ const contractEvents = [
     customer: contractCustomer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: contractCustomer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -284,13 +313,17 @@ const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Event.deleteMany({});
+  await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
+  await new Sector(sector).save();
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
+  await SectorHistory.insertMany(sectorHistories);
 };
 
 module.exports = {

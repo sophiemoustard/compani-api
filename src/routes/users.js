@@ -7,6 +7,7 @@ const {
   authenticate,
   create,
   list,
+  listWithSectorHistories,
   activeList,
   show,
   update,
@@ -65,6 +66,7 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
+            company: Joi.objectId(),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
@@ -87,9 +89,9 @@ exports.plugin = {
                 city: Joi.string().required(),
                 fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().length(2).required(),
+                }).required(),
               }),
             }),
             administrative: Joi.object().keys({
@@ -120,6 +122,15 @@ exports.plugin = {
         pre: [{ method: authorizeUserGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/sector-histories',
+      options: {
+        auth: { scope: ['users:list'] },
+      },
+      handler: listWithSectorHistories,
     });
 
     server.route({
@@ -192,11 +203,11 @@ exports.plugin = {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
-                fullAddress: Joi.string(),
+                fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().length(2).required(),
+                }).required(),
               }),
             }),
             administrative: Joi.object().keys({

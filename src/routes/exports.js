@@ -17,6 +17,7 @@ const {
   ABSENCE,
   PAY,
   CONTRACT,
+  SECTOR,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -28,7 +29,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION),
+            type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR),
           },
         },
         auth: { scope: ['exports:read'] },

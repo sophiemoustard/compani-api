@@ -16,10 +16,29 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
   { $unwind: { path: '$auxiliary' } },
   {
     $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
+      from: 'sectorhistories',
       as: 'auxiliary.sector',
+      let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                { $eq: ['$company', '$$companyId'] },
+                { $lte: ['$startDate', end] },
+              ],
+            },
+          },
+        },
+        { $sort: { startDate: -1 } },
+        { $limit: 1 },
+        {
+          $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
+        },
+        { $unwind: { path: '$lastSector' } },
+        { $replaceRoot: { newRoot: '$lastSector' } },
+      ],
     },
   },
   { $unwind: { path: '$auxiliary.sector' } },
@@ -30,7 +49,10 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
       sector: '$auxiliary.sector',
       contracts: '$contracts',
       contact: '$auxiliary.contact',
-      administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
+      administrative: {
+        mutualFund: '$auxiliary.administrative.mutualFund',
+        transportInvoice: '$auxiliary.administrative.transportInvoice',
+      },
     },
   },
   {

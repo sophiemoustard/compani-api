@@ -330,8 +330,8 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('GET /events/working-stats', () => {
-    const startDate = moment('2019-01-18');
-    const endDate = moment('2019-01-20');
+    const startDate = moment('2019-01-18').toDate();
+    const endDate = moment('2019-01-20').toDate();
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -341,7 +341,7 @@ describe('EVENTS ROUTES', () => {
       it('should return working stats for an auxiliary', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -352,7 +352,7 @@ describe('EVENTS ROUTES', () => {
       it('should return working stats for auxiliaries', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -362,7 +362,7 @@ describe('EVENTS ROUTES', () => {
       it('should return working stats for all auxiliaries', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          url: `/events/working-stats?startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -372,7 +372,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if auxiliary is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate}
+            &endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -395,7 +396,7 @@ describe('EVENTS ROUTES', () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+            url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -412,20 +413,19 @@ describe('EVENTS ROUTES', () => {
         authToken = await getToken('admin');
       });
       it('should create an internal hour', async () => {
-        const auxiliary = eventAuxiliary;
         const payload = {
           type: INTERNAL_HOUR,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: auxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
+          auxiliary: eventAuxiliary._id.toHexString(),
+          internalHour: internalHour._id,
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
             zipCode: '92160',
             city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
           },
-          internalHour: internalHour._id,
         };
 
         const response = await app.inject({
@@ -439,18 +439,51 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.event).toBeDefined();
       });
 
-      it('should create an intervention', async () => {
-        const auxiliary = eventAuxiliary;
-        const customer = customerAuxiliary;
+      it('should create an intervention with auxiliary', async () => {
         const payload = {
           type: INTERVENTION,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: auxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
-          customer: customer._id.toHexString(),
-          subscription: customer.subscriptions[0]._id.toHexString(),
+          auxiliary: eventAuxiliary._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.event).toBeDefined();
+      });
+
+      it('should create an intervention with sector', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          sector: sectors[0]._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -471,13 +504,9 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
           absence: ILLNESS,
           absenceNature: DAILY,
-          attachment: {
-            driveId: 'qwertyuiop',
-            link: 'asdfghjkl;',
-          },
+          attachment: { driveId: 'qwertyuiop', link: 'asdfghjkl;' },
         };
 
         const response = await app.inject({
@@ -498,7 +527,6 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id,
-          sector: sectors[0]._id,
         };
 
         const response = await app.inject({
@@ -512,19 +540,148 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.event).toBeDefined();
       });
 
-      it('should return a 400 error as payload is invalid (subscription missing with type intervention)', async () => {
+      const baseInterventionPayload = {
+        type: INTERVENTION,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        customer: customerAuxiliary._id.toHexString(),
+        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        status: 'contract_with_company',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
+      };
+      const interventionMissingParams = [
+        { payload: { ...omit(baseInterventionPayload, 'address') }, reason: 'missing address' },
+        { payload: { ...omit(baseInterventionPayload, 'address.fullAddress') }, reason: 'missing address.fullAddress' },
+        { payload: { ...omit(baseInterventionPayload, 'address.street') }, reason: 'missing address.street' },
+        { payload: { ...omit(baseInterventionPayload, 'address.zipCode') }, reason: 'missing address.zipCode' },
+        { payload: { ...omit(baseInterventionPayload, 'address.city') }, reason: 'missing address.city' },
+        { payload: { ...omit(baseInterventionPayload, 'address.location') }, reason: 'missing address.location' },
+        {
+          payload: { ...omit(baseInterventionPayload, 'address.location.coordinates') },
+          reason: 'missing address.location.coordinates',
+        },
+        {
+          payload: { ...omit(baseInterventionPayload, 'address.location.type') },
+          reason: 'missing address.location.type',
+        },
+        { payload: { ...omit(baseInterventionPayload, 'customer') }, reason: 'missing customer' },
+        { payload: { ...omit(baseInterventionPayload, 'subscription') }, reason: 'missing subscription' },
+        { payload: { ...omit(baseInterventionPayload, 'status') }, reason: 'missing status' },
+        { payload: { ...omit(baseInterventionPayload, 'type') }, reason: 'missing type' },
+        { payload: { ...omit(baseInterventionPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseInterventionPayload, 'endDate') }, reason: 'missing endDate' },
+      ];
+      interventionMissingParams.forEach((test) => {
+        it(`should return a 400 error as intervention payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      const baseInternalHourPayload = {
+        type: INTERNAL_HOUR,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        internalHour: internalHour._id,
+      };
+      const internalHourMissingParams = [
+        { payload: { ...omit(baseInternalHourPayload, 'internalHour') }, reason: 'missing internalHour' },
+        { payload: { ...omit(baseInternalHourPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseInternalHourPayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseInternalHourPayload, 'auxiliary') }, reason: 'missing auxiliary' },
+      ];
+      internalHourMissingParams.forEach((test) => {
+        it(`should return a 400 error as internal hour payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      const baseAbsencePayload = {
+        type: ABSENCE,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        absence: ILLNESS,
+        absenceNature: DAILY,
+        attachment: { driveId: 'qwertyuiop', link: 'asdfghjkl;' },
+      };
+      const absenceMissingParams = [
+        { payload: { ...omit(baseAbsencePayload, 'absence') }, reason: 'missing absence' },
+        { payload: { ...omit(baseAbsencePayload, 'absenceNature') }, reason: 'missing absenceNature' },
+        { payload: { ...omit(baseAbsencePayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseAbsencePayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseAbsencePayload, 'auxiliary') }, reason: 'missing auxiliary' },
+        { payload: { ...omit(baseAbsencePayload, 'attachment') }, reason: 'missing attachment on illness' },
+      ];
+      absenceMissingParams.forEach((test) => {
+        it(`should return a 400 error as absence payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      const baseUnavailabilityPayload = {
+        type: UNAVAILABILITY,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+      };
+      const unavailabilityMissingParams = [
+        { payload: { ...omit(baseUnavailabilityPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseUnavailabilityPayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseUnavailabilityPayload, 'auxiliary') }, reason: 'missing auxiliary' },
+      ];
+      unavailabilityMissingParams.forEach((test) => {
+        it(`should return a 400 error as unavailability payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      it('should return a 400 error as payload contains auxiliary and sector', async () => {
         const payload = {
           type: 'intervention',
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: '5c0002a5086ec30013f7f436',
           customer: '5c35b5eb1a6fb00997363eeb',
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           sector: sectors[0]._id.toHexString(),
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
             zipCode: '92160',
             city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
           },
         };
 
@@ -543,10 +700,16 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -565,10 +728,16 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -587,32 +756,16 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
-        };
-
-        const response = await app.inject({
-          method: 'POST',
-          url: '/events',
-          payload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(403);
-      });
-
-      it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
-        const payload = {
-          type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sectors[1]._id.toHexString(),
-          customer: customerAuxiliary._id.toHexString(),
-          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -632,9 +785,15 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sectors[0]._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -656,10 +815,16 @@ describe('EVENTS ROUTES', () => {
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: eventAuxiliary._id.toHexString(),
-        sector: sectors[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
         status: 'contract_with_company',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
       };
 
       const roles = [
@@ -697,12 +862,33 @@ describe('EVENTS ROUTES', () => {
         authToken = await getToken('admin');
       });
 
-      it('should update corresponding event', async () => {
-        const event = eventsList[0];
+      it('should update corresponding event with sector', async () => {
+        const event = eventsList[2];
         const payload = {
           startDate: '2019-01-23T10:00:00.000Z',
           endDate: '2019-01-23T12:00:00.000Z',
           sector: sectors[0]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.event).toBeDefined();
+        expect(response.result.data.event._id).toEqual(event._id);
+        expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+        expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      });
+
+      it('should update corresponding event with auxiliary', async () => {
+        const event = eventsList[0];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
           auxiliary: event.auxiliary.toHexString(),
         };
 
@@ -735,7 +921,11 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should return a 400 error as startDate and endDate are not on the same day', async () => {
-        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-02-23T12:00:00.000Z',
+          sector: sectors[0]._id.toHexString(),
+        };
         const event = eventsList[0];
 
         const response = await app.inject({
@@ -748,8 +938,30 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
 
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-02-23T12:00:00.000Z',
+          auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
       it('should return a 404 error as event is not found', async () => {
-        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-02-23T12:00:00.000Z',
+          sector: sectors[0]._id.toHexString(),
+        };
         const invalidId = new ObjectID();
 
         const response = await app.inject({
@@ -779,7 +991,7 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toEqual(403);
       });
 
-      it('should return a 403 if auxiliary is not from the same company', async () => {
+      it('should return a 400 if auxiliary sector and auxiliary are in the payload', async () => {
         const event = eventsList[0];
         const payload = {
           sector: sectors[0]._id.toHexString(),
@@ -793,15 +1005,12 @@ describe('EVENTS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        expect(response.statusCode).toEqual(403);
+        expect(response.statusCode).toEqual(400);
       });
 
-      it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
+      it('should return a 400 if both auxiliary sector and auxiliary are missing', async () => {
         const event = eventsList[0];
-        const payload = {
-          auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sectors[1]._id.toHexString(),
-        };
+        const payload = { subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString() };
 
         const response = await app.inject({
           method: 'PUT',
@@ -810,7 +1019,7 @@ describe('EVENTS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        expect(response.statusCode).toEqual(403);
+        expect(response.statusCode).toEqual(400);
       });
 
       it('should return a 403 if internalHour is not from the same company', async () => {

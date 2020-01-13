@@ -110,8 +110,6 @@ exports.checkEventCreationOrUpdate = async (req) => {
   if (req.payload.auxiliary) {
     const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
     if (!auxiliary) throw Boom.forbidden();
-    const eventSector = req.payload.sector || event.sector;
-    if (auxiliary.sector.toHexString() !== eventSector) throw Boom.forbidden();
   }
 
   if (req.payload.sector) {
@@ -129,7 +127,10 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
-  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id', null) }).lean();
+  const customer = await Customer.findOne({
+    _id: req.query.customer,
+    company: get(credentials, 'company._id', null),
+  }).lean();
   if (!customer) throw Boom.forbidden();
   return null;
 };

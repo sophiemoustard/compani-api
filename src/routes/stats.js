@@ -7,6 +7,7 @@ const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
   getCustomersAndDuration,
+  getAllCustomersFundingsMonitoring,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -45,14 +46,24 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
+      path: '/all-customers-fundings-monitoring',
+      options: {
+        auth: { scope: ['customers:read'] },
+      },
+      handler: getAllCustomersFundingsMonitoring,
+    });
+
+    server.route({
+      method: 'GET',
       path: '/customer-duration',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: {
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            auxiliary: Joi.objectId(),
             month: Joi.string().required(),
-          },
+          }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetStats }],
       },

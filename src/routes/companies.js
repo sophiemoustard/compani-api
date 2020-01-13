@@ -7,6 +7,7 @@ const {
   update,
   uploadFile,
   create,
+  getFirstIntervention,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
@@ -31,11 +32,11 @@ exports.plugin = {
               street: Joi.string().required(),
               zipCode: Joi.string().required(),
               city: Joi.string().required(),
-              fullAddress: Joi.string(),
+              fullAddress: Joi.string().required(),
               location: Joi.object().keys({
-                type: Joi.string(),
-                coordinates: Joi.array(),
-              }),
+                type: Joi.string().required(),
+                coordinates: Joi.array().length(2).required(),
+              }).required(),
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
@@ -135,7 +136,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['config:edit'] },
+        auth: { scope: ['companies:create'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -165,6 +166,15 @@ exports.plugin = {
             }),
           }),
         },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/first-intervention',
+      handler: getFirstIntervention,
+      options: {
+        auth: { scope: ['events:read'] },
       },
     });
   },

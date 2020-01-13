@@ -7,6 +7,7 @@ const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -86,6 +87,13 @@ const event = {
   createdAt: '2019-05-01T09:00:00',
   sector: new ObjectID(),
   subscription: subscriptionId,
+  address: {
+    fullAddress: '37 rue de ponthieu 75008 Paris',
+    zipCode: '75008',
+    city: 'Paris',
+    street: '37 rue de Ponthieu',
+    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  },
 };
 
 const customer = {
@@ -101,6 +109,9 @@ const customer = {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
   subscriptions: [
@@ -138,6 +149,13 @@ const sector = {
   company: authCompany._id,
 };
 
+const sectorHistory = {
+  auxiliary: auxiliaryId,
+  sector: sectorId,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+};
+
 const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
@@ -145,6 +163,7 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await Event.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await FinalPay.deleteMany({});
 
   await populateDBForAuthentication();
@@ -154,6 +173,7 @@ const populateDB = async () => {
   await (new Event(event)).save();
   await (new Contract(contract)).save();
   await (new Sector(sector)).save();
+  await SectorHistory.create(sectorHistory);
 };
 
 module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };

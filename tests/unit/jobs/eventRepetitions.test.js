@@ -19,7 +19,6 @@ describe('method', () => {
   let eventRepetitionsOnCompleteStub;
   let date;
   const fakeDate = moment('2019-09-20').startOf('d').toDate();
-
   beforeEach(() => {
     RepetitionMock = sinon.mock(Repetition);
     CompanyMock = sinon.mock(Company);
@@ -29,7 +28,6 @@ describe('method', () => {
     eventRepetitionsOnCompleteStub = sinon.stub(eventRepetitions, 'onComplete');
     date = sinon.useFakeTimers(fakeDate);
   });
-
   afterEach(() => {
     EventMock.restore();
     RepetitionMock.restore();
@@ -65,13 +63,8 @@ describe('method', () => {
       const server = 'server';
       const companyId = new ObjectID();
 
-      CompanyMock
-        .expects('find')
-        .withExactArgs({})
-        .returns([{ _id: companyId }]);
-
-      RepetitionMock
-        .expects('find')
+      CompanyMock.expects('find').withExactArgs({}).returns([{ _id: companyId }]);
+      RepetitionMock.expects('find')
         .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
         .chain('lean')
         .once()
@@ -92,11 +85,8 @@ describe('method', () => {
           parentId: '5d84f869b7e67963c65236a9',
         },
       });
-
       CreateFutureEventBasedOnRepetitionStub.returns(futureEvent);
-
-      EventMock
-        .expects('insertMany')
+      EventMock.expects('insertMany')
         .withArgs([futureEvent])
         .once()
         .returns([futureEvent]);

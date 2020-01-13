@@ -10,6 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
+const FundingHistory = require('../../../src/models/FundingHistory');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const billThirdPartyPayer = {
@@ -20,6 +21,7 @@ const billThirdPartyPayer = {
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
+  prefixNumber: 103,
   name: 'Test',
   tradeName: 'To',
   rhConfig: {
@@ -94,6 +96,8 @@ const billCustomerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -133,6 +137,8 @@ const billCustomerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -172,6 +178,8 @@ const billCustomerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -264,6 +272,8 @@ const authBillsList = [
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
         auxiliary: billUserList[1]._id,
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
       }],
       hours: 8,
       unitExclTaxes: 9,
@@ -290,6 +300,8 @@ const authBillsList = [
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
         auxiliary: billUserList[1]._id,
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
       }],
       service: authBillService,
       hours: 4,
@@ -306,7 +318,7 @@ const billsList = [
   {
     _id: new ObjectID(),
     company: company._id,
-    number: 'FACT-1807003',
+    number: 'FACT-1901003',
     date: '2019-05-29',
     customer: billCustomerList[2]._id,
     netInclTaxes: 75.96,
@@ -321,6 +333,8 @@ const billsList = [
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
         auxiliary: billUserList[3]._id,
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
       }],
       hours: 8,
       unitExclTaxes: 9,
@@ -331,6 +345,13 @@ const billsList = [
     }],
   },
 ];
+
+const billNumber = {
+  _id: new ObjectID(),
+  seq: 2,
+  prefix: '0519',
+  company: authCompany._id,
+};
 
 const eventList = [
   {
@@ -372,6 +393,13 @@ const eventList = [
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -385,6 +413,13 @@ const eventList = [
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -397,6 +432,13 @@ const eventList = [
     auxiliary: new ObjectID(),
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
     subscription: billCustomerList[0].subscriptions[0]._id,
   },
   {
@@ -411,6 +453,13 @@ const eventList = [
     customer: billCustomerList[2]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[2].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -428,9 +477,19 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
+};
+
+const fundingHistory = {
+  _id: new ObjectID(),
+  fundingId: new ObjectID(),
+  amountTTC: 12,
+  nature: 'fixed',
+  company: authCompany._id,
 };
 
 const populateDB = async () => {
@@ -442,6 +501,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await BillNumber.deleteMany({});
   await User.deleteMany({});
+  await FundingHistory.deleteMany({});
 
   await populateDBForAuthentication();
   await (new Company(company)).save();
@@ -451,6 +511,8 @@ const populateDB = async () => {
   await Bill.insertMany([...authBillsList, ...billsList]);
   await Event.insertMany(eventList);
   await User.create(billUserList);
+  await FundingHistory.create(fundingHistory);
+  await BillNumber.create(billNumber);
 };
 
 module.exports = {
@@ -464,4 +526,5 @@ module.exports = {
   billThirdPartyPayer,
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
+  fundingHistory,
 };

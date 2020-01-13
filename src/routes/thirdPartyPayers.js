@@ -25,10 +25,14 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             address: Joi.object().keys({
-              street: Joi.string(),
-              fullAddress: Joi.string(),
-              zipCode: Joi.string(),
-              city: Joi.string(),
+              street: Joi.string().required(),
+              fullAddress: Joi.string().required(),
+              zipCode: Joi.string().required(),
+              city: Joi.string().required(),
+              location: Joi.object().keys({
+                type: Joi.string().required(),
+                coordinates: Joi.array().length(2).required(),
+              }).required(),
             }),
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
@@ -60,11 +64,15 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             address: Joi.object().keys({
-              street: Joi.string().allow(null, ''),
-              fullAddress: Joi.string().allow(null, ''),
-              zipCode: Joi.string().allow(null, ''),
-              city: Joi.string().allow(null, ''),
-            }),
+              street: Joi.string().required(),
+              fullAddress: Joi.string().required(),
+              zipCode: Joi.string().required(),
+              city: Joi.string().required(),
+              location: Joi.object().keys({
+                type: Joi.string().required(),
+                coordinates: Joi.array().length(2).required(),
+              }).required(),
+            }).default({}),
             email: Joi.string().email().allow(null, ''),
             unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
