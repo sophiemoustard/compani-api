@@ -10,6 +10,7 @@ const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const PayHelper = require('../../../src/helpers/pay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
+const ContractHelper = require('../../../src/helpers/contracts');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
@@ -441,19 +442,31 @@ describe('computeHoursToWork', () => {
     startDate: moment('122019', 'MMYYYY').startOf('M').toDate(),
     endDate: moment('122019', 'MMYYYY').endOf('M').toDate(),
   };
+  const sector = { startDate: moment('2017-11-01').toDate() };
   let getContractMonthInfoStub;
   let getPayFromAbsences;
+  let getMatchingVersionsListStub;
   beforeEach(() => {
     getContractMonthInfoStub = sinon.stub(DraftPayHelper, 'getContractMonthInfo');
     getPayFromAbsences = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
+    getMatchingVersionsListStub = sinon.stub(ContractHelper, 'getMatchingVersionsList');
   });
   afterEach(() => {
     getContractMonthInfoStub.restore();
     getPayFromAbsences.restore();
+    getMatchingVersionsListStub.restore();
   });
 
   it('should compute hours to work with absences', () => {
-    const contracts = [{ _id: new ObjectID(), absences: [{ _id: new ObjectID() }] }];
+    const contracts = [
+      {
+        _id: new ObjectID(),
+        absences: [{ _id: new ObjectID() }],
+        sector,
+        versions: [{ startDate: moment('2018-11-01').toDate() }],
+      },
+    ];
+    getMatchingVersionsListStub.returns(contracts[0].versions);
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getPayFromAbsences.returns(6);
 
@@ -461,17 +474,78 @@ describe('computeHoursToWork', () => {
     expect(result).toBe(74);
     sinon.assert.calledWithExactly(getContractMonthInfoStub, contracts[0], contractQuery);
     sinon.assert.calledWithExactly(getPayFromAbsences, contracts[0].absences, contracts[0], contractQuery);
+    sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, contractQuery);
   });
 
   it('should compute hours to work without absences', () => {
-    const contracts = [{ _id: new ObjectID(), absences: [] }, { _id: new ObjectID(), absences: [] }];
+    const contracts = [
+      { _id: new ObjectID(), absences: [], sector, versions: [{ startDate: moment('2018-11-01').toDate() }] },
+      { _id: new ObjectID(), absences: [], sector, versions: [{ startDate: moment('2018-11-01').toDate() }] },
+    ];
     getContractMonthInfoStub.onCall(0).returns({ contractHours: 85, holidaysHours: 5 });
     getContractMonthInfoStub.onCall(1).returns({ contractHours: 100, holidaysHours: 5 });
+    getMatchingVersionsListStub.onCall(0).returns(contracts[0].versions);
+    getMatchingVersionsListStub.onCall(1).returns(contracts[1].versions);
 
     const result = PayHelper.computeHoursToWork('122019', contracts);
     expect(result).toBe(175);
     sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(0), contracts[0], contractQuery);
     sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(1), contracts[1], contractQuery);
+    sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, contractQuery);
+    sinon.assert.notCalled(getPayFromAbsences);
+  });
+
+  it('should change version endDate if auxiliary changed sector', () => {
+    const endDate = moment('2019-12-10').endOf('d').toDate();
+    const contractId = new ObjectID();
+    const contracts = [
+      {
+        _id: contractId,
+        absences: [],
+        sector: { ...sector, endDate },
+        versions: [{ startDate: moment('2018-11-01').startOf('day').toDate() }],
+      },
+    ];
+    const newContract = {
+      _id: contractId,
+      absences: [],
+      sector: { ...sector, endDate },
+      versions: [{ startDate: moment('2018-11-01').startOf('day').toDate(), endDate }],
+    };
+    getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
+    getMatchingVersionsListStub.returns(contracts[0].versions);
+
+    const result = PayHelper.computeHoursToWork('122019', contracts);
+    expect(result).toBe(80);
+    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, endDate });
+    sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, { ...contractQuery, endDate });
+    sinon.assert.notCalled(getPayFromAbsences);
+  });
+
+  it('should change version startDate if auxiliary changed sector', () => {
+    const startDate = moment('2019-12-10').toDate();
+    const contractId = new ObjectID();
+    const contracts = [
+      {
+        _id: contractId,
+        absences: [],
+        sector: { ...sector, startDate },
+        versions: [{ startDate: moment('2018-11-01').toDate() }],
+      },
+    ];
+    const newContract = {
+      _id: contractId,
+      absences: [],
+      sector: { ...sector, startDate },
+      versions: [{ startDate }],
+    };
+    getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
+    getMatchingVersionsListStub.returns(contracts[0].versions);
+
+    const result = PayHelper.computeHoursToWork('122019', contracts);
+    expect(result).toBe(80);
+    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, startDate });
+    sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, { ...contractQuery, startDate });
     sinon.assert.notCalled(getPayFromAbsences);
   });
 });

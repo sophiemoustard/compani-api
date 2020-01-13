@@ -1,7 +1,5 @@
 const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
-const flatten = require('lodash/flatten');
-const keyBy = require('lodash/keyBy');
 const Boom = require('boom');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
@@ -11,6 +9,7 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
+const ContractHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT } = require('./constants');
@@ -109,19 +108,44 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   return draft || null;
 };
 
-exports.computeHoursToWork = (month, contracts) => {
-  const contractQuery = {
-    startDate: moment(month, 'MMYYYY').startOf('M').toDate(),
-    endDate: moment(month, 'MMYYYY').endOf('M').toDate(),
+const updateVersionsWithSectorDates = (version, sector) => {
+  const returnedVersion = {
+    ...version,
+    startDate: moment.max(moment(sector.startDate), moment(version.startDate)).startOf('d').toDate(),
   };
+
+  if (version.endDate && sector.endDate) {
+    returnedVersion.endDate = moment.min(moment(sector.endDate), moment(version.endDate)).endOf('d').toDate();
+  } else if (sector.endDate) returnedVersion.endDate = moment(sector.endDate).endOf('d').toDate();
+
+  return returnedVersion;
+};
+
+exports.computeHoursToWork = (month, contracts) => {
   const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
 
   for (const contract of contracts) {
-    const contractInfo = DraftPayHelper.getContractMonthInfo(contract, contractQuery);
+    const contractQuery = {
+      startDate: moment.max(moment(month, 'MMYYYY').startOf('M'), moment(contract.sector.startDate)).toDate(),
+      endDate: contract.sector.endDate
+        ? moment.min(moment(month, 'MMYYYY').endOf('M'), moment(contract.sector.endDate)).toDate()
+        : moment(month, 'MMYYYY').endOf('M').toDate(),
+    };
+
+    let versions = ContractHelper.getMatchingVersionsList(contract.versions || [], contractQuery);
+    versions = versions.map(version => updateVersionsWithSectorDates(version, contract.sector));
+    const contractWithSectorDates = { ...contract, versions };
+
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contractWithSectorDates, contractQuery);
     contractsInfoSum.contractHours += contractInfo.contractHours;
     contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
-    if (contract.absences.length) {
-      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(contract.absences, contract, contractQuery);
+
+    if (contractWithSectorDates.absences.length) {
+      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(
+        contractWithSectorDates.absences,
+        contractWithSectorDates,
+        contractQuery
+      );
     }
   }
 

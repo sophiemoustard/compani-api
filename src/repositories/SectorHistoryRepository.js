@@ -23,7 +23,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    { $addFields: { 'auxiliary.sector': '$sector' } },
+    { $addFields: { 'auxiliary.sector': { _id: '$sector', startDate: '$startDate', endDate: '$endDate' } } },
     { $replaceRoot: { newRoot: '$auxiliary' } },
     { $project: { _id: 1, sector: 1 } },
     {
@@ -123,8 +123,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
         },
       },
     },
-    {
-      $group: { _id: '$sector', contracts: { $push: '$contracts' } },
-    },
+    { $addFields: { 'contracts.sector': '$sector' } },
+    { $group: { _id: '$sector._id', contracts: { $push: '$contracts' } } },
   ]).option({ company: companyId });
 };
