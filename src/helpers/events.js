@@ -57,7 +57,11 @@ exports.createEvent = async (payload, credentials) => {
   const isRepeatedEvent = isRepetition(event);
   const hasConflicts = await EventsValidationHelper.hasConflicts(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
+    const auxiliary = await User.findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true });
     delete event.auxiliary;
+    event.sector = auxiliary.sector;
     event.repetition.frequency = NEVER;
   }
 
