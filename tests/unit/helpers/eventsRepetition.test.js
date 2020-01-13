@@ -297,16 +297,18 @@ describe('createRepetitions', () => {
   it('should call updateOne', async () => {
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectID(), auxiliary: auxiliaryId });
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
       .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
-    await EventsRepetitionHelper.createRepetitions(event, payload);
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.called(updateOne);
     sinon.assert.called(saveRepetition);
@@ -315,17 +317,19 @@ describe('createRepetitions', () => {
   it('should call createRepetitionsEveryDay', async () => {
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), auxiliary: auxiliaryId });
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
       .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
 
-    await EventsRepetitionHelper.createRepetitions(event, payload);
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryDay);
@@ -335,11 +339,12 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsEveryWeekDay', async () => {
     const sectorId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
     UserMock.expects('findOne').never();
 
-    await EventsRepetitionHelper.createRepetitions(event, payload);
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryWeekDay);
@@ -349,11 +354,12 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsByWeek to repeat every week', async () => {
     const sectorId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
     UserMock.expects('findOne').never();
 
-    await EventsRepetitionHelper.createRepetitions(event, payload);
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 1);
@@ -362,11 +368,12 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
     const sectorId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
     UserMock.expects('findOne').never();
 
-    await EventsRepetitionHelper.createRepetitions(event, payload);
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 2);

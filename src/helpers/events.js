@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
+const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
 const {
@@ -48,7 +49,7 @@ exports.list = async (query, credentials) => {
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  let event = { ...payload, company: companyId };
+  let event = { ...cloneDeep(payload), company: companyId };
   const isCreationAllowed = await EventsValidationHelper.isCreationAllowed(event, credentials);
   if (!isCreationAllowed) throw Boom.badData();
 
@@ -80,7 +81,8 @@ exports.createEvent = async (payload, credentials) => {
   if (isRepeatedEvent) {
     await EventsRepetitionHelper.createRepetitions(
       event,
-      { ...payload, company: companyId, 'repetition.parentId': event._id }
+      { ...payload, company: companyId, 'repetition.parentId': event._id },
+      credentials,
     );
   }
 
