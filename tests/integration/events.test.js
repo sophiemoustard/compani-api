@@ -20,8 +20,17 @@ const {
 } = require('./seed/eventsSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 const app = require('../../server');
-const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
+const {
+  INTERVENTION,
+  ABSENCE,
+  UNAVAILABILITY,
+  INTERNAL_HOUR,
+  ILLNESS,
+  DAILY,
+  EVERY_DAY,
+} = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
+const Event = require('../../src/models/Event');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -521,12 +530,11 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should create an unavailability', async () => {
-        const auxiliary = eventAuxiliary;
         const payload = {
           type: UNAVAILABILITY,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: auxiliary._id,
+          auxiliary: eventAuxiliary._id,
         };
 
         const response = await app.inject({
@@ -538,6 +546,43 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(200);
         expect(response.result.data.event).toBeDefined();
+      });
+
+      it('should create a repetition', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: eventAuxiliary._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+          repetition: { frequency: EVERY_DAY },
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.event).toBeDefined();
+        const repeatedEventsCount = await Event.countDocuments({
+          'repetition.parentId': response.result.data.event._id,
+          company: authCompany._id,
+        }).lean();
+        expect(repeatedEventsCount).toEqual(91);
+        const repetition = await Repetition.findOne({ parentId: response.result.data.event._id }).lean();
+        expect(repetition).toBeDefined();
       });
 
       const baseInterventionPayload = {
