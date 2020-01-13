@@ -31,7 +31,7 @@ describe('COMPANIES ROUTES', () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
-          nafCode: '8110Z',
+          apeCode: '8110Z',
         };
         const response = await app.inject({
           method: 'PUT',
@@ -75,11 +75,11 @@ describe('COMPANIES ROUTES', () => {
       });
 
       const falsyAssertions = [
-        { payload: { nafCode: '123' }, case: 'lower than 4' },
-        { payload: { nafCode: '123456' }, case: 'greater than 5' },
+        { payload: { apeCode: '123' }, case: 'lower than 4' },
+        { payload: { apeCode: '123456' }, case: 'greater than 5' },
       ];
       falsyAssertions.forEach((assertion) => {
-        it(`should return a 400 error if naf code length is ${assertion.case}`, async () => {
+        it(`should return a 400 error if ape code length is ${assertion.case}`, async () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/companies/${authCompany._id.toHexString()}`,

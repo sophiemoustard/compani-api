@@ -43,7 +43,7 @@ exports.plugin = {
             rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
-            nafCode: Joi.string().min(4).max(5),
+            apeCode: Joi.string().min(4).max(5),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
@@ -148,7 +148,7 @@ exports.plugin = {
             ics: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
-            nafCode: Joi.string().min(4).max(5),
+            apeCode: Joi.string().min(4).max(5),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
