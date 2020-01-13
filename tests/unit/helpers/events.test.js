@@ -227,6 +227,7 @@ describe('updateEvent', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
       })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
@@ -262,6 +263,7 @@ describe('updateEvent', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
       })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
@@ -275,14 +277,13 @@ describe('updateEvent', () => {
     sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
-      auxiliaryId.toHexString(),
+      auxiliaryId,
       credentials
     );
     sinon.assert.calledWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
-      { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
-      auxiliaryId.toHexString(),
-      eventId.toHexString(),
+      event,
+      event.auxiliary,
       credentials
     );
     EventMock.verify();
@@ -513,6 +514,7 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
+  const sectorId = new ObjectID();
   const companyId = new ObjectID();
   const credentials = { _id: userId, company: { _id: companyId } };
   const aggregation = [{
@@ -565,7 +567,11 @@ describe('unassignInterventionsOnContractEnd', () => {
   });
 
   it('should unassign future events linked to company contract', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns(interventions);
 
@@ -574,7 +580,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       getUnassignedInterventions,
       contract.endDate,
-      contract.user,
+      contract.user._id,
       [aggregation[0].sub._id],
       companyId
     );
@@ -582,11 +588,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+      { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
     );
     sinon.assert.calledWithExactly(
       updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
     sinon.assert.calledWithExactly(
       deleteManyRepetition,
@@ -595,7 +601,11 @@ describe('unassignInterventionsOnContractEnd', () => {
   });
 
   it('should create event history for repetition', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns([interventions[1]]);
 
@@ -614,11 +624,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+      { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
     );
     sinon.assert.calledWithExactly(
       updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
     sinon.assert.calledWithExactly(
       deleteManyRepetition,
@@ -627,7 +637,11 @@ describe('unassignInterventionsOnContractEnd', () => {
   });
 
   it('should create event history for non repeated event', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns([interventions[0]]);
 
@@ -641,11 +655,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+      { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
     );
     sinon.assert.calledWithExactly(
       updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
     sinon.assert.calledWithExactly(
       deleteManyRepetition,
@@ -657,7 +671,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     const contract = {
       status: CUSTOMER_CONTRACT,
       endDate: '2019-10-02T08:00:00.000Z',
-      user: userId,
+      user: { _id: userId, sector: sectorId },
       customer: customerId,
     };
     getCustomerSubscriptions.returns(aggregation);
@@ -668,7 +682,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       getUnassignedInterventions,
       contract.endDate,
-      contract.user,
+      contract.user._id,
       [aggregation[1].sub._id],
       companyId
     );
@@ -676,11 +690,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+      { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
     );
     sinon.assert.calledWithExactly(
       updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
     sinon.assert.calledWithExactly(
       deleteManyRepetition,
@@ -695,6 +709,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   let deleteMany;
   const customerId = new ObjectID();
   const userId = new ObjectID();
+  const sectorId = new ObjectID();
   const companyId = new ObjectID();
   const credentials = { _id: userId, company: { _id: companyId } };
   const events = [
@@ -732,7 +747,11 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 
   it('should remove future non-intervention events linked to company contract', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
@@ -742,7 +761,11 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 
   it('should create event history for repetition', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getEventsExceptInterventions.returns([events[1]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
@@ -751,7 +774,11 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 
   it('should create event history for non repeated event', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
     getEventsExceptInterventions.returns([events[0]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
@@ -763,7 +790,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     const contract = {
       status: CUSTOMER_CONTRACT,
       endDate: '2019-10-02T08:00:00.000Z',
-      user: userId,
+      user: { _id: userId, sector: sectorId },
       customer: customerId,
     };
     getEventsExceptInterventions.returns(events);
@@ -1028,7 +1055,8 @@ describe('updateAbsencesOnContractEnd', () => {
 });
 
 describe('createEvent', () => {
-  let createMock;
+  let EventMock;
+  let UserMock;
   let isCreationAllowed;
   let hasConflicts;
   let createEventHistoryOnCreate;
@@ -1037,9 +1065,11 @@ describe('createEvent', () => {
   let getEvent;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
-  const credentials = { _id: 'qwertyuiop', company: { _id: new ObjectID() } };
+  const companyId = new ObjectID();
+  const credentials = { _id: 'qwertyuiop', company: { _id: companyId } };
   beforeEach(() => {
-    createMock = sinon.mock(Event);
+    EventMock = sinon.mock(Event);
+    UserMock = sinon.mock(User);
     isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
@@ -1053,7 +1083,8 @@ describe('createEvent', () => {
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
-    createMock.restore();
+    EventMock.restore();
+    UserMock.restore();
     isCreationAllowed.restore();
     hasConflicts.restore();
     createEventHistoryOnCreate.restore();
@@ -1078,12 +1109,14 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
-    createMock.expects('create').returns(newEvent);
+    EventMock.expects('create').returns(newEvent);
+    EventMock.expects('findOne').never();
 
     await EventHelper.createEvent({}, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    createMock.verify();
+    EventMock.verify();
+    UserMock.verify();
     sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.notCalled(createRepetitions);
     sinon.assert.called(populateEventSubscription);
@@ -1095,13 +1128,15 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
-    createMock.expects('create').returns(newEvent);
+    EventMock.expects('create').returns(newEvent);
+    EventMock.expects('findOne').never();
     getEvent.returns(newEvent);
 
     await EventHelper.createEvent(payload, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    createMock.verify();
+    EventMock.verify();
+    UserMock.verify();
     sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.called(createRepetitions);
     sinon.assert.called(populateEventSubscription);
@@ -1119,33 +1154,40 @@ describe('createEvent', () => {
       company: new ObjectID(),
     };
     const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
+    const auxiliary = { _id: auxiliaryId, sector: new ObjectID() };
 
     isCreationAllowed.returns(true);
-    createMock.expects('create').returns(newEvent);
+    EventMock.expects('create').returns(newEvent);
     getEvent.returns(newEvent);
+    UserMock.expects('findOne')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns(auxiliary);
 
     await EventHelper.createEvent(payload, credentials);
 
     sinon.assert.calledWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
-      { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
-      auxiliaryId.toHexString(),
-      eventId.toHexString(),
+      newEvent,
+      auxiliary,
       credentials
     );
     sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
-      auxiliaryId.toHexString(),
+      auxiliary,
       credentials
     );
+    UserMock.verify();
   });
 });
 
 describe('deleteConflictInternalHoursAndUnavailabilities', () => {
   const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
-  const auxiliaryId = new ObjectID();
-  const absenceId = new ObjectID();
+  const auxiliary = { _id: new ObjectID() };
+  const absence = { _id: new ObjectID() };
   const credentials = { _id: new ObjectID() };
   let getEventsInConflicts;
   let deleteEvents;
@@ -1161,9 +1203,9 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
   it('should delete conflict events except interventions', async () => {
     const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
     getEventsInConflicts.returns(events);
-    await EventHelper.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, absenceId, credentials);
+    await EventHelper.deleteConflictInternalHoursAndUnavailabilities(absence, auxiliary, credentials);
 
-    getEventsInConflicts.calledWithExactly(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
+    getEventsInConflicts.calledWithExactly(dates, auxiliary._id, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absence._id);
     sinon.assert.calledWithExactly(deleteEvents, events, credentials);
   });
 });
