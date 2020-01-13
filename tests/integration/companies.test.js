@@ -31,6 +31,7 @@ describe('COMPANIES ROUTES', () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
+          nafCode: '8110Z',
         };
         const response = await app.inject({
           method: 'PUT',
@@ -40,7 +41,7 @@ describe('COMPANIES ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.company.name).toEqual(payload.name);
+        expect(response.result.data.company).toMatchObject(payload);
       });
 
       it('should return 404 if no company found', async () => {
@@ -71,6 +72,23 @@ describe('COMPANIES ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(403);
+      });
+
+      const falsyAssertions = [
+        { payload: { nafCode: '123' }, case: 'lower than 4' },
+        { payload: { nafCode: '123456' }, case: 'greater than 5' },
+      ];
+      falsyAssertions.forEach((assertion) => {
+        it(`should return a 400 error if naf code length is ${assertion.case}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/companies/${authCompany._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload: assertion.payload,
+          });
+
+          expect(response.statusCode).toBe(400);
+        });
       });
     });
 
