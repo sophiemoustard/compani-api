@@ -85,7 +85,8 @@ exports.createRepetitionsByWeek = async (payload, sector, step) => {
   await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitions = async (eventFromDb, payload) => {
+exports.createRepetitions = async (eventFromDb, payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   if (payload.repetition.frequency === NEVER) return eventFromDb;
 
   if (get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
@@ -93,9 +94,12 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   }
   let sectorId = eventFromDb.sector;
   if (!eventFromDb.sector) {
-    const user = await User.findOne({ _id: eventFromDb.auxiliary }).populate('sector').lean();
+    const user = await User.findOne({ _id: eventFromDb.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean();
     sectorId = user.sector._id;
   }
+
   switch (payload.repetition.frequency) {
     case EVERY_DAY:
       await exports.createRepetitionsEveryDay(payload, sectorId);

@@ -121,7 +121,7 @@ exports.formatRumNumber = (companyPrefixNumber, prefix, seq) => {
 };
 
 exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
-  { referent: contract.user },
+  { referent: contract.user._id },
   { $unset: { referent: '' } }
 );
 

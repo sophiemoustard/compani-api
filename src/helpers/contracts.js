@@ -93,6 +93,7 @@ exports.createContract = async (contractPayload, credentials) => {
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const lastVersion = contract.versions[contract.versions.length - 1];
   if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) {
@@ -106,20 +107,21 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     otherMisc: contractToEnd.otherMisc,
     [`versions.${contract.versions.length - 1}.endDate`]: contractToEnd.endDate,
   };
-  const updatedContract = await Contract.findOneAndUpdate(
-    { _id: contractId },
-    { $set: flat(set) },
-    { new: true }
-  ).lean();
 
-  await Promise.all([
-    UserHelper.updateUserInactivityDate(updatedContract.user, updatedContract.endDate, credentials),
-    EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials),
-    CustomerHelper.unassignReferentOnContractEnd(updatedContract),
-    EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials),
-    EventHelper.updateAbsencesOnContractEnd(updatedContract.user, updatedContract.endDate, credentials),
-    SectorHistoryHelper.updateEndDate(updatedContract.user, updatedContract.endDate),
-  ]);
+  const updatedContract = await Contract.findOneAndUpdate({ _id: contractId }, { $set: flat(set) }, { new: true })
+    .populate({
+      path: 'user',
+      select: 'sector',
+      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+    })
+    .lean({ autopopulate: true, virtuals: true });
+
+  await EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials);
+  await EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials);
+  await EventHelper.updateAbsencesOnContractEnd(updatedContract.user._id, updatedContract.endDate, credentials);
+  await CustomerHelper.unassignReferentOnContractEnd(updatedContract);
+  await UserHelper.updateUserInactivityDate(updatedContract.user._id, updatedContract.endDate, credentials);
+  await SectorHistoryHelper.updateEndDate(updatedContract.user._id, updatedContract.endDate);
 
   return updatedContract;
 };
