@@ -223,9 +223,16 @@ exports.formatEditionPayload = (event, payload) => {
     set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
+
   if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
+
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
   else unset = { ...unset, sector: '' };
+
+  if (payload.address && !payload.address.fullAddress) {
+    delete set.address;
+    unset = { ...unset, address: '' };
+  }
 
   return unset ? { $set: set, $unset: unset } : { $set: set };
 };
