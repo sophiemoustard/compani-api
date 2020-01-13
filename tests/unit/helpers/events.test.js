@@ -162,6 +162,16 @@ describe('formatEditionPayload', () => {
 
     expect(result).toEqual({ $set: { ...payload, isCancelled: false }, $unset: { auxiliary: '', cancel: '' } });
   });
+  it('Case 5: remove address', () => {
+    const auxiliary = new ObjectID();
+    const payload = { address: {}, auxiliary };
+    const event = { auxiliary };
+    isMiscOnlyUpdated.returns(true);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: payload, $unset: { address: '', sector: '' } });
+  });
 });
 
 describe('updateEvent', () => {
