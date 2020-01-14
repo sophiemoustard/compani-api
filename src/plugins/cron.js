@@ -5,12 +5,16 @@ const Joi = require('joi');
 
 const internals = {};
 
-internals.callJob = (server, job) => async () => job.method(server);
+internals.callJob = (server, job) => async () => {
+  const res = await server.inject(job.request);
+
+  if (job.onComplete) job.onComplete(server, res.result.data);
+};
 
 internals.jobSchema = Joi.object({
   name: Joi.string().required(),
   time: Joi.string().required(),
-  method: Joi.func().required(),
+  request: Joi.object().required(),
   onComplete: Joi.func().required(),
   env: Joi.string().valid('production', 'development', 'staging'),
 });

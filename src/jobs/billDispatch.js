@@ -44,9 +44,9 @@ const billDispatch = {
         }
       }
     }
-    this.onComplete(server, results, errors);
+    return { results, errors };
   },
-  async onComplete(server, results, errors) {
+  async onComplete(server, { results, errors }) {
     try {
       server.log(['cron'], 'Bill dispatch OK');
       if (errors && errors.length) {
