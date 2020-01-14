@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
 const EventRepository = require('../repositories/EventRepository');
+const SectorHistoriesHelper = require('../helpers/sectorHistories');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
 
@@ -92,11 +93,21 @@ exports.getCustomersAndDurationByAuxiliary = async (query, credentials) => {
     const sectors = Array.isArray(query.sector)
       ? query.sector.map(id => new ObjectID(id))
       : [new ObjectID(query.sector)];
-
-    return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
+    const auxiliariesBySectors = await SectorHistoriesHelper.getUsersBySectors(query.month, sectors, companyId);
+    const result = [];
+    for (const auxiliariesBySector of auxiliariesBySectors) {
+      result.push({
+        _id: auxiliariesBySector._id,
+        auxiliaries: await EventRepository.getCustomersAndDurationByAuxiliary(
+          auxiliariesBySector.auxiliaries.map(aux => aux._id),
+          query.month,
+          companyId
+        ),
+      });
+    }
+    return result;
   }
-
-  return EventRepository.getCustomersAndDurationByAuxiliary(query.auxiliary, query.month, companyId);
+  return EventRepository.getCustomersAndDurationByAuxiliary([new ObjectID(query.auxiliary)], query.month, companyId);
 };
 
 exports.getCustomersAndDurationBySector = async (query, credentials) => {

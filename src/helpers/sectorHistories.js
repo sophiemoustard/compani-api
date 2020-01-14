@@ -1,5 +1,8 @@
 const moment = require('moment');
+const { ObjectID } = require('mongodb');
+const get = require('lodash/get');
 const SectorHistory = require('../models/SectorHistory');
+const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 
 exports.createHistory = async (auxiliary, sector, company) => {
   const lastHistory = await SectorHistory.findOne({ auxiliary, company, endDate: { $exists: false } })
@@ -24,3 +27,6 @@ exports.updateEndDate = async (auxiliary, endDate) =>
     { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
     { $set: { endDate: moment(endDate).endOf('day').toDate() } }
   );
+
+exports.getUsersBySectors = async (month, sectors, companyId) =>
+  SectorHistoryRepository.getUsersBySectors(month, sectors, companyId);

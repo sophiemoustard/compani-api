@@ -872,14 +872,13 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
 ]).option({ company: companyId });
 
-exports.getCustomersAndDurationByAuxiliary = async (auxiliaryId, month, companyId) => {
+exports.getCustomersAndDurationByAuxiliary = async (auxiliaryIds, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
-
   return Event.aggregate([
     {
       $match: {
-        auxiliary: new ObjectID(auxiliaryId),
+        auxiliary: { $in: auxiliaryIds },
         startDate: { $lte: maxStartDate, $gte: minStartDate },
         type: INTERVENTION,
         $or: [

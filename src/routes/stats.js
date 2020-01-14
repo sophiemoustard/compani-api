@@ -84,7 +84,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomersAndDurationByAuxiliary,
+      handler: getCustomersAndDurationBySector,
     });
   },
 };
