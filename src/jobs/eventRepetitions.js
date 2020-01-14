@@ -11,7 +11,7 @@ const eventRepetitions = {
   async method(server) {
     const errors = [];
     const newEvents = [];
-    const companies = await Company.find({});
+    const companies = await Company.find({}).lean();
     for (const company of companies) {
       const repetitions = await Repetition
         .find({ company: company._id, startDate: { $lt: moment(new Date()).startOf('d').toDate() } }).lean();
