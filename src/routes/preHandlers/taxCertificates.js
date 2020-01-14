@@ -8,7 +8,10 @@ const { language } = translate;
 
 exports.getTaxCertificate = async (req) => {
   try {
-    const taxCertificate = await TaxCertificate.findOne({ _id: req.params._id }).lean();
+    const { credentials } = req.auth;
+    const taxCertificate = await TaxCertificate
+      .findOne({ _id: req.params._id, company: credentials.company._id })
+      .lean();
     if (!taxCertificate) throw Boom.notFound(translate[language].taxCertificateNotFound);
 
     return taxCertificate;

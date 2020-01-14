@@ -128,6 +128,11 @@ const rightsList = [
     description: 'Créer une entreprise',
     permission: 'companies:create',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les attestions fiscales',
+    permission: 'taxcertificates:read',
+  },
 ];
 
 const coachRights = [
@@ -147,6 +152,7 @@ const coachRights = [
   'customers:administrative:edit',
   'roles:read',
   'paydocuments:edit',
+  'taxcertificates:read',
 ];
 const adminRights = [
   ...coachRights,
