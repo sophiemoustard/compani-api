@@ -1,5 +1,25 @@
 const Boom = require('boom');
 const TaxCertificateHelper = require('../helpers/taxCertificates');
+const translate = require('../helpers/translate');
+
+const { language } = translate;
+
+const list = async (req) => {
+  try {
+    const { query, auth } = req;
+    const taxCertificates = await TaxCertificateHelper.generateTaxCertificatesList(query.customer, auth.credentials);
+
+    return {
+      data: { taxCertificates },
+      message: taxCertificates.length
+        ? translate[language].taxCertificatesNotFound
+        : translate[language].taxCertificatesFound,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
 
 const generateTaxCertificatePdf = async (req, h) => {
   try {
@@ -16,4 +36,5 @@ const generateTaxCertificatePdf = async (req, h) => {
 
 module.exports = {
   generateTaxCertificatePdf,
+  list,
 };
