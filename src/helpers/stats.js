@@ -86,7 +86,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   return allCustomersFundingsMonitoring;
 };
 
-exports.getCustomersAndDuration = async (query, credentials) => {
+exports.getCustomersAndDurationByAuxiliary = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   if (query.sector) {
     const sectors = Array.isArray(query.sector)
@@ -96,5 +96,14 @@ exports.getCustomersAndDuration = async (query, credentials) => {
     return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
   }
 
-  return EventRepository.getCustomerAndDurationByAuxiliary(query.auxiliary, query.month, companyId);
+  return EventRepository.getCustomersAndDurationByAuxiliary(query.auxiliary, query.month, companyId);
+};
+
+exports.getCustomersAndDurationBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = Array.isArray(query.sector)
+    ? query.sector.map(id => new ObjectID(id))
+    : [new ObjectID(query.sector)];
+
+  return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
 };

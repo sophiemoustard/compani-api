@@ -6,7 +6,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomersAndDuration,
+  getCustomersAndDurationByAuxiliary,
+  getCustomersAndDurationBySector,
   getAllCustomersFundingsMonitoring,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
@@ -55,7 +56,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration',
+      path: '/customer-duration-auxiliary',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
@@ -67,7 +68,23 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomersAndDuration,
+      handler: getCustomersAndDurationByAuxiliary,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/customer-duration-sector',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().required(),
+          }),
+        },
+        pre: [{ method: authorizeGetStats }],
+      },
+      handler: getCustomersAndDurationByAuxiliary,
     });
   },
 };
