@@ -119,4 +119,8 @@ exports.routes = [
     plugin: require('./billSlips'),
     routes: { prefix: '/billslips' },
   },
+  {
+    plugin: require('./scripts'),
+    routes: { prefix: '/scripts' },
+  },
 ];

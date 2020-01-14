@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
@@ -16,7 +17,6 @@ describe('method', () => {
   let CompanyMock;
   let CreateFutureEventBasedOnRepetitionStub;
   let EmailHelperStub;
-  let eventRepetitionsOnCompleteStub;
   let date;
   const fakeDate = moment('2019-09-20').startOf('d').toDate();
   beforeEach(() => {
@@ -25,7 +25,6 @@ describe('method', () => {
     EventMock = sinon.mock(Event);
     CreateFutureEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'createFutureEventBasedOnRepetition');
     EmailHelperStub = sinon.stub(EmailHelper, 'completeEventRepScriptEmail');
-    eventRepetitionsOnCompleteStub = sinon.stub(eventRepetitions, 'onComplete');
     date = sinon.useFakeTimers(fakeDate);
   });
   afterEach(() => {
@@ -34,7 +33,6 @@ describe('method', () => {
     CompanyMock.restore();
     CreateFutureEventBasedOnRepetitionStub.restore();
     EmailHelperStub.restore();
-    eventRepetitionsOnCompleteStub.restore();
     date.restore();
   });
 
@@ -95,13 +93,13 @@ describe('method', () => {
         .once()
         .returns([futureEvent]);
 
-      await eventRepetitions.method(server);
+      const result = await eventRepetitions.method(server);
 
+      expect(result).toMatchObject({ results: [futureEvent], errors: [] });
       sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0]);
       RepetitionMock.verify();
       EventMock.verify();
       CompanyMock.verify();
-      sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [futureEvent], []);
     });
   });
 
@@ -139,11 +137,11 @@ describe('method', () => {
 
     CreateFutureEventBasedOnRepetitionStub.returns(Promise.reject(error));
 
-    await eventRepetitions.method(server);
+    const result = await eventRepetitions.method(server);
 
+    expect(result).toMatchObject({ results: [], errors: [repetition[0]._id] });
     RepetitionMock.verify();
     CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
-    sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [], [repetition[0]._id]);
   });
 });
