@@ -123,4 +123,8 @@ exports.routes = [
     plugin: require('./scripts'),
     routes: { prefix: '/scripts' },
   },
+  {
+    plugin: require('./taxCertificates'),
+    routes: { prefix: '/taxcertificates' },
+  },
 ];
