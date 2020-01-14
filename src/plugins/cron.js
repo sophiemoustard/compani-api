@@ -8,7 +8,7 @@ const internals = {};
 internals.callJob = (server, job) => async () => {
   const res = await server.inject(job.request);
 
-  if (job.onComplete) job.onComplete(server, res.result);
+  if (job.onComplete) job.onComplete(server, res.result.data);
 };
 
 internals.jobSchema = Joi.object({
