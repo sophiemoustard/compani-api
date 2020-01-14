@@ -54,10 +54,11 @@ const eventRepetitions = {
         }
       }
       const newSavedEvents = await Event.insertMany(newEvents);
-      this.onComplete(server, newSavedEvents, errors);
+
+      return { results: newSavedEvents, errors };
     }
   },
-  async onComplete(server, results, errors) {
+  async onComplete(server, { results, errors }) {
     try {
       server.log(['cron'], 'Event repetitions OK');
       if (errors && errors.length) {
