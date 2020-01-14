@@ -8,6 +8,7 @@ const {
   create,
   list,
   listWithSectorHistories,
+  listBySectors,
   activeList,
   show,
   update,
@@ -131,6 +132,21 @@ exports.plugin = {
         auth: { scope: ['users:list'] },
       },
       handler: listWithSectorHistories,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/from-sector',
+      options: {
+        auth: { scope: ['users:list'] },
+        validate: {
+          query: {
+            month: Joi.string().required(),
+            sector: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+          },
+        },
+      },
+      handler: listBySectors,
     });
 
     server.route({

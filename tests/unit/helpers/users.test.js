@@ -11,6 +11,7 @@ const omit = require('lodash/omit');
 const UsersHelper = require('../../../src/helpers/users');
 const RolesHelper = require('../../../src/helpers/roles');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
+const SectorHistoriesRepository = require('../../../src/repositories/SectorHistoryRepository');
 const translate = require('../../../src/helpers/translate');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
@@ -213,6 +214,45 @@ describe('getUsersListWithSectorHistories', () => {
     expect(result).toEqual(users);
     RoleMock.verify();
     UserMock.verify();
+  });
+});
+
+describe('getUsersBySectors', () => {
+  let getUsersBySectorsStub;
+  beforeEach(() => {
+    getUsersBySectorsStub = sinon.stub(SectorHistoriesRepository, 'getUsersBySectors');
+  });
+
+  afterEach(() => {
+    getUsersBySectorsStub.restore();
+  });
+
+  it('should get users from one sector', async () => {
+    const query = { month: '012020', sector: new ObjectID() };
+    const credentials = { company: { _id: new ObjectID() } };
+    const expectedResult = [{ _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] }];
+    getUsersBySectorsStub.returns(expectedResult);
+
+    const res = await UsersHelper.getUsersBySectors(query, credentials);
+
+    expect(res).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(getUsersBySectorsStub, query.month, [new ObjectID(query.sector)], credentials.company._id);
+  });
+
+  it('should get users from many sectors', async () => {
+    const query = { month: '012020', sector: [new ObjectID(), new ObjectID()] };
+    const credentials = { company: { _id: new ObjectID() } };
+    const expectedResult = [
+      { _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
+      { _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
+    ];
+    getUsersBySectorsStub.returns(expectedResult);
+
+    const res = await UsersHelper.getUsersBySectors(query, credentials);
+
+    const sectors = query.sector.map(id => new ObjectID(id));
+    expect(res).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(getUsersBySectorsStub, query.month, sectors, credentials.company._id);
   });
 });
 

@@ -18,7 +18,7 @@ const {
   company,
   sectorHistories,
 } = require('./seed/usersSeed');
-const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, userList, getTokenByCredentials, otherCompany, rolesList } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
@@ -413,6 +413,89 @@ describe('USERS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/users/sector-histories',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /users/from-sector', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+
+      it('should get all auxiliary users from a sector', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/from-sector?sector=${userSectors[0]._id}&month=012020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const auxiliaries = usersSeedList.filter((user) => {
+          if (user.role !== rolesList.find(role => role.name === 'auxiliary')._id) return false;
+          const sector = sectorHistories.find(sh => sh.auxiliary === user._id);
+          if (!sector) return false;
+          return sector.sector.toHexString() === userSectors[0]._id.toHexString();
+        });
+        expect(res.result.data.sectors.length).toBe(1);
+        expect(res.result.data.sectors[0].auxiliaries.length).toBe(auxiliaries.length);
+      });
+
+      it('should get all auxiliary users from many sectors', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/from-sector?sector=${userSectors[0]._id}&sector=${userSectors[1]._id}&month=012020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const auxiliaries = usersSeedList.filter((user) => {
+          if (user.role !== rolesList.find(role => role.name === 'auxiliary')._id) return false;
+          const sector = sectorHistories.find(sh => sh.auxiliary === user._id);
+          if (!sector) return false;
+          return sector.sector.toHexString() === userSectors[0]._id.toHexString();
+        });
+        expect(res.result.data.sectors.length).toBe(2);
+        expect(res.result.data.sectors.find(sector => sector._id.toHexString() === userSectors[0]._id.toHexString())
+          .auxiliaries.length).toBe(auxiliaries.length);
+        expect(res.result.data.sectors.find(sector => sector._id.toHexString() === userSectors[1]._id.toHexString())
+          .auxiliaries.length).toBe(1);
+      });
+
+      it('should get users that are not yet in the sector', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/from-sector?sector=${userSectors[0]._id}&month=012018`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.sectors.length).toBe(0);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/from-sector?sector=${userSectors[0]._id}&month=012020`,
             headers: { 'x-access-token': authToken },
           });
 

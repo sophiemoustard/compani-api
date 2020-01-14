@@ -166,6 +166,30 @@ const sectorHistories = usersSeedList
     startDate: '2018-12-10',
   }));
 
+const userFromOtherSector = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'auxiliary' },
+  local: { email: 'auxiliaryTest@alenvi.io', password: '123456' },
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  refreshToken: uuidv4(),
+  company: company._id,
+  administrative: {
+    certificates: [{ driveId: '12345678901234' }],
+    driveFolder: { driveId: '0987654321123' },
+  },
+  procedure: [{ task: task._id }],
+  inactivityDate: null,
+};
+
+usersSeedList.push(userFromOtherSector);
+
+const sectorHistoryForOtherSector = {
+  auxiliary: userFromOtherSector._id,
+  sector: userSectors[1]._id,
+  company: company._id,
+  startDate: '2018-12-10',
+};
+
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;
 
@@ -182,6 +206,7 @@ const populateDB = async () => {
   await Customer.create(customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
+  await new SectorHistory(sectorHistoryForOtherSector).save();
   await new Company(company).save();
   await new Task(task).save();
 };

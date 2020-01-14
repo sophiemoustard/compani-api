@@ -14,8 +14,10 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
+const { ObjectID } = require('mongodb');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 const SectorHistoriesHelper = require('../helpers/sectorHistories');
+const SectorHistoriesRepository = require('../repositories/SectorHistoryRepository');
 
 const { language } = translate;
 
@@ -46,6 +48,7 @@ exports.getUsersList = async (query, credentials) => {
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
 };
+
 exports.getUsersListWithSectorHistories = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
@@ -60,6 +63,11 @@ exports.getUsersListWithSectorHistories = async (credentials) => {
     })
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
+};
+
+exports.getUsersBySectors = async (query, credentials) => {
+  const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
+  return SectorHistoriesRepository.getUsersBySectors(query.month, sectors, get(credentials, 'company._id', null));
 };
 
 exports.getUser = async (userId, credentials) => {
