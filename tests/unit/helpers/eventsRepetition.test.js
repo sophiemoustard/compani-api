@@ -307,7 +307,7 @@ describe('createRepetitions', () => {
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
-      .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
+      .returns({ _id: auxiliaryId, sector: sectorId });
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.called(updateOne);
@@ -327,7 +327,7 @@ describe('createRepetitions', () => {
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .once()
-      .returns({ _id: auxiliaryId, sector: { _id: sectorId } });
+      .returns({ _id: auxiliaryId, sector: sectorId });
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
@@ -441,7 +441,7 @@ describe('updateRepetition', () => {
       .chain('populate')
       .chain('lean')
       .once()
-      .returns({ sector: { _id: sectorId }, _id: auxiliaryId });
+      .returns({ sector: sectorId, _id: auxiliaryId });
     EventMock.expects('find')
       .withExactArgs({
         'repetition.parentId': 'qwertyuiop',
@@ -489,7 +489,7 @@ describe('updateRepetition', () => {
       .chain('populate')
       .chain('lean')
       .once()
-      .returns({ sector: { _id: sectorId }, _id: auxiliaryId });
+      .returns({ sector: sectorId, _id: auxiliaryId });
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -590,5 +590,102 @@ describe('deleteRepetition', () => {
     sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(deleteMany);
     sinon.assert.notCalled(deleteOne);
+  });
+});
+
+describe('createFutureEventBasedOnRepetition', () => {
+  let hasConflicts;
+  let UserMock;
+  beforeEach(() => {
+    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    UserMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    hasConflicts.restore();
+    UserMock.restore();
+  });
+
+  it('should format event based on repetition', async () => {
+    const repetition = {
+      type: 'intervention',
+      customer: new ObjectID(),
+      subscription: new ObjectID(),
+      auxiliary: new ObjectID(),
+      status: 'contract_with_customer',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      company: new ObjectID(),
+      frequency: 'every_day',
+      parentId: new ObjectID(),
+      startDate: '2019-12-01T09:00:00',
+      endDate: '2019-12-01T10:00:00',
+    };
+
+    hasConflicts.returns(false);
+    UserMock.expects('findOne').never();
+
+    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+
+    expect(event.toObject()).toEqual(expect.objectContaining({
+      ...omit(repetition, ['frequency', 'parentId']),
+      repetition: { frequency: repetition.frequency, parentId: repetition.parentId },
+      startDate: moment('2020-04-13T09:00:00').toDate(),
+      endDate: moment('2020-04-13T10:00:00').toDate(),
+      isBilled: false,
+      isCancelled: false,
+      bills: { surcharges: [] },
+    }));
+    UserMock.verify();
+  });
+  it('should format and unassign event based on repetition', async () => {
+    const repetition = {
+      type: 'intervention',
+      customer: new ObjectID(),
+      subscription: new ObjectID(),
+      auxiliary: new ObjectID(),
+      status: 'contract_with_customer',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      company: new ObjectID(),
+      frequency: 'every_day',
+      parentId: new ObjectID(),
+      startDate: '2019-12-01T09:00:00',
+      endDate: '2019-12-01T10:00:00',
+    };
+
+    hasConflicts.returns(true);
+    const sectorId = new ObjectID();
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: repetition.auxiliary })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: repetition.company } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns({ _id: repetition.auxiliary, sector: sectorId });
+
+    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+
+    expect(event.toObject()).toEqual(expect.objectContaining({
+      ...omit(repetition, ['frequency', 'parentId', 'auxiliary']),
+      sector: sectorId,
+      repetition: { frequency: 'never', parentId: repetition.parentId },
+      startDate: moment('2020-04-13T09:00:00').toDate(),
+      endDate: moment('2020-04-13T10:00:00').toDate(),
+      isBilled: false,
+      isCancelled: false,
+      bills: { surcharges: [] },
+    }));
+    UserMock.verify();
   });
 });

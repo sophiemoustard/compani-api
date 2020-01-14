@@ -63,7 +63,11 @@ describe('method', () => {
       const server = 'server';
       const companyId = new ObjectID();
 
-      CompanyMock.expects('find').withExactArgs({}).returns([{ _id: companyId }]);
+      CompanyMock.expects('find')
+        .withExactArgs({})
+        .chain('lean')
+        .once()
+        .returns([{ _id: companyId }]);
       RepetitionMock.expects('find')
         .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
         .chain('lean')
@@ -120,9 +124,10 @@ describe('method', () => {
     }];
 
     const companyId = new ObjectID();
-    CompanyMock
-      .expects('find')
+    CompanyMock.expects('find')
       .withExactArgs({})
+      .chain('lean')
+      .once()
       .returns([{ _id: companyId }]);
 
     RepetitionMock

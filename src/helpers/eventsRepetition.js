@@ -96,8 +96,8 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   if (!eventFromDb.sector) {
     const user = await User.findOne({ _id: eventFromDb.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .lean();
-    sectorId = user.sector._id;
+      .lean({ autopopulate: true, virtuals: true });
+    sectorId = user.sector;
   }
 
   switch (payload.repetition.frequency) {
@@ -137,8 +137,10 @@ exports.updateRepetition = async (event, eventPayload, credentials) => {
 
   let sectorId;
   if (!event.sector) {
-    const user = await User.findOne({ _id: event.auxiliary }).populate('sector').lean();
-    sectorId = user.sector._id;
+    const user = await User.findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean();
+    sectorId = user.sector;
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
@@ -195,16 +197,23 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
   const { frequency, parentId, startDate, endDate } = repetition;
   const startDateObj = moment(startDate).toObject();
   const endDateObj = moment(endDate).toObject();
-  const newEventStartDate = moment().add(90, 'd')
-    .set(pick(startDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
-  const newEventEndDate = moment().add(90, 'd')
-    .set(pick(endDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
+  const timeFields = ['hours', 'minutes', 'seconds', 'milliseconds'];
+  const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, timeFields)).toDate();
+  const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, timeFields)).toDate();
+  const pickedFields = [
+    'type',
+    'customer',
+    'subscription',
+    'auxiliary',
+    'sector',
+    'status',
+    'misc',
+    'internalHour',
+    'address',
+    'company',
+  ];
   const newEvent = {
-    ...pick(
-      repetition,
-      ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status',
-        'misc', 'internalHour', 'address', 'company']
-    ),
+    ...pick(cloneDeep(repetition), pickedFields),
     startDate: newEventStartDate,
     endDate: newEventEndDate,
     repetition: { frequency, parentId },
@@ -213,8 +222,10 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
   if (newEvent.type === INTERVENTION && newEvent.auxiliary && await EventsValidationHelper.hasConflicts(newEvent)) {
     delete newEvent.auxiliary;
     newEvent.repetition.frequency = NEVER;
-    const user = await User.findOne({ _id: repetition.auxiliary }).populate('sector').lean();
-    newEvent.sector = user.sector._id;
+    const user = await User.findOne({ _id: repetition.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: repetition.company } })
+      .lean({ autopopulate: true, virtuals: true });
+    newEvent.sector = user.sector;
   }
 
   return new Event(newEvent);
