@@ -75,11 +75,13 @@ describe('COMPANIES ROUTES', () => {
       });
 
       const falsyAssertions = [
-        { payload: { apeCode: '123' }, case: 'lower than 4' },
-        { payload: { apeCode: '123456' }, case: 'greater than 5' },
+        { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
+        { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
+        { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
+        { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
       ];
       falsyAssertions.forEach((assertion) => {
-        it(`should return a 400 error if ape code length is ${assertion.case}`, async () => {
+        it(`should return a 400 error if ${assertion.case}`, async () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/companies/${authCompany._id.toHexString()}`,

@@ -17,7 +17,7 @@ const CompanySchema = mongoose.Schema({
   ics: { type: String },
   iban: { type: String },
   bic: { type: String },
-  apeCode: { type: String, minLength: 4, maxLength: 5 },
+  apeCode: { type: String, validate(v) { return /^\d{3,4}[A-Z]$/.test(v); } },
   type: { type: String, enum: COMPANY_TYPES, default: COMPANY, required: true },
   folderId: { type: String, required: true },
   directDebitsFolderId: { type: String, required: true },
