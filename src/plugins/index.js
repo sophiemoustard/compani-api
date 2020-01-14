@@ -19,14 +19,22 @@ const plugins = [
         {
           name: 'billDispatch',
           time: '0 0 5 * * *',
-          method: billDispatch.method,
+          request: {
+            method: 'GET',
+            url: '/scripts/bill-dispatch',
+            credentials: { scope: ['scripts:run'] },
+          },
           onComplete: billDispatch.onComplete,
           env: 'production',
         },
         {
           name: 'eventRepetitions',
           time: '0 0 4 * * *',
-          method: eventRepetitions.method,
+          request: {
+            method: 'GET',
+            url: '/scripts/events-repetitions',
+            credentials: { scope: ['scripts:run'] },
+          },
           onComplete: eventRepetitions.onComplete,
         },
       ],

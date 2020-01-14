@@ -16,7 +16,6 @@ describe('method', () => {
   let findBillsAndHelpersByCustomerStub;
   let billAlertEmailStub;
   let completeBillScriptEmailStub;
-  let billDispatchOnCompleteStub;
   let date;
   const fakeDate = new Date('2019-01-03');
 
@@ -26,7 +25,6 @@ describe('method', () => {
     findBillsAndHelpersByCustomerStub = sinon.stub(BillRepository, 'findBillsAndHelpersByCustomer');
     billAlertEmailStub = sinon.stub(EmailHelper, 'billAlertEmail');
     completeBillScriptEmailStub = sinon.stub(EmailHelper, 'completeBillScriptEmail');
-    billDispatchOnCompleteStub = sinon.stub(billDispatch, 'onComplete');
     date = sinon.useFakeTimers(fakeDate.getTime());
   });
 
@@ -36,7 +34,6 @@ describe('method', () => {
     findBillsAndHelpersByCustomerStub.restore();
     billAlertEmailStub.restore();
     completeBillScriptEmailStub.restore();
-    billDispatchOnCompleteStub.restore();
     date.restore();
   });
 
@@ -44,10 +41,15 @@ describe('method', () => {
     const server = 'server';
     const billsIds = [new ObjectID()];
     const companyId = new ObjectID();
-    const customers = [{
-      helpers: [{ local: { email: 'leroi@lion.com' }, company: companyId }, { local: { email: 'rox@rouky.com' }, company: companyId }],
-      bills: [{ _id: billsIds[0] }],
-    }];
+    const customers = [
+      {
+        helpers: [
+          { local: { email: 'leroi@lion.com' }, company: companyId },
+          { local: { email: 'rox@rouky.com' }, company: companyId },
+        ],
+        bills: [{ _id: billsIds[0] }],
+      },
+    ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
     CompanyMock
@@ -67,12 +69,13 @@ describe('method', () => {
       .withArgs({ _id: { $in: billsIds } }, { $set: { sentAt: fakeDate } })
       .once();
 
-    await billDispatch.method(server);
+    const result = await billDispatch.method(server);
+
+    expect(result).toMatchObject({ results: ['leroi@lion.com', 'rox@rouky.com'], errors: [] });
     expect(billAlertEmailStub.callCount).toBe(2);
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     BillMock.verify();
-    sinon.assert.calledWith(billDispatchOnCompleteStub, server, ['leroi@lion.com', 'rox@rouky.com'], []);
   });
 
   it('should log emails which can not be sent', async () => {
@@ -81,10 +84,15 @@ describe('method', () => {
     const billsIds = [new ObjectID()];
     const error = new Error('Test error.');
     const companyId = new ObjectID();
-    const customers = [{
-      helpers: [{ local: { email: 'leroi@lion.com' }, company: companyId }, { local: { email: 'rox@rouky.com' }, company: companyId }],
-      bills: [{ _id: billsIds[0] }],
-    }];
+    const customers = [
+      {
+        helpers: [
+          { local: { email: 'leroi@lion.com' }, company: companyId },
+          { local: { email: 'rox@rouky.com' }, company: companyId },
+        ],
+        bills: [{ _id: billsIds[0] }],
+      },
+    ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
     CompanyMock
@@ -103,14 +111,15 @@ describe('method', () => {
       .expects('updateMany')
       .never();
 
-    await billDispatch.method(server);
+    const result = await billDispatch.method(server);
+
+    expect(result).toMatchObject({ results: [], errors: ['leroi@lion.com', 'rox@rouky.com'] });
     expect(billAlertEmailStub.callCount).toBe(2);
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     BillMock.verify();
     CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
-    sinon.assert.calledWith(billDispatchOnCompleteStub, server, [], ['leroi@lion.com', 'rox@rouky.com']);
     serverLogStub.restore();
   });
 });
