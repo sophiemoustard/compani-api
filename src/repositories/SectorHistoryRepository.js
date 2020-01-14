@@ -133,10 +133,10 @@ exports.getUsersBySectors = async (month, sectors, companyId) => SectorHistory.a
     {
       $match: {
         sector: { $in: sectors },
-        startDate: { $lte: moment(month, 'MMYYYY').startOf('M').toDate() },
+        startDate: { $lte: moment(month, 'MMYYYY').endOf('M').toDate() },
         $or: [
           { endDate: { $exists: false } },
-          { endDate: { $gte: moment(month, 'MMYYYY').endOf('M').toDate() } },
+          { endDate: { $gte: moment(month, 'MMYYYY').startOf('M').toDate() } },
         ],
       },
     },
