@@ -209,6 +209,7 @@ module.exports = {
     billSlipsFound: 'Bill slips found',
     /* Tax certificates */
     taxCertificatesNotFound: 'Tax certificates not found',
+    taxCertificateNotFound: 'Tax certificate not found',
     taxCertificatesFound: 'Tax certificates found',
   },
   'fr-FR': {
@@ -418,6 +419,7 @@ module.exports = {
     billSlipsFound: 'Bordereaux trouvés',
     /* Tax certificates */
     taxCertificatesNotFound: 'Attestations fiscales non trouvées',
+    taxCertificateNotFound: 'Attestation fiscale non trouvée',
     taxCertificatesFound: 'Attestations fiscales trouvées',
   },
 };
