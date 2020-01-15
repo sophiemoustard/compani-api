@@ -622,8 +622,8 @@ describe('createFutureEventBasedOnRepetition', () => {
       company: new ObjectID(),
       frequency: 'every_day',
       parentId: new ObjectID(),
-      startDate: '2019-12-01T09:00:00',
-      endDate: '2019-12-01T10:00:00',
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(false);
@@ -634,8 +634,8 @@ describe('createFutureEventBasedOnRepetition', () => {
     expect(event.toObject()).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId']),
       repetition: { frequency: repetition.frequency, parentId: repetition.parentId },
-      startDate: moment('2020-04-13T09:00:00').toDate(),
-      endDate: moment('2020-04-13T10:00:00').toDate(),
+      startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+      endDate: moment().add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
       isBilled: false,
       isCancelled: false,
       bills: { surcharges: [] },
@@ -659,8 +659,8 @@ describe('createFutureEventBasedOnRepetition', () => {
       company: new ObjectID(),
       frequency: 'every_day',
       parentId: new ObjectID(),
-      startDate: '2019-12-01T09:00:00',
-      endDate: '2019-12-01T10:00:00',
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(true);
@@ -680,8 +680,8 @@ describe('createFutureEventBasedOnRepetition', () => {
       ...omit(repetition, ['frequency', 'parentId', 'auxiliary']),
       sector: sectorId,
       repetition: { frequency: 'never', parentId: repetition.parentId },
-      startDate: moment('2020-04-13T09:00:00').toDate(),
-      endDate: moment('2020-04-13T10:00:00').toDate(),
+      startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+      endDate: moment().add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
       isBilled: false,
       isCancelled: false,
       bills: { surcharges: [] },
