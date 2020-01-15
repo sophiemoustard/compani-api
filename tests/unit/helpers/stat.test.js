@@ -646,7 +646,7 @@ describe('getCustomersAndDurationBySector', () => {
   it('Case sector : should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationByAuxiliary(query, credentials);
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
@@ -660,7 +660,7 @@ describe('getCustomersAndDurationBySector', () => {
   it('Case sector : should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationByAuxiliary(query, credentials);
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
