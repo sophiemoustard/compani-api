@@ -38,7 +38,7 @@ const customersList = [
 const helper = {
   _id: new ObjectID(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-  local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
+  local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'helper')._id,
   customers: [customersList[0]._id],
@@ -69,6 +69,7 @@ const taxCertificatesList = [
 const populateDB = async () => {
   await TaxCertificate.deleteMany();
   await Customer.deleteMany();
+  await User.deleteMany();
   await populateDBForAuthentication();
   await Customer.insertMany(customersList);
   await TaxCertificate.insertMany(taxCertificatesList);

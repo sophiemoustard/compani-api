@@ -33,8 +33,8 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
   const { credentials } = req.auth;
   const { taxCertificate } = req.pre;
 
-  const canRead = credentials.scope.includes('taxcertificates:read');
   const isHelpersCustomer = credentials.scope.includes(`customer-${taxCertificate.customer.toHexString()}`);
+  const canRead = credentials.scope.includes('taxcertificates:read');
 
   const customer = await Customer.findOne({ _id: taxCertificate.customer, company: credentials.company._id }).lean();
   if (!customer) throw Boom.forbidden();

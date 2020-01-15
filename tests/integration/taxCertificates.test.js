@@ -18,7 +18,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
       authToken = await getToken('admin');
     });
 
-    it('should tax certificates list', async () => {
+    it('should get tax certificates list', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[0]._id}`,
@@ -30,7 +30,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
         .filter(tc => tc.customer.toHexString() === customersList[0]._id.toHexString());
       expect(response.result.data.taxCertificates.length).toEqual(customerCertificates.length);
     });
-    it('should should return 403 if customer from another organisation', async () => {
+    it('should return 403 if customer from another organisation', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[1]._id}`,
@@ -42,7 +42,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer bills pdf if I am its helper', async () => {
+    it('should return customer tax certificates pdf if I am its helper', async () => {
       const helperToken = await getTokenByCredentials(helper.local);
       const response = await app.inject({
         method: 'GET',
@@ -80,7 +80,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
       authToken = await getToken('admin');
     });
 
-    it('should tax certificates list', async () => {
+    it('should get tax certificates pdf', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
@@ -110,7 +110,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer bills pdf if I am its helper', async () => {
+    it('should return tax certificates pdf if I am its helper', async () => {
       const helperToken = await getTokenByCredentials(helper.local);
       const response = await app.inject({
         method: 'GET',

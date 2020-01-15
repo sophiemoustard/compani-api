@@ -12,8 +12,8 @@ const list = async (req) => {
     return {
       data: { taxCertificates },
       message: taxCertificates.length
-        ? translate[language].taxCertificatesNotFound
-        : translate[language].taxCertificatesFound,
+        ? translate[language].taxCertificatesFound
+        : translate[language].taxCertificatesNotFound,
     };
   } catch (e) {
     req.log('error', e);
