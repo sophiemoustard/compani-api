@@ -1,6 +1,7 @@
 const moment = require('moment');
 const Boom = require('boom');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const translate = require('../helpers/translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
@@ -213,8 +214,7 @@ exports.formatPDF = (creditNote, company) => {
         ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
-      company,
-      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
     },
   };
 };

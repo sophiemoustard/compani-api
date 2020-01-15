@@ -284,8 +284,7 @@ exports.formatPDF = (bill, company) => {
         contact: get(bill, 'customer.contact'),
       },
       ...computedData,
-      company,
-      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
     },
   };
 };
