@@ -163,7 +163,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
   });
 });
 
-describe('GET /stats/customer-duration-auxiliary', () => {
+describe('GET /stats/customer-duration/auxiliary', () => {
   let adminToken = null;
 
   describe('Admin', () => {
@@ -176,33 +176,33 @@ describe('GET /stats/customer-duration-auxiliary', () => {
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-auxiliary?month=072019&sector=${sectorList[0]._id}`,
+        url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customerAndDuration[0]).toBeDefined();
-      expect(res.result.data.customerAndDuration[0]._id).toEqual(sectorList[0]._id);
-      expect(res.result.data.customerAndDuration[0].auxiliaries[0].customerCount).toEqual(1);
-      expect(res.result.data.customerAndDuration[0].auxiliaries[0].duration).toEqual(4);
+      expect(res.result.data.customersAndDuration[0]).toBeDefined();
+      expect(res.result.data.customersAndDuration[0]._id).toEqual(sectorList[0]._id);
+      expect(res.result.data.customersAndDuration[0].auxiliaries[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].auxiliaries[0].duration).toEqual(4);
     });
 
     it('should get customer and duration stats for auxiliary', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-auxiliary?month=072019&auxiliary=${userList[0]._id}`,
+        url: `/stats/customer-duration/auxiliary?month=072019&auxiliary=${userList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customerAndDuration[0]).toBeDefined();
-      expect(res.result.data.customerAndDuration[0].auxiliary).toEqual(userList[0]._id);
-      expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
-      expect(res.result.data.customerAndDuration[0].duration).toEqual(2.5);
+      expect(res.result.data.customersAndDuration[0]).toBeDefined();
+      expect(res.result.data.customersAndDuration[0].auxiliary).toEqual(userList[0]._id);
+      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].duration).toEqual(2.5);
     });
 
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-auxiliary?month=072019&sector=${sectorList[2]._id}`,
+        url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -212,7 +212,7 @@ describe('GET /stats/customer-duration-auxiliary', () => {
     it('should return 403 if auxiliary is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-auxiliary?month=072019&auxiliary=${userList[2]._id}`,
+        url: `/stats/customer-duration/auxiliary?month=072019&auxiliary=${userList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -222,7 +222,7 @@ describe('GET /stats/customer-duration-auxiliary', () => {
     it('should not get customer and duration stats as auxiliary and sector are missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/stats/customer-duration-auxiliary?month=072019',
+        url: '/stats/customer-duration/auxiliary?month=072019',
         headers: { 'x-access-token': adminToken },
       });
 
@@ -232,7 +232,7 @@ describe('GET /stats/customer-duration-auxiliary', () => {
     it('should not get customer and duration stats as month is missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-auxiliary?sector=${sectorList[0]._id}`,
+        url: `/stats/customer-duration/auxiliary?sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -252,7 +252,7 @@ describe('GET /stats/customer-duration-auxiliary', () => {
         const authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/stats/customer-duration-auxiliary?month=072019&sector=${sectorList[0]._id}`,
+          url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -262,7 +262,7 @@ describe('GET /stats/customer-duration-auxiliary', () => {
   });
 });
 
-describe('GET /stats/customer-duration-sector', () => {
+describe('GET /stats/customer-duration/sector', () => {
   let adminToken = null;
 
   describe('Admin', () => {
@@ -275,42 +275,42 @@ describe('GET /stats/customer-duration-sector', () => {
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-sector?month=072019&sector=${sectorList[0]._id}`,
+        url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customerAndDuration[0]).toBeDefined();
-      expect(res.result.data.customerAndDuration[0].sector).toEqual(sectorList[0]._id);
-      expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
-      expect(res.result.data.customerAndDuration[0].duration).toEqual(4);
+      expect(res.result.data.customersAndDuration[0]).toBeDefined();
+      expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
+      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].duration).toEqual(4);
     });
 
     it('should return only relevant hours if an auxiliary has changed sector', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-sector?month=112019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
+        url: `/stats/customer-duration/sector?month=112019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
-      const oldSectorCustomerAndDuration = res.result.data.customerAndDuration.find(cad =>
+      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
         cad.sector.toHexString() === sectorList[0]._id.toHexString());
-      const newSectorCustomerAndDuration = res.result.data.customerAndDuration.find(cad =>
+      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
         cad.sector.toHexString() === sectorList[1]._id.toHexString());
 
-      expect(oldSectorCustomerAndDuration).toBeDefined();
-      expect(oldSectorCustomerAndDuration.customerCount).toEqual(1);
-      expect(oldSectorCustomerAndDuration.duration).toEqual(1.5);
+      expect(oldSectosrCustomersAndDuration).toBeDefined();
+      expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
+      expect(oldSectosrCustomersAndDuration.duration).toEqual(1.5);
 
-      expect(newSectorCustomerAndDuration).toBeDefined();
-      expect(newSectorCustomerAndDuration.customerCount).toEqual(1);
-      expect(newSectorCustomerAndDuration.duration).toEqual(2.5);
+      expect(newSectosrCustomersAndDuration).toBeDefined();
+      expect(newSectosrCustomersAndDuration.customerCount).toEqual(1);
+      expect(newSectosrCustomersAndDuration.duration).toEqual(2.5);
     });
 
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-sector?month=072019&sector=${sectorList[2]._id}`,
+        url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -320,7 +320,7 @@ describe('GET /stats/customer-duration-sector', () => {
     it('should not get customer and duration stats as sector is missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/stats/customer-duration-sector?month=072019',
+        url: '/stats/customer-duration/sector?month=072019',
         headers: { 'x-access-token': adminToken },
       });
 
@@ -330,7 +330,7 @@ describe('GET /stats/customer-duration-sector', () => {
     it('should not get customer and duration stats as month is missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration-sector?sector=${sectorList[0]._id}`,
+        url: `/stats/customer-duration/sector?sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -350,7 +350,7 @@ describe('GET /stats/customer-duration-sector', () => {
         const authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/stats/customer-duration-sector?month=072019&sector=${sectorList[0]._id}`,
+          url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 

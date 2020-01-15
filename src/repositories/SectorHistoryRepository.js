@@ -128,21 +128,21 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getUsersBySectors = async (month, sectors, companyId) => SectorHistory.aggregate([
+exports.getUsersBySectors = async (startDate, endDate, sectors, companyId) => SectorHistory.aggregate([
   [
     {
       $match: {
         sector: { $in: sectors },
-        startDate: { $lte: moment(month, 'MMYYYY').endOf('M').toDate() },
+        startDate: { $lte: endDate },
         $or: [
           { endDate: { $exists: false } },
-          { endDate: { $gte: moment(month, 'MMYYYY').startOf('M').toDate() } },
+          { endDate: { $gte: startDate } },
         ],
       },
     },
     { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
-    { $group: { _id: '$sector', auxiliaries: { $push: '$auxiliary' } } },
-    { $project: { _id: 1, auxiliaries: { _id: 1 } } },
+    { $group: { _id: '$sector', auxiliaries: { $addToSet: '$auxiliary' } } },
+    { $project: { sector: '$_id', auxiliaries: { _id: 1 } } },
   ],
 ]).option({ company: companyId });

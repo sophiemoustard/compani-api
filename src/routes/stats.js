@@ -56,7 +56,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration-auxiliary',
+      path: '/customer-duration/auxiliary',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
@@ -73,7 +73,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration-sector',
+      path: '/customer-duration/sector',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
