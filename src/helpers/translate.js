@@ -207,6 +207,10 @@ module.exports = {
     sectorHistoryNotFound: 'Sector history not found',
     /* Bill slip */
     billSlipsFound: 'Bill slips found',
+    /* Tax certificates */
+    taxCertificatesNotFound: 'Tax certificates not found',
+    taxCertificateNotFound: 'Tax certificate not found',
+    taxCertificatesFound: 'Tax certificates found',
   },
   'fr-FR': {
     /* Global errors */
@@ -413,5 +417,9 @@ module.exports = {
     sectorHistoryNotFound: 'Historique du secteur non trouvé.',
     /* Bill slip */
     billSlipsFound: 'Bordereaux trouvés',
+    /* Tax certificates */
+    taxCertificatesNotFound: 'Attestations fiscales non trouvées',
+    taxCertificateNotFound: 'Attestation fiscale non trouvée',
+    taxCertificatesFound: 'Attestations fiscales trouvées',
   },
 };
