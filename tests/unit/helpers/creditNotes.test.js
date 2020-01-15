@@ -639,26 +639,38 @@ describe('formatPDF', () => {
   let getMatchingVersion;
   let formatPrice;
   let formatEventSurchargesForPdf;
+  let formatIdentity;
   beforeEach(() => {
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion').returns({ name: 'Toto' });
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     formatEventSurchargesForPdf = sinon.stub(PdfHelper, 'formatEventSurchargesForPdf');
   });
-
   afterEach(() => {
     getMatchingVersion.restore();
     formatPrice.restore();
     formatEventSurchargesForPdf.restore();
+    formatIdentity.restore();
   });
 
   it('should format correct credit note PDF with events for customer', () => {
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
     const subId = new ObjectID();
     const creditNote = {
       number: 1,
       events: [{
-        auxiliary: {
-          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-        },
+        auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
         serviceName: 'Toto',
@@ -675,7 +687,6 @@ describe('formatPDF', () => {
       exclTaxesTpp: 21,
       inclTaxesTpp: 34,
     };
-
     const expectedResult = {
       creditNote: {
         number: 1,
@@ -698,22 +709,18 @@ describe('formatPDF', () => {
             surcharges: [{ percentage: 30, startHour: '19h' }],
           },
         ],
-        recipient: {
-          name: 'M. Toto Bobo',
-          address: { fullAddress: 'La ruche' },
-        },
-        company: {},
-        logo:
-          'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        recipient: { name: 'M. Toto BOBO', address: { fullAddress: 'La ruche' } },
+        company,
       },
     };
 
     formatPrice.onCall(0).returns('13,00 €');
     formatPrice.onCall(1).returns('221,00 €');
     formatPrice.onCall(2).returns('234,00 €');
+    formatIdentity.returns('M. Toto BOBO');
     formatEventSurchargesForPdf.returns([{ percentage: 30, startHour: '19h' }]);
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, company);
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledWithExactly(formatEventSurchargesForPdf, [{ percentage: 30 }]);
@@ -744,7 +751,18 @@ describe('formatPDF', () => {
       inclTaxesCustomer: 234,
       thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
     };
-
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
     const expectedResult = {
       creditNote: {
         number: 1,
@@ -766,13 +784,8 @@ describe('formatPDF', () => {
             service: 'Toto',
           },
         ],
-        recipient: {
-          name: 'tpp',
-          address: { fullAddress: "j'habite ici" },
-        },
-        company: {},
-        logo:
-          'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        recipient: { name: 'tpp', address: { fullAddress: "j'habite ici" } },
+        company,
       },
     };
 
@@ -780,7 +793,7 @@ describe('formatPDF', () => {
     formatPrice.onCall(1).returns('21,00 €');
     formatPrice.onCall(2).returns('34,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, company);
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
@@ -790,12 +803,7 @@ describe('formatPDF', () => {
   it('should format correct credit note PDF with subscription', () => {
     const creditNote = {
       number: 1,
-      subscription: {
-        service: {
-          name: 'service',
-        },
-        unitInclTaxes: 12,
-      },
+      subscription: { service: { name: 'service' }, unitInclTaxes: 12 },
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'couple' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
@@ -807,10 +815,21 @@ describe('formatPDF', () => {
       inclTaxesCustomer: 234,
       thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
     };
-
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
     formatPrice.onCall(0).returns('12,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, company);
 
     expect(result).toBeDefined();
     expect(result.creditNote.subscription).toBeDefined();

@@ -136,6 +136,7 @@ exports.formatIdentity = (identity, format) => {
     let value;
     if (formatLower[i] === 'f') value = (identity.firstname || '').trim();
     else if (formatLower[i] === 'l') value = (identity.lastname || '').trim().toUpperCase();
+    else if (formatLower[i] === 't') value = (CIVILITY_LIST[identity.title] || '').trim();
 
     if (!value) continue;
 
@@ -145,8 +146,3 @@ exports.formatIdentity = (identity, format) => {
 
   return values.join(' ');
 };
-
-exports.formatCustomerName = customer =>
-  (customer.identity.firstname
-    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);

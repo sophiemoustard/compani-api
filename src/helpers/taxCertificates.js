@@ -29,7 +29,7 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
         .format('DD/MM/YYYY'),
       director: 'Clément de Saint Olive',
       customer: {
-        name: UtilsHelper.formatCustomerName(taxCertificate.customer),
+        name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
         address: get(taxCertificate, 'customer.contact.primaryAddress', {}),
       },
     },

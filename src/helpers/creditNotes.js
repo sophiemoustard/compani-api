@@ -177,7 +177,7 @@ exports.formatPDF = (creditNote, company) => {
         : get(creditNote, 'customer.contact.primaryAddress', {}),
       name: creditNote.thirdPartyPayer
         ? creditNote.thirdPartyPayer.name
-        : UtilsHelper.formatCustomerName(creditNote.customer),
+        : UtilsHelper.formatIdentity(creditNote.customer.identity, 'TFL'),
     },
   };
 
