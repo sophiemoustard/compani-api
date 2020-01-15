@@ -152,11 +152,6 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   return creditNote;
 };
 
-const formatCustomerName = customer =>
-  (customer.identity.firstname
-    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
-
 const formatEventForPdf = event => ({
   identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
   date: moment(event.startDate).format('DD/MM'),
@@ -180,7 +175,9 @@ exports.formatPDF = (creditNote, company) => {
       address: creditNote.thirdPartyPayer
         ? get(creditNote, 'thirdPartyPayer.address', {})
         : get(creditNote, 'customer.contact.primaryAddress', {}),
-      name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
+      name: creditNote.thirdPartyPayer
+        ? creditNote.thirdPartyPayer.name
+        : UtilsHelper.formatCustomerName(creditNote.customer),
     },
   };
 

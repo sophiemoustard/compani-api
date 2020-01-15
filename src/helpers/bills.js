@@ -265,7 +265,7 @@ exports.formatPDF = (bill, company) => {
     formattedEvents: [],
     recipient: {
       address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.primaryAddress', {}),
-      name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
+      name: bill.client ? bill.client.name : UtilsHelper.formatCustomerName(bill.customer),
     },
     forTpp: !!bill.client,
     ...exports.formatBillSubscriptionsForPdf(bill),

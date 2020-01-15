@@ -145,3 +145,8 @@ exports.formatIdentity = (identity, format) => {
 
   return values.join(' ');
 };
+
+exports.formatCustomerName = customer =>
+  (customer.identity.firstname
+    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
+    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
