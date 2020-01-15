@@ -632,7 +632,7 @@ describe('createFutureEventBasedOnRepetition', () => {
     const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
 
     expect(event.toObject()).toEqual(expect.objectContaining({
-      ...omit(repetition, ['frequency', 'parentId']),
+      ...omit(repetition, ['frequency', 'parentId', 'startDate', 'endDate']),
       repetition: { frequency: repetition.frequency, parentId: repetition.parentId },
       startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
       endDate: moment().add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
@@ -676,8 +676,9 @@ describe('createFutureEventBasedOnRepetition', () => {
 
     const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
 
+
     expect(event.toObject()).toEqual(expect.objectContaining({
-      ...omit(repetition, ['frequency', 'parentId', 'auxiliary']),
+      ...omit(repetition, ['frequency', 'parentId', 'auxiliary', 'startDate', 'endDate']),
       sector: sectorId,
       repetition: { frequency: 'never', parentId: repetition.parentId },
       startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
