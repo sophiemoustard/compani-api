@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
 const EventRepository = require('../repositories/EventRepository');
+const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
 
@@ -86,15 +87,41 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   return allCustomersFundingsMonitoring;
 };
 
-exports.getCustomersAndDuration = async (query, credentials) => {
+exports.getCustomersAndDurationByAuxiliary = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   if (query.sector) {
     const sectors = Array.isArray(query.sector)
       ? query.sector.map(id => new ObjectID(id))
       : [new ObjectID(query.sector)];
-
-    return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
+    const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
+    const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
+    const auxiliariesBySectors = await SectorHistoryRepository.getUsersBySectors(
+      startOfMonth,
+      endOfMonth,
+      sectors,
+      companyId
+    );
+    const result = [];
+    for (const auxiliariesBySector of auxiliariesBySectors) {
+      result.push({
+        sector: auxiliariesBySector.sector,
+        customersAndDuration: await EventRepository.getCustomersAndDurationByAuxiliary(
+          auxiliariesBySector.auxiliaries.map(aux => aux._id),
+          query.month,
+          companyId
+        ),
+      });
+    }
+    return result;
   }
+  return EventRepository.getCustomersAndDurationByAuxiliary([new ObjectID(query.auxiliary)], query.month, companyId);
+};
 
-  return EventRepository.getCustomerAndDurationByAuxiliary(query.auxiliary, query.month, companyId);
+exports.getCustomersAndDurationBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = Array.isArray(query.sector)
+    ? query.sector.map(id => new ObjectID(id))
+    : [new ObjectID(query.sector)];
+
+  return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
 };

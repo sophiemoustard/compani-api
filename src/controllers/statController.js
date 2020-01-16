@@ -59,13 +59,27 @@ exports.getAllCustomersFundingsMonitoring = async (req) => {
   }
 };
 
-exports.getCustomersAndDuration = async (req) => {
+exports.getCustomersAndDurationByAuxiliary = async (req) => {
   try {
-    const customerAndDuration = await StatsHelper.getCustomersAndDuration(req.query, req.auth.credentials);
+    const customersAndDuration = await StatsHelper.getCustomersAndDurationByAuxiliary(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,
-      data: { customerAndDuration },
+      data: { customersAndDuration },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.getCustomersAndDurationBySector = async (req) => {
+  try {
+    const customersAndDuration = await StatsHelper.getCustomersAndDurationBySector(req.query, req.auth.credentials);
+
+    return {
+      message: messages.statsFound,
+      data: { customersAndDuration },
     };
   } catch (e) {
     req.log('error', e);
