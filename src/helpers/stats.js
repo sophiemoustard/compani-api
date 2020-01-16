@@ -87,7 +87,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   return allCustomersFundingsMonitoring;
 };
 
-exports.getCustomersAndDurationByAuxiliary = async (query, credentials) => {
+exports.getPaidInterventionStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   if (query.sector) {
     const sectors = Array.isArray(query.sector)
@@ -101,20 +101,17 @@ exports.getCustomersAndDurationByAuxiliary = async (query, credentials) => {
       sectors,
       companyId
     );
-    const result = [];
+    let result = [];
     for (const auxiliariesBySector of auxiliariesBySectors) {
-      result.push({
-        sector: auxiliariesBySector.sector,
-        customersAndDuration: await EventRepository.getCustomersAndDurationByAuxiliary(
-          auxiliariesBySector.auxiliaries.map(aux => aux._id),
-          query.month,
-          companyId
-        ),
-      });
+      result = result.concat(await SectorHistoryRepository.getPaidInterventionStats(
+        auxiliariesBySector.auxiliaries.map(aux => aux._id),
+        query.month,
+        companyId
+      ));
     }
     return result;
   }
-  return EventRepository.getCustomersAndDurationByAuxiliary([new ObjectID(query.auxiliary)], query.month, companyId);
+  return SectorHistoryRepository.getPaidInterventionStats([new ObjectID(query.auxiliary)], query.month, companyId);
 };
 
 exports.getCustomersAndDurationBySector = async (query, credentials) => {

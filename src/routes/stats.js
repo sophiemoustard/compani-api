@@ -6,7 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomersAndDurationByAuxiliary,
+  getPaidInterventionStats,
   getCustomersAndDurationBySector,
   getAllCustomersFundingsMonitoring,
   getIntenalAndBilledHoursBySector,
@@ -69,7 +69,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomersAndDurationByAuxiliary,
+      handler: getPaidInterventionStats,
     });
 
     server.route({
