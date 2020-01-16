@@ -181,10 +181,16 @@ describe('GET /stats/customer-duration/auxiliary', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customersAndDuration[0]).toBeDefined();
-      expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
-      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].customerCount).toEqual(2);
-      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].duration).toEqual(4);
+      expect(res.result.data.paidInterventionStats[0]).toBeDefined();
+      const auxiliaryResult1 = res.result.data.paidInterventionStats.find(stats =>
+        stats._id.toHexString() === userList[0]._id.toHexString());
+      expect(auxiliaryResult1.customerCount).toEqual(2);
+      expect(auxiliaryResult1.duration).toEqual(2.5);
+
+      const auxiliaryResult2 = res.result.data.paidInterventionStats.find(stats =>
+        stats._id.toHexString() === userList[1]._id.toHexString());
+      expect(auxiliaryResult2.customerCount).toEqual(1);
+      expect(auxiliaryResult2.duration).toEqual(1.5);
     });
 
     it('should get customer and duration stats for auxiliary', async () => {
@@ -194,10 +200,10 @@ describe('GET /stats/customer-duration/auxiliary', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customersAndDuration[0]).toBeDefined();
-      expect(res.result.data.customersAndDuration[0].auxiliary).toEqual(userList[0]._id);
-      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
-      expect(res.result.data.customersAndDuration[0].duration).toEqual(2.5);
+      expect(res.result.data.paidInterventionStats[0]).toBeDefined();
+      expect(res.result.data.paidInterventionStats[0]._id).toEqual(userList[0]._id);
+      expect(res.result.data.paidInterventionStats[0].customerCount).toEqual(2);
+      expect(res.result.data.paidInterventionStats[0].duration).toEqual(2.5);
     });
 
     it('should return 403 if sector is not from the same company', async () => {

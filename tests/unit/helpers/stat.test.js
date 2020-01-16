@@ -550,7 +550,7 @@ describe('getPaidInterventionStats', () => {
   let getUsersBySectorsStub;
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
-    getPaidInterventionStats = sinon.stub(EventRepository, 'getPaidInterventionStats');
+    getPaidInterventionStats = sinon.stub(SectorHistoryRepository, 'getPaidInterventionStats');
     getUsersBySectorsStub = sinon.stub(SectorHistoryRepository, 'getUsersBySectors');
   });
   afterEach(() => {
@@ -598,15 +598,20 @@ describe('getPaidInterventionStats', () => {
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
 
     getUsersBySectorsStub.returns(auxiliariesBySectors);
-    getPaidInterventionStats.onCall(0).returns([{ customerCount: 9 }]);
-    getPaidInterventionStats.onCall(1).returns([{ customerCount: 11 }]);
+    const getPaidInterventionStatsResult1 = [{
+      auxiliary: auxiliariesBySectors[0].auxiliaries[0]._id,
+      customerCount: 9,
+    }];
+    const getPaidInterventionStatsResult2 = [{
+      auxiliary: auxiliariesBySectors[0].auxiliaries[0]._id,
+      customerCount: 9,
+    }];
+    getPaidInterventionStats.onCall(0).returns(getPaidInterventionStatsResult1);
+    getPaidInterventionStats.onCall(1).returns(getPaidInterventionStatsResult2);
 
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
-    expect(result).toEqual([
-      { sector: auxiliariesBySectors[0].sector, customersAndDuration: [{ customerCount: 9 }] },
-      { sector: auxiliariesBySectors[1].sector, customersAndDuration: [{ customerCount: 11 }] },
-    ]);
+    expect(result).toEqual(getPaidInterventionStatsResult1.concat(getPaidInterventionStatsResult2));
     sinon.assert.calledWithExactly(
       getUsersBySectorsStub,
       startOfMonth,
