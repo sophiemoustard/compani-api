@@ -22,7 +22,7 @@ const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
-describe('getCustomerBySector', () => {
+describe('getCustomersBySector', () => {
   let getCustomersFromEvent;
   beforeEach(() => {
     getCustomersFromEvent = sinon.stub(EventRepository, 'getCustomersFromEvent');
@@ -36,7 +36,7 @@ describe('getCustomerBySector', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    await CustomerHelper.getCustomerBySector(query, credentials);
+    await CustomerHelper.getCustomersBySector(query, credentials);
     sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
   });
 });
