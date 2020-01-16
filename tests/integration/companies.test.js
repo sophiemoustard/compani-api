@@ -196,7 +196,9 @@ describe('COMPANIES ROUTES', () => {
       it('should create a new company', async () => {
         const companiesBefore = await Company.find().lean();
         createFolderForCompany.returns({ id: '1234567890' });
-        createFolder.returns({ id: '0987654321' });
+        createFolder.onCall(0).returns({ id: '0987654321' });
+        createFolder.onCall(1).returns({ id: 'qwerty' });
+        createFolder.onCall(2).returns({ id: 'asdfgh' });
 
         const response = await app.inject({
           method: 'POST',
@@ -210,6 +212,8 @@ describe('COMPANIES ROUTES', () => {
         expect(response.result.data.company).toMatchObject({
           folderId: '1234567890',
           directDebitsFolderId: '0987654321',
+          customersFolderId: 'qwerty',
+          auxiliariesFolderId: 'asdfgh',
           prefixNumber: 104,
         });
 
