@@ -9,6 +9,7 @@ const {
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
   INTERVENTION,
+  INTERNAL_HOUR,
 } = require('../helpers/constants');
 
 const getVersionMatch = fundingsDate => ({
@@ -414,7 +415,7 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  { $eq: ['$type', INTERVENTION] },
+                  { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
                   {
                     $or: [
                       { $eq: ['$isCancelled', false] },
@@ -431,9 +432,30 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
     },
     { $unwind: { path: '$event' } },
     {
-      $addFields: { duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] } },
+      $addFields: {
+        'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
+      },
     },
-    { $group: { _id: '$sector._id', duration: { $sum: '$duration' } } },
-    { $project: { sector: '$_id', duration: 1 } },
+    {
+      $group: { _id: '$sector._id', events: { $push: '$event' } },
+    },
+    {
+      $project: {
+        sector: '$_id',
+        internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
+        interventions: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERVENTION] } } },
+      },
+    },
+    {
+      $project: {
+        sector: '$_id',
+        internalHours: {
+          $reduce: { input: '$internalHours', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
+        interventions: {
+          $reduce: { input: '$interventions', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
+      },
+    },
   ]).option({ company: companyId });
 };

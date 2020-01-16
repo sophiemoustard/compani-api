@@ -10,18 +10,11 @@ const messages = translate[translate.language];
 exports.getCustomerFollowUp = async (req) => {
   try {
     let followUp = await getCustomerFollowUp(req.query.customer, req.auth.credentials);
-    if (followUp.length === 0) {
-      return {
-        message: messages.statsNotFound,
-        data: { stats: [] },
-      };
-    }
-
     followUp = followUp.filter(user => User.isActive(user));
 
     return {
-      message: messages.statsFound,
-      data: { stats: followUp },
+      message: followUp.length === 0 ? messages.statsNotFound : messages.statsFound,
+      data: { followUp },
     };
   } catch (e) {
     req.log('error', e);
@@ -89,11 +82,11 @@ exports.getCustomersAndDurationBySector = async (req) => {
 
 exports.getIntenalAndBilledHoursBySector = async (req) => {
   try {
-    const customersAndDuration = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
+    const internalAndBilledHours = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,
-      data: { customersAndDuration },
+      data: { internalAndBilledHours },
     };
   } catch (e) {
     req.log('error', e);

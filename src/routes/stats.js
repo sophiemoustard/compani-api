@@ -90,7 +90,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/billed-internal-hours',
+      path: '/internal-billed-hours',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
