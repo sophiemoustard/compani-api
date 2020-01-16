@@ -165,6 +165,7 @@ const otherCompany = {
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'jhgfdd',
   prefixNumber: 103,
 };
 

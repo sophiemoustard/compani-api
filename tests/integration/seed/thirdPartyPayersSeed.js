@@ -21,6 +21,7 @@ const tppCompany = {
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'kjhgf',
   customersConfig: {
     billingPeriod: 'two_weeks',
   },

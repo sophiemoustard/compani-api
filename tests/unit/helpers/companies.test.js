@@ -33,6 +33,7 @@ describe('createCompany', () => {
       folderId: '1234567890',
       directDebitsFolderId: '0987654321',
       customersFolderId: 'qwertyuiop',
+      auxiliariesFolderId: 'asdfghj',
     };
     createFolderForCompanyStub.returns({ id: '1234567890' });
     createFolderStub.onCall(0).returns({ id: '0987654321' });
