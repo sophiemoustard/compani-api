@@ -12,7 +12,7 @@ const { CIVILITY_LIST } = require('./constants');
 
 const { language } = translate;
 
-exports.populateServices = (service) => {
+exports.populateService = (service) => {
   if (!service || service.version) return;
 
   const currentVersion = [...service.versions]
@@ -33,7 +33,7 @@ exports.populateSubscriptionsServices = (customer) => {
   for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
     subscriptions.push({
       ...customer.subscriptions[i],
-      service: exports.populateServices(customer.subscriptions[i].service),
+      service: exports.populateService(customer.subscriptions[i].service),
     });
   }
   return { ...customer, subscriptions };

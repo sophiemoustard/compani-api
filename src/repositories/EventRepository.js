@@ -796,3 +796,41 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   { $replaceRoot: { newRoot: '$customer' } },
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
 ]).option({ company: companyId });
+
+exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
+  const startDate = moment(taxCertificate.year, 'YYYY').startOf('year').toDate();
+  const endDate = moment(taxCertificate.year, 'YYYY').endOf('year').toDate();
+  const { _id: customerId, subscriptions } = taxCertificate.customer;
+
+  return Event.aggregate([
+    { $match: { customer: customerId, startDate: { $lt: endDate }, endDate: { $gte: startDate } } },
+    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] } } },
+    {
+      $group: {
+        _id: {
+          auxiliary: '$auxiliary',
+          month: { $month: '$startDate' },
+          sub: '$subscription',
+        },
+        duration: { $sum: '$duration' },
+      },
+    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: '_id.auxiliary', foreignField: '_id' } },
+    { $unwind: '$auxiliary' },
+    {
+      $addFields: {
+        subscription: { $filter: { input: subscriptions, as: 'sub', cond: { $eq: ['$$sub._id', '$_id.sub'] } } },
+      },
+    },
+    { $unwind: '$subscription' },
+    {
+      $project: {
+        auxiliary: { _id: 1, identity: 1 },
+        month: '$_id.month',
+        subscription: 1,
+        duration: 1,
+      },
+    },
+    { $sort: { month: 1 } },
+  ]).option({ company: companyId });
+};

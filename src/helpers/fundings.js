@@ -3,7 +3,7 @@ const moment = require('moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const Customer = require('../models/Customer');
-const { populateServices } = require('./subscriptions');
+const { populateService } = require('./subscriptions');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES, CIVILITY_LIST } = require('./constants');
@@ -50,7 +50,7 @@ exports.populateFunding = (funding, subscriptions) => {
   if (!funding) return false;
 
   const sub = subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
-  if (has(sub, 'service.versions')) funding.subscription = { ...sub, service: populateServices(sub.service) };
+  if (has(sub, 'service.versions')) funding.subscription = { ...sub, service: populateService(sub.service) };
   else funding.subscription = { ...sub };
 
   return funding;
