@@ -1556,19 +1556,19 @@ describe('formatEventsForPdf', () => {
 });
 
 describe('formatPDF', () => {
-  const url =
-    'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   let formatEventsForPdf;
   let formatBillSubscriptionsForPdf;
+  let formatIdentity;
   beforeEach(() => {
     formatEventsForPdf = sinon.stub(BillHelper, 'formatEventsForPdf');
     formatBillSubscriptionsForPdf = sinon.stub(BillHelper, 'formatBillSubscriptionsForPdf');
-
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     formatEventsForPdf.returns(['hello']);
   });
   afterEach(() => {
     formatEventsForPdf.restore();
     formatBillSubscriptionsForPdf.restore();
+    formatIdentity.restore();
   });
 
   it('should format correct bill PDF for customer', () => {
@@ -1577,6 +1577,20 @@ describe('formatPDF', () => {
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
     });
+    formatIdentity.returns('Maya l\' abeille');
+
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
 
     const bill = {
       number: '12345',
@@ -1606,25 +1620,19 @@ describe('formatPDF', () => {
           identity: { title: 'M.', firstname: 'Donald', lastname: 'Duck' },
           contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
-        formattedSubs: [{
-          vat: '5,5',
-        }],
-        recipient: {
-          name: 'M. Donald Duck',
-          address: { fullAddress: 'La ruche' },
-        },
+        formattedSubs: [{ vat: '5,5' }],
+        recipient: { name: 'Maya l\' abeille', address: { fullAddress: 'La ruche' } },
         netInclTaxes: '1 074,00 €',
         date: '30/04/2019',
         totalExclTaxes: '1 018,01 €',
         totalVAT: '55,99 €',
         formattedEvents: ['hello'],
-        company: {},
-        logo: url,
+        company,
         forTpp: false,
       },
     };
 
-    const result = BillHelper.formatPDF(bill, {});
+    const result = BillHelper.formatPDF(bill, company);
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledWithExactly(
@@ -1632,6 +1640,7 @@ describe('formatPDF', () => {
       bill.subscriptions[0].events,
       bill.subscriptions[0].service
     );
+    sinon.assert.calledWithExactly(formatIdentity, bill.customer.identity, 'TFL');
   });
 
   it('should format correct bill PDF for third party payer', () => {
@@ -1640,6 +1649,19 @@ describe('formatPDF', () => {
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
     });
+
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
 
     const bill = {
       number: '12345',
@@ -1693,15 +1715,15 @@ describe('formatPDF', () => {
         totalExclTaxes: '1 018,01 €',
         totalVAT: '55,99 €',
         formattedEvents: ['hello'],
-        company: {},
-        logo: url,
+        company,
         forTpp: true,
       },
     };
 
-    const result = BillHelper.formatPDF(bill, {});
+    const result = BillHelper.formatPDF(bill, company);
 
     expect(result).toEqual(expected);
+    sinon.assert.notCalled(formatIdentity);
   });
 });
 

@@ -23,7 +23,7 @@ const list = async (req) => {
 
 const generateTaxCertificatePdf = async (req, h) => {
   try {
-    const pdf = await TaxCertificateHelper.generateTaxCertificatePdf(req.params, req.auth.credentials);
+    const pdf = await TaxCertificateHelper.generateTaxCertificatePdf(req.params._id, req.auth.credentials);
 
     return h.response(pdf)
       .header('content-disposition', 'inline; filename=taxcertificates.pdf')
