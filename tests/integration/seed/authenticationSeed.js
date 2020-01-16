@@ -231,6 +231,7 @@ const authCompany = {
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'iuytre',
   customersConfig: {
     billingPeriod: 'two_weeks',
   },
@@ -244,6 +245,7 @@ const otherCompany = {
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'iuytre',
 };
 
 const userList = [
