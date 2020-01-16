@@ -1577,7 +1577,7 @@ describe('formatPDF', () => {
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
     });
-    formatIdentity.returns('M. Donald Duck');
+    formatIdentity.returns('Maya l\' abeille');
 
     const company = {
       name: 'Alcatraz',
@@ -1621,7 +1621,7 @@ describe('formatPDF', () => {
           contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         formattedSubs: [{ vat: '5,5' }],
-        recipient: { name: 'M. Donald Duck', address: { fullAddress: 'La ruche' } },
+        recipient: { name: 'Maya l\' abeille', address: { fullAddress: 'La ruche' } },
         netInclTaxes: '1 074,00 €',
         date: '30/04/2019',
         totalExclTaxes: '1 018,01 €',

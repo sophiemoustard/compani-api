@@ -121,5 +121,6 @@ describe('generateTaxCertificatePdf', () => {
     sinon.assert.calledWithExactly(formatPdf, taxCertificate, credentials.company);
     sinon.assert.calledWithExactly(generatePdf, 'data', './src/data/taxCertificates.html');
     expect(result).toEqual('pdf');
+    TaxCertificateMock.verify();
   });
 });
