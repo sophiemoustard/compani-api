@@ -181,9 +181,9 @@ describe('GET /stats/customer-duration/auxiliary', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
-      expect(res.result.data.customersAndDuration[0]._id).toEqual(sectorList[0]._id);
-      expect(res.result.data.customersAndDuration[0].auxiliaries[0].customerCount).toEqual(1);
-      expect(res.result.data.customersAndDuration[0].auxiliaries[0].duration).toEqual(4);
+      expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
+      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].duration).toEqual(4);
     });
 
     it('should get customer and duration stats for auxiliary', async () => {

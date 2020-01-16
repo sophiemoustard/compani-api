@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
-const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
+const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const StatRepository = require('../../../src/repositories/StatRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
@@ -551,7 +551,7 @@ describe('getCustomersAndDurationByAuxiliary', () => {
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     getCustomersAndDurationByAuxiliary = sinon.stub(EventRepository, 'getCustomersAndDurationByAuxiliary');
-    getUsersBySectorsStub = sinon.stub(SectorHistoriesHelper, 'getUsersBySectors');
+    getUsersBySectorsStub = sinon.stub(SectorHistoryRepository, 'getUsersBySectors');
   });
   afterEach(() => {
     getCustomersAndDurationByAuxiliary.restore();
@@ -560,16 +560,19 @@ describe('getCustomersAndDurationByAuxiliary', () => {
 
   it('Case sector : should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
-    const auxiliariesBySectors = [{ _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] }];
+    const auxiliariesBySectors = [{ sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] }];
     getUsersBySectorsStub.returns(auxiliariesBySectors);
     getCustomersAndDurationByAuxiliary.returns([{ cutomerCount: 9 }]);
+    const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
+    const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
 
     const result = await StatsHelper.getCustomersAndDurationByAuxiliary(query, credentials);
 
-    expect(result).toEqual([{ _id: auxiliariesBySectors[0]._id, auxiliaries: [{ cutomerCount: 9 }] }]);
+    expect(result).toEqual([{ sector: auxiliariesBySectors[0].sector, customersAndDuration: [{ cutomerCount: 9 }] }]);
     sinon.assert.calledWithExactly(
       getUsersBySectorsStub,
-      query.month,
+      startOfMonth,
+      endOfMonth,
       [new ObjectID(query.sector)],
       credentials.company._id
     );
@@ -584,9 +587,12 @@ describe('getCustomersAndDurationByAuxiliary', () => {
   it('Case sector : should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fe9', '5d1a40b7ecb0da251cfa4fe8'], month: '102019' };
     const auxiliariesBySectors = [
-      { _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
-      { _id: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
+      { sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
+      { sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
     ];
+    const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
+    const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
+
     getUsersBySectorsStub.returns(auxiliariesBySectors);
     getCustomersAndDurationByAuxiliary.onCall(0).returns([{ cutomerCount: 9 }]);
     getCustomersAndDurationByAuxiliary.onCall(1).returns([{ cutomerCount: 11 }]);
@@ -594,12 +600,13 @@ describe('getCustomersAndDurationByAuxiliary', () => {
     const result = await StatsHelper.getCustomersAndDurationByAuxiliary(query, credentials);
 
     expect(result).toEqual([
-      { _id: auxiliariesBySectors[0]._id, auxiliaries: [{ cutomerCount: 9 }] },
-      { _id: auxiliariesBySectors[1]._id, auxiliaries: [{ cutomerCount: 11 }] },
+      { sector: auxiliariesBySectors[0].sector, customersAndDuration: [{ cutomerCount: 9 }] },
+      { sector: auxiliariesBySectors[1].sector, customersAndDuration: [{ cutomerCount: 11 }] },
     ]);
     sinon.assert.calledWithExactly(
       getUsersBySectorsStub,
-      query.month,
+      startOfMonth,
+      endOfMonth,
       [new ObjectID(query.sector[0]), new ObjectID(query.sector[1])],
       credentials.company._id
     );
