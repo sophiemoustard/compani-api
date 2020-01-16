@@ -86,3 +86,17 @@ exports.getCustomersAndDurationBySector = async (req) => {
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
+
+exports.getIntenalAndBilledHoursBySector = async (req) => {
+  try {
+    const customersAndDuration = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
+
+    return {
+      message: messages.statsFound,
+      data: { customersAndDuration },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};

@@ -125,3 +125,14 @@ exports.getCustomersAndDurationBySector = async (query, credentials) => {
 
   return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
 };
+
+exports.getIntenalAndBilledHoursBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = Array.isArray(query.sector)
+    ? query.sector.map(id => new ObjectID(id))
+    : [new ObjectID(query.sector)];
+
+  console.log(sectors);
+  console.log(query.month);
+  return StatRepository.getIntenalAndBilledHoursBySector(sectors, query.month, companyId);
+};

@@ -373,3 +373,67 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
   ]).option({ company: companyId });
 };
+
+exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
+  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+
+  return SectorHistory.aggregate([
+    {
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $lt: maxStartDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+      },
+    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+    { $unwind: { path: '$auxiliary' } },
+    {
+      $addFields: {
+        'auxiliary.sector._id': '$sector',
+        'auxiliary.sector.startDate': '$startDate',
+        'auxiliary.sector.endDate': '$endDate',
+      },
+    },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
+    { $project: { _id: 1, sector: 1, identity: 1 } },
+    {
+      $lookup: {
+        from: 'events',
+        as: 'event',
+        let: {
+          auxiliaryId: '$_id',
+          startDate: { $max: ['$sector.startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $gt: ['$endDate', '$$startDate'] },
+                  { $lt: ['$startDate', '$$endDate'] },
+                  { $eq: ['$type', INTERVENTION] },
+                  {
+                    $or: [
+                      { $eq: ['$isCancelled', false] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: { path: '$event' } },
+    {
+      $addFields: { duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] } },
+    },
+    { $group: { _id: '$sector._id', duration: { $sum: '$duration' } } },
+    { $project: { sector: '$_id', duration: 1 } },
+  ]).option({ company: companyId });
+};
