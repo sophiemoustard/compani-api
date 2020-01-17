@@ -28,7 +28,8 @@ describe('GET /stats/customer-follow-up', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.followUp.length).toBe(1);
-      expect(res.result.data.followUp[0].totalHours).toBe(4);
+      expect(res.result.data.followUp[0].totalHours).toBe(2.5);
+      expect(res.result.data.followUp[0]._id.toHexString()).toEqual(userList[0]._id.toHexString());
     });
 
     it('should not get customer follow up if customer is not from the same company', async () => {
@@ -182,7 +183,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
       expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
-      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].customersAndDuration[0].customerCount).toEqual(2);
       expect(res.result.data.customersAndDuration[0].customersAndDuration[0].duration).toEqual(4);
     });
 
@@ -195,7 +196,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
       expect(res.result.data.customersAndDuration[0].auxiliary).toEqual(userList[0]._id);
-      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
       expect(res.result.data.customersAndDuration[0].duration).toEqual(2.5);
     });
 
@@ -281,8 +282,9 @@ describe('GET /stats/customer-duration/sector', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
       expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
-      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
       expect(res.result.data.customersAndDuration[0].duration).toEqual(4);
+      expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
     });
 
     it('should return only relevant hours if an auxiliary has changed sector', async () => {
@@ -301,10 +303,12 @@ describe('GET /stats/customer-duration/sector', () => {
       expect(oldSectosrCustomersAndDuration).toBeDefined();
       expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
       expect(oldSectosrCustomersAndDuration.duration).toEqual(1.5);
+      expect(oldSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
 
       expect(newSectosrCustomersAndDuration).toBeDefined();
-      expect(newSectosrCustomersAndDuration.customerCount).toEqual(1);
-      expect(newSectosrCustomersAndDuration.duration).toEqual(2.5);
+      expect(newSectosrCustomersAndDuration.customerCount).toEqual(2);
+      expect(newSectosrCustomersAndDuration.duration).toEqual(5);
+      expect(newSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
     });
 
     it('should return 403 if sector is not from the same company', async () => {
@@ -360,7 +364,7 @@ describe('GET /stats/customer-duration/sector', () => {
   });
 });
 
-describe('GET /stats/customer-duration/sector', () => {
+describe('GET /stats/internal-billed-hours', () => {
   let adminToken = null;
 
   describe('Admin', () => {
@@ -397,7 +401,7 @@ describe('GET /stats/customer-duration/sector', () => {
         cad.sector.toHexString() === sectorList[1]._id.toHexString());
 
       expect(oldSectosrInternalAndBilledHours).toBeDefined();
-      expect(oldSectosrInternalAndBilledHours.interventions).toEqual(1.5);
+      expect(oldSectosrInternalAndBilledHours.interventions).toEqual(4);
       expect(oldSectosrInternalAndBilledHours.internalHours).toEqual(2);
 
       expect(newSectosrInternalAndBilledHours).toBeDefined();
