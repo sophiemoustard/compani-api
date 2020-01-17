@@ -645,7 +645,6 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       },
     },
     { $unwind: '$event' },
-    { $addFields: { 'event.sector': '$sector' } },
     { $replaceRoot: { newRoot: '$event' } },
     {
       $lookup: {
@@ -664,12 +663,11 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       },
     },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-    { $addFields: { 'customer.sector': '$sector' } },
     { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
     { $replaceRoot: { newRoot: '$customer' } },
     { $lookup: { from: 'users', as: 'referent', foreignField: '_id', localField: 'referent' } },
     { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
-    { $project: { subscriptions: 1, identity: 1, contact: 1, sector: 1, referent: { identity: { firstname: 1, lastname: 1 } } } },
+    { $project: { subscriptions: 1, identity: 1, contact: 1, referent: { identity: { firstname: 1, lastname: 1 } } } },
     { $unwind: '$subscriptions' },
     {
       $lookup: {
