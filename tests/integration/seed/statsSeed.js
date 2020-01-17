@@ -40,6 +40,11 @@ const sectorList = [
   },
 ];
 
+const internalHoursList = [
+  { _id: new ObjectID(), company: authCompany._id, name: 'Planning' },
+  { _id: new ObjectID(), company: authCompany._id, name: 'Formation' },
+];
+
 const contractList = [{
   _id: new ObjectID(),
   user: new ObjectID(),
@@ -324,6 +329,24 @@ const eventListForFollowUp = [
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+  },
+  {
+    _id: new ObjectID(),
+    type: 'internalHour',
+    startDate: '2019-07-12T09:00:00',
+    endDate: '2019-07-12T10:00:00',
+    internalHour: internalHoursList[0]._id,
+    auxiliary: userList[0]._id,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'internalHour',
+    startDate: '2019-11-02T09:00:00',
+    endDate: '2019-11-02T11:00:00',
+    internalHour: internalHoursList[0]._id,
+    auxiliary: userList[0]._id,
+    company: authCompany._id,
   },
 ];
 

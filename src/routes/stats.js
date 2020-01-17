@@ -9,6 +9,7 @@ const {
   getCustomersAndDurationByAuxiliary,
   getCustomersAndDurationBySector,
   getAllCustomersFundingsMonitoring,
+  getIntenalAndBilledHoursBySector,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -85,6 +86,22 @@ exports.plugin = {
         pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomersAndDurationBySector,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/internal-billed-hours',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().required(),
+          }),
+        },
+        pre: [{ method: authorizeGetStats }],
+      },
+      handler: getIntenalAndBilledHoursBySector,
     });
   },
 };

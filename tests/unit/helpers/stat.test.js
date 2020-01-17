@@ -678,3 +678,42 @@ describe('getCustomersAndDurationBySector', () => {
     );
   });
 });
+
+describe('getIntenalAndBilledHoursBySector', () => {
+  let getIntenalAndBilledHoursBySector;
+  const credentials = { company: { _id: new ObjectID() } };
+  beforeEach(() => {
+    getIntenalAndBilledHoursBySector = sinon.stub(StatRepository, 'getIntenalAndBilledHoursBySector');
+  });
+  afterEach(() => {
+    getIntenalAndBilledHoursBySector.restore();
+  });
+
+  it('Case sector : should format sector as array', async () => {
+    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
+    const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);
+
+    expect(result).toEqual({ interventions: 9 });
+    sinon.assert.calledWithExactly(
+      getIntenalAndBilledHoursBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019',
+      credentials.company._id
+    );
+  });
+
+  it('Case sector : should format array sector with objectId', async () => {
+    const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
+    getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
+    const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);
+
+    expect(result).toEqual({ interventions: 9 });
+    sinon.assert.calledWithExactly(
+      getIntenalAndBilledHoursBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019',
+      credentials.company._id
+    );
+  });
+});

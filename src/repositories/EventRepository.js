@@ -551,14 +551,7 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
         events: { $push: '$$ROOT' },
       },
     },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.CUSTOMER',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: '_id.CUSTOMER', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
@@ -568,23 +561,12 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
       },
     },
     { $unwind: { path: '$sub' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'sub.service',
-        foreignField: '_id',
-        as: 'sub.service',
-      },
-    },
+    { $lookup: { from: 'services', localField: 'sub.service', foreignField: '_id', as: 'sub.service' } },
     { $unwind: { path: '$sub.service' } },
     {
       $addFields: {
         fund: {
-          $filter: {
-            input: '$customer.fundings',
-            as: 'fund',
-            cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] },
-          },
+          $filter: { input: '$customer.fundings', as: 'fund', cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] } },
         },
       },
     },
@@ -592,13 +574,7 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
       $project: {
         idCustomer: '$_id.CUSTOMER',
         subId: '$_id.SUBS',
-        events: {
-          startDate: 1,
-          subscription: 1,
-          endDate: 1,
-          auxiliary: 1,
-          _id: 1,
-        },
+        events: { startDate: 1, subscription: 1, endDate: 1, auxiliary: 1, _id: 1 },
         customer: 1,
         sub: 1,
         fund: 1,
@@ -609,12 +585,7 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
         _id: '$idCustomer',
         customer: { $addToSet: '$customer' },
         eventsBySubscriptions: {
-          $push: {
-            subscription: '$sub',
-            eventsNumber: { $size: '$events' },
-            events: '$events',
-            fundings: '$fund',
-          },
+          $push: { subscription: '$sub', eventsNumber: { $size: '$events' }, events: '$events', fundings: '$fund' },
         },
       },
     },
@@ -647,14 +618,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
         $or: [{ endDate: { $exists: false } }, { endDate: { $gte: startDate } }],
       },
     },
-    {
-      $lookup: {
-        from: 'users',
-        as: 'auxiliary',
-        localField: 'auxiliary',
-        foreignField: '_id',
-      },
-    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
     { $unwind: { path: '$auxiliary' } },
     {
       $lookup: {
@@ -761,54 +725,30 @@ exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggrega
       from: 'customers',
       as: 'customer',
       let: { customerId: '$_id.CUSTOMER' },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ['$_id', '$$customerId'] },
-              ],
-            },
-          },
+      pipeline: [{
+        $match: {
+          $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
         },
-      ],
+      }],
     },
   },
   { $unwind: { path: '$customer' } },
-  {
-    $lookup: {
-      from: 'thirdpartypayers',
-      localField: '_id.TPP',
-      foreignField: '_id',
-      as: 'thirdPartyPayer',
-    },
-  },
+  { $lookup: { from: 'thirdpartypayers', localField: '_id.TPP', foreignField: '_id', as: 'thirdPartyPayer' } },
   { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
   {
     $addFields: {
-      sub: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-      },
+      sub: { $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } } },
     },
   },
   { $unwind: { path: '$sub' } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'sub.service',
-      foreignField: '_id',
-      as: 'sub.service',
-    },
-  },
+  { $lookup: { from: 'services', localField: 'sub.service', foreignField: '_id', as: 'sub.service' } },
   { $unwind: { path: '$sub.service' } },
   {
     $addFields: {
       'sub.service.version': {
         $arrayElemAt: [
           '$sub.service.versions',
-          {
-            $indexOfArray: ['$sub.service.versions.startDate', { $max: '$sub.service.versions.startDate' }],
-          },
+          { $indexOfArray: ['$sub.service.versions.startDate', { $max: '$sub.service.versions.startDate' }] },
         ],
       },
     },
@@ -828,12 +768,7 @@ exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggrega
   { $addFields: { 'sub.service.defaultUnitAmount': '$sub.service.version.defaultUnitAmount' } },
   { $addFields: { 'sub.service.vat': '$sub.service.version.vat' } },
   { $addFields: { 'sub.service.surcharge': '$sub.service.version.surcharge' } },
-  {
-    $project: {
-      'sub.service.versions': 0,
-      'sub.service.version': 0,
-    },
-  },
+  { $project: { 'sub.service.versions': 0, 'sub.service.version': 0 } },
   {
     $group: {
       _id: { CUS: '$customer' },
@@ -852,21 +787,9 @@ exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggrega
 ]).option({ company: companyId });
 
 exports.getCustomersWithIntervention = async companyId => Event.aggregate([
-  {
-    $match: {
-      type: INTERVENTION,
-      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-    },
-  },
+  { $match: { type: INTERVENTION, $or: [{ isBilled: false }, { isBilled: { $exists: false } }] } },
   { $group: { _id: { customer: '$customer' } } },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: '_id.customer',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
+  { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
   { $unwind: { path: '$customer' } },
   { $replaceRoot: { newRoot: '$customer' } },
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
@@ -881,17 +804,10 @@ exports.getCustomersAndDurationByAuxiliary = async (auxiliaryIds, month, company
         auxiliary: { $in: auxiliaryIds },
         startDate: { $lte: maxStartDate, $gte: minStartDate },
         type: INTERVENTION,
-        $or: [
-          { isCancelled: false },
-          { 'cancel.condition': INVOICED_AND_PAID },
-        ],
+        $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
       },
     },
-    {
-      $addFields: {
-        duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] },
-      },
-    },
+    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] } } },
     {
       $group: {
         _id: { customer: '$customer' },
@@ -906,12 +822,6 @@ exports.getCustomersAndDurationByAuxiliary = async (auxiliaryIds, month, company
         customerCount: { $sum: 1 },
       },
     },
-    {
-      $project: {
-        auxiliary: '$_id',
-        duration: 1,
-        customerCount: 1,
-      },
-    },
+    { $project: { auxiliary: '$_id', duration: 1, customerCount: 1 } },
   ]).option({ company: companyId });
 };

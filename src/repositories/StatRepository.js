@@ -9,6 +9,7 @@ const {
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
   INTERVENTION,
+  INTERNAL_HOUR,
 } = require('../helpers/constants');
 
 const getVersionMatch = fundingsDate => ({
@@ -295,14 +296,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
-    {
-      $lookup: {
-        from: 'users',
-        as: 'auxiliary',
-        localField: 'auxiliary',
-        foreignField: '_id',
-      },
-    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
     { $unwind: { path: '$auxiliary' } },
     {
       $addFields: {
@@ -357,18 +351,90 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         duration: { $sum: '$duration' },
       },
     },
+    { $group: { _id: '$_id.sector', duration: { $sum: '$duration' }, customerCount: { $sum: 1 } } },
+    { $project: { sector: '$_id', duration: 1, customerCount: 1 } },
+  ]).option({ company: companyId });
+};
+
+exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
+  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+
+  return SectorHistory.aggregate([
     {
-      $group: {
-        _id: '$_id.sector',
-        duration: { $sum: '$duration' },
-        customerCount: { $sum: 1 },
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $lt: maxStartDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+      },
+    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+    { $unwind: { path: '$auxiliary' } },
+    {
+      $addFields: {
+        'auxiliary.sector._id': '$sector',
+        'auxiliary.sector.startDate': '$startDate',
+        'auxiliary.sector.endDate': '$endDate',
+      },
+    },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
+    { $project: { _id: 1, sector: 1, identity: 1 } },
+    {
+      $lookup: {
+        from: 'events',
+        as: 'event',
+        let: {
+          auxiliaryId: '$_id',
+          startDate: { $max: ['$sector.startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $gt: ['$endDate', '$$startDate'] },
+                  { $lt: ['$startDate', '$$endDate'] },
+                  { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
+                  {
+                    $or: [
+                      { $eq: ['$isCancelled', false] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: { path: '$event' } },
+    {
+      $addFields: {
+        'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
+      },
+    },
+    {
+      $group: { _id: '$sector._id', events: { $push: '$event' } },
+    },
+    {
+      $addFields: {
+        internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
+        interventions: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERVENTION] } } },
       },
     },
     {
       $project: {
         sector: '$_id',
-        duration: 1,
-        customerCount: 1,
+        internalHours: {
+          $reduce: { input: '$internalHours', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
+        interventions: {
+          $reduce: { input: '$interventions', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
       },
     },
   ]).option({ company: companyId });
