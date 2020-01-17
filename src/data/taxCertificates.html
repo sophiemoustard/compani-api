@@ -45,6 +45,9 @@
   .justify {
     text-align: justify;
   }
+  .capitalize {
+    text-transform: capitalize;
+  }
   .interventions {
     width: 100%;
   }
@@ -99,7 +102,7 @@
       {{#table taxCertificate.interventions }}
         <tr>
           <td align="left">{{ auxiliary }}</td>
-          <td align="left">{{ month }}</td>
+          <td align="left" class="capitalize">{{ month }}</td>
           <td align="right">{{ hours }}</td>
           <td align="left">{{ subscription }}</tdalign="right">
         </tr>

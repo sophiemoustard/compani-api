@@ -1,9 +1,9 @@
-const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
+const moment = require('../extensions/moment');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 
@@ -19,7 +19,7 @@ exports.formatInterventions = interventions => interventions.map((int) => {
   return {
     auxiliary: UtilsHelper.formatIdentity(int.auxiliary.identity, 'FL'),
     subscription: service.name,
-    month: UtilsHelper.capitalize(moment(int.month, 'M').format('MMMM')),
+    month: moment(int.month, 'M').format('MMMM'),
     hours: UtilsHelper.formatHour(int.duration),
   };
 });
@@ -35,7 +35,7 @@ exports.formatPdf = (taxCertificate, company, interventions) => {
   return {
     taxCertificate: {
       totalHours: UtilsHelper.formatHour(totalHours),
-      subscriptions: [...subscriptions].join(','),
+      subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
       company: pick(company, ['logo', 'name', 'address']),
       year: taxCertificate.year,
