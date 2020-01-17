@@ -667,7 +667,9 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $addFields: { 'customer.sector': '$sector' } },
     { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
     { $replaceRoot: { newRoot: '$customer' } },
-    { $project: { subscriptions: 1, identity: 1, contact: 1 } },
+    { $lookup: { from: 'users', as: 'referent', foreignField: '_id', localField: 'referent' } },
+    { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
+    { $project: { subscriptions: 1, identity: 1, contact: 1, sector: 1, referent: { identity: { firstname: 1, lastname: 1 } } } },
     { $unwind: '$subscriptions' },
     {
       $lookup: {
