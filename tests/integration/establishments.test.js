@@ -344,7 +344,11 @@ describe('ESTABLISHMENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.establishments).toHaveLength(establishmentsList.length);
+        const { establishments } = response.result.data;
+        expect(establishments).toHaveLength(establishmentsList.length);
+        expect(establishments).toEqual(expect.arrayContaining([
+          expect.objectContaining({ users: 0 }),
+        ]));
       });
 
       it('should return establishments (company B)', async () => {

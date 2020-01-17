@@ -41,9 +41,11 @@ const update = async (req) => {
 
 const list = async (req) => {
   try {
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const establishments = await Establishment
-      .find({ company: get(req, 'auth.credentials.company._id', null) })
-      .lean();
+      .find({ company: companyId })
+      .populate({ path: 'users', match: { company: companyId } })
+      .lean({ virtuals: true });
 
     return {
       message: translate[language].establishmentsFound,

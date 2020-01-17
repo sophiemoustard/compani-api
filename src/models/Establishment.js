@@ -19,7 +19,19 @@ const EstablishmentSchema = mongoose.Schema({
   workHealthService: { type: String, enum: workHealthServices, required: true },
   urssafCode: { type: String, enum: urssafCodes, required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
+  id: false,
+});
+
+EstablishmentSchema.virtual('users', {
+  ref: 'User',
+  localField: '_id',
+  foreignField: 'establishment',
+  count: true,
+});
 
 EstablishmentSchema.pre('validate', validatePayload);
 EstablishmentSchema.pre('find', validateQuery);
