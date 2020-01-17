@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Establishment = require('../../../src/models/Establishment');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 
 const establishmentsList = [
@@ -44,12 +44,32 @@ const establishmentsList = [
   },
 ];
 
+const establishmentFromOtherCompany = {
+  _id: new ObjectID(),
+  name: 'Test',
+  siret: '19836443210989',
+  address: {
+    street: '37, rue des lilas',
+    fullAddress: '37, rue des lilas 69000 Lyon',
+    zipCode: '69000',
+    city: 'Lyon',
+    location: {
+      type: 'Point',
+      coordinates: [4.824302, 3.50807],
+    },
+  },
+  phone: '0443890034',
+  workHealthService: 'MT01',
+  urssafCode: '217',
+  company: otherCompany._id,
+};
+
 const populateDB = async () => {
   await Establishment.deleteMany();
 
   await populateDBForAuthentication();
 
-  await Establishment.insertMany(establishmentsList);
+  await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
 };
 
-module.exports = { populateDB, establishmentsList };
+module.exports = { populateDB, establishmentsList, establishmentFromOtherCompany };

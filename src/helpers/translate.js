@@ -213,6 +213,7 @@ module.exports = {
     taxCertificatesFound: 'Tax certificates found.',
     /* Establishments */
     establishmentCreated: 'Establishment created.',
+    establishmentNotFound: 'Establishment not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -425,5 +426,6 @@ module.exports = {
     taxCertificatesFound: 'Attestations fiscales trouvées.',
     /* Establishments */
     establishmentCreated: 'Établissement créé.',
+    establishmentNotFound: 'Établissement non trouvé.',
   },
 };

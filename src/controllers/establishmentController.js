@@ -23,4 +23,20 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+const update = async (req) => {
+  try {
+    const updatedEstablishment = await Establishment
+      .findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true })
+      .lean();
+
+    return {
+      message: translate[language].establishmentUpdated,
+      data: { establishment: updatedEstablishment },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, update };
