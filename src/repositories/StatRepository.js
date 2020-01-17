@@ -296,23 +296,32 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
-    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
-    { $unwind: { path: '$auxiliary' } },
     {
-      $addFields: {
-        'auxiliary.sector._id': '$sector',
-        'auxiliary.sector.startDate': '$startDate',
-        'auxiliary.sector.endDate': '$endDate',
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        let: { referentId: '$auxiliary' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$referent', '$$referentId'] }] } } },
+          { $project: { _id: 1 } },
+        ],
       },
     },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
-    { $project: { _id: 1, sector: 1, identity: 1 } },
+    { $unwind: { path: '$customer' } },
+    {
+      $addFields: {
+        'customer.sector._id': '$sector',
+        'customer.sector.startDate': '$startDate',
+        'customer.sector.endDate': '$endDate',
+      },
+    },
+    { $replaceRoot: { newRoot: '$customer' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: {
-          auxiliaryId: '$_id',
+          customerId: '$_id',
           startDate: { $max: ['$sector.startDate', minStartDate] },
           endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
         },
@@ -321,10 +330,9 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $eq: ['$customer', '$$customerId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  { $eq: ['$type', INTERVENTION] },
                   {
                     $or: [
                       { $eq: ['$isCancelled', false] },
