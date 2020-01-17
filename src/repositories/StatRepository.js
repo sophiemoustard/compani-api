@@ -296,14 +296,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
-    {
-      $lookup: {
-        from: 'users',
-        as: 'auxiliary',
-        localField: 'auxiliary',
-        foreignField: '_id',
-      },
-    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
     { $unwind: { path: '$auxiliary' } },
     {
       $addFields: {
@@ -358,20 +351,8 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         duration: { $sum: '$duration' },
       },
     },
-    {
-      $group: {
-        _id: '$_id.sector',
-        duration: { $sum: '$duration' },
-        customerCount: { $sum: 1 },
-      },
-    },
-    {
-      $project: {
-        sector: '$_id',
-        duration: 1,
-        customerCount: 1,
-      },
-    },
+    { $group: { _id: '$_id.sector', duration: { $sum: '$duration' }, customerCount: { $sum: 1 } } },
+    { $project: { sector: '$_id', duration: 1, customerCount: 1 } },
   ]).option({ company: companyId });
 };
 
@@ -440,8 +421,7 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
       $group: { _id: '$sector._id', events: { $push: '$event' } },
     },
     {
-      $project: {
-        sector: '$_id',
+      $addFields: {
         internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
         interventions: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERVENTION] } } },
       },
