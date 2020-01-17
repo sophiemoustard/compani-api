@@ -288,7 +288,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
-  return SectorHistory.aggregate([
+  const sectorsCustomers = [
     {
       $match: {
         sector: { $in: sectors },
@@ -316,6 +316,9 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
       },
     },
     { $replaceRoot: { newRoot: '$customer' } },
+  ];
+
+  const customersEvents = [
     {
       $lookup: {
         from: 'events',
@@ -348,6 +351,9 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
       },
     },
     { $unwind: { path: '$event' } },
+  ];
+
+  const group = [
     {
       $addFields: {
         duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
@@ -357,10 +363,32 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
       $group: {
         _id: { sector: '$sector._id', customer: '$event.customer' },
         duration: { $sum: '$duration' },
+        auxiliaries: { $addToSet: '$event.auxiliary' },
       },
     },
-    { $group: { _id: '$_id.sector', duration: { $sum: '$duration' }, customerCount: { $sum: 1 } } },
-    { $project: { sector: '$_id', duration: 1, customerCount: 1 } },
+    { $addFields: { auxiliaryCount: { $size: '$auxiliaries' } } },
+    {
+      $group: {
+        _id: '$_id.sector',
+        duration: { $sum: '$duration' },
+        customerCount: { $sum: 1 },
+        auxiliaryCount: { $sum: '$auxiliaryCount' },
+      },
+    },
+    {
+      $project: {
+        sector: '$_id',
+        duration: 1,
+        customerCount: 1,
+        auxiliaryTurnOver: { $divide: ['$auxiliaryCount', '$customerCount'] },
+      },
+    },
+  ];
+
+  return SectorHistory.aggregate([
+    ...sectorsCustomers,
+    ...customersEvents,
+    ...group,
   ]).option({ company: companyId });
 };
 
