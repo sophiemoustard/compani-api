@@ -665,7 +665,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
     { $replaceRoot: { newRoot: '$customer' } },
-    { $project: { subscriptions: 1, identity: 1 } },
+    { $project: { subscriptions: 1, identity: 1, contact: 1 } },
     { $unwind: '$subscriptions' },
     {
       $lookup: {
