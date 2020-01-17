@@ -21,7 +21,7 @@ const Rum = require('../models/Rum');
 
 const { language } = translate;
 
-exports.getCustomerBySector = async (query, credentials) => {
+exports.getCustomersBySector = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
   return EventRepository.getCustomersFromEvent(query, companyId);
