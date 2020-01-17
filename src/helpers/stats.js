@@ -101,12 +101,11 @@ exports.getPaidInterventionStats = async (query, credentials) => {
       sectors,
       companyId
     );
-    const paidInterventionStats = await SectorHistoryRepository.getPaidInterventionStats(
+    return SectorHistoryRepository.getPaidInterventionStats(
       auxiliariesFromSectorHistories.map(aux => aux._id),
       query.month,
       companyId
     );
-    return paidInterventionStats.map(stats => ({ ...stats, sectors: stats.sectors[0] }));
   }
   return SectorHistoryRepository.getPaidInterventionStats([new ObjectID(query.auxiliary)], query.month, companyId);
 };

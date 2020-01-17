@@ -565,7 +565,7 @@ describe('getPaidInterventionStats', () => {
     const getPaidInterventionStatsResult = [{
       auxiliary: auxiliaries[0]._id,
       customerCount: 9,
-      sectors: [['12345']],
+      sectors: ['12345'],
     }];
     getPaidInterventionStats.returns(getPaidInterventionStatsResult);
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
@@ -573,10 +573,7 @@ describe('getPaidInterventionStats', () => {
 
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
-    expect(result).toEqual([{
-      ...getPaidInterventionStatsResult[0],
-      sectors: getPaidInterventionStatsResult[0].sectors[0],
-    }]);
+    expect(result).toEqual(getPaidInterventionStatsResult);
     sinon.assert.calledWithExactly(
       getUsersFromSectorHistoriesStub,
       startOfMonth,
@@ -607,10 +604,7 @@ describe('getPaidInterventionStats', () => {
 
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
-    expect(result).toEqual([
-      { ...getPaidInterventionStatsResult[0], sectors: getPaidInterventionStatsResult[0].sectors[0] },
-      { ...getPaidInterventionStatsResult[1], sectors: getPaidInterventionStatsResult[1].sectors[0] },
-    ]);
+    expect(result).toEqual(getPaidInterventionStatsResult);
     sinon.assert.calledWithExactly(
       getUsersFromSectorHistoriesStub,
       startOfMonth,

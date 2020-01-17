@@ -206,6 +206,19 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         sectors: { $addToSet: '$sectors' },
       },
     },
-    { $project: { _id: '$_id.auxiliary', sectors: 1, customerCount: 1, duration: 1 } },
+    {
+      $project: {
+        _id: '$_id.auxiliary',
+        customerCount: 1,
+        duration: 1,
+        sectors: {
+          $reduce: {
+            input: '$sectors',
+            initialValue: [],
+            in: { $setUnion: ['$$value', '$$this'] },
+          },
+        },
+      },
+    },
   ]).option({ company: companyId });
 };

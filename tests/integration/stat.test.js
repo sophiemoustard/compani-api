@@ -185,7 +185,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const auxiliaryResult1 = res.result.data.paidInterventionStats.find(stats =>
         stats._id.toHexString() === userList[0]._id.toHexString());
       expect(auxiliaryResult1.customerCount).toEqual(2);
-      expect(auxiliaryResult1.duration).toEqual(2.5);
+      expect(auxiliaryResult1.duration).toEqual(3.5);
 
       const auxiliaryResult2 = res.result.data.paidInterventionStats.find(stats =>
         stats._id.toHexString() === userList[1]._id.toHexString());
@@ -203,7 +203,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
       expect(res.result.data.paidInterventionStats[0]._id).toEqual(userList[0]._id);
       expect(res.result.data.paidInterventionStats[0].customerCount).toEqual(2);
-      expect(res.result.data.paidInterventionStats[0].duration).toEqual(2.5);
+      expect(res.result.data.paidInterventionStats[0].duration).toEqual(3.5);
     });
 
     it('should return 403 if sector is not from the same company', async () => {
@@ -289,7 +289,9 @@ describe('GET /stats/customer-duration/sector', () => {
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
       expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
       expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
-      expect(res.result.data.customersAndDuration[0].duration).toEqual(4);
+      expect(res.result.data.customersAndDuration[0].duration).toEqual(5);
+      expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
+      expect(res.result.data.customersAndDuration[0].duration).toEqual(5);
       expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
     });
 
@@ -390,7 +392,7 @@ describe('GET /stats/internal-billed-hours', () => {
       expect(res.result.data.internalAndBilledHours[0]).toBeDefined();
       expect(res.result.data.internalAndBilledHours[0].sector).toEqual(sectorList[0]._id);
       expect(res.result.data.internalAndBilledHours[0].internalHours).toEqual(1);
-      expect(res.result.data.internalAndBilledHours[0].interventions).toEqual(4);
+      expect(res.result.data.internalAndBilledHours[0].interventions).toEqual(5);
     });
 
     it('should return only relevant hours if an auxiliary has changed sector', async () => {
