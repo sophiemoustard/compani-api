@@ -57,7 +57,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration/auxiliary',
+      path: '/paid-intervention-stats',
       options: {
         auth: { scope: ['events:read'] },
         validate: {

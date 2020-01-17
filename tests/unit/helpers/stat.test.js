@@ -547,24 +547,25 @@ describe('getAllCustomersFundingsMonitoring', () => {
 
 describe('getPaidInterventionStats', () => {
   let getPaidInterventionStats;
-  let getUsersBySectorsStub;
+  let getUsersFromSectorHistoriesStub;
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     getPaidInterventionStats = sinon.stub(SectorHistoryRepository, 'getPaidInterventionStats');
-    getUsersBySectorsStub = sinon.stub(SectorHistoryRepository, 'getUsersBySectors');
+    getUsersFromSectorHistoriesStub = sinon.stub(SectorHistoryRepository, 'getUsersFromSectorHistories');
   });
   afterEach(() => {
     getPaidInterventionStats.restore();
-    getUsersBySectorsStub.restore();
+    getUsersFromSectorHistoriesStub.restore();
   });
 
   it('Case sector : should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
-    const auxiliariesBySectors = [{ sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] }];
-    getUsersBySectorsStub.returns(auxiliariesBySectors);
+    const auxiliaries = [{ _id: new ObjectID() }];
+    getUsersFromSectorHistoriesStub.returns(auxiliaries);
     const getPaidInterventionStatsResult = [{
-      auxiliary: auxiliariesBySectors[0].auxiliaries[0]._id,
+      auxiliary: auxiliaries[0]._id,
       customerCount: 9,
+      sectors: [['12345']],
     }];
     getPaidInterventionStats.returns(getPaidInterventionStatsResult);
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
@@ -572,9 +573,12 @@ describe('getPaidInterventionStats', () => {
 
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
-    expect(result).toEqual(getPaidInterventionStatsResult);
+    expect(result).toEqual([{
+      ...getPaidInterventionStatsResult[0],
+      sectors: getPaidInterventionStatsResult[0].sectors[0],
+    }]);
     sinon.assert.calledWithExactly(
-      getUsersBySectorsStub,
+      getUsersFromSectorHistoriesStub,
       startOfMonth,
       endOfMonth,
       [new ObjectID(query.sector)],
@@ -582,7 +586,7 @@ describe('getPaidInterventionStats', () => {
     );
     sinon.assert.calledWithExactly(
       getPaidInterventionStats,
-      auxiliariesBySectors[0].auxiliaries.map(aux => aux._id),
+      auxiliaries.map(aux => aux._id),
       query.month,
       credentials.company._id
     );
@@ -590,30 +594,25 @@ describe('getPaidInterventionStats', () => {
 
   it('Case sector : should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fe9', '5d1a40b7ecb0da251cfa4fe8'], month: '102019' };
-    const auxiliariesBySectors = [
-      { sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
-      { sector: new ObjectID(), auxiliaries: [{ _id: new ObjectID() }] },
-    ];
+    const auxiliaries = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
 
-    getUsersBySectorsStub.returns(auxiliariesBySectors);
-    const getPaidInterventionStatsResult1 = [{
-      auxiliary: auxiliariesBySectors[0].auxiliaries[0]._id,
-      customerCount: 9,
-    }];
-    const getPaidInterventionStatsResult2 = [{
-      auxiliary: auxiliariesBySectors[0].auxiliaries[0]._id,
-      customerCount: 9,
-    }];
-    getPaidInterventionStats.onCall(0).returns(getPaidInterventionStatsResult1);
-    getPaidInterventionStats.onCall(1).returns(getPaidInterventionStatsResult2);
+    getUsersFromSectorHistoriesStub.returns(auxiliaries);
+    const getPaidInterventionStatsResult = [
+      { auxiliary: auxiliaries[0]._id, customerCount: 9, sectors: [['12345']] },
+      { auxiliary: auxiliaries[1]._id, customerCount: 11, sectors: [['12345']] },
+    ];
+    getPaidInterventionStats.returns(getPaidInterventionStatsResult);
 
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
-    expect(result).toEqual(getPaidInterventionStatsResult1.concat(getPaidInterventionStatsResult2));
+    expect(result).toEqual([
+      { ...getPaidInterventionStatsResult[0], sectors: getPaidInterventionStatsResult[0].sectors[0] },
+      { ...getPaidInterventionStatsResult[1], sectors: getPaidInterventionStatsResult[1].sectors[0] },
+    ]);
     sinon.assert.calledWithExactly(
-      getUsersBySectorsStub,
+      getUsersFromSectorHistoriesStub,
       startOfMonth,
       endOfMonth,
       [new ObjectID(query.sector[0]), new ObjectID(query.sector[1])],
@@ -621,13 +620,7 @@ describe('getPaidInterventionStats', () => {
     );
     sinon.assert.calledWithExactly(
       getPaidInterventionStats,
-      auxiliariesBySectors[0].auxiliaries.map(aux => aux._id),
-      query.month,
-      credentials.company._id
-    );
-    sinon.assert.calledWithExactly(
-      getPaidInterventionStats,
-      auxiliariesBySectors[1].auxiliaries.map(aux => aux._id),
+      auxiliaries.map(aux => aux._id),
       query.month,
       credentials.company._id
     );
@@ -645,7 +638,7 @@ describe('getPaidInterventionStats', () => {
       '102019',
       credentials.company._id
     );
-    sinon.assert.notCalled(getUsersBySectorsStub);
+    sinon.assert.notCalled(getUsersFromSectorHistoriesStub);
   });
 });
 

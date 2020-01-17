@@ -128,7 +128,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getUsersBySectors = async (startDate, endDate, sectors, companyId) => SectorHistory.aggregate([
+exports.getUsersFromSectorHistories = async (startDate, endDate, sectors, companyId) => SectorHistory.aggregate([
   [
     {
       $match: {
@@ -142,8 +142,7 @@ exports.getUsersBySectors = async (startDate, endDate, sectors, companyId) => Se
     },
     { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
-    { $group: { _id: '$sector', auxiliaries: { $addToSet: '$auxiliary' } } },
-    { $project: { sector: '$_id', auxiliaries: { _id: 1 } } },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
   ],
 ]).option({ company: companyId });
 
@@ -188,7 +187,7 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
       },
     },
     { $unwind: { path: '$events' } },
-    { $addFields: { 'events.auxiliary': '$auxiliary', 'events.sector': '$sector' } },
+    { $addFields: { 'events.sector': '$sector' } },
     { $replaceRoot: { newRoot: '$events' } },
     { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 60 * 60 * 1000] } } },
     {
@@ -207,13 +206,6 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         sectors: { $addToSet: '$sectors' },
       },
     },
-    {
-      $project: {
-        _id: '$_id.auxiliary',
-        sectors: 1,
-        customerCount: 1,
-        duration: 1,
-      },
-    },
+    { $project: { _id: '$_id.auxiliary', sectors: 1, customerCount: 1, duration: 1 } },
   ]).option({ company: companyId });
 };

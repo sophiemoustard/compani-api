@@ -95,21 +95,18 @@ exports.getPaidInterventionStats = async (query, credentials) => {
       : [new ObjectID(query.sector)];
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
-    const auxiliariesBySectors = await SectorHistoryRepository.getUsersBySectors(
+    const auxiliariesFromSectorHistories = await SectorHistoryRepository.getUsersFromSectorHistories(
       startOfMonth,
       endOfMonth,
       sectors,
       companyId
     );
-    let result = [];
-    for (const auxiliariesBySector of auxiliariesBySectors) {
-      result = result.concat(await SectorHistoryRepository.getPaidInterventionStats(
-        auxiliariesBySector.auxiliaries.map(aux => aux._id),
-        query.month,
-        companyId
-      ));
-    }
-    return result;
+    const paidInterventionStats = await SectorHistoryRepository.getPaidInterventionStats(
+      auxiliariesFromSectorHistories.map(aux => aux._id),
+      query.month,
+      companyId
+    );
+    return paidInterventionStats.map(stats => ({ ...stats, sectors: stats.sectors[0] }));
   }
   return SectorHistoryRepository.getPaidInterventionStats([new ObjectID(query.auxiliary)], query.month, companyId);
 };

@@ -164,7 +164,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
   });
 });
 
-describe('GET /stats/customer-duration/auxiliary', () => {
+describe('GET /stats/paid-intervention-stats', () => {
   let adminToken = null;
 
   describe('Admin', () => {
@@ -177,7 +177,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[0]._id}`,
+        url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
@@ -196,7 +196,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should get customer and duration stats for auxiliary', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration/auxiliary?month=072019&auxiliary=${userList[0]._id}`,
+        url: `/stats/paid-intervention-stats?month=072019&auxiliary=${userList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
@@ -209,7 +209,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[2]._id}`,
+        url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -219,7 +219,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should return 403 if auxiliary is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration/auxiliary?month=072019&auxiliary=${userList[2]._id}`,
+        url: `/stats/paid-intervention-stats?month=072019&auxiliary=${userList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -229,7 +229,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should not get customer and duration stats as auxiliary and sector are missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/stats/customer-duration/auxiliary?month=072019',
+        url: '/stats/paid-intervention-stats?month=072019',
         headers: { 'x-access-token': adminToken },
       });
 
@@ -239,7 +239,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
     it('should not get customer and duration stats as month is missing', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration/auxiliary?sector=${sectorList[0]._id}`,
+        url: `/stats/paid-intervention-stats?sector=${sectorList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -259,7 +259,7 @@ describe('GET /stats/customer-duration/auxiliary', () => {
         const authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/stats/customer-duration/auxiliary?month=072019&sector=${sectorList[0]._id}`,
+          url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
