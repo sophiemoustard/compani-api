@@ -809,7 +809,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
         customer: customerId,
         startDate: { $lt: endDate },
         endDate: { $gte: startDate },
-        $or: [{ isCancelled: false }, { 'cancel.condition': { $in: INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } }],
+        $or: [{ isCancelled: false }, { 'cancel.condition': { $in: [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID] } }],
       },
     },
     { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] } } },

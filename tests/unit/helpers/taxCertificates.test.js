@@ -145,7 +145,7 @@ describe('formatPdf', () => {
       },
     });
     sinon.assert.calledWithExactly(formatIdentity, taxCertificate.customer.identity, 'TFL');
-    sinon.assert.calledWithExactly(formatInterventions, interventions, taxCertificate.customer);
+    sinon.assert.calledWithExactly(formatInterventions, interventions);
   });
 });
 
