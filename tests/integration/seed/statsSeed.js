@@ -136,6 +136,7 @@ const customerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    referent: userList[0]._id,
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
@@ -204,6 +205,7 @@ const customerList = [
       _id: new ObjectID(),
       service: serviceList[0]._id,
     }],
+    referent: userList[0]._id,
     identity: { lastname: 'test' },
     contact: {
       primaryAddress: {
@@ -259,7 +261,7 @@ const eventListForFollowUp = [
     company: authCompany._id,
     type: 'intervention',
     status: COMPANY_CONTRACT,
-    customer: customerList[0]._id,
+    customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
@@ -320,6 +322,25 @@ const eventListForFollowUp = [
     sector: new ObjectID(),
     subscription: customerList[1].subscriptions[0]._id,
     auxiliary: userList[0]._id,
+    startDate: '2019-11-13T09:00:00.000+00:00',
+    endDate: '2019-11-13T11:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: customerList[1].subscriptions[0]._id,
+    auxiliary: userList[1]._id,
     startDate: '2019-11-13T09:00:00.000+00:00',
     endDate: '2019-11-13T11:30:00.000+00:00',
     address: {
