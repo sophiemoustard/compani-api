@@ -42,6 +42,15 @@
   .signature {
     text-align: right;
   }
+  .justify {
+    text-align: justify;
+  }
+  .capitalize {
+    text-transform: capitalize;
+  }
+  .interventions {
+    width: 100%;
+  }
 </style>
 
 <div class="logo">
@@ -67,11 +76,11 @@
   ATTESTATION DESTINEE AU CENTRE DES IMPOTS POUR L'ANNEE {{ taxCertificate.year }}
 </div>
 <br /><br />
-<div>Je soussigné(e) {{ taxCertificate.director }} directeur général de {{ taxCertificate.company.name }}, certifie que 
-  {{ taxCertificate.customer.name }} ({{ taxCertificate.customer.address.fullAddress }}) a bénéficié d'une aide à 
-  domicile.</div>
+<div class="justify">Je soussigné(e) {{ taxCertificate.director }}, directeur général de {{ taxCertificate.company.name }}, 
+  certifie que {{ taxCertificate.customer.name }} ({{ taxCertificate.customer.address.fullAddress }}) a bénéficié d'une 
+  aide à domicile.</div>
 <br />
-<div>Nature des interventions :  </div>
+<div>Nature des interventions : {{ taxCertificate.subscriptions }}.</div>
 <br />
 <div>
   <div>Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d'impôt :</div>
@@ -79,15 +88,46 @@
 </div>
 <br />
 <br />
-<div>Les sommes que vous auriez perçues sur votre compte pour financer l'aide à domicile sont à déduire de la valeur 
-  indiquée précédemment. Votre déclaration n'engage que votre responsabilité de contribuable.</div>
+<div>
+  <table class="interventions">
+    <thead>
+      <tr>
+        <th align="left">Intervenant</th>
+        <th align="left">Mois</th>
+        <th align="left">Heures</th>
+        <th align="left">Prestation</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#table taxCertificate.interventions }}
+        <tr>
+          <td align="left">{{ auxiliary }}</td>
+          <td align="left" class="capitalize">{{ month }}</td>
+          <td align="right">{{ hours }}</td>
+          <td align="left">{{ subscription }}</tdalign="right">
+        </tr>
+      {{/table}}
+      <tr>
+        <td></td>
+        <td align="left" class="text-weight-bold">Total</td>
+        <td align="right" class="text-weight-bold">{{ taxCertificate.totalHours }}</td>
+        <td></tdalign="right">
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
 <br />
-<div>* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous avez personnellement 
-  financé est déductible (article 199 sexdecies du Code général des impôts et article L7233-7 du code du travail). 
-  Une attestation vous sera délivrée par les établissements qui préfinancent le Cesu.</div>
 <br />
-<div>Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services, qui précisent 
-  les dates et durées des interventions.</div>
+<div class="justify">Les sommes que vous auriez perçues sur votre compte pour financer l'aide à domicile sont à déduire 
+  de la valeur indiquée précédemment. Votre déclaration n'engage que votre responsabilité de contribuable.</div>
+<br />
+<div class="justify">* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous 
+  avez personnellement financé est déductible (article 199 sexdecies du Code général des impôts et article L7233-7 du 
+  code du travail). Une attestation vous sera délivrée par les établissements qui préfinancent le Cesu.</div>
+<br />
+<div class="justify">Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services, 
+  qui précisent les dates et durées des interventions.</div>
 <br />
 <div>Fait pour valoir ce que de droit,</div>
 <div class="signature">
