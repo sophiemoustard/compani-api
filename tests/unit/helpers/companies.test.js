@@ -33,10 +33,12 @@ describe('createCompany', () => {
       folderId: '1234567890',
       directDebitsFolderId: '0987654321',
       customersFolderId: 'qwertyuiop',
+      auxiliariesFolderId: 'asdfghj',
     };
     createFolderForCompanyStub.returns({ id: '1234567890' });
     createFolderStub.onCall(0).returns({ id: '0987654321' });
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
+    createFolderStub.onCall(2).returns({ id: 'asdfghj' });
     CompanyMock.expects('find')
       .chain('sort')
       .withExactArgs({ prefixNumber: -1 })
@@ -52,6 +54,7 @@ describe('createCompany', () => {
     sinon.assert.calledWithExactly(createFolderForCompanyStub, payload.name);
     sinon.assert.calledWithExactly(createFolderStub, 'direct debits', '1234567890');
     sinon.assert.calledWithExactly(createFolderStub, 'customers', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub, 'auxiliaries', '1234567890');
     CompanyMock.verify();
   });
 });
