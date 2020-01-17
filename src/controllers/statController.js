@@ -52,13 +52,13 @@ exports.getAllCustomersFundingsMonitoring = async (req) => {
   }
 };
 
-exports.getCustomersAndDurationByAuxiliary = async (req) => {
+exports.getPaidInterventionStats = async (req) => {
   try {
-    const customersAndDuration = await StatsHelper.getCustomersAndDurationByAuxiliary(req.query, req.auth.credentials);
+    const paidInterventionStats = await StatsHelper.getPaidInterventionStats(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,
-      data: { customersAndDuration },
+      data: { paidInterventionStats },
     };
   } catch (e) {
     req.log('error', e);

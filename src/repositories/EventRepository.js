@@ -794,34 +794,3 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   { $replaceRoot: { newRoot: '$customer' } },
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
 ]).option({ company: companyId });
-
-exports.getCustomersAndDurationByAuxiliary = async (auxiliaryIds, month, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
-  return Event.aggregate([
-    {
-      $match: {
-        auxiliary: { $in: auxiliaryIds },
-        startDate: { $lte: maxStartDate, $gte: minStartDate },
-        type: INTERVENTION,
-        $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
-      },
-    },
-    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] } } },
-    {
-      $group: {
-        _id: { customer: '$customer' },
-        duration: { $sum: '$duration' },
-        auxiliary: { $first: '$auxiliary' },
-      },
-    },
-    {
-      $group: {
-        _id: '$auxiliary',
-        duration: { $sum: '$duration' },
-        customerCount: { $sum: 1 },
-      },
-    },
-    { $project: { auxiliary: '$_id', duration: 1, customerCount: 1 } },
-  ]).option({ company: companyId });
-};

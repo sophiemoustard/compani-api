@@ -6,7 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomersAndDurationByAuxiliary,
+  getPaidInterventionStats,
   getCustomersAndDurationBySector,
   getAllCustomersFundingsMonitoring,
   getIntenalAndBilledHoursBySector,
@@ -57,7 +57,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration/auxiliary',
+      path: '/paid-intervention-stats',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
@@ -69,7 +69,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomersAndDurationByAuxiliary,
+      handler: getPaidInterventionStats,
     });
 
     server.route({
