@@ -347,7 +347,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const { establishments } = response.result.data;
         expect(establishments).toHaveLength(establishmentsList.length);
         expect(establishments).toEqual(expect.arrayContaining([
-          expect.objectContaining({ users: 0 }),
+          expect.objectContaining({ users: expect.any(Number) }),
         ]));
       });
 
@@ -361,6 +361,99 @@ describe('ESTABLISHMENTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.establishments).toHaveLength(1);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/establishments',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('DELETE /etablishments/:id', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should delete establishment', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/establishments/${establishmentsList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const establishmentsCount = await Establishment.countDocuments({ company: authCompany._id });
+        expect(establishmentsCount).toBe(establishmentsList.length - 1);
+      });
+
+      it('should return a 403 error if establishment has users attached', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/establishments/${establishmentsList[1]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it('should return a 403 error if establishment is not from same company as user', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/establishments/${establishmentFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it('should return a 404 error if establishment does not exist', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/establishments/${new ObjectID()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/establishments/${establishmentsList[0]._id}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });

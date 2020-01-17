@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, update, list } = require('../controllers/establishmentController');
+const { create, update, list, remove } = require('../controllers/establishmentController');
 const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandlers/establishments');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
@@ -77,6 +77,19 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { scope: ['establishments:read'] },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      handler: remove,
+      options: {
+        auth: { scope: ['establishments:edit'] },
+        pre: [
+          { method: getEstablishment, assign: 'establishment' },
+          { method: authorizeEstablishmentUpdate },
+        ],
       },
     });
   },

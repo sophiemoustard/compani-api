@@ -80,12 +80,22 @@ const userFromOtherCompany = {
   company: otherCompany._id,
 };
 
+const user = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Auxiliary', lastname: 'Test' },
+  local: { email: 'auxiliary_establishment@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  company: authCompany._id,
+  establishment: establishmentsList[1]._id,
+};
+
 const populateDB = async () => {
   await Establishment.deleteMany();
 
   await populateDBForAuthentication();
 
-  await User.create(userFromOtherCompany);
+  await User.create([userFromOtherCompany, user]);
   await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
 };
 

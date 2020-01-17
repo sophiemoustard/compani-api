@@ -214,6 +214,8 @@ module.exports = {
     /* Establishments */
     establishmentCreated: 'Establishment created.',
     establishmentNotFound: 'Establishment not found.',
+    establishmentsFound: 'Establishments found.',
+    establishmentRemoved: 'Establishment removed.',
   },
   'fr-FR': {
     /* Global errors */
@@ -427,5 +429,7 @@ module.exports = {
     /* Establishments */
     establishmentCreated: 'Établissement créé.',
     establishmentNotFound: 'Établissement non trouvé.',
+    establishmentsFound: 'Établissements trouvés.',
+    establishmentRemoved: 'Établissement supprimé.',
   },
 };

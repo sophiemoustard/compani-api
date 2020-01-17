@@ -57,4 +57,21 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, update, list };
+const remove = async (req) => {
+  try {
+    const establishment = await Establishment
+      .findById(req.params._id)
+      .populate({ path: 'users', match: { company: get(req, 'auth.credentials.company._id', null) } });
+
+    if (establishment.users > 0) throw Boom.forbidden();
+
+    await establishment.remove();
+
+    return { message: translate[language].establishmentRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+}
+
+module.exports = { create, update, list, remove };
