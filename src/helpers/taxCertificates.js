@@ -25,12 +25,9 @@ exports.formatInterventions = interventions => interventions.map((int) => {
 });
 
 exports.formatPdf = (taxCertificate, company, interventions) => {
-  const formattedInterventions = exports.formatInterventions(interventions, taxCertificate.customer);
+  const formattedInterventions = exports.formatInterventions(interventions);
   const subscriptions = new Set(formattedInterventions.map(int => int.subscription));
-  let totalHours = 0;
-  for (const int of interventions) {
-    totalHours += int.duration;
-  }
+  const totalHours = interventions.reduce((acc, int) => acc + int.duration, 0);
 
   return {
     taxCertificate: {
@@ -44,7 +41,7 @@ exports.formatPdf = (taxCertificate, company, interventions) => {
         .startOf('y')
         .endOf('month')
         .format('DD/MM/YYYY'),
-      director: 'Clément de Saint Olive',
+      director: 'Clément Saint Olive',
       customer: {
         name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
         address: get(taxCertificate, 'customer.contact.primaryAddress', {}),

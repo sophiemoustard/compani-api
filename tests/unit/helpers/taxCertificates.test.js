@@ -140,7 +140,7 @@ describe('formatPdf', () => {
         company: { logo: company.logo, address: company.address, name: company.name },
         year: '2019',
         date: '31/01/2020',
-        director: 'Clément de Saint Olive',
+        director: 'Clément Saint Olive',
         customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
       },
     });
