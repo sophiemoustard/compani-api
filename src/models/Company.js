@@ -21,6 +21,7 @@ const CompanySchema = mongoose.Schema({
   folderId: { type: String, required: true },
   directDebitsFolderId: { type: String, required: true },
   customersFolderId: { type: String, required: true },
+  auxiliariesFolderId: { type: String, required: true },
   rhConfig: {
     contractWithCompany: { grossHourlyRate: { type: Number, default: 0 } },
     contractWithCustomer: { grossHourlyRate: { type: Number, default: 0 } },
@@ -45,9 +46,7 @@ const CompanySchema = mongoose.Schema({
       quote: driveResourceSchemaDefinition,
     },
   },
-}, {
-  timestamps: true,
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;

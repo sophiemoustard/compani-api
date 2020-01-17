@@ -25,6 +25,7 @@ const company = {
   ics: '12345678',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'jhgfd',
   folderId: '0987654321',
   customersConfig: {
     billingPeriod: 'two_weeks',
