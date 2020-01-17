@@ -138,6 +138,11 @@ const rightsList = [
     description: 'Editer un établissement',
     permission: 'establishments:edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter la liste des établissement',
+    permission: 'establishments:read',
+  },
 ];
 
 const coachRights = [
@@ -158,6 +163,7 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
   'taxcertificates:read',
+  'establishments:read',
 ];
 const adminRights = [
   ...coachRights,

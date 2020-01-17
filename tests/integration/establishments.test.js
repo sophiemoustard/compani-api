@@ -2,8 +2,13 @@ const expect = require('expect');
 const app = require('../../server');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
-const { populateDB, establishmentsList, establishmentFromOtherCompany } = require('./seed/establishmentsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const {
+  populateDB,
+  establishmentsList,
+  establishmentFromOtherCompany,
+  userFromOtherCompany,
+} = require('./seed/establishmentsSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Establishment = require('../../src/models/Establishment');
 
 describe('NODE ENV', () => {
@@ -320,6 +325,38 @@ describe('ESTABLISHMENTS ROUTES', () => {
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
+      });
+    });
+  });
+
+  describe('GET /etablishments', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return establishments (company A)', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/establishments',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.establishments).toHaveLength(establishmentsList.length);
+      });
+
+      it('should return establishments (company B)', async () => {
+        authToken = await getTokenByCredentials(userFromOtherCompany.local);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/establishments',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.establishments).toHaveLength(1);
       });
     });
   });

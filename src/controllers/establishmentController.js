@@ -39,4 +39,20 @@ const update = async (req) => {
   }
 };
 
-module.exports = { create, update };
+const list = async (req) => {
+  try {
+    const establishments = await Establishment
+      .find({ company: get(req, 'auth.credentials.company._id', null) })
+      .lean();
+
+    return {
+      message: translate[language].establishmentsFound,
+      data: { establishments },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, update, list };

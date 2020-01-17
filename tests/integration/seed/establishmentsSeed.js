@@ -1,6 +1,13 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Establishment = require('../../../src/models/Establishment');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const User = require('../../../src/models/User');
+const {
+  populateDBForAuthentication,
+  authCompany,
+  otherCompany,
+  rolesList,
+} = require('./authenticationSeed');
 
 
 const establishmentsList = [
@@ -64,12 +71,27 @@ const establishmentFromOtherCompany = {
   company: otherCompany._id,
 };
 
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Admin', lastname: 'Chef' },
+  refreshToken: uuidv4(),
+  local: { email: 'other_admin@alenvi.io', password: '123456' },
+  role: rolesList.find(role => role.name === 'admin')._id,
+  company: otherCompany._id,
+};
+
 const populateDB = async () => {
   await Establishment.deleteMany();
 
   await populateDBForAuthentication();
 
+  await User.create(userFromOtherCompany);
   await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
 };
 
-module.exports = { populateDB, establishmentsList, establishmentFromOtherCompany };
+module.exports = {
+  populateDB,
+  establishmentsList,
+  establishmentFromOtherCompany,
+  userFromOtherCompany,
+};
