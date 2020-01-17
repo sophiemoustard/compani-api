@@ -15,7 +15,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].establishmentCreated,
-      data: { establishment },
+      data: { establishment: establishment.toObject() },
     };
   } catch (e) {
     req.log('error', e);

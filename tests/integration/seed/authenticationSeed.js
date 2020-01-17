@@ -133,6 +133,11 @@ const rightsList = [
     description: 'Consulter les attestions fiscales',
     permission: 'taxcertificates:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un établissement',
+    permission: 'establishments:edit',
+  },
 ];
 
 const coachRights = [
@@ -162,6 +167,7 @@ const adminRights = [
   'payments:list:create',
   'pay:edit',
   'companies:edit',
+  'establishments:edit',
 ];
 const auxiliaryRights = [
   'config:read',

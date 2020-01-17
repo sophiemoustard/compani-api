@@ -39,7 +39,7 @@ const establishmentsList = [
     },
     phone: '0446899034',
     workHealthService: 'MT01',
-    urssafCode: '207',
+    urssafCode: '217',
     company: authCompany,
   },
 ];

@@ -10,7 +10,7 @@ const EstablishmentSchema = mongoose.Schema({
     maxLength: 32,
     required: true,
     validate(v) {
-      return !/[^a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,-./:;<=>?@]/.test(v);
+      return !/[^a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@]/.test(v);
     },
   },
   siret: { type: String, unique: true, validate: /^\d{14}$/, required: true },

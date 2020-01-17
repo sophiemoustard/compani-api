@@ -18,7 +18,7 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(/[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,-./:;<=>?@]/).required(),
+            name: Joi.string().regex(/^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@]{1,32}$/).required(),
             siret: Joi.string().regex(/^\d{14}$/).required(),
             phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).required(),
             workHealthService: Joi.string().valid(workHealthServices).required(),
