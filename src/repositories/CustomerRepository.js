@@ -1,4 +1,3 @@
-const moment = require('moment');
 const Customer = require('../models/Customer');
 
 exports.getCustomerFundings = async companyId => Customer.aggregate([
@@ -116,4 +115,10 @@ exports.getCustomersList = async companyId => Customer.aggregate([
       company: 1,
     },
   },
+]).option({ company: companyId });
+
+exports.getSubscriptions = async (subscriptionsIds, companyId) => Customer.aggregate([
+  { $match: { 'subscriptions._id': { $in: subscriptionsIds } } },
+  { $unwind: { path: '$subscriptions' } },
+  { $match: { 'subscriptions._id': { $in: subscriptionsIds } } },
 ]).option({ company: companyId });
