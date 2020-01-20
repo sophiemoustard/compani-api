@@ -125,6 +125,5 @@ exports.getIntenalAndBilledHoursBySector = async (query, credentials) => {
     ? query.sector.map(id => new ObjectID(id))
     : [new ObjectID(query.sector)];
 
-
   return StatRepository.getIntenalAndBilledHoursBySector(sectors, query.month, companyId);
 };

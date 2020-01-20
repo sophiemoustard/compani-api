@@ -128,6 +128,24 @@ const getWorkingStats = async (req) => {
   }
 };
 
+const getPaidTransportStatsBySector = async (req) => {
+  try {
+    const paidTransportStatsBySector = await EventsHelper.getPaidTransportStatsBySector(
+      req.query,
+      req.auth.credentials
+    );
+
+    return {
+      message: translate[language].statsFound,
+      data: { paidTransportStatsBySector },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+
 module.exports = {
   list,
   create,
@@ -137,4 +155,5 @@ module.exports = {
   deleteList,
   listForCreditNotes,
   getWorkingStats,
+  getPaidTransportStatsBySector,
 };
