@@ -1786,7 +1786,9 @@ describe('exportPaymentsHistory', () => {
     mockPayment.expects('find')
       .chain('sort')
       .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity' })
       .chain('populate')
+      .withExactArgs({ path: 'client' })
       .chain('lean')
       .once()
       .returns([]);
@@ -1800,7 +1802,9 @@ describe('exportPaymentsHistory', () => {
     mockPayment.expects('find')
       .chain('sort')
       .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity' })
       .chain('populate')
+      .withExactArgs({ path: 'client' })
       .chain('lean')
       .once()
       .returns(paymentsList);
