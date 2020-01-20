@@ -1766,13 +1766,7 @@ describe('getPaidTransportStatsBySector', () => {
     ];
     const paidTransportStatsBySector = [{
       _id: query.sector,
-      auxiliaries: [{
-        auxiliary: new ObjectID(),
-        days: [{
-          day: '2020-01-02',
-          events,
-        }],
-      }],
+      auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
     }];
 
     getDistanceMatrixStub.returns(distanceMatrix);
@@ -1808,23 +1802,11 @@ describe('getPaidTransportStatsBySector', () => {
     const paidTransportStatsBySector = [
       {
         _id: query.sector[0],
-        auxiliaries: [{
-          auxiliary: new ObjectID(),
-          days: [{
-            day: '2020-01-02',
-            events: eventsFirstSector,
-          }],
-        }],
+        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsFirstSector }] }],
       },
       {
         _id: query.sector[1],
-        auxiliaries: [{
-          auxiliary: new ObjectID(),
-          days: [{
-            day: '2020-01-02',
-            events: eventsSecondSector,
-          }],
-        }],
+        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsSecondSector }] }],
       },
     ];
 
