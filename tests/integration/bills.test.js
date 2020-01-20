@@ -4,7 +4,6 @@ const qs = require('qs');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-
 const app = require('../../server');
 const {
   populateDB,
@@ -225,6 +224,95 @@ describe('BILL ROUTES - POST /bills', () => {
       ],
     },
   ];
+  const payloadWithTwoSubscriptions = [
+    {
+      customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+      endDate: '2019-05-30T23:59:59.999Z',
+      customerBills: {
+        bills: [
+          {
+            _id: '5ccbfcf4bffe7646a387b470',
+            subscription: {
+              _id: billCustomerList[0].subscriptions[1]._id,
+              service: billServices[1],
+              versions: [
+                {
+                  _id: '5ccbfcf4bffe7646a387b456',
+                  unitTTCRate: 12,
+                  estimatedWeeklyVolume: 12,
+                  evenings: 2,
+                  sundays: 1,
+                  startDate: '2019-04-03T08:33:55.370Z',
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+              ],
+              createdAt: '2019-05-03T08:33:56.144Z',
+            },
+            discount: 0,
+            startDate: '2019-05-01T00:00:00.000Z',
+            endDate: '2019-05-31T23:59:59.999Z',
+            unitExclTaxes: 10.714285714285714,
+            unitInclTaxes: 12,
+            vat: 12,
+            eventsList: [
+              {
+                event: eventList[4]._id,
+                auxiliary: new ObjectID(),
+                startDate: '2019-05-02T08:00:00.000Z',
+                endDate: '2019-05-02T10:00:00.000Z',
+                inclTaxesCustomer: 24,
+                exclTaxesCustomer: 21.428571428571427,
+                surcharges: [{ percentage: 90, name: 'Noël' }],
+              },
+            ],
+            hours: 2,
+            exclTaxes: 21.428571428571427,
+            inclTaxes: 24,
+          },
+          {
+            _id: '5ccbfcf4bffe7646a387b470',
+            subscription: {
+              _id: billCustomerList[0].subscriptions[0]._id,
+              service: billServices[0],
+              versions: [
+                {
+                  _id: '5ccbfcf4bffe7646a387b456',
+                  unitTTCRate: 12,
+                  estimatedWeeklyVolume: 12,
+                  evenings: 2,
+                  sundays: 1,
+                  startDate: '2019-04-03T08:33:55.370Z',
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+              ],
+              createdAt: '2019-05-03T08:33:56.144Z',
+            },
+            discount: 0,
+            startDate: '2019-05-01T00:00:00.000Z',
+            endDate: '2019-05-31T23:59:59.999Z',
+            unitExclTaxes: 10.714285714285714,
+            unitInclTaxes: 12,
+            vat: 12,
+            eventsList: [
+              {
+                event: eventList[4]._id,
+                auxiliary: new ObjectID(),
+                startDate: '2019-05-02T08:00:00.000Z',
+                endDate: '2019-05-02T10:00:00.000Z',
+                inclTaxesCustomer: 24,
+                exclTaxesCustomer: 21.428571428571427,
+                surcharges: [{ percentage: 90, name: 'Noël' }],
+              },
+            ],
+            hours: 2,
+            exclTaxes: 21.428571428571427,
+            inclTaxes: 24,
+          },
+        ],
+        total: 24,
+      },
+    },
+  ];
 
   describe('Admin', () => {
     beforeEach(async () => {
@@ -241,8 +329,20 @@ describe('BILL ROUTES - POST /bills', () => {
 
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find({ company: authCompany._id }).lean();
-      const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + authBillsList.length);
+      expect(bills.length).toBe(2 + authBillsList.length);
+    });
+
+    it('should create new bills (2 subscriptions)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: payloadWithTwoSubscriptions },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const bills = await Bill.find({ company: authCompany._id }).lean();
+      expect(bills.length).toBe(1 + authBillsList.length);
     });
 
     it('should not create new bill with existing number', async () => {
