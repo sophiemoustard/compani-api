@@ -1,14 +1,13 @@
 const expect = require('expect');
-const omit = require('lodash/omit');
 const sinon = require('sinon');
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
-const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
+const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
@@ -1530,197 +1529,169 @@ describe('getContractWeekInfo', () => {
   });
 });
 
-describe('workingStats', () => {
-  const auxiliaryId = new ObjectID();
-  const query = {
-    auxiliary: [auxiliaryId],
-    startDate: '2019-12-12',
-    endDate: '2019-12-15',
-  };
-  const distanceMatrix = {
-    data: {
-      rows: [{
-        elements: [{
-          distance: { value: 363998 },
-          duration: { value: 13790 },
-        }],
-      }],
-    },
-    status: 200,
-  };
-  const companyId = new ObjectID();
-  const credentials = { company: { _id: companyId } };
-  let UserModel;
-  let DistanceMatrixModel;
-  let getEventsToPayStub;
-  let getContractStub;
-  let getContractWeekInfoStub;
-  let getPayFromEventsStub;
-  let getPayFromAbsencesStub;
+describe('getPaidTransportStatsBySector', () => {
+  let getDistanceMatrixStub;
+  let getPaidTransportStatsBySectorStub;
+  let getPaidTransportInfoStub;
+
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    DistanceMatrixModel = sinon.mock(DistanceMatrix);
-    getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
-    getContractStub = sinon.stub(EventHelper, 'getContract');
-    getContractWeekInfoStub = sinon.stub(EventHelper, 'getContractWeekInfo');
-    getPayFromEventsStub = sinon.stub(DraftPayHelper, 'getPayFromEvents');
-    getPayFromAbsencesStub = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
+    getDistanceMatrixStub = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
+    getPaidTransportStatsBySectorStub = sinon.stub(EventRepository, 'getPaidTransportStatsBySector');
+    getPaidTransportInfoStub = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
   });
   afterEach(() => {
-    UserModel.restore();
-    DistanceMatrixModel.restore();
-    getEventsToPayStub.restore();
-    getContractStub.restore();
-    getContractWeekInfoStub.restore();
-    getPayFromEventsStub.restore();
-    getPayFromAbsencesStub.restore();
+    getDistanceMatrixStub.restore();
+    getPaidTransportStatsBySectorStub.restore();
+    getPaidTransportInfoStub.restore();
   });
 
-  it('should return working stats', async () => {
-    const contractId = new ObjectID();
-    const contracts = [{ _id: contractId }];
-    const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
+  it('should return an empty array if there is no event', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
 
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+    getDistanceMatrixStub.returns([{ duration: 10 }]);
+    getPaidTransportStatsBySectorStub.returns([]);
 
-    const contract = { startDate: '2018-11-11', _id: contractId };
-    const contractInfo = { contractHours: 10, holidaysHours: 7 };
-    const hours = { workedHours: 12 };
-    const absencesHours = 3;
-    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
-    getContractStub.returns(contract);
-    getContractWeekInfoStub.returns(contractInfo);
-    getPayFromEventsStub.returns(hours);
-    getPayFromAbsencesStub.returns(absencesHours);
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
-    const result = await EventHelper.workingStats(query, credentials);
-
-    const expectedResult = {};
-    expectedResult[auxiliaryId] = {
-      workedHours: hours.workedHours,
-      hoursToWork: 0,
-    };
-
-    expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, query);
-    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
-    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, query);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
   });
 
-  it('should return workingstats for all auxiliaries if no auxiliary is specified', async () => {
-    const contractId = new ObjectID();
-    const contracts = [{ _id: contractId }];
-    const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
-    const queryWithoutAuxiliary = omit(query, 'auxiliary');
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
+  it('should return paid transport stats', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
 
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+    const distanceMatrix = [{ duration: 3600 }];
+    const events = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const paidTransportStatsBySector = [{
+      _id: query.sector,
+      auxiliaries: [{
+        auxiliary: new ObjectID(),
+        days: [{
+          day: '2020-01-02',
+          events,
+        }],
+      }],
+    }];
 
-    const contract = { startDate: '2018-11-11', _id: contractId };
-    const contractInfo = { contractHours: 10, holidaysHours: 7 };
-    const hours = { workedHours: 12 };
-    const absencesHours = 3;
-    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
-    getContractStub.returns(contract);
-    getContractWeekInfoStub.returns(contractInfo);
-    getPayFromEventsStub.returns(hours);
-    getPayFromAbsencesStub.returns(absencesHours);
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+    getPaidTransportInfoStub.returns({ duration: 60 });
 
-    const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
-    const expectedResult = {};
-    expectedResult[auxiliaryId] = {
-      workedHours: hours.workedHours,
-      hoursToWork: 0,
-    };
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
-    expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary);
-    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], queryWithoutAuxiliary);
-    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    expect(result).toEqual([{ sector: query.sector, duration: 1 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(getPaidTransportInfoStub, events[1], events[0], distanceMatrix);
   });
 
-  it('should return {} if no contract in auxiliaries', async () => {
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
+  it('should return paid transport stats for many sectors', async () => {
+    const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
 
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+    const distanceMatrix = [{ duration: 3600 }, { duration: 5400 }];
+    const eventsFirstSector = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const eventsSecondSector = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const paidTransportStatsBySector = [
+      {
+        _id: query.sector[0],
+        auxiliaries: [{
+          auxiliary: new ObjectID(),
+          days: [{
+            day: '2020-01-02',
+            events: eventsFirstSector,
+          }],
+        }],
+      },
+      {
+        _id: query.sector[1],
+        auxiliaries: [{
+          auxiliary: new ObjectID(),
+          days: [{
+            day: '2020-01-02',
+            events: eventsSecondSector,
+          }],
+        }],
+      },
+    ];
 
-    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+    getPaidTransportInfoStub.onCall(0).returns({ duration: 60 });
+    getPaidTransportInfoStub.onCall(1).returns({ duration: 90 });
 
-    const result = await EventHelper.workingStats(query, credentials);
-    expect(result).toEqual({});
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.notCalled(getContractStub);
-    sinon.assert.notCalled(getContractWeekInfoStub);
-    sinon.assert.notCalled(getPayFromEventsStub);
-    sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    expect(result).toEqual([{ sector: query.sector[0], duration: 1 }, { sector: query.sector[1], duration: 1.5 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      query.sector,
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      getPaidTransportInfoStub.getCall(0),
+      eventsFirstSector[1],
+      eventsFirstSector[0],
+      distanceMatrix
+    );
+    sinon.assert.calledWithExactly(
+      getPaidTransportInfoStub.getCall(1),
+      eventsSecondSector[1],
+      eventsSecondSector[0],
+      distanceMatrix
+    );
   });
 
-  it('should return {} if contract not found', async () => {
-    const contracts = [{ _id: new ObjectID() }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
+  it('should not call getPaidTransportInfo if only one event for one day', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
 
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+    const distanceMatrix = [{ duration: 3600 }];
+    const events = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+    ];
+    const paidTransportStatsBySector = [{
+      _id: query.sector,
+      auxiliaries: [{
+        auxiliary: new ObjectID(),
+        days: [{
+          day: '2020-01-02',
+          events,
+        }],
+      }],
+    }];
 
-    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
-    getContractStub.returns();
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
 
-    const result = await EventHelper.workingStats(query, credentials);
-    expect(result).toEqual({});
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.notCalled(getContractWeekInfoStub);
-    sinon.assert.notCalled(getPayFromEventsStub);
-    sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    expect(result).toEqual([{ sector: query.sector, duration: 0 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.notCalled(getPaidTransportInfoStub);
   });
 });
