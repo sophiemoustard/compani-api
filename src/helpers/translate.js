@@ -216,6 +216,7 @@ module.exports = {
     establishmentNotFound: 'Establishment not found.',
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
+    siretAlreadyExists: 'Siret already used by another establishment.',
   },
   'fr-FR': {
     /* Global errors */
@@ -431,5 +432,6 @@ module.exports = {
     establishmentNotFound: 'Établissement non trouvé.',
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
+    siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
   },
 };

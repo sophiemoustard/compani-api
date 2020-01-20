@@ -19,6 +19,10 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
+    if (e.code === 11000) {
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].siretAlreadyExists);
+    }
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -35,6 +39,10 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
+    if (e.code === 11000) {
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].siretAlreadyExists);
+    }
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -72,6 +80,6 @@ const remove = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
-}
+};
 
 module.exports = { create, update, list, remove };
