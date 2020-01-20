@@ -60,6 +60,21 @@ describe('exportWorkingEventsHistory', () => {
       endDate: '2019-05-20T08:00:00.000+00:00',
     },
     {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      subscription: {
+        service: { versions: [{ name: 'Lala' }] },
+      },
+      customer: {
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
+      },
+      sector: { name: 'Girafes - 75' },
+      startDate: '2019-05-20T06:00:00.000+00:00',
+      endDate: '2019-05-20T08:00:00.000+00:00',
+    },
+    {
       isCancelled: true,
       cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
       isBilled: false,
@@ -103,6 +118,8 @@ describe('exportWorkingEventsHistory', () => {
       header,
       ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
         'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', 'Non', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
+      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
+        'Girafes - 75', '', '', '', 'Oui', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '',
         '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée',
         'Initiative du de l\'intervenant'],
