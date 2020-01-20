@@ -20,6 +20,7 @@ const {
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
+const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
@@ -460,4 +461,38 @@ exports.workingStats = async (query, credentials) => {
   }
 
   return workingStats;
+};
+
+exports.getPaidTransportStatsBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = Array.isArray(query.sector)
+    ? query.sector.map(id => new ObjectID(id))
+    : [new ObjectID(query.sector)];
+
+  const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices({}, credentials);
+  const paidTransportStatsBySector = await EventRepository.getPaidTransportStatsBySector(
+    sectors,
+    query.month,
+    companyId
+  );
+  const result = [];
+  for (const sector of paidTransportStatsBySector) {
+    let duration = 0;
+    for (const auxiliary of sector.auxiliaries) {
+      for (const day of auxiliary.days) {
+        if (day.events.length > 1) {
+          for (let i = 1; i < day.events.length; i++) {
+            const paidTransportInfo = await DraftPayHelper.getPaidTransportInfo(
+              day.events[i],
+              day.events[i - 1],
+              distanceMatrix
+            );
+            duration += paidTransportInfo.duration;
+          }
+        }
+      }
+    }
+    result.push({ sector: sector._id, duration: duration / 60 });
+  }
+  return result;
 };
