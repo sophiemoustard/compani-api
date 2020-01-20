@@ -1,10 +1,12 @@
 const Boom = require('boom');
 const get = require('lodash/get');
+const { ObjectID } = require('mongodb');
 const Bill = require('../../models/Bill');
 const Customer = require('../../models/Customer');
 const Event = require('../../models/Event');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
+const CustomerRepository = require('../../repositories/CustomerRepository');
 
 const { language } = translate;
 
@@ -77,11 +79,11 @@ exports.authorizeBillsCreation = async (req) => {
 
   const eventsCount = await Event.countDocuments({ _id: { $in: [...ids.eventsIds] }, company: companyId });
   if (eventsCount !== ids.eventsIds.size) throw Boom.forbidden();
-  const subscriptionsCount = await Customer.countDocuments({
-    'subscriptions._id': { $in: [...ids.subscriptionsIds] },
-    company: companyId,
-  });
-  if (subscriptionsCount !== ids.subscriptionsIds.size) throw Boom.forbidden();
+
+  const subscriptionIds = [...ids.subscriptionsIds].map(sub => new ObjectID(sub));
+  const subscriptions = await CustomerRepository.getSubscriptions(subscriptionIds, companyId);
+  if (subscriptions.length !== ids.subscriptionsIds.size) throw Boom.forbidden();
+
   const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
   if (tppCount !== ids.tppIds.size) throw Boom.forbidden();
 
