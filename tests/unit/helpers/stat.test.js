@@ -5,7 +5,6 @@ const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const StatRepository = require('../../../src/repositories/StatRepository');
-const EventRepository = require('../../../src/repositories/EventRepository');
 
 require('sinon-mongoose');
 
@@ -560,7 +559,7 @@ describe('getPaidInterventionStats', () => {
 
   it('Case sector : should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
-    const auxiliaries = [{ _id: new ObjectID() }];
+    const auxiliaries = [{ auxiliaryId: new ObjectID() }];
     getUsersFromSectorHistoriesStub.returns(auxiliaries);
     const getPaidInterventionStatsResult = [{
       auxiliary: auxiliaries[0]._id,
@@ -583,7 +582,7 @@ describe('getPaidInterventionStats', () => {
     );
     sinon.assert.calledWithExactly(
       getPaidInterventionStats,
-      auxiliaries.map(aux => aux._id),
+      auxiliaries.map(aux => aux.auxiliaryId),
       query.month,
       credentials.company._id
     );
@@ -591,7 +590,7 @@ describe('getPaidInterventionStats', () => {
 
   it('Case sector : should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fe9', '5d1a40b7ecb0da251cfa4fe8'], month: '102019' };
-    const auxiliaries = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const auxiliaries = [{ auxiliaryId: new ObjectID() }, { auxiliaryId: new ObjectID() }];
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
 
@@ -614,7 +613,7 @@ describe('getPaidInterventionStats', () => {
     );
     sinon.assert.calledWithExactly(
       getPaidInterventionStats,
-      auxiliaries.map(aux => aux._id),
+      auxiliaries.map(aux => aux.auxiliaryId),
       query.month,
       credentials.company._id
     );

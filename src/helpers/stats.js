@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
-const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
@@ -102,7 +101,7 @@ exports.getPaidInterventionStats = async (query, credentials) => {
       companyId
     );
     return SectorHistoryRepository.getPaidInterventionStats(
-      auxiliariesFromSectorHistories.map(aux => aux._id),
+      auxiliariesFromSectorHistories.map(aux => aux.auxiliaryId),
       query.month,
       companyId
     );
