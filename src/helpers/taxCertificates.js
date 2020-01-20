@@ -29,12 +29,13 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
   const formattedInterventions = exports.formatInterventions(interventions);
   const subscriptions = new Set(formattedInterventions.map(int => int.subscription));
   const totalHours = interventions.reduce((acc, int) => acc + int.duration, 0);
+  const totalPaid = payments ? payments.paid + payments.cesu : 0;
 
   return {
     taxCertificate: {
       totalHours: UtilsHelper.formatHour(totalHours),
-      totalPaid: UtilsHelper.formatPrice(payments.paid + payments.cesu),
-      cesu: UtilsHelper.formatPrice(payments.cesu),
+      totalPaid: UtilsHelper.formatPrice(totalPaid),
+      cesu: UtilsHelper.formatPrice(payments.cesu ? payments.cesu : 0),
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
       company: pick(company, ['logo', 'name', 'address']),

@@ -7,6 +7,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const PaymentRepository = require('../../../src/repositories/PaymentRepository');
 
 require('sinon-mongoose');
 
@@ -91,13 +92,16 @@ describe('formatInterventions', () => {
 describe('formatPdf', () => {
   let formatIdentity;
   let formatInterventions;
+  let formatPrice;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     formatInterventions = sinon.stub(TaxCertificateHelper, 'formatInterventions');
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
   });
   afterEach(() => {
     formatIdentity.restore();
     formatInterventions.restore();
+    formatPrice.restore();
   });
 
   it('should return formatted data for pdf generation', async () => {
@@ -126,14 +130,19 @@ describe('formatPdf', () => {
       { auxiliary: { identity: { lastname: 'lastname' } }, month: '9', duration: 12 },
       { auxiliary: { identity: { lastname: 'firstname' } }, month: '5', duration: 13 },
     ];
+    const payments = { paid: 1200, cesu: 500 };
 
     formatIdentity.returns('Mr Patate');
     formatInterventions.returns([{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }]);
+    formatPrice.onCall(0).returns('1 700,00€');
+    formatPrice.onCall(1).returns('500,00€');
 
-    const result = TaxCertificateHelper.formatPdf(taxCertificate, company, interventions);
+    const result = TaxCertificateHelper.formatPdf(taxCertificate, company, interventions, payments);
 
     expect(result).toEqual({
       taxCertificate: {
+        cesu: '500,00€',
+        totalPaid: '1 700,00€',
         totalHours: '25,00h',
         interventions: [{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }],
         subscriptions: 'Forfait nuit, Forfait jour',
@@ -146,6 +155,8 @@ describe('formatPdf', () => {
     });
     sinon.assert.calledWithExactly(formatIdentity, taxCertificate.customer.identity, 'TFL');
     sinon.assert.calledWithExactly(formatInterventions, interventions);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), 1700);
+    sinon.assert.calledWithExactly(formatPrice.getCall(1), 500);
   });
 });
 
@@ -154,17 +165,20 @@ describe('generateTaxCertificatePdf', () => {
   let TaxCertificateMock;
   let formatPdf;
   let getTaxCertificateInterventions;
+  let getTaxCertificatesPayments;
   beforeEach(() => {
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     TaxCertificateMock = sinon.mock(TaxCertificate);
     formatPdf = sinon.stub(TaxCertificateHelper, 'formatPdf');
     getTaxCertificateInterventions = sinon.stub(EventRepository, 'getTaxCertificateInterventions');
+    getTaxCertificatesPayments = sinon.stub(PaymentRepository, 'getTaxCertificatesPayments');
   });
   afterEach(() => {
     generatePdf.restore();
     TaxCertificateMock.restore();
     formatPdf.restore();
     getTaxCertificateInterventions.restore();
+    getTaxCertificatesPayments.restore();
   });
 
   it('should generate pdf', async () => {
@@ -187,10 +201,17 @@ describe('generateTaxCertificatePdf', () => {
       .returns(taxCertificate);
     formatPdf.returns('data');
     getTaxCertificateInterventions.returns(['interventions']);
+    getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
-    sinon.assert.calledWithExactly(formatPdf, taxCertificate, credentials.company, ['interventions']);
+    sinon.assert.calledWithExactly(
+      formatPdf,
+      taxCertificate,
+      credentials.company,
+      ['interventions'],
+      { paid: 1200, cesu: 500 }
+    );
     sinon.assert.calledWithExactly(generatePdf, 'data', './src/data/taxCertificates.html');
     sinon.assert.calledWithExactly(getTaxCertificateInterventions, taxCertificate, companyId);
     expect(result).toEqual('pdf');
