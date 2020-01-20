@@ -83,8 +83,9 @@
 <div>Nature des interventions : {{ taxCertificate.subscriptions }}.</div>
 <br />
 <div>
-  <div>Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d'impôt :</div>
-  <div>Dont montant total réglé avec des CESU préfinancés * : </div>
+  <div>Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d'impôt : 
+    {{ taxCertificate.totalPaid }}</div>
+  <div>Dont montant total réglé avec des CESU préfinancés * : {{ taxCertificate.cesu }}</div>
 </div>
 <br />
 <br />

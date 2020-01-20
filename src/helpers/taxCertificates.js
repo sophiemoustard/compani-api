@@ -6,6 +6,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const moment = require('../extensions/moment');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
+const PaymentRepository = require('../repositories/PaymentRepository');
 
 exports.generateTaxCertificatesList = async (customer, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -24,14 +25,17 @@ exports.formatInterventions = interventions => interventions.map((int) => {
   };
 });
 
-exports.formatPdf = (taxCertificate, company, interventions) => {
+exports.formatPdf = (taxCertificate, company, interventions, payments) => {
   const formattedInterventions = exports.formatInterventions(interventions);
   const subscriptions = new Set(formattedInterventions.map(int => int.subscription));
   const totalHours = interventions.reduce((acc, int) => acc + int.duration, 0);
+  const totalPaid = payments ? payments.paid + payments.cesu : 0;
 
   return {
     taxCertificate: {
       totalHours: UtilsHelper.formatHour(totalHours),
+      totalPaid: UtilsHelper.formatPrice(totalPaid),
+      cesu: UtilsHelper.formatPrice(payments.cesu ? payments.cesu : 0),
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
       company: pick(company, ['logo', 'name', 'address']),
@@ -60,8 +64,9 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
     })
     .lean();
   const interventions = await EventRepository.getTaxCertificateInterventions(taxCertificate, companyId);
+  const payments = await PaymentRepository.getTaxCertificatesPayments(taxCertificate, companyId);
 
-  const data = exports.formatPdf(taxCertificate, credentials.company, interventions);
+  const data = exports.formatPdf(taxCertificate, credentials.company, interventions, payments);
   const pdf = await PdfHelper.generatePdf(data, './src/data/taxCertificates.html');
 
   return pdf;
