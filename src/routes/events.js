@@ -152,7 +152,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/paid-transport-stats',
+      path: '/paid-transport',
       options: {
         auth: { scope: ['events:read'] },
         validate: {

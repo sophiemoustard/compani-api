@@ -848,79 +848,65 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
   return SectorHistory.aggregate([
-    [
-      {
-        $match: {
-          sector: { $in: sectors },
-          startDate: { $lte: maxStartDate },
-          $or: [{ endDate: { $gte: minStartDate } }, { endDate: { $exists: false } }],
-        },
+    {
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $lte: maxStartDate },
+        $or: [{ endDate: { $gte: minStartDate } }, { endDate: { $exists: false } }],
       },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'auxiliary',
-          foreignField: '_id',
-          as: 'auxiliary',
+    },
+    { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
+    { $unwind: { path: '$auxiliary' } },
+    { $addFields: { 'auxiliary.sector': '$sector' } },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
+    {
+      $lookup: {
+        from: 'events',
+        as: 'events',
+        let: {
+          auxiliaryId: '$_id',
+          startDate: { $max: ['$sector.startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
         },
-      },
-      { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: false } },
-      { $addFields: { 'auxiliary.sector': '$sector' } },
-      { $replaceRoot: { newRoot: '$auxiliary' } },
-      {
-        $lookup: {
-          from: 'events',
-          as: 'events',
-          let: {
-            auxiliaryId: '$_id',
-            startDate: { $max: ['$sector.startDate', minStartDate] },
-            endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                    { $gt: ['$endDate', '$$startDate'] },
-                    { $lt: ['$startDate', '$$endDate'] },
-                    { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
-                    {
-                      $or: [
-                        { $eq: ['$isCancelled', false] },
-                        { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
-                      ],
-                    },
-                  ],
-                },
+        pipeline: [
+          {
+            $match: {
+              type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+              $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $gt: ['$endDate', '$$startDate'] },
+                  { $lt: ['$startDate', '$$endDate'] },
+                ],
               },
             },
-          ],
-        },
-      },
-      { $unwind: { path: '$events' } },
-      {
-        $addFields: {
-          'events.auxiliary.administrative.transportInvoice.transportType': '$administrative.transportInvoice.transportType',
-        },
-      },
-      {
-        $group: {
-          _id: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$events.startDate' } },
-            auxiliary: '$_id',
-            sector: '$sector',
           },
-          events: { $push: '$events' },
-        },
+        ],
       },
-      {
-        $group: {
-          _id: { sector: '$_id.sector', auxiliary: '$_id.auxiliary' },
-          days: { $push: '$$ROOT' },
-        },
+    },
+    { $unwind: { path: '$events' } },
+    {
+      $addFields: {
+        'events.auxiliary.administrative.transportInvoice.transportType': '$administrative.transportInvoice.transportType',
       },
-      { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
-    ],
+    },
+    {
+      $group: {
+        _id: {
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$events.startDate' } },
+          auxiliary: '$_id',
+          sector: '$sector',
+        },
+        events: { $push: '$events' },
+      },
+    },
+    {
+      $group: {
+        _id: { sector: '$_id.sector', auxiliary: '$_id.auxiliary' },
+        days: { $push: '$$ROOT' },
+      },
+    },
+    { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
   ]).option({ company: companyId });
 };

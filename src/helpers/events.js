@@ -477,7 +477,7 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
   );
   const result = [];
   for (const sector of paidTransportStatsBySector) {
-    const resultBySector = { sector: sector._id, duration: 0 };
+    let duration = 0;
     for (const auxiliary of sector.auxiliaries) {
       for (const day of auxiliary.days) {
         if (day.events.length > 1) {
@@ -487,13 +487,12 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
               day.events[i - 1],
               distanceMatrix
             );
-            resultBySector.duration += paidTransportInfo.duration;
+            duration += paidTransportInfo.duration;
           }
         }
       }
     }
-    resultBySector.duration /= 60;
-    result.push(resultBySector);
+    result.push({ sector: sector._id, duration: duration / 60 });
   }
   return result;
 };

@@ -415,7 +415,7 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
-  describe('GET /events/paid-transport-stats', () => {
+  describe('GET /events/paid-transport', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -425,7 +425,7 @@ describe('EVENTS ROUTES', () => {
       it('should return paid transport stats for a sector', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/paid-transport-stats?sector=${sectors[0]._id}&month=01-2020`,
+          url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -437,7 +437,7 @@ describe('EVENTS ROUTES', () => {
       it('should return paid transport stats for many sectors', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/paid-transport-stats?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
+          url: `/events/paid-transport?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -456,7 +456,7 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if sector is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/paid-transport-stats?sector=${sectors[2]._id}&month=01-2020`,
+          url: `/events/paid-transport?sector=${sectors[2]._id}&month=01-2020`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -479,7 +479,7 @@ describe('EVENTS ROUTES', () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/events/paid-transport-stats?sector=${sectors[0]._id}&month=01-2020`,
+            url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
             headers: { 'x-access-token': authToken },
           });
 
