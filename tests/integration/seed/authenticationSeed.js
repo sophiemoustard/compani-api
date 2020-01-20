@@ -140,7 +140,7 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Consulter la liste des établissement',
+    description: 'Consulter la liste des établissements',
     permission: 'establishments:read',
   },
 ];
