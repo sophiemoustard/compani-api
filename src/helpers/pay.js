@@ -122,25 +122,31 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyI
     ? sector.map(id => new ObjectID(id))
     : [new ObjectID(sector)];
 
-  const auxiliaries = await SectorHistoryRepository.getUsersFromSectorHistories(
+  const auxiliariesIds = await SectorHistoryRepository.getUsersFromSectorHistories(
     startDate,
     endDate,
     sectors,
     companyId
   );
-
   const result = [];
+  const auxiliaries = await User.find({ company: companyId, _id: { $in: auxiliariesIds.map(aux => aux.auxiliaryId) } })
+    .populate('contracts')
+    .lean();
   for (const auxiliary of auxiliaries) {
-    const auxiliaryWithContract = await User.findOne({ _id: auxiliary.auxiliaryId }).populate('contracts').lean();
-    if (!auxiliaryWithContract.contracts) continue;
-    const contract = exports.getContract(auxiliaryWithContract.contracts, startDate, endDate);
+    if (!auxiliary.contracts) continue;
+    const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
     if (!contract) continue;
-    result.push(await exports.hoursBalanceDetailByAuxiliary(
-      auxiliary.auxiliaryId,
-      startDate,
-      endDate,
-      companyId
-    ));
+    result.push({
+      ...await exports.hoursBalanceDetailByAuxiliary(
+        auxiliary._id,
+        startDate,
+        endDate,
+        companyId
+      ),
+      auxiliaryId: auxiliary._id,
+      identity: auxiliary.identity,
+      picture: auxiliary.picture,
+    });
   }
   return result;
 };

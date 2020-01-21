@@ -517,6 +517,14 @@ describe('hoursBalanceDetailBySector', () => {
     const query = { sector: new ObjectID() };
     getUsersFromSectorHistoriesStub.returns([]);
 
+    UserMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, _id: { $in: [] } })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns([]);
+
     const result = await PayHelper.hoursBalanceDetailBySector(
       query.sector,
       startDate,
@@ -541,12 +549,12 @@ describe('hoursBalanceDetailBySector', () => {
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     const contract = { type: 'contract_with_company' };
     UserMock
-      .expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .returns({ contracts: [contract] });
+      .returns([{ _id: auxiliaryId, contracts: [contract], identity: 'test', picture: 'toto' }]);
 
     getContractStub.returns(contract);
 
@@ -559,7 +567,7 @@ describe('hoursBalanceDetailBySector', () => {
       credentials.company._id
     );
 
-    expect(result).toEqual([{ auxiliary: auxiliaryId, hours: 10 }]);
+    expect(result).toEqual([{ auxiliaryId, auxiliary: auxiliaryId, hours: 10, identity: 'test', picture: 'toto' }]);
     sinon.assert.calledWithExactly(
       getUsersFromSectorHistoriesStub,
       startDate,
@@ -587,20 +595,15 @@ describe('hoursBalanceDetailBySector', () => {
       { type: 'contract_with_company', _id: auxiliaryIds[1] },
     ];
     UserMock
-      .expects('findOne')
-      .withExactArgs({ _id: auxiliaryIds[0] })
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, _id: { $in: auxiliaryIds } })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .returns({ contracts: [contracts[0]] });
-
-    UserMock
-      .expects('findOne')
-      .withExactArgs({ _id: auxiliaryIds[1] })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns({ contracts: [contracts[1]] });
+      .returns([
+        { _id: auxiliaryIds[0], contracts: [contracts[0]], identity: 'test', picture: 'toto' },
+        { _id: auxiliaryIds[1], contracts: [contracts[1]], identity: 'test2', picture: 'toto2' },
+      ]);
 
     getContractStub.onCall(0).returns(contracts[0]);
     getContractStub.onCall(1).returns(contracts[1]);
@@ -616,8 +619,8 @@ describe('hoursBalanceDetailBySector', () => {
     );
 
     expect(result).toEqual([
-      { auxiliary: auxiliaryIds[0], hours: 10 },
-      { auxiliary: auxiliaryIds[1], hours: 16 },
+      { auxiliaryId: auxiliaryIds[0], auxiliary: auxiliaryIds[0], hours: 10, identity: 'test', picture: 'toto' },
+      { auxiliaryId: auxiliaryIds[1], auxiliary: auxiliaryIds[1], hours: 16, identity: 'test2', picture: 'toto2' },
     ]);
     sinon.assert.calledWithExactly(
       getUsersFromSectorHistoriesStub,
@@ -650,12 +653,12 @@ describe('hoursBalanceDetailBySector', () => {
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     UserMock
-      .expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .returns({ name: 'titi' });
+      .returns([{ _id: auxiliaryId, name: 'titi' }]);
 
     const result = await PayHelper.hoursBalanceDetailBySector(
       query.sector,
@@ -683,12 +686,12 @@ describe('hoursBalanceDetailBySector', () => {
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     const contract = { type: 'contract_with_company' };
     UserMock
-      .expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .returns({ contracts: [contract] });
+      .returns([{ contracts: [contract] }]);
 
     getContractStub.returns();
 
