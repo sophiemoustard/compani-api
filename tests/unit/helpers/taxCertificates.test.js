@@ -110,6 +110,7 @@ describe('formatPdf', () => {
       rcs: 'rcs',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      legalRepresentative: { lastname: 'Trebalag', firstname: 'Jean Christophe', position: 'master' },
     };
     const taxCertificate = {
       customer: {
@@ -132,7 +133,8 @@ describe('formatPdf', () => {
     ];
     const payments = { paid: 1200, cesu: 500 };
 
-    formatIdentity.returns('Mr Patate');
+    formatIdentity.onCall(0).returns('Jean Christophe TREBALAG');
+    formatIdentity.onCall(1).returns('Mr Patate');
     formatInterventions.returns([{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }]);
     formatPrice.onCall(0).returns('1 700,00€');
     formatPrice.onCall(1).returns('500,00€');
@@ -146,14 +148,20 @@ describe('formatPdf', () => {
         totalHours: '25,00h',
         interventions: [{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }],
         subscriptions: 'Forfait nuit, Forfait jour',
-        company: { logo: company.logo, address: company.address, name: company.name },
+        company: {
+          logo: company.logo,
+          address: company.address,
+          name: company.name,
+          rcs: 'rcs',
+          legalRepresentative: { name: 'Jean Christophe TREBALAG', position: 'master' },
+        },
         year: '2019',
         date: '31/01/2020',
-        director: 'Clément Saint Olive',
         customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
       },
     });
-    sinon.assert.calledWithExactly(formatIdentity, taxCertificate.customer.identity, 'TFL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), company.legalRepresentative, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), taxCertificate.customer.identity, 'TFL');
     sinon.assert.calledWithExactly(formatInterventions, interventions);
     sinon.assert.calledWithExactly(formatPrice.getCall(0), 1700);
     sinon.assert.calledWithExactly(formatPrice.getCall(1), 500);
