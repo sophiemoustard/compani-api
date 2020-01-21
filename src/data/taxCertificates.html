@@ -61,7 +61,13 @@
   <div class="company">
     <div class="text-weight-bold">{{ taxCertificate.company.name }}</div>
     <br />
-    <div>Numéro et date d’enregistrement de la</div>
+    <div>
+      {{#if bill.company.rcs }}
+      RCS : {{ bill.company.rcs }}
+      {{else if bill.company.rna}}
+      RNA : {{ bill.company.rna }}
+      {{/if}}
+    </div>
     <div>{{ taxCertificate.company.address.fullAddress }}</div>
   </div>
   <div class="customer">
@@ -76,7 +82,8 @@
   ATTESTATION DESTINEE AU CENTRE DES IMPOTS POUR L'ANNEE {{ taxCertificate.year }}
 </div>
 <br /><br />
-<div class="justify">Je soussigné(e) {{ taxCertificate.director }}, directeur général de {{ taxCertificate.company.name }}, 
+<div class="justify">Je soussigné(e) {{ taxCertificate.company.legalRepresentative.name }}, 
+  {{ taxCertificate.company.legalRepresentative.position }} de {{ taxCertificate.company.name }}, 
   certifie que {{ taxCertificate.customer.name }} ({{ taxCertificate.customer.address.fullAddress }}) a bénéficié d'une 
   aide à domicile.</div>
 <br />
@@ -133,6 +140,6 @@
 <div>Fait pour valoir ce que de droit,</div>
 <div class="signature">
   <div>{{ taxCertificate.date }}</div>
-  <div>{{ taxCertificate.director }}</div>
-  <div>Directeur général</div>
+  <div>{{ taxCertificate.company.legalRepresentative.name }}</div>
+  <div>{{ taxCertificate.company.legalRepresentative.position }}</div>
 </div>

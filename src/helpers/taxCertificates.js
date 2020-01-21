@@ -38,14 +38,19 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
       cesu: UtilsHelper.formatPrice(payments.cesu ? payments.cesu : 0),
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
-      company: pick(company, ['logo', 'name', 'address']),
+      company: {
+        ...pick(company, ['logo', 'name', 'address', 'rcs']),
+        legalRepresentative: {
+          name: UtilsHelper.formatIdentity(company.legalRepresentative, 'FL'),
+          position: get(company, 'legalRepresentative.position') || '',
+        },
+      },
       year: taxCertificate.year,
       date: moment(taxCertificate.year, 'YYYY')
         .add(1, 'y')
         .startOf('y')
         .endOf('month')
         .format('DD/MM/YYYY'),
-      director: 'Clément Saint Olive',
       customer: {
         name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
         address: get(taxCertificate, 'customer.contact.primaryAddress', {}),
