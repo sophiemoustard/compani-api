@@ -22,6 +22,7 @@ const company = {
     billingPeriod: 'two_weeks',
   },
   customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'kjhgf',
   prefixNumber: 103,
 };
 

@@ -9,9 +9,10 @@ const { INTERVENTION } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GdriveStorageHelper.createFolderForCompany(companyPayload.name);
-  const [directDebitsFolder, customersFolder] = await Promise.all([
+  const [directDebitsFolder, customersFolder, auxiliariesFolder] = await Promise.all([
     GdriveStorageHelper.createFolder('direct debits', companyFolder.id),
     GdriveStorageHelper.createFolder('customers', companyFolder.id),
+    GdriveStorageHelper.createFolder('auxiliaries', companyFolder.id),
   ]);
   const lastCompany = await Company.find().sort({ prefixNumber: -1 }).limit(1).lean();
 
@@ -21,6 +22,7 @@ exports.createCompany = async (companyPayload) => {
     directDebitsFolderId: directDebitsFolder.id,
     folderId: companyFolder.id,
     customersFolderId: customersFolder.id,
+    auxiliariesFolderId: auxiliariesFolder.id,
   });
 };
 
