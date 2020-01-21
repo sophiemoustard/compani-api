@@ -34,7 +34,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftPay).toBeDefined();
-      expect(response.result.data.draftPay.length).toEqual(1);
+      expect(response.result.data.draftPay.length).toEqual(2);
     });
   });
 
@@ -199,10 +199,42 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.result.data.hoursBalanceDetail).toBeDefined();
     });
 
+    it('should get hours balance details for a sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail).toBeDefined();
+    });
+
+    it('should get hours balance details for many sectors', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(2);
+    });
+
     it('should not get hours balance details if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not get hours balance details if user is not from the same company as sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2019`,
         headers: { 'x-access-token': authToken },
       });
 

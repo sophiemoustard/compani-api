@@ -21,6 +21,7 @@ const serviceId = new ObjectID();
 const sectors = [
   { name: 'Toto', _id: new ObjectID(), company: authCompany._id },
   { name: 'Titi', _id: new ObjectID(), company: authCompany._id },
+  { name: 'Tutu', _id: new ObjectID(), company: otherCompany._id },
 ];
 const user = {
   _id: new ObjectID(),
@@ -88,7 +89,7 @@ const contracts = [{
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId2,
-  endDate: '2019-03-03T23:00:00.000Z',
+  endDate: '2019-10-03T23:00:00.000Z',
   endNotificationDate: '2019-03-03T23:00:00.000Z',
   endReason: 'resignation',
   versions: [
@@ -187,7 +188,7 @@ const sectorHistories = [
   },
   {
     auxiliary: auxiliaries[1]._id,
-    sector: sectors[0]._id,
+    sector: sectors[1]._id,
     company: authCompany._id,
     startDate: moment('2018-12-10').startOf('day').toDate(),
   },
