@@ -24,7 +24,7 @@ const EstablishmentSchema = mongoose.Schema({
   id: false,
 });
 
-EstablishmentSchema.virtual('users', {
+EstablishmentSchema.virtual('usersCount', {
   ref: 'User',
   localField: '_id',
   foreignField: 'establishment',

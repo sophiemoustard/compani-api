@@ -49,7 +49,7 @@ const list = async (req) => {
     const companyId = get(req, 'auth.credentials.company._id', null);
     const establishments = await Establishment
       .find({ company: companyId })
-      .populate({ path: 'users', match: { company: companyId } })
+      .populate({ path: 'usersCount', match: { company: companyId } })
       .lean({ virtuals: true });
 
     return {
@@ -66,9 +66,9 @@ const remove = async (req) => {
   try {
     const establishment = await Establishment
       .findById(req.params._id)
-      .populate({ path: 'users', match: { company: get(req, 'auth.credentials.company._id', null) } });
+      .populate({ path: 'usersCount', match: { company: get(req, 'auth.credentials.company._id', null) } });
 
-    if (establishment.users > 0) throw Boom.forbidden();
+    if (establishment.usersCount > 0) throw Boom.forbidden();
 
     await establishment.remove();
 

@@ -369,7 +369,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const { establishments } = response.result.data;
         expect(establishments).toHaveLength(establishmentsList.length);
         expect(establishments).toEqual(expect.arrayContaining([
-          expect.objectContaining({ users: expect.any(Number) }),
+          expect.objectContaining({ usersCount: expect.any(Number) }),
         ]));
       });
 
