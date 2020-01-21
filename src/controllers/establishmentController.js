@@ -7,10 +7,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const payload = {
-      ...req.payload,
-      company: get(req, 'auth.credentials.company._id', null),
-    };
+    const payload = { ...req.payload, company: get(req, 'auth.credentials.company._id', null) };
     const establishment = await Establishment.create(payload);
 
     return {

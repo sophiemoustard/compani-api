@@ -58,7 +58,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         expect(establishmentsCount).toBe(establishmentsList.length + 1);
       });
 
-      const falsyPaths = [
+      const missingParams = [
         'name',
         'siret',
         'address.street',
@@ -72,7 +72,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         'urssafCode',
       ];
 
-      falsyPaths.forEach((path) => {
+      missingParams.forEach((path) => {
         it(`should return a 400 error if param ${path} is missing`, async () => {
           const response = await app.inject({
             method: 'POST',
@@ -160,6 +160,17 @@ describe('ESTABLISHMENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(400);
+      });
+
+      it('should return a 409 error if siret already exists', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/establishments',
+          payload: { ...payload, siret: '12345678901234' },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
       });
     });
 
@@ -303,6 +314,17 @@ describe('ESTABLISHMENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(404);
+      });
+
+      it('should return a 409 error if siret already exists', async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/establishments/${establishmentsList[0]._id}`,
+          payload: { siret: '09876543210987' },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
       });
     });
 
