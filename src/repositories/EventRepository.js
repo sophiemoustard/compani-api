@@ -215,14 +215,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 
   return Event.aggregate([
     { $match: { $and: rules } },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: 'customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer', }, },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
@@ -267,9 +260,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
                 },
                 { $sort: { startDate: -1 } },
                 { $limit: 1 },
-                {
-                  $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-                },
+                { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
                 { $unwind: { path: '$lastSector' } },
                 { $replaceRoot: { newRoot: '$lastSector' } },
               ],
@@ -280,15 +271,10 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'internalhours',
-        localField: 'internalHour',
-        foreignField: '_id',
-        as: 'internalHour',
-      },
-    },
+    { $lookup: { from: 'internalhours', localField: 'internalHour', foreignField: '_id', as: 'internalHour' } },
     { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
+    { $lookup: { from: 'sectors', localField: 'sector', foreignField: '_id', as: 'sector' } },
+    { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
     {
       $project: {
         customer: { identity: 1 },
@@ -303,6 +289,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
         repetition: 1,
         misc: 1,
         type: 1,
+        sector: 1,
       },
     },
     { $sort: { startDate: -1 } },
