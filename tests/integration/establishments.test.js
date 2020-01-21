@@ -204,7 +204,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         authToken = await getToken('admin');
       });
 
-      it('should create a new establishment', async () => {
+      it('should update an establishment', async () => {
         const payload = { name: 'Tutu', siret: '98765432109876' };
         const response = await app.inject({
           method: 'PUT',
