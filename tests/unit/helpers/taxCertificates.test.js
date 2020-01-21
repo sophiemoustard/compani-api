@@ -58,13 +58,13 @@ describe('formatInterventions', () => {
   it('should format interventions', () => {
     const interventions = [
       {
-        auxiliary: { identity: { lastname: 'lastname' } },
+        auxiliary: { identity: { lastname: 'lastname', firstname: 'first' }, createdAt: '2019-07-12T09:08:12' },
         month: '9',
         duration: 12,
         subscription: { service: { name: 'Temps de qualité' } },
       },
       {
-        auxiliary: { identity: { lastname: 'firstname' } },
+        auxiliary: { identity: { lastname: 'firstname', firstname: 'first' }, createdAt: '2019-05-13T10:08:12' },
         month: '5',
         duration: 13,
         subscription: { service: { name: 'Temps de partage' } },
@@ -77,15 +77,27 @@ describe('formatInterventions', () => {
 
     const result = TaxCertificateHelper.formatInterventions(interventions);
     expect(result).toEqual([
-      { auxiliary: 'toto', subscription: 'Temps de qualité', month: 'septembre', hours: '12,00h' },
-      { auxiliary: 'toto', subscription: 'Temps de partage', month: 'mai', hours: '13,00h' },
+      {
+        auxiliary: 'toto',
+        subscription: 'Temps de qualité',
+        month: 'septembre',
+        hours: '12,00h',
+        serialNumber: 'LAF1907120908',
+      },
+      {
+        auxiliary: 'toto',
+        subscription: 'Temps de partage',
+        month: 'mai',
+        hours: '13,00h',
+        serialNumber: 'FIF1905131008',
+      },
     ]);
     sinon.assert.calledWithExactly(populateService.getCall(0), { name: 'Temps de qualité' });
     sinon.assert.calledWithExactly(populateService.getCall(1), { name: 'Temps de partage' });
     sinon.assert.calledWithExactly(formatHour.getCall(0), 12);
     sinon.assert.calledWithExactly(formatHour.getCall(1), 13);
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'lastname' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'firstname' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'lastname', firstname: 'first' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'firstname', firstname: 'first' }, 'FL');
   });
 });
 

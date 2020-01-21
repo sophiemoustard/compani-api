@@ -186,8 +186,9 @@ function setIsActive() {
 
 const serialNumber = (auxiliary) => {
   const createdAt = moment(auxiliary.createdAt).format('YYMMDDHHmm');
+  const initials = `${auxiliary.identity.lastname.substring(0, 2)}${auxiliary.identity.firstname.charAt(0)}`;
 
-  return `${auxiliary.identity.lastname.substring(0, 2)}${auxiliary.identity.firstname.charAt(0)}${createdAt}`;
+  return `${initials.toUpperCase()}${createdAt}`;
 };
 
 async function populateAfterSave(doc, next) {
