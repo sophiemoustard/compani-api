@@ -46,11 +46,7 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
         },
       },
       year: taxCertificate.year,
-      date: moment(taxCertificate.year, 'YYYY')
-        .add(1, 'y')
-        .startOf('y')
-        .endOf('month')
-        .format('DD/MM/YYYY'),
+      date: moment(taxCertificate.date).format('DD/MM/YYYY'),
       customer: {
         name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
         address: get(taxCertificate, 'customer.contact.primaryAddress', {}),

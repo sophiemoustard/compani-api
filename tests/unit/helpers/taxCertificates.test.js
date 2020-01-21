@@ -126,6 +126,7 @@ describe('formatPdf', () => {
         },
       },
       year: '2019',
+      date: '2020-01-19T00:00:00',
     };
     const interventions = [
       { auxiliary: { identity: { lastname: 'lastname' } }, month: '9', duration: 12 },
@@ -156,11 +157,10 @@ describe('formatPdf', () => {
           legalRepresentative: { name: 'Jean Christophe TREBALAG', position: 'master' },
         },
         year: '2019',
-        date: '31/01/2020',
+        date: '19/01/2020',
         customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
       },
     });
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), company.legalRepresentative, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), taxCertificate.customer.identity, 'TFL');
     sinon.assert.calledWithExactly(formatInterventions, interventions);
     sinon.assert.calledWithExactly(formatPrice.getCall(0), 1700);
