@@ -135,7 +135,7 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyI
     if (!auxiliaryWithContract.contracts) continue;
     const contract = exports.getContract(auxiliaryWithContract.contracts, startDate, endDate);
     if (!contract) continue;
-    result.push(await this.hoursBalanceDetailByAuxiliary(
+    result.push(await exports.hoursBalanceDetailByAuxiliary(
       auxiliary.auxiliaryId,
       startDate,
       endDate,

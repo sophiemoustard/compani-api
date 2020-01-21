@@ -160,8 +160,61 @@ describe('getContract', () => {
 });
 
 describe('hoursBalanceDetail', () => {
+  const credentials = { company: { _id: new ObjectID() } };
+  const month = '01-2020';
+  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
+  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
+
+  let hoursBalanceDetailBySectorStub;
+  let hoursBalanceDetailByAuxiliaryStub;
+
+  beforeEach(() => {
+    hoursBalanceDetailBySectorStub = sinon.stub(PayHelper, 'hoursBalanceDetailBySector');
+    hoursBalanceDetailByAuxiliaryStub = sinon.stub(PayHelper, 'hoursBalanceDetailByAuxiliary');
+  });
+  afterEach(() => {
+    hoursBalanceDetailBySectorStub.restore();
+    hoursBalanceDetailByAuxiliaryStub.restore();
+  });
+
+  it('should call hoursBalanceDetailBySector', async () => {
+    const query = { sector: new ObjectID(), month };
+    hoursBalanceDetailBySectorStub.returns({ data: 'ok' });
+
+    const result = await PayHelper.hoursBalanceDetail(query, credentials);
+
+    expect(result).toEqual({ data: 'ok' });
+    sinon.assert.notCalled(hoursBalanceDetailByAuxiliaryStub);
+    sinon.assert.calledWithExactly(
+      hoursBalanceDetailBySectorStub,
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+  });
+
+  it('should call hoursBalanceDetailByAuxiliary', async () => {
+    const query = { auxiliary: new ObjectID(), month };
+    hoursBalanceDetailByAuxiliaryStub.returns({ data: 'ok' });
+
+    const result = await PayHelper.hoursBalanceDetail(query, credentials);
+
+    expect(result).toEqual({ data: 'ok' });
+    sinon.assert.calledWithExactly(
+      hoursBalanceDetailByAuxiliaryStub,
+      query.auxiliary,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+    sinon.assert.notCalled(hoursBalanceDetailBySectorStub);
+  });
+});
+
+describe('hoursBalanceDetailByAuxiliary', () => {
   const auxiliaryId = new ObjectID();
-  const month = moment();
+  const month = moment().format('MM-YYYY');
   const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
   const query = { startDate, endDate };
@@ -252,7 +305,7 @@ describe('hoursBalanceDetail', () => {
     const draft = { name: 'brouillon' };
     computeAuxiliaryDraftPayStub.returns(draft);
 
-    const result = await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
+    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toEqual(draft);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -298,7 +351,7 @@ describe('hoursBalanceDetail', () => {
     const events = [{ _id: new ObjectID() }];
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
 
-    const result = await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
+    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toEqual(pay);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -347,7 +400,7 @@ describe('hoursBalanceDetail', () => {
         .returns(distanceMatrix);
       getContractStub.returns();
 
-      await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest());
     } finally {
@@ -405,7 +458,7 @@ describe('hoursBalanceDetail', () => {
     getContractStub.returns(contract);
     getPreviousMonthPayStub.returns(prevPayList);
 
-    const result = await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
+    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toBe(null);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -434,6 +487,228 @@ describe('hoursBalanceDetail', () => {
     CompanyModel.verify();
     SurchargeModel.verify();
     DistanceMatrixModel.verify();
+  });
+});
+
+describe('hoursBalanceDetailBySector', () => {
+  const credentials = { company: { _id: new ObjectID() } };
+  const month = '01-2020';
+  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
+  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
+
+  let getUsersFromSectorHistoriesStub;
+  let getContractStub;
+  let hoursBalanceDetailByAuxiliaryStub;
+  let UserMock;
+  beforeEach(() => {
+    getUsersFromSectorHistoriesStub = sinon.stub(SectorHistoryRepository, 'getUsersFromSectorHistories');
+    getContractStub = sinon.stub(PayHelper, 'getContract');
+    hoursBalanceDetailByAuxiliaryStub = sinon.stub(PayHelper, 'hoursBalanceDetailByAuxiliary');
+    UserMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    getUsersFromSectorHistoriesStub.restore();
+    getContractStub.restore();
+    hoursBalanceDetailByAuxiliaryStub.restore();
+    UserMock.restore();
+  });
+
+  it('should return an empty array if no information', async () => {
+    const query = { sector: new ObjectID() };
+    getUsersFromSectorHistoriesStub.returns([]);
+
+    const result = await PayHelper.hoursBalanceDetailBySector(
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(
+      getUsersFromSectorHistoriesStub,
+      startDate,
+      endDate,
+      [query.sector],
+      credentials.company._id
+    );
+  });
+
+  it('should return the info for a sector', async () => {
+    const query = { sector: new ObjectID() };
+    const auxiliaryId = new ObjectID();
+    const usersFromSectorHistories = [{ auxiliaryId }];
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    const contract = { type: 'contract_with_company' };
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns({ contracts: [contract] });
+
+    getContractStub.returns(contract);
+
+    hoursBalanceDetailByAuxiliaryStub.returns({ auxiliary: auxiliaryId, hours: 10 });
+
+    const result = await PayHelper.hoursBalanceDetailBySector(
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+
+    expect(result).toEqual([{ auxiliary: auxiliaryId, hours: 10 }]);
+    sinon.assert.calledWithExactly(
+      getUsersFromSectorHistoriesStub,
+      startDate,
+      endDate,
+      [query.sector],
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
+    sinon.assert.calledWithExactly(
+      hoursBalanceDetailByAuxiliaryStub,
+      auxiliaryId,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+  });
+
+  it('should return the info for many sectors', async () => {
+    const query = { sector: [new ObjectID(), new ObjectID()] };
+    const auxiliaryIds = [new ObjectID(), new ObjectID()];
+    const usersFromSectorHistories = [{ auxiliaryId: auxiliaryIds[0] }, { auxiliaryId: auxiliaryIds[1] }];
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    const contracts = [
+      { type: 'contract_with_company', _id: auxiliaryIds[0] },
+      { type: 'contract_with_company', _id: auxiliaryIds[1] },
+    ];
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliaryIds[0] })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns({ contracts: [contracts[0]] });
+
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliaryIds[1] })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns({ contracts: [contracts[1]] });
+
+    getContractStub.onCall(0).returns(contracts[0]);
+    getContractStub.onCall(1).returns(contracts[1]);
+
+    hoursBalanceDetailByAuxiliaryStub.onCall(0).returns({ auxiliary: auxiliaryIds[0], hours: 10 });
+    hoursBalanceDetailByAuxiliaryStub.onCall(1).returns({ auxiliary: auxiliaryIds[1], hours: 16 });
+
+    const result = await PayHelper.hoursBalanceDetailBySector(
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+
+    expect(result).toEqual([
+      { auxiliary: auxiliaryIds[0], hours: 10 },
+      { auxiliary: auxiliaryIds[1], hours: 16 },
+    ]);
+    sinon.assert.calledWithExactly(
+      getUsersFromSectorHistoriesStub,
+      startDate,
+      endDate,
+      query.sector,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(getContractStub.getCall(0), [contracts[0]], startDate, endDate);
+    sinon.assert.calledWithExactly(getContractStub.getCall(1), [contracts[1]], startDate, endDate);
+    sinon.assert.calledWithExactly(
+      hoursBalanceDetailByAuxiliaryStub.getCall(0),
+      auxiliaryIds[0],
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      hoursBalanceDetailByAuxiliaryStub.getCall(1),
+      auxiliaryIds[1],
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+  });
+
+  it('should not take into account if auxiliary does not have contract', async () => {
+    const query = { sector: new ObjectID() };
+    const auxiliaryId = new ObjectID();
+    const usersFromSectorHistories = [{ auxiliaryId }];
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns({ name: 'titi' });
+
+    const result = await PayHelper.hoursBalanceDetailBySector(
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(
+      getUsersFromSectorHistoriesStub,
+      startDate,
+      endDate,
+      [query.sector],
+      credentials.company._id
+    );
+    sinon.assert.notCalled(getContractStub);
+    sinon.assert.notCalled(hoursBalanceDetailByAuxiliaryStub);
+  });
+
+  it('should not take into account if auxiliary does not currently have contract', async () => {
+    const query = { sector: new ObjectID() };
+    const auxiliaryId = new ObjectID();
+    const usersFromSectorHistories = [{ auxiliaryId }];
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    const contract = { type: 'contract_with_company' };
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .returns({ contracts: [contract] });
+
+    getContractStub.returns();
+
+    const result = await PayHelper.hoursBalanceDetailBySector(
+      query.sector,
+      startDate,
+      endDate,
+      credentials.company._id
+    );
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(
+      getUsersFromSectorHistoriesStub,
+      startDate,
+      endDate,
+      [query.sector],
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
+    sinon.assert.notCalled(hoursBalanceDetailByAuxiliaryStub);
   });
 });
 
