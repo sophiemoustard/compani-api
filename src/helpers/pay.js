@@ -59,14 +59,12 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.hoursBalanceDetail = async (query, credentials) => {
-  const { month } = query;
   const companyId = get(credentials, 'company._id', null);
-  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
-  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
+  const startDate = moment(query.month, 'MM-YYYY').startOf('M').toDate();
+  const endDate = moment(query.month, 'MM-YYYY').endOf('M').toDate();
 
-  if (query.sector) {
-    return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId);
-  }
+  if (query.sector) { return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId); }
+
   return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, companyId);
 };
 
@@ -81,6 +79,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return pay;
+
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
@@ -134,20 +133,14 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyI
     .lean();
   for (const auxiliary of auxiliaries) {
     if (!auxiliary.contracts) continue;
+
     const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
     if (!contract) continue;
-    result.push({
-      ...await exports.hoursBalanceDetailByAuxiliary(
-        auxiliary._id,
-        startDate,
-        endDate,
-        companyId
-      ),
-      auxiliaryId: auxiliary._id,
-      identity: auxiliary.identity,
-      picture: auxiliary.picture,
-    });
+
+    const hbd = await exports.hoursBalanceDetailByAuxiliary(auxiliary._id, startDate, endDate, companyId);
+    result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
   }
+
   return result;
 };
 

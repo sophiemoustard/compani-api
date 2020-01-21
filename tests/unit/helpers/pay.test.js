@@ -510,7 +510,7 @@ describe('hoursBalanceDetailBySector', () => {
     getUsersFromSectorHistoriesStub.restore();
     getContractStub.restore();
     hoursBalanceDetailByAuxiliaryStub.restore();
-    UserMock.restore();
+    UserMock.verify();
   });
 
   it('should return an empty array if no information', async () => {

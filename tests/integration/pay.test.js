@@ -240,6 +240,16 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should not get hours balance details if there is both sector and auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
