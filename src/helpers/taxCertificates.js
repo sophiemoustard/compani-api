@@ -3,6 +3,7 @@ const pick = require('lodash/pick');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
+const User = require('../models/User');
 const moment = require('../extensions/moment');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
@@ -19,6 +20,7 @@ exports.formatInterventions = interventions => interventions.map((int) => {
 
   return {
     auxiliary: UtilsHelper.formatIdentity(int.auxiliary.identity, 'FL'),
+    serialNumber: User.serialNumber(int.auxiliary),
     subscription: service.name,
     month: moment(int.month, 'M').format('MMMM'),
     hours: UtilsHelper.formatHour(int.duration),

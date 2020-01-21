@@ -184,6 +184,12 @@ function setIsActive() {
   return isActive(this);
 }
 
+const serialNumber = (auxiliary) => {
+  const createdAt = moment(auxiliary.createdAt).format('YYMMDDHHmm');
+
+  return `${auxiliary.identity.lastname.substring(0, 2)}${auxiliary.identity.firstname.charAt(0)}${createdAt}`;
+};
+
 async function populateAfterSave(doc, next) {
   try {
     await doc
@@ -235,6 +241,7 @@ UserSchema.virtual('sectorHistories', {
   options: { sort: { startDate: -1 } },
 });
 
+UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);

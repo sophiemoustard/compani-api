@@ -820,7 +820,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
     { $unwind: '$subscription' },
     {
       $project: {
-        auxiliary: { _id: 1, identity: 1 },
+        auxiliary: { _id: 1, identity: 1, createdAt: 1 },
         month: '$_id.month',
         subscription: 1,
         duration: 1,

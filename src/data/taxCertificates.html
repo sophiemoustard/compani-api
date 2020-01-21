@@ -9,7 +9,8 @@
   }
   table {
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
+    font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
   }
   table, th, td {
     border: 1px solid rgba(0,0,0,0.12);
@@ -62,10 +63,10 @@
     <div class="text-weight-bold">{{ taxCertificate.company.name }}</div>
     <br />
     <div>
-      {{#if bill.company.rcs }}
-      RCS : {{ bill.company.rcs }}
-      {{else if bill.company.rna}}
-      RNA : {{ bill.company.rna }}
+      {{#if taxCertificate.company.rcs }}
+      RCS : {{ taxCertificate.company.rcs }}
+      {{else if taxCertificate.company.rna}}
+      RNA : {{ taxCertificate.company.rna }}
       {{/if}}
     </div>
     <div>{{ taxCertificate.company.address.fullAddress }}</div>
@@ -100,6 +101,7 @@
   <table class="interventions">
     <thead>
       <tr>
+        <th align="left">Matricule</th>
         <th align="left">Intervenant</th>
         <th align="left">Mois</th>
         <th align="left">Heures</th>
@@ -109,6 +111,7 @@
     <tbody>
       {{#table taxCertificate.interventions }}
         <tr>
+          <td align="left">{{ serialNumber }}</td>
           <td align="left">{{ auxiliary }}</td>
           <td align="left" class="capitalize">{{ month }}</td>
           <td align="right">{{ hours }}</td>
@@ -117,9 +120,10 @@
       {{/table}}
       <tr>
         <td></td>
+        <td></td>
         <td align="left" class="text-weight-bold">Total</td>
         <td align="right" class="text-weight-bold">{{ taxCertificate.totalHours }}</td>
-        <td></tdalign="right">
+        <td></td>
       </tr>
     </tbody>
   </table>
