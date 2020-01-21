@@ -1,18 +1,16 @@
 const Boom = require('boom');
-const get = require('lodash/get');
-const Establishment = require('../models/Establishment');
+const EstablishmentsHelper = require('../helpers/establishments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const payload = { ...req.payload, company: get(req, 'auth.credentials.company._id', null) };
-    const establishment = await Establishment.create(payload);
+    const establishment = await EstablishmentsHelper.create(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].establishmentCreated,
-      data: { establishment: establishment.toObject() },
+      data: { establishment },
     };
   } catch (e) {
     req.log('error', e);
@@ -26,9 +24,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedEstablishment = await Establishment
-      .findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true })
-      .lean();
+    const updatedEstablishment = await EstablishmentsHelper.update(req.params._id, req.payload);
 
     return {
       message: translate[language].establishmentUpdated,
@@ -46,11 +42,7 @@ const update = async (req) => {
 
 const list = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const establishments = await Establishment
-      .find({ company: companyId })
-      .populate({ path: 'usersCount', match: { company: companyId } })
-      .lean({ virtuals: true });
+    const establishments = await EstablishmentsHelper.list(req.auth.credentials);
 
     return {
       message: translate[language].establishmentsFound,
@@ -64,13 +56,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    const establishment = await Establishment
-      .findById(req.params._id)
-      .populate({ path: 'usersCount', match: { company: get(req, 'auth.credentials.company._id', null) } });
-
-    if (establishment.usersCount > 0) throw Boom.forbidden();
-
-    await establishment.remove();
+    await EstablishmentsHelper.remove(req.params._id, req.auth.credentials);
 
     return { message: translate[language].establishmentRemoved };
   } catch (e) {

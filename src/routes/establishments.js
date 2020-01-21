@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { PHONE_VALIDATION, SIRET_VALIDATION, NAME_VALIDATION } = require('../models/Establishment');
 const { create, update, list, remove } = require('../controllers/establishmentController');
 const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandlers/establishments');
 const { workHealthServices } = require('../data/workHealthServices');
@@ -19,9 +20,9 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(/^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@]{1,32}$/).required(),
-            siret: Joi.string().regex(/^\d{14}$/).required(),
-            phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).required(),
+            name: Joi.string().regex(new RegExp(NAME_VALIDATION)).required(),
+            siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)).required(),
+            phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)).required(),
             workHealthService: Joi.string().valid(workHealthServices).required(),
             urssafCode: Joi.string().valid(urssafCodes).required(),
             address: Joi.object().keys({
@@ -47,9 +48,9 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(/^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@]{1,32}$/),
-            siret: Joi.string().regex(/^\d{14}$/),
-            phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
+            name: Joi.string().regex(new RegExp(NAME_VALIDATION)),
+            siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)),
+            phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)),
             workHealthService: Joi.string().valid(workHealthServices),
             urssafCode: Joi.string().valid(urssafCodes),
             address: Joi.object().keys({

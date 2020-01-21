@@ -92,6 +92,7 @@ const user = {
 
 const populateDB = async () => {
   await Establishment.deleteMany();
+  await User.deleteMany();
 
   await populateDBForAuthentication();
 
