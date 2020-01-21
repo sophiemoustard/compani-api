@@ -54,7 +54,7 @@ exports.plugin = {
           query: Joi.object().keys({
             sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
             auxiliary: Joi.objectId(),
-            month: Joi.string().required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetDetails }],

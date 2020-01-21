@@ -63,7 +63,7 @@ exports.hoursBalanceDetail = async (query, credentials) => {
   const startDate = moment(query.month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(query.month, 'MM-YYYY').endOf('M').toDate();
 
-  if (query.sector) { return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId); }
+  if (query.sector) return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId);
 
   return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, companyId);
 };
