@@ -92,8 +92,11 @@
 <br />
 <div>
   <div>Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d'impôt : 
-    {{ taxCertificate.totalPaid }}</div>
+    {{ taxCertificate.totalPaid }}
+  </div>
+  {{#if taxCertificate.cesu }}
   <div>Dont montant total réglé avec des CESU préfinancés * : {{ taxCertificate.cesu }}</div>
+  {{/if}}
 </div>
 <br />
 <br />
