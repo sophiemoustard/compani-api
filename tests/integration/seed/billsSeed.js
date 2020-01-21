@@ -122,6 +122,17 @@ const billCustomerList = [
           startDate: '2018-01-01T10:00:00.000+01:00',
         }],
       },
+      {
+        _id: new ObjectID(),
+        service: billServices[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          startDate: '2018-01-01T10:00:00.000+01:00',
+        }],
+      },
     ],
   },
   {
@@ -319,7 +330,7 @@ const billsList = [
   {
     _id: new ObjectID(),
     company: company._id,
-    number: 'FACT-1901003',
+    number: 'FACT-1901001',
     date: '2019-05-29',
     customer: billCustomerList[2]._id,
     netInclTaxes: 75.96,
@@ -347,12 +358,17 @@ const billsList = [
   },
 ];
 
-const billNumber = {
+const billNumber = [{
   _id: new ObjectID(),
   seq: 2,
   prefix: '0519',
   company: authCompany._id,
-};
+}, {
+  _id: new ObjectID(),
+  seq: 2,
+  prefix: '0919',
+  company: authCompany._id,
+}];
 
 const eventList = [
   {
