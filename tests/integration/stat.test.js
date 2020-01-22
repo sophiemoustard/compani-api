@@ -289,9 +289,7 @@ describe('GET /stats/customer-duration/sector', () => {
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
       expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
       expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
-      expect(res.result.data.customersAndDuration[0].duration).toEqual(5);
-      expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
-      expect(res.result.data.customersAndDuration[0].duration).toEqual(5);
+      expect(res.result.data.customersAndDuration[0].averageDuration).toEqual(2.5);
       expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
     });
 
@@ -310,12 +308,12 @@ describe('GET /stats/customer-duration/sector', () => {
 
       expect(oldSectosrCustomersAndDuration).toBeDefined();
       expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
-      expect(oldSectosrCustomersAndDuration.duration).toEqual(1.5);
+      expect(oldSectosrCustomersAndDuration.averageDuration).toEqual(1.5);
       expect(oldSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
 
       expect(newSectosrCustomersAndDuration).toBeDefined();
       expect(newSectosrCustomersAndDuration.customerCount).toEqual(2);
-      expect(newSectosrCustomersAndDuration.duration).toEqual(5);
+      expect(newSectosrCustomersAndDuration.averageDuration).toEqual(2.5);
       expect(newSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
     });
 

@@ -331,18 +331,15 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         pipeline: [
           {
             $match: {
+              $or: [
+                { isCancelled: false },
+                { 'cancel.condition': { $in: [INVOICED_AND_NOT_PAID, INVOICED_AND_PAID] } },
+              ],
               $expr: {
                 $and: [
                   { $eq: ['$customer', '$$customerId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  {
-                    $or: [
-                      { $eq: ['$isCancelled', false] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
-                    ],
-                  },
                 ],
               },
             },
@@ -378,7 +375,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $project: {
         sector: '$_id',
-        duration: 1,
+        averageDuration: { $divide: ['$duration', '$customerCount'] },
         customerCount: 1,
         auxiliaryTurnOver: { $divide: ['$auxiliaryCount', '$customerCount'] },
       },
