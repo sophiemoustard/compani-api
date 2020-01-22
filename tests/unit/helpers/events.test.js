@@ -29,6 +29,7 @@ const {
   EVERY_WEEK,
   AUXILIARY,
   CUSTOMER,
+  PLANNING_VIEW_END_HOUR,
 } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
@@ -1026,6 +1027,13 @@ describe('updateAbsencesOnContractEnd', () => {
     },
   ];
 
+  const { startDate, misc } = absences[0];
+  let payload = {
+    startDate,
+    misc,
+    auxiliary: userId.toHexString(),
+  };
+
   beforeEach(() => {
     getAbsences = sinon.stub(EventRepository, 'getAbsences');
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
@@ -1042,9 +1050,10 @@ describe('updateAbsencesOnContractEnd', () => {
     const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
     getAbsences.returns(absences);
 
+    payload = { ...payload, endDate: moment(contract.endDate).hour(PLANNING_VIEW_END_HOUR).startOf('h') };
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
     sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, companyId);
-    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
     sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 
@@ -1057,10 +1066,11 @@ describe('updateAbsencesOnContractEnd', () => {
     };
     const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
     getAbsences.returns(absences);
+    payload = { ...payload, endDate: moment(contract.endDate).hour(PLANNING_VIEW_END_HOUR).startOf('h') };
 
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
     sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, companyId);
-    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
     sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 });
