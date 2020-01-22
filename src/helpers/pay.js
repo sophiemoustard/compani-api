@@ -58,10 +58,17 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
   return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
 });
 
-exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
+exports.hoursBalanceDetail = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
-  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
+  const startDate = moment(query.month, 'MM-YYYY').startOf('M').toDate();
+  const endDate = moment(query.month, 'MM-YYYY').endOf('M').toDate();
+
+  if (query.sector) return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId);
+
+  return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, companyId);
+};
+
+exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, companyId) => {
   const auxiliaryEvents = await EventRepository.getEventsToPay(
     startDate,
     endDate,
@@ -69,13 +76,14 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
     companyId
   );
 
+  const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return pay;
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
-  const query = { startDate, endDate };
+  const payQuery = { startDate, endDate };
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
@@ -84,7 +92,7 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
 
   const prevPayList = await DraftPayHelper.getPreviousMonthPay(
     [{ ...auxiliary, prevPay }],
-    query,
+    payQuery,
     surcharges,
     distanceMatrix,
     companyId
@@ -100,12 +108,40 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
     events,
     prevPayWithDiff,
     company,
-    query,
+    payQuery,
     distanceMatrix,
     surcharges
   );
 
   return draft || null;
+};
+
+exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
+  const sectors = Array.isArray(sector)
+    ? sector.map(id => new ObjectID(id))
+    : [new ObjectID(sector)];
+
+  const auxiliariesIds = await SectorHistoryRepository.getUsersFromSectorHistories(
+    startDate,
+    endDate,
+    sectors,
+    companyId
+  );
+  const result = [];
+  const auxiliaries = await User.find({ company: companyId, _id: { $in: auxiliariesIds.map(aux => aux.auxiliaryId) } })
+    .populate('contracts')
+    .lean();
+  for (const auxiliary of auxiliaries) {
+    if (!auxiliary.contracts) continue;
+
+    const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
+    if (!contract) continue;
+
+    const hbd = await exports.hoursBalanceDetailByAuxiliary(auxiliary._id, startDate, endDate, companyId);
+    result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
+  }
+
+  return result;
 };
 
 const updateVersionsWithSectorDates = (version, sector) => {

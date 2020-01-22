@@ -34,7 +34,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftPay).toBeDefined();
-      expect(response.result.data.draftPay.length).toEqual(1);
+      expect(response.result.data.draftPay.length).toEqual(2);
     });
   });
 
@@ -199,6 +199,28 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.result.data.hoursBalanceDetail).toBeDefined();
     });
 
+    it('should get hours balance details for a sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail).toBeDefined();
+    });
+
+    it('should get hours balance details for many sectors', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(2);
+    });
+
     it('should not get hours balance details if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -207,6 +229,26 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should not get hours balance details if user is not from the same company as sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not get hours balance details if there is both sector and auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -244,7 +286,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should get hours to work by sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2018`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -255,7 +297,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=122019`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=12-2019`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -273,7 +315,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should not get hours to work if user is not from the same company as sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=122018`,
+        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=12-2018`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -293,7 +335,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
+          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2018`,
           headers: { 'x-access-token': authToken },
         });
 

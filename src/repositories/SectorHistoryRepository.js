@@ -142,7 +142,8 @@ exports.getUsersFromSectorHistories = async (startDate, endDate, sectors, compan
     },
     { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
+    { $group: { _id: '$auxiliary', sectors: { $addToSet: '$sector' } } },
+    { $project: { auxiliaryId: '$_id._id', sectors: 1, _id: 0, identity: '$_id.identity', picture: '$_id.picture' } },
   ],
 ]).option({ company: companyId });
 
