@@ -127,17 +127,20 @@ exports.createUser = async (userPayload, credentials) => {
   }
 
   const userId = mongoose.Types.ObjectId();
-  const companyId = get(credentials, 'company._id', null);
-  const user = await User.create({
+  const companyId = payload.company || get(credentials, 'company._id', null);
+
+  const user = (await User.create({
     ...payload,
     _id: userId,
-    company: payload.company || companyId,
+    company: companyId,
     refreshToken: uuidv4(),
-  });
+  })).toObject();
+  if (sector) {
+    const sectorHistory = await SectorHistoriesHelper.createHistory(userId, sector, companyId);
+    user.sector = sectorHistory.sector;
+  }
 
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  if (sector) await SectorHistoriesHelper.createHistory(userId, sector, companyId);
-
   return {
     ...pickBy(user),
     role: { name: user.role.name, rights: [...populatedRights] },

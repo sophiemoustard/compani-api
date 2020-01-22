@@ -40,7 +40,7 @@ exports.createHistory = async (auxiliary, sector, company) => {
     await SectorHistory.updateOne({ _id: lastHistory._id }, { $set: { endDate } });
   }
 
-  return SectorHistory.create({ auxiliary, sector, company, startDate: startDate.toDate() });
+  return (await SectorHistory.create({ auxiliary, sector, company, startDate: startDate.toDate() })).toObject();
 };
 
 exports.updateEndDate = async (auxiliary, endDate) =>
