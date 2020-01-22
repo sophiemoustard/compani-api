@@ -318,6 +318,9 @@ describe('CONTRACTS ROUTES', () => {
         .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
+      const absence = events.find(event =>
+        event.type === 'absence' && moment(event.startDate).isSame('2019-07-06', 'day'));
+      expect(moment(absence.endDate).isSame('2019-07-08', 'day')).toBeTruthy();
     });
 
     it('should return 403 as user and contract are not in the same company', async () => {
