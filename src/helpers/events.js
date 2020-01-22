@@ -376,7 +376,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 
   for (const absence of absences) {
     const { startDate, misc } = absence;
-    const payload = { startDate, endDate: maxEndDate, misc };
+    const payload = { startDate, endDate: maxEndDate, misc, auxiliary: auxiliaryId.toHexString() };
     promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, absence, credentials));
   }
 
