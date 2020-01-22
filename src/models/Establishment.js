@@ -4,7 +4,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 
-const NAME_VALIDATION = /^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@]{1,32}$/;
+const NAME_VALIDATION = /^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@ ]{1,32}$/;
 const SIRET_VALIDATION = /^\d{14}$/;
 const PHONE_VALIDATION = /^[0]{1}[1-9]{1}[0-9]{8}$/;
 
