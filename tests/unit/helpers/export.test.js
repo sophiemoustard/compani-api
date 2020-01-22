@@ -1123,7 +1123,7 @@ describe('exportSectors', () => {
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
+      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id name' })
       .chain('populate')
@@ -1165,7 +1165,7 @@ describe('exportSectors', () => {
       endDate: '2019-12-10',
     }];
     SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
+      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id name' })
       .chain('populate')
