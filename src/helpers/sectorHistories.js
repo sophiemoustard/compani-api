@@ -23,9 +23,9 @@ exports.createHistory = async (auxiliary, sector, company) => {
   if (user.contracts.length) {
     hasContract = true;
     const contract = user.contracts[user.contracts.length - 1];
-    if (moment(contract.createdAt).isSame(startDate, 'day')) {
+    if (moment().isSame(contract.createdAt, 'day') || moment().isSameOrBefore(contract.startDate)) {
       isNewContract = true;
-      startDate = moment(contract.createdAt).startOf('day');
+      startDate = moment(contract.startDate).startOf('day');
     }
   }
 

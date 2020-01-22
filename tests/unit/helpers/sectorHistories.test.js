@@ -62,7 +62,7 @@ describe('createHistory', () => {
         sort: { startDate: -1 },
       })
       .chain('lean')
-      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01' }] });
+      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01', startDate: '2019-01-01' }] });
 
     SectorHistoryMock.expects('updateOne').never();
     SectorHistoryMock.expects('deleteOne').never();
@@ -96,8 +96,8 @@ describe('createHistory', () => {
       .chain('lean')
       .returns({
         contracts: [
-          { _id: new ObjectID(), createdAt: '2019-01-01' },
-          { _id: new ObjectID(), createdAt: moment() },
+          { _id: new ObjectID(), createdAt: '2019-01-01', startDate: '2019-01-01' },
+          { _id: new ObjectID(), createdAt: moment(), startDate: moment() },
         ],
       });
 
@@ -129,7 +129,7 @@ describe('createHistory', () => {
         sort: { startDate: -1 },
       })
       .chain('lean')
-      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01' }] });
+      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01', startDate: '2019-01-01' }] });
 
     SectorHistoryMock.expects('updateOne').never();
     SectorHistoryMock.expects('deleteOne').withExactArgs({ _id: sectorHistory._id }).once();
@@ -146,18 +146,46 @@ describe('createHistory', () => {
       .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(sectorHistory);
-    const startDate = moment().startOf('day').toDate();
+    const startDate = moment('2019-12-01').startOf('day').toDate();
     UserMock
       .expects('findOne')
       .withExactArgs({ _id: auxiliary })
       .chain('populate')
       .withExactArgs({
         path: 'contracts',
-        match: { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: startDate } }] },
+        match: { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: moment().startOf('day').toDate() } }] },
         sort: { startDate: -1 },
       })
       .chain('lean')
-      .returns({ contracts: [{ _id: new ObjectID(), createdAt: moment() }] });
+      .returns({ contracts: [{ _id: new ObjectID(), createdAt: moment(), startDate }] });
+
+    SectorHistoryMock.expects('updateOne').never();
+    SectorHistoryMock.expects('deleteOne').withExactArgs({ _id: sectorHistory._id }).once();
+    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company, startDate });
+
+    await SectorHistoryHelper.createHistory(auxiliary, sector, company);
+  });
+
+  it('should delete unrelevant last sector history if the user has a contract that has not yet started and lsh does not have endDate', async () => {
+    const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: moment().startOf('day').toDate() };
+    SectorHistoryMock.expects('findOne')
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
+      .chain('sort')
+      .withExactArgs({ startDate: -1 })
+      .chain('lean')
+      .returns(sectorHistory);
+    const startDate = moment().add(1, 'd').startOf('day').toDate();
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: auxiliary })
+      .chain('populate')
+      .withExactArgs({
+        path: 'contracts',
+        match: { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: moment().startOf('day').toDate() } }] },
+        sort: { startDate: -1 },
+      })
+      .chain('lean')
+      .returns({ contracts: [{ _id: new ObjectID(), createdAt: moment(), startDate }] });
 
     SectorHistoryMock.expects('updateOne').never();
     SectorHistoryMock.expects('deleteOne').withExactArgs({ _id: sectorHistory._id }).once();
@@ -214,7 +242,7 @@ describe('createHistory', () => {
         sort: { startDate: -1 },
       })
       .chain('lean')
-      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01' }] });
+      .returns({ contracts: [{ _id: new ObjectID(), createdAt: '2019-01-01', startDate: '2019-01-01' }] });
     SectorHistoryMock.expects('deleteOne').never();
     SectorHistoryMock.expects('updateOne')
       .withExactArgs(
