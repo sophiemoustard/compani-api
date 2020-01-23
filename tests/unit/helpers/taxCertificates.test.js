@@ -1,10 +1,13 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
+const Boom = require('boom');
 const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
@@ -236,5 +239,76 @@ describe('generateTaxCertificatePdf', () => {
     sinon.assert.calledWithExactly(getTaxCertificateInterventions, taxCertificate, companyId);
     expect(result).toEqual('pdf');
     TaxCertificateMock.verify();
+  });
+});
+
+describe('create', () => {
+  let addFileStub;
+  let TaxCertificateMock;
+  const date = new Date();
+  const payload = {
+    driveFolderId: '1234567890',
+    fileName: 'test',
+    payDoc: 'stream',
+    mimeType: 'application/pdf',
+    date: date.toISOString(),
+    company: new ObjectID(),
+    customer: new ObjectID(),
+  };
+  const credentials = { company: { _id: new ObjectID() } };
+  const createPayload = {
+    company: credentials.company._id,
+    date: payload.date,
+    year: moment(payload.date).format('YYYY'),
+    customer: payload.customer,
+    driveFile: { driveId: '0987654321', link: 'http://test.com/test.pdf' },
+  };
+  const newTaxCertificate = new TaxCertificate(createPayload);
+
+  beforeEach(() => {
+    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
+    TaxCertificateMock = sinon.mock(TaxCertificate);
+  });
+
+  afterEach(() => {
+    addFileStub.restore();
+    TaxCertificateMock.verify();
+  });
+
+  it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
+    addFileStub.returns(null);
+    TaxCertificateMock.expects('create').never();
+
+    try {
+      await TaxCertificateHelper.create(payload, credentials);
+    } catch (e) {
+      expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
+    } finally {
+      sinon.assert.calledWithExactly(addFileStub, {
+        driveFolderId: '1234567890',
+        name: 'test',
+        type: 'application/pdf',
+        body: 'stream',
+      });
+    }
+  });
+
+  it('should save document to drive and db', async () => {
+    addFileStub.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
+    TaxCertificateMock
+      .expects('create')
+      .withExactArgs(createPayload)
+      .once()
+      .returns(newTaxCertificate);
+
+    const result = await TaxCertificateHelper.create(payload, credentials);
+
+    expect(result).toMatchObject(newTaxCertificate.toObject());
+    sinon.assert.calledWithExactly(addFileStub, {
+      driveFolderId: '1234567890',
+      name: 'test',
+      type: 'application/pdf',
+      body: 'stream',
+    });
   });
 });

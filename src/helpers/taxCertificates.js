@@ -1,10 +1,12 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const Boom = require('boom');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const User = require('../models/User');
 const moment = require('../extensions/moment');
+const GdriveStorage = require('./gdriveStorage');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
@@ -73,4 +75,25 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const pdf = await PdfHelper.generatePdf(data, './src/data/taxCertificates.html');
 
   return pdf;
+};
+
+exports.create = async (certificatePayload, credentials) => {
+  const uploadedFile = await GdriveStorage.addFile({
+    driveFolderId: certificatePayload.driveFolderId,
+    name: certificatePayload.fileName || certificatePayload.payDoc.hapi.fileName,
+    type: certificatePayload.mimeType,
+    body: certificatePayload.payDoc,
+  });
+  if (!uploadedFile) throw Boom.failedDependency('Google drive: File not uploaded');
+
+  const { id: driveId, webViewLink: link } = uploadedFile;
+  const taxCertificate = await TaxCertificate.create({
+    company: get(credentials, 'company._id', null),
+    date: certificatePayload.date,
+    year: moment(certificatePayload.date).format('YYYY'),
+    customer: certificatePayload.customer,
+    driveFile: { driveId, link },
+  });
+
+  return taxCertificate.toObject();
 };
