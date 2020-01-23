@@ -9,7 +9,8 @@
   }
   table {
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
+    font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
   }
   table, th, td {
     border: 1px solid rgba(0,0,0,0.12);
@@ -61,7 +62,13 @@
   <div class="company">
     <div class="text-weight-bold">{{ taxCertificate.company.name }}</div>
     <br />
-    <div>Numéro et date d’enregistrement de la</div>
+    <div>
+      {{#if taxCertificate.company.rcs }}
+      RCS : {{ taxCertificate.company.rcs }}
+      {{else if taxCertificate.company.rna}}
+      RNA : {{ taxCertificate.company.rna }}
+      {{/if}}
+    </div>
     <div>{{ taxCertificate.company.address.fullAddress }}</div>
   </div>
   <div class="customer">
@@ -76,7 +83,8 @@
   ATTESTATION DESTINEE AU CENTRE DES IMPOTS POUR L'ANNEE {{ taxCertificate.year }}
 </div>
 <br /><br />
-<div class="justify">Je soussigné(e) {{ taxCertificate.director }}, directeur général de {{ taxCertificate.company.name }}, 
+<div class="justify">Je soussigné(e) {{ taxCertificate.company.legalRepresentative.name }}, 
+  {{ taxCertificate.company.legalRepresentative.position }} de {{ taxCertificate.company.name }}, 
   certifie que {{ taxCertificate.customer.name }} ({{ taxCertificate.customer.address.fullAddress }}) a bénéficié d'une 
   aide à domicile.</div>
 <br />
@@ -84,8 +92,11 @@
 <br />
 <div>
   <div>Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d'impôt : 
-    {{ taxCertificate.totalPaid }}</div>
+    {{ taxCertificate.totalPaid }}
+  </div>
+  {{#if taxCertificate.cesu }}
   <div>Dont montant total réglé avec des CESU préfinancés * : {{ taxCertificate.cesu }}</div>
+  {{/if}}
 </div>
 <br />
 <br />
@@ -93,6 +104,7 @@
   <table class="interventions">
     <thead>
       <tr>
+        <th align="left">Matricule</th>
         <th align="left">Intervenant</th>
         <th align="left">Mois</th>
         <th align="left">Heures</th>
@@ -102,6 +114,7 @@
     <tbody>
       {{#table taxCertificate.interventions }}
         <tr>
+          <td align="left">{{ serialNumber }}</td>
           <td align="left">{{ auxiliary }}</td>
           <td align="left" class="capitalize">{{ month }}</td>
           <td align="right">{{ hours }}</td>
@@ -110,9 +123,10 @@
       {{/table}}
       <tr>
         <td></td>
+        <td></td>
         <td align="left" class="text-weight-bold">Total</td>
         <td align="right" class="text-weight-bold">{{ taxCertificate.totalHours }}</td>
-        <td></tdalign="right">
+        <td></td>
       </tr>
     </tbody>
   </table>
@@ -133,6 +147,6 @@
 <div>Fait pour valoir ce que de droit,</div>
 <div class="signature">
   <div>{{ taxCertificate.date }}</div>
-  <div>{{ taxCertificate.director }}</div>
-  <div>Directeur général</div>
+  <div>{{ taxCertificate.company.legalRepresentative.name }}</div>
+  <div>{{ taxCertificate.company.legalRepresentative.position }}</div>
 </div>

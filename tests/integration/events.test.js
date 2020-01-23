@@ -442,7 +442,6 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(200);
-        console.log(response.result.data.paidTransportStatsBySector);
         const resultForFirstSector = response.result.data.paidTransportStatsBySector.find(res =>
           res.sector.toHexString() === sectors[0]._id.toHexString());
         expect(resultForFirstSector.duration).toEqual(1);

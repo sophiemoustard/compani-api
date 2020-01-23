@@ -58,13 +58,13 @@ describe('formatInterventions', () => {
   it('should format interventions', () => {
     const interventions = [
       {
-        auxiliary: { identity: { lastname: 'lastname' } },
+        auxiliary: { identity: { lastname: 'lastname', firstname: 'first' }, createdAt: '2019-07-12T09:08:12' },
         month: '9',
         duration: 12,
         subscription: { service: { name: 'Temps de qualité' } },
       },
       {
-        auxiliary: { identity: { lastname: 'firstname' } },
+        auxiliary: { identity: { lastname: 'firstname', firstname: 'first' }, createdAt: '2019-05-13T10:08:12' },
         month: '5',
         duration: 13,
         subscription: { service: { name: 'Temps de partage' } },
@@ -77,15 +77,27 @@ describe('formatInterventions', () => {
 
     const result = TaxCertificateHelper.formatInterventions(interventions);
     expect(result).toEqual([
-      { auxiliary: 'toto', subscription: 'Temps de qualité', month: 'septembre', hours: '12,00h' },
-      { auxiliary: 'toto', subscription: 'Temps de partage', month: 'mai', hours: '13,00h' },
+      {
+        auxiliary: 'toto',
+        subscription: 'Temps de qualité',
+        month: 'septembre',
+        hours: '12,00h',
+        serialNumber: 'LAF1907120908',
+      },
+      {
+        auxiliary: 'toto',
+        subscription: 'Temps de partage',
+        month: 'mai',
+        hours: '13,00h',
+        serialNumber: 'FIF1905131008',
+      },
     ]);
     sinon.assert.calledWithExactly(populateService.getCall(0), { name: 'Temps de qualité' });
     sinon.assert.calledWithExactly(populateService.getCall(1), { name: 'Temps de partage' });
     sinon.assert.calledWithExactly(formatHour.getCall(0), 12);
     sinon.assert.calledWithExactly(formatHour.getCall(1), 13);
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'lastname' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'firstname' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'lastname', firstname: 'first' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'firstname', firstname: 'first' }, 'FL');
   });
 });
 
@@ -110,6 +122,7 @@ describe('formatPdf', () => {
       rcs: 'rcs',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      legalRepresentative: { lastname: 'Trebalag', firstname: 'Jean Christophe', position: 'master' },
     };
     const taxCertificate = {
       customer: {
@@ -125,6 +138,7 @@ describe('formatPdf', () => {
         },
       },
       year: '2019',
+      date: '2020-01-19T00:00:00',
     };
     const interventions = [
       { auxiliary: { identity: { lastname: 'lastname' } }, month: '9', duration: 12 },
@@ -132,7 +146,8 @@ describe('formatPdf', () => {
     ];
     const payments = { paid: 1200, cesu: 500 };
 
-    formatIdentity.returns('Mr Patate');
+    formatIdentity.onCall(0).returns('Jean Christophe TREBALAG');
+    formatIdentity.onCall(1).returns('Mr Patate');
     formatInterventions.returns([{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }]);
     formatPrice.onCall(0).returns('1 700,00€');
     formatPrice.onCall(1).returns('500,00€');
@@ -146,14 +161,19 @@ describe('formatPdf', () => {
         totalHours: '25,00h',
         interventions: [{ subscription: 'Forfait nuit' }, { subscription: 'Forfait jour' }],
         subscriptions: 'Forfait nuit, Forfait jour',
-        company: { logo: company.logo, address: company.address, name: company.name },
+        company: {
+          logo: company.logo,
+          address: company.address,
+          name: company.name,
+          rcs: 'rcs',
+          legalRepresentative: { name: 'Jean Christophe TREBALAG', position: 'master' },
+        },
         year: '2019',
-        date: '31/01/2020',
-        director: 'Clément Saint Olive',
+        date: '19/01/2020',
         customer: { name: 'Mr Patate', address: taxCertificate.customer.contact.primaryAddress },
       },
     });
-    sinon.assert.calledWithExactly(formatIdentity, taxCertificate.customer.identity, 'TFL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), taxCertificate.customer.identity, 'TFL');
     sinon.assert.calledWithExactly(formatInterventions, interventions);
     sinon.assert.calledWithExactly(formatPrice.getCall(0), 1700);
     sinon.assert.calledWithExactly(formatPrice.getCall(1), 500);

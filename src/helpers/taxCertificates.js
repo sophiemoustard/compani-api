@@ -3,6 +3,7 @@ const pick = require('lodash/pick');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
+const User = require('../models/User');
 const moment = require('../extensions/moment');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
@@ -19,6 +20,7 @@ exports.formatInterventions = interventions => interventions.map((int) => {
 
   return {
     auxiliary: UtilsHelper.formatIdentity(int.auxiliary.identity, 'FL'),
+    serialNumber: User.serialNumber(int.auxiliary),
     subscription: service.name,
     month: moment(int.month, 'M').format('MMMM'),
     hours: UtilsHelper.formatHour(int.duration),
@@ -35,17 +37,18 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
     taxCertificate: {
       totalHours: UtilsHelper.formatHour(totalHours),
       totalPaid: UtilsHelper.formatPrice(totalPaid),
-      cesu: UtilsHelper.formatPrice(payments.cesu ? payments.cesu : 0),
+      cesu: payments.cesu ? UtilsHelper.formatPrice(payments.cesu) : 0,
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
-      company: pick(company, ['logo', 'name', 'address']),
+      company: {
+        ...pick(company, ['logo', 'name', 'address', 'rcs']),
+        legalRepresentative: {
+          name: UtilsHelper.formatIdentity(company.legalRepresentative, 'FL'),
+          position: get(company, 'legalRepresentative.position') || '',
+        },
+      },
       year: taxCertificate.year,
-      date: moment(taxCertificate.year, 'YYYY')
-        .add(1, 'y')
-        .startOf('y')
-        .endOf('month')
-        .format('DD/MM/YYYY'),
-      director: 'Clément Saint Olive',
+      date: moment(taxCertificate.date).format('DD/MM/YYYY'),
       customer: {
         name: UtilsHelper.formatIdentity(taxCertificate.customer.identity, 'TFL'),
         address: get(taxCertificate, 'customer.contact.primaryAddress', {}),
