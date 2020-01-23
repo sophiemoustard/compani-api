@@ -252,6 +252,7 @@ describe('create', () => {
     taxCertificate: 'stream',
     mimeType: 'application/pdf',
     date: date.toISOString(),
+    year: moment(date).format('YYYY'),
     company: new ObjectID(),
     customer: new ObjectID(),
   };
@@ -259,7 +260,7 @@ describe('create', () => {
   const createPayload = {
     company: credentials.company._id,
     date: payload.date,
-    year: moment(payload.date).format('YYYY'),
+    year: payload.year,
     customer: payload.customer,
     driveFile: { driveId: '0987654321', link: 'http://test.com/test.pdf' },
   };

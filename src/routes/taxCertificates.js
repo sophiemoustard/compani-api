@@ -10,6 +10,7 @@ const {
   authorizeGetTaxCertificates,
   authorizeCreateTaxCertificates,
 } = require('./preHandlers/taxCertificates');
+const { YEAR_VALIDATION } = require('../models/TaxCertificate');
 
 exports.plugin = {
   name: 'routes-taxcertificates',
@@ -62,6 +63,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             date: Joi.date(),
+            year: Joi.string().regex(YEAR_VALIDATION).required(),
             fileName: Joi.string().required(),
             taxCertificate: Joi.any().required(),
             mimeType: Joi.string().required(),

@@ -163,6 +163,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
         date: new Date('2019-01-23').toISOString(),
+        year: '2019',
         customer: customersList[0]._id.toHexString(),
         mimeType: 'application/pdf',
       };
@@ -207,7 +208,7 @@ describe('TAX CERTIFICATES - POST /', () => {
       addStub.restore();
     });
 
-    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId'];
+    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
@@ -215,6 +216,7 @@ describe('TAX CERTIFICATES - POST /', () => {
           driveFolderId: '09876543211',
           fileName: 'tax-certificate',
           date: new Date('2019-01-23').toISOString(),
+          year: '2019',
           customer: customersList[0]._id.toHexString(),
           mimeType: 'application/pdf',
         };
@@ -236,6 +238,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
         date: new Date('2019-01-23').toISOString(),
+        year: '2019',
         customer: customersList[1]._id.toHexString(),
         mimeType: 'application/pdf',
       };
@@ -250,6 +253,29 @@ describe('TAX CERTIFICATES - POST /', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should not create a new tax certificate if year is invalid', async () => {
+      const docPayload = {
+        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        driveFolderId: '09876543211',
+        fileName: 'tax-certificate',
+        date: new Date('2019-01-23').toISOString(),
+        year: '1988',
+        customer: customersList[1]._id.toHexString(),
+        mimeType: 'application/pdf',
+      };
+
+      const form = generateFormData(docPayload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/taxcertificates',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -282,6 +308,7 @@ describe('TAX CERTIFICATES - POST /', () => {
           driveFolderId: '09876543211',
           fileName: 'tax-certificates',
           date: new Date('2019-01-23').toISOString(),
+          year: '2019',
           customer: customersList[0]._id.toHexString(),
           mimeType: 'application/pdf',
         };
