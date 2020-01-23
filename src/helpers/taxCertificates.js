@@ -82,7 +82,7 @@ exports.create = async (certificatePayload, credentials) => {
     driveFolderId: certificatePayload.driveFolderId,
     name: certificatePayload.fileName || certificatePayload.payDoc.hapi.fileName,
     type: certificatePayload.mimeType,
-    body: certificatePayload.payDoc,
+    body: certificatePayload.taxCertificate,
   });
   if (!uploadedFile) throw Boom.failedDependency('Google drive: File not uploaded');
 

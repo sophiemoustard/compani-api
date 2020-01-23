@@ -249,7 +249,7 @@ describe('create', () => {
   const payload = {
     driveFolderId: '1234567890',
     fileName: 'test',
-    payDoc: 'stream',
+    taxCertificate: 'stream',
     mimeType: 'application/pdf',
     date: date.toISOString(),
     company: new ObjectID(),

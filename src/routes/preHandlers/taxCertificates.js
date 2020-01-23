@@ -42,3 +42,11 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
 
   return null;
 };
+
+exports.authorizeCreateTaxCertificates = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId }).lean();
+  if (!customer) throw Boom.forbidden();
+
+  return null;
+};

@@ -34,7 +34,22 @@ const generateTaxCertificatePdf = async (req, h) => {
   }
 };
 
+const create = async (req) => {
+  try {
+    const taxCertificate = await TaxCertificateHelper.create(req.payload, req.auth.credentials);
+
+    return {
+      message: translate[language].taxCertificateCreated,
+      data: { taxCertificate },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   generateTaxCertificatePdf,
   list,
+  create,
 };

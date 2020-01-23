@@ -1,8 +1,17 @@
 const expect = require('expect');
+const sinon = require('sinon');
+const fs = require('fs');
+const path = require('path');
+const GetStream = require('get-stream');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const app = require('../../server');
+const TaxCertificate = require('../../src/models/TaxCertificate');
+const Gdrive = require('../../src/models/Google/Drive');
+const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { populateDB, customersList, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -132,6 +141,158 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
           method: 'GET',
           url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
           headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('TAX CERTIFICATES - POST /', () => {
+  let authToken = null;
+  describe('Admin', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should create a new tax certificate', async () => {
+      const docPayload = {
+        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        driveFolderId: '09876543211',
+        fileName: 'tax-certificate',
+        date: new Date('2019-01-23').toISOString(),
+        customer: customersList[0]._id.toHexString(),
+        mimeType: 'application/pdf',
+      };
+
+      const addStub = sinon.stub(Gdrive, 'add');
+      const addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
+        id: '1234567890',
+        webViewLink: 'http://test.com/file.pdf',
+      });
+
+      const form = generateFormData(docPayload);
+      const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/taxcertificates',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.taxCertificate).toMatchObject({
+        date: new Date(docPayload.date),
+        year: '2019',
+        company: authCompany._id,
+        customer: customersList[0]._id,
+        driveFile: { driveId: '1234567890', link: 'http://test.com/file.pdf' },
+      });
+      const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
+      expect(taxCertificatesCount).toBe(taxCertificateCountBefore + 1);
+      sinon.assert.calledWithExactly(
+        addFileStub,
+        {
+          driveFolderId: docPayload.driveFolderId,
+          name: docPayload.fileName,
+          type: docPayload.mimeType,
+          body: sinon.match.any,
+
+        }
+      );
+      addFileStub.restore();
+      addStub.restore();
+    });
+
+    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId'];
+    wrongParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const docPayload = {
+          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'tax-certificate',
+          date: new Date('2019-01-23').toISOString(),
+          customer: customersList[0]._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
+        const form = generateFormData(omit(docPayload, param));
+        const response = await app.inject({
+          method: 'POST',
+          url: '/taxcertificates',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should not create a new tax certificate if customer is not from the same company', async () => {
+      const docPayload = {
+        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        driveFolderId: '09876543211',
+        fileName: 'tax-certificate',
+        date: new Date('2019-01-23').toISOString(),
+        customer: customersList[1]._id.toHexString(),
+        mimeType: 'application/pdf',
+      };
+
+      const form = generateFormData(docPayload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/taxcertificates',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other role', () => {
+    let gDriveAdd;
+    let gDriveStorageAddFile;
+    beforeEach(() => {
+      gDriveAdd = sinon.stub(Gdrive, 'add');
+      gDriveStorageAddFile = sinon.stub(GdriveStorage, 'addFile').returns({
+        id: '1234567890',
+        webViewLink: 'http://test.com/file.pdf',
+      });
+    });
+    afterEach(() => {
+      gDriveAdd.restore();
+      gDriveStorageAddFile.restore();
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const docPayload = {
+          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'tax-certificates',
+          date: new Date('2019-01-23').toISOString(),
+          customer: customersList[0]._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
+
+        const form = generateFormData(docPayload);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/taxcertificates',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

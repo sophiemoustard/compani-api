@@ -211,6 +211,7 @@ module.exports = {
     taxCertificatesNotFound: 'Tax certificates not found.',
     taxCertificateNotFound: 'Tax certificate not found.',
     taxCertificatesFound: 'Tax certificates found.',
+    taxCertificateCreated: 'Tax certificate created.',
     /* Establishments */
     establishmentCreated: 'Establishment created.',
     establishmentNotFound: 'Establishment not found.',
@@ -427,6 +428,7 @@ module.exports = {
     taxCertificatesNotFound: 'Attestations fiscales non trouvées.',
     taxCertificateNotFound: 'Attestation fiscale non trouvée.',
     taxCertificatesFound: 'Attestations fiscales trouvées.',
+    taxCertificateCreated: 'Attestation fiscale créée.',
     /* Establishments */
     establishmentCreated: 'Établissement créé.',
     establishmentNotFound: 'Établissement non trouvé.',

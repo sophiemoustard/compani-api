@@ -135,6 +135,11 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
+    description: 'Créer une attestion fiscale',
+    permission: 'taxcertificates:create',
+  },
+  {
+    _id: new ObjectID(),
     description: 'Editer un établissement',
     permission: 'establishments:edit',
   },
@@ -174,6 +179,7 @@ const adminRights = [
   'pay:edit',
   'companies:edit',
   'establishments:edit',
+  'taxcertificates:create',
 ];
 const auxiliaryRights = [
   'config:read',
