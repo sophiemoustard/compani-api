@@ -13,6 +13,7 @@ const Contract = require('../../src/models/Contract');
 const Customer = require('../../src/models/Customer');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
+const SectorHistory = require('../../src/models/SectorHistory');
 const Drive = require('../../src/models/Google/Drive');
 const {
   populateDB,
@@ -133,7 +134,7 @@ describe('CONTRACTS ROUTES', () => {
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: { ...payload, user: contractUsers[1]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -142,10 +143,30 @@ describe('CONTRACTS ROUTES', () => {
       const contracts = await Contract.find({ company: get(response, 'result.data.contract.company') });
       expect(contracts.length).toEqual(contractsList.length + 1);
 
-      const user = await User.findOne({ _id: payload.user });
+      const user = await User.findOne({ _id: contractUsers[1]._id });
       expect(user).toBeDefined();
       expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
       expect(user.inactivityDate).toBeNull();
+
+      const sectorHistories = await SectorHistory.find({ auxiliary: contractUsers[1]._id, company: authCompany._id });
+      expect(sectorHistories.length).toBe(1);
+      expect(sectorHistories[0].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
+    });
+
+    it('should create new sectorhistory if auxiliary had a contract', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payload, user: contractUsers[3]._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
+
+      const sectorHistories = await SectorHistory.find({ auxiliary: contractUsers[3]._id, company: authCompany._id });
+      expect(sectorHistories.length).toBe(2);
+      expect(sectorHistories[1].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
     });
 
     it('should create contract (customer contract)', async () => {
@@ -321,6 +342,9 @@ describe('CONTRACTS ROUTES', () => {
       const absence = events.find(event =>
         event.type === 'absence' && moment(event.startDate).isSame('2019-07-06', 'day'));
       expect(moment(absence.endDate).isSame('2019-07-08', 'day')).toBeTruthy();
+
+      const sectorHistories = await SectorHistory.find({ company: authCompany._id, auxiliary: user._id }).lean();
+      expect(sectorHistories[0].endDate).toEqual(moment(response.result.data.contract.endDate).endOf('day').toDate());
     });
 
     it('should return 403 as user and contract are not in the same company', async () => {

@@ -70,6 +70,7 @@ const userFromOtherCompany = {
 };
 
 const contractId = new ObjectID();
+const contractNotStartedId = new ObjectID();
 
 const usersSeedList = [
   {
@@ -94,6 +95,7 @@ const usersSeedList = [
     role: rolesList.find(role => role.name === 'auxiliary')._id,
     refreshToken: uuidv4(),
     company: company._id,
+    contracts: [],
     administrative: {
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
@@ -148,6 +150,21 @@ const usersSeedList = [
     role: rolesList.find(role => role.name === 'helper')._id,
     contracts: [new ObjectID()],
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary2', lastname: 'White' },
+    local: { email: 'aux@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    refreshToken: uuidv4(),
+    company: company._id,
+    contracts: [contractNotStartedId],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
+    inactivityDate: null,
+  },
 ];
 
 const userSectors = [
@@ -167,6 +184,15 @@ const userContract = {
   _id: contractId,
   user: usersSeedList[0]._id,
   startDate: moment('2018-10-10').toDate(),
+  createdAt: moment('2018-10-10').toDate(),
+  company: company._id,
+  status: 'contract_with_company',
+};
+
+const userContractNotStarted = {
+  _id: contractNotStartedId,
+  user: usersSeedList[7]._id,
+  startDate: moment().add(1, 'm').toDate(),
   createdAt: moment('2018-10-10').toDate(),
   company: company._id,
   status: 'contract_with_company',
@@ -199,6 +225,7 @@ const populateDB = async () => {
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
   await Contract.create(userContract);
+  await Contract.create(userContractNotStarted);
   await new Company(company).save();
   await new Task(task).save();
 };
