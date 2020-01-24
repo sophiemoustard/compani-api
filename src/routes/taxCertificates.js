@@ -53,7 +53,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['taxcertificates:create'] },
+        auth: { scope: ['taxcertificates:edit'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -62,7 +62,7 @@ exports.plugin = {
         },
         validate: {
           payload: Joi.object({
-            date: Joi.date(),
+            date: Joi.date().required(),
             year: Joi.string().regex(YEAR_VALIDATION).required(),
             fileName: Joi.string().required(),
             taxCertificate: Joi.any().required(),

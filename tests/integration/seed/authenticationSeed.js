@@ -135,8 +135,8 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Créer une attestion fiscale',
-    permission: 'taxcertificates:create',
+    description: 'Éditer une attestion fiscale',
+    permission: 'taxcertificates:edit',
   },
   {
     _id: new ObjectID(),
@@ -168,7 +168,7 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
   'taxcertificates:read',
-  'taxcertificates:create',
+  'taxcertificates:edit',
   'establishments:read',
 ];
 const adminRights = [

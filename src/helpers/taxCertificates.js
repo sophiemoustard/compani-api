@@ -80,7 +80,7 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
 exports.create = async (certificatePayload, credentials) => {
   const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: certificatePayload.driveFolderId,
-    name: certificatePayload.fileName || certificatePayload.payDoc.hapi.fileName,
+    name: certificatePayload.fileName || certificatePayload.taxCertificate.hapi.fileName,
     type: certificatePayload.mimeType,
     body: certificatePayload.taxCertificate,
   });

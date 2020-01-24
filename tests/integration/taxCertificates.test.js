@@ -208,7 +208,7 @@ describe('TAX CERTIFICATES - POST /', () => {
       addStub.restore();
     });
 
-    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year'];
+    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year', 'date'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
