@@ -4,18 +4,28 @@ const Contract = require('../models/Contract');
 const { COMPANY_CONTRACT } = require('./constants');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
-  const lastSectorHistory = await SectorHistory.findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }).lean();
+  const lastSectorHistory = await SectorHistory
+    .findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
+    .lean();
   if (lastSectorHistory.sector.toHexString() === sector) return;
 
   const contracts = await Contract
-    .find({ user: auxiliaryId, status: COMPANY_CONTRACT, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
+    .find({
+      user: auxiliaryId,
+      status: COMPANY_CONTRACT,
+      company: companyId,
+      $or: [{ endDate: { $exists: false } }, { endDate: null }],
+    })
     .sort({ startDate: -1 })
     .lean();
   const doesNotHaveContract = !contracts.length;
   const contractNotStarted = contracts.length && moment().isBefore(contracts[0].startDate);
-  const alreadyChangedToday = moment().isSame(lastSectorHistory.startDate, 'day');
-  if (doesNotHaveContract || contractNotStarted || alreadyChangedToday) {
-    return SectorHistory.updateOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { sector } });
+  const lastHistoryStartsOnSameDay = moment().isSame(lastSectorHistory.startDate, 'day');
+  if (doesNotHaveContract || contractNotStarted || lastHistoryStartsOnSameDay) {
+    return SectorHistory.updateOne(
+      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { sector } }
+    );
   }
 
   await SectorHistory.updateOne(
@@ -68,7 +78,9 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
 };
 
 exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
-  const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] }).lean();
+  const sectorHistory = await SectorHistory
+    .findOne({ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
+    .lean();
   await SectorHistory.remove({
     auxiliary: contract.user,
     company: companyId,
