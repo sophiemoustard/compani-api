@@ -297,14 +297,14 @@ describe('TAX CERTIFICATES - POST /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const docPayload = {
-          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           driveFolderId: '09876543211',
           fileName: 'tax-certificates',
           date: new Date('2019-01-23').toISOString(),

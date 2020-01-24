@@ -168,6 +168,7 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
   'taxcertificates:read',
+  'taxcertificates:create',
   'establishments:read',
 ];
 const adminRights = [
@@ -179,7 +180,6 @@ const adminRights = [
   'pay:edit',
   'companies:edit',
   'establishments:edit',
-  'taxcertificates:create',
 ];
 const auxiliaryRights = [
   'config:read',
