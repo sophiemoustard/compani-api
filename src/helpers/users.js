@@ -131,8 +131,11 @@ exports.createUser = async (userPayload, credentials) => {
 
   await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
   if (sector) await SectorHistoriesHelper.create(userId, sector, companyId);
+  const user = (await User
+    .findOne({ _id: userId })
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+  ).toObject();
 
-  const user = (await User.findOne({ _id: userId })).toObject();
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
   return {
     ...pickBy(user),
@@ -151,7 +154,9 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     options.runValidators = true;
   }
 
-  if (userPayload.sector) await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  if (userPayload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  }
 
   const updatedUser = await User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })

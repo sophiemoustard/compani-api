@@ -403,7 +403,7 @@ describe('createUser', () => {
     RoleMock = sinon.mock(Role);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
-    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
+    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'create');
   });
 
   afterEach(() => {
@@ -454,6 +454,20 @@ describe('createUser', () => {
       })
       .returns({ ...newUserWithProcedure });
 
+    const user = new User({ ...newUserWithProcedure });
+    const userMock = sinon.mock(user);
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: get(credentials, 'company._id', null) },
+      })
+      .returns(user);
+    userMock.expects('toObject').returns({ ...newUserWithProcedure });
+
     populateRoleStub.returns(populatedUserRights);
 
     const result = await UsersHelper.createUser(payload, credentials);
@@ -497,6 +511,20 @@ describe('createUser', () => {
       })
       .returns({ ...newUser });
 
+    const user = new User({ ...newUser });
+    const userMock = sinon.mock(user);
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: get(credentials, 'company._id', null) },
+      })
+      .returns(user);
+    userMock.expects('toObject').returns({ ...newUser });
+
     populateRoleStub.returns(populatedUserRights);
 
     const result = await UsersHelper.createUser(payload, credentials);
@@ -539,6 +567,20 @@ describe('createUser', () => {
         refreshToken: sinon.match.string,
       })
       .returns({ ...newUser });
+
+    const user = new User({ ...newUser });
+    const userMock = sinon.mock(user);
+    UserMock
+      .expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: get(credentials, 'company._id', null) },
+      })
+      .returns(user);
+    userMock.expects('toObject').returns({ ...newUser });
 
     populateRoleStub.returns(populatedUserRights);
 
@@ -586,7 +628,7 @@ describe('createUser', () => {
 describe('updateUser', () => {
   let UserMock;
   let populateRoleStub;
-  let createHistoryStub;
+  let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
   const user = {
@@ -610,13 +652,13 @@ describe('updateUser', () => {
   beforeEach(() => {
     UserMock = sinon.mock(User);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
-    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
+    updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
   });
 
   afterEach(() => {
     UserMock.restore();
     populateRoleStub.restore();
-    createHistoryStub.restore();
+    updateHistoryOnSectorUpdateStub.restore();
   });
 
   it('should update a user and populate role', async () => {
@@ -643,7 +685,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
-    sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user, populate role and create sector history', async () => {
@@ -670,7 +712,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
-    sinon.assert.calledWithExactly(createHistoryStub, userId, payload.sector, credentials.company._id);
+    sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
   });
 
   it('should update a user and not populate role', async () => {
@@ -697,7 +739,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.notCalled(populateRoleStub);
-    sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user certificate and populate role', async () => {
@@ -721,7 +763,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
-    sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 });
 
