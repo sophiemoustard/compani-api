@@ -216,7 +216,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate, credentia
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
   if (index === 0 && versionToUpdate.startDate) {
-    SectorHistoryHelper.updateHistoryOnContractUpdate(
+    await SectorHistoryHelper.updateHistoryOnContractUpdate(
       contractId,
       versionToUpdate,
       get(credentials, 'company._id', null)
