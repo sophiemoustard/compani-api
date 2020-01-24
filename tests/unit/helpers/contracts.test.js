@@ -133,7 +133,7 @@ describe('createContract', () => {
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
       .once();
-    CustomerMock.expects('findOneAndUpdate').never();
+    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -182,7 +182,7 @@ describe('createContract', () => {
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
       .once();
-    CustomerMock.expects('findOneAndUpdate').never();
+    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -220,7 +220,7 @@ describe('createContract', () => {
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
       .once();
-    CustomerMock.expects('findOneAndUpdate')
+    CustomerMock.expects('updateOne')
       .withExactArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
       .once();
 
@@ -260,19 +260,13 @@ describe('createContract', () => {
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(user)
       .once();
-    CustomerMock.expects('findOneAndUpdate').never();
+    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
-    sinon.assert.calledWithExactly(
-      createHistoryOnContractCreation,
-      user._id,
-      user.sector.toHexString(),
-      contract,
-      credentials.company._id
-    );
+    sinon.assert.calledWithExactly(createHistoryOnContractCreation, user, contract, credentials.company._id);
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -612,6 +606,8 @@ describe('formatVersionEditionPayload', () => {
 describe('updateVersion', () => {
   const contractId = new ObjectID();
   const versionId = new ObjectID();
+  const credentials = { company: { _id: new ObjectID() } };
+  const companyId = credentials.company._id;
   let ContractMock;
   let canUpdateVersion;
   let formatVersionEditionPayload;
@@ -630,7 +626,6 @@ describe('updateVersion', () => {
   });
 
   it('should update version', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
     const versionToUpdate = {
       _id: versionId,
       startDate: '2019-09-10T00:00:00',
@@ -657,7 +652,7 @@ describe('updateVersion', () => {
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
-    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 0, credentials);
+    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 0, companyId);
     sinon.assert.calledWithExactly(
       formatVersionEditionPayload,
       { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
@@ -668,13 +663,12 @@ describe('updateVersion', () => {
       updateHistoryOnContractUpdateStub,
       contractId.toHexString(),
       versionToUpdate,
-      credentials.company._id
+      companyId
     );
     ContractMock.verify();
   });
 
   it('should update version and unset', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
     const versionToUpdate = {
       _id: versionId,
       startDate: '2019-09-10T00:00:00',
@@ -705,7 +699,7 @@ describe('updateVersion', () => {
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
-    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 1, credentials);
+    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 1, companyId);
     sinon.assert.calledWithExactly(
       formatVersionEditionPayload,
       { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
@@ -717,7 +711,6 @@ describe('updateVersion', () => {
   });
 
   it('should update first version and contract', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
     try {
       const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
       const contract = {
@@ -736,13 +729,13 @@ describe('updateVersion', () => {
         contractId.toHexString(),
         versionId.toHexString(),
         versionToUpdate,
-        credentials
+        companyId
       );
       sinon.assert.calledWithExactly(
         updateHistoryOnContractUpdateStub,
         contractId.toHexString(),
         versionToUpdate,
-        credentials.company._id
+        companyId
       );
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);

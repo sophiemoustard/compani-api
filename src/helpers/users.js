@@ -130,11 +130,11 @@ exports.createUser = async (userPayload, credentials) => {
   const companyId = payload.company || get(credentials, 'company._id', null);
 
   await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
-  if (sector) await SectorHistoriesHelper.create(userId, sector, companyId);
-  const user = (await User
+  if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
+  const user = await User
     .findOne({ _id: userId })
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-  ).toObject();
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean({ virtuals: true, autopopulate: true });
 
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
   return {
