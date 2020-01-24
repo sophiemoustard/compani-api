@@ -5,7 +5,7 @@ const { COMPANY_CONTRACT } = require('./constants');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
   const lastSectorHistory = await SectorHistory.findOne({ auxiliary: auxiliaryId, endDate: { $exists: false } }).lean();
-  if (lastSectorHistory.sector === sector) return;
+  if (lastSectorHistory.sector.toHexString() === sector) return;
 
   const contracts = await Contract
     .find({ user: auxiliaryId, status: COMPANY_CONTRACT, company: companyId, endDate: { $exists: false } })
@@ -21,23 +21,33 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 exports.createHistoryOnContractCreation = async (auxiliaryId, sector, newContract, companyId) => {
   const contracts = await Contract.find({ user: auxiliaryId, status: COMPANY_CONTRACT, company: companyId }).lean();
   if (contracts.length > 1) {
-    return exports.create(auxiliaryId, sector, companyId);
+    return exports.create(auxiliaryId, sector, companyId, moment(newContract.startDate).startOf('day').toDate());
   }
   return exports.update(auxiliaryId, { $set: { startDate: moment(newContract.startDate).startOf('day').toDate() } });
 };
 
 exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, companyId) => {
   const contract = await Contract.findOne({ _id: contractId, company: companyId }).lean();
-  await exports.update(
-    contract.user,
-    { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
-  );
-
-  if (moment(versionToUpdate.startDate).isSameOrBefore(contract.startDate, 'day')) return;
-  return SectorHistory.remove({
+  if (moment(versionToUpdate.startDate).isSameOrBefore(contract.startDate, 'day')) {
+    await exports.update(
+      contract.user,
+      { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
+    );
+    return;
+  }
+  await SectorHistory.remove({
     auxiliary: contract.user,
     endDate: { $gte: contract.startDate, $lte: versionToUpdate.startDate },
   });
+  const sectorHistory = await SectorHistory
+    .find({ company: companyId, auxiliary: contract.user, startDate: { $gte: contract.startDate } })
+    .sort({ startDate: 1 })
+    .limit(1);
+
+  return SectorHistory.updateOne(
+    { _id: sectorHistory[0]._id },
+    { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
+  );
 };
 
 exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
