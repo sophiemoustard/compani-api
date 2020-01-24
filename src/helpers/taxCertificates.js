@@ -90,7 +90,7 @@ exports.create = async (certificatePayload, credentials) => {
   const taxCertificate = await TaxCertificate.create({
     company: get(credentials, 'company._id', null),
     date: certificatePayload.date,
-    year: moment(certificatePayload.date).format('YYYY'),
+    year: certificatePayload.year,
     customer: certificatePayload.customer,
     driveFile: { driveId, link },
   });
