@@ -40,9 +40,10 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
     endDate: { $gte: contract.startDate, $lte: versionToUpdate.startDate },
   });
   const sectorHistory = await SectorHistory
-    .find({ company: companyId, auxiliary: contract.user, startDate: { $gte: contract.startDate } })
+    .find({ company: companyId, auxiliary: contract.user, startDate: { $gte: moment(contract.startDate).toDate() } })
     .sort({ startDate: 1 })
-    .limit(1);
+    .limit(1)
+    .lean();
 
   return SectorHistory.updateOne(
     { _id: sectorHistory[0]._id },
