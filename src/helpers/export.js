@@ -532,7 +532,7 @@ const sectorExportHeader = [
 exports.exportSectors = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const sectorHistories = await SectorHistory
-    .find({ company: companyId })
+    .find({ company: companyId, startDate: { $exists: true } })
     .populate({ path: 'sector', select: '_id name' })
     .populate({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
     .lean();
