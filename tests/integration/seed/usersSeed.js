@@ -192,7 +192,7 @@ const userContract = {
 const userContractNotStarted = {
   _id: contractNotStartedId,
   user: usersSeedList[7]._id,
-  startDate: moment().add(1, 'm').toDate(),
+  startDate: moment().add(1, 'month').toDate(),
   createdAt: moment('2018-10-10').toDate(),
   company: company._id,
   status: 'contract_with_company',
