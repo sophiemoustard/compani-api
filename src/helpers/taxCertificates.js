@@ -77,6 +77,8 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   return pdf;
 };
 
+exports.remove = async taxCertificateId => TaxCertificate.deleteOne({ _id: taxCertificateId });
+
 exports.create = async (certificatePayload, credentials) => {
   const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: certificatePayload.driveFolderId,

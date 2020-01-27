@@ -48,8 +48,20 @@ const create = async (req) => {
   }
 };
 
+const remove = async (req) => {
+  try {
+    await TaxCertificateHelper.remove(req.params._id);
+
+    return { message: translate[language].taxCertificateDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   generateTaxCertificatePdf,
   list,
   create,
+  remove,
 };
