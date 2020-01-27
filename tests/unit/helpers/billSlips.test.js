@@ -254,6 +254,7 @@ describe('formatPdf', () => {
       bic: 'AGFBFRCC',
       rcs: '530514157',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
+      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     };
     const billSlip = {
       number: 'BORD-1234567890',
@@ -274,7 +275,7 @@ describe('formatPdf', () => {
           bic: company.bic,
           rcs: company.rcs,
           address: company.address.fullAddress,
-          logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+          logo: company.logo,
           email: 'support@alenvi.io',
           website: 'www.alenvi.io',
         },

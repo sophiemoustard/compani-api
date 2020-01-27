@@ -43,6 +43,12 @@ exports.plugin = {
             rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
+            legalRepresentative: Joi.object().keys({
+              lastname: Joi.string(),
+              firstname: Joi.string(),
+              position: Joi.string(),
+            }),
+            apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
@@ -147,6 +153,7 @@ exports.plugin = {
             ics: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
+            apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),

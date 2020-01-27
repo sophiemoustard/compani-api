@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const moment = require('moment');
 const autopopulate = require('mongoose-autopopulate');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
@@ -12,7 +11,7 @@ const SectorHistorySchema = mongoose.Schema({
   },
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-  startDate: { type: Date, default: moment().startOf('day').toDate() },
+  startDate: { type: Date },
   endDate: { type: Date },
 }, { timestamps: true });
 

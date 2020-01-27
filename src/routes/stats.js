@@ -6,8 +6,10 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomersAndDuration,
+  getPaidInterventionStats,
+  getCustomersAndDurationBySector,
   getAllCustomersFundingsMonitoring,
+  getIntenalAndBilledHoursBySector,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -55,19 +57,51 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration',
+      path: '/paid-intervention-stats',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
             sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
             auxiliary: Joi.objectId(),
-            month: Joi.string().required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomersAndDuration,
+      handler: getPaidInterventionStats,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/customer-duration/sector',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+          }),
+        },
+        pre: [{ method: authorizeGetStats }],
+      },
+      handler: getCustomersAndDurationBySector,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/internal-billed-hours',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+          }),
+        },
+        pre: [{ method: authorizeGetStats }],
+      },
+      handler: getIntenalAndBilledHoursBySector,
     });
   },
 };

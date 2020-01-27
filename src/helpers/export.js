@@ -18,6 +18,8 @@ const {
   COMPANY_CONTRACT,
   END_CONTRACT_REASONS,
   SURCHARGES,
+  PAYMENT_NATURE_LIST,
+  PAYMENT_TYPES_LIST,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Bill = require('../models/Bill');
@@ -28,6 +30,7 @@ const Role = require('../models/Role');
 const User = require('../models/User');
 const SectorHistory = require('../models/SectorHistory');
 const Pay = require('../models/Pay');
+const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const { nationalities } = require('../data/nationalities.js');
@@ -529,7 +532,7 @@ const sectorExportHeader = [
 exports.exportSectors = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const sectorHistories = await SectorHistory
-    .find({ company: companyId })
+    .find({ company: companyId, startDate: { $exists: true } })
     .populate({ path: 'sector', select: '_id name' })
     .populate({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
     .lean();
@@ -691,6 +694,57 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       UtilsHelper.formatFloatForExport(pay.otherFees),
       UtilsHelper.formatFloatForExport(pay.bonus),
       pay.compensation ? UtilsHelper.formatFloatForExport(pay.compensation) : '0,00',
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
+};
+
+const paymentExportHeader = [
+  'Nature',
+  'Identifiant',
+  'Date',
+  'Id Bénéficiaire',
+  'Titre',
+  'Nom',
+  'Prénom',
+  'Id tiers payeur',
+  'Tiers payeur',
+  'Moyen de paiement',
+  'Montant TTC en €',
+];
+
+exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
+  const query = {
+    date: { $lte: endDate, $gte: startDate },
+    company: get(credentials, 'company._id'),
+  };
+
+  const payments = await Payment.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'client' })
+    .lean();
+
+  const rows = [paymentExportHeader];
+
+  for (const payment of payments) {
+    const customerId = get(payment.customer, '_id');
+    const clientId = get(payment.client, '_id');
+    const cells = [
+      PAYMENT_NATURE_LIST[payment.nature],
+      payment.number || '',
+      moment(payment.date).format('DD/MM/YYYY'),
+      customerId ? customerId.toHexString() : '',
+      CIVILITY_LIST[get(payment, 'customer.identity.title')] || '',
+      get(payment, 'customer.identity.lastname', '').toUpperCase(),
+      get(payment, 'customer.identity.firstname', ''),
+      clientId ? clientId.toHexString() : '',
+      get(payment.client, 'name') || '',
+      PAYMENT_TYPES_LIST[payment.type] || '',
+      UtilsHelper.formatFloatForExport(payment.netInclTaxes),
     ];
 
     rows.push(cells);

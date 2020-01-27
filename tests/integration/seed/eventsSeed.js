@@ -11,6 +11,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 const { EVERY_WEEK, NEVER, COMPANY_CONTRACT, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
@@ -58,23 +59,43 @@ const sectors = [{
   company: otherCompany._id,
 }];
 
-const eventAuxiliary = {
-  _id: auxiliaryId,
-  identity: { firstname: 'Thibaut', lastname: 'Pinot' },
-  local: { email: 't@p.com', password: 'tourdefrance' },
-  administrative: { driveFolder: { driveId: '1234567890' } },
-  refreshToken: uuidv4(),
-  role: rolesList[1]._id,
-  contracts: [contracts[0]._id],
-  company: authCompany._id,
-};
+const auxiliaries = [
+  {
+    _id: auxiliaryId,
+    identity: { firstname: 'Thibaut', lastname: 'Pinot' },
+    local: { email: 't@p.com', password: 'tourdefrance' },
+    administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
+    refreshToken: uuidv4(),
+    role: rolesList[1]._id,
+    contracts: [contracts[0]._id],
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Marie', lastname: 'Pinot' },
+    local: { email: 'm@p.com', password: 'tourdefrance' },
+    administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
+    refreshToken: uuidv4(),
+    role: rolesList[1]._id,
+    contracts: [contracts[0]._id],
+    company: authCompany._id,
+  },
+];
 
-const sectorHistory = {
-  auxiliary: auxiliaryId,
-  sector: sectors[0]._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-};
+const sectorHistories = [
+  {
+    auxiliary: auxiliaryId,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
+  {
+    auxiliary: auxiliaries[1]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
+];
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
@@ -180,6 +201,9 @@ const helpersCustomer = {
   company: authCompany._id,
 };
 
+const internalHour = { _id: new ObjectID(), name: 'test', company: authCompany._id };
+const internalHourFromOtherCompany = { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id };
+
 const repetitionParentId = new ObjectID();
 const repetitions = [{
   _id: new ObjectID(),
@@ -197,7 +221,7 @@ const eventsList = [
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: {
@@ -215,7 +239,7 @@ const eventsList = [
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
@@ -227,7 +251,7 @@ const eventsList = [
     repetition: { frequency: NEVER },
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
@@ -248,7 +272,7 @@ const eventsList = [
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
@@ -268,7 +292,7 @@ const eventsList = [
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
@@ -301,7 +325,7 @@ const eventsList = [
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
@@ -328,7 +352,7 @@ const eventsList = [
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
     repetition: { frequency: NEVER },
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     createdAt: '2019-07-11T08:38:18.653Z',
   },
   {
@@ -339,7 +363,7 @@ const eventsList = [
     status: 'contract_with_company',
     startDate: '2019-10-17T14:30:19.543Z',
     endDate: '2019-10-17T16:30:19.543Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
@@ -365,7 +389,7 @@ const eventsList = [
     status: 'contract_with_company',
     startDate: '2019-10-15T14:30:19.543Z',
     endDate: '2019-10-15T16:30:19.543Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
@@ -391,7 +415,7 @@ const eventsList = [
     status: 'contract_with_company',
     startDate: '2019-10-16T14:30:19.543Z',
     endDate: '2019-10-16T16:30:19.543Z',
-    auxiliary: eventAuxiliary._id,
+    auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
     createdAt: '2019-01-16T14:30:19.543Z',
@@ -409,10 +433,112 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    auxiliary: auxiliaries[0]._id,
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2020-01-16T14:30:19.543Z',
+    endDate: '2020-01-16T16:30:19.543Z',
+    customer: customerAuxiliary._id,
+    repetition: { frequency: NEVER },
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliary.subscriptions[0]._id,
+    isBilled: false,
+    bills: {
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      street: '42 Rue de la Procession',
+      zipCode: '75015',
+      city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    auxiliary: auxiliaries[0]._id,
+    type: 'internalHour',
+    internalHour: internalHour._id,
+    startDate: '2020-01-16T17:00:19.543Z',
+    endDate: '2020-01-16T18:00:19.543Z',
+    createdAt: '2019-01-16T14:30:19.543Z',
+    address: {
+      fullAddress: '37 Rue de Ponthieu 75008 Paris',
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    auxiliary: auxiliaries[1]._id,
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2020-01-18T15:30:19.543Z',
+    endDate: '2020-01-18T16:30:19.543Z',
+    customer: customerAuxiliary._id,
+    repetition: { frequency: NEVER },
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliary.subscriptions[0]._id,
+    isBilled: false,
+    bills: {
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
+      street: '105 BOULEVARD MURAT',
+      zipCode: '75016',
+      city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    auxiliary: auxiliaries[1]._id,
+    type: 'internalHour',
+    internalHour: internalHour._id,
+    startDate: '2020-01-18T17:00:19.543Z',
+    endDate: '2020-01-18T20:00:19.543Z',
+    createdAt: '2019-01-16T14:30:19.543Z',
+    address: {
+      fullAddress: '37 Rue de Ponthieu 75008 Paris',
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
-const internalHour = { _id: new ObjectID(), name: 'test', company: authCompany._id };
-const internalHourFromOtherCompany = { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id };
+const distanceMatrixList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 5073,
+    duration: 3600,
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    origins: '105 BOULEVARD MURAT 75016 PARIS',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 13905,
+    duration: 2700,
+  },
+];
 
 const populateDB = async () => {
   await Event.deleteMany({});
@@ -426,14 +552,17 @@ const populateDB = async () => {
   await SectorHistory.deleteMany({});
   await Repetition.deleteMany({});
   await InternalHour.deleteMany({});
+  await DistanceMatrix.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
-  await SectorHistory.insertMany([sectorHistory, sectorHistoryFromOtherCompany]);
-  await (new User(eventAuxiliary)).save();
+  await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
+  await DistanceMatrix.insertMany(distanceMatrixList);
+  await (new User(auxiliaries[0])).save();
+  await (new User(auxiliaries[1])).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await (new Customer(customerAuxiliary)).save();
@@ -459,7 +588,7 @@ const getUserToken = async (userCredentials) => {
 module.exports = {
   eventsList,
   populateDB,
-  eventAuxiliary,
+  auxiliaries,
   customerAuxiliary,
   sectors,
   thirdPartyPayer,

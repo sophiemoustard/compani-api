@@ -6,7 +6,7 @@ const omit = require('lodash/omit');
 const {
   populateDB,
   eventsList,
-  eventAuxiliary,
+  auxiliaries,
   customerAuxiliary,
   sectors,
   thirdPartyPayer,
@@ -350,7 +350,7 @@ describe('EVENTS ROUTES', () => {
       it('should return working stats for an auxiliary', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
+          url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -361,7 +361,7 @@ describe('EVENTS ROUTES', () => {
       it('should return working stats for auxiliaries', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
+          url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -405,7 +405,79 @@ describe('EVENTS ROUTES', () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate}&endDate=${endDate}`,
+            url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /events/paid-transport', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return paid transport stats for a sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.paidTransportStatsBySector).toBeDefined();
+        expect(response.result.data.paidTransportStatsBySector[0].duration).toEqual(1);
+      });
+
+      it('should return paid transport stats for many sectors', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/paid-transport?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        const resultForFirstSector = response.result.data.paidTransportStatsBySector.find(res =>
+          res.sector.toHexString() === sectors[0]._id.toHexString());
+        expect(resultForFirstSector.duration).toEqual(1);
+
+        const resultForSecondSector = response.result.data.paidTransportStatsBySector.find(res =>
+          res.sector.toHexString() === sectors[1]._id.toHexString());
+        expect(resultForSecondSector.duration).toEqual(0.75);
+      });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/paid-transport?sector=${sectors[2]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -426,7 +498,7 @@ describe('EVENTS ROUTES', () => {
           type: INTERNAL_HOUR,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           internalHour: internalHour._id,
           address: {
             fullAddress: '4 rue du test 92160 Antony',
@@ -453,7 +525,7 @@ describe('EVENTS ROUTES', () => {
           type: INTERVENTION,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -507,7 +579,7 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should create an absence', async () => {
-        const auxiliary = eventAuxiliary;
+        const auxiliary = auxiliaries[0];
         const payload = {
           type: ABSENCE,
           startDate: '2019-01-23T10:00:00.000+01:00',
@@ -534,7 +606,7 @@ describe('EVENTS ROUTES', () => {
           type: UNAVAILABILITY,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id,
+          auxiliary: auxiliaries[0]._id,
         };
 
         const response = await app.inject({
@@ -553,7 +625,7 @@ describe('EVENTS ROUTES', () => {
           type: INTERVENTION,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -589,7 +661,7 @@ describe('EVENTS ROUTES', () => {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
-        auxiliary: eventAuxiliary._id.toHexString(),
+        auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
         status: 'contract_with_company',
@@ -639,7 +711,7 @@ describe('EVENTS ROUTES', () => {
         type: INTERNAL_HOUR,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
-        auxiliary: eventAuxiliary._id.toHexString(),
+        auxiliary: auxiliaries[0]._id.toHexString(),
         internalHour: internalHour._id,
       };
       const internalHourMissingParams = [
@@ -664,7 +736,7 @@ describe('EVENTS ROUTES', () => {
         type: ABSENCE,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
-        auxiliary: eventAuxiliary._id.toHexString(),
+        auxiliary: auxiliaries[0]._id.toHexString(),
         absence: ILLNESS,
         absenceNature: DAILY,
         attachment: { driveId: 'qwertyuiop', link: 'asdfghjkl;' },
@@ -693,7 +765,7 @@ describe('EVENTS ROUTES', () => {
         type: UNAVAILABILITY,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
-        auxiliary: eventAuxiliary._id.toHexString(),
+        auxiliary: auxiliaries[0]._id.toHexString(),
       };
       const unavailabilityMissingParams = [
         { payload: { ...omit(baseUnavailabilityPayload, 'startDate') }, reason: 'missing startDate' },
@@ -744,7 +816,7 @@ describe('EVENTS ROUTES', () => {
           type: INTERVENTION,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -772,7 +844,7 @@ describe('EVENTS ROUTES', () => {
           type: INTERVENTION,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -829,7 +901,7 @@ describe('EVENTS ROUTES', () => {
           internalHour: internalHourFromOtherCompany._id,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: eventAuxiliary._id.toHexString(),
+          auxiliary: auxiliaries[0]._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
           address: {
@@ -859,7 +931,7 @@ describe('EVENTS ROUTES', () => {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
-        auxiliary: eventAuxiliary._id.toHexString(),
+        auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
         status: 'contract_with_company',
@@ -879,7 +951,7 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: eventAuxiliary.local,
+          customCredentials: auxiliaries[0].local,
         },
         { name: 'coach', expectedCode: 200 },
       ];
@@ -1117,7 +1189,7 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: eventAuxiliary.local,
+          customCredentials: auxiliaries[0].local,
         },
         { name: 'coach', expectedCode: 200 },
       ];
@@ -1179,7 +1251,7 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: eventAuxiliary.local,
+          customCredentials: auxiliaries[0].local,
         },
         { name: 'coach', expectedCode: 200 },
       ];

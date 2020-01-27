@@ -86,9 +86,6 @@ const UserSchema = mongoose.Schema({
         iban: String,
         bic: String,
       },
-      cesu: [String],
-      invoices: [String],
-      fiscalAttests: [String],
     },
     idCardRecto: driveResourceSchemaDefinition,
     idCardVerso: driveResourceSchemaDefinition,
@@ -123,6 +120,7 @@ const UserSchema = mongoose.Schema({
     autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
     required: true,
   },
+  establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
 }, {
@@ -186,6 +184,13 @@ function setIsActive() {
   return isActive(this);
 }
 
+const serialNumber = (auxiliary) => {
+  const createdAt = moment(auxiliary.createdAt).format('YYMMDDHHmm');
+  const initials = `${auxiliary.identity.lastname.substring(0, 2)}${auxiliary.identity.firstname.charAt(0)}`;
+
+  return `${initials.toUpperCase()}${createdAt}`;
+};
+
 async function populateAfterSave(doc, next) {
   try {
     await doc
@@ -237,6 +242,7 @@ UserSchema.virtual('sectorHistories', {
   options: { sort: { startDate: -1 } },
 });
 
+UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);

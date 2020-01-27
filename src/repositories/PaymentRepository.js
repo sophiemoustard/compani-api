@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
-
+const moment = require('../extensions/moment');
 const Payment = require('../models/Payment');
+const { PAYMENT, REFUND, CESU } = require('../helpers/constants');
 
 exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
   const rules = [];
@@ -44,4 +45,51 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
   ]).option({ company: companyId });
 
   return paymentsAmounts;
+};
+
+exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
+  const startDate = moment(taxCertificate.year, 'YYYY').startOf('year').toDate();
+  const endDate = moment(taxCertificate.year, 'YYYY').endOf('year').toDate();
+  const { _id: customerId } = taxCertificate.customer;
+
+  const paidPrice = await Payment.aggregate([
+    {
+      $match: {
+        customer: customerId,
+        client: { $exists: false },
+        date: { $gte: startDate, $lte: endDate },
+      },
+    },
+    { $group: { _id: null, docs: { $push: '$$ROOT' } } },
+    {
+      $addFields: {
+        cesu: { $filter: { input: '$docs', as: 'doc', cond: { $eq: ['$$doc.type', CESU] } } },
+        payments: {
+          $filter: {
+            input: '$docs',
+            as: 'payment',
+            cond: { $and: [{ $eq: ['$$payment.nature', PAYMENT] }, { $ne: ['$$payment.type', CESU] }] },
+          },
+        },
+        refunds: { $filter: { input: '$docs', as: 'payment', cond: { $eq: ['$$payment.nature', REFUND] } } },
+      },
+    },
+    {
+      $addFields: {
+        payments: {
+          $reduce: { input: '$payments', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
+        },
+        refunds: { $reduce: { input: '$refunds', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } } },
+        cesu: { $reduce: { input: '$cesu', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } } },
+      },
+    },
+    {
+      $project: {
+        paid: { $subtract: ['$payments', '$refunds'] },
+        cesu: 1,
+      },
+    },
+  ]).option({ company: companyId });
+
+  return paidPrice[0];
 };

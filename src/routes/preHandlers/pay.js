@@ -13,8 +13,16 @@ exports.authorizePayCreation = async (req) => {
 
 exports.authorizeGetDetails = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const auxiliary = await User.findOne({ _id: req.query.auxiliary, company: companyId }).lean();
-  if (!auxiliary) throw Boom.forbidden();
+  if (req.query.auxiliary) {
+    const auxiliary = await User.findOne({ _id: req.query.auxiliary, company: companyId }).lean();
+    if (!auxiliary) throw Boom.forbidden();
+  }
+
+  if (req.query.sector) {
+    const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+    const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
+    if (sectorsCount !== sectors.length) throw Boom.forbidden();
+  }
   return null;
 };
 

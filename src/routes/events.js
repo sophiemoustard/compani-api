@@ -11,6 +11,7 @@ const {
   deleteList,
   listForCreditNotes,
   getWorkingStats,
+  getPaidTransportStatsBySector,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -147,6 +148,22 @@ exports.plugin = {
         },
         pre: [{ method: authorizeEventGet }],
       },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/paid-transport',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+          }),
+        },
+        pre: [{ method: authorizeEventGet }],
+      },
+      handler: getPaidTransportStatsBySector,
     });
 
     server.route({

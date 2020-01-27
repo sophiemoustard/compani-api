@@ -31,6 +31,7 @@ describe('COMPANIES ROUTES', () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
+          apeCode: '8110Z',
         };
         const response = await app.inject({
           method: 'PUT',
@@ -40,7 +41,7 @@ describe('COMPANIES ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.company.name).toEqual(payload.name);
+        expect(response.result.data.company).toMatchObject(payload);
       });
 
       it('should return 404 if no company found', async () => {
@@ -71,6 +72,25 @@ describe('COMPANIES ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(403);
+      });
+
+      const falsyAssertions = [
+        { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
+        { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
+        { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
+        { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
+      ];
+      falsyAssertions.forEach((assertion) => {
+        it(`should return a 400 error if ${assertion.case}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/companies/${authCompany._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload: assertion.payload,
+          });
+
+          expect(response.statusCode).toBe(400);
+        });
       });
     });
 

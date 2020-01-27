@@ -1,6 +1,7 @@
 const moment = require('moment');
 const Boom = require('boom');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const translate = require('../helpers/translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
@@ -151,11 +152,6 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   return creditNote;
 };
 
-const formatCustomerName = customer =>
-  (customer.identity.firstname
-    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
-
 const formatEventForPdf = event => ({
   identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
   date: moment(event.startDate).format('DD/MM'),
@@ -179,7 +175,9 @@ exports.formatPDF = (creditNote, company) => {
       address: creditNote.thirdPartyPayer
         ? get(creditNote, 'thirdPartyPayer.address', {})
         : get(creditNote, 'customer.contact.primaryAddress', {}),
-      name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
+      name: creditNote.thirdPartyPayer
+        ? creditNote.thirdPartyPayer.name
+        : UtilsHelper.formatIdentity(creditNote.customer.identity, 'TFL'),
     },
   };
 
@@ -213,8 +211,7 @@ exports.formatPDF = (creditNote, company) => {
         ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
-      company,
-      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
     },
   };
 };

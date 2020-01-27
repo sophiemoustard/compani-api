@@ -127,18 +127,16 @@ exports.createUser = async (userPayload, credentials) => {
   }
 
   const userId = mongoose.Types.ObjectId();
-  const companyId = get(credentials, 'company._id', null);
-  const creationPromises = [User.create({
-    ...payload,
-    _id: userId,
-    company: payload.company || companyId,
-    refreshToken: uuidv4(),
-  })];
-  if (sector) creationPromises.push(SectorHistoriesHelper.createHistory(userId, sector, companyId));
+  const companyId = payload.company || get(credentials, 'company._id', null);
 
-  const [user] = await Promise.all(creationPromises);
+  await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
+  if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
+  const user = await User
+    .findOne({ _id: userId })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean({ virtuals: true, autopopulate: true });
+
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-
   return {
     ...pickBy(user),
     role: { name: user.role.name, rights: [...populatedRights] },
@@ -156,7 +154,9 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     options.runValidators = true;
   }
 
-  if (userPayload.sector) await SectorHistoriesHelper.createHistory(userId, userPayload.sector, companyId);
+  if (userPayload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  }
 
   const updatedUser = await User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
