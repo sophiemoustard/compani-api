@@ -1,14 +1,15 @@
 const expect = require('expect');
-const omit = require('lodash/omit');
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
-const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Repetition = require('../../../src/models/Repetition');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const EventHelper = require('../../../src/helpers/events');
+const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
@@ -1732,5 +1733,154 @@ describe('workingStats', () => {
     sinon.assert.notCalled(getPayFromAbsencesStub);
     UserModel.verify();
     DistanceMatrixModel.verify();
+  });
+});
+
+describe('getPaidTransportStatsBySector', () => {
+  let getDistanceMatrixStub;
+  let getPaidTransportStatsBySectorStub;
+  let getPaidTransportInfoStub;
+
+  beforeEach(() => {
+    getDistanceMatrixStub = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
+    getPaidTransportStatsBySectorStub = sinon.stub(EventRepository, 'getPaidTransportStatsBySector');
+    getPaidTransportInfoStub = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
+  });
+  afterEach(() => {
+    getDistanceMatrixStub.restore();
+    getPaidTransportStatsBySectorStub.restore();
+    getPaidTransportInfoStub.restore();
+  });
+
+  it('should return an empty array if there is no event', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    getDistanceMatrixStub.returns([{ duration: 10 }]);
+    getPaidTransportStatsBySectorStub.returns([]);
+
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+  });
+
+  it('should return paid transport stats', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const distanceMatrix = [{ duration: 3600 }];
+    const events = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const paidTransportStatsBySector = [{
+      _id: query.sector,
+      auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
+    }];
+
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+    getPaidTransportInfoStub.returns({ duration: 60 });
+
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
+
+    expect(result).toEqual([{ sector: query.sector, duration: 1 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(getPaidTransportInfoStub, events[1], events[0], distanceMatrix);
+  });
+
+  it('should return paid transport stats for many sectors', async () => {
+    const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const distanceMatrix = [{ duration: 3600 }, { duration: 5400 }];
+    const eventsFirstSector = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const eventsSecondSector = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+      { startDate: '2020-01-02T17:30', endDate: '2020-01-02T18:30' },
+    ];
+    const paidTransportStatsBySector = [
+      {
+        _id: query.sector[0],
+        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsFirstSector }] }],
+      },
+      {
+        _id: query.sector[1],
+        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsSecondSector }] }],
+      },
+    ];
+
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+    getPaidTransportInfoStub.onCall(0).returns({ duration: 60 });
+    getPaidTransportInfoStub.onCall(1).returns({ duration: 90 });
+
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
+
+    expect(result).toEqual([{ sector: query.sector[0], duration: 1 }, { sector: query.sector[1], duration: 1.5 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      query.sector,
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      getPaidTransportInfoStub.getCall(0),
+      eventsFirstSector[1],
+      eventsFirstSector[0],
+      distanceMatrix
+    );
+    sinon.assert.calledWithExactly(
+      getPaidTransportInfoStub.getCall(1),
+      eventsSecondSector[1],
+      eventsSecondSector[0],
+      distanceMatrix
+    );
+  });
+
+  it('should not call getPaidTransportInfo if only one event for one day', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const distanceMatrix = [{ duration: 3600 }];
+    const events = [
+      { startDate: '2020-01-02T15:30', endDate: '2020-01-02T16:30' },
+    ];
+    const paidTransportStatsBySector = [{
+      _id: query.sector,
+      auxiliaries: [{
+        auxiliary: new ObjectID(),
+        days: [{
+          day: '2020-01-02',
+          events,
+        }],
+      }],
+    }];
+
+    getDistanceMatrixStub.returns(distanceMatrix);
+    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+
+    const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
+
+    expect(result).toEqual([{ sector: query.sector, duration: 0 }]);
+    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(
+      getPaidTransportStatsBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.notCalled(getPaidTransportInfoStub);
   });
 });

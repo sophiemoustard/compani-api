@@ -6,9 +6,7 @@ const { ObjectID } = require('mongodb');
 const PayDocument = require('../../../src/models/PayDocument');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
-const translate = require('../../../src/helpers/translate');
 
-const { language } = translate;
 
 describe('create', () => {
   let addFileStub;

@@ -107,9 +107,8 @@ exports.formatPdf = (billSlip, billList, company) => {
       ...pick(billSlip, ['number', 'thirdPartyPayer']),
       date: moment().format('DD/MM/YYYY'),
       company: {
-        ...pick(company, ['iban', 'bic', 'rcs']),
+        ...pick(company, ['iban', 'bic', 'rcs', 'logo']),
         address: get(company, 'address.fullAddress') || '',
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
         email: 'support@alenvi.io',
         website: 'www.alenvi.io',
       },

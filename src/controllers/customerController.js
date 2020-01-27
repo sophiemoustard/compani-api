@@ -52,7 +52,7 @@ const listWithSubscriptions = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    const customers = await CustomerHelper.getCustomerBySector(req.query, req.auth.credentials);
+    const customers = await CustomerHelper.getCustomersBySector(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,

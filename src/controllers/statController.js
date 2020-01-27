@@ -10,18 +10,11 @@ const messages = translate[translate.language];
 exports.getCustomerFollowUp = async (req) => {
   try {
     let followUp = await getCustomerFollowUp(req.query.customer, req.auth.credentials);
-    if (followUp.length === 0) {
-      return {
-        message: messages.statsNotFound,
-        data: { stats: [] },
-      };
-    }
-
     followUp = followUp.filter(user => User.isActive(user));
 
     return {
-      message: messages.statsFound,
-      data: { stats: followUp },
+      message: followUp.length === 0 ? messages.statsNotFound : messages.statsFound,
+      data: { followUp },
     };
   } catch (e) {
     req.log('error', e);
@@ -59,13 +52,41 @@ exports.getAllCustomersFundingsMonitoring = async (req) => {
   }
 };
 
-exports.getCustomersAndDuration = async (req) => {
+exports.getPaidInterventionStats = async (req) => {
   try {
-    const customerAndDuration = await StatsHelper.getCustomersAndDuration(req.query, req.auth.credentials);
+    const paidInterventionStats = await StatsHelper.getPaidInterventionStats(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,
-      data: { customerAndDuration },
+      data: { paidInterventionStats },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.getCustomersAndDurationBySector = async (req) => {
+  try {
+    const customersAndDuration = await StatsHelper.getCustomersAndDurationBySector(req.query, req.auth.credentials);
+
+    return {
+      message: messages.statsFound,
+      data: { customersAndDuration },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.getIntenalAndBilledHoursBySector = async (req) => {
+  try {
+    const internalAndBilledHours = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
+
+    return {
+      message: messages.statsFound,
+      data: { internalAndBilledHours },
     };
   } catch (e) {
     req.log('error', e);

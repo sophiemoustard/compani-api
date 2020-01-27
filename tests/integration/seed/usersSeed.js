@@ -1,12 +1,14 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
-const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
+const Contract = require('../../../src/models/Contract');
+const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -67,6 +69,8 @@ const userFromOtherCompany = {
   customers: [customerFromOtherCompany._id],
 };
 
+const contractId = new ObjectID();
+
 const usersSeedList = [
   {
     _id: new ObjectID(),
@@ -81,6 +85,7 @@ const usersSeedList = [
     },
     procedure: [{ task: task._id }],
     inactivityDate: null,
+    contracts: [{ _id: contractId }],
   },
   {
     _id: new ObjectID(),
@@ -158,6 +163,15 @@ const userPayload = {
   sector: userSectors[0]._id,
 };
 
+const userContract = {
+  _id: contractId,
+  user: usersSeedList[0]._id,
+  startDate: moment('2018-10-10').toDate(),
+  createdAt: moment('2018-10-10').toDate(),
+  company: company._id,
+  status: 'contract_with_company',
+};
+
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
   .map(user => ({
@@ -177,12 +191,14 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
+  await Contract.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat(userFromOtherCompany));
   await Customer.create(customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
+  await Contract.create(userContract);
   await new Company(company).save();
   await new Task(task).save();
 };

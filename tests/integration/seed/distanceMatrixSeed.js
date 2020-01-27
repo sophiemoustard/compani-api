@@ -6,8 +6,8 @@ const distanceMatrixList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    origin: '42 Rue de la Procession 75015 Paris',
-    destination: '37 Rue de Ponthieu 75008 Paris',
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
     mode: 'transit',
     distance: 5073,
     duration: 1560,
@@ -15,8 +15,8 @@ const distanceMatrixList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    origin: '105 BOULEVARD MURAT 75016 PARIS',
-    destination: '122 Rue Edouard Vaillant, 92300 Levallois-Perret',
+    origins: '105 BOULEVARD MURAT 75016 PARIS',
+    destinations: '122 Rue Edouard Vaillant, 92300 Levallois-Perret',
     mode: 'transit',
     distance: 13905,
     duration: 3488,
@@ -24,8 +24,8 @@ const distanceMatrixList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    origin: '53 BIS RUE DE BOULAINVILLIERS 75016 PARIS',
-    destination: '105 BOULEVARD MURAT 75016 PARIS',
+    origins: '53 BIS RUE DE BOULAINVILLIERS 75016 PARIS',
+    destinations: '105 BOULEVARD MURAT 75016 PARIS',
     mode: 'driving',
     distance: 3303,
     duration: 1132,

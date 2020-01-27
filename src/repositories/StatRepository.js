@@ -9,6 +9,7 @@ const {
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
   INTERVENTION,
+  INTERNAL_HOUR,
 } = require('../helpers/constants');
 
 const getVersionMatch = fundingsDate => ({
@@ -287,7 +288,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
-  return SectorHistory.aggregate([
+  const sectorsCustomers = [
     {
       $match: {
         sector: { $in: sectors },
@@ -297,12 +298,110 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
     {
       $lookup: {
-        from: 'users',
-        as: 'auxiliary',
-        localField: 'auxiliary',
-        foreignField: '_id',
+        from: 'customers',
+        as: 'customer',
+        let: { referentId: '$auxiliary' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$referent', '$$referentId'] }] } } },
+          { $project: { _id: 1 } },
+        ],
       },
     },
+    { $unwind: { path: '$customer' } },
+    {
+      $addFields: {
+        'customer.sector._id': '$sector',
+        'customer.sector.startDate': '$startDate',
+        'customer.sector.endDate': '$endDate',
+      },
+    },
+    { $replaceRoot: { newRoot: '$customer' } },
+  ];
+
+  const customersEvents = [
+    {
+      $lookup: {
+        from: 'events',
+        as: 'event',
+        let: {
+          customerId: '$_id',
+          startDate: { $max: ['$sector.startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+        },
+        pipeline: [
+          {
+            $match: {
+              $or: [
+                { isCancelled: false },
+                { 'cancel.condition': { $in: [INVOICED_AND_NOT_PAID, INVOICED_AND_PAID] } },
+              ],
+              $expr: {
+                $and: [
+                  { $eq: ['$customer', '$$customerId'] },
+                  { $gt: ['$endDate', '$$startDate'] },
+                  { $lt: ['$startDate', '$$endDate'] },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: { path: '$event' } },
+  ];
+
+  const group = [
+    {
+      $addFields: {
+        duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
+      },
+    },
+    {
+      $group: {
+        _id: { sector: '$sector._id', customer: '$event.customer' },
+        duration: { $sum: '$duration' },
+        auxiliaries: { $addToSet: '$event.auxiliary' },
+      },
+    },
+    { $addFields: { auxiliaryCount: { $size: '$auxiliaries' } } },
+    {
+      $group: {
+        _id: '$_id.sector',
+        duration: { $sum: '$duration' },
+        customerCount: { $sum: 1 },
+        auxiliaryCount: { $sum: '$auxiliaryCount' },
+      },
+    },
+    {
+      $project: {
+        sector: '$_id',
+        averageDuration: { $divide: ['$duration', '$customerCount'] },
+        customerCount: 1,
+        auxiliaryTurnOver: { $divide: ['$auxiliaryCount', '$customerCount'] },
+      },
+    },
+  ];
+
+  return SectorHistory.aggregate([
+    ...sectorsCustomers,
+    ...customersEvents,
+    ...group,
+  ]).option({ company: companyId });
+};
+
+exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
+  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+
+  return SectorHistory.aggregate([
+    {
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $lt: maxStartDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+      },
+    },
+    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
     { $unwind: { path: '$auxiliary' } },
     {
       $addFields: {
@@ -330,7 +429,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  { $eq: ['$type', INTERVENTION] },
+                  { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
                   {
                     $or: [
                       { $eq: ['$isCancelled', false] },
@@ -348,27 +447,27 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     { $unwind: { path: '$event' } },
     {
       $addFields: {
-        duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
+        'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
       },
     },
     {
-      $group: {
-        _id: { sector: '$sector._id', customer: '$event.customer' },
-        duration: { $sum: '$duration' },
-      },
+      $group: { _id: '$sector._id', events: { $push: '$event' } },
     },
     {
-      $group: {
-        _id: '$_id.sector',
-        duration: { $sum: '$duration' },
-        customerCount: { $sum: 1 },
+      $addFields: {
+        internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
+        interventions: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERVENTION] } } },
       },
     },
     {
       $project: {
         sector: '$_id',
-        duration: 1,
-        customerCount: 1,
+        internalHours: {
+          $reduce: { input: '$internalHours', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
+        interventions: {
+          $reduce: { input: '$interventions', initialValue: 0, in: { $add: ['$$value', '$$this.duration'] } },
+        },
       },
     },
   ]).option({ company: companyId });

@@ -10,9 +10,6 @@ const {
   REFUND,
   PAYMENT,
   DIRECT_DEBIT,
-  PAYMENT_TYPES_LIST,
-  PAYMENT_NATURE_LIST,
-  CIVILITY_LIST,
 } = require('./constants');
 const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
@@ -164,55 +161,4 @@ exports.savePayments = async (payload, credentials) => {
     { $set: { seq: refundNumber.seq } }
   );
   return exports.generateXML(firstPayments, recurPayments, company);
-};
-
-const paymentExportHeader = [
-  'Nature',
-  'Identifiant',
-  'Date',
-  'Id Bénéficiaire',
-  'Titre',
-  'Nom',
-  'Prénom',
-  'Id tiers payeur',
-  'Tiers payeur',
-  'Moyen de paiement',
-  'Montant TTC en €',
-];
-
-exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
-  const query = {
-    date: { $lte: endDate, $gte: startDate },
-    company: get(credentials, 'company._id'),
-  };
-
-  const payments = await Payment.find(query)
-    .sort({ date: 'desc' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
-    .lean();
-
-  const rows = [paymentExportHeader];
-
-  for (const payment of payments) {
-    const customerId = get(payment.customer, '_id');
-    const clientId = get(payment.client, '_id');
-    const cells = [
-      PAYMENT_NATURE_LIST[payment.nature],
-      payment.number || '',
-      moment(payment.date).format('DD/MM/YYYY'),
-      customerId ? customerId.toHexString() : '',
-      CIVILITY_LIST[get(payment, 'customer.identity.title')] || '',
-      get(payment, 'customer.identity.lastname', '').toUpperCase(),
-      get(payment, 'customer.identity.firstname', ''),
-      clientId ? clientId.toHexString() : '',
-      get(payment.client, 'name') || '',
-      PAYMENT_TYPES_LIST[payment.type] || '',
-      UtilsHelper.formatFloatForExport(payment.netInclTaxes),
-    ];
-
-    rows.push(cells);
-  }
-
-  return rows;
 };

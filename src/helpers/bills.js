@@ -191,10 +191,6 @@ exports.getBills = async (query, credentials) => {
   return Bill.find(billsQuery).populate({ path: 'client', select: '_id name' }).lean();
 };
 
-const formatCustomerName = customer => (customer.identity.firstname
-  ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-  : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
-
 exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.client) return subscription.unitInclTaxes;
 
@@ -265,7 +261,7 @@ exports.formatPDF = (bill, company) => {
     formattedEvents: [],
     recipient: {
       address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.primaryAddress', {}),
-      name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
+      name: bill.client ? bill.client.name : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
     forTpp: !!bill.client,
     ...exports.formatBillSubscriptionsForPdf(bill),
@@ -284,8 +280,7 @@ exports.formatPDF = (bill, company) => {
         contact: get(bill, 'customer.contact'),
       },
       ...computedData,
-      company,
-      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
     },
   };
 };

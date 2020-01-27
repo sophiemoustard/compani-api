@@ -11,6 +11,7 @@ const User = require('../../../src/models/User');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Role = require('../../../src/models/Role');
 const Pay = require('../../../src/models/Pay');
+const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/export');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -1122,7 +1123,7 @@ describe('exportSectors', () => {
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
+      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id name' })
       .chain('populate')
@@ -1164,7 +1165,7 @@ describe('exportSectors', () => {
       endDate: '2019-12-10',
     }];
     SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
+      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id name' })
       .chain('populate')
@@ -1721,5 +1722,123 @@ describe('exportPayAndFinalPayHistory', () => {
     sinon.assert.callCount(formatFloatForExportStub, 61);
     PayMock.verify();
     FinalPayMock.verify();
+  });
+});
+
+describe('exportPaymentsHistory', () => {
+  const header = [
+    'Nature',
+    'Identifiant',
+    'Date',
+    'Id Bénéficiaire',
+    'Titre',
+    'Nom',
+    'Prénom',
+    'Id tiers payeur',
+    'Tiers payeur',
+    'Moyen de paiement',
+    'Montant TTC en €',
+  ];
+  const paymentsList = [
+    {
+      number: 'REG-101051900562',
+      type: 'bank_transfer',
+      nature: 'payment',
+      date: '2019-05-20T06:00:00.000+00:00',
+      customer: {
+        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
+        identity: {
+          title: 'mrs',
+          firstname: 'Mimi',
+          lastname: 'Mathy',
+        },
+      },
+      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      netInclTaxes: 389276.023,
+    }, {
+      number: 'REG-101051900342',
+      type: 'direct_debit',
+      nature: 'refund',
+      date: '2019-05-22T06:00:00.000+00:00',
+      customer: {
+        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
+        identity: {
+          title: 'mr',
+          firstname: 'Bojack',
+          lastname: 'Horseman',
+        },
+      },
+      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      netInclTaxes: 1002.4,
+    },
+  ];
+  let mockPayment;
+
+  beforeEach(() => {
+    mockPayment = sinon.mock(Payment);
+  });
+
+  afterEach(() => {
+    mockPayment.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    mockPayment.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity' })
+      .chain('populate')
+      .withExactArgs({ path: 'client' })
+      .chain('lean')
+      .once()
+      .returns([]);
+    const credentials = { company: new ObjectID() };
+    const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
+
+    expect(exportArray).toEqual([header]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    mockPayment.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity' })
+      .chain('populate')
+      .withExactArgs({ path: 'client' })
+      .chain('lean')
+      .once()
+      .returns(paymentsList);
+    const credentials = { company: new ObjectID() };
+    const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      [
+        'Paiement',
+        'REG-101051900562',
+        '20/05/2019',
+        '5c35b5eb1a4fb00997363eb3',
+        'Mme',
+        'MATHY',
+        'Mimi',
+        '5c35b5eb7e0fb87297363eb2',
+        'TF1',
+        'Virement',
+        '389276,02',
+      ],
+      [
+        'Remboursement',
+        'REG-101051900342',
+        '22/05/2019',
+        '5c35b5eb1a6fb02397363eb1',
+        'M.',
+        'HORSEMAN',
+        'Bojack',
+        '5c35b5eb1a6fb87297363eb2',
+        'The Sherif',
+        'Prélèvement',
+        '1002,40',
+      ],
+    ]);
   });
 });
