@@ -3,12 +3,12 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { generateTaxCertificatePdf, list, create } = require('../controllers/taxCertificateController');
+const { generateTaxCertificatePdf, list, create, remove } = require('../controllers/taxCertificateController');
 const {
   getTaxCertificate,
   authorizeGetTaxCertificatePdf,
-  authorizeGetTaxCertificates,
-  authorizeCreateTaxCertificates,
+  authorizeTaxCertificatesRead,
+  authorizeTaxCertificateCreation,
 } = require('./preHandlers/taxCertificates');
 const { YEAR_VALIDATION } = require('../models/TaxCertificate');
 
@@ -26,7 +26,7 @@ exports.plugin = {
         },
         auth: { scope: ['taxcertificates:read', 'customer-{query.customer}'] },
         pre: [
-          { method: authorizeGetTaxCertificates },
+          { method: authorizeTaxCertificatesRead },
         ],
       },
       handler: list,
@@ -71,9 +71,24 @@ exports.plugin = {
             customer: Joi.objectId().required(),
           }),
         },
-        pre: [{ method: authorizeCreateTaxCertificates }],
+        pre: [{ method: authorizeTaxCertificateCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['taxcertificates:edit'] },
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+          }),
+        },
+        pre: [{ method: getTaxCertificate }],
+      },
+      handler: remove,
     });
   },
 };

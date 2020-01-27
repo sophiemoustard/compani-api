@@ -273,7 +273,7 @@ describe('create', () => {
 
   afterEach(() => {
     addFileStub.restore();
-    TaxCertificateMock.verify();
+    TaxCertificateMock.restore();
   });
 
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
@@ -291,6 +291,7 @@ describe('create', () => {
         type: 'application/pdf',
         body: 'stream',
       });
+      TaxCertificateMock.verify();
     }
   });
 
@@ -311,5 +312,23 @@ describe('create', () => {
       type: 'application/pdf',
       body: 'stream',
     });
+    TaxCertificateMock.verify();
+  });
+});
+
+describe('create', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(TaxCertificate, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete tax certificate', async () => {
+    const taxCertificateId = new ObjectID();
+    await TaxCertificateHelper.remove(taxCertificateId);
+
+    sinon.assert.calledWithExactly(deleteOne, { _id: taxCertificateId });
   });
 });
