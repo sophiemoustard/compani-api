@@ -37,19 +37,16 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 };
 
 exports.createHistoryOnContractCreation = async (user, newContract, companyId) => {
-  const contractsCount = await Contract.countDocuments({
-    user: user._id,
-    status: COMPANY_CONTRACT,
-    company: companyId,
-  }).lean();
-  if (contractsCount > 1) {
-    return exports.createHistory(user, companyId, moment(newContract.startDate).startOf('day').toDate());
+  const startDate = moment(newContract.startDate).startOf('day').toDate();
+  const existingHistory = await SectorHistory
+    .findOne({ startDate: { $exists: false }, auxiliary: user._id })
+    .lean();
+
+  if (existingHistory) {
+    return SectorHistory.updateOne({ _id: existingHistory._id }, { $set: { startDate, sector: user.sector } });
   }
 
-  return SectorHistory.updateOne(
-    { auxiliary: user._id, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-    { $set: { startDate: moment(newContract.startDate).startOf('day').toDate() } }
-  );
+  return exports.createHistory(user, companyId, startDate);
 };
 
 exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, companyId) => {

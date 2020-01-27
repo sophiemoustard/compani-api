@@ -202,63 +202,57 @@ describe('createHistoryOnContractCreation', () => {
   const newContract = { startDate: moment('2020-01-30') };
   const companyId = new ObjectID();
 
-  let ContractMock;
   let SectorHistoryMock;
   let createHistoryStub;
 
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
     SectorHistoryMock = sinon.mock(SectorHistory);
     createHistoryStub = sinon.stub(SectorHistoryHelper, 'createHistory');
   });
 
   afterEach(() => {
-    ContractMock.verify();
-    SectorHistoryMock.verify();
+    SectorHistoryMock.restore();
     createHistoryStub.restore();
   });
 
-  it('should update sector history if it is auxiliary first contract', async () => {
-    ContractMock
-      .expects('countDocuments')
-      .withExactArgs({ user: auxiliaryId, status: COMPANY_CONTRACT, company: companyId })
-      .chain('lean')
-      .returns(1);
-
-    SectorHistoryMock
-      .expects('updateOne')
-      .withExactArgs(
-        { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { startDate: moment(newContract.startDate).startOf('day').toDate() } }
-      )
-      .returns({ sector });
-
+  it('should update sector history if exists without startDate', async () => {
     const user = { _id: auxiliaryId, sector };
-    const result = await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
+    const existingHistory = { _id: new ObjectID(), sector };
+    SectorHistoryMock.expects('findOne')
+      .withExactArgs({ startDate: { $exists: false }, auxiliary: auxiliaryId })
+      .chain('lean')
+      .once()
+      .returns(existingHistory);
+    SectorHistoryMock.expects('updateOne')
+      .withExactArgs(
+        { _id: existingHistory._id },
+        { $set: { startDate: moment(newContract.startDate).startOf('day').toDate(), sector: user.sector } }
+      );
 
-    expect(result).toEqual({ sector });
+    await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
+
     sinon.assert.notCalled(createHistoryStub);
+    SectorHistoryMock.verify();
   });
 
-  it('should create sector history if auxiliary already had contracts', async () => {
-    ContractMock
-      .expects('countDocuments')
-      .withExactArgs({ user: auxiliaryId, status: COMPANY_CONTRACT, company: companyId })
-      .chain('lean')
-      .returns(2);
-
-    createHistoryStub.returns({ sector });
-
+  it('should create sector history if does not exist without start date', async () => {
     const user = { _id: auxiliaryId, sector };
-    const result = await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
+    SectorHistoryMock.expects('findOne')
+      .withExactArgs({ startDate: { $exists: false }, auxiliary: auxiliaryId })
+      .chain('lean')
+      .once()
+      .returns(null);
+    SectorHistoryMock.expects('updateOne').never();
 
-    expect(result).toEqual({ sector });
+    await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
+
     sinon.assert.calledWithExactly(
       createHistoryStub,
       { _id: auxiliaryId, sector },
       companyId,
       moment(newContract.startDate).startOf('day').toDate()
     );
+    SectorHistoryMock.verify();
   });
 });
 
