@@ -79,6 +79,7 @@ const CreditNoteSchema = mongoose.Schema(
     origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
     driveFile: driveResourceSchemaDefinition,
     company: { type: mongoose.Schema.Types.ObjectId, required: true },
+    isEditable: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

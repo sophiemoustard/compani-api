@@ -190,6 +190,38 @@ const creditNotesList = [
     origin: 'ogust',
     company: authCompany._id,
   },
+  {
+    _id: new ObjectID(),
+    date: '2020-01-01',
+    startDate: '2020-01-01',
+    endDate: '2020-01-12',
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    events: [{
+      eventId: creditNoteEvent._id,
+      auxiliary: creditNoteEvent.auxiliary,
+      startDate: creditNoteEvent.startDate,
+      endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
+    }],
+    subscription: {
+      _id: creditNoteCustomer.subscriptions[0]._id,
+      service: {
+        serviceId: creditNoteService._id,
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
+    isEditable: false,
+    origin: 'ogust',
+    company: authCompany._id,
+  },
 ];
 
 const otherCompany = {
