@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
-const { encode } = require('./authentication');
+const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 
@@ -29,8 +29,8 @@ exports.authenticate = async (payload) => {
   const correctPassword = await bcrypt.compare(payload.password, user.local.password);
   if (!correctPassword) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id, role: user.role.name });
-  const token = encode(tokenPayload, TOKEN_EXPIRE_TIME);
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
@@ -39,8 +39,8 @@ exports.refreshToken = async (payload) => {
   const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
   if (!user) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id, role: user.role.name });
-  const token = encode(tokenPayload, TOKEN_EXPIRE_TIME);
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
