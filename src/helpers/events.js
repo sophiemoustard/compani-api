@@ -496,3 +496,12 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
   }
   return result;
 };
+
+exports.getUnassignedHoursBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = Array.isArray(query.sector)
+    ? query.sector.map(id => new ObjectID(id))
+    : [new ObjectID(query.sector)];
+
+  return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
+};

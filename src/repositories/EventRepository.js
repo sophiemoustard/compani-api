@@ -897,3 +897,22 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
     { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
   ]).option({ company: companyId });
 };
+
+exports.getUnassignedHoursBySector = async (sectors, month, companyId) => {
+  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxEndDate = moment(month, 'MMYYYY').endOf('month').toDate();
+
+  return Event.aggregate([
+    {
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $gte: minStartDate, $lte: maxEndDate },
+        auxiliary: { $exists: false },
+        isCancelled: false,
+      },
+    },
+    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 60 * 60 * 1000] } } },
+    { $group: { _id: { sector: '$sector' }, duration: { $sum: '$duration' } } },
+    { $project: { sector: '$_id.sector', duration: 1, _id: 0 } },
+  ]).option({ company: companyId });
+};
