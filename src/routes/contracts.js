@@ -9,7 +9,6 @@ const {
   list,
   create,
   update,
-  remove,
   createContractVersion,
   updateContractVersion,
   removeContractVersion,
@@ -113,22 +112,6 @@ exports.plugin = {
         ],
       },
       handler: update,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}',
-      options: {
-        auth: { scope: ['contracts:edit'] },
-        validate: {
-          params: { _id: Joi.objectId().required() },
-        },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
-      },
-      handler: remove,
     });
 
     server.route({

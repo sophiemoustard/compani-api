@@ -87,6 +87,7 @@ exports.createContract = async (contractPayload, credentials) => {
   if (newContract.customer) {
     await Customer.updateOne({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
   }
+
   if (user.sector) {
     await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
   }

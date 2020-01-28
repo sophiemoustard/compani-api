@@ -78,6 +78,11 @@ describe('USERS ROUTES', () => {
         expect(user).toHaveProperty('picture');
         expect(user.procedure).toBeDefined();
         expect(user.procedure.length).toBeGreaterThan(0);
+
+        const userSectorHistory = await SectorHistory
+          .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
+          .lean();
+        expect(userSectorHistory).toBeDefined();
       });
 
       it('should not create a user if role provided does not exist', async () => {
@@ -670,6 +675,49 @@ describe('USERS ROUTES', () => {
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).not.toBeDefined();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
+      });
+
+      it('should not create sectorhistory if it is same sector', async () => {
+        const userId = usersSeedList[0]._id.toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: { sector: userSectors[0]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[0]._id);
+      });
+
+      it('should not update sectorHistory if auxiliary does not have contract', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[1]._id}`,
+          payload: { sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: usersSeedList[1]._id, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[1]._id);
+      });
+
+      it('should not update sectorHistory if auxiliary contract has not started yet', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[7]._id}`,
+          payload: { sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[1]._id);
       });
 
       it('should return a 404 error if no user found', async () => {
