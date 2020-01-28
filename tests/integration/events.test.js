@@ -450,7 +450,6 @@ describe('EVENTS ROUTES', () => {
         const resultForSecondSector = response.result.data.paidTransportStatsBySector.find(res =>
           res.sector.toHexString() === sectors[1]._id.toHexString());
         expect(resultForSecondSector.duration).toEqual(0.75);
-
       });
 
       it('should return a 403 if sector is not from the same company', async () => {
@@ -461,6 +460,36 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 400 if missing sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/paid-transport?month=01-2020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if missing month', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/paid-transport?sector=${sectors[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if month does not correspond to regex', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/paid-transport?month=012020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
       });
     });
 
@@ -543,6 +572,36 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 400 if missing sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/unassigned-hours?month=01-2020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if missing month', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if month does not correspond to regex', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/unassigned-hours?month=012020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
       });
     });
 

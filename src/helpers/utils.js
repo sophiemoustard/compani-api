@@ -1,6 +1,7 @@
 const moment = require('moment-timezone');
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
+const { ObjectID } = require('mongodb');
 const Intl = require('intl');
 const { CIVILITY_LIST } = require('./constants');
 
@@ -149,3 +150,8 @@ exports.formatIdentity = (identity, format) => {
 
   return values.join(' ');
 };
+
+exports.formatObjectIdsArray = ids =>
+  (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
+
+exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);

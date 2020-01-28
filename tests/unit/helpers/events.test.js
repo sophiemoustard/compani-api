@@ -1916,16 +1916,13 @@ describe('getUnassignedHoursBySector', () => {
     const query = { sector: new ObjectID(), month: '01-2020' };
     const credentials = { company: { _id: new ObjectID() } };
 
-    const paidTransportStatsBySector = [{
-      sector: query.sector,
-      duration: 12,
-    }];
+    const unassignedhours = [{ sector: query.sector, duration: 12 }];
 
-    getUnassignedHoursBySectorStub.returns(paidTransportStatsBySector);
+    getUnassignedHoursBySectorStub.returns(unassignedhours);
 
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
-    expect(result).toEqual([{ sector: query.sector, duration: 12 }]);
+    expect(result).toEqual(unassignedhours);
     sinon.assert.calledWithExactly(
       getUnassignedHoursBySectorStub,
       [query.sector],
@@ -1934,7 +1931,7 @@ describe('getUnassignedHoursBySector', () => {
     );
   });
 
-  it('should return paid transport stats for many sectors', async () => {
+  it('should return unassigned hours for many sectors', async () => {
     const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
     const credentials = { company: { _id: new ObjectID() } };
 

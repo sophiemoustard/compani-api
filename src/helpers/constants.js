@@ -1,5 +1,6 @@
 module.exports = {
   SENDER_MAIL: 'nepasrepondre@compani.fr',
+  MONTH_VALIDATION: /^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/,
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',

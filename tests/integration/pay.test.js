@@ -250,6 +250,36 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 400 if missing both sector and auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/hours-balance-details?&month=10-2019',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if missing month', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if month does not correspond to regex', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=102019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -320,6 +350,36 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 400 if missing sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/hours-to-work?&month=10-2019',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if missing month', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if month does not correspond to regex', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=102019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(400);
     });
   });
 

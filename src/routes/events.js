@@ -23,6 +23,7 @@ const {
   ILLNESS,
   OTHER,
   WORK_ACCIDENT,
+  MONTH_VALIDATION,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
@@ -159,7 +160,7 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
@@ -288,7 +289,7 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           }),
         },
         pre: [{ method: authorizeEventGet }],

@@ -10,6 +10,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
+const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT } = require('./constants');
@@ -117,9 +118,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
-  const sectors = Array.isArray(sector)
-    ? sector.map(id => new ObjectID(id))
-    : [new ObjectID(sector)];
+  const sectors = UtilsHelper.formatObjectIdsArray(sector);
 
   const auxiliariesIds = await SectorHistoryRepository.getUsersFromSectorHistories(
     startDate,
@@ -190,7 +189,7 @@ exports.computeHoursToWork = (month, contracts) => {
 
 exports.getHoursToWorkBySector = async (query, credentials) => {
   const hoursToWorkBySector = [];
-  const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
+  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   const contractsAndEventsBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
     query.month,
