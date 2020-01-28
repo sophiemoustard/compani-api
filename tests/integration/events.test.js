@@ -106,8 +106,9 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.events).toBeDefined();
         expect(response.result.data.events[0]._id).toBeDefined();
         expect(response.result.data.events[0].events).toBeDefined();
-        response.result.data.events[0].events.forEach((event) => {
-          expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
+        const index = response.result.data.events.findIndex(event => event.events[0].auxiliary);
+        response.result.data.events[index].events.forEach((event) => {
+          expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
         });
       });
 
@@ -479,6 +480,88 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /events/unassigned-hours', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return unassigned hours for a sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.unassignedHoursBySector[0].duration).toEqual(5);
+      });
+
+      it('should return an empty array if sector does not have unassigned event', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=02-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.unassignedHoursBySector.length).toEqual(0);
+      });
+
+      it('should return unassigned hours for many sectors', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        const firstSectorResult = response.result.data.unassignedHoursBySector.find(el =>
+          el.sector.toHexString() === sectors[0]._id.toHexString());
+        expect(firstSectorResult.duration).toEqual(5);
+
+        const secondSectorResult = response.result.data.unassignedHoursBySector.find(el =>
+          el.sector.toHexString() === sectors[1]._id.toHexString());
+        expect(secondSectorResult.duration).toEqual(1.5);
+      });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[2]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
             headers: { 'x-access-token': authToken },
           });
 
