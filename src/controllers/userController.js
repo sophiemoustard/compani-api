@@ -1,11 +1,9 @@
-const bcrypt = require('bcrypt');
 const flat = require('flat');
 const _ = require('lodash');
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
 const uuidv4 = require('uuid/v4');
-const { clean } = require('../helpers/utils');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentication');
@@ -21,28 +19,26 @@ const { language } = translate;
 
 const authenticate = async (req) => {
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() })
-      .lean({ autopopulate: true });
-    if (!alenviUser) return Boom.notFound();
-
-    if (!alenviUser.refreshToken) return Boom.forbidden();
-
-    if (!await bcrypt.compare(req.payload.password, alenviUser.local.password)) {
-      return Boom.unauthorized();
-    }
-
-    const payload = { _id: alenviUser._id.toHexString(), role: alenviUser.role.name };
-    const user = clean(payload);
-    const expireTime = 86400;
-    const token = encode(user, expireTime);
-    const { refreshToken } = alenviUser;
+    const authentication = await UsersHelper.authenticate(req.payload);
     req.log('info', `${req.payload.email} connected`);
 
     return {
       message: translate[language].userAuthentified,
-      data: {
-        token, refreshToken, expiresIn: expireTime, user,
-      },
+      data: { ...authentication },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const refreshToken = async (req) => {
+  try {
+    const token = await UsersHelper.refreshToken(req.payload);
+
+    return {
+      message: translate[language].userAuthentified,
+      data: { ...token },
     };
   } catch (e) {
     req.log('error', e);
@@ -208,28 +204,6 @@ const getUserTasks = async (req) => {
       data: {
         user: _.pick(user, ['_id', 'identity']),
         tasks: user.procedure,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const refreshToken = async (req) => {
-  try {
-    const user = await User.findOne({ refreshToken: req.payload.refreshToken }).lean();
-    if (!user) return Boom.notFound(translate[language].refreshTokenNotFound);
-
-    const payload = { _id: user._id, role: user.role.name };
-    const userPayload = _.pickBy(payload);
-    const expireTime = 86400;
-    const token = encode(userPayload, expireTime);
-
-    return {
-      message: translate[language].userAuthentified,
-      data: {
-        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload,
       },
     };
   } catch (e) {
