@@ -79,9 +79,10 @@ describe('USERS ROUTES', () => {
         expect(user.procedure).toBeDefined();
         expect(user.procedure.length).toBeGreaterThan(0);
 
-        const userSectorHistory = await SectorHistory.findOne({ auxiliary: user._id });
-        expect(userSectorHistory.sector._id).toEqual(userSectors[0]._id);
-        expect(userSectorHistory.startDate).not.toBeDefined();
+        const userSectorHistory = await SectorHistory
+          .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
+          .lean();
+        expect(userSectorHistory).toBeDefined();
       });
 
       it('should not create a user if role provided does not exist', async () => {
@@ -715,7 +716,6 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         const histories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company }).lean();
-        console.log(histories);
         expect(histories.length).toEqual(1);
         expect(histories[0].sector).toEqual(userSectors[1]._id);
       });

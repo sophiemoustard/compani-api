@@ -120,11 +120,11 @@ describe('CONTRACTS ROUTES', () => {
   describe('POST /contracts', () => {
     const payload = {
       status: COMPANY_CONTRACT,
-      startDate: '2020-01-18T15:46:30.636Z',
+      startDate: '2018-01-18T15:46:30.636Z',
       versions: [{
         weeklyHours: 24,
         grossHourlyRate: 10.43,
-        startDate: '2020-01-18T15:46:30.636Z',
+        startDate: '2018-01-18T15:46:30.636Z',
       }],
       user: contractUsers[0]._id,
     };
@@ -148,9 +148,14 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
       expect(user.inactivityDate).toBeNull();
 
-      const sectorHistories = await SectorHistory.find({ auxiliary: contractUsers[1]._id, company: authCompany._id });
-      expect(sectorHistories.length).toBe(1);
-      expect(sectorHistories[0].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
+      const sectorHistoriesLength = await SectorHistory
+        .countDocuments({
+          auxiliary: contractUsers[1]._id,
+          company: authCompany._id,
+          startDate: moment(payload.startDate).startOf('day').toDate(),
+        })
+        .lean();
+      expect(sectorHistoriesLength).toBe(1);
     });
 
     it('should create new sectorhistory if auxiliary does not have sectorhistory without a startDate', async () => {
@@ -158,13 +163,15 @@ describe('CONTRACTS ROUTES', () => {
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, user: contractUsers[3]._id },
+        payload: { ...payload, user: contractUsers[2]._id },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contract).toBeDefined();
 
-      const sectorHistories = await SectorHistory.find({ auxiliary: contractUsers[3]._id, company: authCompany._id });
+      const sectorHistories = await SectorHistory
+        .find({ auxiliary: contractUsers[2]._id, company: authCompany._id })
+        .lean();
       expect(sectorHistories.length).toBe(3);
       expect(sectorHistories[2].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
     });
@@ -446,10 +453,10 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       const contract = await Contract.findById(contractsList[2]._id).lean();
-      expect(moment('2018-11-28').isSame(contract.startDate, 'day')).toBeTruthy();
+      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
 
       const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user }).lean();
-      expect(moment('2018-11-28').isSame(sectorHistory.startDate, 'day')).toBeTruthy();
+      expect(moment(payload.startDate).isSame(sectorHistory.startDate, 'day')).toBeTruthy();
     });
 
     it('should update a contract startDate and update corresponding sectorhistory and delete unrelevant ones', async () => {
@@ -463,11 +470,11 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       const contract = await Contract.findById(contractsList[6]._id).lean();
-      expect(moment('2020-02-01').isSame(contract.startDate, 'day')).toBeTruthy();
+      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
 
       const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
       expect(sectorHistories.length).toBe(1);
-      expect(moment('2020-02-01').isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
+      expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
     });
 
     it('should return a 403 if contract is not from the same company', async () => {
@@ -482,7 +489,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should update a 403 if contract has an endDate', async () => {
+    it('should return a 403 if contract has an endDate', async () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
@@ -533,7 +540,7 @@ describe('CONTRACTS ROUTES', () => {
         .lean();
 
       expect(sectorHistories.length).toEqual(1);
-      expect(sectorHistories.statDate).not.toBeDefined();
+      expect(sectorHistories.startDate).not.toBeDefined();
     });
 
     it('should return a 404 error if contract not found', async () => {

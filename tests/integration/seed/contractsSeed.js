@@ -116,37 +116,45 @@ const contractUsers = [{
   sector: sector._id,
 }];
 
-const sectorHistories = contractUsers.map(user => ({
-  auxiliary: user._id,
-  sector: sector._id,
-  company: authCompany._id,
-}));
-
-sectorHistories[2] = {
-  ...sectorHistories[2],
-  startDate: '2019-12-01',
-  endDate: '2019-12-20',
-};
-
-sectorHistories[3] = {
-  ...sectorHistories[3],
-  startDate: '2019-12-01',
-};
-
-sectorHistories.push({
-  auxiliary: contractUsers[2]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2020-01-01',
-});
-
-sectorHistories.push({
-  auxiliary: contractUsers[3]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-08-03',
-  endDate: '2019-11-30',
-});
+const sectorHistories = [
+  {
+    auxiliary: contractUsers[0]._id,
+    sector: sector._id,
+    company: authCompany._id,
+  },
+  {
+    auxiliary: contractUsers[1]._id,
+    sector: sector._id,
+    company: authCompany._id,
+  },
+  {
+    auxiliary: contractUsers[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2016-12-01',
+    endDate: '2016-12-20',
+  },
+  {
+    auxiliary: contractUsers[3]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-08-03',
+    endDate: '2018-09-02',
+  },
+  {
+    auxiliary: contractUsers[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2017-01-01',
+    endDate: '2017-11-30',
+  },
+  {
+    auxiliary: contractUsers[3]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-09-03',
+  },
+];
 
 const otherCompanyContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
@@ -289,19 +297,19 @@ const contractsList = [
     ],
   },
   {
-    createdAt: '2018-08-02T17:12:55.144Z',
+    createdAt: '2017-08-02T17:12:55.144Z',
     user: contractUsers[2]._id,
-    startDate: '2018-08-02T17:12:55.144Z',
-    endDate: '2018-09-02T17:12:55.144Z',
+    startDate: '2017-08-02T17:12:55.144Z',
+    endDate: '2017-09-02T17:12:55.144Z',
     status: 'contract_with_company',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
       {
-        createdAt: '2018-08-02T17:12:55.144Z',
-        endDate: '2018-09-02T17:12:55.144Z',
+        createdAt: '2017-08-02T17:12:55.144Z',
+        endDate: '2017-09-02T17:12:55.144Z',
         grossHourlyRate: 10.12,
-        startDate: '2018-08-02T17:12:55.144Z',
+        startDate: '2017-08-02T17:12:55.144Z',
         weeklyHours: 15,
         _id: new ObjectID(),
       },

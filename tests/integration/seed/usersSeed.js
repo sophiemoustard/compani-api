@@ -8,7 +8,7 @@ const Task = require('../../../src/models/Task');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
-const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -180,23 +180,24 @@ const userPayload = {
   sector: userSectors[0]._id,
 };
 
-const userContract = {
-  _id: contractId,
-  user: usersSeedList[0]._id,
-  startDate: moment('2018-10-10').toDate(),
-  createdAt: moment('2018-10-10').toDate(),
-  company: company._id,
-  status: 'contract_with_company',
-};
-
-const userContractNotStarted = {
-  _id: contractNotStartedId,
-  user: usersSeedList[7]._id,
-  startDate: moment().add(1, 'month').toDate(),
-  createdAt: moment('2018-10-10').toDate(),
-  company: company._id,
-  status: 'contract_with_company',
-};
+const contracts = [
+  {
+    _id: contractId,
+    user: usersSeedList[0]._id,
+    startDate: moment('2018-10-10').toDate(),
+    createdAt: moment('2018-10-10').toDate(),
+    company: company._id,
+    status: 'contract_with_company',
+  },
+  {
+    _id: contractNotStartedId,
+    user: usersSeedList[7]._id,
+    startDate: moment().add(1, 'month').toDate(),
+    createdAt: moment('2018-10-10').toDate(),
+    company: company._id,
+    status: 'contract_with_company',
+  },
+];
 
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
@@ -224,8 +225,7 @@ const populateDB = async () => {
   await Customer.create(customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
-  await Contract.create(userContract);
-  await Contract.create(userContractNotStarted);
+  await Contract.insertMany(contracts);
   await new Company(company).save();
   await new Task(task).save();
 };
