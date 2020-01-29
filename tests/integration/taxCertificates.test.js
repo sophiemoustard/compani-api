@@ -327,3 +327,62 @@ describe('TAX CERTIFICATES - POST /', () => {
     });
   });
 });
+
+describe('TAX CERTIFICATES - DELETE /', () => {
+  let authToken = null;
+  describe('Admin', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should delete new tax certificate', async () => {
+      const taxCertificateId = taxCertificatesList[0]._id;
+      const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/taxcertificates/${taxCertificateId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
+      expect(taxCertificatesCount).toBe(taxCertificateCountBefore - 1);
+    });
+
+    it('should throw an error if tax certificate does not exist', async () => {
+      const taxCertificateId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/taxcertificates/${taxCertificateId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other role', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const taxCertificateId = taxCertificatesList[0]._id;
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/taxcertificates/${taxCertificateId}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
