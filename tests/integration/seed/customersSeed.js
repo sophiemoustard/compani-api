@@ -46,6 +46,7 @@ const customerServiceList = [
 const customerThirdPartyPayer = {
   _id: new ObjectID('62400565f8fd3555379720c9'),
   company: authCompany._id,
+  isApa: true,
 };
 
 const customersList = [
