@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
+const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
@@ -10,14 +11,39 @@ const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
+const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
+const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
-const SectorHistoriesHelper = require('../helpers/sectorHistories');
+const SectorHistoriesHelper = require('./sectorHistories');
 
 const { language } = translate;
+
+exports.authenticate = async (payload) => {
+  const user = await User.findOne({ 'local.email': payload.email.toLowerCase() }).lean({ autopopulate: true });
+  if (!user || !user.refreshToken) throw Boom.unauthorized();
+
+  const correctPassword = await bcrypt.compare(payload.password, user.local.password);
+  if (!correctPassword) throw Boom.unauthorized();
+
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+};
+
+exports.refreshToken = async (payload) => {
+  const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
+  if (!user) throw Boom.unauthorized();
+
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+};
 
 exports.getUsersList = async (query, credentials) => {
   const params = {
@@ -46,6 +72,7 @@ exports.getUsersList = async (query, credentials) => {
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
 };
+
 exports.getUsersListWithSectorHistories = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);

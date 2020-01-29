@@ -227,7 +227,7 @@ describe('USERS ROUTES', () => {
         url: '/users/authenticate',
         payload: { email: 'test@alenvi.io', password: '123456' },
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(401);
     });
 
     it('should not authenticate a user if wrong password', async () => {
@@ -246,7 +246,7 @@ describe('USERS ROUTES', () => {
         url: '/users/authenticate',
         payload: { email: 'white@alenvi.io', password: '123456' },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(401);
     });
   });
 
@@ -863,7 +863,7 @@ describe('USERS ROUTES', () => {
         url: '/users/refreshToken',
         payload: { refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba' },
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(401);
     });
   });
 

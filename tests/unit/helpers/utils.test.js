@@ -132,28 +132,6 @@ describe('getMatchingVersion', () => {
   });
 });
 
-describe('clean', () => {
-  it('should delete undefined value', () => {
-    const result = UtilsHelper.clean({ _id: 1, value: undefined });
-    expect(result.value).not.toBeDefined();
-  });
-
-  it('should delete empty array', () => {
-    const result = UtilsHelper.clean({ _id: 1, value: [] });
-    expect(result.value).not.toBeDefined();
-  });
-
-  it('should delete empty object', () => {
-    const result = UtilsHelper.clean({ _id: 1, value: {} });
-    expect(result.value).not.toBeDefined();
-  });
-
-  it('should delete empty string', () => {
-    const result = UtilsHelper.clean({ _id: 1, value: '' });
-    expect(result.value).not.toBeDefined();
-  });
-});
-
 describe('getFixedNumber', () => {
   it('should return number to string with number of decimals as provided by parameter', () => {
     const result = UtilsHelper.getFixedNumber(10, 2);

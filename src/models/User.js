@@ -13,6 +13,7 @@ const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/c
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
+const TOKEN_EXPIRE_TIME = 86400;
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -259,3 +260,4 @@ UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
+module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;

@@ -1,19 +1,8 @@
 const moment = require('moment-timezone');
-const _ = require('lodash');
+const omit = require('lodash/omit');
+const isEmpty = require('lodash/isEmpty');
 const Intl = require('intl');
 const { CIVILITY_LIST } = require('./constants');
-
-exports.clean = (obj) => {
-  for (const k in obj) {
-    if (obj[k] === undefined || obj[k] === '' ||
-      (typeof obj[k] === 'object' && Object.keys(obj[k].length === 0)) ||
-      (Array.isArray(obj[k]) && obj[k].length === 0)) {
-      delete obj[k];
-    }
-  }
-
-  return obj;
-};
 
 exports.getLastVersion = (versions, dateKey) => {
   if (!Array.isArray(versions)) throw new Error('versions must be an array !');
@@ -26,7 +15,8 @@ exports.getLastVersion = (versions, dateKey) => {
 exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
   const lastVersion = exports.getLastVersion(baseObj.versions, dateKey);
   if (!lastVersion) throw new Error('Unable to find last version from base object !');
-  return { ...lastVersion, ..._.omit(baseObj, ['versions', 'createdAt']) };
+
+  return { ...lastVersion, ...omit(baseObj, ['versions', 'createdAt']) };
 };
 
 // `obj` should by sort in descending order
@@ -35,16 +25,28 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
   if (obj.versions.length === 0) return null;
 
   const matchingVersion = [...obj.versions]
-    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
+    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') &&
+      (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
     .sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
   if (!matchingVersion) return null;
 
-  return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
+  return {
+    ...omit(obj, 'versions'),
+    ...omit(matchingVersion, ['_id', 'createdAt']),
+    versionId: matchingVersion._id,
+  };
 };
 
 exports.getDateQuery = (dates) => {
-  if (dates.startDate && dates.endDate) return { $lte: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
+  if (dates.startDate && dates.endDate) {
+    return {
+      $lte: moment(dates.endDate).endOf('day').toISOString(),
+      $gte: moment(dates.startDate).startOf('day').toISOString(),
+    };
+  }
+
   if (dates.startDate) return { $gte: dates.startDate };
+
   return { $lt: dates.endDate };
 };
 
@@ -93,7 +95,7 @@ exports.getFullTitleFromIdentity = (identity) => {
     lastname.toUpperCase(),
   ];
 
-  fullTitle = fullTitle.filter(value => !_.isEmpty(value));
+  fullTitle = fullTitle.filter(value => !isEmpty(value));
 
   return fullTitle.join(' ');
 };
@@ -119,7 +121,8 @@ exports.getDaysRatioBetweenTwoDates = (start, end) => {
 
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
-    if (day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1; // startOf('day') is necessery to check fr holidays in business day
+    // startOf('day') is necessery to check fr holidays in business day
+    if (day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1;
     else if (day.day() !== 0) businessDays += 1;
     else sundays += 1;
   }

@@ -6,12 +6,15 @@ const moment = require('moment');
 const sinon = require('sinon');
 const Boom = require('boom');
 const flat = require('flat');
+const bcrypt = require('bcrypt');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const UsersHelper = require('../../../src/helpers/users');
 const RolesHelper = require('../../../src/helpers/roles');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
+const AuthenticationHelper = require('../../../src/helpers/authentication');
 const translate = require('../../../src/helpers/translate');
+const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
@@ -21,6 +24,159 @@ const Task = require('../../../src/models/Task');
 require('sinon-mongoose');
 
 const { language } = translate;
+
+describe('authenticate', () => {
+  let UserMock;
+  let compare;
+  let encode;
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    compare = sinon.stub(bcrypt, 'compare');
+    encode = sinon.stub(AuthenticationHelper, 'encode');
+  });
+  afterEach(() => {
+    UserMock.restore();
+    compare.restore();
+    encode.restore();
+  });
+
+  it('should throw an error if user does not exist', async () => {
+    try {
+      const payload = { email: 'toto@email.com', password: 'toto' };
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true })
+        .once()
+        .returns(null);
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.notCalled(compare);
+      sinon.assert.notCalled(encode);
+    }
+  });
+  it('should throw an error if refresh token does not exist', async () => {
+    try {
+      const payload = { email: 'toto@email.com', password: 'toto' };
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true })
+        .once()
+        .returns({ _id: new ObjectID() });
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.notCalled(compare);
+      sinon.assert.notCalled(encode);
+    }
+  });
+  it('should throw an error if wrong password', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto' };
+    try {
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true })
+        .once()
+        .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
+      compare.returns(false);
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.calledWithExactly(compare, payload.password, 'password_hash');
+      sinon.assert.notCalled(encode);
+    }
+  });
+  it('should return authentication data', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto' };
+    const user = { _id: new ObjectID(), refreshToken: 'token', local: { password: 'toto' }, role: { name: 'role' } };
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({
+      token: 'token',
+      refreshToken: user.refreshToken,
+      expiresIn: TOKEN_EXPIRE_TIME,
+      user: { _id: user._id.toHexString(), role: user.role.name },
+    });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString(), role: user.role.name }, TOKEN_EXPIRE_TIME);
+  });
+});
+
+describe('refreshToken', () => {
+  let UserMock;
+  let encode;
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    encode = sinon.stub(AuthenticationHelper, 'encode');
+  });
+  afterEach(() => {
+    UserMock.restore();
+    encode.restore();
+  });
+
+  it('should throw an error if user does not exist', async () => {
+    try {
+      const payload = { refreshToken: 'token' };
+      UserMock.expects('findOne')
+        .withExactArgs({ refreshToken: payload.refreshToken })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true })
+        .once()
+        .returns(null);
+
+      await UsersHelper.refreshToken(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.notCalled(encode);
+    }
+  });
+  it('should return refresh token', async () => {
+    const payload = { refreshToken: 'token' };
+    const user = { _id: new ObjectID(), refreshToken: 'token', local: { password: 'toto' }, role: { name: 'role' } };
+    UserMock.expects('findOne')
+      .withExactArgs({ refreshToken: payload.refreshToken })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .once()
+      .returns(user);
+    encode.returns('token');
+
+    const result = await UsersHelper.refreshToken(payload);
+
+    expect(result).toEqual({
+      token: 'token',
+      refreshToken: user.refreshToken,
+      expiresIn: TOKEN_EXPIRE_TIME,
+      user: { _id: user._id.toHexString(), role: user.role.name },
+    });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString(), role: user.role.name }, TOKEN_EXPIRE_TIME);
+  });
+});
 
 describe('getUsersList', () => {
   let UserMock;
