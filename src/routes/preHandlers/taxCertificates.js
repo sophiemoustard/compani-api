@@ -21,7 +21,7 @@ exports.getTaxCertificate = async (req) => {
   }
 };
 
-exports.authorizeGetTaxCertificates = async (req) => {
+exports.authorizeTaxCertificatesRead = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
   if (!customer) throw Boom.forbidden();
@@ -43,7 +43,7 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
   return null;
 };
 
-exports.authorizeCreateTaxCertificates = async (req) => {
+exports.authorizeTaxCertificateCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId }).lean();
   if (!customer) throw Boom.forbidden();
