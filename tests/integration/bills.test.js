@@ -23,6 +23,7 @@ const BillHelper = require('../../src/helpers/bills');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
 const BillNumber = require('../../src/models/BillNumber');
+const CreditNote = require('../../src/models/CreditNote');
 const FundingHistory = require('../../src/models/FundingHistory');
 const Event = require('../../src/models/Event');
 
@@ -330,6 +331,8 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find({ company: authCompany._id }).lean();
       expect(bills.length).toBe(2 + authBillsList.length);
+      const linkedCreditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id });
+      expect(linkedCreditNote.isEditable).toBeFalsy();
     });
 
     it('should create new bills (2 subscriptions)', async () => {
