@@ -23,7 +23,6 @@ const {
   ILLNESS,
   OTHER,
   WORK_ACCIDENT,
-  MONTH_VALIDATION,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
@@ -43,6 +42,7 @@ const {
   authorizeEventGet,
   authorizeEventForCreditNoteGet,
 } = require('./preHandlers/events');
+const { MONTH_VALIDATION, addressValidation, objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event',
@@ -59,16 +59,7 @@ exports.plugin = {
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }).when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
+            address: addressValidation.when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             sector: Joi.objectId(),
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
@@ -103,9 +94,9 @@ exports.plugin = {
           query: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
-            sector: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
-            customer: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            auxiliary: objectIdOrArray,
+            sector: objectIdOrArray,
+            customer: objectIdOrArray,
             type: Joi.string(),
             groupBy: Joi.string(),
             status: Joi.string(),
@@ -145,7 +136,7 @@ exports.plugin = {
           query: {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
-            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            auxiliary: objectIdOrArray,
           },
         },
         pre: [{ method: authorizeEventGet }],
@@ -159,7 +150,7 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            sector: objectIdOrArray.required(),
             month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           }),
         },
@@ -180,16 +171,7 @@ exports.plugin = {
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
-            address: Joi.object().keys({
-              street: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              zipCode: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              city: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              fullAddress: Joi.string(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-            }),
+            address: addressValidation,
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
             absence: Joi.string().valid(ABSENCE_TYPES)
@@ -288,7 +270,7 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            sector: objectIdOrArray.required(),
             month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           }),
         },

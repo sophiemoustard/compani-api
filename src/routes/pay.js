@@ -2,14 +2,14 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { payValidation } = require('../../validations/pay');
+const { payValidation } = require('./validations/pay');
 const {
   draftPayList,
   createList,
   getHoursBalanceDetails,
   getHoursToWork,
 } = require('../controllers/payController');
-const { MONTH_VALIDATION } = require('../helpers/constants');
+const { MONTH_VALIDATION, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
 
 
@@ -53,7 +53,7 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            sector: objectIdOrArray,
             auxiliary: Joi.objectId(),
             month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           }).xor('sector', 'auxiliary'),
@@ -70,7 +70,7 @@ exports.plugin = {
         auth: { scope: ['pay:read'] },
         validate: {
           query: {
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            sector: objectIdOrArray.required(),
             month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
           },
         },

@@ -40,6 +40,7 @@ const {
   authorizeCustomerGetBySector,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
+const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -57,16 +58,7 @@ exports.plugin = {
               lastname: Joi.string().required(),
             }).required(),
             contact: Joi.object().keys({
-              primaryAddress: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }).required(),
+              primaryAddress: addressValidation.required(),
             }).required(),
           }),
         },
@@ -94,26 +86,8 @@ exports.plugin = {
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              primaryAddress: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
-              secondaryAddress: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
+              primaryAddress: addressValidation,
+              secondaryAddress: addressValidation,
               accessCodes: Joi.string().allow('', null),
             }).min(1),
             followUp: Joi.object().keys({

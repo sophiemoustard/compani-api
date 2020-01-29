@@ -24,6 +24,7 @@ const {
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
+const { addressValidation, objectIdOrArray } = require('./validations/utils');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -83,16 +84,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
+              address: addressValidation.required(),
             }),
             administrative: Joi.object().keys({
               transportInvoice: Joi.object().keys({
@@ -116,7 +108,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            customers: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            customers: objectIdOrArray,
           },
         },
         pre: [{ method: authorizeUserGet }],
@@ -199,16 +191,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
+              address: addressValidation.required(),
             }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
