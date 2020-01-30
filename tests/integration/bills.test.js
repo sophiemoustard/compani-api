@@ -331,8 +331,8 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find({ company: authCompany._id }).lean();
       expect(bills.length).toBe(2 + authBillsList.length);
-      const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id });
-      expect(creditNote.isEditable).toBeFalsy();
+      const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
+      expect(creditNote[0].isEditable).toBeFalsy();
     });
 
     it('should create new bills (2 subscriptions)', async () => {
