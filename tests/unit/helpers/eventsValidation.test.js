@@ -18,60 +18,6 @@ const {
 
 require('sinon-mongoose');
 
-describe('auxiliaryHasActiveCompanyContractOnDay', () => {
-  it('should return false as no company contract', () => {
-    const contracts = [{ status: CUSTOMER_CONTRACT }];
-    const date = '2019-01-11T08:38:18';
-    const result = EventsValidationHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false as no company contract on day (startDate after day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-03-11T08:38:18' },
-    ];
-    const date = '2019-01-11T08:38:18';
-    const result = EventsValidationHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false as no company contract on day (end date before day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
-    ];
-    const date = '2019-01-11T08:38:18';
-    const result = EventsValidationHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return true as company contract on day (end date after day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' },
-    ];
-    const date = '2019-01-11T08:38:18';
-    const result = EventsValidationHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return true as company contract on day (no endDate)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18' },
-    ];
-    const date = '2019-01-11T08:38:18';
-    const result = EventsValidationHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeTruthy();
-  });
-});
-
 describe('checkContracts', () => {
   let hasConflicts;
   let UserModel;
