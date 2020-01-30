@@ -9,7 +9,7 @@ const {
   getHoursBalanceDetails,
   getHoursToWork,
 } = require('../controllers/payController');
-const { MONTH_VALIDATION, objectIdOrArray } = require('./validations/utils');
+const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
 
 
@@ -55,7 +55,7 @@ exports.plugin = {
           query: Joi.object().keys({
             sector: objectIdOrArray,
             auxiliary: Joi.objectId(),
-            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
+            month: monthValidation.required(),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetDetails }],
@@ -71,7 +71,7 @@ exports.plugin = {
         validate: {
           query: {
             sector: objectIdOrArray.required(),
-            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
+            month: monthValidation.required(),
           },
         },
         pre: [{ method: authorizeGetHoursToWork }],

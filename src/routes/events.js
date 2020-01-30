@@ -42,7 +42,7 @@ const {
   authorizeEventGet,
   authorizeEventForCreditNoteGet,
 } = require('./preHandlers/events');
-const { MONTH_VALIDATION, addressValidation, objectIdOrArray } = require('./validations/utils');
+const { monthValidation, addressValidation, objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event',
@@ -151,7 +151,7 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             sector: objectIdOrArray.required(),
-            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
+            month: monthValidation.required(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
@@ -271,7 +271,7 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             sector: objectIdOrArray.required(),
-            month: Joi.string().regex(new RegExp(MONTH_VALIDATION)).required(),
+            month: monthValidation.required(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
