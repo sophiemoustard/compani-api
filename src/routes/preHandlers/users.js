@@ -4,6 +4,7 @@ const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Customer = require('../../models/Customer');
 const Contract = require('../../models/Contract');
+const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { SUPER_ADMIN } = require('../../helpers/constants');
@@ -34,10 +35,14 @@ exports.authorizeUserUpdate = async (req) => {
     if (!sector) throw Boom.forbidden();
   }
 
-  if (get(req, 'payload.establishment') === null && user.contracts.length) {
+  const establishmentId = get(req, 'payload.establishment');
+  if (establishmentId === null && user.contracts.length) {
     const contracts = await Contract.find({ _id: { $in: user.contracts } }).lean();
     const hasActiveContracts = auxiliaryHasActiveCompanyContractOnDay(contracts, new Date());
     if (hasActiveContracts) throw Boom.forbidden();
+  } else if (establishmentId) {
+    const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
+    if (!establishment) throw Boom.forbidden();
   }
 
   if (user.company.toHexString() === companyId.toHexString()) return null;
