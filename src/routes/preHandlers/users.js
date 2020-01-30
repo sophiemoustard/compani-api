@@ -4,6 +4,7 @@ const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 const { SUPER_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -65,7 +66,7 @@ exports.authorizeUserGet = async (req) => {
   }
 
   if (query.customers) {
-    const customers = Array.isArray(query.customers) ? query.customers : [query.customers];
+    const customers = UtilsHelper.formatIdsArray(query.customers);
     const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
     if (customersCount !== customers.length) throw Boom.forbidden();
   }

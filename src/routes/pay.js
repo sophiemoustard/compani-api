@@ -2,13 +2,14 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { payValidation } = require('../../validations/pay');
+const { payValidation } = require('./validations/pay');
 const {
   draftPayList,
   createList,
   getHoursBalanceDetails,
   getHoursToWork,
 } = require('../controllers/payController');
+const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
 
 
@@ -52,9 +53,9 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            sector: objectIdOrArray,
             auxiliary: Joi.objectId(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            month: monthValidation.required(),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetDetails }],
@@ -69,8 +70,8 @@ exports.plugin = {
         auth: { scope: ['pay:read'] },
         validate: {
           query: {
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            sector: objectIdOrArray.required(),
+            month: monthValidation.required(),
           },
         },
         pre: [{ method: authorizeGetHoursToWork }],

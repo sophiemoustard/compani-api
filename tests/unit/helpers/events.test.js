@@ -1884,3 +1884,69 @@ describe('getPaidTransportStatsBySector', () => {
     sinon.assert.notCalled(getPaidTransportInfoStub);
   });
 });
+
+describe('getUnassignedHoursBySector', () => {
+  let getUnassignedHoursBySectorStub;
+
+  beforeEach(() => {
+    getUnassignedHoursBySectorStub = sinon.stub(EventRepository, 'getUnassignedHoursBySector');
+  });
+  afterEach(() => {
+    getUnassignedHoursBySectorStub.restore();
+  });
+
+  it('should return an empty array if there is no unassigned event', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    getUnassignedHoursBySectorStub.returns([]);
+
+    const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(
+      getUnassignedHoursBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+  });
+
+  it('should return unassigned hours', async () => {
+    const query = { sector: new ObjectID(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const unassignedhours = [{ sector: query.sector, duration: 12 }];
+
+    getUnassignedHoursBySectorStub.returns(unassignedhours);
+
+    const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
+
+    expect(result).toEqual(unassignedhours);
+    sinon.assert.calledWithExactly(
+      getUnassignedHoursBySectorStub,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+  });
+
+  it('should return unassigned hours for many sectors', async () => {
+    const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const unassignedHours = [{ sector: query.sector[0], duration: 12 }, { sector: query.sector[1], duration: 5 }];
+
+    getUnassignedHoursBySectorStub.returns(unassignedHours);
+
+    const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
+
+    expect(result).toEqual(unassignedHours);
+    sinon.assert.calledWithExactly(
+      getUnassignedHoursBySectorStub,
+      query.sector,
+      query.month,
+      credentials.company._id
+    );
+  });
+});

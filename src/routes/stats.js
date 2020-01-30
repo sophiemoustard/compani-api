@@ -11,6 +11,7 @@ const {
   getAllCustomersFundingsMonitoring,
   getIntenalAndBilledHoursBySector,
 } = require('../controllers/statController');
+const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
 exports.plugin = {
@@ -62,9 +63,9 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            sector: objectIdOrArray,
             auxiliary: Joi.objectId(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            month: monthValidation.required(),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetStats }],
@@ -79,8 +80,8 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            sector: objectIdOrArray.required(),
+            month: monthValidation.required(),
           }),
         },
         pre: [{ method: authorizeGetStats }],
@@ -95,8 +96,8 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            sector: objectIdOrArray.required(),
+            month: monthValidation.required(),
           }),
         },
         pre: [{ method: authorizeGetStats }],

@@ -245,6 +245,15 @@ describe('GET /stats/paid-intervention-stats', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should return 400 if month does not correspond to regex', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -346,6 +355,16 @@ describe('GET /stats/customer-duration/sector', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should return 400 if month does not correspond to regex', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -436,6 +455,16 @@ describe('GET /stats/internal-billed-hours', () => {
     });
 
     it('should not get internal and billed hours stats as month is missing', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should not get internal and billed hours stats if month does not correspond to regex', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,

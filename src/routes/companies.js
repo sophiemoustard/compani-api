@@ -12,6 +12,7 @@ const {
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
+const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -28,16 +29,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: Joi.string().allow('', null),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }),
+            address: addressValidation,
             ics: Joi.string(),
             rcs: Joi.string(),
             rna: Joi.string(),

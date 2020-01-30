@@ -66,6 +66,13 @@ const customersList = [
         street: '37 rue de Ponthieu',
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
+      secondaryAddress: {
+        fullAddress: '27 rue des renaudes 75017 Paris',
+        zipCode: '75017',
+        city: 'Paris',
+        street: '27 rue des renaudes',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
       phone: '0123456789',
       accessCodes: 'porte c3po',
     },

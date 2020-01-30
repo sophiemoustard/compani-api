@@ -12,6 +12,7 @@ const {
   listForCreditNotes,
   getWorkingStats,
   getPaidTransportStatsBySector,
+  getUnassignedHoursBySector,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -41,6 +42,7 @@ const {
   authorizeEventGet,
   authorizeEventForCreditNoteGet,
 } = require('./preHandlers/events');
+const { monthValidation, addressValidation, objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event',
@@ -57,16 +59,7 @@ exports.plugin = {
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }).when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
+            address: addressValidation.when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             sector: Joi.objectId(),
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
@@ -101,9 +94,9 @@ exports.plugin = {
           query: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
-            sector: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
-            customer: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            auxiliary: objectIdOrArray,
+            sector: objectIdOrArray,
+            customer: objectIdOrArray,
             type: Joi.string(),
             groupBy: Joi.string(),
             status: Joi.string(),
@@ -143,7 +136,7 @@ exports.plugin = {
           query: {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
-            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            auxiliary: objectIdOrArray,
           },
         },
         pre: [{ method: authorizeEventGet }],
@@ -157,8 +150,8 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
-            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+            sector: objectIdOrArray.required(),
+            month: monthValidation.required(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
@@ -178,16 +171,14 @@ exports.plugin = {
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
-            address: Joi.object().keys({
-              street: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              zipCode: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              city: Joi.string().when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-              fullAddress: Joi.string(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).when('fullAddress', { is: Joi.exist(), then: Joi.required() }),
-            }),
+            address: Joi.when(
+              'type',
+              {
+                is: Joi.valid(INTERNAL_HOUR),
+                then: Joi.alternatives().try(addressValidation, {}),
+                otherwise: addressValidation,
+              }
+            ),
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
             absence: Joi.string().valid(ABSENCE_TYPES)
@@ -277,6 +268,22 @@ exports.plugin = {
         pre: [{ method: authorizeEventDeletionList }],
       },
       handler: deleteList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/unassigned-hours',
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: Joi.object().keys({
+            sector: objectIdOrArray.required(),
+            month: monthValidation.required(),
+          }),
+        },
+        pre: [{ method: authorizeEventGet }],
+      },
+      handler: getUnassignedHoursBySector,
     });
   },
 };

@@ -582,6 +582,44 @@ describe('CUSTOMERS ROUTES', () => {
       expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
     });
 
+    it('should update secondaryAddress', async () => {
+      const customer = customersList[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': adminToken },
+        payload: {
+          contact: {
+            secondaryAddress: {
+              fullAddress: '27 rue des renaudes 75017 Paris',
+              zipCode: '75017',
+              city: 'Paris',
+              street: '27 rue des renaudes',
+              location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+            },
+          },
+        },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.contact.secondaryAddress.fullAddress).toBe('27 rue des renaudes 75017 Paris');
+    });
+
+    it('should delete secondaryAddress', async () => {
+      const customer = customersList[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': adminToken },
+        payload: { contact: { secondaryAddress: {} } },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
+    });
+
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'PUT',

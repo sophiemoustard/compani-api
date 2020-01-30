@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
+const UtilsHelper = require('../helpers/utils');
 const StatRepository = require('../repositories/StatRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 
@@ -89,9 +90,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
 exports.getPaidInterventionStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   if (query.sector) {
-    const sectors = Array.isArray(query.sector)
-      ? query.sector.map(id => new ObjectID(id))
-      : [new ObjectID(query.sector)];
+    const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
     const auxiliariesFromSectorHistories = await SectorHistoryRepository.getUsersFromSectorHistories(
@@ -111,18 +110,14 @@ exports.getPaidInterventionStats = async (query, credentials) => {
 
 exports.getCustomersAndDurationBySector = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const sectors = Array.isArray(query.sector)
-    ? query.sector.map(id => new ObjectID(id))
-    : [new ObjectID(query.sector)];
+  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
 };
 
 exports.getIntenalAndBilledHoursBySector = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const sectors = Array.isArray(query.sector)
-    ? query.sector.map(id => new ObjectID(id))
-    : [new ObjectID(query.sector)];
+  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   return StatRepository.getIntenalAndBilledHoursBySector(sectors, query.month, companyId);
 };
