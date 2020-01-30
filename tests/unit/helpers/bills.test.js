@@ -1433,14 +1433,14 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         BillMock.expects('insertMany')
           .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
-          .throws();
+          .throws('insertManyError');
 
         BillNumberMock.expects('updateOne').never();
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
       } catch (e) {
-        console.log(e);
+        expect(e.name).toEqual('insertManyError');
       } finally {
         sinon.assert.notCalled(updateEventsStub);
         sinon.assert.notCalled(updateFundingHistoriesStub);
@@ -1459,13 +1459,13 @@ describe('formatAndCreateBills', () => {
         BillMock.expects('insertMany')
           .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
           .once();
-        updateEventsStub.throws();
+        updateEventsStub.throws('updateEventError');
         BillNumberMock.expects('updateOne').never();
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
       } catch (e) {
-        console.log(e);
+        expect(e.name).toEqual('updateEventError');
       } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.notCalled(updateFundingHistoriesStub);
@@ -1484,13 +1484,13 @@ describe('formatAndCreateBills', () => {
         BillMock.expects('insertMany')
           .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
           .once();
-        updateFundingHistoriesStub.throws();
+        updateFundingHistoriesStub.throws('updateFundingHistoriesError');
         BillNumberMock.expects('updateOne').never();
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
       } catch (e) {
-        console.log(e);
+        expect(e.name).toEqual('updateFundingHistoriesError');
       } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
@@ -1509,12 +1509,12 @@ describe('formatAndCreateBills', () => {
         BillMock.expects('insertMany')
           .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
           .once();
-        BillNumberMock.expects('updateOne').throws();
+        BillNumberMock.expects('updateOne').throws('updateOneError');
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
       } catch (e) {
-        console.log(e);
+        expect(e.name).toEqual('updateOneError');
       } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
@@ -1535,11 +1535,11 @@ describe('formatAndCreateBills', () => {
           .once();
         BillNumberMock.expects('updateOne').once();
         CreditNoteMock.expects('updateMany').never();
-        createBillSlips.throws();
+        createBillSlips.throws('createBillSlipsError');
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
       } catch (e) {
-        console.log(e);
+        expect(e.name).toEqual('createBillSlipsError');
       } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
