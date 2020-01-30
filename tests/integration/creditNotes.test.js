@@ -592,6 +592,25 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if credit note is not editable', async () => {
+      payload = {
+        date: '2019-07-19T14:00:18',
+        startDate: '2019-07-01T00:00:00',
+        endDate: '2019-07-31T23:59:59',
+        exclTaxesCustomer: 200,
+        inclTaxesCustomer: 224,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[2]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -655,10 +674,19 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if credit not origin is not COMPANI', async () => {
+    it('should return a 403 error if credit note origin is not COMPANI', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if credit note is not editable', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[2]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(403);
