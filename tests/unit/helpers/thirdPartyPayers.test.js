@@ -7,7 +7,7 @@ const ThirdPartyPayersHelper = require('../../../src/helpers/thirdPartyPayers');
 require('sinon-mongoose');
 
 describe('create', () => {
-  it('should create a nez thirdPartyPayer', async () => {
+  it('should create a new thirdPartyPayer', async () => {
     const payload = {
       _id: new ObjectID(),
       name: 'Titi',
@@ -74,7 +74,7 @@ describe('update', () => {
 });
 
 describe('delete', () => {
-  it('should remove an establishment', async () => {
+  it('should remove an tpp', async () => {
     const tppId = new ObjectID();
     const deleteOne = sinon.stub(ThirdPartyPayer, 'deleteOne');
 

@@ -2,8 +2,8 @@ const get = require('lodash/get');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
 exports.create = async (payload, credentials) => {
-  const comapnyId = get(credentials, 'company._id', null);
-  const thirdPartyPayer = await ThirdPartyPayer.create({ ...payload, company: comapnyId });
+  const companyId = get(credentials, 'company._id', null);
+  const thirdPartyPayer = await ThirdPartyPayer.create({ ...payload, company: companyId });
 
   return thirdPartyPayer.toObject();
 };
