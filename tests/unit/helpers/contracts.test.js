@@ -583,13 +583,13 @@ describe('formatVersionEditionPayload', () => {
   });
 
   it('should update previous version end date', async () => {
-    const oldVersion = { startDate: '2019-09-12T00:00:00' };
-    const newVersion = { startDate: '2019-09-16T00:00:00' };
+    const oldVersion = { startDate: moment('2019-09-12').toDate() };
+    const newVersion = { startDate: moment('2019-09-16').toDate() };
     const versionIndex = 1;
 
     const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
 
-    expect(result.$set['versions.0.endDate']).toEqual('2019-09-15T21:59:59.999Z');
+    expect(result.$set['versions.0.endDate']).toEqual(moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString());
   });
 
   it('should update contract start date', async () => {

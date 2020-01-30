@@ -57,8 +57,8 @@ describe('exportWorkingEventsHistory', () => {
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
       },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
+      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
+      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
     },
     {
       isCancelled: false,
@@ -72,8 +72,8 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
+      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
+      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
     },
     {
       isCancelled: true,
@@ -86,8 +86,8 @@ describe('exportWorkingEventsHistory', () => {
       customer: {
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
+      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
+      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
       misc: 'brbr',
     },
   ];
@@ -149,8 +149,8 @@ describe('exportAbsencesHistory', () => {
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
       },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
+      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
+      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
     },
     {
       type: 'absence',
@@ -161,8 +161,8 @@ describe('exportAbsencesHistory', () => {
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
       },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
+      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
+      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
       misc: 'brbr',
     },
   ];
