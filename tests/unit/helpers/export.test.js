@@ -743,8 +743,8 @@ describe('exportAuxiliaries', () => {
   });
 
   afterEach(() => {
-    UserModel.restore();
-    RoleModel.restore();
+    UserModel.verify();
+    RoleModel.verify();
     getLastVersion.restore();
   });
 
@@ -761,7 +761,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -772,8 +774,9 @@ describe('exportAuxiliaries', () => {
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom',
       'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
-      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Date de début de contrat prestataire',
-      'Date de fin de contrat prestataire', 'Date d\'inactivité', 'Date de création']);
+      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
+      'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
+      'Date de création']);
   });
 
   it('should return auxiliary info', async () => {
@@ -797,7 +800,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -825,6 +830,7 @@ describe('exportAuxiliaries', () => {
       0,
       '',
       '',
+      '',
       '01/02/2019',
       '01/02/2019',
     ]);
@@ -843,7 +849,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -853,7 +861,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '', '', '']);
+    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '', '', '', '']);
   });
 
   it('should return auxiliary identity', async () => {
@@ -884,7 +892,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -914,6 +924,7 @@ describe('exportAuxiliaries', () => {
       '',
       '',
       '',
+      '',
     ]);
   });
 
@@ -939,7 +950,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -950,8 +963,8 @@ describe('exportAuxiliaries', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[2]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '10/11/2019', '01/12/2019', '', '']);
-    expect(result[2]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '02/12/2019', '', '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '10/11/2019', '01/12/2019', '', '']);
+    expect(result[2]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '02/12/2019', '', '', '']);
   });
 
   it('should return auxiliary address', async () => {
@@ -969,7 +982,9 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -979,7 +994,37 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '', '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '', '', '', '']);
+  });
+
+  it('should return auxiliary establishment', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
+
+    const auxiliaries = [
+      { establishment: { name: 'Test' }, _id: new ObjectID() },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns(auxiliaries);
+
+    const result = await ExportHelper.exportAuxiliaries(credentials);
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, 'Test', '', '', '', '']);
   });
 });
 
