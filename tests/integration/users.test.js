@@ -740,6 +740,16 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(403);
       });
+
+      it('should return a 403 error if user establishment is removed while he has active company contract', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { establishment: null },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {

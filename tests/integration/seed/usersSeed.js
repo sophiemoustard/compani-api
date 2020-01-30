@@ -87,6 +87,7 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
     contracts: [{ _id: contractId }],
+    establishment: new ObjectID(),
   },
   {
     _id: new ObjectID(),
