@@ -1166,6 +1166,35 @@ describe('EVENTS ROUTES', () => {
         expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
       });
 
+      it('should update internalhour if address is {}', async () => {
+        const event = eventsList[0];
+        const payload = { auxiliary: event.auxiliary.toHexString(), address: {} };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.event.address).toBeUndefined();
+      });
+
+      it('should return a 400 if event is not an internal hours and adress is {}', async () => {
+        const event = eventsList[2];
+        const payload = { address: {} };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
       it('should return a 400 error as payload is invalid', async () => {
         const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
         const event = eventsList[0];

@@ -171,7 +171,14 @@ exports.plugin = {
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
-            address: addressValidation,
+            address: Joi.when(
+              'type',
+              {
+                is: Joi.valid(INTERNAL_HOUR),
+                then: Joi.alternatives().try(addressValidation, {}),
+                otherwise: addressValidation,
+              }
+            ),
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
             absence: Joi.string().valid(ABSENCE_TYPES)

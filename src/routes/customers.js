@@ -87,7 +87,7 @@ exports.plugin = {
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
               primaryAddress: addressValidation,
-              secondaryAddress: addressValidation,
+              secondaryAddress: Joi.alternatives().try(addressValidation, {}),
               accessCodes: Joi.string().allow('', null),
             }).min(1),
             followUp: Joi.object().keys({
