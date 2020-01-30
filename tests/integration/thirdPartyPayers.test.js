@@ -48,7 +48,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(pick(
-        response.result.data.thirdPartyPayer.toObject(),
+        response.result.data.thirdPartyPayer,
         ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa']
       )).toEqual({ ...payload, company: authCompany._id });
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
