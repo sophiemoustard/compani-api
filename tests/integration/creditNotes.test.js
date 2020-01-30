@@ -593,7 +593,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 error if credit note is note editable', async () => {
+    it('should return a 403 error if credit note is not editable', async () => {
       payload = {
         date: '2019-07-19T14:00:18',
         startDate: '2019-07-01T00:00:00',

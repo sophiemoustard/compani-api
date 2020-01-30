@@ -81,7 +81,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
 exports.authorizeCreditNoteDeletion = async (req) => {
   const { creditNote } = req.pre;
-  if ((creditNote && creditNote.origin !== COMPANI) || !creditNote.isEditable) {
+  if (creditNote.origin !== COMPANI || !creditNote.isEditable) {
     throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
   return null;

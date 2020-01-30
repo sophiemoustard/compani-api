@@ -1439,14 +1439,9 @@ describe('formatAndCreateBills', () => {
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
-
-        sinon.assert.notCalled(updateEventsStub);
-        sinon.assert.notCalled(updateFundingHistoriesStub);
-        sinon.assert.notcalled(createBillSlips);
-        BillNumberMock.verify();
-        CreditNoteMock.verify();
-        BillMock.verify();
       } catch (e) {
+        console.log(e);
+      } finally {
         sinon.assert.notCalled(updateEventsStub);
         sinon.assert.notCalled(updateFundingHistoriesStub);
         sinon.assert.notCalled(createBillSlips);
@@ -1469,14 +1464,9 @@ describe('formatAndCreateBills', () => {
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
-
-        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
-        sinon.assert.notCalled(updateFundingHistoriesStub);
-        sinon.assert.notcalled(createBillSlips);
-        BillNumberMock.verify();
-        CreditNoteMock.verify();
-        BillMock.verify();
       } catch (e) {
+        console.log(e);
+      } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.notCalled(updateFundingHistoriesStub);
         sinon.assert.notCalled(createBillSlips);
@@ -1499,14 +1489,9 @@ describe('formatAndCreateBills', () => {
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
-
-        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
-        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
-        sinon.assert.notcalled(createBillSlips);
-        BillNumberMock.verify();
-        CreditNoteMock.verify();
-        BillMock.verify();
       } catch (e) {
+        console.log(e);
+      } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
         sinon.assert.notCalled(createBillSlips);
@@ -1528,14 +1513,9 @@ describe('formatAndCreateBills', () => {
         CreditNoteMock.expects('updateMany').never();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
-
-        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
-        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
-        sinon.assert.notcalled(createBillSlips);
-        BillNumberMock.verify();
-        CreditNoteMock.verify();
-        BillMock.verify();
       } catch (e) {
+        console.log(e);
+      } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
         sinon.assert.notCalled(createBillSlips);
@@ -1558,20 +1538,9 @@ describe('formatAndCreateBills', () => {
         createBillSlips.throws();
 
         await BillHelper.formatAndCreateBills(billsData, credentials);
-
-        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
-        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
-        sinon.assert.calledWithExactly(
-          createBillSlips,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills],
-          billsData[0].endDate,
-          credentials.company
-        );
-        BillNumberMock.verify();
-        CreditNoteMock.verify();
-        BillMock.verify();
       } catch (e) {
-        console.log('test', e);
+        console.log(e);
+      } finally {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
         sinon.assert.calledWithExactly(
