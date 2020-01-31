@@ -17,6 +17,7 @@ const {
   userSectors,
   company,
   sectorHistories,
+  establishmentList,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
@@ -736,6 +737,26 @@ describe('USERS ROUTES', () => {
           method: 'PUT',
           url: `/users/${userFromOtherCompany._id}`,
           payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 400 error if user establishment is removed', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { establishment: null },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(400);
+      });
+
+      it('should return a 403 error if user establishment is not from same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { establishment: establishmentList[1]._id },
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(403);

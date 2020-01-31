@@ -8,6 +8,7 @@ const Task = require('../../../src/models/Task');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
+const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
@@ -34,6 +35,47 @@ const company = {
   },
   prefixNumber: 103,
 };
+
+const establishmentList = [
+  {
+    _id: new ObjectID(),
+    name: 'Toto',
+    siret: '12345678901234',
+    address: {
+      street: '15, rue du test',
+      fullAddress: '15, rue du test 75007 Paris',
+      zipCode: '75007',
+      city: 'Paris',
+      location: {
+        type: 'Point',
+        coordinates: [4.849302, 2.90887],
+      },
+    },
+    phone: '0123456789',
+    workHealthService: 'MT01',
+    urssafCode: '117',
+    company: company._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Tata',
+    siret: '09876543210987',
+    address: {
+      street: '37, rue des acacias',
+      fullAddress: '37, rue des acacias 69000 Lyon',
+      zipCode: '69000',
+      city: 'Lyon',
+      location: {
+        type: 'Point',
+        coordinates: [4.824302, 3.50807],
+      },
+    },
+    phone: '0446899034',
+    workHealthService: 'MT01',
+    urssafCode: '217',
+    company: otherCompany._id,
+  },
+];
 
 const task = {
   _id: new ObjectID(),
@@ -87,6 +129,7 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
     contracts: [{ _id: contractId }],
+    establishment: establishmentList[0]._id,
   },
   {
     _id: new ObjectID(),
@@ -219,6 +262,8 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
+  await Company.deleteMany({});
+  await Establishment.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat(userFromOtherCompany));
@@ -226,6 +271,7 @@ const populateDB = async () => {
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
+  await Establishment.insertMany(establishmentList);
   await new Company(company).save();
   await new Task(task).save();
 };
@@ -241,4 +287,5 @@ module.exports = {
   userSectors,
   company,
   sectorHistories,
+  establishmentList,
 };

@@ -409,6 +409,7 @@ const auxiliaryExportHeader = [
   'Addresse',
   'Téléphone',
   'Nombre de contracts',
+  'Établissement',
   'Date de début de contrat prestataire',
   'Date de fin de contrat prestataire',
   'Date d\'inactivité',
@@ -439,6 +440,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
     address || '',
     get(aux, 'contact.phone') || '',
     contractsLength,
+    get(aux, 'establishment.name') || '',
     get(contract, 'startDate', null) ? moment(contract.startDate).format('DD/MM/YYYY') : '',
     get(contract, 'endDate', null) ? moment(contract.endDate).format('DD/MM/YYYY') : '',
     inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
@@ -453,7 +455,8 @@ exports.exportAuxiliaries = async (credentials) => {
   const auxiliaries = await User
     .find({ role: { $in: roleIds }, company: companyId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+    .populate({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+    .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
   const data = [auxiliaryExportHeader];
 

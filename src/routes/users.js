@@ -264,6 +264,7 @@ exports.plugin = {
             }),
             isActive: Joi.boolean(),
             isConfirmed: Joi.boolean(),
+            establishment: Joi.objectId(),
           }).required(),
         },
         pre: [

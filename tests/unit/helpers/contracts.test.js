@@ -12,7 +12,7 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const CustomerHelper = require('../../../src/helpers/customers');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
-const { RESIGNATION } = require('../../../src/helpers/constants');
+const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -583,13 +583,13 @@ describe('formatVersionEditionPayload', () => {
   });
 
   it('should update previous version end date', async () => {
-    const oldVersion = { startDate: '2019-09-12T00:00:00' };
-    const newVersion = { startDate: '2019-09-16T00:00:00' };
+    const oldVersion = { startDate: moment('2019-09-12').toDate() };
+    const newVersion = { startDate: moment('2019-09-16').toDate() };
     const versionIndex = 1;
 
     const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
 
-    expect(result.$set['versions.0.endDate']).toEqual('2019-09-15T21:59:59.999Z');
+    expect(result.$set['versions.0.endDate']).toEqual(moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString());
   });
 
   it('should update contract start date', async () => {
@@ -988,5 +988,59 @@ describe('uploadFile', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({ name: 'test' });
     sinon.assert.calledWithExactly(createAndSaveFileStub, version, fileInfo);
+  });
+});
+
+describe('auxiliaryHasActiveCompanyContractOnDay', () => {
+  it('should return false as no company contract', () => {
+    const contracts = [{ status: CUSTOMER_CONTRACT }];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (startDate after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-03-11T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (end date before day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return true as company contract on day (end date after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true as company contract on day (no endDate)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
   });
 });

@@ -377,3 +377,8 @@ exports.uploadFile = async (params, payload) => {
   };
   return exports.createAndSaveFile(version, fileInfo);
 };
+
+exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
+  contract.status === COMPANY_CONTRACT &&
+    moment(contract.startDate).isSameOrBefore(day, 'd') &&
+    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
