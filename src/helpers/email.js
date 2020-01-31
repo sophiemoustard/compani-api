@@ -49,6 +49,21 @@ const completeEventRepScriptEmail = async (nb, repIds = null) => {
   return mailInfo;
 };
 
+const completeRoleUpdateScriptEmail = async (nb) => {
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: process.env.TECH_EMAILS,
+    subject: 'Script traitement mis à jour des roles',
+    html: EmailOptionsHelper.completeEventRepScriptEmailBody(nb),
+  };
+
+  const mailInfo = process.env.NODE_ENV === 'production'
+    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+
+  return mailInfo;
+};
+
 const helperWelcomeEmail = async (receiver, company) => {
   const companyName = company.tradeName || company.name;
   const mailOptions = {
@@ -67,5 +82,6 @@ module.exports = {
   billAlertEmail,
   completeBillScriptEmail,
   completeEventRepScriptEmail,
+  completeRoleUpdateScriptEmail,
   helperWelcomeEmail,
 };

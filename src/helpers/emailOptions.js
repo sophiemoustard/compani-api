@@ -43,13 +43,9 @@ const completeBillScriptEmailBody = (sentNb, emails) => {
   return body;
 };
 
-const completeEventRepScriptEmailBody = (nb, repIds) => {
-  let body = `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
-  if (repIds.length) {
-    body = body.concat(`<p>Répétitions à traiter manuellement ${repIds.join()}</p>`);
-  }
-  return body;
-};
+const completeEventRepScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
+
+const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
 module.exports = {
   welcomeEmailContent,
@@ -57,4 +53,5 @@ module.exports = {
   billEmail,
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,
+  completeRoleUpdateScriptEmailBody,
 };
