@@ -40,7 +40,7 @@ const plugins = [
         },
         {
           name: 'roleUpdate',
-          time: '0 0 6 * * *',
+          time: '0 0 6 1 * *',
           request: {
             method: 'GET',
             url: '/scripts/update-role',

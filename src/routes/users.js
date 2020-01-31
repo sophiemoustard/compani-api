@@ -450,7 +450,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
-        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),

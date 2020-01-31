@@ -16,7 +16,7 @@ const updateRole = {
       for (const company of companies) {
         const contracts = await Contract.find({
           company: company._id,
-          endDate: moment().subtract(1, 'day').endOf('day').toDate(),
+          inactivityDate: moment().endOf('month').toDate(),
         }).lean();
         const usersToUpdate = contracts.map(contract => contract.user);
         const updatedUser = await User.updateMany({ _id: { $in: usersToUpdate } }, { $set: { role: role._id } });

@@ -1225,19 +1225,6 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      it('should create a drive folder if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
-
-        const response = await app.inject({
-          method: 'POST',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-          payload: folderPayload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-      });
-
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
