@@ -15,6 +15,7 @@ const ThirdPartyPayerSchema = mongoose.Schema({
     enum: [BILLING_DIRECT, BILLING_INDIRECT],
   },
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
+  isApa: { type: Boolean, required: true },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {

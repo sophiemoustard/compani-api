@@ -15,11 +15,13 @@ const paymentTppList = [
     _id: new ObjectID(),
     name: 'Toto',
     company: authCompany._id,
+    isApa: true,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
     company: authCompany._id,
+    isApa: true,
   },
 ];
 
@@ -198,6 +200,7 @@ const tppFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
   name: 'test',
+  isApa: false,
 };
 
 const populateDB = async () => {

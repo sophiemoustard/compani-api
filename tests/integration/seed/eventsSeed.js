@@ -117,11 +117,13 @@ const sectorHistoryFromOtherCompany = {
 const thirdPartyPayer = {
   _id: new ObjectID(),
   company: authCompany._id,
+  isApa: true,
 };
 
 const thirdPartyPayerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
+  isApa: true,
 };
 
 const service = {

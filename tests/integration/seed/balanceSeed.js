@@ -14,6 +14,7 @@ const balanceThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
   company: authCompany._id,
+  isApa: true,
 };
 
 const company = {

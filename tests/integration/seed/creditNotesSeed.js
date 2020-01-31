@@ -16,6 +16,7 @@ const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
   company: authCompany._id,
+  isApa: true,
 };
 
 const creditNoteService = {
@@ -239,6 +240,7 @@ const otherCompanyThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Titi',
   company: otherCompany._id,
+  isApa: false,
 };
 
 const otherCompanyService = {

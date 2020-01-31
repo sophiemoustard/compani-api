@@ -33,6 +33,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       email: 'test@test.com',
       unitTTCRate: 75,
       billingMode: 'direct',
+      isApa: true,
     };
 
     it('should create a new third party payer', async () => {
@@ -47,14 +48,14 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(pick(
-        response.result.data.thirdPartyPayer.toObject(),
-        ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company']
+        response.result.data.thirdPartyPayer,
+        ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa']
       )).toEqual({ ...payload, company: authCompany._id });
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
       expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
     });
 
-    const missingParams = ['name', 'billingMode'];
+    const missingParams = ['name', 'billingMode', 'isApa'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if ${param} params is missing`, async () => {
         const payloadWithoutParam = omit(payload, param);
@@ -120,6 +121,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       email: 't@t.com',
       unitTTCRate: 89,
       billingMode: 'indirect',
+      isApa: false,
     };
     it('should update a third party payer', async () => {
       const response = await app.inject({
@@ -133,24 +135,11 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
     });
     it('should return a 404 error if third party payer does not exist', async () => {
-      const falsyPayload = {
-        name: 'SuperTest',
-        address: {
-          fullAddress: '4 rue du test 92160 Antony',
-          street: '4 rue du test',
-          zipCode: '92160',
-          city: 'Antony',
-          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-        },
-        email: 't@t.com',
-        unitTTCRate: 89,
-        billingMode: 'indirect',
-      };
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
         headers: { 'x-access-token': authToken },
-        payload: falsyPayload,
+        payload,
       });
 
       expect(response.statusCode).toBe(404);

@@ -130,6 +130,7 @@ const tppList = [{
   _id: tppId,
   name: 'tiers payeur',
   company: authCompany._id,
+  isApa: true,
 }];
 
 const customerList = [

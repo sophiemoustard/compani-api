@@ -5,8 +5,8 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const tppList = [
-  { _id: new ObjectID(), name: 'third party payer', company: authCompany._id },
-  { _id: new ObjectID(), name: 'tpp', company: authCompany._id },
+  { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true },
+  { _id: new ObjectID(), name: 'tpp', company: authCompany._id, isApa: false },
 ];
 
 const billSlipList = [

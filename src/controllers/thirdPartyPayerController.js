@@ -1,17 +1,12 @@
 const Boom = require('boom');
-const get = require('lodash/get');
-const ThirdPartyPayer = require('../models/ThirdPartyPayer');
+const ThirdPartyPayersHelper = require('../helpers/thirdPartyPayers');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const payload = {
-      ...req.payload,
-      company: get(req, 'auth.credentials.company._id', null),
-    };
-    const thirdPartyPayer = await ThirdPartyPayer.create(payload);
+    const thirdPartyPayer = await ThirdPartyPayersHelper.create(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].thirdPartyPayerCreated,
@@ -25,9 +20,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const thirdPartyPayers = await ThirdPartyPayer
-      .find({ company: get(req, 'auth.credentials.company._id', null) })
-      .lean();
+    const thirdPartyPayers = await ThirdPartyPayersHelper.list(req.auth.credentials);
 
     return {
       message: thirdPartyPayers.length === 0
@@ -43,14 +36,11 @@ const list = async (req) => {
 
 const updateById = async (req) => {
   try {
-    const updatedThirdPartyPayer = await ThirdPartyPayer
-      .findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true })
-      .lean();
-    if (!updatedThirdPartyPayer) return Boom.notFound(translate[language].thirdPartyPayersNotFound);
+    const thirdPartyPayer = await ThirdPartyPayersHelper.update(req.params._id, req.payload);
 
     return {
       message: translate[language].thirdPartyPayersUpdated,
-      data: { thirdPartyPayer: updatedThirdPartyPayer },
+      data: { thirdPartyPayer },
     };
   } catch (e) {
     req.log('error', e);
@@ -60,10 +50,8 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove(req.params._id);
-    if (!deletedThirdPartyPayer) {
-      return Boom.notFound(translate[language].thirdPartyPayersNotFound);
-    }
+    await ThirdPartyPayersHelper.delete(req.params._id);
+
     return { message: translate[language].thirdPartyPayerDeleted };
   } catch (e) {
     req.log('error', e);
