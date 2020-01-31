@@ -742,14 +742,14 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
-      it('should return a 403 error if user establishment is removed while he has active company contract', async () => {
+      it('should return a 400 error if user establishment is removed', async () => {
         const res = await app.inject({
           method: 'PUT',
           url: `/users/${usersSeedList[0]._id}`,
           payload: { establishment: null },
           headers: { 'x-access-token': authToken },
         });
-        expect(res.statusCode).toBe(403);
+        expect(res.statusCode).toBe(400);
       });
 
       it('should return a 403 error if user establishment is not from same company', async () => {

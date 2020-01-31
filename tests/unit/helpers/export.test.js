@@ -57,8 +57,8 @@ describe('exportWorkingEventsHistory', () => {
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
       },
-      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
     },
     {
       isCancelled: false,
@@ -72,8 +72,8 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
     },
     {
       isCancelled: true,
@@ -86,8 +86,8 @@ describe('exportWorkingEventsHistory', () => {
       customer: {
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
       misc: 'brbr',
     },
   ];
@@ -149,8 +149,8 @@ describe('exportAbsencesHistory', () => {
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
       },
-      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
     },
     {
       type: 'absence',
@@ -161,8 +161,8 @@ describe('exportAbsencesHistory', () => {
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
       },
-      startDate: moment('2019-05-20').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-05-20').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
       misc: 'brbr',
     },
   ];
@@ -743,8 +743,8 @@ describe('exportAuxiliaries', () => {
   });
 
   afterEach(() => {
-    UserModel.verify();
-    RoleModel.verify();
+    UserModel.restore();
+    RoleModel.restore();
     getLastVersion.restore();
   });
 
@@ -777,6 +777,8 @@ describe('exportAuxiliaries', () => {
       'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
       'Date de création']);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary info', async () => {
@@ -834,6 +836,8 @@ describe('exportAuxiliaries', () => {
       '01/02/2019',
       '01/02/2019',
     ]);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary sector', async () => {
@@ -862,6 +866,8 @@ describe('exportAuxiliaries', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '', '', '', '']);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary identity', async () => {
@@ -926,6 +932,8 @@ describe('exportAuxiliaries', () => {
       '',
       '',
     ]);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary contracts info', async () => {
@@ -965,6 +973,8 @@ describe('exportAuxiliaries', () => {
     expect(result[2]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '10/11/2019', '01/12/2019', '', '']);
     expect(result[2]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '02/12/2019', '', '', '']);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary address', async () => {
@@ -995,6 +1005,8 @@ describe('exportAuxiliaries', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '', '', '', '']);
+    UserModel.verify();
+    RoleModel.verify();
   });
 
   it('should return auxiliary establishment', async () => {
@@ -1025,6 +1037,8 @@ describe('exportAuxiliaries', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, 'Test', '', '', '', '']);
+    UserModel.verify();
+    RoleModel.verify();
   });
 });
 

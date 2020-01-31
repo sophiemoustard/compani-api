@@ -1775,8 +1775,8 @@ describe('formatEventsForPdf', () => {
       auxiliary: {
         identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
       },
-      startDate: moment('2019-04-10').set({ hours: 8 }).toDate(),
-      endDate: moment('2019-04-10').set({ hours: 10 }).toDate(),
+      startDate: moment('2019-04-10T08:00:00').toDate(),
+      endDate: moment('2019-04-10T10:00:00').toDate(),
       bills: { inclTaxesCustomer: 52, exclTaxesCustomer: 49.28909952606635 },
       surcharges: [],
     }];
