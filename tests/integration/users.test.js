@@ -167,6 +167,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -364,6 +365,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -409,6 +411,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -498,6 +501,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -566,7 +570,7 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      it('should return user if it is me', async () => {
+      it('should return user if it is me - auxiliary', async () => {
         authToken = await getToken('auxiliary', usersSeedList);
 
         const response = await app.inject({
@@ -578,9 +582,22 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(200);
       });
 
+      it('should return user if it is me - auxiliary without company ', async () => {
+        authToken = await getToken('auxiliaryWithoutCompany', usersSeedList);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[8]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -761,6 +778,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -828,6 +846,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -927,6 +946,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -974,6 +994,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1034,6 +1055,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1141,6 +1163,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1218,6 +1241,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

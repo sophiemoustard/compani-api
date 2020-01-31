@@ -87,6 +87,7 @@ describe('BALANCES ROUTES - GET /', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -156,6 +157,7 @@ describe('BALANCES ROUTES - GET /details', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

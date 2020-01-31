@@ -49,10 +49,11 @@ describe('ROLES ROUTES', () => {
       });
     });
 
-    describe('Other role', () => {
+    describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

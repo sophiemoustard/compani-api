@@ -100,6 +100,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -636,6 +637,7 @@ describe('BILL ROUTES - POST /bills', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -700,6 +702,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

@@ -94,10 +94,11 @@ describe('COMPANIES ROUTES', () => {
       });
     });
 
-    describe('Other role', () => {
+    describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -260,10 +261,11 @@ describe('COMPANIES ROUTES', () => {
       });
     });
 
-    describe('Other role', () => {
+    describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'admin', expectedCode: 403 },
       ];
@@ -302,10 +304,11 @@ describe('COMPANIES ROUTES', () => {
       });
     });
 
-    describe('Other role', () => {
+    describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'superAdmin', expectedCode: 200 },
       ];
