@@ -1,29 +1,25 @@
 const moment = require('moment');
-const Company = require('../models/Company');
 const User = require('../models/User');
 const Role = require('../models/Role');
-const Contract = require('../models/Contract');
 const { AUXILIARY_WITHOUT_COMPANY } = require('../helpers/constants');
 const EmailHelper = require('../helpers/email');
 
 const updateRole = {
   async method() {
     let error;
-    let updatedUserCount = 0;
+    let updatedUsersCount = 0;
     try {
-      const companiesId = await Company.find({}, { id: 1 }).lean();
       const role = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
-      const contracts = await Contract.find({
-        company: { $in: companiesId },
-        inactivityDate: moment().endOf('month').toDate(),
-      }).lean();
-      const usersToUpdate = contracts.map(contract => contract.user);
-      const updatedUser = await User.updateMany({ _id: { $in: usersToUpdate } }, { $set: { role: role._id } });
-      updatedUserCount = updatedUser.nModified;
+
+      const updatedUsers = await User.updateMany(
+        { inactivityDate: moment().startOf('M').toDate() },
+        { $set: { role: role._id } }
+      );
+      updatedUsersCount = updatedUsers.nModified;
     } catch (e) {
       error = e.message;
     }
-    return { results: updatedUserCount, error };
+    return { results: updatedUsersCount, error };
   },
 
   async onComplete(server, { results, error }) {
