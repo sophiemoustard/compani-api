@@ -24,7 +24,7 @@ exports.findAmountsGroupedByCustomer = async (companyId, customerId = null, date
     {
       $project: {
         _id: { customer: '$_id', tpp: null },
-        customer: { _id: 1, identity: 1 },
+        customer: { _id: 1, identity: 1, fundings: 1 },
         refund: 1,
       },
     },
@@ -68,7 +68,7 @@ exports.findAmountsGroupedByTpp = async (companyId, customerId = null, dateMax =
       $project: {
         _id: 1,
         thirdPartyPayer: { name: 1, _id: 1 },
-        customer: { _id: 1, identity: 1 },
+        customer: { _id: 1, identity: 1, fundings: 1 },
         refund: 1,
       },
     },

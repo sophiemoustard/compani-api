@@ -4,9 +4,11 @@ const { PAYMENT } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
-const BillHelper = require('../helpers/bills');
-const CreditNoteHelper = require('../helpers/creditNotes');
-const PaymentHelper = require('../helpers/payments');
+const BillHelper = require('./bills');
+const CreditNoteHelper = require('./creditNotes');
+const PaymentHelper = require('./payments');
+const UtilsHelper = require('./utils');
+const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
@@ -39,7 +41,22 @@ exports.computePayments = (payments) => {
   return total;
 };
 
-exports.getBalance = (bill, customerAggregation, tppAggregation, payments) => {
+exports.formatParticipationRate = (customer, thirdPartyPayer, tppList) => {
+  if (!customer.fundings && thirdPartyPayer) return 0;
+  if (!customer.fundings) return 100;
+
+  const sortedFundings = customer.fundings.filter(fund =>
+    tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString()))
+    .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
+    .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
+
+  if (!sortedFundings.length && thirdPartyPayer) return 0;
+  if (!sortedFundings.length) return 100;
+  else if (thirdPartyPayer) return 100 - sortedFundings[0].customerParticipationRate;
+  return sortedFundings[0].customerParticipationRate;
+};
+
+exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
   const correspondingCreditNote = !bill._id.tpp
     ? customerAggregation.find(cn => cn._id.customer.toHexString() === bill._id.customer.toHexString() && !cn._id.tpp)
     : tppAggregation.find(cn => cn._id.tpp && cn._id.tpp.toHexString() === bill._id.tpp.toHexString()
@@ -49,17 +66,22 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments) => {
     : payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString()
       && pay._id.tpp && pay._id.tpp.toHexString() === bill._id.tpp.toHexString());
 
-  bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
-  bill.paid = correspondingPayment && correspondingPayment.payments
+  const paid = correspondingPayment && correspondingPayment.payments
     ? exports.computePayments(correspondingPayment.payments)
     : 0;
-  bill.balance = bill.paid - bill.billed;
-  bill.toPay = exports.canBeDirectDebited(bill) ? Math.abs(bill.balance) : 0;
+  const billed = bill.billed - correspondingCreditNote ? correspondingCreditNote.refund : 0;
 
-  return bill;
+  return {
+    ...bill,
+    participationRate: exports.formatParticipationRate(bill.customer, bill.thirdPartyPayer, tppList),
+    billed,
+    paid,
+    balance: paid - billed,
+    toPay: exports.canBeDirectDebited(bill) ? Math.abs(paid - billed) : 0,
+  };
 };
 
-exports.getBalancesFromCreditNotes = (creditNote, payments) => {
+exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
   const correspondingPayment = !creditNote._id.tpp
     ? payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString() && !pay._id.tpp)
     : payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString()
@@ -67,26 +89,28 @@ exports.getBalancesFromCreditNotes = (creditNote, payments) => {
 
   const bill = {
     customer: creditNote.customer,
+    participationRate: exports.formatParticipationRate(creditNote.customer, creditNote.client, tppList),
     billed: -creditNote.refund,
     paid: correspondingPayment && correspondingPayment.payments
       ? exports.computePayments(correspondingPayment.payments)
       : 0,
     toPay: 0,
-    ...(creditNote.thirdPartyPayer && { thirdPartyPayer: { ...creditNote.thirdPartyPayer } }),
   };
+  if (creditNote.thirdPartyPayer) bill.thirdPartyPayer = { ...creditNote.thirdPartyPayer };
   bill.balance = bill.paid - bill.billed;
 
   return bill;
 };
 
-exports.getBalancesFromPayments = (payment) => {
+exports.getBalancesFromPayments = (payment, tppList) => {
   const bill = {
     customer: payment.customer,
     billed: 0,
     paid: payment.payments ? exports.computePayments(payment.payments) : 0,
     toPay: 0,
-    ...(payment.thirdPartyPayer && { thirdPartyPayer: { ...payment.thirdPartyPayer } }),
+    participationRate: exports.formatParticipationRate(payment.customer, payment.client, tppList),
   };
+  if (payment.thirdPartyPayer) bill.thirdPartyPayer = { ...payment.thirdPartyPayer };
   bill.balance = bill.paid - bill.billed;
 
   return bill;
@@ -98,30 +122,41 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(companyId, customerId, maxDate);
   const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customerId, maxDate);
   const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
+  const tppList = await ThirdPartyPayer.find({ company: companyId }).lean();
 
   const balances = [];
   const clients = [];
   for (const bill of bills) {
     clients.push({ ...bill._id });
-    balances.push(exports.getBalance(bill, customerCNAggregation, tppCNAggregation, payments));
+    balances.push(exports.getBalance(bill, customerCNAggregation, tppCNAggregation, payments, tppList));
   }
 
-  const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation]
-    .filter(cn => !clients.some(cl => cl.customer.toHexString() === cn._id.customer.toHexString()
-      && ((!cl.tpp && !cn._id.tpp) || (cl.tpp && cn._id.tpp && cl.tpp.toHexString() === cn._id.tpp.toHexString()))));
+  const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation].filter(cn => !clients.some((cl) => {
+    const isCustomerCreditNote = cl.customer.toHexString() === cn._id.customer.toHexString();
+    const noTpp = !cl.tpp && !cn._id.tpp;
+    const isClientCreditNote = cl.tpp && cn._id.tpp && cl.tpp.toHexString() === cn._id.tpp.toHexString();
+
+    return isCustomerCreditNote && (noTpp || isClientCreditNote);
+  }));
 
   for (const cn of remainingCreditNotes) {
     clients.push({ ...cn._id });
-    balances.push(exports.getBalancesFromCreditNotes(cn, payments));
+    balances.push(exports.getBalancesFromCreditNotes(cn, payments, tppList));
   }
 
-  const remainingPayments = payments.filter(payment =>
-    !clients.some(cl => cl.customer.toHexString() === payment._id.customer.toHexString() &&
-      ((!cl.tpp && !payment._id.tpp) ||
-      (cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString()))));
+  const remainingPayments = payments.filter(payment => !clients.some((cl) => {
+    const isCustomerPayment = cl.customer.toHexString() === payment._id.customer.toHexString();
+    const noTpp = !cl.tpp && !payment._id.tpp;
+    const isTppPayment = cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString();
+
+    return isCustomerPayment && (noTpp || isTppPayment);
+  }));
+
   for (const cn of remainingPayments) {
-    balances.push(exports.getBalancesFromPayments(cn, payments));
+    balances.push(exports.getBalancesFromPayments(cn, payments, tppList));
   }
+
+
   return balances;
 };
 
