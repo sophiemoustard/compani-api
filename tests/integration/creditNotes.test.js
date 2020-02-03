@@ -318,6 +318,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -376,6 +377,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -449,6 +451,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -617,6 +620,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -697,6 +701,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

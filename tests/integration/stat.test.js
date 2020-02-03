@@ -46,6 +46,7 @@ describe('GET /stats/customer-follow-up', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -103,6 +104,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -146,6 +148,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -260,6 +263,7 @@ describe('GET /stats/paid-intervention-stats', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -371,6 +375,7 @@ describe('GET /stats/customer-duration/sector', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -479,6 +484,7 @@ describe('GET /stats/internal-billed-hours', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

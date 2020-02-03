@@ -145,7 +145,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
           { method: authorizeUserUpdate },
@@ -158,7 +158,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           payload: Joi.object().keys({
             emergencyPhone: Joi.string(),
@@ -279,7 +279,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -404,7 +404,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -434,7 +434,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -456,7 +456,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadImage,
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,

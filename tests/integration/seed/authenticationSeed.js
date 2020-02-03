@@ -192,6 +192,7 @@ const auxiliaryRights = [
 ];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
+const auxiliaryWithoutCompanyRights = [];
 
 const rolesList = [
   {
@@ -224,6 +225,14 @@ const rolesList = [
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: 'auxiliaryWithoutCompany',
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
     })),
   },
   {
@@ -295,6 +304,14 @@ const userList = [
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
+    local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
     company: authCompany._id,
   },
   {

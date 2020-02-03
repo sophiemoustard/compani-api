@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
@@ -16,13 +17,16 @@ const validate = async (decoded) => {
 
     if (!user.company) return { isValid: false };
 
+    const scope = [`user:read-${decoded._id}`, user.role.name, ...rights, ...customersScopes]
+    if (user.role.name !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
+
     const credentials = {
       _id: decoded._id,
       identity: user.identity || null,
       email: user.local && user.local.email ? user.local.email : null,
       company: user.company,
       sector: user.sector ? user.sector.toHexString() : null,
-      scope: [`user-${decoded._id}`, user.role.name, ...rights, ...customersScopes],
+      scope,
     };
 
     return { isValid: true, credentials };

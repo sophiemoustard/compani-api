@@ -64,6 +64,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -126,6 +127,7 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

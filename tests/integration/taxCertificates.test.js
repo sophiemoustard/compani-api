@@ -64,6 +64,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -132,6 +133,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -279,7 +281,7 @@ describe('TAX CERTIFICATES - POST /', () => {
     });
   });
 
-  describe('Other role', () => {
+  describe('Other roles', () => {
     let gDriveAdd;
     let gDriveStorageAddFile;
     beforeEach(() => {
@@ -297,6 +299,7 @@ describe('TAX CERTIFICATES - POST /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -363,10 +366,11 @@ describe('TAX CERTIFICATES - DELETE /', () => {
     });
   });
 
-  describe('Other role', () => {
+  describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

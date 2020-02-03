@@ -1,4 +1,4 @@
-const { billDispatchScript, eventRepetitionsScript } = require('../controllers/scriptController');
+const { billDispatchScript, eventRepetitionsScript, updateRoleScript } = require('../controllers/scriptController');
 
 exports.plugin = {
   name: 'routes-scripts',
@@ -19,6 +19,15 @@ exports.plugin = {
         auth: { scope: ['scripts:run'] },
       },
       handler: eventRepetitionsScript,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/update-role',
+      options: {
+        auth: { scope: ['scripts:run'] },
+      },
+      handler: updateRoleScript,
     });
   },
 };

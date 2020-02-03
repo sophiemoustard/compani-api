@@ -208,6 +208,21 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
+    local: { email: 'withouCompany@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    refreshToken: uuidv4(),
+    company: company._id,
+    contracts: [],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
+    inactivityDate: null,
+  },
 ];
 
 const userSectors = [

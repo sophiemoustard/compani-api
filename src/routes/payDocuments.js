@@ -45,7 +45,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['paydocuments:edit', 'user-{query.user}'] },
+        auth: { scope: ['paydocuments:edit', 'user:edit-{query.user}'] },
         validate: {
           query: Joi.object({
             user: Joi.objectId().required(),
