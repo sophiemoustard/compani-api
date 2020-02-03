@@ -11,17 +11,15 @@ const updateRole = {
     let error;
     let updatedUserCount = 0;
     try {
-      const companies = await Company.find({}).lean();
+      const companiesId = await Company.find({}, { id: 1 }).lean();
       const role = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
-      for (const company of companies) {
-        const contracts = await Contract.find({
-          company: company._id,
-          inactivityDate: moment().endOf('month').toDate(),
-        }).lean();
-        const usersToUpdate = contracts.map(contract => contract.user);
-        const updatedUser = await User.updateMany({ _id: { $in: usersToUpdate } }, { $set: { role: role._id } });
-        updatedUserCount += updatedUser.nModified;
-      }
+      const contracts = await Contract.find({
+        company: { $in: companiesId },
+        inactivityDate: moment().endOf('month').toDate(),
+      }).lean();
+      const usersToUpdate = contracts.map(contract => contract.user);
+      const updatedUser = await User.updateMany({ _id: { $in: usersToUpdate } }, { $set: { role: role._id } });
+      updatedUserCount = updatedUser.nModified;
     } catch (e) {
       error = e.message;
     }
