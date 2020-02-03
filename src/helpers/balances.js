@@ -30,7 +30,6 @@ exports.computeTotal = (nature, total, netInclTaxes) => {
   return total - netInclTaxes;
 };
 
-
 exports.computePayments = (payments) => {
   if (!payments || !Array.isArray(payments) || payments.length === 0) return 0;
   let total = 0;
@@ -46,7 +45,7 @@ exports.formatParticipationRate = (customer, thirdPartyPayer, tppList) => {
   if (!customer.fundings) return 100;
 
   const sortedFundings = customer.fundings.filter(fund =>
-    tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString()))
+    tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString() && tpp.isApa))
     .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
     .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
 
@@ -69,7 +68,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
   const paid = correspondingPayment && correspondingPayment.payments
     ? exports.computePayments(correspondingPayment.payments)
     : 0;
-  const billed = bill.billed - correspondingCreditNote ? correspondingCreditNote.refund : 0;
+  const billed = bill.billed - (correspondingCreditNote ? correspondingCreditNote.refund : 0);
 
   return {
     ...bill,

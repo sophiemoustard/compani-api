@@ -3,14 +3,17 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const _ = require('lodash');
-
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const BalanceHelper = require('../../../src/helpers/balances');
 const BillHelper = require('../../../src/helpers/bills');
 const PaymentHelper = require('../../../src/helpers/payments');
 const CreditNoteHelper = require('../../../src/helpers/creditNotes');
+const UtilsHelper = require('../../../src/helpers/utils');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
+
+require('sinon-mongoose');
 
 describe('canBeDirectDebited', () => {
   const bill = {
@@ -158,16 +161,99 @@ describe('computePayments', () => {
   });
 });
 
+describe('formatParticipationRate', () => {
+  let mergeLastVersionWithBaseObject;
+  beforeEach(() => {
+    mergeLastVersionWithBaseObject = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
+  });
+  afterEach(() => {
+    mergeLastVersionWithBaseObject.restore();
+  });
+
+  it('should return 0 if no funding and thirdPartyPayer', () => {
+    const customer = {};
+    const thirdPartyPayer = { isApa: true };
+    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const result = BalanceHelper.formatParticipationRate(customer, thirdPartyPayer, tppList);
+
+    expect(result).toEqual(0);
+  });
+  it('should return 100 if no funding and no thirdPartyPayer', () => {
+    const customer = {};
+    const result = BalanceHelper.formatParticipationRate(customer, undefined);
+
+    expect(result).toEqual(100);
+  });
+  it('should return 0 if no apa funding and thirdPartyPayer', () => {
+    const thirdPartyPayer = { _id: new ObjectID() };
+    const customer = {
+      fundings: [
+        { thirdPartyPayer: thirdPartyPayer._id, versions: [] },
+        { thirdPartyPayer: new ObjectID(), versions: [] },
+      ],
+    };
+    const tppList = [{ _id: thirdPartyPayer._id, isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const result = BalanceHelper.formatParticipationRate(customer, thirdPartyPayer, tppList);
+
+    expect(result).toEqual(0);
+  });
+  it('should return 100 if no apa funding and no thirdPartyPayer', () => {
+    const customer = {
+      fundings: [
+        { thirdPartyPayer: new ObjectID(), versions: [] },
+        { thirdPartyPayer: new ObjectID(), versions: [] },
+      ],
+    };
+    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const result = BalanceHelper.formatParticipationRate(customer, undefined, tppList);
+
+    expect(result).toEqual(100);
+  });
+  it('should return participation rate for customer', () => {
+    const thirdPartyPayer = { isApa: true, _id: new ObjectID() };
+    const customer = {
+      fundings: [
+        { thirdPartyPayer: thirdPartyPayer._id, versions: [{ customerParticipationRate: 30 }] },
+        { thirdPartyPayer: new ObjectID(), versions: [] },
+      ],
+    };
+    const tppList = [{ _id: thirdPartyPayer._id, isApa: true }, { _id: new ObjectID(), isApa: false }];
+    mergeLastVersionWithBaseObject.returns({ customerParticipationRate: 30 });
+
+    const result = BalanceHelper.formatParticipationRate(customer, thirdPartyPayer, tppList);
+
+    expect(result).toEqual(70);
+  });
+  it('should return participation rate for thirdPartyPayer', () => {
+    const thirdPartyPayerId = new ObjectID();
+    const customer = {
+      fundings: [
+        { thirdPartyPayer: thirdPartyPayerId, versions: [{ customerParticipationRate: 30 }] },
+        { thirdPartyPayer: new ObjectID(), versions: [] },
+      ],
+    };
+    const tppList = [{ _id: thirdPartyPayerId, isApa: true }, { _id: new ObjectID(), isApa: false }];
+    mergeLastVersionWithBaseObject.returns({ customerParticipationRate: 30 });
+
+    const result = BalanceHelper.formatParticipationRate(customer, undefined, tppList);
+
+    expect(result).toEqual(30);
+  });
+});
+
 describe('getBalance', () => {
   let computePayments;
   let canBeDirectDebited;
+  let formatParticipationRate;
   beforeEach(() => {
     computePayments = sinon.stub(BalanceHelper, 'computePayments');
     canBeDirectDebited = sinon.stub(BalanceHelper, 'canBeDirectDebited');
+    formatParticipationRate = sinon.stub(BalanceHelper, 'formatParticipationRate');
   });
   afterEach(() => {
     computePayments.restore();
     canBeDirectDebited.restore();
+    formatParticipationRate.restore();
   });
 
   it('should format balance for customer without credit notes and payment', () => {
@@ -185,6 +271,7 @@ describe('getBalance', () => {
       },
     };
     canBeDirectDebited.returns(true);
+    formatParticipationRate.returns(10);
 
     const result = BalanceHelper.getBalance(bill, [], [], []);
     expect(result).toBeDefined();
@@ -192,6 +279,7 @@ describe('getBalance', () => {
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-70);
     expect(result.toPay).toEqual(70);
+    expect(result.participationRate).toEqual(10);
     sinon.assert.notCalled(computePayments);
   });
 
@@ -214,6 +302,7 @@ describe('getBalance', () => {
       { _id: { customer: new ObjectID() }, refund: 90 },
     ];
     canBeDirectDebited.returns(true);
+    formatParticipationRate.returns(10);
 
     const result = BalanceHelper.getBalance(bill, customerCreditNotes, [], []);
     expect(result).toBeDefined();
@@ -221,6 +310,7 @@ describe('getBalance', () => {
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-20);
     expect(result.toPay).toEqual(20);
+    expect(result.participationRate).toEqual(10);
     sinon.assert.notCalled(computePayments);
   });
 
@@ -254,12 +344,14 @@ describe('getBalance', () => {
     ];
     canBeDirectDebited.returns(true);
     computePayments.returns(110);
+    formatParticipationRate.returns(10);
 
     const result = BalanceHelper.getBalance(bill, customerCreditNotes, [], payments);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(120);
     expect(result.paid).toEqual(110);
     expect(result.balance).toEqual(-10);
+    expect(result.participationRate).toEqual(10);
     expect(result.toPay).toEqual(10);
   });
 
@@ -269,6 +361,14 @@ describe('getBalance', () => {
     const bill = {
       _id: { customer: customerId, tpp: tppId },
       billed: 70,
+      customer: {
+        payment: {
+          bankAccountOwner: 'Test',
+          bid: 'QWERTYUIOP',
+          iban: 'FR2345672344523455432234',
+          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
+        },
+      },
     };
     const tppCreditNotes = [
       { _id: { customer: customerId, tpp: tppId }, refund: 40, customer: customerId },
@@ -276,6 +376,7 @@ describe('getBalance', () => {
       { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
     ];
     canBeDirectDebited.returns(false);
+    formatParticipationRate.returns(10);
 
     const result = BalanceHelper.getBalance(bill, [], tppCreditNotes, []);
     expect(result).toBeDefined();
@@ -283,6 +384,7 @@ describe('getBalance', () => {
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-30);
     expect(result.toPay).toEqual(0);
+    expect(result.participationRate).toEqual(10);
     sinon.assert.notCalled(computePayments);
   });
 
@@ -292,6 +394,14 @@ describe('getBalance', () => {
     const bill = {
       _id: { customer: customerId, tpp: tppId },
       billed: 70,
+      customer: {
+        payment: {
+          bankAccountOwner: 'Test',
+          bid: 'QWERTYUIOP',
+          iban: 'FR2345672344523455432234',
+          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
+        },
+      },
     };
     const tppCreditNotes = [
       { _id: { customer: customerId, tpp: tppId }, refund: 40 },
@@ -310,6 +420,7 @@ describe('getBalance', () => {
     ];
     canBeDirectDebited.returns(false);
     computePayments.returns(-50);
+    formatParticipationRate.returns(10);
 
     const result = BalanceHelper.getBalance(bill, [], tppCreditNotes, payments);
     expect(result).toBeDefined();
@@ -317,6 +428,7 @@ describe('getBalance', () => {
     expect(result.paid).toEqual(-50);
     expect(result.balance).toEqual(-80);
     expect(result.toPay).toEqual(0);
+    expect(result.participationRate).toEqual(10);
   });
 });
 
@@ -328,6 +440,7 @@ describe('getBalances', () => {
   let getBalance;
   let getBalancesFromCreditNotes;
   let getBalancesFromPayments;
+  let ThirdPartyPayerMock;
 
   const customers = [new ObjectID(), new ObjectID(), new ObjectID()];
   const tpps = [new ObjectID(), new ObjectID()];
@@ -343,6 +456,7 @@ describe('getBalances', () => {
     getBalance = sinon.stub(BalanceHelper, 'getBalance');
     getBalancesFromCreditNotes = sinon.stub(BalanceHelper, 'getBalancesFromCreditNotes');
     getBalancesFromPayments = sinon.stub(BalanceHelper, 'getBalancesFromPayments');
+    ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
 
     getBalance.returnsArg(0);
     getBalancesFromCreditNotes.returnsArg(0);
@@ -357,6 +471,7 @@ describe('getBalances', () => {
     getBalance.restore();
     getBalancesFromCreditNotes.restore();
     getBalancesFromPayments.restore();
+    ThirdPartyPayerMock.restore();
   });
 
   it('should return no balance', async () => {
@@ -364,6 +479,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -388,6 +504,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -412,6 +529,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -435,6 +553,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -461,6 +580,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -498,6 +618,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
+    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
 
     const allAmounts = [
       { _id: { customer: customers[0] } },
