@@ -25,7 +25,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            address: addressValidation.required(),
+            address: addressValidation,
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
