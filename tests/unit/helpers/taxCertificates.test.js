@@ -317,35 +317,44 @@ describe('create', () => {
 });
 
 describe('remove', () => {
-  let findOneAndDeleteStub;
+  let TaxCertificateMock;
   let deleteFileStub;
   beforeEach(() => {
-    findOneAndDeleteStub = sinon.stub(TaxCertificate, 'findOneAndDelete');
+    TaxCertificateMock = sinon.mock(TaxCertificate);
     deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
   });
   afterEach(() => {
-    findOneAndDeleteStub.restore();
+    TaxCertificateMock.restore();
     deleteFileStub.restore();
   });
 
   it('should delete tax certificate', async () => {
     const taxCertificateId = new ObjectID();
-    findOneAndDeleteStub.returns({ _id: new ObjectID() });
+
+    TaxCertificateMock
+      .expects('findOneAndDelete')
+      .withExactArgs({ _id: taxCertificateId })
+      .chain('lean')
+      .returns({ _id: new ObjectID() });
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
-    sinon.assert.calledWithExactly(findOneAndDeleteStub, { _id: taxCertificateId });
     sinon.assert.notCalled(deleteFileStub);
+    TaxCertificateMock.verify();
   });
 
   it('should delete tax certificate and drive file if there is one', async () => {
     const taxCertificateId = new ObjectID();
     const taxCertificate = { _id: new ObjectID(), driveFile: { driveId: new ObjectID() } };
-    findOneAndDeleteStub.returns(taxCertificate);
+    TaxCertificateMock
+      .expects('findOneAndDelete')
+      .withExactArgs({ _id: taxCertificateId })
+      .chain('lean')
+      .returns(taxCertificate);
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
-    sinon.assert.calledWithExactly(findOneAndDeleteStub, { _id: taxCertificateId });
     sinon.assert.calledWithExactly(deleteFileStub, taxCertificate.driveFile.driveId);
+    TaxCertificateMock.verify();
   });
 });
