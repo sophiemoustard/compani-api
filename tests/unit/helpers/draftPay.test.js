@@ -1163,6 +1163,26 @@ describe('getPayFromAbsences', () => {
     sinon.assert.notCalled(getMatchingVersion);
   });
 
+  it('should return paid hours from work accident and illness absences ', () => {
+    const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
+    const absences = [
+      { absenceNature: 'daily', absence: 'illness', startDate: '2019-05-18T12:00:00', endDate: '2019-05-18T22:00:00' },
+      {
+        absenceNature: 'daily',
+        absence: 'work_accident',
+        startDate: '2019-05-01T14:00:00',
+        endDate: '2019-05-03T22:00:00',
+      },
+    ];
+    const contract = { versions: [{ weeklyHours: 12 }] };
+
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(6);
+    sinon.assert.notCalled(getMatchingVersion);
+  });
+
   it('should return paid hours from daily absence with two versions in contract', () => {
     const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
     const absences = [
