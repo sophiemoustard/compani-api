@@ -91,12 +91,11 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
   { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
 ]).option({ company: companyId });
 
-exports.getUserEndedCompanyContracts = async (contractUserId, companyId) => Contract.find(
+exports.getUserCompanyContracts = async (contractUserId, companyId) => Contract.find(
   {
     company: companyId,
     user: contractUserId,
     status: COMPANY_CONTRACT,
-    endDate: { $exists: true },
   },
   { endDate: 1 },
   { sort: { endDate: -1 } }

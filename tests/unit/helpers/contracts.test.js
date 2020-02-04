@@ -86,46 +86,58 @@ describe('getContractList', () => {
 });
 
 describe('hasNotEndedCompanyContracts', () => {
-  let getUserEndedCompanyContracts;
+  let getUserCompanyContracts;
   beforeEach(() => {
-    getUserEndedCompanyContracts = sinon.stub(ContractRepository, 'getUserEndedCompanyContracts');
+    getUserCompanyContracts = sinon.stub(ContractRepository, 'getUserCompanyContracts');
   });
   afterEach(() => {
-    getUserEndedCompanyContracts.restore();
+    getUserCompanyContracts.restore();
   });
 
   it('should return true if contract not ended', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
-    getUserEndedCompanyContracts.returns([
+    getUserCompanyContracts.returns([
+      { _id: new ObjectID() },
+      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+    ]);
+    const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+  });
+  it('should return true if contract startDate before existing contracts end date', async () => {
+    const companyId = new ObjectID();
+    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    getUserCompanyContracts.returns([
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(getUserEndedCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
   it('should return false if no contract', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID() };
-    getUserEndedCompanyContracts.returns([]);
+    getUserCompanyContracts.returns([]);
     const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(getUserEndedCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
-  it('should return false if all contracts ended', async () => {
+  it('should return false if startDate after existing contracts end date', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID(), startDate: '2020-04-15T00:00:00' };
-    getUserEndedCompanyContracts.returns([
+    getUserCompanyContracts.returns([
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(getUserEndedCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
 });
 

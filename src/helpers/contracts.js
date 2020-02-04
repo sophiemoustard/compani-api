@@ -53,9 +53,14 @@ exports.getContractList = async (query, credentials) => {
 };
 
 exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
-  const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, companyId);
+  const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
+  const notEndedContract = userContracts.filter(con => !con.endDate);
+  if (notEndedContract.length) return true;
 
-  return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
+  const sortedEndedContract = userContracts.filter(con => !!con.endDate)
+    .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+
+  return sortedEndedContract.length && moment(contract.startDate).isSameOrBefore(sortedEndedContract[0].endDate, 'd');
 };
 
 exports.userHasMandatoryInfo = (user) => {
@@ -85,7 +90,7 @@ exports.createContract = async (contractPayload, credentials) => {
   const user = await User.findOne({ _id: contractPayload.user })
     .populate({ path: 'sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
-  const isCreationAllowed = exports.isCreationAllowed(contractPayload, user, companyId);
+  const isCreationAllowed = await exports.isCreationAllowed(contractPayload, user, companyId);
   if (!isCreationAllowed) throw Boom.badData();
 
   const payload = { ...cloneDeep(contractPayload), company: companyId };
