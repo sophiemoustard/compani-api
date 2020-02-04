@@ -58,21 +58,37 @@ exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
   return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
 };
 
+exports.userHasMandatoryInfo = (user) => {
+  const { contact, identity, establishment } = user;
+  if (!contact || !identity) return false;
+
+  const completedName = !!identity.lastname && !!identity.firstname;
+  const completedBirthInfo = !!identity.birthDate && !!identity.birthCity && !!identity.birthState;
+  const completedAddress = !!get(contact, 'address.fullAddress');
+
+  return completedName && completedBirthInfo && establishment && !!identity.socialSecurityNumber &&
+    !!identity.nationality && completedAddress;
+};
+
+exports.isCreationAllowed = async (contract, user, companyId) => {
+  if (contract.status === COMPANY_CONTRACT) {
+    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(contract, companyId);
+    if (hasNotEndedCompanyContracts) return false;
+  }
+
+  return exports.userHasMandatoryInfo(user);
+};
+
 exports.createContract = async (contractPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const payload = { ...cloneDeep(contractPayload), company: companyId };
 
   const user = await User.findOne({ _id: contractPayload.user })
     .populate({ path: 'sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
+  const isCreationAllowed = exports.isCreationAllowed(contractPayload, user, companyId);
+  if (!isCreationAllowed) throw Boom.badData();
 
-  if (payload.status === COMPANY_CONTRACT) {
-    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
-    if (hasNotEndedCompanyContracts) {
-      throw Boom.badRequest('New contract start date is before last company contract end date.');
-    }
-  }
-
+  const payload = { ...cloneDeep(contractPayload), company: companyId };
   if (payload.versions[0].signature) {
     const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
@@ -153,8 +169,8 @@ exports.createVersion = async (contractId, versionPayload) => {
 };
 
 exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, companyId) => {
-  if (versionIndex !== 0) return true;
   if (contract.endDate) return false;
+  if (versionIndex !== 0) return true;
 
   const { status, user } = contract;
   const { startDate } = versionToUpdate;
