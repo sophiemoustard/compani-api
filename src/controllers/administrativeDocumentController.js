@@ -39,7 +39,8 @@ const list = async (req) => {
 const remove = async (req) => {
   try {
     console.log(req.pre.administrativeDocument._id);
-    const administrativeDocument = await AdministrativeDocumentHelper.removeAdministrativeDocument(req.pre.administrativeDocument);
+    const administrativeDocument = await AdministrativeDocumentHelper
+      .removeAdministrativeDocument(req.pre.administrativeDocument);
     return {
       message: translate[language].AdministrativeDocumentRemoved,
       data: { administrativeDocument },

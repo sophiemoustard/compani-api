@@ -14,6 +14,7 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
     type: payload.mimeType,
     body: payload.file,
   });
+
   if (!uploadedFile) throw Boom.failedDependency('Google drive: File not uploaded');
 
   const { id: driveId, webViewLink: link } = uploadedFile;
