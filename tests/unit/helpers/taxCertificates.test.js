@@ -316,19 +316,36 @@ describe('create', () => {
   });
 });
 
-describe('create', () => {
-  let deleteOne;
+describe('remove', () => {
+  let findOneAndDeleteStub;
+  let deleteFileStub;
   beforeEach(() => {
-    deleteOne = sinon.stub(TaxCertificate, 'deleteOne');
+    findOneAndDeleteStub = sinon.stub(TaxCertificate, 'findOneAndDelete');
+    deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
   });
   afterEach(() => {
-    deleteOne.restore();
+    findOneAndDeleteStub.restore();
+    deleteFileStub.restore();
   });
 
   it('should delete tax certificate', async () => {
     const taxCertificateId = new ObjectID();
+    findOneAndDeleteStub.returns({ _id: new ObjectID() });
+
     await TaxCertificateHelper.remove(taxCertificateId);
 
-    sinon.assert.calledWithExactly(deleteOne, { _id: taxCertificateId });
+    sinon.assert.calledWithExactly(findOneAndDeleteStub, { _id: taxCertificateId });
+    sinon.assert.notCalled(deleteFileStub);
+  });
+
+  it('should delete tax certificate and drive file if there is one', async () => {
+    const taxCertificateId = new ObjectID();
+    const taxCertificate = { _id: new ObjectID(), driveFile: { driveId: new ObjectID() } };
+    findOneAndDeleteStub.returns(taxCertificate);
+
+    await TaxCertificateHelper.remove(taxCertificateId);
+
+    sinon.assert.calledWithExactly(findOneAndDeleteStub, { _id: taxCertificateId });
+    sinon.assert.calledWithExactly(deleteFileStub, taxCertificate.driveFile.driveId);
   });
 });
