@@ -527,7 +527,34 @@ describe('getBalancesFromCreditNotes', () => {
     sinon.assert.calledWithExactly(computePayments, [{ refund: 15 }]);
     sinon.assert.calledWithExactly(formatParticipationRate, creditNote, tppList);
   });
-  it('should format not call compute payments as no payment', () => {});
+  it('should format not call compute payments as no payment', () => {
+    const customerId = new ObjectID();
+    const creditNote = {
+      _id: { customer: customerId },
+      customer: { identity: {} },
+      refund: 25,
+    };
+    const payments = [
+      { _id: { customer: customerId, tpp: new ObjectID() }, payments: [{ refund: 15 }] },
+    ];
+    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+
+    computePayments.returns(12);
+    formatParticipationRate.returns(30);
+
+    const result = BalanceHelper.getBalancesFromCreditNotes(creditNote, payments, tppList);
+
+    expect(result).toEqual({
+      customer: { identity: {} },
+      billed: -25,
+      paid: 0,
+      toPay: 0,
+      participationRate: 30,
+      balance: 25,
+    });
+    sinon.assert.notCalled(computePayments);
+    sinon.assert.calledWithExactly(formatParticipationRate, creditNote, tppList);
+  });
 });
 
 describe('getBalancesFromPayments', () => {
