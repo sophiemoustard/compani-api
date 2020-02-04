@@ -41,9 +41,10 @@ exports.computePayments = (payments) => {
 };
 
 exports.formatParticipationRate = (balanceDocument, tppList) => {
-  const fundings = get(balanceDocument, 'customer.fundings') || null;
   const isTppBalance = !!balanceDocument.thirdPartyPayer;
-  if (!fundings && isTppBalance) return 0;
+  if (isTppBalance) return 0;
+
+  const fundings = get(balanceDocument, 'customer.fundings') || null;
   if (!fundings) return 100;
 
   const sortedFundings = fundings.filter(fund =>
@@ -51,10 +52,7 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
     .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
     .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
 
-  if (!sortedFundings.length && isTppBalance) return 0;
-  if (!sortedFundings.length) return 100;
-  else if (isTppBalance) return 100 - sortedFundings[0].customerParticipationRate;
-  return sortedFundings[0].customerParticipationRate;
+  return sortedFundings.length ? sortedFundings[0].customerParticipationRate : 100;
 };
 
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {

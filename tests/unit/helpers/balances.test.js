@@ -180,18 +180,12 @@ describe('formatParticipationRate', () => {
 
     expect(result).toEqual(0);
   });
-  it('should return 100 if no funding and no thirdPartyPayer', () => {
-    const balanceDocument = { customer: {} };
-    const result = BalanceHelper.formatParticipationRate(balanceDocument);
-
-    expect(result).toEqual(100);
-  });
-  it('should return 0 if no apa funding and thirdPartyPayer', () => {
+  it('should return 0 if thirdPartyPayer', () => {
     const thirdPartyPayerId = new ObjectID();
     const balanceDocument = {
       customer: {
         fundings: [
-          { thirdPartyPayer: thirdPartyPayerId, versions: [] },
+          { thirdPartyPayer: thirdPartyPayerId, versions: [{ customerParticipationRate: 30 }] },
           { thirdPartyPayer: new ObjectID(), versions: [] },
         ],
       },
@@ -201,6 +195,12 @@ describe('formatParticipationRate', () => {
     const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
 
     expect(result).toEqual(0);
+  });
+  it('should return 100 if no funding and no thirdPartyPayer', () => {
+    const balanceDocument = { customer: {} };
+    const result = BalanceHelper.formatParticipationRate(balanceDocument);
+
+    expect(result).toEqual(100);
   });
   it('should return 100 if no apa funding and no thirdPartyPayer', () => {
     const balanceDocument = {
@@ -217,24 +217,6 @@ describe('formatParticipationRate', () => {
     expect(result).toEqual(100);
   });
   it('should return participation rate for customer', () => {
-    const thirdPartyPayerId = new ObjectID();
-    const balanceDocument = {
-      customer: {
-        fundings: [
-          { thirdPartyPayer: thirdPartyPayerId, versions: [{ customerParticipationRate: 30 }] },
-          { thirdPartyPayer: new ObjectID(), versions: [] },
-        ],
-      },
-      thirdPartyPayer: { _id: new ObjectID() },
-    };
-    const tppList = [{ _id: thirdPartyPayerId, isApa: true }, { _id: new ObjectID(), isApa: false }];
-    mergeLastVersionWithBaseObject.returns({ customerParticipationRate: 30 });
-
-    const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
-
-    expect(result).toEqual(70);
-  });
-  it('should return participation rate for thirdPartyPayer', () => {
     const thirdPartyPayerId = new ObjectID();
     const balanceDocument = {
       customer: {
