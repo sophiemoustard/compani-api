@@ -124,25 +124,26 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
 
     hasNotEndedCompanyContracts.returns(false);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-
-    const role = { _id: new ObjectID() };
     RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
-      )
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne').never();
 
@@ -174,31 +175,31 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
-
     const contractWithDoc = {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
     };
+    const role = { _id: new ObjectID() };
 
     hasNotEndedCompanyContracts.returns(false);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
     ContractMock.expects('create')
       .withExactArgs(contractWithDoc)
       .returns(contractWithDoc);
-
-    const role = { _id: new ObjectID() };
     RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract.user },
-        { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
-      )
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne').never();
 
@@ -224,26 +225,27 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
 
     hasNotEndedCompanyContracts.returns(false);
 
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-
-    const role = { _id: new ObjectID() };
     RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract.user },
-        { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
-      )
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ name: 'toto' })
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne')
       .withExactArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
@@ -271,26 +273,27 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
+    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
 
     hasNotEndedCompanyContracts.returns(false);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-
-    const role = { _id: new ObjectID() };
     RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
-
-    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
-      )
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(user)
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne').never();
 
@@ -306,7 +309,7 @@ describe('createContract', () => {
   });
 
   it('should throw a 400 error if new company contract startDate is before last ended company contract', async () => {
-    const contract = {
+    const payload = {
       _id: new ObjectID(),
       endDate: null,
       user: new ObjectID(),
@@ -315,15 +318,31 @@ describe('createContract', () => {
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
+    const contract = { ...payload, company: '1234567890' };
 
     try {
       hasNotEndedCompanyContracts.returns(true);
-      await ContractHelper.createContract(contract, credentials);
-      sinon.assert.notCalled(generateSignatureRequestStub);
-      sinon.assert.notCalled(hasNotEndedCompanyContracts);
-      sinon.assert.notCalled(createHistoryOnContractCreation);
+      UserMock.expects('findOne')
+        .withExactArgs({ _id: payload.user })
+        .chain('populate')
+        .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true, virtuals: true })
+        .returns({ name: 'Toto' })
+        .once();
+      UserMock.expects('updateOne').never();
+      CustomerMock.expects('updateOne').never();
+      ContractMock.expects('create').never();
+      await ContractHelper.createContract(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('New contract start date is before last company contract end date.'));
+    } finally {
+      sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+      sinon.assert.notCalled(generateSignatureRequestStub);
+      sinon.assert.notCalled(createHistoryOnContractCreation);
+      ContractMock.verify();
+      UserMock.verify();
+      CustomerMock.verify();
     }
   });
 });
@@ -710,7 +729,7 @@ describe('updateVersion', () => {
       startDate: '2019-09-09T00:00:00',
       versions: [
         { _id: new ObjectID(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
-        { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' }
+        { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       ],
     };
     canUpdateVersion.returns(true);

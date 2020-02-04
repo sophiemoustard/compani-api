@@ -62,6 +62,10 @@ exports.createContract = async (contractPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const payload = { ...cloneDeep(contractPayload), company: companyId };
 
+  const user = await User.findOne({ _id: contractPayload.user })
+    .populate({ path: 'sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
+
   if (payload.status === COMPANY_CONTRACT) {
     const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
     if (hasNotEndedCompanyContracts) {
@@ -70,32 +74,23 @@ exports.createContract = async (contractPayload, credentials) => {
   }
 
   if (payload.versions[0].signature) {
-    const { signature } = payload.versions[0];
-    const doc = await ESignHelper.generateSignatureRequest(signature);
+    const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
     payload.versions[0].signature = { eversignId: doc.data.document_hash };
   }
 
-  const newContract = await Contract.create(payload);
+  const contract = await Contract.create(payload);
 
   const role = await Role.findOne({ name: AUXILIARY }).lean();
+  await User.updateOne(
+    { _id: contract.user },
+    { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+  );
+  if (user.sector) await SectorHistoryHelper.createHistoryOnContractCreation(user, contract, companyId);
+  if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
-  const user = await User.findOneAndUpdate(
-    { _id: newContract.user },
-    { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
-  )
-    .populate({ path: 'sector', match: { company: companyId } })
-    .lean({ autopopulate: true, virtuals: true });
-  if (newContract.customer) {
-    await Customer.updateOne({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
-  }
-
-  if (user.sector) {
-    await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
-  }
-
-  return newContract;
+  return contract;
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
