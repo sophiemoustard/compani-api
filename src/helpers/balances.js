@@ -40,18 +40,20 @@ exports.computePayments = (payments) => {
   return total;
 };
 
-exports.formatParticipationRate = (customer, thirdPartyPayer, tppList) => {
-  if (!customer.fundings && thirdPartyPayer) return 0;
-  if (!customer.fundings) return 100;
+exports.formatParticipationRate = (balanceDocument, tppList) => {
+  const fundings = get(balanceDocument, 'customer.fundings') || null;
+  const isTppBalance = !!balanceDocument.thirdPartyPayer;
+  if (!fundings && isTppBalance) return 0;
+  if (!fundings) return 100;
 
-  const sortedFundings = customer.fundings.filter(fund =>
+  const sortedFundings = fundings.filter(fund =>
     tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString() && tpp.isApa))
     .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
     .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
 
-  if (!sortedFundings.length && thirdPartyPayer) return 0;
+  if (!sortedFundings.length && isTppBalance) return 0;
   if (!sortedFundings.length) return 100;
-  else if (thirdPartyPayer) return 100 - sortedFundings[0].customerParticipationRate;
+  else if (isTppBalance) return 100 - sortedFundings[0].customerParticipationRate;
   return sortedFundings[0].customerParticipationRate;
 };
 
@@ -72,7 +74,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 
   return {
     ...bill,
-    participationRate: exports.formatParticipationRate(bill.customer, bill.thirdPartyPayer, tppList),
+    participationRate: exports.formatParticipationRate(bill, tppList),
     billed,
     paid,
     balance: paid - billed,
@@ -88,7 +90,7 @@ exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
 
   const bill = {
     customer: creditNote.customer,
-    participationRate: exports.formatParticipationRate(creditNote.customer, creditNote.client, tppList),
+    participationRate: exports.formatParticipationRate(creditNote, tppList),
     billed: -creditNote.refund,
     paid: correspondingPayment && correspondingPayment.payments
       ? exports.computePayments(correspondingPayment.payments)
@@ -107,7 +109,7 @@ exports.getBalancesFromPayments = (payment, tppList) => {
     billed: 0,
     paid: payment.payments ? exports.computePayments(payment.payments) : 0,
     toPay: 0,
-    participationRate: exports.formatParticipationRate(payment.customer, payment.client, tppList),
+    participationRate: exports.formatParticipationRate(payment, tppList),
   };
   if (payment.thirdPartyPayer) bill.thirdPartyPayer = { ...payment.thirdPartyPayer };
   bill.balance = bill.paid - bill.billed;
