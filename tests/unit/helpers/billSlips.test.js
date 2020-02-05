@@ -31,7 +31,7 @@ describe('getBillSlips', () => {
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
-      { thirdPartyPayer: billsSlipList[0].thirdPartyPayer._id, month: '2020-01', netInclTaxes: 11 },
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-01', netInclTaxes: 11 },
     ];
     getCreditNoteList.returns(creditNotesSlipList);
 
@@ -50,7 +50,7 @@ describe('getBillSlips', () => {
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
-      { thirdPartyPayer: billsSlipList[0].thirdPartyPayer._id, month: '2020-02', netInclTaxes: 11 },
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-02', netInclTaxes: 11 },
     ];
     getCreditNoteList.returns(creditNotesSlipList);
 
@@ -69,7 +69,7 @@ describe('getBillSlips', () => {
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
-      { thirdPartyPayer: billsSlipList[0].thirdPartyPayer._id, month: '2020-02', netInclTaxes: 11 },
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-02', netInclTaxes: 11 },
     ];
     getCreditNoteList.returns(creditNotesSlipList);
 
