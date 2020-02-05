@@ -12,8 +12,9 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const CustomerHelper = require('../../../src/helpers/customers');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
-const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
+const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT, AUXILIARY } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
+const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventRepository = require('../../../src/repositories/EventRepository');
@@ -89,6 +90,7 @@ describe('createContract', () => {
   let generateSignatureRequestStub;
   let UserMock;
   let CustomerMock;
+  let RoleMock;
   let createHistoryOnContractCreation;
 
   beforeEach(() => {
@@ -97,6 +99,7 @@ describe('createContract', () => {
     createHistoryOnContractCreation = sinon.stub(SectorHistoryHelper, 'createHistoryOnContractCreation');
     ContractMock = sinon.mock(Contract);
     UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
     CustomerMock = sinon.mock(Customer);
   });
 
@@ -106,6 +109,7 @@ describe('createContract', () => {
     createHistoryOnContractCreation.restore();
     ContractMock.restore();
     UserMock.restore();
+    RoleMock.restore();
     CustomerMock.restore();
   });
 
@@ -125,8 +129,15 @@ describe('createContract', () => {
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
+
+    const role = { _id: new ObjectID() };
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
@@ -174,8 +185,15 @@ describe('createContract', () => {
     ContractMock.expects('create')
       .withExactArgs(contractWithDoc)
       .returns(contractWithDoc);
+
+    const role = { _id: new ObjectID() };
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs(
+        { _id: contract.user },
+        { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
@@ -212,8 +230,15 @@ describe('createContract', () => {
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
+
+    const role = { _id: new ObjectID() };
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs(
+        { _id: contract.user },
+        { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
@@ -251,9 +276,16 @@ describe('createContract', () => {
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
+
+    const role = { _id: new ObjectID() };
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+
     const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')

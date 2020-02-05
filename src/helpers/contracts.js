@@ -10,13 +10,14 @@ const cloneDeep = require('lodash/cloneDeep');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
 const CustomerHelper = require('./customers');
 const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, AUXILIARY } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
@@ -78,9 +79,11 @@ exports.createContract = async (contractPayload, credentials) => {
 
   const newContract = await Contract.create(payload);
 
+  const role = await Role.findOne({ name: AUXILIARY }).lean();
+
   const user = await User.findOneAndUpdate(
     { _id: newContract.user },
-    { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } }
+    { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
   )
     .populate({ path: 'sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
