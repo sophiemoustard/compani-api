@@ -149,15 +149,19 @@
       {{#table billSlip.formattedBills}}
         <tr>
           <td align="left">{{ customer }}</td>
-          <td align="right"> {{ folderNumber }}</td>
-          <td align="right"> {{ billNumber }} </td>
-          <td align="right"> {{ date }}</td>
-          <td align="right"> {{ customerParticipationRate }}</td>
-          <td align="right"> {{ tppParticipationRate }}</td>
-          <td align="right"> {{ careHours }}</td>
-          <td align="right"> {{ billedCareHours }}</td>
-          <td align="right"> {{ unitTTCRate }}</td>
-          <td align="right"> {{ netInclTaxes }}</td>
+          <td align="right">{{ folderNumber }}</td>
+          <td align="right">
+            {{#each number}}
+              {{#if @index}}<br />{{/if}}{{ this }}
+            {{/each}}
+          </td>
+          <td align="right">{{ date }}</td>
+          <td align="right">{{ customerParticipationRate }}</td>
+          <td align="right">{{ tppParticipationRate }}</td>
+          <td align="right">{{ careHours }}</td>
+          <td align="right">{{ billedCareHours }}</td>
+          <td align="right">{{ unitTTCRate }}</td>
+          <td align="right">{{ netInclTaxes }}</td>
         </tr>
       {{/table}}
     </tbody>

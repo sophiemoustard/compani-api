@@ -71,38 +71,61 @@ exports.createBillSlips = async (billList, endDate, company) => {
   ]);
 };
 
-exports.formatFundingAndBillInfo = (bill, fundingVersion) => ({
-  billNumber: bill.number,
-  date: moment(bill.date).format('DD/MM/YYYY'),
-  customer: get(bill, 'customer.identity.lastname'),
-  folderNumber: fundingVersion.folderNumber,
-  tppParticipationRate: UtilsHelper.formatPercentage((100 - fundingVersion.customerParticipationRate) / 100),
-  customerParticipationRate: UtilsHelper.formatPercentage(fundingVersion.customerParticipationRate / 100),
-  careHours: UtilsHelper.formatHour(fundingVersion.careHours),
-  unitTTCRate: UtilsHelper.formatPrice(fundingVersion.unitTTCRate),
-  billedCareHours: 0,
-  netInclTaxes: 0,
-});
+exports.formatFundingInfo = (bill, billingDoc) => {
+  const matchingFunding = bill.customer.fundings
+    .find(f => f._id.toHexString() === billingDoc.fundingId.toHexString());
+  if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return;
 
-exports.formatBillsForPdf = (billList) => {
+  const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
+  if (!matchingVersion) return;
+
+  return {
+    number: [],
+    date: moment(bill.date).format('DD/MM/YYYY'),
+    customer: get(bill, 'customer.identity.lastname'),
+    folderNumber: matchingVersion.folderNumber,
+    tppParticipationRate: UtilsHelper.formatPercentage((100 - matchingVersion.customerParticipationRate) / 100),
+    customerParticipationRate: UtilsHelper.formatPercentage(matchingVersion.customerParticipationRate / 100),
+    careHours: UtilsHelper.formatHour(matchingVersion.careHours),
+    unitTTCRate: UtilsHelper.formatPrice(matchingVersion.unitTTCRate),
+    billedCareHours: 0,
+    netInclTaxes: 0,
+  };
+};
+
+exports.formatBillingDataForPdf = (billList, creditNoteList) => {
   const billingData = {};
   for (const bill of billList) {
     for (const subscription of bill.subscriptions) {
       for (const event of subscription.events) {
         if (!billingData[event.fundingId]) {
-          const matchingFunding = bill.customer.fundings
-            .find(f => f._id.toHexString() === event.fundingId.toHexString());
-          if (!matchingFunding || matchingFunding.frequency !== MONTHLY) continue;
-
-          const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
-          if (!matchingVersion) continue;
-
-          billingData[event.fundingId] = exports.formatFundingAndBillInfo(bill, matchingVersion);
+          const formattedInfo = exports.formatFundingInfo(bill, event);
+          if (!formattedInfo) continue;
+          else billingData[event.fundingId] = formattedInfo;
         }
 
+        if (!billingData[event.fundingId].number.includes(bill.number) && bill.number) {
+          billingData[event.fundingId].number.push(bill.number);
+        }
         billingData[event.fundingId].billedCareHours += event.careHours;
         billingData[event.fundingId].netInclTaxes += event.inclTaxesTpp;
       }
+    }
+  }
+
+  for (const creditNote of creditNoteList) {
+    for (const event of creditNote.events) {
+      if (!billingData[event.bills.fundingId]) {
+        const formattedInfo = exports.formatFundingInfo(creditNote, event.bill);
+        if (!formattedInfo) continue;
+        else billingData[event.bills.fundingId] = formattedInfo;
+      }
+
+      if (!billingData[event.bills.fundingId].number.includes(creditNote.number)) {
+        billingData[event.bills.fundingId].number.push(creditNote.number);
+      }
+      billingData[event.bills.fundingId].billedCareHours -= event.bills.careHours;
+      billingData[event.bills.fundingId].netInclTaxes -= event.bills.inclTaxesTpp;
     }
   }
 
@@ -120,8 +143,8 @@ exports.formatBillsForPdf = (billList) => {
   return { total: UtilsHelper.formatPrice(total), formattedBills };
 };
 
-exports.formatPdf = (billSlip, billList, company) => {
-  const { total, formattedBills } = exports.formatBillsForPdf(billList);
+exports.formatPdf = (billSlip, billList, creditNoteList, company) => {
+  const { total, formattedBills } = exports.formatBillingDataForPdf(billList, creditNoteList);
 
   return {
     billSlip: {
@@ -147,8 +170,9 @@ exports.generatePdf = async (billSlipId, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const billSlip = await BillSlip.findById(billSlipId).populate('thirdPartyPayer').lean();
   const billList = await BillRepository.getBillsFromBillSlip(billSlip, companyId);
+  const creditNoteList = await CreditNoteRepository.getCreditNoteFromBillSlip(billSlip, companyId);
 
-  const data = exports.formatPdf(billSlip, billList, credentials.company);
+  const data = exports.formatPdf(billSlip, billList, creditNoteList, credentials.company);
   const pdf = await PdfHelper.generatePdf(
     data,
     './src/data/billSlip.html',
