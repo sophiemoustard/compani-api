@@ -76,3 +76,34 @@ exports.findAmountsGroupedByTpp = async (companyId, customerId = null, dateMax =
 
   return tppCreditNotesAmounts;
 };
+
+exports.getCreditNoteList = async companyId => CreditNote.aggregate([
+  { $match: { thirdPartyPayer: { $exists: true } } },
+  {
+    $group: {
+      _id: { thirdPartyPayer: '$thirdPartyPayer', year: { $year: '$date' }, month: { $month: '$date' } },
+      creditNotes: { $push: '$$ROOT' },
+      firstCreditNote: { $first: '$$ROOT' },
+    },
+  },
+  {
+    $addFields: {
+      netInclTaxes: {
+        $reduce: {
+          input: '$creditNotes',
+          initialValue: 0,
+          in: { $add: ['$$value', '$$this.inclTaxesTpp'] },
+        },
+      },
+      month: { $substr: [{ $dateToString: { date: '$firstCreditNote.date', format: '%d-%m-%Y' } }, 3, -1] },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      netInclTaxes: 1,
+      thirdPartyPayer: '$_id.thirdPartyPayer',
+      month: 1,
+    },
+  },
+]).option({ company: companyId });

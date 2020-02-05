@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
+const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const { MONTHLY } = require('./constants');
@@ -11,6 +12,15 @@ const { MONTHLY } = require('./constants');
 exports.getBillSlips = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const billSlipList = await BillRepository.getBillsSlipList(companyId);
+  const creditNoteList = await CreditNoteRepository.getCreditNoteList(companyId);
+
+  for (const billSlip of billSlipList) {
+    const creditNote = creditNoteList.find(cn =>
+      cn.thirdPartyPayer.toHexString() === billSlip.thirdPartyPayer._id.toHexString() && cn.month === billSlip.month);
+    if (!creditNote) continue;
+
+    billSlip.netInclTaxes -= creditNote.netInclTaxes;
+  }
 
   return billSlipList;
 };
