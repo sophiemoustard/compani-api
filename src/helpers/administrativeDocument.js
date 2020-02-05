@@ -21,7 +21,7 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
   const administrativeDocument = await AdministrativeDocument.create({
     company: companyId,
     name: payload.name,
-    file: { driveId, link },
+    driveFile: { driveId, link },
   });
 
   return administrativeDocument.toObject();
@@ -30,7 +30,7 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
 exports.listAdministrativeDocuments = async credentials =>
   AdministrativeDocument.find({ company: get(credentials, 'company._id', null) }).lean();
 
-exports.removeAdministrativeDocument = async (administrativeDocument) => {
-  await AdministrativeDocument.deleteOne({ _id: administrativeDocument._id });
-  return GdriveStorage.deleteFile(administrativeDocument.file.driveId);
+exports.removeAdministrativeDocument = async (administrativeDocumentId) => {
+  const administrativeDocument = await AdministrativeDocument.findOneAndDelete({ _id: administrativeDocumentId });
+  if (administrativeDocument.file) await GdriveStorage.deleteFile(administrativeDocument.file.driveId);
 };

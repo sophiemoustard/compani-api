@@ -7,19 +7,19 @@ const administrativeDocumentsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     name: 'test',
-    file: { driveId: '1234', link: 'www.test.fr' },
+    driveFile: { driveId: '1234', link: 'www.test.fr' },
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
     name: 'paie',
-    file: { driveId: '4567', link: 'www.1234.fr' },
+    driveFile: { driveId: '4567', link: 'www.1234.fr' },
   },
   {
     _id: new ObjectID(),
     company: otherCompany._id,
     name: 'contrat',
-    file: { driveId: '9876', link: 'www.alenvi.fr' },
+    driveFile: { driveId: '9876', link: 'www.alenvi.fr' },
   },
 ];
 

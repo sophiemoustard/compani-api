@@ -87,7 +87,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     it('should create new document', async () => {
       const form = generateFormData(payload);
       addStub.returns({ id: 'fakeFileDriveId', webViewLink: 'www.fakedriveid.fr' });
-      const administrativeDocumentsBefore = await AdministrativeDocument.find({ company: authCompany._id });
+      const administrativeDocumentsBefore = await AdministrativeDocument.find({ company: authCompany._id }).lean();
 
       const response = await app.inject({
         method: 'POST',
@@ -97,7 +97,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
       });
 
       expect(response.statusCode).toBe(200);
-      const administrativeDocumentsAfter = await AdministrativeDocument.find({ company: authCompany._id });
+      const administrativeDocumentsAfter = await AdministrativeDocument.find({ company: authCompany._id }).lean();
       expect(administrativeDocumentsAfter.length).toBe(administrativeDocumentsBefore.length + 1);
     });
 
@@ -175,14 +175,14 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
       expect(administrativeDocumentsAfter.length).toEqual(administrativeDocumentsBefore.length - 1);
     });
 
-    it('should return a 403 if document is not from the same company', async () => {
+    it('should return a 404 if document is not from the same company', async () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/administrativedocuments/${administrativeDocumentsList[2]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
 
     it('should return a 404 if document does not exist', async () => {

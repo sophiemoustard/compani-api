@@ -5,7 +5,7 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 
 const AdministrativeDocumentSchema = mongoose.Schema({
   name: { type: String, required: true },
-  file: driveResourceSchemaDefinition,
+  driveFile: { type: driveResourceSchemaDefinition, required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 

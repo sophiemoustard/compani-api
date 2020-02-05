@@ -1,5 +1,4 @@
 const Boom = require('boom');
-
 const AdministrativeDocumentHelper = require('../helpers/administrativeDocument');
 const translate = require('../helpers/translate');
 
@@ -13,7 +12,7 @@ const create = async (req) => {
     );
 
     return {
-      message: translate[language].AdministrativeDocumentCreated,
+      message: translate[language].administrativeDocumentCreated,
       data: { administrativeDocument },
     };
   } catch (e) {
@@ -27,7 +26,7 @@ const list = async (req) => {
     const administrativeDocuments = await AdministrativeDocumentHelper
       .listAdministrativeDocuments(req.auth.credentials);
     return {
-      message: translate[language].AdministrativeDocumentFound,
+      message: translate[language].administrativeDocumentFound,
       data: { administrativeDocuments },
     };
   } catch (e) {
@@ -38,11 +37,10 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    console.log(req.pre.administrativeDocument._id);
-    const administrativeDocument = await AdministrativeDocumentHelper
-      .removeAdministrativeDocument(req.pre.administrativeDocument);
+    const administrativeDocument = await AdministrativeDocumentHelper.removeAdministrativeDocument(req.params._id);
+
     return {
-      message: translate[language].AdministrativeDocumentRemoved,
+      message: translate[language].administrativeDocumentRemoved,
       data: { administrativeDocument },
     };
   } catch (e) {

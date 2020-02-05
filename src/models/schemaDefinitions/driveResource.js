@@ -1,4 +1,4 @@
 module.exports = {
-  link: String,
-  driveId: String,
+  link: { type: String },
+  driveId: { type: String },
 };

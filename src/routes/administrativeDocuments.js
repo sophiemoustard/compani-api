@@ -2,10 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const {
-  getAdministrativeDocument,
-  authorizeAdministrativeDocumentRemoval,
-} = require('./preHandlers/administrativeDocuments');
+const { authorizeAdministrativeDocumentDeletion } = require('./preHandlers/administrativeDocuments');
 const { create, list, remove } = require('../controllers/administrativeDocumentController');
 
 exports.plugin = {
@@ -52,10 +49,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
-        pre: [
-          { method: getAdministrativeDocument, assign: 'administrativeDocument' },
-          { method: authorizeAdministrativeDocumentRemoval },
-        ],
+        pre: [{ method: authorizeAdministrativeDocumentDeletion }],
       },
       handler: remove,
     });

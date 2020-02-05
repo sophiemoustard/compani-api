@@ -121,9 +121,7 @@ describe('createAdministrativeDocument', () => {
 
   it('should remove a document from bdd + drive', async () => {
     deleteFileStub.returns();
-    AdministrativeDocumentMock
-      .expects('deleteOne')
-      .withExactArgs({ _id: payload._id });
+    AdministrativeDocumentMock.expects('deleteOne').withExactArgs({ _id: payload._id });
 
     await AdministrativeDocumentHelper.removeAdministrativeDocument(payload);
 
