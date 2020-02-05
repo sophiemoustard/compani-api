@@ -31,6 +31,8 @@ exports.listAdministrativeDocuments = async credentials =>
   AdministrativeDocument.find({ company: get(credentials, 'company._id', null) }).lean();
 
 exports.removeAdministrativeDocument = async (administrativeDocumentId) => {
-  const administrativeDocument = await AdministrativeDocument.findOneAndDelete({ _id: administrativeDocumentId });
-  if (administrativeDocument.file) await GdriveStorage.deleteFile(administrativeDocument.file.driveId);
+  const administrativeDocument = await AdministrativeDocument
+    .findOneAndDelete({ _id: administrativeDocumentId })
+    .lean();
+  if (administrativeDocument.driveFile) await GdriveStorage.deleteFile(administrativeDocument.driveFile.driveId);
 };

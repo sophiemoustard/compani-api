@@ -39,7 +39,7 @@ describe('createAdministrativeDocument', () => {
 
     AdministrativeDocumentMock
       .expects('create')
-      .withExactArgs({ company: companyId, name: payload.name, file: { driveId: '12345', link: 'www.12345.fr' } })
+      .withExactArgs({ company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } })
       .returns(administrativeDocumentModel);
 
     administrativeDocumentMock.expects('toObject').returns(administrativeDocument);
@@ -104,8 +104,8 @@ describe('listAdministrativeDocuments', () => {
   });
 });
 
-describe('createAdministrativeDocument', () => {
-  const payload = { _id: new ObjectID(), file: { driveId: '1234' } };
+describe('removeAdministrativeDocument', () => {
+  const administrativeDocumentId = new ObjectID();
 
   let AdministrativeDocumentMock;
   let deleteFileStub;
@@ -121,9 +121,13 @@ describe('createAdministrativeDocument', () => {
 
   it('should remove a document from bdd + drive', async () => {
     deleteFileStub.returns();
-    AdministrativeDocumentMock.expects('deleteOne').withExactArgs({ _id: payload._id });
+    AdministrativeDocumentMock
+      .expects('findOneAndDelete')
+      .withExactArgs({ _id: administrativeDocumentId })
+      .chain('lean')
+      .returns({ driveFile: { driveId: '1234' } });
 
-    await AdministrativeDocumentHelper.removeAdministrativeDocument(payload);
+    await AdministrativeDocumentHelper.removeAdministrativeDocument(administrativeDocumentId);
 
     sinon.assert.calledWithExactly(deleteFileStub, '1234');
     AdministrativeDocumentMock.verify();
