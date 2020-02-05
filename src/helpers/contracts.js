@@ -63,25 +63,13 @@ exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
   return sortedEndedContract.length && moment(contract.startDate).isSameOrBefore(sortedEndedContract[0].endDate, 'd');
 };
 
-exports.userHasMandatoryInfo = (user) => {
-  const { contact, identity, establishment } = user;
-  if (!contact || !identity) return false;
-
-  const completedName = !!identity.lastname && !!identity.firstname;
-  const completedBirthInfo = !!identity.birthDate && !!identity.birthCity && !!identity.birthState;
-  const completedAddress = !!get(contact, 'address.fullAddress');
-
-  return completedName && completedBirthInfo && establishment && !!identity.socialSecurityNumber &&
-    !!identity.nationality && completedAddress;
-};
-
 exports.isCreationAllowed = async (contract, user, companyId) => {
   if (contract.status === COMPANY_CONTRACT) {
     const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(contract, companyId);
     if (hasNotEndedCompanyContracts) return false;
   }
 
-  return exports.userHasMandatoryInfo(user);
+  return user.contractCreationMissingInfo.length === 0;
 };
 
 exports.createContract = async (contractPayload, credentials) => {
