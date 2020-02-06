@@ -85,7 +85,7 @@ describe('getContractList', () => {
   });
 });
 
-describe('hasNotEndedCompanyContracts', () => {
+describe('allCompanyContractEnded', () => {
   let getUserCompanyContracts;
   beforeEach(() => {
     getUserCompanyContracts = sinon.stub(ContractRepository, 'getUserCompanyContracts');
@@ -101,9 +101,9 @@ describe('hasNotEndedCompanyContracts', () => {
       { _id: new ObjectID() },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
 
-    expect(result).toBeTruthy();
+    expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
   it('should return true if contract startDate before existing contracts end date', async () => {
@@ -113,18 +113,18 @@ describe('hasNotEndedCompanyContracts', () => {
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
 
-    expect(result).toBeTruthy();
+    expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
   it('should return false if no contract', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID() };
     getUserCompanyContracts.returns([]);
-    const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
 
-    expect(result).toBeFalsy();
+    expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
   it('should return false if startDate after existing contracts end date', async () => {
@@ -134,20 +134,20 @@ describe('hasNotEndedCompanyContracts', () => {
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.hasNotEndedCompanyContracts(contract, companyId);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
 
-    expect(result).toBeFalsy();
+    expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
   });
 });
 
 describe('isCreationAllowed', () => {
-  let hasNotEndedCompanyContracts;
+  let allCompanyContractEnded;
   beforeEach(() => {
-    hasNotEndedCompanyContracts = sinon.stub(ContractHelper, 'hasNotEndedCompanyContracts');
+    allCompanyContractEnded = sinon.stub(ContractHelper, 'allCompanyContractEnded');
   });
   afterEach(() => {
-    hasNotEndedCompanyContracts.restore();
+    allCompanyContractEnded.restore();
   });
 
   it('CUSTOMER_CONTRACT - should return true if user has mandatoy info', async () => {
@@ -157,46 +157,46 @@ describe('isCreationAllowed', () => {
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeTruthy();
-    sinon.assert.notCalled(hasNotEndedCompanyContracts);
+    sinon.assert.notCalled(allCompanyContractEnded);
   });
-  it('CUSTOMER_CONTRACT - should return false if user has mandatoy info', async () => {
+  it('CUSTOMER_CONTRACT - should return false if user does not have mandatoy info', async () => {
     const contract = { status: 'contract_with_customer' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(hasNotEndedCompanyContracts);
+    sinon.assert.notCalled(allCompanyContractEnded);
   });
   it('COMPANY_CONTRACT - should return false if not ended contract', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
-    hasNotEndedCompanyContracts.returns(true);
+    allCompanyContractEnded.returns(false);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
-  it('COMPANY_CONTRACT - should return false if user has mandatoy info', async () => {
+  it('COMPANY_CONTRACT - should return false if user does not have mandatoy info', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
-    hasNotEndedCompanyContracts.returns(false);
+    allCompanyContractEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
   it('COMPANY_CONTRACT - should return true if all contract ended and user has mandatoy info', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
-    hasNotEndedCompanyContracts.returns(false);
+    allCompanyContractEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
 });
 

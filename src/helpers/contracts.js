@@ -52,21 +52,22 @@ exports.getContractList = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
+// exports.allCompanyContractEnded = async (contract, companyId) => {
+exports.allCompanyContractEnded = async (contract, companyId) => {
   const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
   const notEndedContract = userContracts.filter(con => !con.endDate);
-  if (notEndedContract.length) return true;
+  if (notEndedContract.length) return false;
 
   const sortedEndedContract = userContracts.filter(con => !!con.endDate)
     .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
 
-  return sortedEndedContract.length && moment(contract.startDate).isSameOrBefore(sortedEndedContract[0].endDate, 'd');
+  return !sortedEndedContract.length || moment(contract.startDate).isAfter(sortedEndedContract[0].endDate, 'd');
 };
 
 exports.isCreationAllowed = async (contract, user, companyId) => {
   if (contract.status === COMPANY_CONTRACT) {
-    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(contract, companyId);
-    if (hasNotEndedCompanyContracts) return false;
+    const allCompanyContractEnded = await exports.allCompanyContractEnded(contract, companyId);
+    if (!allCompanyContractEnded) return false;
   }
 
   return user.contractCreationMissingInfo.length === 0;
