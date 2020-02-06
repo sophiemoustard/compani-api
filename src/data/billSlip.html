@@ -150,11 +150,7 @@
         <tr>
           <td align="left">{{ customer }}</td>
           <td align="right">{{ folderNumber }}</td>
-          <td align="right">
-            {{#each number}}
-              {{#if @index}}<br />{{/if}}{{ this }}
-            {{/each}}
-          </td>
+          <td align="right">{{ number }}</td>
           <td align="right">{{ date }}</td>
           <td align="right">{{ customerParticipationRate }}</td>
           <td align="right">{{ tppParticipationRate }}</td>
