@@ -84,7 +84,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: addressValidation.required(),
+              address: addressValidation,
             }),
             administrative: Joi.object().keys({
               transportInvoice: Joi.object().keys({
@@ -191,7 +191,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: addressValidation.required(),
+              address: addressValidation,
             }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({

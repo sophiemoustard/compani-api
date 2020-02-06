@@ -192,6 +192,27 @@ const serialNumber = (auxiliary) => {
   return `${initials.toUpperCase()}${createdAt}`;
 };
 
+function setContractCreationMissingInfo() {
+  const mandatoryInfo = [
+    'identity.lastname',
+    'identity.firstname',
+    'identity.birthDate',
+    'identity.birthCity',
+    'identity.birthState',
+    'identity.nationality',
+    'identity.socialSecurityNumber',
+    'contact.address.fullAddress',
+    'establishment',
+  ];
+
+  const contractCreationMissingInfo = [];
+  for (const info of mandatoryInfo) {
+    if (!get(this, info)) contractCreationMissingInfo.push(info);
+  }
+
+  return contractCreationMissingInfo;
+}
+
 async function populateAfterSave(doc, next) {
   try {
     await doc
@@ -246,6 +267,7 @@ UserSchema.virtual('sectorHistories', {
 UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
+UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissingInfo);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
