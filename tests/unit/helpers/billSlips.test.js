@@ -245,6 +245,7 @@ describe('formatFundingInfo', () => {
     const bill = {
       number: 'FACT-1234567890',
       date: '2019-09-18T09:00:00',
+      createdAt: '2019-09-12T09:00:00',
       customer: {
         identity: { lastname: 'Toto' },
         fundings: [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }],
@@ -260,8 +261,9 @@ describe('formatFundingInfo', () => {
     const result = BillSlipHelper.formatFundingInfo(bill, billingDoc);
 
     expect(result).toEqual({
-      number: [],
+      number: 'FACT-1234567890',
       date: '18/09/2019',
+      createdAt: '2019-09-12T09:00:00',
       customer: 'Toto',
       folderNumber: 'folder',
       customerParticipationRate: 0.4,
@@ -316,14 +318,14 @@ describe('formatBillingDataForPdf', () => {
     ];
     const creditNoteList = [];
 
-    formatFundingInfo.returns({ billedCareHours: 0, netInclTaxes: 0, number: [] });
+    formatFundingInfo.returns({ billedCareHours: 0, netInclTaxes: 0, number: 'number' });
     formatPrice.returnsArg(0);
     formatHour.returnsArg(0);
 
     const result = BillSlipHelper.formatBillingDataForPdf(billList, creditNoteList);
 
     expect(result.total).toEqual(12);
-    expect(result.formattedBills).toEqual([{ billedCareHours: 2, netInclTaxes: 12, number: ['number'] }]);
+    expect(result.formattedBills).toEqual([{ billedCareHours: 2, netInclTaxes: 12, number: 'number' }]);
     sinon.assert.calledWithExactly(formatFundingInfo, billList[0], event);
     sinon.assert.calledWithExactly(formatPrice, 12);
     sinon.assert.calledWithExactly(formatHour, 2);
