@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Bill = require('../../../src/models/Bill');
 const BillSlip = require('../../../src/models/BillSlip');
+const CreditNote = require('../../../src/models/CreditNote');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -83,6 +84,27 @@ const billList = [
   },
 ];
 
+const creditNotesList = [
+  {
+    thirdPartyPayer: tppList[1]._id,
+    date: '2019-11-01T09:00:00',
+    inclTaxesTpp: 10,
+    exclTaxesTpp: 8,
+    customer: billList[3].customer,
+    company: authCompany._id,
+    number: '123451',
+  },
+  {
+    thirdPartyPayer: tppList[1]._id,
+    date: '2019-09-01T09:00:00',
+    inclTaxesTpp: 20,
+    exclTaxesTpp: 15,
+    customer: billList[3].customer,
+    company: authCompany._id,
+    number: '123451',
+  },
+];
+
 const billSlipFromAnotherCompany = {
   _id: new ObjectID(),
   month: '11-2019',
@@ -95,12 +117,14 @@ const populateDB = async () => {
   await Bill.deleteMany({});
   await BillSlip.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
+  await CreditNote.deleteMany({});
 
   await populateDBForAuthentication();
 
   await ThirdPartyPayer.insertMany(tppList);
   await BillSlip.insertMany([...billSlipList, billSlipFromAnotherCompany]);
   await Bill.insertMany(billList);
+  await CreditNote.insertMany(creditNotesList);
 };
 
 module.exports = {

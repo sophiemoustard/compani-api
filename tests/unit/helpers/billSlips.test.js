@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillRepository = require('../../../src/repositories/BillRepository');
+const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
 const BillSlip = require('../../../src/models/BillSlip');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -12,19 +13,70 @@ require('sinon-mongoose');
 
 describe('getBillSlips', () => {
   let getBillsSlipList;
+  let getCreditNoteList;
   beforeEach(() => {
     getBillsSlipList = sinon.stub(BillRepository, 'getBillsSlipList');
+    getCreditNoteList = sinon.stub(CreditNoteRepository, 'getCreditNoteList');
   });
   afterEach(() => {
     getBillsSlipList.restore();
+    getCreditNoteList.restore();
   });
 
   it('should return bill slips list', async () => {
     const company = { _id: new ObjectID() };
 
-    await BillSlipHelper.getBillSlips({ company });
+    const billsSlipList = [
+      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+    ];
+    getBillsSlipList.returns(billsSlipList);
+    const creditNotesSlipList = [
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-01', netInclTaxes: 11 },
+    ];
+    getCreditNoteList.returns(creditNotesSlipList);
 
+    const res = await BillSlipHelper.getBillSlips({ company });
+
+    expect(res).toEqual([{ ...billsSlipList[0], netInclTaxes: 109 }]);
     sinon.assert.calledWithExactly(getBillsSlipList, company._id);
+    sinon.assert.calledWithExactly(getCreditNoteList, company._id);
+  });
+
+  it('should not take credit notes into account if not same month', async () => {
+    const company = { _id: new ObjectID() };
+
+    const billsSlipList = [
+      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+    ];
+    getBillsSlipList.returns(billsSlipList);
+    const creditNotesSlipList = [
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-02', netInclTaxes: 11 },
+    ];
+    getCreditNoteList.returns(creditNotesSlipList);
+
+    const res = await BillSlipHelper.getBillSlips({ company });
+
+    expect(res).toEqual(billsSlipList);
+    sinon.assert.calledWithExactly(getBillsSlipList, company._id);
+    sinon.assert.calledWithExactly(getCreditNoteList, company._id);
+  });
+
+  it('should add credit note if not same thirdPartyPayer as bills', async () => {
+    const company = { _id: new ObjectID() };
+
+    const billsSlipList = [
+      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+    ];
+    getBillsSlipList.returns(billsSlipList);
+    const creditNotesSlipList = [
+      { thirdPartyPayer: { _id: billsSlipList[0].thirdPartyPayer._id }, month: '2020-02', netInclTaxes: 11 },
+    ];
+    getCreditNoteList.returns(creditNotesSlipList);
+
+    const res = await BillSlipHelper.getBillSlips({ company });
+    expect(res.length).toEqual(2);
+    sinon.assert.calledWithExactly(getBillsSlipList, company._id);
+    sinon.assert.calledWithExactly(getCreditNoteList, company._id);
   });
 });
 
@@ -106,6 +158,40 @@ describe('createBillSlips', () => {
     const client1 = new ObjectID();
     const client2 = new ObjectID();
     const billList = [{ client: client1 }, { client: client2 }];
+    const company = { _id: new ObjectID(), prefixNumber: 129 };
+    const endDate = '2019-09-12T00:00:00';
+    BillSlipMock.expects('find')
+      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
+      .chain('lean')
+      .once()
+      .returns([]);
+    getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
+    formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
+    formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
+    BillSlipMock.expects('insertMany')
+      .withExactArgs([
+        { company: company._id, month: '09-2019', thirdPartyPayer: client1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: client2, number: 'BORD-129ASD00013' },
+      ])
+      .once();
+
+    await BillSlipHelper.createBillSlips(billList, endDate, company);
+
+    sinon.assert.calledWithExactly(getBillSlipNumber, endDate, company._id);
+    sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(0), 129, 'ASD', 12);
+    sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(1), 129, 'ASD', 13);
+    sinon.assert.calledWithExactly(
+      updateOneBillSlipNumber,
+      { prefix: '0919', company: company._id },
+      { $set: { seq: 14 } }
+    );
+    BillSlipMock.verify();
+  });
+
+  it('should create new bill slips from a creditNote', async () => {
+    const client1 = new ObjectID();
+    const client2 = new ObjectID();
+    const billList = [{ thirdPartyPayer: client1 }, { thirdPartyPayer: client2 }];
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
     BillSlipMock.expects('find')

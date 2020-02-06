@@ -37,7 +37,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
         },
         {
           _id: billSlipList[1]._id,
-          netInclTaxes: 100,
+          netInclTaxes: 90,
           month: '11-2019',
           thirdPartyPayer: { _id: tppList[1]._id, name: 'tpp' },
           number: 'BORD-123456789001',

@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
+const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const { MONTHLY } = require('./constants');
@@ -11,6 +12,22 @@ const { MONTHLY } = require('./constants');
 exports.getBillSlips = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const billSlipList = await BillRepository.getBillsSlipList(companyId);
+  const creditNoteList = await CreditNoteRepository.getCreditNoteList(companyId);
+
+  for (const billSlip of billSlipList) {
+    const creditNote = creditNoteList.find(cn =>
+      cn.thirdPartyPayer._id.toHexString() === billSlip.thirdPartyPayer._id.toHexString()
+      && cn.month === billSlip.month);
+    if (!creditNote) continue;
+    billSlip.netInclTaxes -= creditNote.netInclTaxes;
+  }
+  for (const creditNote of creditNoteList) {
+    const bill = billSlipList.find(bs =>
+      creditNote.thirdPartyPayer._id.toHexString() === bs.thirdPartyPayer._id.toHexString()
+      && creditNote.month === bs.month);
+    if (bill) continue;
+    billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
+  }
 
   return billSlipList;
 };
@@ -29,7 +46,11 @@ exports.getBillSlipNumber = async (endDate, companyId) => {
 exports.createBillSlips = async (billList, endDate, company) => {
   const month = moment(endDate).format('MM-YYYY');
   const prefix = moment(endDate).format('MMYY');
-  const tppIds = [...new Set(billList.filter(bill => bill.client).map(bill => bill.client))];
+  const tppIds = [
+    ...new Set(billList
+      .filter(bill => bill.client || bill.thirdPartyPayer)
+      .map(bill => bill.client || bill.thirdPartyPayer)),
+  ];
   const billSlipList = await BillSlip.find({ thirdPartyPayer: { $in: tppIds }, month, company: company._id }).lean();
 
   if (tppIds.length === billSlipList.length) return;
