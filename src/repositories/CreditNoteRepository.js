@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-
+const moment = require('moment');
 const CreditNote = require('../models/CreditNote');
 
 exports.findAmountsGroupedByCustomer = async (companyId, customerId = null, dateMax = null) => {
@@ -134,3 +134,18 @@ exports.getCreditNoteList = async companyId => CreditNote.aggregate([
     },
   },
 ]).option({ company: companyId });
+
+exports.getCreditNoteFromBillSlip = async (billSlip, companyId) => {
+  const query = {
+    thirdPartyPayer: billSlip.thirdPartyPayer,
+    date: {
+      $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
+      $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),
+    },
+    company: companyId,
+  };
+
+  return CreditNote.find(query)
+    .populate({ path: 'customer', select: 'fundings identity' })
+    .lean();
+};
