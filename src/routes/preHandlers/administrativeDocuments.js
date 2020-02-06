@@ -13,8 +13,10 @@ exports.authorizeAdministrativeDocumentDeletion = async (req) => {
       _id: administrativeDocumentId,
       company: get(credentials, 'company._id', null),
     }).lean();
+
     if (!administrativeDocument) throw Boom.notFound(translate[language].administrativeDocumentNotFound);
-    return administrativeDocument;
+
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
