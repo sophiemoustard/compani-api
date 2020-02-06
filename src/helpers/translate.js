@@ -76,6 +76,10 @@ module.exports = {
     companyInternalHourDeletionNotAllowed: 'Company internal hour deletion not allowed.',
     companyFirstInterventionFound: 'Company first intervention found.',
     companyFirstInterventionNotFound: 'Company first intervention not found.',
+    administrativeDocumentNotFound: 'Administrative document not found.',
+    administrativeDocumentFound: 'Administrative documents found.',
+    administrativeDocumentCreated: 'Administrative documents found.',
+    administrativeDocumentRemoved: 'Administrative documents removed.',
     /* Contracts */
     contractsFound: 'Contracts found.',
     contractsNotFound: 'Contracts not found.',
@@ -293,6 +297,10 @@ module.exports = {
     companyInternalHourDeletionNotAllowed: 'Suppression de l\'heure interne non autorisée.',
     companyFirstInterventionFound: 'Première intervention de l\'entreprise trouvée.',
     companyFirstInterventionNotFound: 'Première intervention de l\'entreprise non trouvée.',
+    administrativeDocumentNotFound: 'Document administratif non trouvé.',
+    administrativeDocumentFound: 'Document administratif trouvé.',
+    administrativeDocumentCreated: 'Document administratif créé.',
+    administrativeDocumentRemoved: 'Document administratif supprimé.',
     /* Contracts */
     contractsFound: 'Contrats trouvés.',
     contractsNotFound: 'Contrats non trouvés.',
