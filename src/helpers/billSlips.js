@@ -102,8 +102,7 @@ exports.formatBillingDataForPdf = (billList, creditNoteList) => {
       for (const event of subscription.events) {
         if (!billingData[event.fundingId]) {
           const formattedInfo = exports.formatFundingInfo(bill, event);
-          if (!formattedInfo) continue;
-          else billingData[event.fundingId] = formattedInfo;
+          if (formattedInfo) billingData[event.fundingId] = formattedInfo;
         }
         billingData[event.fundingId].billedCareHours += event.careHours;
         billingData[event.fundingId].netInclTaxes += event.inclTaxesTpp;
@@ -117,8 +116,7 @@ exports.formatBillingDataForPdf = (billList, creditNoteList) => {
     for (const event of creditNote.events) {
       if (!billingData[event.bills.fundingId]) {
         const formattedInfo = exports.formatFundingInfo(creditNote, event.bills);
-        if (!formattedInfo) continue;
-        else billingData[event.bills.fundingId] = formattedInfo;
+        if (formattedInfo) billingData[event.bills.fundingId] = formattedInfo;
       }
       billingData[event.bills.fundingId].billedCareHours -= event.bills.careHours;
       billingData[event.bills.fundingId].netInclTaxes -= event.bills.inclTaxesTpp;
