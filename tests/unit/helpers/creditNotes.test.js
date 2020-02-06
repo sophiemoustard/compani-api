@@ -11,6 +11,7 @@ const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
 const translate = require('../../../src/helpers/translate');
 const PdfHelper = require('../../../src/helpers/pdf');
+const BillSlipHelper = require('../../../src/helpers/billSlips');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
 const { COMPANI, OGUST } = require('../../../src/helpers/constants');
 const moment = require('moment');
@@ -337,6 +338,7 @@ describe('createCreditNotes', () => {
   let insertManyCreditNote;
   let updateEventAndFundingHistory;
   let getCreditNoteNumber;
+  let createBillSlips;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
   const prefix = 'AV-0719';
 
@@ -346,6 +348,7 @@ describe('createCreditNotes', () => {
     formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
     insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
     updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+    createBillSlips = sinon.stub(BillSlipHelper, 'createBillSlips');
   });
   afterEach(() => {
     getCreditNoteNumber.restore();
@@ -353,6 +356,7 @@ describe('createCreditNotes', () => {
     formatCreditNote.restore();
     insertManyCreditNote.restore();
     updateEventAndFundingHistory.restore();
+    createBillSlips.restore();
   });
 
   it('should create one credit note (for customer)', async () => {
@@ -380,6 +384,7 @@ describe('createCreditNotes', () => {
       1
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
+    sinon.assert.calledWithExactly(createBillSlips, [{ inclTaxesCustomer: 1234 }], payload.date, credentials.company);
     sinon.assert.notCalled(updateEventAndFundingHistory);
     sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
@@ -413,6 +418,7 @@ describe('createCreditNotes', () => {
       1
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
+    sinon.assert.calledWithExactly(createBillSlips, [{ inclTaxesTpp: 1234 }], payload.date, credentials.company);
     sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
     sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
@@ -466,6 +472,15 @@ describe('createCreditNotes', () => {
       ]
     );
     sinon.assert.notCalled(updateEventAndFundingHistory);
+    sinon.assert.calledWithExactly(
+      createBillSlips,
+      [
+        { _id: '0987', linkedCreditNote: '1234', inclTaxesTpp: 1234 },
+        { _id: '1234', linkedCreditNote: '0987', inclTaxesCustomer: 32 },
+      ],
+      payload.date,
+      credentials.company
+    );
     sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 3 } });
   });
