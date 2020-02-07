@@ -54,7 +54,7 @@ const completeRoleUpdateScriptEmail = async (nb) => {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
     subject: 'Script traitement mis à jour des roles',
-    html: EmailOptionsHelper.completeEventRepScriptEmailBody(nb),
+    html: EmailOptionsHelper.completeRoleUpdateScriptEmailBody(nb),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
