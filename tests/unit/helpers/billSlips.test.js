@@ -313,7 +313,7 @@ describe('formatBillingDataForPdf', () => {
     const event = { fundingId, careHours: 2, inclTaxesTpp: 12 };
     const billList = [
       {
-        createdAt: moment('2020-01-01'),
+        createdAt: moment('2020-01-01').toDate(),
         number: 'number',
         customer: { fundings, identity: { firstname: 'abc' } },
         subscriptions: [{ events: [event] }],
@@ -322,13 +322,13 @@ describe('formatBillingDataForPdf', () => {
     const eventCreditNote = { bills: { fundingId, inclTaxesTpp: 12, careHours: 2 } };
     const creditNoteList = [
       {
-        createdAt: moment('2020-01-04'),
+        createdAt: moment('2020-01-04').toDate(),
         number: 'numberCreditNote',
         customer: { fundings, identity: { firstname: 'abc' } },
         events: [eventCreditNote],
       },
       {
-        createdAt: moment('2020-01-03'),
+        createdAt: moment('2020-01-03').toDate(),
         number: 'numberCreditNote2',
         customer: { fundings, identity: { firstname: 'zyx' } },
         events: [{ bills: { fundingId: new ObjectID(), inclTaxesTpp: 10, careHours: 1 } }],
@@ -340,21 +340,21 @@ describe('formatBillingDataForPdf', () => {
       netInclTaxes: 0,
       number: 'number',
       customer: 'abc',
-      createdAt: moment('2020-01-01'),
+      createdAt: moment('2020-01-01').toDate(),
     });
     formatFundingInfo.onCall(1).returns({
       billedCareHours: 0,
       netInclTaxes: 0,
       number: 'numberCreditNote',
       customer: 'abc',
-      createdAt: moment('2020-01-04'),
+      createdAt: moment('2020-01-04').toDate(),
     });
     formatFundingInfo.onCall(2).returns({
       billedCareHours: 0,
       netInclTaxes: 0,
       number: 'numberCreditNote2',
       customer: 'zyx',
-      createdAt: moment('2020-01-03'),
+      createdAt: moment('2020-01-03').toDate(),
     });
     formatPrice.returnsArg(0);
     formatHour.returnsArg(0);
@@ -363,20 +363,26 @@ describe('formatBillingDataForPdf', () => {
 
     expect(result.total).toEqual(-10);
     expect(result.formattedBills).toEqual([
-      { billedCareHours: 2, netInclTaxes: 12, number: 'number', customer: 'abc', createdAt: moment('2020-01-01') },
+      {
+        billedCareHours: 2,
+        netInclTaxes: 12,
+        number: 'number',
+        customer: 'abc',
+        createdAt: moment('2020-01-01').toDate(),
+      },
       {
         billedCareHours: 2,
         netInclTaxes: -12,
         number: 'numberCreditNote',
         customer: 'abc',
-        createdAt: moment('2020-01-04'),
+        createdAt: moment('2020-01-04').toDate(),
       },
       {
         billedCareHours: 1,
         netInclTaxes: -10,
         number: 'numberCreditNote2',
         customer: 'zyx',
-        createdAt: moment('2020-01-03'),
+        createdAt: moment('2020-01-03').toDate(),
       },
     ]);
     sinon.assert.calledWithExactly(formatFundingInfo.getCall(0), billList[0], event);
