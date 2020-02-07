@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const moment = require('moment');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
@@ -308,27 +309,85 @@ describe('formatBillingDataForPdf', () => {
 
   it('should format bills for pdf', () => {
     const fundingId = new ObjectID();
+    const fundings = [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }];
     const event = { fundingId, careHours: 2, inclTaxesTpp: 12 };
     const billList = [
       {
+        createdAt: moment('2020-01-01'),
         number: 'number',
-        customer: { fundings: [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }] },
+        customer: { fundings, identity: { firstname: 'abc' } },
         subscriptions: [{ events: [event] }],
       },
     ];
-    const creditNoteList = [];
+    const eventCreditNote = { bills: { fundingId, inclTaxesTpp: 12, careHours: 2 } };
+    const creditNoteList = [
+      {
+        createdAt: moment('2020-01-04'),
+        number: 'numberCreditNote',
+        customer: { fundings, identity: { firstname: 'abc' } },
+        events: [eventCreditNote],
+      },
+      {
+        createdAt: moment('2020-01-03'),
+        number: 'numberCreditNote2',
+        customer: { fundings, identity: { firstname: 'zyx' } },
+        events: [{ bills: { fundingId: new ObjectID(), inclTaxesTpp: 10, careHours: 1 } }],
+      },
+    ];
 
-    formatFundingInfo.returns({ billedCareHours: 0, netInclTaxes: 0, number: 'number' });
+    formatFundingInfo.onCall(0).returns({
+      billedCareHours: 0,
+      netInclTaxes: 0,
+      number: 'number',
+      customer: 'abc',
+      createdAt: moment('2020-01-01'),
+    });
+    formatFundingInfo.onCall(1).returns({
+      billedCareHours: 0,
+      netInclTaxes: 0,
+      number: 'numberCreditNote',
+      customer: 'abc',
+      createdAt: moment('2020-01-04'),
+    });
+    formatFundingInfo.onCall(2).returns({
+      billedCareHours: 0,
+      netInclTaxes: 0,
+      number: 'numberCreditNote2',
+      customer: 'zyx',
+      createdAt: moment('2020-01-03'),
+    });
     formatPrice.returnsArg(0);
     formatHour.returnsArg(0);
 
     const result = BillSlipHelper.formatBillingDataForPdf(billList, creditNoteList);
 
-    expect(result.total).toEqual(12);
-    expect(result.formattedBills).toEqual([{ billedCareHours: 2, netInclTaxes: 12, number: 'number' }]);
-    sinon.assert.calledWithExactly(formatFundingInfo, billList[0], event);
-    sinon.assert.calledWithExactly(formatPrice, 12);
-    sinon.assert.calledWithExactly(formatHour, 2);
+    expect(result.total).toEqual(-10);
+    expect(result.formattedBills).toEqual([
+      { billedCareHours: 2, netInclTaxes: 12, number: 'number', customer: 'abc', createdAt: moment('2020-01-01') },
+      {
+        billedCareHours: 2,
+        netInclTaxes: -12,
+        number: 'numberCreditNote',
+        customer: 'abc',
+        createdAt: moment('2020-01-04'),
+      },
+      {
+        billedCareHours: 1,
+        netInclTaxes: -10,
+        number: 'numberCreditNote2',
+        customer: 'zyx',
+        createdAt: moment('2020-01-03'),
+      },
+    ]);
+    sinon.assert.calledWithExactly(formatFundingInfo.getCall(0), billList[0], event);
+    sinon.assert.calledWithExactly(formatFundingInfo.getCall(1), creditNoteList[0], eventCreditNote.bills);
+    sinon.assert.calledWithExactly(formatFundingInfo.getCall(2), creditNoteList[1], creditNoteList[1].events[0].bills);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), 12);
+    sinon.assert.calledWithExactly(formatPrice.getCall(1), -12);
+    sinon.assert.calledWithExactly(formatPrice.getCall(2), -10);
+    sinon.assert.calledWithExactly(formatHour.getCall(0), 2);
+    sinon.assert.calledWithExactly(formatHour.getCall(1), 2);
+    sinon.assert.calledWithExactly(formatHour.getCall(2), 1);
   });
 });
 
