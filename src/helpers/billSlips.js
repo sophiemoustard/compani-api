@@ -118,7 +118,7 @@ exports.formatBillingDataForPdf = (billList, creditNoteList) => {
         const formattedInfo = exports.formatFundingInfo(creditNote, event.bills);
         if (formattedInfo) billingData[event.bills.fundingId] = formattedInfo;
       }
-      billingData[event.bills.fundingId].billedCareHours -= event.bills.careHours;
+      billingData[event.bills.fundingId].billedCareHours += event.bills.careHours;
       billingData[event.bills.fundingId].netInclTaxes -= event.bills.inclTaxesTpp;
     }
     billsAndCreditNotes = billsAndCreditNotes.concat(Object.values(billingData));
