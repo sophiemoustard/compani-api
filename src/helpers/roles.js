@@ -1,6 +1,6 @@
-const _ = require('lodash');
+const Role = require('../models/Role');
 
-const processingRights = rights => rights.map((right) => {
+exports.processingRights = rights => rights.map((right) => {
   if (right.right_id && right.right_id._id && (right.right_id.name || right.right_id.permission)) {
     return {
       right_id: right.right_id._id,
@@ -11,22 +11,16 @@ const processingRights = rights => rights.map((right) => {
   }
 });
 
-const populateRole = (rights, options) => {
-  if (options && options.onlyGrantedRights) {
-    const filteredRights = rights.filter(right => right.hasAccess);
-    return processingRights(filteredRights);
-  }
-  return processingRights(rights);
+exports.populateRole = (rights, onlyGrantedRights = false) => {
+  const filteredRights = onlyGrantedRights ? rights.filter(right => right.hasAccess) : rights;
+
+  return exports.processingRights(filteredRights);
 };
 
-const populateRoles = roles => roles.map((role) => {
-  role = role.toObject();
-  if (_.isArray(role.rights)) role.rights = populateRole(role.rights);
+exports.populateRoles = roles => roles.map(role => ({ ...role, rights: exports.populateRole(role.rights) }));
 
-  return role;
-});
+exports.list = async (query) => {
+  const roles = await Role.find(query).lean({ autopopulate: true });
 
-module.exports = {
-  populateRole,
-  populateRoles,
+  return exports.populateRoles(roles);
 };
