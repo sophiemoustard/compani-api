@@ -94,25 +94,21 @@ describe('USERS ROUTES', () => {
           payload,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(400);
       });
 
-      it('should not create a user if email provided already exists', () => {
-        const payload = {
-          identity: { firstname: 'Test', lastname: 'Test' },
-          local: { email: 'horseman@alenvi.io', password: '123456' },
-          role: new ObjectID(),
-        };
-        expect(async () => {
-          const response = await app.inject({
-            method: 'POST',
-            url: '/users',
-            payload,
-            headers: { 'x-access-token': authToken },
-          });
-          expect(response).toThrow('NoRole');
-          expect(response.statusCode).toBe(409);
+      it('should not create a user if email provided already exists', async () => {
+        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io', password: '123456' } };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
         });
+
+        expect(response.statusCode).toBe(409);
       });
 
       it('should return a 403 if customer is not from the same company', async () => {

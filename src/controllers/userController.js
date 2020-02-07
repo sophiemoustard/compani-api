@@ -59,9 +59,6 @@ const create = async (req) => {
     if (e.code === 11000) {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
-    } else if (e.name === 'NoRole') {
-      req.log(['error', 'db'], e);
-      return Boom.notFound(translate[language].roleNotFound);
     }
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

@@ -450,7 +450,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
 
 exports.exportAuxiliaries = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
+  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
     .find({ role: { $in: roleIds }, company: companyId })
@@ -489,14 +489,15 @@ const helperExportHeader = [
 ];
 
 exports.exportHelpers = async (credentials) => {
-  const role = await Role.findOne({ name: HELPER });
+  const role = await Role.findOne({ name: HELPER }).lean();
   const companyId = get(credentials, 'company._id', null);
   const helpers = await User
     .find({ role: role._id, company: companyId })
     .populate({
       path: 'customers',
       populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
-    });
+    })
+    .lean();
   const data = [helperExportHeader];
 
   for (const hel of helpers) {

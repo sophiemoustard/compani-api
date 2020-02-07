@@ -15,7 +15,6 @@ const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
-const RolesHelper = require('./roles');
 const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
@@ -98,10 +97,6 @@ exports.getUser = async (userId, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  if (user.role && user.role.rights.length > 0) {
-    user.role.rights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  }
-
   return user;
 };
 
@@ -158,16 +153,11 @@ exports.createUser = async (userPayload, credentials) => {
 
   await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
   if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
-  const user = await User
+
+  return User
     .findOne({ _id: userId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
-
-  const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  return {
-    ...pickBy(user),
-    role: { name: user.role.name, rights: [...populatedRights] },
-  };
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
@@ -185,15 +175,9 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
-  const updatedUser = await User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
+  return User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
-
-  if (updatedUser.role && updatedUser.role.rights.length > 0) {
-    updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });
-  }
-
-  return updatedUser;
 };
 
 exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {

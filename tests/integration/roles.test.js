@@ -34,6 +34,7 @@ describe('ROLES ROUTES', () => {
               permission: expect.any(String),
               description: expect.any(String),
               hasAccess: expect.any(Boolean),
+              right_id: expect.any(Object),
             }),
           ]),
         }));

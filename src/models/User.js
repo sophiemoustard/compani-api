@@ -215,12 +215,11 @@ function setContractCreationMissingInfo() {
 
 async function populateAfterSave(doc, next) {
   try {
-    await doc
-      .populate({
-        path: 'role',
-        select: '-__v -createdAt -updatedAt',
-        populate: { path: 'role.right_id', select: 'description permission _id' },
-      })
+    await doc.populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: { path: 'role.right_id', select: 'description permission _id' },
+    })
       .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
       .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
       .execPopulate();
@@ -266,13 +265,16 @@ UserSchema.virtual('sectorHistories', {
 
 UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
+
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissingInfo);
+
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
 UserSchema.pre('aggregate', validateAggregation);
+
 UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
