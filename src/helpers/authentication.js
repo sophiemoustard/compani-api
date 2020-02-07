@@ -24,7 +24,7 @@ const validate = async (decoded) => {
     const credentials = {
       _id: decoded._id,
       identity: user.identity || null,
-      email: get(user, 'local.email') || null,
+      email: get(user, 'local.email', null),
       company: user.company,
       sector: user.sector ? user.sector.toHexString() : null,
       scope,
