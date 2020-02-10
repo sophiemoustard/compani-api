@@ -11,11 +11,7 @@ const fsPromises = fs.promises;
 
 const docxParser = tag => ({
   get(scope) {
-    if (tag === '.') {
-      return scope;
-    }
-
-    return get(scope, tag);
+    return tag === '.' ? scope : get(scope, tag);
   },
 });
 

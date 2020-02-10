@@ -176,7 +176,7 @@ exports.generateFile = async (billSlipId, credentials) => {
 
   const data = exports.formatFile(billSlip, billList, creditNoteList, credentials.company);
 
-  const file = await DocxHelper.createDocx(path.join(__dirname, '../data/template_billslip_tpp.docx'), data);
+  const file = await DocxHelper.createDocx(path.join(__dirname, '../data/billSlip.docx'), data);
 
   return { billSlipNumber: billSlip.number, file };
 };

@@ -500,7 +500,7 @@ describe('generateFile', () => {
     sinon.assert.calledWithExactly(getBillsFromBillSlip, billSlip, credentials.company._id);
     sinon.assert.calledWithExactly(
       createDocxStub,
-      path.join(process.cwd(), 'src/data/template_billslip_tpp.docx'),
+      path.join(process.cwd(), 'src/data/billSlip.docx'),
       billSlipData
     );
     BillSlipMock.verify();
