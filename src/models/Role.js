@@ -14,28 +14,23 @@ const RoleSchema = mongoose.Schema({
   }],
 }, { timestamps: true });
 
+const formatRights = (rights) => {
+  const formattedRights = [];
+  for (const right of rights) {
+    formattedRights.push({ ...right.right_id, hasAccess: right.hasAccess, right_id: right.right_id._id });
+  }
+  return formattedRights;
+};
 
 function populateRight(doc, next) {
-  if (doc && doc.rights) {
-    const rights = [];
-    for (const right of doc.rights) {
-      rights.push({ ...right.right_id, hasAccess: right.hasAccess, right_id: right.right_id._id });
-    }
-    doc.rights = rights;
-  }
+  if (doc && doc.rights) doc.rights = formatRights(doc.rights);
 
   return next();
 }
 
 function populateRights(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.rights) {
-      const rights = [];
-      for (const right of doc.rights) {
-        rights.push({ ...right.right_id, hasAccess: right.hasAccess, right_id: right.right_id._id });
-      }
-      doc.rights = rights;
-    }
+    if (doc && doc.rights) doc.rights = formatRights(doc.rights);
   }
 
   return next();
