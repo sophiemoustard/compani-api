@@ -1,8 +1,9 @@
+const DocxHelper = require('./docx');
 const FileHelper = require('./file');
 const ESign = require('../models/ESign');
 
 exports.generateSignatureRequest = async (params) => {
-  const filePath = await FileHelper.generateDocx({
+  const filePath = await DocxHelper.generateDocx({
     file: { fileId: params.templateId },
     data: params.fields,
   });
