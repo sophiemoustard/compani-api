@@ -18,13 +18,13 @@ const list = async (req) => {
   }
 };
 
-const generateBillSlipPdf = async (req, h) => {
+const generateBillSlipDocx = async (req, h) => {
   try {
-    const { pdf, billSlipNumber } = await BillSlipsHelper.generatePdf(req.params._id, req.auth.credentials);
+    const { file, billSlipNumber } = await BillSlipsHelper.generateFile(req.params._id, req.auth.credentials);
 
-    return h.response(pdf)
-      .header('content-disposition', `inline; filename=${billSlipNumber}.pdf`)
-      .type('application/pdf');
+    return h.file(file, { confine: false })
+      .header('content-disposition', `inline; filename=${billSlipNumber}.docx`)
+      .type('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation();
@@ -33,5 +33,5 @@ const generateBillSlipPdf = async (req, h) => {
 
 module.exports = {
   list,
-  generateBillSlipPdf,
+  generateBillSlipDocx,
 };

@@ -83,7 +83,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
   });
 });
 
-describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
+describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -95,7 +95,7 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
     it('should return bill slips', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/billslips/${billSlipList[0]._id}/pdfs`,
+        url: `/billslips/${billSlipList[0]._id}/docx`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -105,7 +105,7 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
     it('should return a 403 error if user is not from same company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/billslips/${billSlipFromAnotherCompany._id}/pdfs`,
+        url: `/billslips/${billSlipFromAnotherCompany._id}/docx`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -115,7 +115,7 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
     it('should return a 404 error if bill slip does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/billslips/${new ObjectID()}/pdfs`,
+        url: `/billslips/${new ObjectID()}/docx`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -136,7 +136,7 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/billslips/${billSlipList[0]._id}/pdfs`,
+          url: `/billslips/${billSlipList[0]._id}/docx`,
           headers: { 'x-access-token': authToken },
         });
 
