@@ -11,6 +11,7 @@ const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
@@ -24,10 +25,12 @@ const {
   PAID_LEAVE,
   INVOICED_AND_PAID,
   DAILY,
-  PLANNING,
   INTERNAL_HOUR,
   INTERVENTION,
   ABSENCE,
+  AUXILIARY_INITIATIVE,
+  EVERY_DAY,
+  MISTER,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -36,56 +39,6 @@ const sector = {
   company: authCompany._id,
 };
 
-const auxiliary = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Lola', lastname: 'Lili' },
-  role: rolesList.find(role => role.name === 'adminClient')._id,
-  local: { email: 'toto@alenvi.io', password: '1234567890' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-};
-
-const sectorHistory = {
-  auxiliary: auxiliary._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-};
-
-const internalHour = { _id: new ObjectID(), name: PLANNING, company: authCompany._id };
-
-const customer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  identity: { firstname: 'Lola', lastname: 'Lili' },
-  subscriptions: [
-    { _id: new ObjectID() },
-  ],
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0612345678',
-  },
-};
-
-const company = {
-  prefixNumber: 103,
-  _id: new ObjectID(),
-  name: 'Test',
-  tradeName: 'TT',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfds',
-};
 
 const surcharge = {
   _id: new ObjectID(),
@@ -121,6 +74,63 @@ const serviceList = [
     nature: HOURLY,
   },
 ];
+
+const authBillService = {
+  serviceId: new ObjectID(),
+  name: 'Temps de qualité - autonomie',
+  nature: 'fixed',
+};
+
+const auxiliary = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Lulu', lastname: 'Lala', title: MISTER },
+  role: rolesList.find(role => role.name === 'adminClient')._id,
+  local: { email: 'toto@alenvi.io', password: '1234567890' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+};
+
+const sectorHistory = {
+  auxiliary: auxiliary._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+};
+
+const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
+
+const customer = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  identity: { firstname: 'Lola', lastname: 'Lili' },
+  subscriptions: [
+    { _id: new ObjectID(), service: serviceList[0]._id },
+  ],
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0612345678',
+  },
+};
+
+const company = {
+  prefixNumber: 103,
+  _id: new ObjectID(),
+  name: 'Test',
+  tradeName: 'TT',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'kjhgfds',
+};
 
 const customerThirdPartyPayer = {
   _id: new ObjectID(),
@@ -250,8 +260,9 @@ const eventList = [
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary,
     customer: customer._id,
-    IsCancelled: true,
-    cancel: { condition: INVOICED_AND_PAID },
+    isCancelled: true,
+    misc: 'test',
+    cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
@@ -273,6 +284,7 @@ const eventList = [
     customer: customer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customer.subscriptions[0]._id,
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -285,6 +297,7 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
+    auxiliary,
     type: INTERNAL_HOUR,
     internalHour: internalHour._id,
     status: 'contract_with_company',
@@ -313,12 +326,6 @@ const eventList = [
     },
   },
 ];
-
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'fixed',
-};
 
 const billsList = [
   {
@@ -650,6 +657,8 @@ const populateEvents = async () => {
   await Customer.deleteMany();
   await Sector.deleteMany();
   await SectorHistory.deleteMany();
+  await InternalHour.deleteMany();
+  await Service.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
@@ -657,6 +666,8 @@ const populateEvents = async () => {
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
   await new Customer(customer).save();
+  await new InternalHour(internalHour).save();
+  await Service.insertMany(serviceList);
 };
 
 const populateSectorHistories = async () => {
