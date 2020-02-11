@@ -1,7 +1,5 @@
-
-[] J'ai verifié la fonctionnalite sur mobile
-[] Mon code est testé unitairement
-[] Mon code est testé avec des tests d'intégration
+- [ ] Mon code est testé unitairement
+- [ ] Mon code est testé avec des tests d'intégration
 
 - Périmetre interface : 
 
