@@ -1,11 +1,12 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const path = require('path');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
-const PdfHelper = require('./pdf');
+const DocxHelper = require('./docx');
 const UtilsHelper = require('./utils');
 const { MONTHLY } = require('./constants');
 
@@ -94,7 +95,7 @@ exports.formatFundingInfo = (info, billingDoc) => {
   };
 };
 
-exports.formatBillingDataForPdf = (billList, creditNoteList) => {
+exports.formatBillingDataForFile = (billList, creditNoteList) => {
   let billsAndCreditNotes = [];
   for (const bill of billList) {
     for (const subscription of bill.subscriptions) {
@@ -144,8 +145,8 @@ exports.formatBillingDataForPdf = (billList, creditNoteList) => {
   return { total: UtilsHelper.formatPrice(total), formattedBills };
 };
 
-exports.formatPdf = (billSlip, billList, creditNoteList, company) => {
-  const { total, formattedBills } = exports.formatBillingDataForPdf(billList, creditNoteList);
+exports.formatFile = (billSlip, billList, creditNoteList, company) => {
+  const { total, formattedBills } = exports.formatBillingDataForFile(billList, creditNoteList);
 
   return {
     billSlip: {
@@ -167,19 +168,15 @@ exports.formatPdf = (billSlip, billList, creditNoteList, company) => {
   };
 };
 
-exports.generatePdf = async (billSlipId, credentials) => {
+exports.generateFile = async (billSlipId, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const billSlip = await BillSlip.findById(billSlipId).populate('thirdPartyPayer').lean();
   const billList = await BillRepository.getBillsFromBillSlip(billSlip, companyId);
   const creditNoteList = await CreditNoteRepository.getCreditNoteFromBillSlip(billSlip, companyId);
 
-  const data = exports.formatPdf(billSlip, billList, creditNoteList, credentials.company);
+  const data = exports.formatFile(billSlip, billList, creditNoteList, credentials.company);
 
-  const pdf = await PdfHelper.generatePdf(
-    data,
-    './src/data/billSlip.html',
-    { format: 'A4', printBackground: true, landscape: true }
-  );
+  const file = await DocxHelper.createDocx(path.join(__dirname, '../data/billSlip.docx'), data);
 
-  return { billSlipNumber: billSlip.number, pdf };
+  return { billSlipNumber: billSlip.number, file };
 };

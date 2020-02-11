@@ -2,12 +2,13 @@ const sinon = require('sinon');
 const moment = require('moment');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const path = require('path');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
 const BillSlip = require('../../../src/models/BillSlip');
-const PdfHelper = require('../../../src/helpers/pdf');
+const DocxHelper = require('../../../src/helpers/docx');
 const UtilsHelper = require('../../../src/helpers/utils');
 
 require('sinon-mongoose');
@@ -278,7 +279,7 @@ describe('formatFundingInfo', () => {
   });
 });
 
-describe('formatBillingDataForPdf', () => {
+describe('formatBillingDataForFile', () => {
   let formatFundingInfo;
   let formatPrice;
   let formatHour;
@@ -298,7 +299,7 @@ describe('formatBillingDataForPdf', () => {
 
     formatPrice.returnsArg(0);
 
-    const result = BillSlipHelper.formatBillingDataForPdf(billList, []);
+    const result = BillSlipHelper.formatBillingDataForFile(billList, []);
 
     expect(result.total).toEqual(0);
     expect(result.formattedBills).toEqual([]);
@@ -359,7 +360,7 @@ describe('formatBillingDataForPdf', () => {
     formatPrice.returnsArg(0);
     formatHour.returnsArg(0);
 
-    const result = BillSlipHelper.formatBillingDataForPdf(billList, creditNoteList);
+    const result = BillSlipHelper.formatBillingDataForFile(billList, creditNoteList);
 
     expect(result.total).toEqual(-10);
     expect(result.formattedBills).toEqual([
@@ -397,13 +398,13 @@ describe('formatBillingDataForPdf', () => {
   });
 });
 
-describe('formatPdf', () => {
-  let formatBillingDataForPdf;
+describe('formatFile', () => {
+  let formatBillingDataForFile;
   beforeEach(() => {
-    formatBillingDataForPdf = sinon.stub(BillSlipHelper, 'formatBillingDataForPdf');
+    formatBillingDataForFile = sinon.stub(BillSlipHelper, 'formatBillingDataForFile');
   });
   afterEach(() => {
-    formatBillingDataForPdf.restore();
+    formatBillingDataForFile.restore();
   });
 
   it('should return formatted data for pdf generation', async () => {
@@ -421,9 +422,9 @@ describe('formatPdf', () => {
     };
     const billList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const creditNoteList = [{ _id: new ObjectID() }];
-    formatBillingDataForPdf.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
+    formatBillingDataForFile.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
 
-    const result = await BillSlipHelper.formatPdf(billSlip, billList, creditNoteList, company);
+    const result = await BillSlipHelper.formatFile(billSlip, billList, creditNoteList, company);
 
     expect(result).toEqual({
       billSlip: {
@@ -444,33 +445,33 @@ describe('formatPdf', () => {
         formattedBills: [{ bills: 'bills' }],
       },
     });
-    sinon.assert.calledWithExactly(formatBillingDataForPdf, billList, creditNoteList);
+    sinon.assert.calledWithExactly(formatBillingDataForFile, billList, creditNoteList);
   });
 });
 
-describe('generatePdf', () => {
+describe('generateFile', () => {
   let BillSlipMock;
-  let generatePdfStub;
-  let formatPdfStub;
+  let createDocxStub;
+  let formatFileStub;
   let getBillsFromBillSlip;
   let getCreditNoteFromBillSlip;
   const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
   const billSlipData = { billSlip: { number: '123467890' } };
   const credentials = { company: { _id: new ObjectID() } };
-  const pdf = 'This is a pdf';
+  const docx = 'This is a docx file';
   const billList = [{ _id: new ObjectID() }];
   const creditNoteList = [{ _id: new ObjectID() }];
   beforeEach(() => {
     BillSlipMock = sinon.mock(BillSlip);
     getBillsFromBillSlip = sinon.stub(BillRepository, 'getBillsFromBillSlip');
     getCreditNoteFromBillSlip = sinon.stub(CreditNoteRepository, 'getCreditNoteFromBillSlip');
-    generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
-    formatPdfStub = sinon.stub(BillSlipHelper, 'formatPdf');
+    createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+    formatFileStub = sinon.stub(BillSlipHelper, 'formatFile');
   });
   afterEach(() => {
     BillSlipMock.restore();
-    generatePdfStub.restore();
-    formatPdfStub.restore();
+    createDocxStub.restore();
+    formatFileStub.restore();
     getBillsFromBillSlip.restore();
     getCreditNoteFromBillSlip.restore();
   });
@@ -485,23 +486,22 @@ describe('generatePdf', () => {
       .returns(billSlip);
     getBillsFromBillSlip.returns(billList);
     getCreditNoteFromBillSlip.returns(creditNoteList);
-    generatePdfStub.returns(pdf);
-    formatPdfStub.returns(billSlipData);
+    createDocxStub.returns(docx);
+    formatFileStub.returns(billSlipData);
 
-    const result = await BillSlipHelper.generatePdf(billSlip._id, credentials);
+    const result = await BillSlipHelper.generateFile(billSlip._id, credentials);
 
     expect(result).toMatchObject({
       billSlipNumber: billSlip.number,
-      pdf,
+      file: docx,
     });
     BillSlipMock.restore();
-    sinon.assert.calledWithExactly(formatPdfStub, billSlip, billList, creditNoteList, credentials.company);
+    sinon.assert.calledWithExactly(formatFileStub, billSlip, billList, creditNoteList, credentials.company);
     sinon.assert.calledWithExactly(getBillsFromBillSlip, billSlip, credentials.company._id);
     sinon.assert.calledWithExactly(
-      generatePdfStub,
-      billSlipData,
-      './src/data/billSlip.html',
-      { format: 'A4', printBackground: true, landscape: true }
+      createDocxStub,
+      path.join(process.cwd(), 'src/data/billSlip.docx'),
+      billSlipData
     );
     BillSlipMock.verify();
   });

@@ -2,7 +2,7 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const BillSlip = require('../../models/BillSlip');
 
-exports.authorizeGetBillSlipPdf = async (req) => {
+exports.authorizeGetBillSlipDocx = async (req) => {
   try {
     const companyId = get(req, 'auth.credentials.company._id', null);
     const billSlip = await BillSlip.findById(req.params._id).lean();

@@ -27,6 +27,7 @@ const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
+const DocxHelper = require('../../src/helpers/docx');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -1180,7 +1181,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     beforeEach(() => {
       createDocumentStub = sinon.stub(ESign, 'createDocument');
-      generateDocxStub = sinon.stub(FileHelper, 'generateDocx');
+      generateDocxStub = sinon.stub(DocxHelper, 'generateDocx');
       fileToBase64Stub = sinon.stub(FileHelper, 'fileToBase64');
 
       createDocumentStub.returns({

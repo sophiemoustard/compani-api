@@ -3,7 +3,7 @@ const Boom = require('boom');
 const translate = require('../../helpers/translate');
 const drive = require('../../models/Google/Drive');
 const DriveHelper = require('../../helpers/drive');
-const { generateDocx } = require('../../helpers/file');
+const { generateDocx } = require('../../helpers/docx');
 
 const { language } = translate;
 
