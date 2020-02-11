@@ -32,13 +32,18 @@ describe('EXPORTS ROUTES', () => {
       it('should get working events', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
+          url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-20',
           headers: { 'x-access-token': adminClientToken },
         });
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(3);
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(4);
+        expect(rows[0]).toMatch('"Type";"Heure interne";"Service";"Début";"Fin";"Durée";"Répétition";"Équipe";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"');
+        expect(rows[1]).toMatch('"Intervention";;;"17/01/2019 15:30";"17/01/2019 17:30";"2,00";;"Etoile";;;;"Oui";;"LILI";"Lola";;"Non";"Non";;');
+        expect(rows[2]).toMatch('"Heure interne";;;"17/01/2019 15:30";"17/01/2019 17:30";"2,00";;"Etoile";;;;"Oui";;;;;"Non";"Non";;');
+        expect(rows[3]).toMatch('"Intervention";;;"16/01/2019 10:30";"16/01/2019 12:30";"2,00";;"Etoile";;"Lola";"LILI";"Non";;"LILI";"Lola";;"Non";"Non";"Facturée & payée";');
       });
     });
 

@@ -22,7 +22,12 @@ const {
   HOURLY,
   CUSTOMER_CONTRACT,
   PAID_LEAVE,
+  INVOICED_AND_PAID,
   DAILY,
+  PLANNING,
+  INTERNAL_HOUR,
+  INTERVENTION,
+  ABSENCE,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -46,6 +51,8 @@ const sectorHistory = {
   company: authCompany._id,
   startDate: '2018-12-10',
 };
+
+const internalHour = { _id: new ObjectID(), name: PLANNING, company: authCompany._id };
 
 const customer = {
   _id: new ObjectID(),
@@ -225,7 +232,7 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
@@ -237,12 +244,14 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'intervention',
+    type: INTERVENTION,
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary,
     customer: customer._id,
+    IsCancelled: true,
+    cancel: { condition: INVOICED_AND_PAID },
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
@@ -257,13 +266,43 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'intervention',
+    type: INTERVENTION,
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary,
     customer: customer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: INTERNAL_HOUR,
+    internalHour: internalHour._id,
+    status: 'contract_with_company',
+    startDate: '2019-01-17T14:30:19.543Z',
+    endDate: '2019-01-17T16:30:19.543Z',
+    createdAt: '2019-01-16T14:30:19.543Z',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    status: 'contract_with_company',
+    startDate: '2019-01-11T09:30:19.543Z',
+    endDate: '2019-01-11T11:30:21.653Z',
+    auxiliary,
+    customer: customer._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
