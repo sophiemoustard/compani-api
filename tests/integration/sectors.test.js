@@ -16,16 +16,16 @@ describe('SECTORS ROUTES', () => {
   let authToken = null;
 
   describe('POST /sectors', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should create a new company sector', async () => {
-        const roleAdmin = rolesList.find(r => r.name === 'admin');
-        const admin = userList.find(u => u.role.toHexString() === roleAdmin._id.toHexString());
-        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === admin.company.toHexString()).length;
+        const roleAdminClient = rolesList.find(r => r.name === 'admin_client');
+        const adminClient = userList.find(u => u.role.toHexString() === roleAdminClient._id.toHexString());
+        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === adminClient.company.toHexString()).length;
 
         const payload = { name: 'Test3' };
         const response = await app.inject({
@@ -36,8 +36,8 @@ describe('SECTORS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.sector.company).toEqual(admin.company);
-        const sectors = await Sector.find({ company: admin.company.toHexString() });
+        expect(response.result.data.sector.company).toEqual(adminClient.company);
+        const sectors = await Sector.find({ company: adminClient.company.toHexString() });
         expect(sectors.length).toEqual(initialSectorNumber + 1);
       });
 
@@ -80,16 +80,16 @@ describe('SECTORS ROUTES', () => {
   });
 
   describe('GET /sectors', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should get sectors', async () => {
-        const roleAdmin = rolesList.find(r => r.name === 'admin');
-        const admin = userList.find(u => u.role.toHexString() === roleAdmin._id.toHexString());
-        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === admin.company.toHexString()).length;
+        const roleAdminClient = rolesList.find(r => r.name === 'admin_client');
+        const adminClient = userList.find(u => u.role.toHexString() === roleAdminClient._id.toHexString());
+        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === adminClient.company.toHexString()).length;
 
         const response = await app.inject({
           method: 'GET',
@@ -126,10 +126,10 @@ describe('SECTORS ROUTES', () => {
   });
 
   describe('PUT /sectors/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should update a sector', async () => {
@@ -186,10 +186,10 @@ describe('SECTORS ROUTES', () => {
   });
 
   describe('DELETE /sectors/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should delete a sector', async () => {

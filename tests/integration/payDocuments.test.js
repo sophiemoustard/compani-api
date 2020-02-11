@@ -24,10 +24,10 @@ describe('NODE ENV', () => {
 describe('PAY DOCUMENT ROUTES', () => {
   describe('POST /paydocuments', () => {
     let authToken = null;
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should create a new pay document', async () => {
@@ -170,10 +170,10 @@ describe('PAY DOCUMENT ROUTES', () => {
 
   describe('GET /paydocuments', () => {
     let authToken = null;
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should get all pay documents', async () => {
@@ -234,10 +234,10 @@ describe('PAY DOCUMENT ROUTES', () => {
 
   describe('DELETE /paydocuments', () => {
     let authToken = null;
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should delete a pay document', async () => {

@@ -34,7 +34,7 @@ describe('EMAIL ROUTES', () => {
   });
 
   it('should send a welcoming email to newly registered helpers of a company (company A)', async () => {
-    const authToken = await getToken('admin');
+    const authToken = await getToken('admin_client');
     const response = await app.inject({
       method: 'POST',
       url: '/email/sendWelcome',
@@ -68,7 +68,7 @@ describe('EMAIL ROUTES', () => {
   });
 
   it('should throw an error if email is from an other company', async () => {
-    const authToken = await getToken('admin');
+    const authToken = await getToken('admin_client');
     const response = await app.inject({
       method: 'POST',
       url: '/email/sendWelcome',
@@ -80,7 +80,7 @@ describe('EMAIL ROUTES', () => {
   });
 
   it('should throw an error if email does not exist', async () => {
-    const authToken = await getToken('admin');
+    const authToken = await getToken('admin_client');
     const response = await app.inject({
       method: 'POST',
       url: '/email/sendWelcome',
@@ -92,7 +92,7 @@ describe('EMAIL ROUTES', () => {
   });
 
   it("should return a 400 error if 'receiver' param is missing", async () => {
-    const authToken = await getToken('admin');
+    const authToken = await getToken('admin_client');
     const response = await app.inject({
       method: 'POST',
       url: '/email/sendWelcome',

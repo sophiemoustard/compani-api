@@ -396,7 +396,7 @@ const userList = [
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'admin')._id,
+    role: rolesList.find(role => role.name === 'admin_client')._id,
   },
 ];
 

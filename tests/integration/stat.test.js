@@ -12,19 +12,19 @@ const {
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('GET /stats/customer-follow-up', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
     it('should get customer follow up', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.followUp.length).toBe(1);
@@ -36,7 +36,7 @@ describe('GET /stats/customer-follow-up', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-follow-up?customer=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -66,20 +66,20 @@ describe('GET /stats/customer-follow-up', () => {
 });
 
 describe('GET /stats/customer-fundings-monitoring', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
 
     it('should get customer fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customerFundingsMonitoring[0]).toBeDefined();
@@ -92,7 +92,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -124,20 +124,20 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 });
 
 describe('GET /stats/all-customers-fundings-monitoring', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
 
     it('should get all customers fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/all-customers-fundings-monitoring',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.allCustomersFundingsMonitoring[0]).toBeDefined();
@@ -168,20 +168,20 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
 });
 
 describe('GET /stats/paid-intervention-stats', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
 
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
@@ -200,7 +200,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
@@ -213,7 +213,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -223,7 +223,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[2]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -233,7 +233,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/paid-intervention-stats?month=07-2019',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -243,7 +243,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -253,7 +253,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -283,20 +283,20 @@ describe('GET /stats/paid-intervention-stats', () => {
 });
 
 describe('GET /stats/customer-duration/sector', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
 
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
@@ -310,7 +310,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -334,7 +334,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -344,7 +344,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/customer-duration/sector?month=07-2019',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -354,7 +354,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -364,7 +364,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -395,20 +395,20 @@ describe('GET /stats/customer-duration/sector', () => {
 });
 
 describe('GET /stats/internal-billed-hours', () => {
-  let adminToken = null;
+  let adminClientToken = null;
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminToken = await getToken('admin');
+      adminClientToken = await getToken('admin_client');
     });
 
     it('should get internal and billed hours stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.internalAndBilledHours[0]).toBeDefined();
@@ -421,7 +421,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -443,7 +443,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -453,7 +453,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/internal-billed-hours?month=07-2019',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -463,7 +463,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -473,7 +473,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);

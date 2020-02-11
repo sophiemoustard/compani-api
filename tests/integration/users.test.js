@@ -33,10 +33,10 @@ describe('USERS ROUTES', () => {
   let authToken = null;
 
   describe('POST /users', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should not create a user if missing parameters', async () => {
@@ -145,7 +145,7 @@ describe('USERS ROUTES', () => {
         expect(usersCount).toBe(2);
       });
 
-      const roles = ['helper', 'auxiliary', 'coach', 'admin'];
+      const roles = ['helper', 'auxiliary', 'coach', 'admin_client'];
       roles.forEach((role) => {
         it(`should return a 403 error as user is ${role}`, async () => {
           authToken = await getToken(role);
@@ -249,10 +249,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should get all users (company A)', async () => {
@@ -382,7 +382,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/sector-histories', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
 
       it('should get all auxiliary users', async () => {
@@ -428,10 +428,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/active', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should get all active users (company A)', async () => {
@@ -518,10 +518,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
       it('should return user', async () => {
         const res = await app.inject({
@@ -620,10 +620,10 @@ describe('USERS ROUTES', () => {
       local: { email: 'riri@alenvi.io', password: '098765' },
       role: userPayload.role,
     };
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
 
       it('should update the user', async () => {
@@ -817,10 +817,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('DELETE /users/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
       it('should delete a user by id', async () => {
         const res = await app.inject({
@@ -907,10 +907,10 @@ describe('USERS ROUTES', () => {
     const updatePayload = {
       'administrative.certificates': { driveId: usersSeedList[0].administrative.certificates.driveId },
     };
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
 
       it('should update user certificates', async () => {
@@ -989,10 +989,10 @@ describe('USERS ROUTES', () => {
     const userId = usersSeedList[0]._id.toHexString();
     const taskId = usersSeedList[0].procedure[0].task;
 
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
       it('should update a user task', async () => {
         const res = await app.inject({
@@ -1032,10 +1032,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/:id/tasks', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
       it('should return user tasks', async () => {
         const res = await app.inject({
@@ -1111,10 +1111,10 @@ describe('USERS ROUTES', () => {
     afterEach(() => {
       addFileStub.restore();
     });
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
       it('should add an administrative document for a user', async () => {
         const response = await app.inject({
@@ -1135,7 +1135,7 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 403 error if user is not from same company', async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
 
         const response = await app.inject({
           method: 'POST',
@@ -1215,10 +1215,10 @@ describe('USERS ROUTES', () => {
       createFolderStub.restore();
     });
 
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin', usersSeedList);
+        authToken = await getToken('admin_client', usersSeedList);
       });
 
       it('should create a drive folder for a user', async () => {

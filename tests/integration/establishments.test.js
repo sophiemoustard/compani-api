@@ -38,10 +38,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
       urssafCode: '117',
     };
 
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should create a new establishment', async () => {
@@ -199,10 +199,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('PUT /establishments/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should update an establishment', async () => {
@@ -354,10 +354,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('GET /etablishments', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should return establishments (company A)', async () => {
@@ -412,10 +412,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('DELETE /etablishments/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should delete establishment', async () => {

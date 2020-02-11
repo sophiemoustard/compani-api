@@ -25,10 +25,10 @@ describe('INTERNAL HOURS ROUTES', () => {
 
   describe('POST /internalhours', () => {
     const payload = { name: 'Test3', default: false };
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should create a new company internal hour', async () => {
@@ -98,10 +98,10 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('GET /internalhours', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should get internal hours (company A)', async () => {
@@ -152,10 +152,10 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('PUT /internalhours/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should update an internal hour', async () => {
@@ -226,7 +226,7 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('DELETE /internalhours/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getTokenByCredentials(internalHourUsers[0].local);

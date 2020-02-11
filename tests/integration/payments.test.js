@@ -38,9 +38,9 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
     type: 'direct_debit',
   };
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('admin_client');
     });
     const creationAssertions = [{ ...originalPayload }, { ...originalPayload, nature: REFUND }];
 
@@ -188,7 +188,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
   describe('Admin with company', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('admin_client');
     });
 
     it('should create multiple payments', async () => {
@@ -339,9 +339,9 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
     type: 'direct_debit',
   };
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('admin_client');
     });
 
     it('should update payment', async () => {

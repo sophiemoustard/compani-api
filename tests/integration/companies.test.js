@@ -21,10 +21,10 @@ describe('NODE ENV', () => {
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
   describe('PUT /companies/:id', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should update company service', async () => {
@@ -134,10 +134,10 @@ describe('COMPANIES ROUTES', () => {
       getFileByIdStub.restore();
     });
 
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
 
       it('should upload a file', async () => {
@@ -267,7 +267,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
-        { name: 'admin', expectedCode: 403 },
+        { name: 'admin_client', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -287,10 +287,10 @@ describe('COMPANIES ROUTES', () => {
   });
 
   describe('GET /companies/first-intervention', () => {
-    describe('Admin', () => {
+    describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin_client');
       });
       it('should get the first intervention of the company', async () => {
         const response = await app.inject({

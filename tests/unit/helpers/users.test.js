@@ -660,7 +660,7 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should create an admin', async () => {
+  it('should create an admin_client', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'admin@test.com', password: '1234567890' },
@@ -669,14 +669,14 @@ describe('createUser', () => {
     };
     const newUser = {
       ...payload,
-      role: { name: 'admin', rights: [{ _id: new ObjectID() }] },
+      role: { name: 'admin_client', rights: [{ _id: new ObjectID() }] },
     };
 
     RoleMock
       .expects('findById')
       .withExactArgs(payload.role, { name: 1 })
       .chain('lean')
-      .returns({ name: 'admin' });
+      .returns({ name: 'admin_client' });
 
     TaskMock.expects('find').never();
 

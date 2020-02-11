@@ -16,7 +16,7 @@ describe('SURCHARGES ROUTES', () => {
   let authToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('admin');
+    authToken = await getToken('admin_client');
   });
 
   describe('POST /surcharges', () => {
