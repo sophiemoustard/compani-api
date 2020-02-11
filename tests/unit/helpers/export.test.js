@@ -753,6 +753,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [];
@@ -786,6 +787,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
@@ -845,6 +847,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [{ sector: { name: 'La ruche' }, _id: new ObjectID() }];
@@ -875,6 +878,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
@@ -941,6 +945,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
@@ -982,6 +987,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
@@ -1014,6 +1020,7 @@ describe('exportAuxiliaries', () => {
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
@@ -1061,7 +1068,7 @@ describe('exportHelpers', () => {
 
   it('should return csv header', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
 
     const helpers = [];
     UserModel.expects('find')
@@ -1071,6 +1078,7 @@ describe('exportHelpers', () => {
         path: 'customers',
         populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
+      .chain('lean')
       .once()
       .returns(helpers);
 
@@ -1096,7 +1104,7 @@ describe('exportHelpers', () => {
 
   it('should return helper info', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
 
     const helpers = [{
       local: { email: 'aide@sos.io' },
@@ -1110,6 +1118,7 @@ describe('exportHelpers', () => {
         path: 'customers',
         populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
+      .chain('lean')
       .once()
       .returns(helpers);
 
@@ -1122,7 +1131,7 @@ describe('exportHelpers', () => {
 
   it('should return customer helper info', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
 
     const helpers = [{
       customers: [{
@@ -1145,6 +1154,7 @@ describe('exportHelpers', () => {
         path: 'customers',
         populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
+      .chain('lean')
       .once()
       .returns(helpers);
 

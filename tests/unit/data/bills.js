@@ -115,7 +115,7 @@ const bills = [
                 _id: serviceId,
                 nature: 'hourly',
                 createdAt: '2019-01-09 09:36:06.169',
-                company: '5c35c086119849001438a38d',
+                company: new ObjectID(),
                 type: 'contract_with_company',
                 versions: [
                   {

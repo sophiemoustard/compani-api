@@ -3,7 +3,11 @@ const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
-const billAlertEmail = async (receiver, company) => {
+exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
+  ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+  : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions));
+
+exports.billAlertEmail = async (receiver, company) => {
   const companyName = company.tradeName;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
@@ -12,14 +16,10 @@ const billAlertEmail = async (receiver, company) => {
     html: await EmailOptionsHelper.billEmail(companyName),
   };
 
-  const mailInfo = process.env.NODE_ENV === 'production'
-    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
-    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-
-  return mailInfo;
+  return exports.sendEmail(mailOptions);
 };
 
-const completeBillScriptEmail = async (sentNb, emails = null) => {
+exports.completeBillScriptEmail = async (sentNb, emails = null) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
@@ -27,14 +27,10 @@ const completeBillScriptEmail = async (sentNb, emails = null) => {
     html: EmailOptionsHelper.completeBillScriptEmailBody(sentNb, emails),
   };
 
-  const mailInfo = process.env.NODE_ENV === 'production'
-    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
-    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-
-  return mailInfo;
+  return exports.sendEmail(mailOptions);
 };
 
-const completeEventRepScriptEmail = async (nb, repIds = null) => {
+exports.completeEventRepScriptEmail = async (nb, repIds = null) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
@@ -42,14 +38,10 @@ const completeEventRepScriptEmail = async (nb, repIds = null) => {
     html: EmailOptionsHelper.completeEventRepScriptEmailBody(nb, repIds),
   };
 
-  const mailInfo = process.env.NODE_ENV === 'production'
-    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
-    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-
-  return mailInfo;
+  return exports.sendEmail(mailOptions);
 };
 
-const completeRoleUpdateScriptEmail = async (nb) => {
+exports.completeRoleUpdateScriptEmail = async (nb) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
@@ -57,14 +49,10 @@ const completeRoleUpdateScriptEmail = async (nb) => {
     html: EmailOptionsHelper.completeRoleUpdateScriptEmailBody(nb),
   };
 
-  const mailInfo = process.env.NODE_ENV === 'production'
-    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
-    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-
-  return mailInfo;
+  return exports.sendEmail(mailOptions);
 };
 
-const helperWelcomeEmail = async (receiver, company) => {
+exports.helperWelcomeEmail = async (receiver, company) => {
   const companyName = company.tradeName || company.name;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
@@ -76,12 +64,4 @@ const helperWelcomeEmail = async (receiver, company) => {
   return process.env.NODE_ENV !== 'test'
     ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
     : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-};
-
-module.exports = {
-  billAlertEmail,
-  completeBillScriptEmail,
-  completeEventRepScriptEmail,
-  completeRoleUpdateScriptEmail,
-  helperWelcomeEmail,
 };

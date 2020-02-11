@@ -14,6 +14,32 @@ const RoleSchema = mongoose.Schema({
   }],
 }, { timestamps: true });
 
+const formatRights = (rights) => {
+  const formattedRights = [];
+  for (const right of rights) {
+    formattedRights.push({ ...right.right_id, hasAccess: right.hasAccess, right_id: right.right_id._id });
+  }
+  return formattedRights;
+};
+
+function populateRight(doc, next) {
+  if (doc && doc.rights) doc.rights = formatRights(doc.rights);
+
+  return next();
+}
+
+function populateRights(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.rights) doc.rights = formatRights(doc.rights);
+  }
+
+  return next();
+}
+
+RoleSchema.post('findOne', populateRight);
+RoleSchema.post('findOneAndUpdate', populateRight);
+RoleSchema.post('find', populateRights);
+
 RoleSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('Role', RoleSchema);
