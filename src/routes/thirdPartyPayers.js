@@ -11,6 +11,7 @@ const {
   removeById,
 } = require('../controllers/thirdPartyPayerController');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-thirdpartypayers',
@@ -24,19 +25,11 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }),
+            address: addressValidation,
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
+            isApa: Joi.boolean().required(),
           }),
         },
       },
@@ -63,19 +56,11 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }).default({}),
+            address: addressValidation.default({}),
             email: Joi.string().email().allow(null, ''),
             unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
+            isApa: Joi.boolean().required(),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],

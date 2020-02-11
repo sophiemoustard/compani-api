@@ -13,6 +13,7 @@ const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/c
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
+const TOKEN_EXPIRE_TIME = 86400;
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -191,14 +192,34 @@ const serialNumber = (auxiliary) => {
   return `${initials.toUpperCase()}${createdAt}`;
 };
 
+function setContractCreationMissingInfo() {
+  const mandatoryInfo = [
+    'identity.lastname',
+    'identity.firstname',
+    'identity.birthDate',
+    'identity.birthCity',
+    'identity.birthState',
+    'identity.nationality',
+    'identity.socialSecurityNumber',
+    'contact.address.fullAddress',
+    'establishment',
+  ];
+
+  const contractCreationMissingInfo = [];
+  for (const info of mandatoryInfo) {
+    if (!get(this, info)) contractCreationMissingInfo.push(info);
+  }
+
+  return contractCreationMissingInfo;
+}
+
 async function populateAfterSave(doc, next) {
   try {
-    await doc
-      .populate({
-        path: 'role',
-        select: '-__v -createdAt -updatedAt',
-        populate: { path: 'role.right_id', select: 'description permission _id' },
-      })
+    await doc.populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: { path: 'role.right_id', select: 'description permission _id' },
+    })
       .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
       .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
       .execPopulate();
@@ -244,12 +265,16 @@ UserSchema.virtual('sectorHistories', {
 
 UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
+
 UserSchema.virtual('isActive').get(setIsActive);
+UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissingInfo);
+
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
 UserSchema.pre('aggregate', validateAggregation);
+
 UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
@@ -259,3 +284,4 @@ UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
+module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;

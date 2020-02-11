@@ -54,24 +54,6 @@ const update = async (req) => {
   }
 };
 
-const remove = async (req) => {
-  try {
-    const contract = await Contract.findOneAndRemove({ _id: req.params._id });
-    if (!contract) return Boom.notFound(translate[language].contractNotFound);
-
-    await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
-    if (contract.customer) {
-      await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
-    }
-    return {
-      message: translate[language].contractDeleted,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const createContractVersion = async (req) => {
   try {
     const contract = await ContractHelper.createVersion(req.params._id, req.payload);
@@ -172,7 +154,6 @@ module.exports = {
   list,
   create,
   update,
-  remove,
   createContractVersion,
   updateContractVersion,
   removeContractVersion,

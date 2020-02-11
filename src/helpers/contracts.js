@@ -10,13 +10,14 @@ const cloneDeep = require('lodash/cloneDeep');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
 const CustomerHelper = require('./customers');
 const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, AUXILIARY } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
@@ -51,47 +52,55 @@ exports.getContractList = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
-  const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, companyId);
+// exports.allCompanyContractEnded = async (contract, companyId) => {
+exports.allCompanyContractEnded = async (contract, companyId) => {
+  const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
+  const notEndedContract = userContracts.filter(con => !con.endDate);
+  if (notEndedContract.length) return false;
 
-  return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
+  const sortedEndedContract = userContracts.filter(con => !!con.endDate)
+    .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+
+  return !sortedEndedContract.length || moment(contract.startDate).isAfter(sortedEndedContract[0].endDate, 'd');
+};
+
+exports.isCreationAllowed = async (contract, user, companyId) => {
+  if (contract.status === COMPANY_CONTRACT) {
+    const allCompanyContractEnded = await exports.allCompanyContractEnded(contract, companyId);
+    if (!allCompanyContractEnded) return false;
+  }
+
+  return user.contractCreationMissingInfo.length === 0;
 };
 
 exports.createContract = async (contractPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
+
+  const user = await User.findOne({ _id: contractPayload.user })
+    .populate({ path: 'sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
+  const isCreationAllowed = await exports.isCreationAllowed(contractPayload, user, companyId);
+  if (!isCreationAllowed) throw Boom.badData();
+
   const payload = { ...cloneDeep(contractPayload), company: companyId };
-
-  if (payload.status === COMPANY_CONTRACT) {
-    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
-    if (hasNotEndedCompanyContracts) {
-      throw Boom.badRequest('New contract start date is before last company contract end date.');
-    }
-  }
-
   if (payload.versions[0].signature) {
-    const { signature } = payload.versions[0];
-    const doc = await ESignHelper.generateSignatureRequest(signature);
+    const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
     payload.versions[0].signature = { eversignId: doc.data.document_hash };
   }
 
-  const newContract = await Contract.create(payload);
+  const contract = await Contract.create(payload);
 
-  const user = await User.findOneAndUpdate(
-    { _id: newContract.user },
-    { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } }
-  )
-    .populate({ path: 'sector', match: { company: companyId } })
-    .lean({ autopopulate: true, virtuals: true });
-  if (newContract.customer) {
-    await Customer.updateOne({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
-  }
-  if (user.sector) {
-    await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
-  }
+  const role = await Role.findOne({ name: AUXILIARY }).lean();
+  await User.updateOne(
+    { _id: contract.user },
+    { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+  );
+  if (user.sector) await SectorHistoryHelper.createHistoryOnContractCreation(user, contract, companyId);
+  if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
-  return newContract;
+  return contract;
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
@@ -154,8 +163,8 @@ exports.createVersion = async (contractId, versionPayload) => {
 };
 
 exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, companyId) => {
-  if (versionIndex !== 0) return true;
   if (contract.endDate) return false;
+  if (versionIndex !== 0) return true;
 
   const { status, user } = contract;
   const { startDate } = versionToUpdate;
@@ -376,3 +385,8 @@ exports.uploadFile = async (params, payload) => {
   };
   return exports.createAndSaveFile(version, fileInfo);
 };
+
+exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
+  contract.status === COMPANY_CONTRACT &&
+    moment(contract.startDate).isSameOrBefore(day, 'd') &&
+    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));

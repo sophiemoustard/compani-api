@@ -106,8 +106,9 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.events).toBeDefined();
         expect(response.result.data.events[0]._id).toBeDefined();
         expect(response.result.data.events[0].events).toBeDefined();
-        response.result.data.events[0].events.forEach((event) => {
-          expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
+        const index = response.result.data.events.findIndex(event => event.events[0].auxiliary);
+        response.result.data.events[index].events.forEach((event) => {
+          expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
         });
       });
 
@@ -165,6 +166,7 @@ describe('EVENTS ROUTES', () => {
           customCredentials: { ...helpersCustomer.local },
         },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
       ];
@@ -312,6 +314,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
       ];
@@ -396,6 +399,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
       ];
@@ -460,6 +464,149 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(403);
       });
+
+      it('should return a 400 if missing sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/paid-transport?month=01-2020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if missing month', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/paid-transport?sector=${sectors[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if month does not correspond to regex', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/paid-transport?month=012020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /events/unassigned-hours', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return unassigned hours for a sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.unassignedHoursBySector[0].duration).toEqual(5);
+      });
+
+      it('should return an empty array if sector does not have unassigned event', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=02-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.unassignedHoursBySector.length).toEqual(0);
+      });
+
+      it('should return unassigned hours for many sectors', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        const firstSectorResult = response.result.data.unassignedHoursBySector.find(el =>
+          el.sector.toHexString() === sectors[0]._id.toHexString());
+        expect(firstSectorResult.duration).toEqual(5);
+
+        const secondSectorResult = response.result.data.unassignedHoursBySector.find(el =>
+          el.sector.toHexString() === sectors[1]._id.toHexString());
+        expect(secondSectorResult.duration).toEqual(1.5);
+      });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[2]._id}&month=01-2020`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 400 if missing sector', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/unassigned-hours?month=01-2020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if missing month', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/unassigned-hours?sector=${sectors[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
+
+      it('should return a 400 if month does not correspond to regex', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events/unassigned-hours?month=012020',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(400);
+      });
     });
 
     describe('Other roles', () => {
@@ -477,7 +624,7 @@ describe('EVENTS ROUTES', () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
+            url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -947,6 +1094,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
@@ -1021,6 +1169,35 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.event._id).toEqual(event._id);
         expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
         expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      });
+
+      it('should update internalhour if address is {}', async () => {
+        const event = eventsList[0];
+        const payload = { auxiliary: event.auxiliary.toHexString(), address: {} };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.event.address).toBeUndefined();
+      });
+
+      it('should return a 400 if event is not an internal hours and adress is {}', async () => {
+        const event = eventsList[2];
+        const payload = { address: {} };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
       });
 
       it('should return a 400 error as payload is invalid', async () => {
@@ -1185,6 +1362,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
@@ -1247,6 +1425,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
@@ -1336,6 +1515,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'planningReferent', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

@@ -273,7 +273,7 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   let hours = 0;
   for (const absence of absences) {
     if (absence.absenceNature === DAILY) {
-      const start = moment.max(moment(absence.startDate), moment(query.startDate));
+      const start = moment.max(moment(absence.startDate).startOf('d'), moment(query.startDate));
       const end = moment.min(moment(absence.endDate), moment(query.endDate));
       const range = Array.from(moment().range(start, end).by('days'));
       for (const day of range) {

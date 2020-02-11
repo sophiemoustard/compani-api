@@ -33,11 +33,13 @@ const thirdPartyPayersList = [
     _id: new ObjectID(),
     name: 'Toto',
     company: authCompany._id,
+    isApa: false,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
     company: authCompany._id,
+    isApa: false,
   },
 ];
 
@@ -45,6 +47,7 @@ const thirdPartyPayerFromOtherCompany = {
   _id: new ObjectID(),
   name: 'Tutu',
   company: tppCompany._id,
+  isApa: true,
 };
 
 const populateDB = async () => {

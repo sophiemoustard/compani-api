@@ -4,6 +4,7 @@ const Customer = require('../../models/Customer');
 const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -17,7 +18,7 @@ exports.authorizeGetStats = async (req) => {
   }
 
   if (req.query.sector) {
-    const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+    const sectors = UtilsHelper.formatIdsArray(req.query.sector);
     const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
     if (sectors.length !== sectorsCount) throw Boom.forbidden();
   }

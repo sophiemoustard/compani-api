@@ -1,9 +1,9 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const moment = require('../../../src/extensions/moment');
-const Boom = require('boom');
 const flat = require('flat');
+const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
+const moment = require('../../../src/extensions/moment');
 const EventHelper = require('../../../src/helpers/events');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 const ContractHelper = require('../../../src/helpers/contracts');
@@ -12,11 +12,13 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const CustomerHelper = require('../../../src/helpers/customers');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
-const { RESIGNATION } = require('../../../src/helpers/constants');
+const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT, AUXILIARY } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
+const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const ContractRepository = require('../../../src/repositories/ContractRepository');
 
 require('sinon-mongoose');
 
@@ -83,29 +85,147 @@ describe('getContractList', () => {
   });
 });
 
+describe('allCompanyContractEnded', () => {
+  let getUserCompanyContracts;
+  beforeEach(() => {
+    getUserCompanyContracts = sinon.stub(ContractRepository, 'getUserCompanyContracts');
+  });
+  afterEach(() => {
+    getUserCompanyContracts.restore();
+  });
+
+  it('should return true if contract not ended', async () => {
+    const companyId = new ObjectID();
+    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    getUserCompanyContracts.returns([
+      { _id: new ObjectID() },
+      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+    ]);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+  });
+  it('should return true if contract startDate before existing contracts end date', async () => {
+    const companyId = new ObjectID();
+    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    getUserCompanyContracts.returns([
+      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
+      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+    ]);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+  });
+  it('should return false if no contract', async () => {
+    const companyId = new ObjectID();
+    const contract = { user: new ObjectID() };
+    getUserCompanyContracts.returns([]);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+  });
+  it('should return false if startDate after existing contracts end date', async () => {
+    const companyId = new ObjectID();
+    const contract = { user: new ObjectID(), startDate: '2020-04-15T00:00:00' };
+    getUserCompanyContracts.returns([
+      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
+    ]);
+    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+  });
+});
+
+describe('isCreationAllowed', () => {
+  let allCompanyContractEnded;
+  beforeEach(() => {
+    allCompanyContractEnded = sinon.stub(ContractHelper, 'allCompanyContractEnded');
+  });
+  afterEach(() => {
+    allCompanyContractEnded.restore();
+  });
+
+  it('CUSTOMER_CONTRACT - should return true if user has mandatoy info', async () => {
+    const contract = { status: 'contract_with_customer' };
+    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+
+    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
+
+    expect(result).toBeTruthy();
+    sinon.assert.notCalled(allCompanyContractEnded);
+  });
+  it('CUSTOMER_CONTRACT - should return false if user does not have mandatoy info', async () => {
+    const contract = { status: 'contract_with_customer' };
+    const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
+
+    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(allCompanyContractEnded);
+  });
+  it('COMPANY_CONTRACT - should return false if not ended contract', async () => {
+    const contract = { status: 'contract_with_company' };
+    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+    allCompanyContractEnded.returns(false);
+
+    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+  });
+  it('COMPANY_CONTRACT - should return false if user does not have mandatoy info', async () => {
+    const contract = { status: 'contract_with_company' };
+    const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
+    allCompanyContractEnded.returns(true);
+
+    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+  });
+  it('COMPANY_CONTRACT - should return true if all contract ended and user has mandatoy info', async () => {
+    const contract = { status: 'contract_with_company' };
+    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+    allCompanyContractEnded.returns(true);
+
+    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+  });
+});
+
 describe('createContract', () => {
-  let hasNotEndedCompanyContracts;
+  let isCreationAllowed;
   let ContractMock;
   let generateSignatureRequestStub;
   let UserMock;
   let CustomerMock;
+  let RoleMock;
   let createHistoryOnContractCreation;
 
   beforeEach(() => {
-    hasNotEndedCompanyContracts = sinon.stub(ContractHelper, 'hasNotEndedCompanyContracts');
+    isCreationAllowed = sinon.stub(ContractHelper, 'isCreationAllowed');
     generateSignatureRequestStub = sinon.stub(ESignHelper, 'generateSignatureRequest');
     createHistoryOnContractCreation = sinon.stub(SectorHistoryHelper, 'createHistoryOnContractCreation');
     ContractMock = sinon.mock(Contract);
     UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
     CustomerMock = sinon.mock(Customer);
   });
 
   afterEach(() => {
-    hasNotEndedCompanyContracts.restore();
+    isCreationAllowed.restore();
     generateSignatureRequestStub.restore();
     createHistoryOnContractCreation.restore();
     ContractMock.restore();
     UserMock.restore();
+    RoleMock.restore();
     CustomerMock.restore();
   });
 
@@ -120,25 +240,34 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
+    const user = { name: 'toto' };
 
-    hasNotEndedCompanyContracts.returns(false);
+    isCreationAllowed.returns(true);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ name: 'toto' })
+      .returns(user)
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
     ContractMock.verify();
     UserMock.verify();
@@ -163,24 +292,32 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
-
+    const user = { name: 'Toto' };
     const contractWithDoc = {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
     };
+    const role = { _id: new ObjectID() };
 
-    hasNotEndedCompanyContracts.returns(false);
+    isCreationAllowed.returns(true);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
     ContractMock.expects('create')
       .withExactArgs(contractWithDoc)
       .returns(contractWithDoc);
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ name: 'toto' })
+      .returns(user)
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne').never();
 
@@ -188,6 +325,7 @@ describe('createContract', () => {
 
     sinon.assert.calledWithExactly(generateSignatureRequestStub, contract.versions[0].signature);
     sinon.assert.notCalled(createHistoryOnContractCreation);
+    sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -206,19 +344,28 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
+    const user = { name: 'Toto' };
 
-    hasNotEndedCompanyContracts.returns(false);
+    isCreationAllowed.returns(true);
 
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ name: 'toto' })
+      .returns(user)
+      .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
       .once();
     CustomerMock.expects('updateOne')
       .withExactArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
@@ -227,7 +374,7 @@ describe('createContract', () => {
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
     expect(result).toEqual(expect.objectContaining(contract));
     ContractMock.verify();
@@ -246,26 +393,34 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
+    const role = { _id: new ObjectID() };
+    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
 
-    hasNotEndedCompanyContracts.returns(false);
+    isCreationAllowed.returns(true);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload.user })
       .chain('populate')
       .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(user)
       .once();
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: payload.user },
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+      )
+      .once();
     CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.calledWithExactly(createHistoryOnContractCreation, user, contract, credentials.company._id);
     ContractMock.verify();
     UserMock.verify();
@@ -274,7 +429,7 @@ describe('createContract', () => {
   });
 
   it('should throw a 400 error if new company contract startDate is before last ended company contract', async () => {
-    const contract = {
+    const payload = {
       _id: new ObjectID(),
       endDate: null,
       user: new ObjectID(),
@@ -283,15 +438,31 @@ describe('createContract', () => {
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
+    const user = { name: 'Toto' };
 
     try {
-      hasNotEndedCompanyContracts.returns(true);
-      await ContractHelper.createContract(contract, credentials);
-      sinon.assert.notCalled(generateSignatureRequestStub);
-      sinon.assert.notCalled(hasNotEndedCompanyContracts);
-      sinon.assert.notCalled(createHistoryOnContractCreation);
+      isCreationAllowed.returns(false);
+      UserMock.expects('findOne')
+        .withExactArgs({ _id: payload.user })
+        .chain('populate')
+        .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true, virtuals: true })
+        .returns(user)
+        .once();
+      UserMock.expects('updateOne').never();
+      CustomerMock.expects('updateOne').never();
+      ContractMock.expects('create').never();
+      await ContractHelper.createContract(payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('New contract start date is before last company contract end date.'));
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
+      sinon.assert.notCalled(generateSignatureRequestStub);
+      sinon.assert.notCalled(createHistoryOnContractCreation);
+      ContractMock.verify();
+      UserMock.verify();
+      CustomerMock.verify();
     }
   });
 });
@@ -515,6 +686,57 @@ describe('createVersion', () => {
   });
 });
 
+describe('canUpdateVersion', () => {
+  let countAuxiliaryEventsBetweenDates;
+  beforeEach(() => {
+    countAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'countAuxiliaryEventsBetweenDates');
+  });
+  afterEach(() => {
+    countAuxiliaryEventsBetweenDates.restore();
+  });
+
+  it('should return false if contract is ended', async () => {
+    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00' };
+    const versionToUpdate = {};
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+  });
+  it('should return true if contract not ended and not first version', async () => {
+    const contract = { _id: new ObjectID() };
+    const versionToUpdate = {};
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
+
+    expect(result).toBeTruthy();
+    sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+  });
+  it('should return true if first version and no event', async () => {
+    const contract = { _id: new ObjectID(), status: 'status', user: new ObjectID() };
+    const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
+    countAuxiliaryEventsBetweenDates.returns(0);
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(
+      countAuxiliaryEventsBetweenDates,
+      { status: contract.status, auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
+    );
+  });
+  it('should return false if first version and existing events', async () => {
+    const contract = { _id: new ObjectID(), status: 'status', user: new ObjectID() };
+    const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
+    countAuxiliaryEventsBetweenDates.returns(5);
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(
+      countAuxiliaryEventsBetweenDates,
+      { status: contract.status, auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
+    );
+  });
+});
+
 describe('formatVersionEditionPayload', () => {
   let generateSignatureRequest;
   beforeEach(() => {
@@ -583,13 +805,14 @@ describe('formatVersionEditionPayload', () => {
   });
 
   it('should update previous version end date', async () => {
-    const oldVersion = { startDate: '2019-09-12T00:00:00' };
-    const newVersion = { startDate: '2019-09-16T00:00:00' };
+    const oldVersion = { startDate: moment('2019-09-12').toDate() };
+    const newVersion = { startDate: moment('2019-09-16').toDate() };
     const versionIndex = 1;
 
     const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
 
-    expect(result.$set['versions.0.endDate']).toEqual('2019-09-15T21:59:59.999Z');
+    expect(result.$set['versions.0.endDate'])
+      .toEqual(moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString());
   });
 
   it('should update contract start date', async () => {
@@ -678,7 +901,7 @@ describe('updateVersion', () => {
       startDate: '2019-09-09T00:00:00',
       versions: [
         { _id: new ObjectID(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
-        { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' }
+        { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       ],
     };
     canUpdateVersion.returns(true);
@@ -988,5 +1211,59 @@ describe('uploadFile', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({ name: 'test' });
     sinon.assert.calledWithExactly(createAndSaveFileStub, version, fileInfo);
+  });
+});
+
+describe('auxiliaryHasActiveCompanyContractOnDay', () => {
+  it('should return false as no company contract', () => {
+    const contracts = [{ status: CUSTOMER_CONTRACT }];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (startDate after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-03-11T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (end date before day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return true as company contract on day (end date after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true as company contract on day (no endDate)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
   });
 });

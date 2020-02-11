@@ -4,6 +4,10 @@ exports.routes = [
     routes: { prefix: '/users' },
   },
   {
+    plugin: require('./administrativeDocuments'),
+    routes: { prefix: '/administrativedocuments' },
+  },
+  {
     plugin: require('./roles'),
     routes: { prefix: '/roles' },
   },

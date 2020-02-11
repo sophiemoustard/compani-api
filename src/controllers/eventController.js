@@ -145,6 +145,19 @@ const getPaidTransportStatsBySector = async (req) => {
   }
 };
 
+const getUnassignedHoursBySector = async (req) => {
+  try {
+    const unassignedHoursBySector = await EventsHelper.getUnassignedHoursBySector(req.query, req.auth.credentials);
+
+    return {
+      message: translate[language].statsFound,
+      data: { unassignedHoursBySector },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
 
 module.exports = {
   list,
@@ -156,4 +169,5 @@ module.exports = {
   listForCreditNotes,
   getWorkingStats,
   getPaidTransportStatsBySector,
+  getUnassignedHoursBySector,
 };

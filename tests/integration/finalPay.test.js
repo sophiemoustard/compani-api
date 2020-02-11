@@ -37,6 +37,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -158,6 +159,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

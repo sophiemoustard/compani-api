@@ -17,6 +17,7 @@ const {
   userSectors,
   company,
   sectorHistories,
+  establishmentList,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
@@ -78,6 +79,11 @@ describe('USERS ROUTES', () => {
         expect(user).toHaveProperty('picture');
         expect(user.procedure).toBeDefined();
         expect(user.procedure.length).toBeGreaterThan(0);
+
+        const userSectorHistory = await SectorHistory
+          .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
+          .lean();
+        expect(userSectorHistory).toBeDefined();
       });
 
       it('should not create a user if role provided does not exist', async () => {
@@ -88,25 +94,21 @@ describe('USERS ROUTES', () => {
           payload,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(400);
       });
 
-      it('should not create a user if email provided already exists', () => {
-        const payload = {
-          identity: { firstname: 'Test', lastname: 'Test' },
-          local: { email: 'horseman@alenvi.io', password: '123456' },
-          role: new ObjectID(),
-        };
-        expect(async () => {
-          const response = await app.inject({
-            method: 'POST',
-            url: '/users',
-            payload,
-            headers: { 'x-access-token': authToken },
-          });
-          expect(response).toThrow('NoRole');
-          expect(response.statusCode).toBe(409);
+      it('should not create a user if email provided already exists', async () => {
+        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io', password: '123456' } };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
         });
+
+        expect(response.statusCode).toBe(409);
       });
 
       it('should return a 403 if customer is not from the same company', async () => {
@@ -162,6 +164,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -222,7 +225,7 @@ describe('USERS ROUTES', () => {
         url: '/users/authenticate',
         payload: { email: 'test@alenvi.io', password: '123456' },
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(401);
     });
 
     it('should not authenticate a user if wrong password', async () => {
@@ -241,7 +244,7 @@ describe('USERS ROUTES', () => {
         url: '/users/authenticate',
         payload: { email: 'white@alenvi.io', password: '123456' },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(401);
     });
   });
 
@@ -359,6 +362,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -404,6 +408,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -493,6 +498,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -561,7 +567,7 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      it('should return user if it is me', async () => {
+      it('should return user if it is me - auxiliary', async () => {
         authToken = await getToken('auxiliary', usersSeedList);
 
         const response = await app.inject({
@@ -573,9 +579,22 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(200);
       });
 
+      it('should return user if it is me - auxiliary without company ', async () => {
+        authToken = await getToken('auxiliaryWithoutCompany', usersSeedList);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[8]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -672,6 +691,49 @@ describe('USERS ROUTES', () => {
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
       });
 
+      it('should not create sectorhistory if it is same sector', async () => {
+        const userId = usersSeedList[0]._id.toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: { sector: userSectors[0]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[0]._id);
+      });
+
+      it('should not update sectorHistory if auxiliary does not have contract', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[1]._id}`,
+          payload: { sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: usersSeedList[1]._id, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[1]._id);
+      });
+
+      it('should not update sectorHistory if auxiliary contract has not started yet', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[7]._id}`,
+          payload: { sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const histories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company }).lean();
+        expect(histories.length).toEqual(1);
+        expect(histories[0].sector).toEqual(userSectors[1]._id);
+      });
+
       it('should return a 404 error if no user found', async () => {
         const id = new ObjectID().toHexString();
         const res = await app.inject({
@@ -688,6 +750,26 @@ describe('USERS ROUTES', () => {
           method: 'PUT',
           url: `/users/${userFromOtherCompany._id}`,
           payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 400 error if user establishment is removed', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { establishment: null },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(400);
+      });
+
+      it('should return a 403 error if user establishment is not from same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { establishment: establishmentList[1]._id },
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(403);
@@ -713,6 +795,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -780,6 +863,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -815,7 +899,7 @@ describe('USERS ROUTES', () => {
         url: '/users/refreshToken',
         payload: { refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba' },
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(401);
     });
   });
 
@@ -879,6 +963,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -926,6 +1011,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -986,6 +1072,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1093,6 +1180,7 @@ describe('USERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1154,22 +1242,10 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      it('should create a drive folder if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
-
-        const response = await app.inject({
-          method: 'POST',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-          payload: folderPayload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-      });
-
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

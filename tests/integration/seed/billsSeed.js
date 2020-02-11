@@ -10,6 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
+const CreditNote = require('../../../src/models/CreditNote');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -17,6 +18,7 @@ const billThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
   company: authCompany._id,
+  isApa: true,
 };
 
 const company = {
@@ -480,6 +482,29 @@ const eventList = [
   },
 ];
 
+const creditNote = {
+  _id: new ObjectID(),
+  date: '2020-01-01',
+  startDate: '2020-01-01',
+  endDate: '2020-01-12',
+  customer: billCustomerList[0]._id,
+  exclTaxesCustomer: 100,
+  inclTaxesCustomer: 112,
+  events: [{
+    eventId: eventList[4]._id,
+    auxiliary: eventList[4].auxiliary,
+    startDate: eventList[4].startDate,
+    endDate: eventList[4].endDate,
+    bills: {
+      inclTaxesCustomer: 10,
+      exclTaxesCustomer: 8,
+    },
+    serviceName: billServices[0].versions[0].name,
+  }],
+  isEditable: true,
+  company: authCompany._id,
+};
+
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -519,6 +544,7 @@ const populateDB = async () => {
   await BillNumber.deleteMany({});
   await User.deleteMany({});
   await FundingHistory.deleteMany({});
+  await CreditNote.deleteMany({});
 
   await populateDBForAuthentication();
   await (new Company(company)).save();
@@ -528,6 +554,7 @@ const populateDB = async () => {
   await Bill.insertMany([...authBillsList, ...billsList]);
   await Event.insertMany(eventList);
   await User.create(billUserList);
+  await CreditNote.create(creditNote);
   await FundingHistory.create(fundingHistory);
   await BillNumber.create(billNumber);
 };

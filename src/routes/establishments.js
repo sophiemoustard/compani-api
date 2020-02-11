@@ -8,6 +8,7 @@ const { create, update, list, remove } = require('../controllers/establishmentCo
 const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandlers/establishments');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
+const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-establishments',
@@ -25,16 +26,7 @@ exports.plugin = {
             phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)).required(),
             workHealthService: Joi.string().valid(workHealthServices).required(),
             urssafCode: Joi.string().valid(urssafCodes).required(),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }).required(),
-            }),
+            address: addressValidation,
           }),
         },
       },
@@ -53,16 +45,7 @@ exports.plugin = {
             phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)),
             workHealthService: Joi.string().valid(workHealthServices),
             urssafCode: Joi.string().valid(urssafCodes),
-            address: Joi.object().keys({
-              street: Joi.string().required(),
-              fullAddress: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required(),
-              location: Joi.object().keys({
-                type: Joi.string().required(),
-                coordinates: Joi.array().length(2).required(),
-              }),
-            }),
+            address: addressValidation,
           }),
         },
         pre: [

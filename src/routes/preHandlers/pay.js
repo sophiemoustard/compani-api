@@ -2,6 +2,7 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const User = require('../../models/User');
 const Sector = require('../../models/Sector');
+const UtilsHelper = require('../../helpers/utils');
 
 exports.authorizePayCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
@@ -19,7 +20,7 @@ exports.authorizeGetDetails = async (req) => {
   }
 
   if (req.query.sector) {
-    const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+    const sectors = UtilsHelper.formatIdsArray(req.query.sector);
     const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
     if (sectorsCount !== sectors.length) throw Boom.forbidden();
   }
@@ -28,7 +29,7 @@ exports.authorizeGetDetails = async (req) => {
 
 exports.authorizeGetHoursToWork = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+  const sectors = UtilsHelper.formatIdsArray(req.query.sector);
   const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
   if (sectorsCount !== sectors.length) throw Boom.forbidden();
 

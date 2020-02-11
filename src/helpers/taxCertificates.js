@@ -77,7 +77,10 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   return pdf;
 };
 
-exports.remove = async taxCertificateId => TaxCertificate.deleteOne({ _id: taxCertificateId });
+exports.remove = async (taxCertificateId) => {
+  const taxCertificate = await TaxCertificate.findOneAndDelete({ _id: taxCertificateId }).lean();
+  if (taxCertificate.driveFile) await GdriveStorage.deleteFile(taxCertificate.driveFile.driveId);
+};
 
 exports.create = async (certificatePayload, credentials) => {
   const uploadedFile = await GdriveStorage.addFile({

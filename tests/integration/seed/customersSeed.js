@@ -46,6 +46,7 @@ const customerServiceList = [
 const customerThirdPartyPayer = {
   _id: new ObjectID('62400565f8fd3555379720c9'),
   company: authCompany._id,
+  isApa: true,
 };
 
 const customersList = [
@@ -64,6 +65,13 @@ const customersList = [
         zipCode: '75008',
         city: 'Paris',
         street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      secondaryAddress: {
+        fullAddress: '27 rue des renaudes 75017 Paris',
+        zipCode: '75017',
+        city: 'Paris',
+        street: '27 rue des renaudes',
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0123456789',

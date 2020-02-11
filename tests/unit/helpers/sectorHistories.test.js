@@ -25,8 +25,8 @@ describe('updateHistoryOnSectorUpdate', () => {
   });
 
   afterEach(() => {
-    SectorHistoryMock.verify();
-    ContractMock.verify();
+    SectorHistoryMock.restore();
+    ContractMock.restore();
     createHistoryStub.restore();
   });
 
@@ -79,6 +79,8 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     expect(result).toEqual({ sector });
     sinon.assert.notCalled(createHistoryStub);
+    SectorHistoryMock.verify();
+    ContractMock.verify();
   });
 
   it('should update sector history if auxiliary contract has not started yet', async () => {
@@ -115,6 +117,8 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     expect(result).toEqual({ sector });
     sinon.assert.notCalled(createHistoryStub);
+    SectorHistoryMock.verify();
+    ContractMock.verify();
   });
 
   it('should update sector history if many changes made on the same day', async () => {
@@ -151,6 +155,8 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     expect(result).toEqual({ sector });
     sinon.assert.notCalled(createHistoryStub);
+    SectorHistoryMock.verify();
+    ContractMock.verify();
   });
 
   it('should update sector history and create new one', async () => {
@@ -173,7 +179,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       .chain('sort')
       .withExactArgs({ startDate: -1 })
       .chain('lean')
-      .returns([{ _id: new ObjectID() }]);
+      .returns([{ _id: new ObjectID(), startDate: moment('2019-10-12').toDate() }]);
 
     SectorHistoryMock
       .expects('updateOne')
@@ -193,6 +199,8 @@ describe('updateHistoryOnSectorUpdate', () => {
       companyId,
       moment().startOf('day').toDate()
     );
+    SectorHistoryMock.verify();
+    ContractMock.verify();
   });
 });
 

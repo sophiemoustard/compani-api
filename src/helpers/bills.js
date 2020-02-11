@@ -5,6 +5,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const BillNumber = require('../models/BillNumber');
+const CreditNote = require('../models/CreditNote');
 const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('../helpers/billSlips');
 const UtilsHelper = require('./utils');
@@ -181,6 +182,10 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   await exports.updateFundingHistories(fundingHistories, company._id);
   await BillNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
   await BillSlipHelper.createBillSlips(billList, endDate, credentials.company);
+  await CreditNote.updateMany(
+    { events: { $elemMatch: { eventId: { $in: Object.keys(eventsToUpdate) } } } },
+    { isEditable: false }
+  );
 };
 
 exports.getBills = async (query, credentials) => {

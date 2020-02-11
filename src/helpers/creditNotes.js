@@ -11,6 +11,7 @@ const FundingHistory = require('../models/FundingHistory');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
+const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('../helpers/constants');
 
@@ -120,11 +121,10 @@ exports.createCreditNotes = async (payload, credentials) => {
 
   if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false, credentials));
 
-  return Promise.all([
-    ...promises,
-    CreditNote.insertMany(creditNotes),
-    CreditNoteNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } }),
-  ]);
+  await Promise.all(promises);
+  await CreditNote.insertMany(creditNotes);
+  await CreditNoteNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
+  await BillSlipHelper.createBillSlips(creditNotes, payload.date, credentials.company);
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {

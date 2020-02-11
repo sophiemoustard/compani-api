@@ -7,6 +7,7 @@ const omit = require('lodash/omit');
 
 const FundingHistory = require('../../../src/models/FundingHistory');
 const BillNumber = require('../../../src/models/BillNumber');
+const CreditNote = require('../../../src/models/CreditNote');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const Company = require('../../../src/models/Company');
@@ -1061,7 +1062,8 @@ describe('getBillNumber', () => {
 
 describe('formatAndCreateBills', () => {
   let BillNumberMock;
-  let insertManyBill;
+  let CreditNoteMock;
+  let BillMock;
   let getBillNumberStub;
   let formatCustomerBillsStub;
   let formatThirdPartyPayerBillsStub;
@@ -1070,7 +1072,8 @@ describe('formatAndCreateBills', () => {
   let createBillSlips;
   beforeEach(() => {
     BillNumberMock = sinon.mock(BillNumber);
-    insertManyBill = sinon.stub(Bill, 'insertMany');
+    CreditNoteMock = sinon.mock(CreditNote);
+    BillMock = sinon.mock(Bill);
     getBillNumberStub = sinon.stub(BillHelper, 'getBillNumber');
     formatCustomerBillsStub = sinon.stub(BillHelper, 'formatCustomerBills');
     formatThirdPartyPayerBillsStub = sinon.stub(BillHelper, 'formatThirdPartyPayerBills');
@@ -1080,7 +1083,8 @@ describe('formatAndCreateBills', () => {
   });
   afterEach(() => {
     BillNumberMock.restore();
-    insertManyBill.restore();
+    CreditNoteMock.restore();
+    BillMock.restore();
     getBillNumberStub.restore();
     formatCustomerBillsStub.restore();
     formatThirdPartyPayerBillsStub.restore();
@@ -1152,6 +1156,7 @@ describe('formatAndCreateBills', () => {
       tppBilledEvents,
       fundingHistories: {},
     };
+    const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
 
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1160,10 +1165,20 @@ describe('formatAndCreateBills', () => {
       .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 3 } })
       .once();
 
+    CreditNoteMock.expects('updateMany')
+      .withExactArgs(
+        { events: { $elemMatch: { eventId: { $in: Object.keys(eventsToUpdate) } } } },
+        { isEditable: false }
+      )
+      .once();
+
+    BillMock.expects('insertMany')
+      .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+      .once();
+
     await BillHelper.formatAndCreateBills(billsData, credentials);
 
     BillNumberMock.verify();
-    sinon.assert.calledWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
     sinon.assert.calledWithExactly(
       createBillSlips,
       [customerBillingInfo.bill, ...tppBillingInfo.tppBills],
@@ -1188,8 +1203,11 @@ describe('formatAndCreateBills', () => {
     sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(
       updateEventsStub,
-      { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents }
+      eventsToUpdate
     );
+    BillNumberMock.verify();
+    CreditNoteMock.verify();
+    BillMock.verify();
   });
 
   it('should create customer bill', async () => {
@@ -1231,11 +1249,21 @@ describe('formatAndCreateBills', () => {
     BillNumberMock.expects('updateOne')
       .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } })
       .once();
+    CreditNoteMock.expects('updateMany')
+      .withExactArgs(
+        { events: { $elemMatch: { eventId: { $in: Object.keys({ ...customerBillingInfo.billedEvents }) } } } },
+        { isEditable: false }
+      )
+      .once();
+
+    BillMock.expects('insertMany')
+      .withExactArgs([customerBillingInfo.bill])
+      .once();
+
 
     await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     BillNumberMock.verify();
-    sinon.assert.calledWithExactly(insertManyBill, [customerBillingInfo.bill]);
     sinon.assert.calledWithExactly(
       createBillSlips,
       [customerBillingInfo.bill],
@@ -1252,6 +1280,9 @@ describe('formatAndCreateBills', () => {
     sinon.assert.notCalled(formatThirdPartyPayerBillsStub);
     sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents });
+    BillNumberMock.verify();
+    CreditNoteMock.verify();
+    BillMock.verify();
   });
 
   it('should create third party payer bill', async () => {
@@ -1295,10 +1326,20 @@ describe('formatAndCreateBills', () => {
       .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } })
       .once();
 
+    CreditNoteMock.expects('updateMany')
+      .withExactArgs(
+        { events: { $elemMatch: { eventId: { $in: Object.keys({ ...tppBillingInfo.billedEvents }) } } } },
+        { isEditable: false }
+      )
+      .once();
+
+    BillMock.expects('insertMany')
+      .withExactArgs(tppBillingInfo.tppBills)
+      .once();
+
     await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);
 
     BillNumberMock.verify();
-    sinon.assert.calledWithExactly(insertManyBill, tppBillingInfo.tppBills);
     sinon.assert.calledWithExactly(
       createBillSlips,
       tppBillingInfo.tppBills,
@@ -1315,6 +1356,204 @@ describe('formatAndCreateBills', () => {
     );
     sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(updateEventsStub, { ...tppBillingInfo.billedEvents });
+    BillNumberMock.verify();
+    CreditNoteMock.verify();
+    BillMock.verify();
+  });
+
+  describe('Functions not called', () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+    const customerBill = billsData[0].customerBills.bills[0];
+    const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
+    const customerServiceVersion = customerBill.subscription.service.versions[0];
+    const tppServiceVersion = tppBill.subscription.service.versions[0];
+    const customerSubscriptionEvents = customerBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const tppSubscriptionEvents = tppBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const customerBilledEvents = customerBill.eventsList
+      .reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr } }), {});
+    const tppBilledEvents = tppBill.eventsList
+      .reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr, careHours: curr.history.careHours } }), {});
+    const customerBillingInfo = {
+      bill: {
+        customer: customerIdData,
+        number: 'FACT-1911001',
+        netInclTaxes: billsData[0].customerBills.total.toFixed(2),
+        date: customerBill.endDate,
+        shouldBeSent: billsData[0].customerBills.shouldBeSent,
+        companyId: companyIdData,
+        subscriptions: [{
+          ...customerBill,
+          subscription: customerBill.subscription._id,
+          service: {
+            serviceId: customerBill.subscription.service._id,
+            ...pick(customerServiceVersion, ['name', 'nature']),
+          },
+          vat: customerServiceVersion.vat,
+          events: customerSubscriptionEvents,
+        }],
+      },
+      customerBilledEvents,
+    };
+    const tppBillingInfo = {
+      tppBills: [{
+        customer: customerIdData,
+        number: 'FACT-1911002',
+        client: tppBill.thirdPartyPayer._id,
+        netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
+        date: tppBill.endDate,
+        company: companyIdData,
+        subscriptions: [{
+          ...tppBill,
+          subscription: tppBill.subscription._id,
+          service: {
+            serviceId: tppBill.subscription.service._id,
+            ...pick(tppServiceVersion, ['name', 'nature']),
+          },
+          vat: tppServiceVersion.vat,
+          events: tppSubscriptionEvents,
+        }],
+      }],
+      tppBilledEvents,
+      fundingHistories: {},
+    };
+    const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
+
+    it('should not call functions if there is an error at Bill.insertMany', async () => {
+      try {
+        getBillNumberStub.returns(number);
+        formatCustomerBillsStub.returns(customerBillingInfo);
+        formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+        BillMock.expects('insertMany')
+          .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+          .throws('insertManyError');
+
+        BillNumberMock.expects('updateOne').never();
+        CreditNoteMock.expects('updateMany').never();
+
+        await BillHelper.formatAndCreateBills(billsData, credentials);
+      } catch (e) {
+        expect(e.name).toEqual('insertManyError');
+      } finally {
+        sinon.assert.notCalled(updateEventsStub);
+        sinon.assert.notCalled(updateFundingHistoriesStub);
+        sinon.assert.notCalled(createBillSlips);
+        BillNumberMock.verify();
+        CreditNoteMock.verify();
+        BillMock.verify();
+      }
+    });
+
+    it('should not call functions if there is an error at updateEvents', async () => {
+      try {
+        getBillNumberStub.returns(number);
+        formatCustomerBillsStub.returns(customerBillingInfo);
+        formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+        BillMock.expects('insertMany')
+          .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+          .once();
+        updateEventsStub.throws('updateEventError');
+        BillNumberMock.expects('updateOne').never();
+        CreditNoteMock.expects('updateMany').never();
+
+        await BillHelper.formatAndCreateBills(billsData, credentials);
+      } catch (e) {
+        expect(e.name).toEqual('updateEventError');
+      } finally {
+        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
+        sinon.assert.notCalled(updateFundingHistoriesStub);
+        sinon.assert.notCalled(createBillSlips);
+        BillNumberMock.verify();
+        CreditNoteMock.verify();
+        BillMock.verify();
+      }
+    });
+
+    it('should not call functions if there is an error at updateFundingHistories', async () => {
+      try {
+        getBillNumberStub.returns(number);
+        formatCustomerBillsStub.returns(customerBillingInfo);
+        formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+        BillMock.expects('insertMany')
+          .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+          .once();
+        updateFundingHistoriesStub.throws('updateFundingHistoriesError');
+        BillNumberMock.expects('updateOne').never();
+        CreditNoteMock.expects('updateMany').never();
+
+        await BillHelper.formatAndCreateBills(billsData, credentials);
+      } catch (e) {
+        expect(e.name).toEqual('updateFundingHistoriesError');
+      } finally {
+        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
+        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
+        sinon.assert.notCalled(createBillSlips);
+        BillNumberMock.verify();
+        CreditNoteMock.verify();
+        BillMock.verify();
+      }
+    });
+
+    it('should not call functions if there is an error at BillNumber.updateOne', async () => {
+      try {
+        getBillNumberStub.returns(number);
+        formatCustomerBillsStub.returns(customerBillingInfo);
+        formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+        BillMock.expects('insertMany')
+          .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+          .once();
+        BillNumberMock.expects('updateOne').throws('updateOneError');
+        CreditNoteMock.expects('updateMany').never();
+
+        await BillHelper.formatAndCreateBills(billsData, credentials);
+      } catch (e) {
+        expect(e.name).toEqual('updateOneError');
+      } finally {
+        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
+        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
+        sinon.assert.notCalled(createBillSlips);
+        BillNumberMock.verify();
+        CreditNoteMock.verify();
+        BillMock.verify();
+      }
+    });
+
+    it('should not call functions if there is an error at createBillSlips', async () => {
+      try {
+        getBillNumberStub.returns(number);
+        formatCustomerBillsStub.returns(customerBillingInfo);
+        formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+        BillMock.expects('insertMany')
+          .withExactArgs([customerBillingInfo.bill, ...tppBillingInfo.tppBills])
+          .once();
+        BillNumberMock.expects('updateOne').once();
+        CreditNoteMock.expects('updateMany').never();
+        createBillSlips.throws('createBillSlipsError');
+
+        await BillHelper.formatAndCreateBills(billsData, credentials);
+      } catch (e) {
+        expect(e.name).toEqual('createBillSlipsError');
+      } finally {
+        sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
+        sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
+        sinon.assert.calledWithExactly(
+          createBillSlips,
+          [customerBillingInfo.bill, ...tppBillingInfo.tppBills],
+          billsData[0].endDate,
+          credentials.company
+        );
+        BillNumberMock.verify();
+        CreditNoteMock.verify();
+        BillMock.verify();
+      }
+    });
   });
 });
 
@@ -1536,8 +1775,8 @@ describe('formatEventsForPdf', () => {
       auxiliary: {
         identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
       },
-      startDate: '2019-04-10T06:00:00.000Z',
-      endDate: '2019-04-10T08:00:00.000Z',
+      startDate: moment('2019-04-10T08:00:00').toDate(),
+      endDate: moment('2019-04-10T10:00:00').toDate(),
       bills: { inclTaxesCustomer: 52, exclTaxesCustomer: 49.28909952606635 },
       surcharges: [],
     }];

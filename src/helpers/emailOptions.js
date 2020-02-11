@@ -51,10 +51,13 @@ const completeEventRepScriptEmailBody = (nb, repIds) => {
   return body;
 };
 
+const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
+
 module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,
+  completeRoleUpdateScriptEmailBody,
 };

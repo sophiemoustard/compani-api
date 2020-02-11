@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { deleteImage, uploadImage } = require('../controllers/cloudinaryController');
+const { deleteImage } = require('../controllers/cloudinaryController');
 
 exports.plugin = {
   name: 'routes-cloudinary',
@@ -14,23 +14,9 @@ exports.plugin = {
       handler: deleteImage,
       options: {
         validate: {
-          params: { id: Joi.string() }
+          params: { id: Joi.string() },
         },
       },
     });
-
-    server.route({
-      method: 'POST',
-      path: '/image/upload',
-      handler: uploadImage,
-      options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
-      },
-    });
-  }
+  },
 };

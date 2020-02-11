@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
+const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
@@ -10,14 +11,38 @@ const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
+const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
-const RolesHelper = require('./roles');
+const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
-const SectorHistoriesHelper = require('../helpers/sectorHistories');
+const SectorHistoriesHelper = require('./sectorHistories');
 
 const { language } = translate;
+
+exports.authenticate = async (payload) => {
+  const user = await User.findOne({ 'local.email': payload.email.toLowerCase() }).lean({ autopopulate: true });
+  if (!user || !user.refreshToken) throw Boom.unauthorized();
+
+  const correctPassword = await bcrypt.compare(payload.password, user.local.password);
+  if (!correctPassword) throw Boom.unauthorized();
+
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+};
+
+exports.refreshToken = async (payload) => {
+  const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
+  if (!user) throw Boom.unauthorized();
+
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+};
 
 exports.getUsersList = async (query, credentials) => {
   const params = {
@@ -46,6 +71,7 @@ exports.getUsersList = async (query, credentials) => {
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
 };
+
 exports.getUsersListWithSectorHistories = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
@@ -70,10 +96,6 @@ exports.getUser = async (userId, credentials) => {
     .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
   if (!user) throw Boom.notFound(translate[language].userNotFound);
-
-  if (user.role && user.role.rights.length > 0) {
-    user.role.rights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  }
 
   return user;
 };
@@ -131,16 +153,11 @@ exports.createUser = async (userPayload, credentials) => {
 
   await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
   if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
-  const user = await User
+
+  return User
     .findOne({ _id: userId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
-
-  const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  return {
-    ...pickBy(user),
-    role: { name: user.role.name, rights: [...populatedRights] },
-  };
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
@@ -158,15 +175,9 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
-  const updatedUser = await User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
+  return User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
-
-  if (updatedUser.role && updatedUser.role.rights.length > 0) {
-    updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });
-  }
-
-  return updatedUser;
 };
 
 exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {

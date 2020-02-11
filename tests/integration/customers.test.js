@@ -27,6 +27,7 @@ const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
+const DocxHelper = require('../../src/helpers/docx');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -122,6 +123,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -162,6 +164,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -211,6 +214,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -260,6 +264,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -311,6 +316,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -363,6 +369,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -411,6 +418,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -502,6 +510,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -582,6 +591,44 @@ describe('CUSTOMERS ROUTES', () => {
       expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
     });
 
+    it('should update secondaryAddress', async () => {
+      const customer = customersList[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': adminToken },
+        payload: {
+          contact: {
+            secondaryAddress: {
+              fullAddress: '27 rue des renaudes 75017 Paris',
+              zipCode: '75017',
+              city: 'Paris',
+              street: '27 rue des renaudes',
+              location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+            },
+          },
+        },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.contact.secondaryAddress.fullAddress).toBe('27 rue des renaudes 75017 Paris');
+    });
+
+    it('should delete secondaryAddress', async () => {
+      const customer = customersList[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': adminToken },
+        payload: { contact: { secondaryAddress: {} } },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
+    });
+
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'PUT',
@@ -613,6 +660,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -694,6 +742,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -805,6 +854,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -895,6 +945,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -945,6 +996,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1011,6 +1063,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1101,6 +1154,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1127,7 +1181,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     beforeEach(() => {
       createDocumentStub = sinon.stub(ESign, 'createDocument');
-      generateDocxStub = sinon.stub(FileHelper, 'generateDocx');
+      generateDocxStub = sinon.stub(DocxHelper, 'generateDocx');
       fileToBase64Stub = sinon.stub(FileHelper, 'fileToBase64');
 
       createDocumentStub.returns({
@@ -1280,6 +1334,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1372,6 +1427,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1507,6 +1563,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'admin', expectedCode: 403 },
       ];
@@ -1718,6 +1775,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1815,6 +1873,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1864,6 +1923,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -2071,6 +2131,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, callCount: 0 },
         { name: 'auxiliary', expectedCode: 403, callCount: 0 },
+        { name: 'auxiliaryWithoutCompany', expectedCode: 403, callCount: 0 },
         { name: 'coach', expectedCode: 200, callCount: 1 },
       ];
 

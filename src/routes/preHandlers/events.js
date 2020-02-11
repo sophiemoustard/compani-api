@@ -7,6 +7,7 @@ const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -26,19 +27,19 @@ exports.authorizeEventGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (req.query.customer) {
-    const customerIds = Array.isArray(req.query.customer) ? req.query.customer : [req.query.customer];
+    const customerIds = UtilsHelper.formatIdsArray(req.query.customer);
     const customerCount = await Customer.countDocuments({ _id: { $in: customerIds }, company: companyId });
     if (customerCount !== customerIds.length) throw Boom.forbidden();
   }
 
   if (req.query.auxiliary) {
-    const auxiliariesIds = Array.isArray(req.query.auxiliary) ? req.query.auxiliary : [req.query.auxiliary];
+    const auxiliariesIds = UtilsHelper.formatIdsArray(req.query.auxiliary);
     const auxiliariesCount = await User.countDocuments({ _id: { $in: auxiliariesIds }, company: companyId });
     if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
   }
 
   if (req.query.sector) {
-    const sectorsIds = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+    const sectorsIds = UtilsHelper.formatIdsArray(req.query.sector);
     const sectorCount = await Sector.countDocuments({ _id: { $in: sectorsIds }, company: companyId });
     if (sectorCount !== sectorsIds.length) throw Boom.forbidden();
   }

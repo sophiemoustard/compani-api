@@ -8,7 +8,8 @@ const Task = require('../../../src/models/Task');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
-const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const Establishment = require('../../../src/models/Establishment');
+const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -34,6 +35,47 @@ const company = {
   },
   prefixNumber: 103,
 };
+
+const establishmentList = [
+  {
+    _id: new ObjectID(),
+    name: 'Toto',
+    siret: '12345678901234',
+    address: {
+      street: '15, rue du test',
+      fullAddress: '15, rue du test 75007 Paris',
+      zipCode: '75007',
+      city: 'Paris',
+      location: {
+        type: 'Point',
+        coordinates: [4.849302, 2.90887],
+      },
+    },
+    phone: '0123456789',
+    workHealthService: 'MT01',
+    urssafCode: '117',
+    company: company._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Tata',
+    siret: '09876543210987',
+    address: {
+      street: '37, rue des acacias',
+      fullAddress: '37, rue des acacias 69000 Lyon',
+      zipCode: '69000',
+      city: 'Lyon',
+      location: {
+        type: 'Point',
+        coordinates: [4.824302, 3.50807],
+      },
+    },
+    phone: '0446899034',
+    workHealthService: 'MT01',
+    urssafCode: '217',
+    company: otherCompany._id,
+  },
+];
 
 const task = {
   _id: new ObjectID(),
@@ -70,6 +112,7 @@ const userFromOtherCompany = {
 };
 
 const contractId = new ObjectID();
+const contractNotStartedId = new ObjectID();
 
 const usersSeedList = [
   {
@@ -86,6 +129,7 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
     contracts: [{ _id: contractId }],
+    establishment: establishmentList[0]._id,
   },
   {
     _id: new ObjectID(),
@@ -94,6 +138,7 @@ const usersSeedList = [
     role: rolesList.find(role => role.name === 'auxiliary')._id,
     refreshToken: uuidv4(),
     company: company._id,
+    contracts: [],
     administrative: {
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
@@ -148,6 +193,36 @@ const usersSeedList = [
     role: rolesList.find(role => role.name === 'helper')._id,
     contracts: [new ObjectID()],
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary2', lastname: 'White' },
+    local: { email: 'aux@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    refreshToken: uuidv4(),
+    company: company._id,
+    contracts: [contractNotStartedId],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
+    inactivityDate: null,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
+    local: { email: 'withouCompany@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    refreshToken: uuidv4(),
+    company: company._id,
+    contracts: [],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
+    inactivityDate: null,
+  },
 ];
 
 const userSectors = [
@@ -163,14 +238,24 @@ const userPayload = {
   sector: userSectors[0]._id,
 };
 
-const userContract = {
-  _id: contractId,
-  user: usersSeedList[0]._id,
-  startDate: moment('2018-10-10').toDate(),
-  createdAt: moment('2018-10-10').toDate(),
-  company: company._id,
-  status: 'contract_with_company',
-};
+const contracts = [
+  {
+    _id: contractId,
+    user: usersSeedList[0]._id,
+    startDate: moment('2018-10-10').toDate(),
+    createdAt: moment('2018-10-10').toDate(),
+    company: company._id,
+    status: 'contract_with_company',
+  },
+  {
+    _id: contractNotStartedId,
+    user: usersSeedList[7]._id,
+    startDate: moment().add(1, 'month').toDate(),
+    createdAt: moment('2018-10-10').toDate(),
+    company: company._id,
+    status: 'contract_with_company',
+  },
+];
 
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
@@ -192,13 +277,16 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
+  await Company.deleteMany({});
+  await Establishment.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat(userFromOtherCompany));
   await Customer.create(customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
-  await Contract.create(userContract);
+  await Contract.insertMany(contracts);
+  await Establishment.insertMany(establishmentList);
   await new Company(company).save();
   await new Task(task).save();
 };
@@ -214,4 +302,5 @@ module.exports = {
   userSectors,
   company,
   sectorHistories,
+  establishmentList,
 };

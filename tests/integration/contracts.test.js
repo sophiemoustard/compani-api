@@ -13,6 +13,7 @@ const Contract = require('../../src/models/Contract');
 const Customer = require('../../src/models/Customer');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
+const SectorHistory = require('../../src/models/SectorHistory');
 const Drive = require('../../src/models/Google/Drive');
 const {
   populateDB,
@@ -117,18 +118,18 @@ describe('CONTRACTS ROUTES', () => {
   });
 
   describe('POST /contracts', () => {
-    const payload = {
-      status: COMPANY_CONTRACT,
-      startDate: '2019-01-18T15:46:30.636Z',
-      versions: [{
-        weeklyHours: 24,
-        grossHourlyRate: 10.43,
-        startDate: '2019-01-18T15:46:30.636Z',
-      }],
-      user: contractUsers[0]._id,
-    };
-
     it('should create contract (company contract)', async () => {
+      const payload = {
+        status: COMPANY_CONTRACT,
+        startDate: '2019-09-01T00:00:00',
+        versions: [{
+          weeklyHours: 24,
+          grossHourlyRate: 10.43,
+          startDate: '2019-09-01T00:00:00',
+        }],
+        user: contractUsers[1]._id,
+      };
+
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
@@ -142,27 +143,65 @@ describe('CONTRACTS ROUTES', () => {
       const contracts = await Contract.find({ company: get(response, 'result.data.contract.company') });
       expect(contracts.length).toEqual(contractsList.length + 1);
 
-      const user = await User.findOne({ _id: payload.user });
+      const user = await User.findOne({ _id: contractUsers[1]._id });
       expect(user).toBeDefined();
       expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
       expect(user.inactivityDate).toBeNull();
+
+      const sectorHistoriesLength = await SectorHistory
+        .countDocuments({
+          auxiliary: contractUsers[1]._id,
+          company: authCompany._id,
+          startDate: moment(payload.startDate).startOf('day').toDate(),
+        })
+        .lean();
+      expect(sectorHistoriesLength).toBe(1);
     });
 
-    it('should create contract (customer contract)', async () => {
+    it('should create new sectorhistory if auxiliary does not have sectorhistory without a startDate', async () => {
+      const payload = {
+        status: COMPANY_CONTRACT,
+        startDate: '2019-09-01T00:00:00',
+        versions: [{
+          weeklyHours: 24,
+          grossHourlyRate: 10.43,
+          startDate: '2019-09-01T00:00:00',
+        }],
+        user: contractUsers[2]._id,
+      };
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload: {
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
+
+      const sectorHistories = await SectorHistory
+        .find({ auxiliary: contractUsers[2]._id, company: authCompany._id })
+        .lean();
+      expect(sectorHistories.length).toBe(3);
+      expect(sectorHistories[2].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
+    });
+
+    it('should create contract (customer contract)', async () => {
+      const payload = {
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{
+          grossHourlyRate: 10.43,
           startDate: '2019-01-18T15:46:30.636Z',
-          versions: [{
-            grossHourlyRate: 10.43,
-            startDate: '2019-01-18T15:46:30.636Z',
-          }],
-          user: contractUsers[0]._id,
-          status: CUSTOMER_CONTRACT,
-          customer: contractCustomer._id,
-        },
+        }],
+        user: contractUsers[0]._id,
+        status: CUSTOMER_CONTRACT,
+        customer: contractCustomer._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload,
       });
 
       expect(response.statusCode).toBe(200);
@@ -241,6 +280,16 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     it('should not create a contract if user is not from the same company', async () => {
+      const payload = {
+        status: COMPANY_CONTRACT,
+        startDate: '2019-09-01T00:00:00',
+        versions: [{
+          weeklyHours: 24,
+          grossHourlyRate: 10.43,
+          startDate: '2019-09-01T00:00:00',
+        }],
+        user: otherCompanyContractUser._id,
+      };
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
@@ -258,13 +307,19 @@ describe('CONTRACTS ROUTES', () => {
       { path: 'versions.0.weeklyHours' },
       { path: 'versions.0.startDate' },
       { path: 'user' },
-      {
-        path: 'customer',
-        payload: { ...payload, status: CUSTOMER_CONTRACT },
-      },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+        const payload = {
+          status: COMPANY_CONTRACT,
+          startDate: '2019-09-01T00:00:00',
+          versions: [{
+            weeklyHours: 24,
+            grossHourlyRate: 10.43,
+            startDate: '2019-09-01T00:00:00',
+          }],
+          user: contractUsers[1]._id,
+        };
         const response = await app.inject({
           method: 'POST',
           url: '/contracts',
@@ -275,6 +330,26 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
 
+    it('should return a 400 error if missing customer parameter for customer contract', async () => {
+      const payload = {
+        status: CUSTOMER_CONTRACT,
+        startDate: '2019-09-01T00:00:00',
+        versions: [{
+          weeklyHours: 24,
+          grossHourlyRate: 10.43,
+          startDate: '2019-09-01T00:00:00',
+        }],
+        user: contractUsers[1]._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
     const roles = [
       { name: 'admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -283,6 +358,16 @@ describe('CONTRACTS ROUTES', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = {
+          status: COMPANY_CONTRACT,
+          startDate: '2019-09-01T00:00:00',
+          versions: [{
+            weeklyHours: 24,
+            grossHourlyRate: 10.43,
+            startDate: '2019-09-01T00:00:00',
+          }],
+          user: contractUsers[1]._id,
+        };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
@@ -321,6 +406,9 @@ describe('CONTRACTS ROUTES', () => {
       const absence = events.find(event =>
         event.type === 'absence' && moment(event.startDate).isSame('2019-07-06', 'day'));
       expect(moment(absence.endDate).isSame('2019-07-08', 'day')).toBeTruthy();
+
+      const sectorHistories = await SectorHistory.find({ company: authCompany._id, auxiliary: user._id }).lean();
+      expect(sectorHistories[0].endDate).toEqual(moment(response.result.data.contract.endDate).endOf('day').toDate());
     });
 
     it('should return 403 as user and contract are not in the same company', async () => {
@@ -396,15 +484,123 @@ describe('CONTRACTS ROUTES', () => {
     });
   });
 
-  describe('DELETE contracts/:id', () => {
-    it('should delete a contract by id', async () => {
+  describe('PUT contract/:id/versions/:versionId', () => {
+    it('should update a contract', async () => {
+      const payload = { grossHourlyRate: 8 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const contract = await Contract.findById(contractsList[6]._id).lean();
+      expect(contract.versions[0].grossHourlyRate).toEqual(8);
+    });
+
+    it('should update a contract startDate and update corresponding sectorhistory', async () => {
+      const payload = { startDate: '2018-11-28' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${contractsList[2]._id}/versions/${contractsList[2].versions[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const contract = await Contract.findById(contractsList[2]._id).lean();
+      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
+
+      const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user }).lean();
+      expect(moment(payload.startDate).isSame(sectorHistory.startDate, 'day')).toBeTruthy();
+    });
+
+    it(
+      'should update a contract startDate and update corresponding sectorhistory and delete unrelevant ones',
+      async () => {
+        const payload = { startDate: '2020-02-01' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        const contract = await Contract.findById(contractsList[6]._id).lean();
+        expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
+
+        const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
+        expect(sectorHistories.length).toBe(1);
+        expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
+      }
+    );
+
+    it('should return a 403 if contract is not from the same company', async () => {
+      const payload = { startDate: '2020-02-01' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${otherCompanyContract._id}/versions/${otherCompanyContract.versions[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if contract has an endDate', async () => {
+      const payload = { startDate: '2020-02-01' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${contractsList[4]._id}/versions/${contractsList[4].versions[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    const payload = { endDate: new Date('2019-07-08T14:00:18.653Z') };
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/contracts/${contractsList[0]._id}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+
+  describe('DELETE contracts/:id/versions/:versionId', () => {
+    it('should delete a contract version by id', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[0]._id}`,
+        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
+      const sectorHistories = await SectorHistory
+        .find({
+          company: authCompany._id,
+          auxiliary: contractsList[6].user,
+        })
+        .lean();
+
+      expect(sectorHistories.length).toEqual(1);
+      expect(sectorHistories.startDate).not.toBeDefined();
     });
 
     it('should return a 404 error if contract not found', async () => {
@@ -418,6 +614,17 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return a 403 error if versionId is not the last version', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/contracts/${contractsList[0]._id}/versions/${invalidId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -429,7 +636,7 @@ describe('CONTRACTS ROUTES', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/contracts/${contractsList[0]._id}`,
+          url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -471,7 +678,7 @@ describe('CONTRACTS ROUTES', () => {
     });
   });
 
-  describe('GET /{_id}/gdrive/{driveId}/upload', () => { 
+  describe('GET /{_id}/gdrive/{driveId}/upload', () => {
     const fakeDriveId = 'fakeDriveId';
     let addStub;
     let getFileByIdStub;

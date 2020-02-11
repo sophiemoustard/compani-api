@@ -69,7 +69,16 @@ const sector = { _id: new ObjectID(), company: authCompany._id };
 
 const contractUsers = [{
   _id: new ObjectID(),
-  identity: { firstname: 'Test7', lastname: 'Test7' },
+  identity: {
+    firstname: 'Test7',
+    lastname: 'Test7',
+    nationality: 'FR',
+    socialSecurityNumber: '2987654334562',
+    birthDate: '1999-09-08T00:00:00',
+    birthCity: 'Paris',
+    birthState: 75,
+  },
+  establishment: new ObjectID(),
   local: { email: 'test7@alenvi.io', password: '123456' },
   inactivityDate: null,
   employee_id: 12345678,
@@ -78,11 +87,80 @@ const contractUsers = [{
   contracts: [new ObjectID()],
   company: authCompany._id,
   sector: sector._id,
+  contact: {
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 },
 {
   _id: new ObjectID(),
-  identity: { firstname: 'Test', lastname: 'Toto' },
+  identity: {
+    firstname: 'Test',
+    lastname: 'Toto',
+    nationality: 'FR',
+    socialSecurityNumber: '2987654334562',
+    birthDate: '1999-09-08T00:00:00',
+    birthCity: 'Paris',
+    birthState: 75,
+  },
+  establishment: new ObjectID(),
   local: { email: 'tototest@alenvi.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 12345678,
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  contracts: [new ObjectID()],
+  company: authCompany._id,
+  sector: sector._id,
+  contact: {
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+},
+{
+  _id: new ObjectID(),
+  identity: {
+    firstname: 'ok',
+    lastname: 'Titi',
+    nationality: 'FR',
+    socialSecurityNumber: '2987654334562',
+    birthDate: '1999-09-08T00:00:00',
+    birthCity: 'Paris',
+    birthState: 75,
+  },
+  establishment: new ObjectID(),
+  local: { email: 'ok@alenvi.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 12345678,
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  contracts: [],
+  company: authCompany._id,
+  sector: sector._id,
+  contact: {
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+},
+{
+  _id: new ObjectID(),
+  identity: { firstname: 'contract', lastname: 'Titi' },
+  local: { email: 'contract@alenvi.io', password: '123456' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -92,12 +170,45 @@ const contractUsers = [{
   sector: sector._id,
 }];
 
-const sectorHistories = contractUsers.map(user => ({
-  auxiliary: user._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-}));
+const sectorHistories = [
+  {
+    auxiliary: contractUsers[0]._id,
+    sector: sector._id,
+    company: authCompany._id,
+  },
+  {
+    auxiliary: contractUsers[1]._id,
+    sector: sector._id,
+    company: authCompany._id,
+  },
+  {
+    auxiliary: contractUsers[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2016-12-01',
+    endDate: '2016-12-20',
+  },
+  {
+    auxiliary: contractUsers[3]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-08-03',
+    endDate: '2018-09-02',
+  },
+  {
+    auxiliary: contractUsers[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2017-01-01',
+    endDate: '2017-11-30',
+  },
+  {
+    auxiliary: contractUsers[3]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-09-03',
+  },
+];
 
 const otherCompanyContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
@@ -169,6 +280,7 @@ const contractsList = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: contractUsers[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
+    endDate: '2019-02-03T23:00:00.000Z',
     status: 'contract_with_customer',
     _id: new ObjectID(),
     company: authCompany._id,
@@ -232,6 +344,42 @@ const contractsList = [
       {
         createdAt: '2018-08-02T17:12:55.144Z',
         endDate: '2018-09-02T17:12:55.144Z',
+        grossHourlyRate: 10.12,
+        startDate: '2018-08-02T17:12:55.144Z',
+        weeklyHours: 15,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2017-08-02T17:12:55.144Z',
+    user: contractUsers[2]._id,
+    startDate: '2017-08-02T17:12:55.144Z',
+    endDate: '2017-09-02T17:12:55.144Z',
+    status: 'contract_with_company',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2017-08-02T17:12:55.144Z',
+        endDate: '2017-09-02T17:12:55.144Z',
+        grossHourlyRate: 10.12,
+        startDate: '2017-08-02T17:12:55.144Z',
+        weeklyHours: 15,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-08-02T17:12:55.144Z',
+    user: contractUsers[3]._id,
+    startDate: '2018-08-02T17:12:55.144Z',
+    status: 'contract_with_company',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-08-02T17:12:55.144Z',
         grossHourlyRate: 10.12,
         startDate: '2018-08-02T17:12:55.144Z',
         weeklyHours: 15,

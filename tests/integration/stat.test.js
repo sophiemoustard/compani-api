@@ -46,6 +46,7 @@ describe('GET /stats/customer-follow-up', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -103,6 +104,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -146,6 +148,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -245,12 +248,22 @@ describe('GET /stats/paid-intervention-stats', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should return 400 if month does not correspond to regex', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -346,12 +359,23 @@ describe('GET /stats/customer-duration/sector', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should return 400 if month does not correspond to regex', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -444,12 +468,23 @@ describe('GET /stats/internal-billed-hours', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should not get internal and billed hours stats if month does not correspond to regex', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

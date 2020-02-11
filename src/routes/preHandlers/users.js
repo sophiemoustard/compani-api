@@ -1,9 +1,10 @@
 const Boom = require('boom');
 const get = require('lodash/get');
 const User = require('../../models/User');
-const Sector = require('../../models/Sector');
 const Customer = require('../../models/Customer');
+const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 const { SUPER_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -26,9 +27,11 @@ exports.authorizeUserUpdate = async (req) => {
   const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-  if (get(req, 'payload.sector', null)) {
-    const sector = await Sector.findOne({ _id: req.payload.sector, company: companyId }).lean();
-    if (!sector) throw Boom.forbidden();
+
+  const establishmentId = get(req, 'payload.establishment');
+  if (establishmentId) {
+    const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
+    if (!establishment) throw Boom.forbidden();
   }
 
   if (user.company.toHexString() === companyId.toHexString()) return null;
@@ -65,7 +68,7 @@ exports.authorizeUserGet = async (req) => {
   }
 
   if (query.customers) {
-    const customers = Array.isArray(query.customers) ? query.customers : [query.customers];
+    const customers = UtilsHelper.formatIdsArray(query.customers);
     const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
     if (customersCount !== customers.length) throw Boom.forbidden();
   }

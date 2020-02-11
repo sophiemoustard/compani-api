@@ -1,10 +1,10 @@
 const cloudinary = require('cloudinary');
-const { AUXILIARY, COACH, TECH } = require('../helpers/constants');
+const { AUXILIARY, COACH } = require('../helpers/constants');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 exports.addImage = async params => new Promise((resolve, reject) => {
@@ -13,18 +13,7 @@ exports.addImage = async params => new Promise((resolve, reject) => {
     case COACH:
       folder = 'images/users/coaches';
       break;
-    case TECH:
-      folder = 'images/users/IT';
-      break;
-    case 'Mkt':
-      folder = 'images/users/Mkt';
-      break;
     case AUXILIARY:
-      folder = 'images/users/auxiliaries';
-      break;
-    case 'ThirdPartyPayers':
-      folder = 'images/thirdpartypayers_logo';
-      break;
     default:
       folder = 'images/users/auxiliaries';
       break;
@@ -32,7 +21,7 @@ exports.addImage = async params => new Promise((resolve, reject) => {
   const options = {
     folder,
     public_id: params.public_id,
-    eager: params.transform ? [params.transform] : []
+    eager: params.transform ? [params.transform] : [],
   };
   const stream = cloudinary.v2.uploader.upload_stream(options, (err, res) => {
     if (err) {

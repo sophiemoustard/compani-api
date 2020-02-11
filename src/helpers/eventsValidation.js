@@ -7,7 +7,6 @@ const {
   ABSENCE,
   UNAVAILABILITY,
   NEVER,
-  COMPANY_CONTRACT,
   CUSTOMER_CONTRACT,
   INTERNAL_HOUR,
 } = require('./constants');
@@ -15,14 +14,10 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const ContractsHelper = require('../helpers/contracts');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
-
-exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
-  contract.status === COMPANY_CONTRACT &&
-    moment(contract.startDate).isSameOrBefore(day, 'd') &&
-    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
@@ -50,12 +45,12 @@ exports.checkContracts = async (event, user) => {
         : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
     }
 
-    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
-    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   return true;

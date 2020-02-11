@@ -122,19 +122,17 @@ exports.getListQuery = (query, credentials) => {
 
   const sectorOrAuxiliary = [];
   if (auxiliary) {
-    const auxiliaryCondition = Array.isArray(auxiliary)
-      ? auxiliary.map(id => new ObjectID(id))
-      : [new ObjectID(auxiliary)];
+    const auxiliaryCondition = UtilsHelper.formatObjectIdsArray(auxiliary);
     sectorOrAuxiliary.push({ auxiliary: { $in: auxiliaryCondition } });
   }
   if (sector) {
-    const sectorCondition = Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)];
+    const sectorCondition = UtilsHelper.formatObjectIdsArray(sector);
     sectorOrAuxiliary.push({ sector: { $in: sectorCondition } });
   }
   if (sectorOrAuxiliary.length > 0) rules.push({ $or: sectorOrAuxiliary });
 
   if (customer) {
-    const customerCondition = Array.isArray(customer) ? customer.map(id => new ObjectID(id)) : [new ObjectID(customer)];
+    const customerCondition = UtilsHelper.formatObjectIdsArray(customer);
     rules.push({ customer: { $in: customerCondition } });
   }
   if (isBilled) rules.push({ customer: isBilled });
@@ -433,9 +431,7 @@ exports.workingStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const queryAuxiliaries = { company: companyId };
   if (query.auxiliary) {
-    const ids = Array.isArray(query.auxiliary)
-      ? query.auxiliary.map(id => new ObjectID(id))
-      : [new ObjectID(query.auxiliary)];
+    const ids = UtilsHelper.formatObjectIdsArray(query.auxiliary);
     queryAuxiliaries._id = { $in: ids };
   }
   const auxiliaries = await User.find(queryAuxiliaries).populate('contracts').lean();
@@ -465,9 +461,7 @@ exports.workingStats = async (query, credentials) => {
 
 exports.getPaidTransportStatsBySector = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const sectors = Array.isArray(query.sector)
-    ? query.sector.map(id => new ObjectID(id))
-    : [new ObjectID(query.sector)];
+  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices({}, credentials);
   const paidTransportStatsBySector = await EventRepository.getPaidTransportStatsBySector(
@@ -495,4 +489,11 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
     result.push({ sector: sector._id, duration: duration / 60 });
   }
   return result;
+};
+
+exports.getUnassignedHoursBySector = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
+
+  return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
 };

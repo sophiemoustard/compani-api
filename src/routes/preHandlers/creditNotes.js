@@ -38,6 +38,14 @@ exports.authorizeGetCreditNotePdf = async (req) => {
   return null;
 };
 
+exports.authorizeCreditNoteCreation = async req => exports.authorizeCreditNoteCreationOrUpdate(req);
+
+exports.authorizeCreditNoteUpdate = async (req) => {
+  const { creditNote } = req.pre;
+  if (!creditNote.isEditable) throw Boom.forbidden();
+  return exports.authorizeCreditNoteCreationOrUpdate(req);
+};
+
 exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
@@ -73,7 +81,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
 exports.authorizeCreditNoteDeletion = async (req) => {
   const { creditNote } = req.pre;
-  if (creditNote && creditNote.origin !== COMPANI) {
+  if (creditNote.origin !== COMPANI || !creditNote.isEditable) {
     throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
   return null;

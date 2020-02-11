@@ -24,6 +24,7 @@ const {
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
+const { addressValidation, objectIdOrArray } = require('./validations/utils');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -83,16 +84,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
+              address: addressValidation,
             }),
             administrative: Joi.object().keys({
               transportInvoice: Joi.object().keys({
@@ -116,7 +108,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            customers: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            customers: objectIdOrArray,
           },
         },
         pre: [{ method: authorizeUserGet }],
@@ -153,7 +145,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
           { method: authorizeUserUpdate },
@@ -166,7 +158,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           payload: Joi.object().keys({
             emergencyPhone: Joi.string(),
@@ -199,16 +191,7 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: Joi.object().keys({
-                street: Joi.string().required(),
-                zipCode: Joi.string().required(),
-                city: Joi.string().required(),
-                fullAddress: Joi.string().required(),
-                location: Joi.object().keys({
-                  type: Joi.string().required(),
-                  coordinates: Joi.array().length(2).required(),
-                }).required(),
-              }),
+              address: addressValidation,
             }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
@@ -281,6 +264,7 @@ exports.plugin = {
             }),
             isActive: Joi.boolean(),
             isConfirmed: Joi.boolean(),
+            establishment: Joi.objectId(),
           }).required(),
         },
         pre: [
@@ -295,7 +279,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -420,7 +404,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -450,7 +434,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -472,7 +456,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadImage,
       options: {
-        auth: { scope: ['users:edit', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
