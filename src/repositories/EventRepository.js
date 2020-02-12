@@ -217,7 +217,8 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 
   return Event.aggregate([
     { $match: { $and: rules } },
-    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer', }, },
+    { $sort: { startDate: -1 } },
+    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
@@ -294,7 +295,6 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
         sector: 1,
       },
     },
-    { $sort: { startDate: -1 } },
   ]).option({ company: companyId });
 };
 
