@@ -68,7 +68,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should create two new credit notes with linked events', async () => {
@@ -344,7 +344,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get all credit notes (company A)', async () => {
@@ -402,7 +402,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get credit note pdf', async () => {
@@ -484,7 +484,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should update a credit note', async () => {
@@ -646,7 +646,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should delete a credit note', async () => {

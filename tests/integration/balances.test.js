@@ -22,7 +22,7 @@ describe('BALANCES ROUTES - GET /', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get all clients balances', async () => {
@@ -112,7 +112,7 @@ describe('BALANCES ROUTES - GET /details', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get all clients balances', async () => {

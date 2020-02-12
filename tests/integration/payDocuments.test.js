@@ -27,7 +27,7 @@ describe('PAY DOCUMENT ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should create a new pay document', async () => {
@@ -173,7 +173,7 @@ describe('PAY DOCUMENT ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should get all pay documents', async () => {
@@ -237,7 +237,7 @@ describe('PAY DOCUMENT ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should delete a pay document', async () => {

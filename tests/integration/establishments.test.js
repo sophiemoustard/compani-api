@@ -41,7 +41,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should create a new establishment', async () => {
@@ -202,7 +202,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should update an establishment', async () => {
@@ -357,7 +357,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should return establishments (company A)', async () => {
@@ -415,7 +415,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should delete establishment', async () => {

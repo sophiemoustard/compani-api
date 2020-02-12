@@ -205,7 +205,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'admin_client',
+    name: 'adminClient',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: adminRights.includes(right.permission),
@@ -287,7 +287,7 @@ const userList = [
     identity: { firstname: 'Admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'admin_client')._id,
+    role: rolesList.find(role => role.name === 'adminClient')._id,
     company: authCompany._id,
   },
   {

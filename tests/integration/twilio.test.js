@@ -18,7 +18,7 @@ describe('TWILIO ROUTES', () => {
   beforeEach(populateDBForAuthentication);
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('admin_client');
+    authToken = await getToken('adminClient');
     TwilioHelperStub = sinon.stub(TwilioHelper, 'sendMessage').returns('SMS SENT !');
   });
   afterEach(() => {

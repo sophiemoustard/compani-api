@@ -28,7 +28,7 @@ describe('INTERNAL HOURS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should create a new company internal hour', async () => {
@@ -101,7 +101,7 @@ describe('INTERNAL HOURS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should get internal hours (company A)', async () => {
@@ -155,7 +155,7 @@ describe('INTERNAL HOURS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should update an internal hour', async () => {

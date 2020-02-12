@@ -19,11 +19,11 @@ describe('SECTORS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should create a new company sector', async () => {
-        const roleAdminClient = rolesList.find(r => r.name === 'admin_client');
+        const roleAdminClient = rolesList.find(r => r.name === 'adminClient');
         const adminClient = userList.find(u => u.role.toHexString() === roleAdminClient._id.toHexString());
         const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === adminClient.company.toHexString()).length;
 
@@ -83,11 +83,11 @@ describe('SECTORS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should get sectors', async () => {
-        const roleAdminClient = rolesList.find(r => r.name === 'admin_client');
+        const roleAdminClient = rolesList.find(r => r.name === 'adminClient');
         const adminClient = userList.find(u => u.role.toHexString() === roleAdminClient._id.toHexString());
         const sectorNumber = sectorsList.filter(s => s.company.toHexString() === adminClient.company.toHexString()).length;
 
@@ -129,7 +129,7 @@ describe('SECTORS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should update a sector', async () => {
@@ -189,7 +189,7 @@ describe('SECTORS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should delete a sector', async () => {

@@ -36,7 +36,7 @@ describe('DRIVE ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
       it('should add an absence document for an event', async () => {
         const payload = {

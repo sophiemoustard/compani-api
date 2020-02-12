@@ -97,7 +97,7 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -351,7 +351,7 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -464,7 +464,7 @@ describe('CONTRACTS ROUTES', () => {
 
     const payload = { endDate: new Date('2019-07-08T14:00:18.653Z') };
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -563,7 +563,7 @@ describe('CONTRACTS ROUTES', () => {
 
     const payload = { endDate: new Date('2019-07-08T14:00:18.653Z') };
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -626,7 +626,7 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -659,7 +659,7 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'admin_client', expectedCode: 200 },
+      { name: 'adminClient', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];

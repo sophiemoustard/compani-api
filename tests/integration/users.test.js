@@ -36,7 +36,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should not create a user if missing parameters', async () => {
@@ -145,7 +145,7 @@ describe('USERS ROUTES', () => {
         expect(usersCount).toBe(2);
       });
 
-      const roles = ['helper', 'auxiliary', 'coach', 'admin_client'];
+      const roles = ['helper', 'auxiliary', 'coach', 'adminClient'];
       roles.forEach((role) => {
         it(`should return a 403 error as user is ${role}`, async () => {
           authToken = await getToken(role);
@@ -252,7 +252,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should get all users (company A)', async () => {
@@ -431,7 +431,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should get all active users (company A)', async () => {
@@ -521,7 +521,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
       it('should return user', async () => {
         const res = await app.inject({
@@ -623,7 +623,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
 
       it('should update the user', async () => {
@@ -820,7 +820,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
       it('should delete a user by id', async () => {
         const res = await app.inject({
@@ -910,7 +910,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
 
       it('should update user certificates', async () => {
@@ -992,7 +992,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
       it('should update a user task', async () => {
         const res = await app.inject({
@@ -1035,7 +1035,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
       it('should return user tasks', async () => {
         const res = await app.inject({
@@ -1114,7 +1114,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
       it('should add an administrative document for a user', async () => {
         const response = await app.inject({
@@ -1135,7 +1135,7 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 403 error if user is not from same company', async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
 
         const response = await app.inject({
           method: 'POST',
@@ -1218,7 +1218,7 @@ describe('USERS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client', usersSeedList);
+        authToken = await getToken('adminClient', usersSeedList);
       });
 
       it('should create a drive folder for a user', async () => {

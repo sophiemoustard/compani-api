@@ -16,7 +16,7 @@ describe('SERVICES ROUTES', () => {
   let authToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('admin_client');
+    authToken = await getToken('adminClient');
   });
 
   describe('POST /services', () => {

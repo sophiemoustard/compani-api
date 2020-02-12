@@ -18,7 +18,7 @@ describe('GET /stats/customer-follow-up', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
     it('should get customer follow up', async () => {
       const res = await app.inject({
@@ -72,7 +72,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
 
     it('should get customer fundings monitoring', async () => {
@@ -130,7 +130,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
 
     it('should get all customers fundings monitoring', async () => {
@@ -174,7 +174,7 @@ describe('GET /stats/paid-intervention-stats', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
 
     it('should get customer and duration stats for sector', async () => {
@@ -289,7 +289,7 @@ describe('GET /stats/customer-duration/sector', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
 
     it('should get customer and duration stats for sector', async () => {
@@ -401,7 +401,7 @@ describe('GET /stats/internal-billed-hours', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      adminClientToken = await getToken('admin_client');
+      adminClientToken = await getToken('adminClient');
     });
 
     it('should get internal and billed hours stats for sector', async () => {

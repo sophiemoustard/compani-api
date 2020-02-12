@@ -17,7 +17,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should compute draft final pay', async () => {
@@ -111,7 +111,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should create a new final pay', async () => {

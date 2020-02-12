@@ -152,7 +152,7 @@ const usersSeedList = [
     local: { email: 'horseman@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'admin_client')._id,
+    role: rolesList.find(role => role.name === 'adminClient')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -161,7 +161,7 @@ const usersSeedList = [
     local: { email: 'vador@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'admin_client')._id,
+    role: rolesList.find(role => role.name === 'adminClient')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -170,7 +170,7 @@ const usersSeedList = [
     local: { email: 'kitty@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'admin_client')._id,
+    role: rolesList.find(role => role.name === 'adminClient')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {

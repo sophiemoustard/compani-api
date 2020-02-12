@@ -44,7 +44,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should return all draft bills', async () => {
@@ -318,7 +318,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should create new bills', async () => {
@@ -666,7 +666,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get bill pdf', async () => {

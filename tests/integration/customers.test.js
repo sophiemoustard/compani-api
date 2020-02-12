@@ -38,7 +38,7 @@ describe('CUSTOMERS ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers', () => {
@@ -765,7 +765,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
@@ -1019,7 +1019,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
@@ -1265,7 +1265,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403, callCount: 0 },
-      { name: 'admin_client', expectedCode: 403, callCount: 0 },
+      { name: 'adminClient', expectedCode: 403, callCount: 0 },
       { name: 'auxiliary', expectedCode: 403, callCount: 0 },
       { name: 'coach', expectedCode: 403, callCount: 0 },
     ];
@@ -1290,7 +1290,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -1564,7 +1564,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
-        { name: 'admin_client', expectedCode: 403 },
+        { name: 'adminClient', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -1588,7 +1588,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1946,7 +1946,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
   let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminClientToken = await getToken('admin_client');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers/:_id/gdrive/:driveId/upload', () => {

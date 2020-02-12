@@ -23,7 +23,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
     it('should compute draft pay', async () => {
       const response = await app.inject({
@@ -113,7 +113,7 @@ describe('PAY ROUTES - POST /pay', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should create a new pay', async () => {
@@ -187,7 +187,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get hours balance details', async () => {
@@ -313,7 +313,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
 
   describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get hours to work by sector', async () => {

@@ -27,7 +27,7 @@ describe('EXPORTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        adminClientToken = await getToken('admin_client');
+        adminClientToken = await getToken('adminClient');
       });
       it('should get working events', async () => {
         const response = await app.inject({
@@ -69,7 +69,7 @@ describe('EXPORTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        adminClientToken = await getToken('admin_client');
+        adminClientToken = await getToken('adminClient');
       });
       it('should get absences', async () => {
         const response = await app.inject({
@@ -111,7 +111,7 @@ describe('EXPORTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateBillsAndCreditNotes);
       beforeEach(async () => {
-        adminClientToken = await getToken('admin_client');
+        adminClientToken = await getToken('adminClient');
       });
       it('should get bills and credit notes', async () => {
         const response = await app.inject({
@@ -153,7 +153,7 @@ describe('EXPORTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populatePayment);
       beforeEach(async () => {
-        adminClientToken = await getToken('admin_client');
+        adminClientToken = await getToken('adminClient');
       });
       it('should get payments', async () => {
         const response = await app.inject({
@@ -195,7 +195,7 @@ describe('EXPORTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populatePay);
       beforeEach(async () => {
-        adminClientToken = await getToken('admin_client');
+        adminClientToken = await getToken('adminClient');
       });
       it('should get pay', async () => {
         const response = await app.inject({
@@ -276,7 +276,7 @@ describe('EXPORTS ROUTES', () => {
       describe('AdminClient', () => {
         beforeEach(populate);
         beforeEach(async () => {
-          adminClientToken = await getToken('admin_client');
+          adminClientToken = await getToken('adminClient');
         });
         it(`should get ${exportType}`, async () => {
           const response = await app.inject({

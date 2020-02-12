@@ -45,7 +45,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
       it('should return all events', async () => {
         const response = await app.inject({
@@ -190,7 +190,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should return a list of billed events for specified customer', async () => {
@@ -347,7 +347,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should return working stats for an auxiliary', async () => {
@@ -423,7 +423,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should return paid transport stats for a sector', async () => {
@@ -526,7 +526,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should return unassigned hours for a sector', async () => {
@@ -638,7 +638,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
       it('should create an internal hour', async () => {
         const payload = {
@@ -1124,7 +1124,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should update corresponding event with sector', async () => {
@@ -1392,7 +1392,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should delete corresponding event', async () => {
@@ -1454,7 +1454,7 @@ describe('EVENTS ROUTES', () => {
     describe('AdminClient', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin_client');
+        authToken = await getToken('adminClient');
       });
 
       it('should delete all events from startDate including repetitions', async () => {

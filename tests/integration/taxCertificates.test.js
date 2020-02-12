@@ -24,7 +24,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
   describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get tax certificates list', async () => {
@@ -87,7 +87,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should get tax certificates pdf', async () => {
@@ -156,7 +156,7 @@ describe('TAX CERTIFICATES - POST /', () => {
   describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should create a new tax certificate', async () => {
@@ -336,7 +336,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
   describe('AdminClient', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin_client');
+      authToken = await getToken('adminClient');
     });
 
     it('should delete new tax certificate', async () => {
