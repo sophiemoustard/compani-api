@@ -12,7 +12,10 @@ const {
   populateUser,
   populateCustomer,
   populateSectorHistories,
+  billsList,
+  creditNotesList,
 } = require('./seed/exportSeed');
+const { formatPrice } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -41,9 +44,9 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(4);
         expect(rows[0]).toEqual('\ufeff"Type";"Heure interne";"Service";"Début";"Fin";"Durée";"Répétition";"Équipe";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"');
-        expect(rows[1]).toEqual('"Intervention";;"Service 1";"17/01/2019 15:30";"17/01/2019 17:30";"2,00";"Tous les jours";"Etoile";;;;"Oui";;"LILI";"Lola";;"Non";"Non";;');
+        expect(rows[1]).toEqual('"Intervention";;"Service 1";"17/01/2019 15:30";"17/01/2019 17:30";"2,00";"Tous les jours";"Etoile";;;;"Oui";"Mme";"LILI";"Lola";;"Non";"Non";;');
         expect(rows[2]).toEqual('"Heure interne";"planning";;"17/01/2019 15:30";"17/01/2019 17:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";;;;;"Non";"Non";;');
-        expect(rows[3]).toEqual('"Intervention";;"Service 1";"16/01/2019 10:30";"16/01/2019 12:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";;"LILI";"Lola";"test";"Non";"Oui";"Facturée & payée";"Initiative du de l\'intervenant"');
+        expect(rows[3]).toEqual('"Intervention";;"Service 1";"16/01/2019 10:30";"16/01/2019 12:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";"Mme";"LILI";"Lola";"test";"Non";"Oui";"Facturée & payée";"Initiative du de l\'intervenant"');
       });
     });
 
@@ -85,7 +88,11 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(2);
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(3);
+        expect(rows[0]).toEqual('\ufeff"Type";"Nature";"Début";"Fin";"Équipe";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Divers"');
+        expect(rows[1]).toEqual('"Congé";"Journalière";"19/01/2019";"21/01/2019";"Etoile";"M.";"Lulu";"LALA";');
+        expect(rows[2]).toEqual('"Absence injustifiée";"Horaire";"19/01/2019 15:00";"19/01/2019 17:00";"Etoile";"M.";"Lulu";"LALA";"test absence"');
       });
     });
 
@@ -127,7 +134,12 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(4);
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(4);
+        expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Services";"Date de création"');
+        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].client.toHexString()}";"Toto";"72,00";"75,96";"Temps de qualité - autonomie - 8 heures - ${formatPrice(billsList[0].netInclTaxes)} TTC";"12/02/2020"`);
+        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"Temps de qualité - autonomie - 4 heures - ${formatPrice(billsList[1].netInclTaxes)} TTC";"12/02/2020"`);
+        expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"Mme";"LILI";"Lola";;;"110,00";"202,00";"toto";"12/02/2020"`);
       });
     });
 
@@ -169,7 +181,11 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(paymentsList.length);
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(3);
+        expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"');
+        expect(rows[1]).toEqual(`"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].client}";"Toto";"Prélèvement";"220,00"`);
+        expect(rows[2]).toEqual(`"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].client}";"Toto";"Prélèvement";"190,00"`);
       });
     });
 
@@ -211,7 +227,15 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(5);
+        expect(response.result).toBeDefined();
+        const rows = response.result.split('\r\n');
+
+        expect(rows.length).toBe(5);
+        expect(rows[0]).toEqual('\ufeff"Titre";"Prénom";"Nom";"Equipe";"Date d\'embauche";"Début";"Date de notif";"Motif";"Fin";"Heures contrat";"Heures à travailler";"Heures travaillées";"Dont exo non majo";"Dont exo et majo";"Détails des majo exo";"Dont non exo et non majo";"Dont non exo et majo";"Détails des majo non exo";"Solde heures";"Dont diff mois précédent";"Compteur";"Heures sup à payer";"Heures comp à payer";"Mutuelle";"Transport";"Autres frais";"Prime";"Indemnité"');
+        expect(rows[1]).toEqual('"M.";"Lulu";"LALA";"Etoile";"01/01/2018";"01/01/2019";;;"31/01/2019";"151,00";"30,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"');
+        expect(rows[2]).toEqual('"M.";"Lulu";"LALA";"Etoile";"01/01/2018";"01/01/2019";;;"28/02/2019";"151,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"');
+        expect(rows[3]).toEqual('"M.";"Lulu";"LALA";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"');
+        expect(rows[4]).toEqual('"M.";"Lulu";"LALA";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"');
       });
     });
 

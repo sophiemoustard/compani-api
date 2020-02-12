@@ -14,6 +14,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
+const Contract = require('../../../src/models/Contract');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const {
   PAYMENT,
@@ -28,6 +29,7 @@ const {
   INTERNAL_HOUR,
   INTERVENTION,
   ABSENCE,
+  UNJUSTIFIED,
   AUXILIARY_INITIATIVE,
   EVERY_DAY,
   MISTER,
@@ -38,7 +40,6 @@ const sector = {
   name: 'Etoile',
   company: authCompany._id,
 };
-
 
 const surcharge = {
   _id: new ObjectID(),
@@ -81,12 +82,24 @@ const authBillService = {
   nature: 'fixed',
 };
 
+const contractId = new ObjectID();
+
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Lulu', lastname: 'Lala', title: MISTER },
   role: rolesList.find(role => role.name === 'client_admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
   refreshToken: uuidv4(),
+  company: authCompany._id,
+  contracts: [contractId],
+};
+
+const contract = {
+  _id: contractId,
+  user: auxiliary._id,
+  status: COMPANY_CONTRACT,
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01' }],
+  startDate: '2018-01-01',
   company: authCompany._id,
 };
 
@@ -102,7 +115,7 @@ const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompa
 const customer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  identity: { firstname: 'Lola', lastname: 'Lili' },
+  identity: { firstname: 'Lola', lastname: 'Lili', title: 'mrs' },
   subscriptions: [
     { _id: new ObjectID(), service: serviceList[0]._id },
   ],
@@ -246,9 +259,22 @@ const eventList = [
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
-    endDate: '2019-01-19T17:00:18.653Z',
+    endDate: '2019-01-21T22:59:00.000Z',
     auxiliary,
     createdAt: '2019-01-11T08:38:18.653Z',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: ABSENCE,
+    absence: UNJUSTIFIED,
+    absenceNature: HOURLY,
+    startDate: '2019-01-19T14:00:18.653Z',
+    endDate: '2019-01-19T16:00:00.000Z',
+    auxiliary,
+    createdAt: '2019-01-11T08:38:18.653Z',
+    misc: 'test absence',
   },
   {
     _id: new ObjectID(),
@@ -739,11 +765,17 @@ const populatePay = async () => {
   await Pay.deleteMany();
   await FinalPay.deleteMany();
   await User.deleteMany();
+  await SectorHistory.deleteMany();
+  await Sector.deleteMany();
+  await Contract.deleteMany();
 
   await populateDBForAuthentication();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();
+  await new SectorHistory(sectorHistory).save();
+  await new Sector(sector).save();
+  await new Contract(contract).save();
 };
 
 module.exports = {
@@ -756,4 +788,6 @@ module.exports = {
   populateCustomer,
   populateUser,
   populateSectorHistories,
+  billsList,
+  creditNotesList,
 };
