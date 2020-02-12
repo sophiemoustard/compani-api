@@ -154,7 +154,7 @@ module.exports = {
   ADMIN: 'admin',
   PLANNING_REFERENT: 'planningReferent',
   AUXILIARY_WITHOUT_COMPANY: 'auxiliaryWithoutCompany',
-  SUPER_ADMIN: 'superAdmin',
+  ADMIN_VENDEUR: 'adminVendeur',
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',
