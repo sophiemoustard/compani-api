@@ -34,7 +34,7 @@ const sector = {
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Lola', lastname: 'Lili' },
-  role: rolesList.find(role => role.name === 'admin')._id,
+  role: rolesList.find(role => role.name === 'adminClient')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
   refreshToken: uuidv4(),
   company: authCompany._id,

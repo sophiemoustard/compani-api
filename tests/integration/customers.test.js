@@ -36,10 +36,10 @@ describe('NODE ENV', () => {
 });
 
 describe('CUSTOMERS ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers', () => {
@@ -72,7 +72,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'POST',
         url: '/customers',
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -113,7 +113,7 @@ describe('CUSTOMERS ROUTES', () => {
           method: 'POST',
           url: '/customers',
           payload: omit(cloneDeep(payload), paramPath),
-          headers: { 'x-access-token': adminToken },
+          headers: { 'x-access-token': adminClientToken },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -150,7 +150,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
@@ -202,7 +202,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/first-intervention',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       const customers = await Customer.find({ company: authCompany._id }).lean();
@@ -250,7 +250,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
@@ -304,7 +304,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/subscriptions',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
@@ -355,7 +355,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/customer-contract-subscriptions',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -406,7 +406,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/with-intervention',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -443,7 +443,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customerId.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
@@ -481,7 +481,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -490,7 +490,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -542,7 +542,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customersList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
@@ -566,7 +566,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload: ibanPayload,
       });
 
@@ -581,7 +581,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload: ibanPayload,
       });
 
@@ -597,7 +597,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload: {
           contact: {
             secondaryAddress: {
@@ -621,7 +621,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload: { contact: { secondaryAddress: {} } },
       });
 
@@ -634,7 +634,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${new ObjectID().toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -684,7 +684,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}`,
         payload: updatePayload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -697,7 +697,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(200);
       sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
@@ -711,7 +711,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -720,7 +720,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -729,7 +729,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -763,10 +763,10 @@ describe('CUSTOMERS ROUTES', () => {
 });
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
@@ -785,7 +785,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -811,7 +811,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -833,7 +833,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -887,7 +887,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -906,7 +906,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -920,7 +920,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -932,7 +932,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions/${subscriptionId}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -973,7 +973,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -984,7 +984,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions/${subscriptionId}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1017,10 +1017,10 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 });
 
 describe('CUSTOMER MANDATES ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
@@ -1029,7 +1029,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${customer._id}/mandates`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1042,7 +1042,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/mandates`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(404);
@@ -1052,7 +1052,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}/mandates`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1091,7 +1091,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -1108,7 +1108,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -1123,7 +1123,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -1137,7 +1137,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
         payload,
       });
 
@@ -1266,7 +1266,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403, callCount: 0 },
-      { name: 'admin', expectedCode: 403, callCount: 0 },
+      { name: 'adminClient', expectedCode: 403, callCount: 0 },
       { name: 'auxiliary', expectedCode: 403, callCount: 0 },
       { name: 'coach', expectedCode: 403, callCount: 0 },
     ];
@@ -1288,10 +1288,10 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -1299,7 +1299,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1314,7 +1314,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/quotes`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1324,7 +1324,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}/quotes`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1366,7 +1366,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1385,7 +1385,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload: {},
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1406,7 +1406,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/quotes`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1565,7 +1565,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
-        { name: 'admin', expectedCode: 403 },
+        { name: 'adminClient', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -1586,10 +1586,10 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 });
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1614,7 +1614,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1647,7 +1647,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(409);
@@ -1672,7 +1672,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1697,7 +1697,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1724,7 +1724,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${invalidId}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1750,7 +1750,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/fundings`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1811,7 +1811,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1835,7 +1835,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1854,7 +1854,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1901,7 +1901,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1911,7 +1911,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id}`,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': adminClientToken },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1944,10 +1944,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 });
 
 describe('CUSTOMER FILE UPLOAD ROUTES', () => {
-  let adminToken = null;
+  let adminClientToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    adminClientToken = await getToken('adminClient');
   });
 
   describe('POST /customers/:_id/gdrive/:driveId/upload', () => {
@@ -1982,7 +1982,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2006,7 +2006,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -2029,7 +2029,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2053,7 +2053,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -2075,7 +2075,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2098,7 +2098,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+        headers: { ...form.getHeaders(), 'x-access-token': adminClientToken },
       });
 
       expect(response.statusCode).toEqual(403);

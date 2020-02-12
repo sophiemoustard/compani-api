@@ -20,9 +20,9 @@ describe('BALANCES ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should get all clients balances', async () => {
@@ -110,9 +110,9 @@ describe('BALANCES ROUTES - GET /details', () => {
   const helper = balanceUserList[0];
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should get all clients balances', async () => {

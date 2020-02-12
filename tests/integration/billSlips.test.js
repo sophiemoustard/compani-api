@@ -14,9 +14,9 @@ describe('BILL SLIP ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should return bill slips', async () => {
@@ -87,9 +87,9 @@ describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should return bill slips', async () => {

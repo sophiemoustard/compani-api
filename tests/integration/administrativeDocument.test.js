@@ -20,10 +20,10 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
       await populateDB();
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should return all administrative documents', async () => {
@@ -66,12 +66,12 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     let addStub;
 
     beforeEach(async () => {
       addStub = sinon.stub(Drive, 'add');
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     afterEach(() => {
@@ -157,9 +157,9 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('AdminClient', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('adminClient');
     });
 
     it('should delete an administrative document', async () => {
