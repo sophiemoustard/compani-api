@@ -388,7 +388,7 @@ describe('USERS ROUTES', () => {
       it('should get all auxiliary users', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
         const auxiliaryUsers = usersSeedList.filter(u =>
-          isExistingRole(u.role, 'auxiliary') || isExistingRole(u.role, 'planningReferent'));
+          isExistingRole(u.role, 'auxiliary') || isExistingRole(u.role, 'planning_referent'));
 
         const res = await app.inject({
           method: 'GET',
@@ -399,7 +399,7 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
         expect(res.result.data.users.every(user =>
-          user.role.name === 'auxiliary' || user.role.name === 'planningReferent')).toBeTruthy();
+          user.role.name === 'auxiliary' || user.role.name === 'planning_referent')).toBeTruthy();
         expect(res.result.data.users.every(user => !!user.sectorHistories)).toBeTruthy();
       });
     });

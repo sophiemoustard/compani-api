@@ -226,7 +226,7 @@ describe('getUsersList', () => {
   });
 
   it('should get users according to multiple roles', async () => {
-    const query = { role: ['auxiliary', 'planningReferent'] };
+    const query = { role: ['auxiliary', 'planning_referent'] };
 
     RoleMock
       .expects('find')
@@ -342,7 +342,7 @@ describe('getUsersListWithSectorHistories', () => {
   it('should get users', async () => {
     RoleMock
       .expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns(roles);
 

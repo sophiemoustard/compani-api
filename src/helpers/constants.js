@@ -151,7 +151,7 @@ module.exports = {
   AUXILIARY: 'auxiliary',
   HELPER: 'helper',
   COACH: 'coach',
-  PLANNING_REFERENT: 'planningReferent',
+  PLANNING_REFERENT: 'planning_referent',
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
   SELLER_ADMIN: 'seller_admin',
   // EXPORTS

@@ -168,7 +168,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -316,7 +316,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
       const query = {
         startDate: moment('2019-01-01').toDate(),
@@ -401,7 +401,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -504,7 +504,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -616,7 +616,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1095,7 +1095,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1363,7 +1363,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1426,7 +1426,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1514,7 +1514,7 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
