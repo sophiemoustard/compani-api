@@ -37,9 +37,9 @@ exports.exportToCsv = async (data) => {
   });
 
   const date = new Date();
-  const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.docx`);
+  const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.csv`);
 
-  await fsPromises.writeFile(tmpOutputPath, csvContent, 'utf8', () => {});
+  await fsPromises.writeFile(tmpOutputPath, csvContent, 'utf8');
 
   return tmpOutputPath;
 };
