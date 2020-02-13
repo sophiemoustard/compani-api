@@ -38,7 +38,18 @@ describe('exportServices', () => {
     const result = await ServiceHelper.exportServices(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Nature', 'Type', 'Entrepise', 'Nom', 'Montant unitaire par défaut', 'TVA (%)', 'Plan de majoration', 'Date de début', 'Date de creation', 'Date de mise a jour']);
+    expect(result[0]).toMatchObject([
+      'Nature',
+      'Type',
+      'Entreprise',
+      'Nom',
+      'Montant unitaire par défaut',
+      'TVA (%)',
+      'Plan de majoration',
+      'Date de début',
+      'Date de création',
+      'Date de mise a jour',
+    ]);
   });
 
   it('should list services', async () => {
