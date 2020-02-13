@@ -197,7 +197,7 @@ const auxiliaryWithoutCompanyRights = [];
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'adminVendeur',
+    name: 'seller_admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: true,
@@ -332,10 +332,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'adminVendeur', lastname: 'SuperChef' },
+    identity: { firstname: 'seller_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
     local: { email: 'super-admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'adminVendeur')._id,
+    role: rolesList.find(role => role.name === 'seller_admin')._id,
     company: authCompany._id,
   },
 ];
