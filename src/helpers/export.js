@@ -186,7 +186,7 @@ const formatBillsForExport = (bills) => {
   const rows = [];
 
   for (const bill of bills) {
-    const clientId = get(bill.client, '_id');
+    const tppId = get(bill.thirdPartyPayer, '_id');
     let totalExclTaxesFormatted = '';
 
     if (bill.subscriptions != null) {
@@ -201,8 +201,8 @@ const formatBillsForExport = (bills) => {
     const cells = [
       'Facture',
       ...formatRowCommonsForExport(bill),
-      clientId ? clientId.toHexString() : '',
-      get(bill.client, 'name') || '',
+      tppId ? tppId.toHexString() : '',
+      get(bill.thirdPartyPayer, 'name') || '',
       totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       exportBillSubscriptions(bill),
@@ -250,7 +250,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate('client')
+    .populate('thirdPartyPayer')
     .lean();
 
   const creditNotes = await CreditNote.find(query)

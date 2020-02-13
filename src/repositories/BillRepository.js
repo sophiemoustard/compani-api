@@ -12,7 +12,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
     { $match: rules.length === 0 ? {} : { $and: rules } },
     {
       $group: {
-        _id: { tpp: { $ifNull: ['$client', null] }, customer: '$customer' },
+        _id: { tpp: { $ifNull: ['$thirdPartyPayer', null] }, customer: '$customer' },
         billed: { $sum: '$netInclTaxes' },
       },
     },
@@ -54,7 +54,7 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
         $lt: moment().startOf('d').toDate(),
         $gte: moment().subtract(1, 'd').startOf('d').toDate(),
       },
-      client: { $exists: false },
+      thirdPartyPayer: { $exists: false },
       sentAt: { $exists: false },
       shouldBeSent: true,
     },
@@ -88,10 +88,10 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
 ]).option({ allCompanies: true });
 
 exports.getBillsSlipList = async companyId => Bill.aggregate([
-  { $match: { client: { $exists: true } } },
+  { $match: { thirdPartyPayer: { $exists: true } } },
   {
     $group: {
-      _id: { thirdPartyPayer: '$client', year: { $year: '$date' }, month: { $month: '$date' } },
+      _id: { thirdPartyPayer: '$thirdPartyPayer', year: { $year: '$date' }, month: { $month: '$date' } },
       bills: { $push: '$$ROOT' },
       firstBill: { $first: '$$ROOT' },
     },
@@ -147,7 +147,7 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
 
 exports.getBillsFromBillSlip = async (billSlip, companyId) => {
   const query = {
-    client: billSlip.thirdPartyPayer,
+    thirdPartyPayer: billSlip.thirdPartyPayer,
     date: {
       $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
       $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),

@@ -221,7 +221,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
-      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [
         {
@@ -244,7 +244,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
           lastname: 'Horseman',
         },
       },
-      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [
         {
@@ -325,7 +325,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns([]);
     mockCreditNote.expects('find')
@@ -354,7 +354,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns([{}]);
     mockCreditNote.expects('find')
@@ -390,7 +390,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns(bills);
     mockCreditNote

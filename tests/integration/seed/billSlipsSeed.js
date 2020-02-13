@@ -43,7 +43,7 @@ const billSlipList = [
 
 const billList = [
   {
-    client: tppList[0]._id,
+    thirdPartyPayer: tppList[0]._id,
     date: '2019-12-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,
@@ -51,7 +51,7 @@ const billList = [
     number: '123456',
   },
   {
-    client: tppList[0]._id,
+    thirdPartyPayer: tppList[0]._id,
     date: '2019-12-12T09:00:00',
     netInclTaxes: 20,
     company: authCompany._id,
@@ -59,7 +59,7 @@ const billList = [
     number: '123454',
   },
   {
-    client: tppList[0]._id,
+    thirdPartyPayer: tppList[0]._id,
     date: '2019-11-12T09:00:00',
     netInclTaxes: 50,
     company: authCompany._id,
@@ -67,7 +67,7 @@ const billList = [
     number: '123453',
   },
   {
-    client: tppList[1]._id,
+    thirdPartyPayer: tppList[1]._id,
     date: '2019-12-12T09:00:00',
     netInclTaxes: 70,
     company: authCompany._id,
@@ -75,7 +75,7 @@ const billList = [
     number: '123452',
   },
   {
-    client: tppList[1]._id,
+    thirdPartyPayer: tppList[1]._id,
     date: '2019-11-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,

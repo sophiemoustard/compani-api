@@ -273,7 +273,7 @@ const authBillsList = [
     number: 'FACT-1807001',
     date: '2019-05-29',
     customer: billCustomerList[0]._id,
-    client: billThirdPartyPayer._id,
+    thirdPartyPayer: billThirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
       startDate: '2019-05-29',
