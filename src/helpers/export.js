@@ -141,7 +141,7 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
   return rows;
 };
 
-const exportBillSubscribtions = (bill) => {
+const exportBillSubscriptions = (bill) => {
   if (!bill.subscriptions) return '';
 
   const subscriptions = bill.subscriptions.map(sub =>
@@ -205,7 +205,7 @@ const formatBillsForExport = (bills) => {
       get(bill.client, 'name') || '',
       totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
-      exportBillSubscribtions(bill),
+      exportBillSubscriptions(bill),
       createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
     ];
 

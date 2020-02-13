@@ -25,7 +25,7 @@ describe('SECTORS ROUTES', () => {
       it('should create a new company sector', async () => {
         const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
         const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
-        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === clientAdmin.company.toHexString()).length;
+        const sectorsBefore = await Sector.find({ company: clientAdmin.company.toHexString() }).lean();
 
         const payload = { name: 'Test3' };
         const response = await app.inject({
@@ -37,8 +37,8 @@ describe('SECTORS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.sector.company).toEqual(clientAdmin.company);
-        const sectors = await Sector.find({ company: clientAdmin.company.toHexString() });
-        expect(sectors.length).toEqual(initialSectorNumber + 1);
+        const sectors = await Sector.find({ company: clientAdmin.company.toHexString() }).lean();
+        expect(sectors.length).toEqual(sectorsBefore.length + 1);
       });
 
       it("should return a 400 error if 'name' params is missing", async () => {
@@ -89,7 +89,7 @@ describe('SECTORS ROUTES', () => {
       it('should get sectors', async () => {
         const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
         const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
-        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === clientAdmin.company.toHexString()).length;
+        const sectors = await Sector.find({ company: clientAdmin.company.toHexString() }).lean();
 
         const response = await app.inject({
           method: 'GET',
@@ -98,7 +98,7 @@ describe('SECTORS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.sectors.length).toEqual(sectorNumber);
+        expect(response.result.data.sectors.length).toEqual(sectors.length);
       });
     });
 
