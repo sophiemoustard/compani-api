@@ -123,11 +123,11 @@ describe('USERS ROUTES', () => {
       });
     });
 
-    describe('SuperAdmin', () => {
+    describe('adminVendeur', () => {
       const payload = { ...userPayload, company: otherCompany._id };
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('superAdmin');
+        authToken = await getToken('adminVendeur');
       });
 
       it('should create a user for another company', async () => {

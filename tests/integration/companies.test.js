@@ -200,12 +200,12 @@ describe('COMPANIES ROUTES', () => {
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('SuperAdmin', () => {
+    describe('adminVendeur', () => {
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('superAdmin');
+        authToken = await getToken('adminVendeur');
         createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
         createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
       });
@@ -310,7 +310,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'superAdmin', expectedCode: 200 },
+        { name: 'adminVendeur', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {

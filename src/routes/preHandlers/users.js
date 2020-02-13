@@ -5,7 +5,7 @@ const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { SUPER_ADMIN } = require('../../helpers/constants');
+const { ADMIN_VENDEUR } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -51,7 +51,7 @@ exports.authorizeUserCreation = async (req) => {
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 
-  if (req.payload.company && !credentials.scope.includes(SUPER_ADMIN)) {
+  if (req.payload.company && !credentials.scope.includes(ADMIN_VENDEUR)) {
     throw Boom.forbidden();
   }
 
