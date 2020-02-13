@@ -123,7 +123,7 @@ describe('USERS ROUTES', () => {
       });
     });
 
-    describe('seller_admin', () => {
+    describe('SELLER_ADMIN', () => {
       const payload = { ...userPayload, company: otherCompany._id };
       beforeEach(populateDB);
       beforeEach(async () => {

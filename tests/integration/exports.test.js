@@ -21,19 +21,19 @@ describe('NODE ENV', () => {
 });
 
 describe('EXPORTS ROUTES', () => {
-  let client_adminToken = null;
+  let clientAdminToken = null;
 
   describe('GET /exports/working_event/history', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        client_adminToken = await getToken('client_admin');
+        clientAdminToken = await getToken('client_admin');
       });
       it('should get working events', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-20',
-          headers: { 'x-access-token': client_adminToken },
+          headers: { 'x-access-token': clientAdminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -57,11 +57,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          client_adminToken = await getToken(role.name);
+          clientAdminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -74,13 +74,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        client_adminToken = await getToken('client_admin');
+        clientAdminToken = await getToken('client_admin');
       });
       it('should get absences', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-21',
-          headers: { 'x-access-token': client_adminToken },
+          headers: { 'x-access-token': clientAdminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -99,11 +99,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          client_adminToken = await getToken(role.name);
+          clientAdminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-17',
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -116,13 +116,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateBillsAndCreditNotes);
       beforeEach(async () => {
-        client_adminToken = await getToken('client_admin');
+        clientAdminToken = await getToken('client_admin');
       });
       it('should get bills and credit notes', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/bill/history?startDate=2019-05-25&endDate=2019-05-29',
-          headers: { 'x-access-token': client_adminToken },
+          headers: { 'x-access-token': clientAdminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -141,11 +141,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          client_adminToken = await getToken(role.name);
+          clientAdminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/bill/history?startDate=2019-05-26&endDate=2019-05-29',
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -158,13 +158,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populatePayment);
       beforeEach(async () => {
-        client_adminToken = await getToken('client_admin');
+        clientAdminToken = await getToken('client_admin');
       });
       it('should get payments', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-          headers: { 'x-access-token': client_adminToken },
+          headers: { 'x-access-token': clientAdminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -183,11 +183,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          client_adminToken = await getToken(role.name);
+          clientAdminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -200,13 +200,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populatePay);
       beforeEach(async () => {
-        client_adminToken = await getToken('client_admin');
+        clientAdminToken = await getToken('client_admin');
       });
       it('should get pay', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-          headers: { 'x-access-token': client_adminToken },
+          headers: { 'x-access-token': clientAdminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -225,11 +225,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          client_adminToken = await getToken(role.name);
+          clientAdminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -281,13 +281,13 @@ describe('EXPORTS ROUTES', () => {
       describe('CLIENT_ADMIN', () => {
         beforeEach(populate);
         beforeEach(async () => {
-          client_adminToken = await getToken('client_admin');
+          clientAdminToken = await getToken('client_admin');
         });
         it(`should get ${exportType}`, async () => {
           const response = await app.inject({
             method: 'GET',
             url: `/exports/${exportType}/data`,
-            headers: { 'x-access-token': client_adminToken },
+            headers: { 'x-access-token': clientAdminToken },
           });
 
           expect(response.statusCode).toBe(200);
@@ -306,11 +306,11 @@ describe('EXPORTS ROUTES', () => {
 
         roles.forEach((role) => {
           it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-            client_adminToken = await getToken(role.name);
+            clientAdminToken = await getToken(role.name);
             const response = await app.inject({
               method: 'GET',
               url: `/exports/${exportType}/data`,
-              headers: { 'x-access-token': client_adminToken },
+              headers: { 'x-access-token': clientAdminToken },
             });
 
             expect(response.statusCode).toBe(role.expectedCode);
