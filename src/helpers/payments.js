@@ -22,7 +22,7 @@ exports.getPayments = async (payload, credentials) => {
   }
 
   return Payment.find(query)
-    .populate({ path: 'client', select: '_id name' })
+    .populate({ path: 'thirdPartyPayer', select: '_id name' })
     .populate({ path: 'customer', select: '_id identity' })
     .lean();
 };

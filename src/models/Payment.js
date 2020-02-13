@@ -18,7 +18,7 @@ const PaymentSchema = mongoose.Schema({
   date: { type: Date, default: Date.now },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-  client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+  thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   netInclTaxes: Number,
   nature: { type: String, enum: PAYMENT_NATURES },
   type: { type: String, enum: PAYMENT_TYPES },

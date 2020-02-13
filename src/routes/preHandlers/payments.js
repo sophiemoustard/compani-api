@@ -59,8 +59,8 @@ exports.authorizePaymentCreation = async (req) => {
     const customer = await Customer.findOne({ _id: payment.customer, company: companyId }).lean();
     if (!customer) throw Boom.forbidden();
 
-    if (payment.client) {
-      const tpp = await ThirdPartyPayer.findOne({ _id: payment.client, company: companyId }).lean();
+    if (payment.thirdPartyPayer) {
+      const tpp = await ThirdPartyPayer.findOne({ _id: payment.thirdPartyPayer, company: companyId }).lean();
       if (!tpp) throw Boom.forbidden();
     }
 
