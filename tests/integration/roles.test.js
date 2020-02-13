@@ -13,7 +13,7 @@ describe('ROLES ROUTES', () => {
   let token = null;
 
   describe('GET /roles', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         token = await getToken('coach');

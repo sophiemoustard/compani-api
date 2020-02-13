@@ -21,9 +21,9 @@ describe('PAY ROUTES - GET /pay/draft', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
     it('should compute draft pay', async () => {
       const response = await app.inject({
@@ -111,9 +111,9 @@ describe('PAY ROUTES - POST /pay', () => {
     },
   }];
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should create a new pay', async () => {
@@ -185,9 +185,9 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should get hours balance details', async () => {
@@ -311,9 +311,9 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should get hours to work by sector', async () => {

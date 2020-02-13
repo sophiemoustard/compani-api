@@ -76,7 +76,7 @@ const userFromOtherCompany = {
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'other_admin@alenvi.io', password: '123456' },
-  role: rolesList.find(role => role.name === 'adminClient')._id,
+  role: rolesList.find(role => role.name === 'client_admin')._id,
   company: otherCompany._id,
 };
 

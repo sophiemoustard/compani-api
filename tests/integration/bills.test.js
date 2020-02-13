@@ -42,9 +42,9 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
     billingPeriod: TWO_WEEKS,
   };
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should return all draft bills', async () => {
@@ -316,9 +316,9 @@ describe('BILL ROUTES - POST /bills', () => {
     },
   ];
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should create new bills', async () => {
@@ -664,9 +664,9 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('AdminClient', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('adminClient');
+      authToken = await getToken('client_admin');
     });
 
     it('should get bill pdf', async () => {

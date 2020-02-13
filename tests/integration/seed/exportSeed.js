@@ -84,7 +84,7 @@ const authBillService = {
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Lulu', lastname: 'Lala', title: MISTER },
-  role: rolesList.find(role => role.name === 'adminClient')._id,
+  role: rolesList.find(role => role.name === 'client_admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
   refreshToken: uuidv4(),
   company: authCompany._id,
