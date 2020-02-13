@@ -23,9 +23,9 @@ describe('SECTORS ROUTES', () => {
       });
 
       it('should create a new company sector', async () => {
-        const roleCLIENT_ADMIN = rolesList.find(r => r.name === 'client_admin');
-        const clientAdmin = userList.find(u => u.role.toHexString() === roleCLIENT_ADMIN._id.toHexString());
-        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === client_admin.company.toHexString()).length;
+        const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
+        const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
+        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === clientAdmin.company.toHexString()).length;
 
         const payload = { name: 'Test3' };
         const response = await app.inject({
@@ -36,8 +36,8 @@ describe('SECTORS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.sector.company).toEqual(client_admin.company);
-        const sectors = await Sector.find({ company: client_admin.company.toHexString() });
+        expect(response.result.data.sector.company).toEqual(clientAdmin.company);
+        const sectors = await Sector.find({ company: clientAdmin.company.toHexString() });
         expect(sectors.length).toEqual(initialSectorNumber + 1);
       });
 
@@ -87,9 +87,9 @@ describe('SECTORS ROUTES', () => {
       });
 
       it('should get sectors', async () => {
-        const roleCLIENT_ADMIN = rolesList.find(r => r.name === 'client_admin');
-        const clientAdmin = userList.find(u => u.role.toHexString() === roleCLIENT_ADMIN._id.toHexString());
-        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === client_admin.company.toHexString()).length;
+        const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
+        const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
+        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === clientAdmin.company.toHexString()).length;
 
         const response = await app.inject({
           method: 'GET',
