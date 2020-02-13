@@ -212,7 +212,7 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
     local: { email: 'withouCompany@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
     refreshToken: uuidv4(),
     company: company._id,
     contracts: [],

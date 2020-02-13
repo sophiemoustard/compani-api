@@ -229,7 +229,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'auxiliaryWithoutCompany',
+    name: 'auxiliary_without_company',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
@@ -311,7 +311,7 @@ const userList = [
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
     local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
     company: authCompany._id,
   },
   {
