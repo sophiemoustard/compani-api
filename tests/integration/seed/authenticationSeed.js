@@ -197,7 +197,7 @@ const auxiliaryWithoutCompanyRights = [];
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'adminVendeur',
+    name: 'seller_admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: true,
@@ -205,7 +205,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'adminClient',
+    name: 'client_admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: adminRights.includes(right.permission),
@@ -229,7 +229,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'auxiliaryWithoutCompany',
+    name: 'auxiliary_without_company',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
@@ -237,7 +237,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'planningReferent',
+    name: 'planning_referent',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: planningReferentRights.includes(right.permission),
@@ -287,7 +287,7 @@ const userList = [
     identity: { firstname: 'Admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'adminClient')._id,
+    role: rolesList.find(role => role.name === 'client_admin')._id,
     company: authCompany._id,
   },
   {
@@ -311,7 +311,7 @@ const userList = [
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
     local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
     company: authCompany._id,
   },
   {
@@ -319,7 +319,7 @@ const userList = [
     identity: { firstname: 'PlanningReferent', lastname: 'Test' },
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'planningReferent')._id,
+    role: rolesList.find(role => role.name === 'planning_referent')._id,
     company: authCompany._id,
   },
   {
@@ -332,10 +332,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'adminVendeur', lastname: 'SuperChef' },
+    identity: { firstname: 'seller_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
     local: { email: 'super-admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'adminVendeur')._id,
+    role: rolesList.find(role => role.name === 'seller_admin')._id,
     company: authCompany._id,
   },
 ];

@@ -752,7 +752,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -786,7 +786,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -846,7 +846,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -877,7 +877,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -944,7 +944,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -986,7 +986,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
@@ -1019,7 +1019,7 @@ describe('exportAuxiliaries', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 

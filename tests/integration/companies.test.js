@@ -21,10 +21,10 @@ describe('NODE ENV', () => {
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
   describe('PUT /companies/:id', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should update company service', async () => {
@@ -98,7 +98,7 @@ describe('COMPANIES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -134,10 +134,10 @@ describe('COMPANIES ROUTES', () => {
       getFileByIdStub.restore();
     });
 
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should upload a file', async () => {
@@ -200,12 +200,12 @@ describe('COMPANIES ROUTES', () => {
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('adminVendeur', () => {
+    describe('SELLER_ADMIN', () => {
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminVendeur');
+        authToken = await getToken('seller_admin');
         createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
         createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
       });
@@ -265,9 +265,9 @@ describe('COMPANIES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
-        { name: 'adminClient', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -287,10 +287,10 @@ describe('COMPANIES ROUTES', () => {
   });
 
   describe('GET /companies/first-intervention', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
       it('should get the first intervention of the company', async () => {
         const response = await app.inject({
@@ -308,9 +308,9 @@ describe('COMPANIES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'adminVendeur', expectedCode: 200 },
+        { name: 'seller_admin', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {

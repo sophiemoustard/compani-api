@@ -38,10 +38,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
       urssafCode: '117',
     };
 
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should create a new establishment', async () => {
@@ -178,7 +178,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -199,10 +199,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('PUT /establishments/:id', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should update an establishment', async () => {
@@ -333,7 +333,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -354,10 +354,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('GET /etablishments', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should return establishments (company A)', async () => {
@@ -392,7 +392,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -412,10 +412,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('DELETE /etablishments/:id', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should delete establishment', async () => {
@@ -465,7 +465,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 

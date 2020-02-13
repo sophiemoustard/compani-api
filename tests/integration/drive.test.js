@@ -33,10 +33,10 @@ describe('DRIVE ROUTES', () => {
       addFileStub.restore();
       uploadFileSpy.restore();
     });
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
       it('should add an absence document for an event', async () => {
         const payload = {

@@ -24,10 +24,10 @@ describe('NODE ENV', () => {
 describe('PAY DOCUMENT ROUTES', () => {
   describe('POST /paydocuments', () => {
     let authToken = null;
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should create a new pay document', async () => {
@@ -136,7 +136,7 @@ describe('PAY DOCUMENT ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -170,10 +170,10 @@ describe('PAY DOCUMENT ROUTES', () => {
 
   describe('GET /paydocuments', () => {
     let authToken = null;
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should get all pay documents', async () => {
@@ -213,7 +213,7 @@ describe('PAY DOCUMENT ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -234,10 +234,10 @@ describe('PAY DOCUMENT ROUTES', () => {
 
   describe('DELETE /paydocuments', () => {
     let authToken = null;
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should delete a pay document', async () => {
@@ -282,7 +282,7 @@ describe('PAY DOCUMENT ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

@@ -226,7 +226,7 @@ describe('getUsersList', () => {
   });
 
   it('should get users according to multiple roles', async () => {
-    const query = { role: ['auxiliary', 'planningReferent'] };
+    const query = { role: ['auxiliary', 'planning_referent'] };
 
     RoleMock
       .expects('find')
@@ -342,7 +342,7 @@ describe('getUsersListWithSectorHistories', () => {
   it('should get users', async () => {
     RoleMock
       .expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
       .chain('lean')
       .returns(roles);
 
@@ -660,7 +660,7 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should create an adminClient', async () => {
+  it('should create an client_admin', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'admin@test.com', password: '1234567890' },
@@ -669,14 +669,14 @@ describe('createUser', () => {
     };
     const newUser = {
       ...payload,
-      role: { name: 'adminClient', rights: [{ _id: new ObjectID() }] },
+      role: { name: 'client_admin', rights: [{ _id: new ObjectID() }] },
     };
 
     RoleMock
       .expects('findById')
       .withExactArgs(payload.role, { name: 1 })
       .chain('lean')
-      .returns({ name: 'adminClient' });
+      .returns({ name: 'client_admin' });
 
     TaskMock.expects('find').never();
 

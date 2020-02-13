@@ -42,10 +42,10 @@ describe('EVENTS ROUTES', () => {
   let authToken = null;
 
   describe('GET /events', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
       it('should return all events', async () => {
         const response = await app.inject({
@@ -166,9 +166,9 @@ describe('EVENTS ROUTES', () => {
           customCredentials: { ...helpersCustomer.local },
         },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -187,10 +187,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('GET /events/credit-notes', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should return a list of billed events for specified customer', async () => {
@@ -314,9 +314,9 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
       const query = {
         startDate: moment('2019-01-01').toDate(),
@@ -344,10 +344,10 @@ describe('EVENTS ROUTES', () => {
   describe('GET /events/working-stats', () => {
     const startDate = moment('2019-01-18').toDate();
     const endDate = moment('2019-01-20').toDate();
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should return working stats for an auxiliary', async () => {
@@ -399,9 +399,9 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -420,10 +420,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('GET /events/paid-transport', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should return paid transport stats for a sector', async () => {
@@ -502,9 +502,9 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -523,10 +523,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('GET /events/unassigned-hours', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should return unassigned hours for a sector', async () => {
@@ -616,7 +616,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -635,10 +635,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('POST /events', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
       it('should create an internal hour', async () => {
         const payload = {
@@ -1094,8 +1094,8 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1121,10 +1121,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('PUT /events/{_id}', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should update corresponding event with sector', async () => {
@@ -1362,8 +1362,8 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1389,10 +1389,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('DELETE /events/{_id}', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should delete corresponding event', async () => {
@@ -1425,8 +1425,8 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
@@ -1451,10 +1451,10 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('DELETE /events', () => {
-    describe('AdminClient', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('adminClient');
+        authToken = await getToken('client_admin');
       });
 
       it('should delete all events from startDate including repetitions', async () => {
@@ -1514,8 +1514,8 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
