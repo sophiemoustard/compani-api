@@ -1,7 +1,8 @@
 const expect = require('expect');
+const moment = require('moment');
 const app = require('../../server');
 const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR } = require('../../src/helpers/constants');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, userList } = require('./seed/authenticationSeed');
 const {
   populateEvents,
   populateBillsAndCreditNotes,
@@ -14,6 +15,8 @@ const {
   populateSectorHistories,
   billsList,
   creditNotesList,
+  auxiliary,
+  establishment,
 } = require('./seed/exportSeed');
 const { formatPrice } = require('../../src/helpers/utils');
 
@@ -137,9 +140,9 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(4);
         expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Services";"Date de création"');
-        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].client.toHexString()}";"Toto";"72,00";"75,96";"Temps de qualité - autonomie - 8 heures - ${formatPrice(billsList[0].netInclTaxes)} TTC";"12/02/2020"`);
-        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"Temps de qualité - autonomie - 4 heures - ${formatPrice(billsList[1].netInclTaxes)} TTC";"12/02/2020"`);
-        expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"Mme";"LILI";"Lola";;;"110,00";"202,00";"toto";"12/02/2020"`);
+        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].client.toHexString()}";"Toto";"72,00";"75,96";"Temps de qualité - autonomie - 8 heures - ${formatPrice(billsList[0].netInclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"Temps de qualité - autonomie - 4 heures - ${formatPrice(billsList[1].netInclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"Mme";"LILI";"Lola";;;"110,00";"202,00";"toto";"${moment().format('DD/MM/YYYY')}"`);
       });
     });
 
@@ -267,40 +270,78 @@ describe('EXPORTS ROUTES', () => {
       exportType: SERVICE,
       populate: populateService,
       lineCount: 3,
+      expectedRows: [
+        '\ufeff"Nature";"Type";"Entreprise";"Nom";"Montant unitaire par défaut";"TVA (%)";"Plan de majoration";"Date de début";"Date de création";"Date de mise a jour"',
+        `"Horaire";"Prestataire";"Test SAS";"Service 1";"24,00";"0,00";;"16/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
+        `"Horaire";"Mandataire";"Test SAS";"Service 2";"24,00";"12,00";;"18/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
+      ],
     },
     {
       exportType: AUXILIARY,
       populate: populateUser,
-      lineCount: 3,
+      lineCount: 4,
+      expectedRows: [
+        '\ufeff"Email";"Équipe";"Id de l\'auxiliaire";"Titre";"Nom";"Prénom";"Date de naissance";"Pays de naissance";"Departement de naissance";"Ville de naissance";"Nationalité";"N° de sécurité sociale";"Addresse";"Téléphone";"Nombre de contracts";"Établissement";"Date de début de contrat prestataire";"Date de fin de contrat prestataire";"Date d\'inactivité";"Date de création"',
+        `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"TEST";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
+        `"planning-referent@alenvi.io";"Test";${userList[4]._id};"Mme";"TEST";"PlanningReferent";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
+        `"toto_auxiliary@alenvi.io";;${auxiliary._id};"M.";"LALA";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";1;"${establishment.name}";"01/01/2018";"01/01/2022";"31/01/2022";"${moment().format('DD/MM/YYYY')}"`,
+      ],
     },
     {
       exportType: HELPER,
       populate: populateUser,
       lineCount: 3,
+      expectedRows: [
+        '\ufeff"Email";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
+        '"helper@alenvi.io";"TEST";"Helper";;;;;;;"Inactif";"13/02/2020"',
+        '"toto@alenvi.io";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"13/02/2020"',
+      ],
     },
     {
       exportType: CUSTOMER,
       populate: populateCustomer,
       lineCount: 5,
+      expectedRows: [
+        '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
+        '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
+        ' Service 2";1;"13/02/2020";"Actif"',
+        '"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"13/02/2020";"Inactif"',
+        '"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"13/02/2020";"Inactif"',
+      ],
     },
     {
       exportType: FUNDING,
       populate: populateCustomer,
       lineCount: 2,
+      expectedRows: [
+        '\ufeff"Titre";"Nom";"Prénom";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du bénéficiaire"',
+        '"M.";"BARDET";"Romain";"tiers payeurs";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi ";"12,00"',
+      ],
     },
     {
       exportType: SUBSCRIPTION,
       populate: populateCustomer,
       lineCount: 3,
+      expectedRows: [
+        '\ufeff"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
+        '"M.";"BARDET";"Romain";"Service 1";"12,00";"30,00";1;2',
+        '"M.";"BARDET";"Romain";"Service 2";;;;',
+      ],
     },
     {
       exportType: SECTOR,
       populate: populateSectorHistories,
-      lineCount: 2,
+      lineCount: 4,
+      expectedRows: [
+        '\ufeff"Equipe";"Id de l\'auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
+        `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2018";`,
+        `"Test";${userList[4]._id};"Test";"PlanningReferent";"10/12/2018";`,
+        `"Etoile";${auxiliary._id};"Lala";"Lulu";"10/12/2018";`,
+      ],
     },
   ];
 
-  exportTypes.forEach(({ exportType, populate, lineCount }) => {
+  exportTypes.forEach(({ exportType, populate, lineCount, expectedRows }) => {
     describe(`GET /exports/${exportType}/data`, () => {
       describe('CLIENT_ADMIN', () => {
         beforeEach(populate);
@@ -316,7 +357,12 @@ describe('EXPORTS ROUTES', () => {
 
           expect(response.statusCode).toBe(200);
           expect(response.result).toBeDefined();
-          expect(response.result.split('\r\n').length).toBe(lineCount);
+          const rows = response.result.split('\r\n');
+          expect(rows.length).toBe(lineCount);
+
+          for (let i = 0; i < rows.length; i++) {
+            expect(rows[i]).toEqual(expectedRows[i]);
+          }
         });
       });
 

@@ -5,6 +5,8 @@ const Role = require('../../../src/models/Role');
 const Right = require('../../../src/models/Right');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const app = require('../../../server');
 
 const rightsList = [
@@ -300,7 +302,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary', lastname: 'Test' },
+    identity: { firstname: 'Auxiliary', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
@@ -316,7 +318,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'PlanningReferent', lastname: 'Test' },
+    identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'planning_referent')._id,
@@ -340,13 +342,38 @@ const userList = [
   },
 ];
 
+const sector = {
+  _id: new ObjectID(),
+  name: 'Test',
+  company: authCompany._id,
+};
+
+const sectorHistories = [{
+  auxiliary: userList[2]._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+},
+{
+  auxiliary: userList[4]._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+},
+];
+
 const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
   await User.deleteMany({});
   await Company.deleteMany({});
+  await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
+
   await new Company(authCompany).save();
   await new Company(otherCompany).save();
+  await new Sector(sector).save();
+  await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {
