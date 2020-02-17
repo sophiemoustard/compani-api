@@ -140,8 +140,8 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(4);
         expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Services";"Date de création"');
-        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].client.toHexString()}";"Toto";"72,00";"75,96";"Temps de qualité - autonomie - 8 heures - ${formatPrice(billsList[0].netInclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
-        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"Temps de qualité - autonomie - 4 heures - ${formatPrice(billsList[1].netInclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].thirdPartyPayer.toHexString()}";"Toto";"72,00";"75,96";"Temps de qualité - autonomie - 8 heures - ${formatPrice(billsList[0].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"Temps de qualité - autonomie - 4 heures - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
         expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"Mme";"LILI";"Lola";;;"110,00";"202,00";"toto";"${moment().format('DD/MM/YYYY')}"`);
       });
     });
@@ -293,8 +293,8 @@ describe('EXPORTS ROUTES', () => {
       lineCount: 3,
       expectedRows: [
         '\ufeff"Email";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
-        '"helper@alenvi.io";"TEST";"Helper";;;;;;;"Inactif";"13/02/2020"',
-        '"toto@alenvi.io";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"13/02/2020"',
+        `"helper@alenvi.io";"TEST";"Helper";;;;;;;"Inactif";"${moment().format('DD/MM/YYYY')}"`,
+        `"toto@alenvi.io";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
       ],
     },
     {
@@ -304,9 +304,9 @@ describe('EXPORTS ROUTES', () => {
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
         '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
-        ' Service 2";1;"13/02/2020";"Actif"',
-        '"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"13/02/2020";"Inactif"',
-        '"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"13/02/2020";"Inactif"',
+        ` Service 2";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
+        `"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
+        `"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
       ],
     },
     {

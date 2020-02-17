@@ -209,7 +209,7 @@ const balanceBillList = [
     number: 'FACT-1905002',
     company: authCompany._id,
     customer: balanceCustomerList[1]._id,
-    client: balanceThirdPartyPayer._id,
+    thirdPartyPayer: balanceThirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
       startDate: '2019-05-29',

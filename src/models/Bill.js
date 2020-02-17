@@ -11,7 +11,7 @@ const BillSchema = mongoose.Schema({
   number: { type: String, unique: true, partialFilterExpression: { number: { $exists: true, $type: 2 } } },
   date: { type: Date, required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-  client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+  thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   subscriptions: [{
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
