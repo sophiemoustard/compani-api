@@ -30,11 +30,15 @@ exports.plugin = {
             twentyFifthOfDecember: Joi.number().allow('', null),
             firstOfMay: Joi.number().allow('', null),
             evening: Joi.number().allow('', null),
-            eveningStartTime: Joi.string().allow('', null).when('evenings', { is: Joi.number().allow('', null), then: Joi.required() }),
-            eveningEndTime: Joi.string().allow('', null).when('evenings', { is: Joi.number().allow('', null), then: Joi.required() }),
+            eveningStartTime: Joi.string().allow('', null)
+              .when('evenings', { is: Joi.number().allow('', null), then: Joi.required() }),
+            eveningEndTime: Joi.string().allow('', null)
+              .when('evenings', { is: Joi.number().allow('', null), then: Joi.required() }),
             custom: Joi.number().allow('', null),
-            customStartTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
-            customEndTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
+            customStartTime: Joi.string().allow('', null)
+              .when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
+            customEndTime: Joi.string().allow('', null)
+              .when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
           }),
         },
       },
@@ -45,7 +49,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['config:edit'] },
+        auth: { scope: ['config:read'] },
       },
     });
 
@@ -69,7 +73,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { scope: ['config:read'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -82,11 +86,15 @@ exports.plugin = {
             twentyFifthOfDecember: Joi.number().allow('', null).default(null),
             firstOfMay: Joi.number().allow('', null).default(null),
             evening: Joi.number().allow('', null).default(null),
-            eveningStartTime: Joi.string().allow('', null).default('').when('evening', { is: Joi.number(), then: Joi.required() }),
-            eveningEndTime: Joi.string().allow('', null).default('').when('evening', { is: Joi.number(), then: Joi.required() }),
+            eveningStartTime: Joi.string().allow('', null).default('')
+              .when('evening', { is: Joi.number(), then: Joi.required() }),
+            eveningEndTime: Joi.string().allow('', null).default('')
+              .when('evening', { is: Joi.number(), then: Joi.required() }),
             custom: Joi.number().allow('', null).default(null),
-            customStartTime: Joi.string().allow('', null).default('').when('custom', { is: Joi.number(), then: Joi.required() }),
-            customEndTime: Joi.string().allow('', null).default('').when('custom', { is: Joi.number(), then: Joi.required() }),
+            customStartTime: Joi.string().allow('', null).default('')
+              .when('custom', { is: Joi.number(), then: Joi.required() }),
+            customEndTime: Joi.string().allow('', null).default('')
+              .when('custom', { is: Joi.number(), then: Joi.required() }),
           }),
         },
         pre: [{ method: authorizeSurchargesUpdate }],
