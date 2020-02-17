@@ -69,16 +69,28 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
     });
-    it('should return a 403 error if user does not have right', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
-        payload,
-        credentials: { scope: ['Test'] },
-      });
 
-      expect(response.statusCode).toBe(403);
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/thirdpartypayers',
+            payload,
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -96,15 +108,26 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerNumber);
     });
 
-    it('should return a 403 error if user does not have right', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
-        credentials: { scope: ['Test'] },
-      });
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-      expect(response.statusCode).toBe(403);
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/thirdpartypayers',
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -145,18 +168,6 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user does not have right', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
-        credentials: { scope: ['Test'] },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return a 403 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -166,6 +177,29 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+            payload,
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -190,17 +224,6 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user does not have right', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        credentials: { scope: ['Test'] },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return a 403 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -209,6 +232,28 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });
