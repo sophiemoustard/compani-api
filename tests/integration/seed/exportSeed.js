@@ -824,7 +824,6 @@ const populateEvents = async () => {
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
-  // await new User(auxiliary).save();
   await User.insertMany(auxiliaryList);
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
@@ -839,7 +838,6 @@ const populateSectorHistories = async () => {
   await SectorHistory.deleteMany();
 
   await populateDBForAuthentication();
-  // await new User(auxiliary).save();
   await User.insertMany(auxiliaryList);
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
@@ -891,7 +889,6 @@ const populateCustomer = async () => {
   await (new Company(company)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(serviceList);
-  // await (new User(auxiliary)).save();
   await User.insertMany(auxiliaryList);
   await Customer.insertMany(customersList);
   await Event.insertMany(eventList);
@@ -906,9 +903,7 @@ const populateUser = async () => {
   await populateDBForAuthentication();
 
   await (new User(user)).save();
-  // await (new User(auxiliary)).save();
   await User.insertMany(auxiliaryList);
-  // await (new Contract(contract)).save();
   await Contract.insertMany(contractList);
   await (new Customer(customer)).save();
   await (new Establishment(establishment)).save();
@@ -925,11 +920,9 @@ const populatePay = async () => {
   await populateDBForAuthentication();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
-  // await new User(auxiliary).save();
   await User.insertMany(auxiliaryList);
   await new SectorHistory(sectorHistory).save();
   await new Sector(sector).save();
-  // await new Contract(contract).save();
   await Contract.insertMany(contractList);
 };
 
@@ -939,7 +932,6 @@ const populateContract = async () => {
 
   await populateDBForAuthentication();
   await User.insertMany(auxiliaryList);
-  // await new Contract(contract).save();
   await Contract.insertMany(contractList);
 };
 
