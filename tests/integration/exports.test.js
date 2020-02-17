@@ -1,7 +1,16 @@
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
-const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR } = require('../../src/helpers/constants');
+const {
+  SERVICE,
+  AUXILIARY,
+  HELPER,
+  CUSTOMER,
+  FUNDING,
+  SUBSCRIPTION,
+  SECTOR,
+  RUP,
+} = require('../../src/helpers/constants');
 const { getToken, userList } = require('./seed/authenticationSeed');
 const {
   populateEvents,
@@ -13,9 +22,10 @@ const {
   populateUser,
   populateCustomer,
   populateSectorHistories,
+  populateContract,
   billsList,
   creditNotesList,
-  auxiliary,
+  auxiliaryList,
   establishment,
 } = require('./seed/exportSeed');
 const { formatPrice } = require('../../src/helpers/utils');
@@ -27,19 +37,19 @@ describe('NODE ENV', () => {
 });
 
 describe('EXPORTS ROUTES', () => {
-  let clientAdminToken = null;
+  let token = null;
 
   describe('GET /exports/working_event/history', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        clientAdminToken = await getToken('client_admin');
+        token = await getToken('client_admin');
       });
       it('should get working events', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-20',
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(200);
@@ -63,11 +73,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          clientAdminToken = await getToken(role.name);
+          token = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -80,13 +90,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        clientAdminToken = await getToken('client_admin');
+        token = await getToken('client_admin');
       });
       it('should get absences', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-21',
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(200);
@@ -109,11 +119,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          clientAdminToken = await getToken(role.name);
+          token = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-17',
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -126,13 +136,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateBillsAndCreditNotes);
       beforeEach(async () => {
-        clientAdminToken = await getToken('client_admin');
+        token = await getToken('client_admin');
       });
       it('should get bills and credit notes', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/bill/history?startDate=2019-05-25&endDate=2019-05-29',
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(200);
@@ -156,11 +166,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          clientAdminToken = await getToken(role.name);
+          token = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/bill/history?startDate=2019-05-26&endDate=2019-05-29',
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -173,13 +183,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populatePayment);
       beforeEach(async () => {
-        clientAdminToken = await getToken('client_admin');
+        token = await getToken('client_admin');
       });
       it('should get payments', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(200);
@@ -202,11 +212,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          clientAdminToken = await getToken(role.name);
+          token = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -219,13 +229,13 @@ describe('EXPORTS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populatePay);
       beforeEach(async () => {
-        clientAdminToken = await getToken('client_admin');
+        token = await getToken('client_admin');
       });
       it('should get pay', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(200);
@@ -252,11 +262,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          clientAdminToken = await getToken(role.name);
+          token = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -269,7 +279,6 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: SERVICE,
       populate: populateService,
-      lineCount: 3,
       expectedRows: [
         '\ufeff"Nature";"Type";"Entreprise";"Nom";"Montant unitaire par défaut";"TVA (%)";"Plan de majoration";"Date de début";"Date de création";"Date de mise a jour"',
         `"Horaire";"Prestataire";"Test SAS";"Service 1";"24,00";"0,00";;"16/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
@@ -279,18 +288,18 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: AUXILIARY,
       populate: populateUser,
-      lineCount: 4,
       expectedRows: [
         '\ufeff"Email";"Équipe";"Id de l\'auxiliaire";"Titre";"Nom";"Prénom";"Date de naissance";"Pays de naissance";"Departement de naissance";"Ville de naissance";"Nationalité";"N° de sécurité sociale";"Addresse";"Téléphone";"Nombre de contracts";"Établissement";"Date de début de contrat prestataire";"Date de fin de contrat prestataire";"Date d\'inactivité";"Date de création"',
         `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"TEST";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
         `"planning-referent@alenvi.io";"Test";${userList[4]._id};"Mme";"TEST";"PlanningReferent";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
-        `"toto_auxiliary@alenvi.io";;${auxiliary._id};"M.";"LALA";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";1;"${establishment.name}";"01/01/2018";"01/01/2022";"31/01/2022";"${moment().format('DD/MM/YYYY')}"`,
+        `"export_auxiliary_1@alenvi.io";;${auxiliaryList[0]._id};"M.";"LALA";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/01/2018";"01/01/2020";;"${moment().format('DD/MM/YYYY')}"`,
+        `"export_auxiliary_1@alenvi.io";;${auxiliaryList[0]._id};"M.";"LALA";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/02/2020";;;"${moment().format('DD/MM/YYYY')}"`,
+        `"export_auxiliary_2@alenvi.io";;${auxiliaryList[1]._id};"M.";"LOLO";"Lili";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";1;"${establishment.name}";"01/02/2020";;;"${moment().format('DD/MM/YYYY')}"`,
       ],
     },
     {
       exportType: HELPER,
       populate: populateUser,
-      lineCount: 3,
       expectedRows: [
         '\ufeff"Email";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
         `"helper@alenvi.io";"TEST";"Helper";;;;;;;"Inactif";"${moment().format('DD/MM/YYYY')}"`,
@@ -300,7 +309,6 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: CUSTOMER,
       populate: populateCustomer,
-      lineCount: 5,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
         '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
@@ -312,7 +320,6 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: FUNDING,
       populate: populateCustomer,
-      lineCount: 2,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du bénéficiaire"',
         '"M.";"BARDET";"Romain";"tiers payeurs";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi ";"12,00"',
@@ -321,7 +328,6 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: SUBSCRIPTION,
       populate: populateCustomer,
-      lineCount: 3,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
         '"M.";"BARDET";"Romain";"Service 1";"12,00";"30,00";1;2',
@@ -331,34 +337,43 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: SECTOR,
       populate: populateSectorHistories,
-      lineCount: 4,
       expectedRows: [
         '\ufeff"Equipe";"Id de l\'auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
         `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2018";`,
         `"Test";${userList[4]._id};"Test";"PlanningReferent";"10/12/2018";`,
-        `"Etoile";${auxiliary._id};"Lala";"Lulu";"10/12/2018";`,
+        `"Etoile";${auxiliaryList[0]._id};"Lala";"Lulu";"10/12/2018";`,
+      ],
+    },
+    {
+      exportType: RUP,
+      populate: populateContract,
+      expectedRows: [
+        '\ufeff"Nom";"Prénom";"Civilité";"Date de naissance";"Nationalité";"Emploi";"Type de contrat";"Date de début";"Date de fin"',
+        '"LALA";"Lulu";"M.";"01/01/1992";"Française";"Auxiliaire de vie";"CDI";"01/01/2018";"01/01/2020"',
+        '"LALA";"Lulu";"M.";"01/01/1992";"Française";"Auxiliaire de vie";"CDI";"01/02/2020";',
+        '"LOLO";"Lili";"M.";"01/01/1992";"Française";"Auxiliaire de vie";"CDI";"01/02/2020";',
       ],
     },
   ];
 
-  exportTypes.forEach(({ exportType, populate, lineCount, expectedRows }) => {
+  exportTypes.forEach(({ exportType, populate, expectedRows }) => {
     describe(`GET /exports/${exportType}/data`, () => {
       describe('CLIENT_ADMIN', () => {
         beforeEach(populate);
         beforeEach(async () => {
-          clientAdminToken = await getToken('client_admin');
+          token = await getToken('client_admin');
         });
         it(`should get ${exportType}`, async () => {
           const response = await app.inject({
             method: 'GET',
             url: `/exports/${exportType}/data`,
-            headers: { 'x-access-token': clientAdminToken },
+            headers: { 'x-access-token': token },
           });
 
           expect(response.statusCode).toBe(200);
           expect(response.result).toBeDefined();
           const rows = response.result.split('\r\n');
-          expect(rows.length).toBe(lineCount);
+          expect(rows.length).toBe(expectedRows.length);
 
           for (let i = 0; i < rows.length; i++) {
             expect(rows[i]).toEqual(expectedRows[i]);
@@ -376,11 +391,11 @@ describe('EXPORTS ROUTES', () => {
 
         roles.forEach((role) => {
           it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-            clientAdminToken = await getToken(role.name);
+            token = await getToken(role.name);
             const response = await app.inject({
               method: 'GET',
               url: `/exports/${exportType}/data`,
-              headers: { 'x-access-token': clientAdminToken },
+              headers: { 'x-access-token': token },
             });
 
             expect(response.statusCode).toBe(role.expectedCode);
