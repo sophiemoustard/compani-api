@@ -39,7 +39,7 @@
     "good-squeeze": "^5.1.0",
     "googleapis": "^42.0.0",
     "handlebars": "^4.5.3",
-    "hapi": "^17.5.1",
+    "hapi": "^18.1.0",
     "hapi-auth-jwt2": "^8.1.0",
     "hapi-sentry": "^1.1.0",
     "inert": "^5.1.0",
