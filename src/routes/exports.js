@@ -18,6 +18,7 @@ const {
   PAY,
   CONTRACT,
   SECTOR,
+  RUP,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -29,7 +30,9 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR),
+            type: Joi.string()
+              .required()
+              .valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR, RUP),
           },
         },
         auth: { scope: ['exports:read'] },

@@ -157,6 +157,7 @@ module.exports = {
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',
+  RUP: 'rup',
   CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',

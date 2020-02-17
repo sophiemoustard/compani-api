@@ -1,7 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
@@ -160,78 +159,6 @@ describe('subscriptionsAccepted', () => {
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeFalsy();
-  });
-});
-
-describe('exportSubscriptions', () => {
-  let CustomerModel;
-  let getLastVersion;
-  let formatFloatForExport;
-  beforeEach(() => {
-    CustomerModel = sinon.mock(Customer);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
-    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
-    formatFloatForExport.callsFake(float => `F-${float || ''}`);
-  });
-
-  afterEach(() => {
-    CustomerModel.restore();
-    getLastVersion.restore();
-    formatFloatForExport.restore();
-  });
-
-  it('should return csv header', async () => {
-    const customers = [];
-    const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-
-    const credentials = { company: { _id: companyId } };
-    const result = await SubscriptionsHelper.exportSubscriptions(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject([
-      'Titre',
-      'Nom',
-      'Prénom',
-      'Service',
-      'Prix unitaire TTC',
-      'Volume hebdomadaire estimatif',
-      'Dont soirées',
-      'Dont dimanches',
-    ]);
-  });
-
-  it('should return subscriptions info', async () => {
-    const customers = [
-      {
-        identity: { lastname: 'Autonomie', title: 'mr' },
-        subscriptions: [{
-          service: { versions: [{ name: 'Service' }] },
-          versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
-        }],
-      },
-    ];
-    const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-
-    const credentials = { company: { _id: companyId } };
-    const result = await SubscriptionsHelper.exportSubscriptions(credentials);
-
-    sinon.assert.calledTwice(getLastVersion);
-    sinon.assert.calledTwice(formatFloatForExport);
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });
 
