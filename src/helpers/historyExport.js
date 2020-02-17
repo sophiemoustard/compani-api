@@ -130,15 +130,6 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
   return rows;
 };
 
-const exportBillSubscriptions = (bill) => {
-  if (!bill.subscriptions) return '';
-
-  const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service.name} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
-
-  return subscriptions.join('\r\n');
-};
-
 const billAndCreditNoteExportHeader = [
   'Nature',
   'Identifiant',
@@ -151,9 +142,19 @@ const billAndCreditNoteExportHeader = [
   'Tiers payeur',
   'Montant HT en €',
   'Montant TTC en €',
+  'Nombre d\'heures',
   'Services',
   'Date de création',
 ];
+
+const exportBillSubscriptions = (bill) => {
+  if (!bill.subscriptions) return '';
+
+  const subscriptions = bill.subscriptions.map(sub =>
+    `${sub.service.name} - ${UtilsHelper.formatHour(sub.hours)} - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
+
+  return subscriptions.join('\r\n');
+};
 
 const formatRowCommonsForExport = (document) => {
   const customerId = get(document.customer, '_id');
@@ -177,11 +178,13 @@ const formatBillsForExport = (bills) => {
   for (const bill of bills) {
     const tppId = get(bill.thirdPartyPayer, '_id');
     let totalExclTaxesFormatted = '';
+    let hours = 0;
 
-    if (bill.subscriptions != null) {
+    if (bill.subscriptions) {
       let totalExclTaxes = 0;
       for (const sub of bill.subscriptions) {
         totalExclTaxes += sub.exclTaxes;
+        hours += sub.hours;
       }
       totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
     }
@@ -194,6 +197,7 @@ const formatBillsForExport = (bills) => {
       get(bill.thirdPartyPayer, 'name') || '',
       totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
+      UtilsHelper.formatFloatForExport(hours),
       exportBillSubscriptions(bill),
       createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
     ];
@@ -220,6 +224,7 @@ const formatCreditNotesForExport = (creditNotes) => {
       get(creditNote.thirdPartyPayer, 'name') || '',
       UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(totalInclTaxes),
+      '',
       get(creditNote, 'subscription.service.name') || '',
       createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
     ];

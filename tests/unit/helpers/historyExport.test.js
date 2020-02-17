@@ -205,6 +205,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     'Tiers payeur',
     'Montant HT en €',
     'Montant TTC en €',
+    'Nombre d\'heures',
     'Services',
     'Date de création',
   ];
@@ -297,18 +298,21 @@ describe('exportBillsAndCreditNotesHistory', () => {
   let mockBill;
   let mockCreditNote;
   let formatPriceStub;
+  let formatHourStub;
   let formatFloatForExportStub;
 
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
     mockCreditNote = sinon.mock(CreditNote);
     formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
+    formatHourStub = sinon.stub(UtilsHelper, 'formatHour');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
   });
   afterEach(() => {
     mockBill.restore();
     mockCreditNote.restore();
     formatPriceStub.restore();
+    formatHourStub.restore();
     formatFloatForExportStub.restore();
   });
 
@@ -363,17 +367,21 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('lean')
       .returns([{}]);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
-      ['Facture', '', '', '', '', '', '', '', '', '', '', '', ''],
-      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Facture', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
     mockBill.verify();
     mockCreditNote.verify();
+    sinon.assert.callCount(formatPriceStub, 0);
+    sinon.assert.callCount(formatHourStub, 0);
+    sinon.assert.callCount(formatFloatForExportStub, 4);
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -400,12 +408,14 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('lean')
       .returns(creditNotes);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     sinon.assert.callCount(formatPriceStub, 3);
-    sinon.assert.callCount(formatFloatForExportStub, 8);
+    sinon.assert.callCount(formatFloatForExportStub, 10);
+    sinon.assert.callCount(formatHourStub, 3);
     expect(exportArray).toEqual([
       header,
       [
@@ -420,7 +430,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'TF1',
         'F-389276.0208',
         'F-389276.023',
-        'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC',
+        'F-20',
+        'Temps de qualité - autonomie - 20h - P-410686.201944 TTC',
         '11/10/2019',
       ],
       [
@@ -435,7 +446,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'The Sherif',
         'F-1018.6307999',
         'F-1057.1319439',
-        'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC',
+        'F-22',
+        'Forfait nuit - 15h - P-738.521944 TTC\r\nForfait nuit - 7h - P-302 TTC',
         '12/10/2019',
       ],
       [
@@ -450,6 +462,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'SW',
         'F-18.5',
         'F-8.5',
+        '',
         'Temps de qualité - autonomie',
         '15/10/2019',
       ],
@@ -465,12 +478,14 @@ describe('exportBillsAndCreditNotesHistory', () => {
         '',
         'F-10.5',
         'F-5.5',
+        '',
         'Temps de qualité - autonomie',
         '16/10/2019',
       ],
     ]);
     mockBill.verify();
     mockCreditNote.verify();
+    sinon.assert.callCount(formatHourStub, 3);
   });
 });
 
