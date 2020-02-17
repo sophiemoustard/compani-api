@@ -317,6 +317,7 @@ const getServicesNameList = (subscriptions) => {
       list = list.concat(`\r\n ${UtilsHelper.getLastVersion(sub.service.versions, 'startDate').name}`);
     }
   }
+
   return list;
 };
 
