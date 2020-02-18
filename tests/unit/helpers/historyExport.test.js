@@ -12,6 +12,7 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const UserRepository = require('../../../src/repositories/UserRepository');
 
 describe('exportWorkingEventsHistory', () => {
   const header = [
@@ -36,6 +37,17 @@ describe('exportWorkingEventsHistory', () => {
     'Statut de l\'annulation',
     'Raison de l\'annulation',
   ];
+  const auxiliaryId = new ObjectID();
+  const auxiliaries = [
+    {
+      _id: auxiliaryId,
+      identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
+      sectorHistory: [
+        { startDate: '2018-09-12T00:00:00', sector: { name: 'Girafes - 75' } },
+        { startDate: '2019-09-12T00:00:00', sector: { name: 'Etoiles - 75' } },
+      ],
+    },
+  ];
   const events = [
     {
       isCancelled: false,
@@ -48,10 +60,7 @@ describe('exportWorkingEventsHistory', () => {
       customer: {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
-      auxiliary: {
-        identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
-        sector: { name: 'Girafes - 75' },
-      },
+      auxiliary: auxiliaryId,
       startDate: moment('2019-05-20T08:00:00').toDate(),
       endDate: moment('2019-05-20T10:00:00').toDate(),
     },
@@ -88,17 +97,21 @@ describe('exportWorkingEventsHistory', () => {
   ];
   let getWorkingEventsForExport;
   let getLastVersion;
+  let getAuxiliariesWithSectorHistory;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(EventRepository, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
+    getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
     getLastVersion.restore();
+    getAuxiliariesWithSectorHistory.restore();
   });
 
   it('should return an array containing just the header', async () => {
     getWorkingEventsForExport.returns([]);
+    getAuxiliariesWithSectorHistory.returns([]);
     const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);
 
     expect(exportArray).toEqual([header]);
@@ -106,6 +119,7 @@ describe('exportWorkingEventsHistory', () => {
 
   it('should return an array with the header and 2 rows', async () => {
     getWorkingEventsForExport.returns(events);
+    getAuxiliariesWithSectorHistory.returns(auxiliaries);
     getLastVersion.callsFake(ver => ver[0]);
 
     const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);

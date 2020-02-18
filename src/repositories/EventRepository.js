@@ -237,43 +237,6 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
       },
     },
     { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'users',
-        as: 'auxiliary',
-        let: { auxiliaryId: '$auxiliary', startDate: '$startDate' },
-        pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$_id', '$$auxiliaryId'] }] } } },
-          {
-            $lookup: {
-              from: 'sectorhistories',
-              as: 'sector',
-              let: { auxiliaryId: '$_id', companyId: '$company' },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $and: [
-                        { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                        { $eq: ['$company', '$$companyId'] },
-                        { $lte: ['$startDate', '$$startDate'] },
-                      ],
-                    },
-                  },
-                },
-                { $sort: { startDate: -1 } },
-                { $limit: 1 },
-                { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
-                { $unwind: { path: '$lastSector' } },
-                { $replaceRoot: { newRoot: '$lastSector' } },
-              ],
-            },
-          },
-          { $unwind: { path: '$sector' } },
-        ],
-      },
-    },
-    { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'internalhours', localField: 'internalHour', foreignField: '_id', as: 'internalHour' } },
     { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
     { $lookup: { from: 'sectors', localField: 'sector', foreignField: '_id', as: 'sector' } },
@@ -281,7 +244,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $project: {
         customer: { identity: 1 },
-        auxiliary: { identity: 1, sector: 1 },
+        auxiliary: 1,
         startDate: 1,
         endDate: 1,
         internalHour: 1,

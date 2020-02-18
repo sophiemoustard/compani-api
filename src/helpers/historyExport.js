@@ -24,6 +24,7 @@ const Pay = require('../models/Pay');
 const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
+const UserRepository = require('../repositories/UserRepository');
 
 const workingEventExportHeader = [
   'Type',
@@ -56,14 +57,24 @@ const getServiceName = (service) => {
   return lastVersion.name;
 };
 
+const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
+  .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
+
 exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
   const events = await EventRepository.getWorkingEventsForExport(startDate, endDate, companyId);
+  const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
+  const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
 
   const rows = [workingEventExportHeader];
   for (const event of events) {
     let repetition = get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
+
+    const auxiliary = event.auxiliary
+      ? auxiliaries.find(aux => aux._id.toHexString() === event.auxiliary.toHexString())
+      : null;
+    const auxiliarySector = auxiliary ? getMatchingSector(auxiliary.sectorHistory, event) : null;
 
     const cells = [
       EVENT_TYPE_LIST[event.type],
@@ -73,10 +84,10 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       moment(event.endDate).format('DD/MM/YYYY HH:mm'),
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
-      get(event, 'sector.name') || get(event, 'auxiliary.sector.name') || '',
-      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
-      get(event, 'auxiliary.identity.firstname', ''),
-      get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
+      get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
+      CIVILITY_LIST[get(auxiliary, 'identity.title')] || '',
+      get(auxiliary, 'identity.firstname', ''),
+      get(auxiliary, 'identity.lastname', '').toUpperCase(),
       event.auxiliary ? 'Non' : 'Oui',
       CIVILITY_LIST[get(event, 'customer.identity.title')] || '',
       get(event, 'customer.identity.lastname', '').toUpperCase(),
