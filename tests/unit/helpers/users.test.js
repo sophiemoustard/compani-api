@@ -7,10 +7,8 @@ const sinon = require('sinon');
 const Boom = require('boom');
 const flat = require('flat');
 const bcrypt = require('bcrypt');
-const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const UsersHelper = require('../../../src/helpers/users');
-const RolesHelper = require('../../../src/helpers/roles');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
 const translate = require('../../../src/helpers/translate');
@@ -532,6 +530,7 @@ describe('createUser', () => {
   let objectIdStub;
   let createHistoryStub;
   const userId = new ObjectID();
+  const roleId = new ObjectID();
   const credentials = { company: { _id: new ObjectID() } };
 
   beforeEach(() => {
@@ -554,12 +553,12 @@ describe('createUser', () => {
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
-      role: new ObjectID(),
+      role: { client: roleId },
       sector: new ObjectID(),
     };
     const newUser = {
       ...payload,
-      role: { name: 'auxiliary', rights: [{ _id: new ObjectID() }] },
+      role: { client: { _id: roleId, name: 'auxiliary', rights: [{ _id: new ObjectID() }] } },
     };
     const tasks = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const taskIds = tasks.map(task => ({ task: task._id }));
@@ -572,21 +571,20 @@ describe('createUser', () => {
     };
 
     RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1 })
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
-      .returns({ name: 'auxiliary' });
+      .returns({ _id: roleId, name: 'auxiliary', interface: 'client' });
 
     TaskMock.expects('find').chain('lean').returns(tasks);
 
     UserMock.expects('create')
       .withExactArgs({
         ...omit(payload, 'sector'),
-        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
         procedure: taskIds,
       })
-      .returns({ ...newUserWithProcedure });
+      .returns({ ...newUserWithProcedure, _id: userId });
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: userId })
@@ -614,29 +612,28 @@ describe('createUser', () => {
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
-      role: new ObjectID(),
+      role: { client: roleId },
     };
     const newUser = {
       ...payload,
-      role: { name: 'coach', rights: [{ _id: new ObjectID() }] },
+      role: { _id: roleId, name: 'coach', rights: [{ _id: new ObjectID() }] },
     };
 
     RoleMock
       .expects('findById')
-      .withExactArgs(payload.role, { name: 1 })
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
-      .returns({ name: 'coach' });
+      .returns({ _id: roleId, name: 'coach', interface: 'client' });
 
     TaskMock.expects('find').never();
 
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
-        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
       })
-      .returns({ ...newUser });
+      .returns({ ...newUser, _id: userId });
 
     UserMock
       .expects('findOne')
@@ -660,33 +657,32 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should create an client_admin', async () => {
+  it('should create a client admin', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'admin@test.com', password: '1234567890' },
-      role: new ObjectID(),
+      role: { client: roleId },
       company: new ObjectID(),
     };
     const newUser = {
       ...payload,
-      role: { name: 'client_admin', rights: [{ _id: new ObjectID() }] },
+      role: { _id: roleId, name: 'client_admin', rights: [{ _id: new ObjectID() }] },
     };
 
     RoleMock
       .expects('findById')
-      .withExactArgs(payload.role, { name: 1 })
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
-      .returns({ name: 'client_admin' });
+      .returns({ _id: roleId, name: 'client_admin', interface: 'client' });
 
     TaskMock.expects('find').never();
 
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
-        _id: userId,
         refreshToken: sinon.match.string,
       })
-      .returns({ ...newUser });
+      .returns({ ...newUser, _id: userId });
 
     UserMock
       .expects('findOne')
@@ -715,12 +711,12 @@ describe('createUser', () => {
       const payload = {
         identity: { lastname: 'Test', firstname: 'Toto' },
         local: { email: 'toto@test.com', password: '1234567890' },
-        role: new ObjectID(),
+        role: { client: roleId },
       };
 
       RoleMock
         .expects('findById')
-        .withExactArgs(payload.role, { name: 1 })
+        .withExactArgs(payload.role, { name: 1, interface: 1 })
         .chain('lean')
         .returns(null);
 

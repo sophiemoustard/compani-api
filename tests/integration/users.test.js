@@ -60,7 +60,7 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.user._id).toEqual(expect.any(Object));
         expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
-        expect(res.result.data.user.role).toMatchObject({
+        expect(res.result.data.user.role.client).toMatchObject({
           name: 'auxiliary',
           rights: expect.arrayContaining([
             expect.objectContaining({

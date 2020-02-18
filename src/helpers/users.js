@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
@@ -138,9 +137,11 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 exports.createUser = async (userPayload, credentials) => {
-  const { sector, ...payload } = cloneDeep(userPayload);
-  const role = await Role.findById(payload.role, { name: 1 }).lean();
+  const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
+  const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
+
+  payload.role = { [role.interface]: role._id };
 
   if ([AUXILIARY, PLANNING_REFERENT].includes(role.name)) {
     const tasks = await Task.find({}, { _id: 1 }).lean();
@@ -148,14 +149,13 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const userId = mongoose.Types.ObjectId();
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
-  if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
+  const user = await User.create({ ...payload, company: companyId, refreshToken: uuidv4() });
+  if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User
-    .findOne({ _id: userId })
+    .findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
 };
