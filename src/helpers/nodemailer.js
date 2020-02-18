@@ -12,10 +12,7 @@ const testTransporter = account => nodemailer.createTransport({
   host: 'smtp.ethereal.email',
   port: 587,
   secure: false,
-  auth: {
-    user: account.user,
-    pass: account.pass,
-  },
+  auth: { user: account.user, pass: account.pass },
 });
 
 module.exports = { sendinBlueTransporter, testTransporter };
