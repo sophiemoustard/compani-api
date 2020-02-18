@@ -7,18 +7,25 @@ const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECR
 
 const validate = async (decoded) => {
   try {
-    if (!decoded._id) throw new Error('No id / role present in token');
+    if (!decoded._id) throw new Error('No id present in token');
     const user = await User
       .findById(decoded._id, '_id identity role company local customers sector')
       .lean({ autopopulate: true });
     if (!user.company) return { isValid: false };
 
-    const rights = user.role.rights.filter(right => right.hasAccess).map((right) => {
-      if (right.permission) return right.permission;
-    });
+
+    const userRoles = Object.values(user.role);
+    const userRolesName = userRoles.map(role => role.name);
+    const rights = userRoles.reduce((acc, role) => {
+      acc.push(...role.rights.filter(right => right.hasAccess).map((right) => {
+        if (right.permission) return right.permission;
+      }));
+
+      return acc;
+    }, []);
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
-    const scope = [`user:read-${decoded._id}`, user.role.name, ...rights, ...customersScopes];
+    const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];
     if (user.role.name !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
 
     const credentials = {
