@@ -98,7 +98,12 @@ describe('authenticate', () => {
   });
   it('should return authentication data', async () => {
     const payload = { email: 'toto@email.com', password: 'toto' };
-    const user = { _id: new ObjectID(), refreshToken: 'token', local: { password: 'toto' }, role: { name: 'role' } };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+      role: { client: { name: 'role' } },
+    };
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
       .chain('lean')
@@ -114,11 +119,15 @@ describe('authenticate', () => {
       token: 'token',
       refreshToken: user.refreshToken,
       expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString(), role: user.role.name },
+      user: { _id: user._id.toHexString(), role: [user.role.client.name] },
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString(), role: user.role.name }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledWithExactly(
+      encode,
+      { _id: user._id.toHexString(), role: [user.role.client.name] },
+      TOKEN_EXPIRE_TIME
+    );
   });
 });
 

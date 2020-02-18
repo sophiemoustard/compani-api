@@ -197,7 +197,7 @@ describe('USERS ROUTES', () => {
         token: expect.any(String),
         refreshToken: expect.any(String),
         expiresIn: expect.any(Number),
-        user: expect.objectContaining({ _id: expect.any(String), role: expect.any(String) }),
+        user: expect.objectContaining({ _id: expect.any(String), role: expect.arrayContaining([expect.any(String)]) }),
       }));
     });
 
