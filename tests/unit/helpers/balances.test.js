@@ -45,7 +45,6 @@ describe('canBeDirectDebited', () => {
       },
     },
     paid: 0,
-    balance: -100,
   };
 
   it('should check if bill can be direct debited', () => {
@@ -53,10 +52,6 @@ describe('canBeDirectDebited', () => {
   });
 
   const falsyTests = [
-    {
-      assertion: 'balance is positive',
-      bill: { ...bill, billed: -100, balance: 100 },
-    },
     {
       assertion: 'client is a third party payer',
       bill: { ...bill, _id: { customer: '5c75019d4448ad001428dbed', tpp: '5c75019d4448ad001428dbed' } },
