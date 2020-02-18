@@ -9,6 +9,7 @@ const get = require('lodash/get');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
+const roleSchemaDefinition = require('./schemaDefinitions/role');
 const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
@@ -43,10 +44,14 @@ const UserSchema = mongoose.Schema({
     password: String,
   },
   role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role',
-    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
-    required: true,
+    client: {
+      ...roleSchemaDefinition,
+      required() { return !this.role.seller; },
+    },
+    seller: {
+      ...roleSchemaDefinition,
+      required() { return !this.role.client; },
+    },
   },
   youtube: {
     link: { type: String, trim: true },
