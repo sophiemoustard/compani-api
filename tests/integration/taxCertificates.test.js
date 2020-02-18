@@ -21,10 +21,10 @@ describe('NODE ENV', () => {
 
 describe('TAX CERTIFICATES ROUTES - GET /', () => {
   let authToken;
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get tax certificates list', async () => {
@@ -64,7 +64,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -84,10 +84,10 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
 
 describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   let authToken;
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get tax certificates pdf', async () => {
@@ -133,7 +133,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -153,10 +153,10 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 
 describe('TAX CERTIFICATES - POST /', () => {
   let authToken = null;
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should create a new tax certificate', async () => {
@@ -299,7 +299,7 @@ describe('TAX CERTIFICATES - POST /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -333,10 +333,10 @@ describe('TAX CERTIFICATES - POST /', () => {
 
 describe('TAX CERTIFICATES - DELETE /', () => {
   let authToken = null;
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should delete new tax certificate', async () => {
@@ -370,7 +370,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

@@ -20,10 +20,10 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
       await populateDB();
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should return all administrative documents', async () => {
@@ -43,7 +43,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -66,12 +66,12 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     let addStub;
 
     beforeEach(async () => {
       addStub = sinon.stub(Drive, 'add');
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     afterEach(() => {
@@ -126,7 +126,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -157,9 +157,9 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should delete an administrative document', async () => {

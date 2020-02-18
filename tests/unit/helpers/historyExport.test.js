@@ -3,20 +3,15 @@ const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
 require('sinon-mongoose');
-const Customer = require('../../../src/models/Customer');
 const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
-const User = require('../../../src/models/User');
-const SectorHistory = require('../../../src/models/SectorHistory');
-const Role = require('../../../src/models/Role');
 const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
-const ExportHelper = require('../../../src/helpers/export');
+const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 describe('exportWorkingEventsHistory', () => {
   const header = [
@@ -210,6 +205,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     'Tiers payeur',
     'Montant HT en €',
     'Montant TTC en €',
+    'Nombre d\'heures',
     'Services',
     'Date de création',
   ];
@@ -221,7 +217,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
-      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [
         {
@@ -244,7 +240,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
           lastname: 'Horseman',
         },
       },
-      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [
         {
@@ -302,18 +298,21 @@ describe('exportBillsAndCreditNotesHistory', () => {
   let mockBill;
   let mockCreditNote;
   let formatPriceStub;
+  let formatHourStub;
   let formatFloatForExportStub;
 
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
     mockCreditNote = sinon.mock(CreditNote);
     formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
+    formatHourStub = sinon.stub(UtilsHelper, 'formatHour');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
   });
   afterEach(() => {
     mockBill.restore();
     mockCreditNote.restore();
     formatPriceStub.restore();
+    formatHourStub.restore();
     formatFloatForExportStub.restore();
   });
 
@@ -325,7 +324,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns([]);
     mockCreditNote.expects('find')
@@ -354,7 +353,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns([{}]);
     mockCreditNote.expects('find')
@@ -368,17 +367,21 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('lean')
       .returns([{}]);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
-      ['Facture', '', '', '', '', '', '', '', '', '', '', '', ''],
-      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Facture', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
     mockBill.verify();
     mockCreditNote.verify();
+    sinon.assert.callCount(formatPriceStub, 0);
+    sinon.assert.callCount(formatHourStub, 0);
+    sinon.assert.callCount(formatFloatForExportStub, 4);
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -390,7 +393,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('populate')
       .withExactArgs(populateCustomerQuery)
       .chain('populate')
-      .withExactArgs('client')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .returns(bills);
     mockCreditNote
@@ -405,12 +408,14 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .chain('lean')
       .returns(creditNotes);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     sinon.assert.callCount(formatPriceStub, 3);
-    sinon.assert.callCount(formatFloatForExportStub, 8);
+    sinon.assert.callCount(formatFloatForExportStub, 10);
+    sinon.assert.callCount(formatHourStub, 3);
     expect(exportArray).toEqual([
       header,
       [
@@ -425,7 +430,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'TF1',
         'F-389276.0208',
         'F-389276.023',
-        'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC',
+        'F-20',
+        'Temps de qualité - autonomie - 20h - P-410686.201944 TTC',
         '11/10/2019',
       ],
       [
@@ -440,7 +446,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'The Sherif',
         'F-1018.6307999',
         'F-1057.1319439',
-        'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC',
+        'F-22',
+        'Forfait nuit - 15h - P-738.521944 TTC\r\nForfait nuit - 7h - P-302 TTC',
         '12/10/2019',
       ],
       [
@@ -455,6 +462,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'SW',
         'F-18.5',
         'F-8.5',
+        '',
         'Temps de qualité - autonomie',
         '15/10/2019',
       ],
@@ -470,12 +478,14 @@ describe('exportBillsAndCreditNotesHistory', () => {
         '',
         'F-10.5',
         'F-5.5',
+        '',
         'Temps de qualité - autonomie',
         '16/10/2019',
       ],
     ]);
     mockBill.verify();
     mockCreditNote.verify();
+    sinon.assert.callCount(formatHourStub, 3);
   });
 });
 
@@ -564,704 +574,6 @@ describe('exportContractHistory', () => {
       ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
     contractMock.verify();
-  });
-});
-
-describe('exportCustomers', () => {
-  let CustomerModel;
-  let getLastVersion;
-  beforeEach(() => {
-    CustomerModel = sinon.mock(Customer);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(versions => versions[0]);
-  });
-
-  afterEach(() => {
-    CustomerModel.restore();
-    getLastVersion.restore();
-  });
-
-  it('should return csv header', async () => {
-    const customers = [];
-    const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-
-    const credentials = { company: { _id: companyId } };
-    const result = await ExportHelper.exportCustomers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject([
-      'Titre',
-      'Nom',
-      'Prenom',
-      'Date de naissance',
-      'Adresse',
-      '1ère intervention',
-      'Auxiliaire référent',
-      'Environnement',
-      'Objectifs',
-      'Autres',
-      'Nom associé au compte bancaire',
-      'IBAN',
-      'BIC',
-      'RUM',
-      'Date de signature du mandat',
-      'Nombre de souscriptions',
-      'Souscriptions',
-      'Nombre de financements',
-      'Date de création',
-      'Statut',
-    ]);
-    CustomerModel.verify();
-  });
-
-  it('should return customer info', async () => {
-    const customers = [
-      {
-        email: 'papi@mamie.pp',
-        identity: {
-          lastname: 'Papi',
-          firstname: 'Grand Père',
-          title: 'mr',
-          birthDate: '1919-12-12T00:00:00.000+00:00',
-        },
-        contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
-        followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
-        firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
-        referent: {
-          identity: {
-            firstname: 'Toto',
-            lastname: 'Test',
-          },
-        },
-        payment: {
-          bankAccountOwner: 'Lui',
-          iban: 'Boom Ba Da Boom',
-          bic: 'bic bic',
-          mandates: [{ rum: 'Grippe et rhume', signedAt: '2012-12-12T00:00:00.000+00:00' }],
-        },
-        subscriptions: [
-          { service: { versions: [{ name: 'Au service de sa majesté' }] } },
-          { service: { versions: [{ name: 'Service public' }] } },
-          { service: { versions: [{ name: 'Service civique' }] } },
-        ],
-        fundings: [{ _id: 'toto' }, { _id: 'lala' }],
-        createdAt: '2012-12-12T00:00:00.000+00:00',
-      },
-    ];
-    const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-    const credentials = { company: { _id: companyId } };
-    const result = await ExportHelper.exportCustomers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      'M.',
-      'PAPI',
-      'Grand Père',
-      '12/12/1919',
-      '9 rue du paradis 70015 Paris',
-      '08/08/2019',
-      'Toto Test',
-      'Père Castor',
-      'Savate et charentaises',
-      'Lala',
-      'Lui',
-      'Boom Ba Da Boom',
-      'bic bic',
-      'Grippe et rhume',
-      '12/12/2012',
-      3,
-      'Au service de sa majesté\r\n Service public\r\n Service civique',
-      2,
-      '12/12/2012',
-      'Actif',
-    ]);
-    CustomerModel.verify();
-  });
-
-  it('should return empty strings if missing data', async () => {
-    const customers = [{}];
-    const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-
-    const credentials = { company: { _id: companyId } };
-    const result = await ExportHelper.exportCustomers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      0,
-      '',
-      0,
-      '',
-      'Inactif',
-    ]);
-    CustomerModel.verify();
-  });
-});
-
-describe('exportAuxiliaries', () => {
-  let UserModel;
-  let RoleModel;
-  let getLastVersion;
-  beforeEach(() => {
-    UserModel = sinon.mock(User);
-    RoleModel = sinon.mock(Role);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
-  });
-
-  afterEach(() => {
-    UserModel.restore();
-    RoleModel.restore();
-    getLastVersion.restore();
-  });
-
-  it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom',
-      'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
-      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
-      'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
-      'Date de création']);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [
-      {
-        _id: new ObjectID(),
-        local: { email: 'aide@sos.io' },
-        contact: { phone: '0123456789' },
-        inactivityDate: '2019-02-01T09:38:18.653Z',
-        createdAt: '2019-02-01T09:38:18.653Z',
-      },
-    ];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      'aide@sos.io',
-      '',
-      auxiliaries[0]._id,
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '0123456789',
-      0,
-      '',
-      '',
-      '',
-      '01/02/2019',
-      '01/02/2019',
-    ]);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary sector', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [{ sector: { name: 'La ruche' }, _id: new ObjectID() }];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '', '', '', '']);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary identity', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [
-      {
-        _id: new ObjectID(),
-        identity: {
-          title: 'mr',
-          firstname: 'Super',
-          lastname: 'Mario',
-          birthDate: '1994-02-07T09:38:18.653Z',
-          birthCountry: 'FR',
-          birthState: 78,
-          birthCity: 'Paris',
-          nationality: 'FR',
-          socialSecurityNumber: '0987654321',
-        },
-      },
-    ];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      '',
-      '',
-      auxiliaries[0]._id,
-      'M.',
-      'MARIO',
-      'Super',
-      '07/02/1994',
-      'France',
-      78,
-      'Paris',
-      'Française',
-      '0987654321',
-      '',
-      '',
-      0,
-      '',
-      '',
-      '',
-      '',
-      '',
-    ]);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary contracts info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [
-      {
-        _id: new ObjectID(),
-        contracts: [
-          { _id: 1, startDate: '2019-11-10', status: COMPANY_CONTRACT, endDate: '2019-12-01' },
-          { _id: 1, startDate: '2019-12-02', status: COMPANY_CONTRACT },
-          { _id: 1, startDate: '2019-12-04', status: CUSTOMER_CONTRACT },
-        ],
-      },
-    ];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[2]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '10/11/2019', '01/12/2019', '', '']);
-    expect(result[2]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '02/12/2019', '', '', '']);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary address', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [
-      { contact: { address: { fullAddress: 'La ruche' } }, _id: new ObjectID() },
-    ];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '', '', '', '']);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-
-  it('should return auxiliary establishment', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
-    const auxiliaries = [
-      { establishment: { name: 'Test' }, _id: new ObjectID() },
-    ];
-    UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
-
-    const result = await ExportHelper.exportAuxiliaries(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, 'Test', '', '', '', '']);
-    UserModel.verify();
-    RoleModel.verify();
-  });
-});
-
-describe('exportHelpers', () => {
-  let UserModel;
-  let RoleModel;
-  let getLastVersion;
-  const credentials = { company: { _id: new ObjectID() } };
-  beforeEach(() => {
-    UserModel = sinon.mock(User);
-    RoleModel = sinon.mock(Role);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
-  });
-
-  afterEach(() => {
-    UserModel.restore();
-    RoleModel.restore();
-    getLastVersion.restore();
-  });
-
-  it('should return csv header', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
-    const helpers = [];
-    UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
-
-    const result = await ExportHelper.exportHelpers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject([
-      'Email',
-      'Aidant - Nom',
-      'Aidant - Prénom',
-      'Bénéficiaire - Titre',
-      'Bénéficiaire - Nom',
-      'Bénéficiaire - Prénom',
-      'Bénéficiaire - Rue',
-      'Bénéficiaire - Code postal',
-      'Bénéficiaire - Ville',
-      'Bénéficiaire - Statut',
-      'Date de création',
-    ]);
-
-    UserModel.verify();
-  });
-
-  it('should return helper info', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
-    const helpers = [{
-      local: { email: 'aide@sos.io' },
-      identity: { lastname: 'Je', firstname: 'suis' },
-      createdAt: '2019-02-01T09:38:18.653Z',
-    }];
-    UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
-
-    const result = await ExportHelper.exportHelpers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
-  });
-
-  it('should return customer helper info', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
-    const helpers = [{
-      customers: [{
-        firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
-        identity: { title: 'mr', lastname: 'Patate' },
-        contact: {
-          primaryAddress: {
-            fullAddress: '37 rue de Ponthieu 75008 Paris',
-            street: '37 rue de Ponthieu',
-            zipCode: '75008',
-            city: 'Paris',
-          },
-        },
-      }],
-    }];
-    UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
-
-    const result = await ExportHelper.exportHelpers(credentials);
-
-    UserModel.verify();
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      '',
-      '',
-      '',
-      'M.',
-      'PATATE',
-      '',
-      '37 rue de Ponthieu',
-      '75008',
-      'Paris',
-      'Actif',
-      '',
-    ]);
-  });
-});
-
-describe('exportSectors', () => {
-  let SectorHistoryModel;
-  beforeEach(() => {
-    SectorHistoryModel = sinon.mock(SectorHistory);
-  });
-
-  afterEach(() => {
-    SectorHistoryModel.restore();
-  });
-
-  it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
-      .chain('lean')
-      .returns([]);
-
-    const result = await ExportHelper.exportSectors(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject([
-      'Equipe',
-      'Id de l\'auxiliaire',
-      'Nom',
-      'Prénom',
-      'Date d\'arrivée dans l\'équipe',
-      'Date de départ de l\'équipe',
-    ]);
-    SectorHistoryModel.verify();
-  });
-
-  it('should return sector info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const sectorHistories = [{
-      sector: { name: 'test' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto', lastname: 'Tutu' },
-      },
-      startDate: '2019-11-10',
-    },
-    {
-      sector: { name: 'test2' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto2', lastname: 'Tutu2' },
-      },
-      startDate: '2019-11-10',
-      endDate: '2019-12-10',
-    }];
-    SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
-      .chain('lean')
-      .returns(sectorHistories);
-
-    const result = await ExportHelper.exportSectors(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toMatchObject([
-      'test',
-      sectorHistories[0].auxiliary._id,
-      'Tutu',
-      'toto',
-      '10/11/2019',
-      '',
-    ]);
-    expect(result[2]).toMatchObject([
-      'test2',
-      sectorHistories[1].auxiliary._id,
-      'Tutu2',
-      'toto2',
-      '10/11/2019',
-      '10/12/2019',
-    ]);
-    SectorHistoryModel.verify();
   });
 });
 

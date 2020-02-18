@@ -15,9 +15,9 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should compute draft final pay', async () => {
@@ -37,7 +37,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -109,9 +109,9 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     previousMonthHoursCounter: 20,
   }];
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should create a new final pay', async () => {
@@ -159,7 +159,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

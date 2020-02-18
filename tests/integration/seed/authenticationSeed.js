@@ -5,6 +5,8 @@ const Role = require('../../../src/models/Role');
 const Right = require('../../../src/models/Right');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const app = require('../../../server');
 
 const rightsList = [
@@ -197,7 +199,7 @@ const auxiliaryWithoutCompanyRights = [];
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'superAdmin',
+    name: 'seller_admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: true,
@@ -205,7 +207,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'admin',
+    name: 'client_admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: adminRights.includes(right.permission),
@@ -229,7 +231,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'auxiliaryWithoutCompany',
+    name: 'auxiliary_without_company',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
@@ -237,7 +239,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'planningReferent',
+    name: 'planning_referent',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: planningReferentRights.includes(right.permission),
@@ -287,7 +289,7 @@ const userList = [
     identity: { firstname: 'Admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'admin')._id,
+    role: rolesList.find(role => role.name === 'client_admin')._id,
     company: authCompany._id,
   },
   {
@@ -300,7 +302,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary', lastname: 'Test' },
+    identity: { firstname: 'Auxiliary', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
@@ -311,15 +313,15 @@ const userList = [
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
     local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliaryWithoutCompany')._id,
+    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
     company: authCompany._id,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'PlanningReferent', lastname: 'Test' },
+    identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'planningReferent')._id,
+    role: rolesList.find(role => role.name === 'planning_referent')._id,
     company: authCompany._id,
   },
   {
@@ -332,12 +334,32 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'SuperAdmin', lastname: 'SuperChef' },
+    identity: { firstname: 'seller_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
     local: { email: 'super-admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'superAdmin')._id,
+    role: rolesList.find(role => role.name === 'seller_admin')._id,
     company: authCompany._id,
   },
+];
+
+const sector = {
+  _id: new ObjectID(),
+  name: 'Test',
+  company: authCompany._id,
+};
+
+const sectorHistories = [{
+  auxiliary: userList[2]._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+},
+{
+  auxiliary: userList[4]._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+},
 ];
 
 const populateDBForAuthentication = async () => {
@@ -345,8 +367,13 @@ const populateDBForAuthentication = async () => {
   await Right.deleteMany({});
   await User.deleteMany({});
   await Company.deleteMany({});
+  await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
+
   await new Company(authCompany).save();
   await new Company(otherCompany).save();
+  await new Sector(sector).save();
+  await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {

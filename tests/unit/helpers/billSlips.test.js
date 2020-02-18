@@ -137,12 +137,12 @@ describe('createBillSlips', () => {
   });
 
   it('should not create new bill slip', async () => {
-    const client1 = new ObjectID();
-    const client2 = new ObjectID();
-    const billList = [{ client: client1 }, { client: client2 }];
+    const thirdPartyPayer1 = new ObjectID();
+    const thirdPartyPayer2 = new ObjectID();
+    const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID() };
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
+      .withExactArgs({ thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] }, month: '09-2019', company: company._id })
       .chain('lean')
       .once()
       .returns([{ _id: new ObjectID() }, { _id: new ObjectID() }]);
@@ -157,13 +157,17 @@ describe('createBillSlips', () => {
     BillSlipMock.verify();
   });
   it('should create new bill slips', async () => {
-    const client1 = new ObjectID();
-    const client2 = new ObjectID();
-    const billList = [{ client: client1 }, { client: client2 }];
+    const thirdPartyPayer1 = new ObjectID();
+    const thirdPartyPayer2 = new ObjectID();
+    const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
+      .withExactArgs({
+        thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+        month: '09-2019',
+        company: company._id,
+      })
       .chain('lean')
       .once()
       .returns([]);
@@ -172,8 +176,8 @@ describe('createBillSlips', () => {
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
     BillSlipMock.expects('insertMany')
       .withExactArgs([
-        { company: company._id, month: '09-2019', thirdPartyPayer: client1, number: 'BORD-129ASD00012' },
-        { company: company._id, month: '09-2019', thirdPartyPayer: client2, number: 'BORD-129ASD00013' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ])
       .once();
 
@@ -191,13 +195,17 @@ describe('createBillSlips', () => {
   });
 
   it('should create new bill slips from a creditNote', async () => {
-    const client1 = new ObjectID();
-    const client2 = new ObjectID();
-    const billList = [{ thirdPartyPayer: client1 }, { thirdPartyPayer: client2 }];
+    const thirdPartyPayer1 = new ObjectID();
+    const thirdPartyPayer2 = new ObjectID();
+    const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
+      .withExactArgs({
+        thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+        month: '09-2019',
+        company: company._id,
+      })
       .chain('lean')
       .once()
       .returns([]);
@@ -206,8 +214,8 @@ describe('createBillSlips', () => {
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
     BillSlipMock.expects('insertMany')
       .withExactArgs([
-        { company: company._id, month: '09-2019', thirdPartyPayer: client1, number: 'BORD-129ASD00012' },
-        { company: company._id, month: '09-2019', thirdPartyPayer: client2, number: 'BORD-129ASD00013' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ])
       .once();
 

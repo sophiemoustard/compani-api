@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const uuidv4 = require('uuid/v4');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
@@ -11,8 +12,11 @@ const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
+const Contract = require('../../../src/models/Contract');
+const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const {
   PAYMENT,
@@ -22,62 +26,23 @@ const {
   HOURLY,
   CUSTOMER_CONTRACT,
   PAID_LEAVE,
+  INVOICED_AND_PAID,
   DAILY,
+  INTERNAL_HOUR,
+  INTERVENTION,
+  ABSENCE,
+  UNJUSTIFIED,
+  AUXILIARY_INITIATIVE,
+  AUXILIARY,
+  EVERY_DAY,
+  MISTER,
+  MONTHLY,
 } = require('../../../src/helpers/constants');
 
 const sector = {
   _id: new ObjectID(),
   name: 'Etoile',
   company: authCompany._id,
-};
-
-const auxiliary = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Lola', lastname: 'Lili' },
-  role: rolesList.find(role => role.name === 'admin')._id,
-  local: { email: 'toto@alenvi.io', password: '1234567890' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-};
-
-const sectorHistory = {
-  auxiliary: auxiliary._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-};
-
-const customer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  identity: { firstname: 'Lola', lastname: 'Lili' },
-  subscriptions: [
-    { _id: new ObjectID() },
-  ],
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0612345678',
-  },
-};
-
-const company = {
-  prefixNumber: 103,
-  _id: new ObjectID(),
-  name: 'Test',
-  tradeName: 'TT',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfds',
 };
 
 const surcharge = {
@@ -115,10 +80,167 @@ const serviceList = [
   },
 ];
 
+const authBillService = {
+  serviceId: new ObjectID(),
+  name: 'Temps de qualité - autonomie',
+  nature: 'fixed',
+};
+
+const contract1Id = new ObjectID();
+const contract2Id = new ObjectID();
+const contract3Id = new ObjectID();
+
+const establishment = {
+  _id: new ObjectID(),
+  name: 'Toto',
+  siret: '12345678901234',
+  address: {
+    street: '15, rue du test',
+    fullAddress: '15, rue du test 75007 Paris',
+    zipCode: '75007',
+    city: 'Paris',
+    location: {
+      type: 'Point',
+      coordinates: [4.849302, 2.90887],
+    },
+  },
+  phone: '0123456789',
+  workHealthService: 'MT01',
+  urssafCode: '117',
+  company: authCompany,
+};
+
+const auxiliaryList = [{
+  _id: new ObjectID(),
+  establishment: establishment._id,
+  identity: {
+    firstname: 'Lulu',
+    lastname: 'Lala',
+    title: MISTER,
+    birthDate: moment('1992-01-01').toDate(),
+    birthCountry: 'FR',
+    birthState: '75',
+    birthCity: 'Paris',
+    nationality: 'FR',
+    socialSecurityNumber: '012345678912345',
+  },
+  contact: {
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0123456789',
+  },
+  role: rolesList.find(role => role.name === AUXILIARY)._id,
+  local: { email: 'export_auxiliary_1@alenvi.io', password: '1234567890' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  contracts: [contract1Id, contract2Id],
+}, {
+  _id: new ObjectID(),
+  establishment: establishment._id,
+  identity: {
+    firstname: 'Lili',
+    lastname: 'Lolo',
+    title: MISTER,
+    birthDate: moment('1992-01-01').toDate(),
+    birthCountry: 'FR',
+    birthState: '75',
+    birthCity: 'Paris',
+    nationality: 'FR',
+    socialSecurityNumber: '012345678912345',
+  },
+  contact: {
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0123456789',
+  },
+  role: rolesList.find(role => role.name === AUXILIARY)._id,
+  local: { email: 'export_auxiliary_2@alenvi.io', password: '1234567890' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  contracts: [contract3Id],
+}];
+
+const contractList = [{
+  _id: contract1Id,
+  user: auxiliaryList[0]._id,
+  status: COMPANY_CONTRACT,
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01', endDate: '2020-01-01' }],
+  startDate: '2018-01-01',
+  endDate: '2020-01-01',
+  company: authCompany._id,
+}, {
+  _id: contract2Id,
+  user: auxiliaryList[0]._id,
+  status: COMPANY_CONTRACT,
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
+  startDate: '2020-02-01',
+  company: authCompany._id,
+}, {
+  _id: contract3Id,
+  user: auxiliaryList[1]._id,
+  status: COMPANY_CONTRACT,
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
+  startDate: '2020-02-01',
+  company: authCompany._id,
+}];
+
+const sectorHistory = {
+  auxiliary: auxiliaryList[0]._id,
+  sector: sector._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+};
+
+const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
+
+const customer = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  identity: { firstname: 'Lola', lastname: 'Lili', title: 'mrs' },
+  subscriptions: [
+    { _id: new ObjectID(), service: serviceList[0]._id },
+  ],
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0612345678',
+  },
+};
+
+const company = {
+  prefixNumber: 103,
+  _id: new ObjectID(),
+  name: 'Test',
+  tradeName: 'TT',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'mnbvcxz',
+  auxiliariesFolderId: 'kjhgfds',
+};
+
 const customerThirdPartyPayer = {
   _id: new ObjectID(),
   company: authCompany._id,
   isApa: true,
+  name: 'tiers payeurs',
 };
 
 const subscriptionId = new ObjectID();
@@ -132,7 +254,9 @@ const customersList = [
       title: 'mr',
       firstname: 'Romain',
       lastname: 'Bardet',
+      birthDate: moment('1940-01-01').toDate(),
     },
+    referent: auxiliaryList[0]._id,
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -147,9 +271,14 @@ const customersList = [
       {
         _id: subscriptionId,
         service: serviceList[0]._id,
-        versions: [{
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
+        versions: [
+          {
+            unitTTCRate: 12,
+            estimatedWeeklyVolume: 30,
+            evenings: 1,
+            sundays: 2,
+          },
+        ],
       },
       {
         _id: new ObjectID(),
@@ -165,11 +294,28 @@ const customersList = [
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayer._id,
         subscription: subscriptionId,
+        frequency: MONTHLY,
         versions: [{
           startDate: '2018-02-03T22:00:00.000+01:00',
+          folderNumber: '12345',
+          unitTTCRate: 10,
+          amountTTC: 21,
+          customerParticipationRate: 12,
+          careHours: 9,
+          careDays: [0, 1, 2],
         }],
       },
     ],
+    payment: {
+      bankAccountOwner: 'Test Toto',
+      iban: 'FR6930003000405885475816L80',
+      bic: 'ABNAFRPP',
+    },
+    followUp: {
+      misc: '123456789',
+      environment: 'test',
+      objectives: 'toto',
+    },
   },
   {
     _id: new ObjectID(),
@@ -225,24 +371,40 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
-    endDate: '2019-01-19T17:00:18.653Z',
-    auxiliary,
+    endDate: '2019-01-21T22:59:00.000Z',
+    auxiliary: auxiliaryList[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'intervention',
+    type: ABSENCE,
+    absence: UNJUSTIFIED,
+    absenceNature: HOURLY,
+    startDate: '2019-01-19T14:00:18.653Z',
+    endDate: '2019-01-19T16:00:00.000Z',
+    auxiliary: auxiliaryList[0]._id,
+    createdAt: '2019-01-11T08:38:18.653Z',
+    misc: 'test absence',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary,
+    auxiliary: auxiliaryList[0]._id,
     customer: customer._id,
+    isCancelled: true,
+    misc: 'test',
+    cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
@@ -257,13 +419,65 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector,
-    type: 'intervention',
+    type: INTERVENTION,
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary,
     customer: customer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customer.subscriptions[0]._id,
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    status: 'contract_with_company',
+    startDate: '2020-01-17T14:30:19.543Z',
+    endDate: '2020-01-17T16:30:19.543Z',
+    customer: customersList[0]._id,
+    createdAt: '2020-01-16T14:30:19.543Z',
+    subscription: customer.subscriptions[0]._id,
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    auxiliary: auxiliaryList[0]._id,
+    type: INTERNAL_HOUR,
+    internalHour: internalHour._id,
+    status: 'contract_with_company',
+    startDate: '2019-01-17T14:30:19.543Z',
+    endDate: '2019-01-17T16:30:19.543Z',
+    createdAt: '2019-01-16T14:30:19.543Z',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    status: 'contract_with_company',
+    startDate: '2019-01-11T09:30:19.543Z',
+    endDate: '2019-01-11T11:30:21.653Z',
+    auxiliary: auxiliaryList[0]._id,
+    customer: customer._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -275,12 +489,6 @@ const eventList = [
   },
 ];
 
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'fixed',
-};
-
 const billsList = [
   {
     _id: new ObjectID(),
@@ -288,7 +496,7 @@ const billsList = [
     number: 'FACT-1905002',
     company: authCompany._id,
     customer: customer._id,
-    client: thirdPartyPayer._id,
+    thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
       startDate: '2019-05-29',
@@ -383,7 +591,7 @@ const payList = [
     _id: new ObjectID(),
     company: authCompany._id,
     additionalHours: 0,
-    auxiliary,
+    auxiliary: auxiliaryList[0]._id,
     bonus: 0,
     contractHours: 151,
     diff: {
@@ -425,7 +633,7 @@ const payList = [
     _id: new ObjectID(),
     company: authCompany._id,
     additionalHours: 0,
-    auxiliary,
+    auxiliary: auxiliaryList[0]._id,
     bonus: 0,
     contractHours: 151,
     diff: {
@@ -470,7 +678,7 @@ const finalPayList = [
     _id: new ObjectID(),
     company: authCompany._id,
     additionalHours: 0,
-    auxiliary,
+    auxiliary: auxiliaryList[0]._id,
     bonus: 0,
     compensation: 10,
     contractHours: 151,
@@ -515,7 +723,7 @@ const finalPayList = [
     _id: new ObjectID(),
     company: authCompany._id,
     additionalHours: 0,
-    auxiliary,
+    auxiliary: auxiliaryList[0]._id,
     bonus: 0,
     compensation: 10,
     contractHours: 151,
@@ -611,13 +819,17 @@ const populateEvents = async () => {
   await Customer.deleteMany();
   await Sector.deleteMany();
   await SectorHistory.deleteMany();
+  await InternalHour.deleteMany();
+  await Service.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
-  await new User(auxiliary).save();
+  await User.insertMany(auxiliaryList);
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
   await new Customer(customer).save();
+  await new InternalHour(internalHour).save();
+  await Service.insertMany(serviceList);
 };
 
 const populateSectorHistories = async () => {
@@ -626,7 +838,7 @@ const populateSectorHistories = async () => {
   await SectorHistory.deleteMany();
 
   await populateDBForAuthentication();
-  await new User(auxiliary).save();
+  await User.insertMany(auxiliaryList);
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
 };
@@ -669,31 +881,58 @@ const populateCustomer = async () => {
   await ThirdPartyPayer.deleteMany();
   await Service.deleteMany();
   await Company.deleteMany();
+  await Event.deleteMany();
+  await User.deleteMany();
 
   await populateDBForAuthentication();
+
   await (new Company(company)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(serviceList);
+  await User.insertMany(auxiliaryList);
   await Customer.insertMany(customersList);
+  await Event.insertMany(eventList);
 };
 
 const populateUser = async () => {
   await User.deleteMany();
   await Customer.deleteMany();
+  await Contract.deleteMany();
+  await Establishment.deleteMany();
+
   await populateDBForAuthentication();
+
   await (new User(user)).save();
+  await User.insertMany(auxiliaryList);
+  await Contract.insertMany(contractList);
   await (new Customer(customer)).save();
+  await (new Establishment(establishment)).save();
 };
 
 const populatePay = async () => {
   await Pay.deleteMany();
   await FinalPay.deleteMany();
   await User.deleteMany();
+  await SectorHistory.deleteMany();
+  await Sector.deleteMany();
+  await Contract.deleteMany();
 
   await populateDBForAuthentication();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
-  await new User(auxiliary).save();
+  await User.insertMany(auxiliaryList);
+  await new SectorHistory(sectorHistory).save();
+  await new Sector(sector).save();
+  await Contract.insertMany(contractList);
+};
+
+const populateContract = async () => {
+  await User.deleteMany();
+  await Contract.deleteMany();
+
+  await populateDBForAuthentication();
+  await User.insertMany(auxiliaryList);
+  await Contract.insertMany(contractList);
 };
 
 module.exports = {
@@ -706,4 +945,9 @@ module.exports = {
   populateCustomer,
   populateUser,
   populateSectorHistories,
+  populateContract,
+  billsList,
+  creditNotesList,
+  auxiliaryList,
+  establishment,
 };

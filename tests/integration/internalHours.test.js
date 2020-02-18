@@ -25,10 +25,10 @@ describe('INTERNAL HOURS ROUTES', () => {
 
   describe('POST /internalhours', () => {
     const payload = { name: 'Test3', default: false };
-    describe('Admin', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('client_admin');
       });
 
       it('should create a new company internal hour', async () => {
@@ -77,7 +77,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -98,10 +98,10 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('GET /internalhours', () => {
-    describe('Admin', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('client_admin');
       });
 
       it('should get internal hours (company A)', async () => {
@@ -132,7 +132,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -152,10 +152,10 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('PUT /internalhours/:id', () => {
-    describe('Admin', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('client_admin');
       });
 
       it('should update an internal hour', async () => {
@@ -203,7 +203,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -226,7 +226,7 @@ describe('INTERNAL HOURS ROUTES', () => {
   });
 
   describe('DELETE /internalhours/:id', () => {
-    describe('Admin', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getTokenByCredentials(internalHourUsers[0].local);
@@ -292,7 +292,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 

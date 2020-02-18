@@ -68,7 +68,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
-      client: get(tpp.bills[0], 'thirdPartyPayer._id', null),
+      thirdPartyPayer: get(tpp.bills[0], 'thirdPartyPayer._id', null),
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
@@ -193,14 +193,14 @@ exports.getBills = async (query, credentials) => {
   if (startDate || endDate) billsQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
   billsQuery.company = get(credentials, 'company._id', null);
 
-  return Bill.find(billsQuery).populate({ path: 'client', select: '_id name' }).lean();
+  return Bill.find(billsQuery).populate({ path: 'thirdPartyPayer', select: '_id name' }).lean();
 };
 
 exports.getUnitInclTaxes = (bill, subscription) => {
-  if (!bill.client) return subscription.unitInclTaxes;
+  if (!bill.thirdPartyPayer) return subscription.unitInclTaxes;
 
   const funding = bill.customer.fundings
-    .find(fund => fund.thirdPartyPayer.toHexString() === bill.client._id.toHexString());
+    .find(fund => fund.thirdPartyPayer.toHexString() === bill.thirdPartyPayer._id.toHexString());
   if (!funding) return 0;
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
@@ -265,10 +265,14 @@ exports.formatPDF = (bill, company) => {
     date: moment(bill.date).format('DD/MM/YYYY'),
     formattedEvents: [],
     recipient: {
-      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.primaryAddress', {}),
-      name: bill.client ? bill.client.name : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
+      address: bill.thirdPartyPayer
+        ? get(bill, 'thirdPartyPayer.address', {})
+        : get(bill, 'customer.contact.primaryAddress', {}),
+      name: bill.thirdPartyPayer
+        ? bill.thirdPartyPayer.name
+        : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
-    forTpp: !!bill.client,
+    forTpp: !!bill.thirdPartyPayer,
     ...exports.formatBillSubscriptionsForPdf(bill),
   };
 
@@ -292,7 +296,7 @@ exports.formatPDF = (bill, company) => {
 
 exports.generateBillPdf = async (params, credentials) => {
   const bill = await Bill.findOne({ _id: params._id, origin: COMPANI })
-    .populate({ path: 'client', select: '_id name address' })
+    .populate({ path: 'thirdPartyPayer', select: '_id name address' })
     .populate({ path: 'customer', select: '_id identity contact fundings' })
     .populate({ path: 'subscriptions.events.auxiliary', select: 'identity' })
     .lean();

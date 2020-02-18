@@ -13,7 +13,7 @@ describe('ROLES ROUTES', () => {
   let token = null;
 
   describe('GET /roles', () => {
-    describe('Admin', () => {
+    describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         token = await getToken('coach');
@@ -54,7 +54,7 @@ describe('ROLES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
 

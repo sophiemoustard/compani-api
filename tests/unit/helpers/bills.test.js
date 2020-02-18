@@ -589,7 +589,7 @@ describe('formatThirdPartyPayerBills', () => {
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
-      client: 'Papa',
+      thirdPartyPayer: 'Papa',
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }],
@@ -656,7 +656,7 @@ describe('formatThirdPartyPayerBills', () => {
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
-      client: 'Papa',
+      thirdPartyPayer: 'Papa',
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }],
@@ -720,7 +720,7 @@ describe('formatThirdPartyPayerBills', () => {
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
-      client: 'Papa',
+      thirdPartyPayer: 'Papa',
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }],
@@ -810,7 +810,7 @@ describe('formatThirdPartyPayerBills', () => {
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
-      client: 'Papa',
+      thirdPartyPayer: 'Papa',
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
@@ -1138,7 +1138,7 @@ describe('formatAndCreateBills', () => {
       tppBills: [{
         customer: customerIdData,
         number: 'FACT-1911002',
-        client: tppBill.thirdPartyPayer._id,
+        thirdPartyPayer: tppBill.thirdPartyPayer._id,
         netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
         date: tppBill.endDate,
         company: companyIdData,
@@ -1301,7 +1301,7 @@ describe('formatAndCreateBills', () => {
       tppBills: [{
         customer: customerIdData,
         number: 'FACT-1911002',
-        client: tppBill.thirdPartyPayer._id,
+        thirdPartyPayer: tppBill.thirdPartyPayer._id,
         netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
         date: tppBill.endDate,
         company: companyIdData,
@@ -1406,7 +1406,7 @@ describe('formatAndCreateBills', () => {
       tppBills: [{
         customer: customerIdData,
         number: 'FACT-1911002',
-        client: tppBill.thirdPartyPayer._id,
+        thirdPartyPayer: tppBill.thirdPartyPayer._id,
         netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
         date: tppBill.endDate,
         company: companyIdData,
@@ -1578,7 +1578,7 @@ describe('getBills', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('lean')
       .returns(bills);
 
@@ -1598,7 +1598,7 @@ describe('getBills', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id, date: dateQuery })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('lean')
       .returns(bills);
 
@@ -1618,7 +1618,7 @@ describe('getBills', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id, date: dateQuery })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('lean')
       .returns(bills);
 
@@ -1651,7 +1651,7 @@ describe('getUnitInclTaxes', () => {
 
   it('should return 0 if no matching funding found', () => {
     const bill = {
-      client: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectID() },
       customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] },
     };
     const subscription = { unitInclTaxes: 20 };
@@ -1665,7 +1665,7 @@ describe('getUnitInclTaxes', () => {
   it('should return incl taxes amount for FIXED funding', () => {
     const tppId = new ObjectID();
     const bill = {
-      client: { _id: tppId },
+      thirdPartyPayer: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
     };
     const subscription = { vat: 20 };
@@ -1682,7 +1682,7 @@ describe('getUnitInclTaxes', () => {
   it('should return unit incl taxes from funding if HOURLY fudning', () => {
     const tppId = new ObjectID();
     const bill = {
-      client: { _id: tppId },
+      thirdPartyPayer: { _id: tppId },
       customer: {
         fundings: [
           {
@@ -1926,7 +1926,7 @@ describe('formatPDF', () => {
         identity: { title: 'mr', firstname: 'Donald', lastname: 'Duck' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
-      client: {
+      thirdPartyPayer: {
         name: 'tpp',
         address: { fullAddress: 'j\'habite ici' },
       },
@@ -1991,7 +1991,7 @@ describe('generateBillPdf', async () => {
     BillMock.expects('findOne')
       .withExactArgs({ _id: bill._id, origin: 'compani' })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name address' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name address' })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: '_id identity contact fundings' })
       .chain('populate')

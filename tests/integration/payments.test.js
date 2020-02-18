@@ -38,9 +38,9 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
     type: 'direct_debit',
   };
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
     const creationAssertions = [{ ...originalPayload }, { ...originalPayload, nature: REFUND }];
 
@@ -141,7 +141,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -188,7 +188,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
   describe('Admin with company', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should create multiple payments', async () => {
@@ -309,7 +309,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -339,9 +339,9 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
     type: 'direct_debit',
   };
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should update payment', async () => {
@@ -428,7 +428,7 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

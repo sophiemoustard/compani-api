@@ -20,9 +20,9 @@ describe('BALANCES ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get all clients balances', async () => {
@@ -87,7 +87,7 @@ describe('BALANCES ROUTES - GET /', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -110,9 +110,9 @@ describe('BALANCES ROUTES - GET /details', () => {
   const helper = balanceUserList[0];
   beforeEach(populateDB);
 
-  describe('Admin', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get all clients balances', async () => {
@@ -157,7 +157,7 @@ describe('BALANCES ROUTES - GET /details', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliaryWithoutCompany', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 

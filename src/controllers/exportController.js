@@ -15,22 +15,10 @@ const {
   PAY,
   CONTRACT,
   SECTOR,
+  RUP,
 } = require('../helpers/constants');
-const { exportServices } = require('../helpers/services');
-const { exportSubscriptions } = require('../helpers/subscriptions');
-const { exportFundings } = require('../helpers/fundings');
-const {
-  exportWorkingEventsHistory,
-  exportAbsencesHistory,
-  exportBillsAndCreditNotesHistory,
-  exportContractHistory,
-  exportCustomers,
-  exportAuxiliaries,
-  exportHelpers,
-  exportPayAndFinalPayHistory,
-  exportSectors,
-  exportPaymentsHistory,
-} = require('../helpers/export');
+const HistoryExportHelper = require('../helpers/historyExport');
+const DataExportHelper = require('../helpers/dataExport');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -41,25 +29,28 @@ const exportData = async (req, h) => {
     let data;
     switch (type) {
       case AUXILIARY:
-        data = await exportAuxiliaries(credentials);
+        data = await DataExportHelper.exportAuxiliaries(credentials);
         break;
       case HELPER:
-        data = await exportHelpers(credentials);
+        data = await DataExportHelper.exportHelpers(credentials);
         break;
       case FUNDING:
-        data = await exportFundings(credentials);
+        data = await DataExportHelper.exportFundings(credentials);
         break;
       case CUSTOMER:
-        data = await exportCustomers(credentials);
+        data = await DataExportHelper.exportCustomers(credentials);
         break;
       case SUBSCRIPTION:
-        data = await exportSubscriptions(credentials);
+        data = await DataExportHelper.exportSubscriptions(credentials);
         break;
       case SERVICE:
-        data = await exportServices(credentials);
+        data = await DataExportHelper.exportServices(credentials);
         break;
       case SECTOR:
-        data = await exportSectors(credentials);
+        data = await DataExportHelper.exportSectors(credentials);
+        break;
+      case RUP:
+        data = await DataExportHelper.exportStaffRegister(credentials);
         break;
     }
 
@@ -83,22 +74,22 @@ const exportHistory = async (req, h) => {
     let exportArray;
     switch (type) {
       case WORKING_EVENT:
-        exportArray = await exportWorkingEventsHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportWorkingEventsHistory(startDate, endDate, credentials);
         break;
       case BILL:
-        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportBillsAndCreditNotesHistory(startDate, endDate, credentials);
         break;
       case PAYMENT:
-        exportArray = await exportPaymentsHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportPaymentsHistory(startDate, endDate, credentials);
         break;
       case ABSENCE:
-        exportArray = await exportAbsencesHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportAbsencesHistory(startDate, endDate, credentials);
         break;
       case PAY:
-        exportArray = await exportPayAndFinalPayHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
         break;
       case CONTRACT:
-        exportArray = await exportContractHistory(startDate, endDate, credentials);
+        exportArray = await HistoryExportHelper.exportContractHistory(startDate, endDate, credentials);
         break;
     }
 
