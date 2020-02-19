@@ -1051,65 +1051,65 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  // describe('GET /users/:id/tasks', () => {
-  //   describe('CLIENT_ADMIN', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('client_admin', usersSeedList);
-  //     });
-  //     it('should return user tasks', async () => {
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: `/users/${usersSeedList[0]._id.toHexString()}/tasks`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(200);
-  //       expect(res.result.data.user).toBeDefined();
-  //       expect(res.result.data.tasks.length).toBe(usersSeedList[0].procedure.length);
-  //     });
+  describe('GET /users/:id/tasks', () => {
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin', usersSeedList);
+      });
+      it('should return user tasks', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/tasks`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.user).toBeDefined();
+        expect(res.result.data.tasks.length).toBe(usersSeedList[0].procedure.length);
+      });
 
-  //     it('should return a 404 error if no user found', async () => {
-  //       const id = new ObjectID().toHexString();
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: `/users/${id}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(404);
-  //     });
+      it('should return a 404 error if no user found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
 
-  //     it('should return a 403 error if user not from same company', async () => {
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: `/users/${userList[2]._id}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(403);
-  //     });
-  //   });
+      it('should return a 403 error if user not from same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${userList[2]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 403 },
-  //       { name: 'auxiliary_without_company', expectedCode: 403 },
-  //       { name: 'coach', expectedCode: 200 },
-  //     ];
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = await getToken(role.name, usersSeedList);
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: `/users/${usersSeedList[1]._id.toHexString()}/tasks`,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name, usersSeedList);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/${usersSeedList[1]._id.toHexString()}/tasks`,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
   describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
