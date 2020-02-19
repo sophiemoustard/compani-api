@@ -111,12 +111,12 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
     {
       $lookup: {
         from: 'roles',
-        localField: 'role',
+        localField: 'role.client',
         foreignField: '_id',
-        as: 'role',
+        as: 'role.client',
       },
     },
-    { $unwind: { path: '$role' } },
+    { $unwind: { path: '$role.client' } },
     {
       $lookup: {
         from: 'contracts',
@@ -136,7 +136,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
       totalHours: 1,
       'lastEvent.startDate': 1,
       // to compute isActive
-      'role.name': 1,
+      'role.client.name': 1,
       inactivityDate: 1,
       createdAt: 1,
       contracts: 1,
