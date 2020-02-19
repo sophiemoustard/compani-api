@@ -1148,7 +1148,7 @@ describe('exportPaymentsHistory', () => {
           lastname: 'Mathy',
         },
       },
-      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
     }, {
       number: 'REG-101051900342',
@@ -1163,7 +1163,7 @@ describe('exportPaymentsHistory', () => {
           lastname: 'Horseman',
         },
       },
-      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      thirdPartyPayer: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1002.4,
     },
   ];
@@ -1183,7 +1183,7 @@ describe('exportPaymentsHistory', () => {
       .chain('populate')
       .withExactArgs({ path: 'customer', select: 'identity' })
       .chain('populate')
-      .withExactArgs({ path: 'client' })
+      .withExactArgs({ path: 'thirdPartyPayer' })
       .chain('lean')
       .once()
       .returns([]);
@@ -1199,7 +1199,7 @@ describe('exportPaymentsHistory', () => {
       .chain('populate')
       .withExactArgs({ path: 'customer', select: 'identity' })
       .chain('populate')
-      .withExactArgs({ path: 'client' })
+      .withExactArgs({ path: 'thirdPartyPayer' })
       .chain('lean')
       .once()
       .returns(paymentsList);

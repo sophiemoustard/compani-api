@@ -488,14 +488,14 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   const payments = await Payment.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
+    .populate({ path: 'thirdPartyPayer' })
     .lean();
 
   const rows = [paymentExportHeader];
 
   for (const payment of payments) {
     const customerId = get(payment.customer, '_id');
-    const clientId = get(payment.client, '_id');
+    const thirdPartyPayerId = get(payment.thirdPartyPayer, '_id');
     const cells = [
       PAYMENT_NATURE_LIST[payment.nature],
       payment.number || '',
@@ -504,8 +504,8 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
       CIVILITY_LIST[get(payment, 'customer.identity.title')] || '',
       get(payment, 'customer.identity.lastname', '').toUpperCase(),
       get(payment, 'customer.identity.firstname', ''),
-      clientId ? clientId.toHexString() : '',
-      get(payment.client, 'name') || '',
+      thirdPartyPayerId ? thirdPartyPayerId.toHexString() : '',
+      get(payment.thirdPartyPayer, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
       UtilsHelper.formatFloatForExport(payment.netInclTaxes),
     ];

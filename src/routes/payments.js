@@ -28,7 +28,7 @@ exports.plugin = {
           payload: Joi.object({
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
-            client: Joi.objectId(),
+            thirdPartyPayer: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
             nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),

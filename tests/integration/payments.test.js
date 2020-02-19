@@ -114,7 +114,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       });
     });
 
-    it('it should not create a payment if customer is not from the same company', async () => {
+    it('should not create a payment if customer is not from the same company', async () => {
       const payload = { ...originalPayload, customer: customerFromOtherCompany._id };
       const response = await app.inject({
         method: 'POST',
@@ -125,8 +125,8 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('it should not create a payment if client is not from the same company', async () => {
-      const payload = { ...originalPayload, client: tppFromOtherCompany._id };
+    it('should not create a payment if thirdPartyPayer is not from the same company', async () => {
+      const payload = { ...originalPayload, thirdPartyPayer: tppFromOtherCompany._id };
       const response = await app.inject({
         method: 'POST',
         url: '/payments',
@@ -254,7 +254,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       generateXML.restore();
     });
 
-    it('it should not create multiple payments if at least one customer is not from the same company', async () => {
+    it('should not create multiple payments if at least one customer is not from the same company', async () => {
       const payload = [
         { ...originalPayload[0], customer: customerFromOtherCompany._id },
         { ...originalPayload[1] },
@@ -268,9 +268,9 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('it should not create multiple payments if at least one paiement has a tpp', async () => {
+    it('should not create multiple payments if at least one paiement has a tpp', async () => {
       const payload = [
-        { ...originalPayload[0], client: new ObjectID() },
+        { ...originalPayload[0], thirdPartyPayer: new ObjectID() },
         { ...originalPayload[1] },
       ];
       const response = await app.inject({
