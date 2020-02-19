@@ -258,7 +258,7 @@ const contracts = [
 ];
 
 const sectorHistories = usersSeedList
-  .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
+  .filter(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id)
   .map(user => ({
     auxiliary: user._id,
     sector: userSectors[0]._id,

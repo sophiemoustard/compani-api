@@ -5,6 +5,7 @@ const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 const flat = require('flat');
 const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
@@ -45,23 +46,22 @@ exports.refreshToken = async (payload) => {
 
 exports.getUsersList = async (query, credentials) => {
   const params = {
-    ...pickBy(query),
+    ...pickBy(omit(query, ['role'])),
     company: get(credentials, 'company._id', null),
   };
 
   if (query.role) {
-    let role;
-    if (Array.isArray(query.role)) role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
-    else role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
+    const roleNames = Array.isArray(query.role) ? query.role : [query.role];
+    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
 
-    if (!role) throw Boom.notFound(translate[language].roleNotFound);
-    params.role = role;
+    if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
+    params['role.client'] = { $in: roles.map(role => role._id) };
   }
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
-    .populate({ path: 'role', select: 'name' })
+    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',

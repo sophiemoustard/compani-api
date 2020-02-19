@@ -265,7 +265,7 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(userList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
 
       it('should get all users (company B)', async () => {
@@ -280,11 +280,11 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(usersSeedList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
 
       it('should get all coachs users (company A)', async () => {
-        const coachUsers = userList.filter(u => isExistingRole(u.role, 'coach'));
+        const coachUsers = userList.filter(u => isExistingRole(u.role.client, 'coach'));
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=coach',
@@ -293,12 +293,15 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
+        res.result.data.users.forEach((user) => {
+          expect(user).toMatchObject({ role: { client: { name: 'coach' } } });
+        });
       });
 
       it('should get all coachs users (company B)', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role, 'coach'));
+        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'coach'));
 
         const res = await app.inject({
           method: 'GET',
@@ -308,12 +311,15 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
+        res.result.data.users.forEach((user) => {
+          expect(user).toMatchObject({ role: { client: { name: 'coach' } } });
+        });
       });
 
       it('should get all auxiliary users (company B)', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role, 'auxiliary'));
+        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'auxiliary'));
 
         const res = await app.inject({
           method: 'GET',
@@ -323,8 +329,10 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
+        res.result.data.users.forEach((user) => {
+          expect(user).toMatchObject({ role: { client: { name: 'auxiliary' } }, sector: { name: expect.any(String) } });
+        });
       });
 
       it('should not get users if role given doesn\'t exist', async () => {
@@ -388,7 +396,7 @@ describe('USERS ROUTES', () => {
       it('should get all auxiliary users', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
         const auxiliaryUsers = usersSeedList.filter(u =>
-          isExistingRole(u.role, 'auxiliary') || isExistingRole(u.role, 'planning_referent'));
+          isExistingRole(u.role.client, 'auxiliary') || isExistingRole(u.role.client, 'planning_referent'));
 
         const res = await app.inject({
           method: 'GET',

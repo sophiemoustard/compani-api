@@ -214,7 +214,7 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
       .chain('populate')
-      .withExactArgs({ path: 'role', select: 'name' })
+      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -232,7 +232,7 @@ describe('getUsersList', () => {
     UserMock.verify();
   });
 
-  it('should get users according to multiple roles', async () => {
+  it('should get users according to roles', async () => {
     const query = { role: ['auxiliary', 'planning_referent'] };
 
     RoleMock
@@ -243,13 +243,13 @@ describe('getUsersList', () => {
 
     UserMock
       .expects('find')
-      .withExactArgs({ role: roles, company: companyId }, {}, { autopopulate: false })
+      .withExactArgs({ 'role.client': { $in: roles.map(r => r._id) }, company: companyId }, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name' })
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
       .chain('populate')
-      .withExactArgs({ path: 'role', select: 'name' })
+      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -268,50 +268,15 @@ describe('getUsersList', () => {
     UserMock.verify();
   });
 
-  it('should get users according to a role', async () => {
-    const query = { role: 'auxiliary' };
-
-    RoleMock
-      .expects('findOne')
-      .withExactArgs({ name: query.role }, { _id: 1 })
-      .chain('lean')
-      .returns(roles[0]);
-
-    UserMock
-      .expects('find')
-      .withExactArgs({ role: roles[0], company: companyId }, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'procedure.task', select: 'name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'role', select: 'name' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-      })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
-
-    const result = await UsersHelper.getUsersList(query, credentials);
-    expect(result).toEqual(users);
-    RoleMock.verify();
-    UserMock.verify();
-  });
 
   it('should return a 404 error if role in query does not exist', async () => {
     const query = { role: 'toto' };
 
     RoleMock
-      .expects('findOne')
-      .withExactArgs({ name: query.role }, { _id: 1 })
+      .expects('find')
+      .withExactArgs({ name: { $in: [query.role] } }, { _id: 1 })
       .chain('lean')
-      .returns(null);
+      .returns([]);
 
     UserMock
       .expects('find')

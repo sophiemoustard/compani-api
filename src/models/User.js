@@ -176,7 +176,8 @@ async function findOneAndUpdate(next) {
 }
 
 const isActive = (auxiliary) => {
-  if (auxiliary.role && [AUXILIARY, PLANNING_REFERENT].includes(auxiliary.role.name)) {
+  const auxiliaryRoleName = get(auxiliary, 'role.client.name');
+  if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
     const { contracts, inactivityDate, createdAt } = auxiliary;
     const hasCompanyContract = contracts && contracts.some(c => c.status === COMPANY_CONTRACT);
     const isNew = (!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(createdAt, 'd') < 45;
