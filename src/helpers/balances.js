@@ -12,8 +12,8 @@ const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
+
   return !!(
-    bill.balance < 0 &&
     !bill._id.tpp &&
     bill.customer.payment &&
     bill.customer.payment.bankAccountOwner &&
@@ -69,14 +69,15 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
     ? exports.computePayments(correspondingPayment.payments)
     : 0;
   const billed = bill.billed - (correspondingCreditNote ? correspondingCreditNote.refund : 0);
+  const balance = paid - billed;
 
   return {
     ...bill,
     participationRate: exports.formatParticipationRate(bill, tppList),
     billed,
     paid,
-    balance: paid - billed,
-    toPay: exports.canBeDirectDebited(bill) ? Math.abs(paid - billed) : 0,
+    balance,
+    toPay: exports.canBeDirectDebited(bill) && balance < 0 ? Math.abs(paid - billed) : 0,
   };
 };
 
