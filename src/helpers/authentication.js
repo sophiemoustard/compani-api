@@ -13,7 +13,6 @@ const validate = async (decoded) => {
       .lean({ autopopulate: true });
     if (!user.company) return { isValid: false };
 
-
     const userRoles = Object.values(user.role);
     const userRolesName = userRoles.map(role => role.name);
     const rights = userRoles.reduce((acc, role) => {
