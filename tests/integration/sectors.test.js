@@ -24,7 +24,7 @@ describe('SECTORS ROUTES', () => {
 
       it('should create a new company sector', async () => {
         const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
-        const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
+        const clientAdmin = userList.find(u => u.role.client.toHexString() === clientAdminRole._id.toHexString());
         const sectorsBefore = await Sector.find({ company: clientAdmin.company.toHexString() }).lean();
 
         const payload = { name: 'Test3' };
@@ -88,7 +88,7 @@ describe('SECTORS ROUTES', () => {
 
       it('should get sectors', async () => {
         const clientAdminRole = rolesList.find(r => r.name === 'client_admin');
-        const clientAdmin = userList.find(u => u.role.toHexString() === clientAdminRole._id.toHexString());
+        const clientAdmin = userList.find(u => u.role.client.toHexString() === clientAdminRole._id.toHexString());
         const sectors = await Sector.find({ company: clientAdmin.company.toHexString() }).lean();
 
         const response = await app.inject({
