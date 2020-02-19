@@ -74,10 +74,10 @@ exports.getUsersList = async (query, credentials) => {
 exports.getUsersListWithSectorHistories = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
-  const params = { company: get(credentials, 'company._id', null), role: { $in: roleIds } };
+  const params = { company: get(credentials, 'company._id', null), 'role.client': { $in: roleIds } };
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'role', select: 'name' })
+    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',

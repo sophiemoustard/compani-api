@@ -322,9 +322,9 @@ describe('getUsersListWithSectorHistories', () => {
 
     UserMock
       .expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: companyId }, {}, { autopopulate: false })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: companyId }, {}, { autopopulate: false })
       .chain('populate')
-      .withExactArgs({ path: 'role', select: 'name' })
+      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sectorHistories',
