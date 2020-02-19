@@ -81,7 +81,7 @@ const creditNoteUserList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [creditNoteCustomer._id],
     company: authCompany._id,
   },
@@ -90,7 +90,7 @@ const creditNoteUserList = [
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
   },
 ];
@@ -304,7 +304,7 @@ const otherCompanyUser = {
   identity: { firstname: 'Tutu', lastname: 'Toto' },
   local: { email: 'other_user@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,
 };
 

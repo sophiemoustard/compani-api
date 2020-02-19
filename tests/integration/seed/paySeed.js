@@ -28,7 +28,7 @@ const user = {
   local: { email: 'test4@alenvi.io', password: '123456' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'coach')._id,
+  role: { client: rolesList.find(role => role.name === 'coach')._id },
   inactivityDate: '2018-11-01T12:52:27.461Z',
   company: authCompany._id,
 };
@@ -39,7 +39,7 @@ const auxiliaries = [{
   local: { email: 'test7@alenvi.io', password: '123456' },
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId1,
   company: authCompany._id,
 }, {
@@ -48,7 +48,7 @@ const auxiliaries = [{
   local: { email: 'test8@alenvi.io', password: '123456' },
   employee_id: 12345679,
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId2,
   company: authCompany._id,
 }];
@@ -59,7 +59,7 @@ const auxiliaryFromOtherCompany = {
   local: { email: 'othercompany@alenvi.io', password: '123456' },
   employee_id: 9876543,
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId2,
   sector: sectors[0]._id,
   company: otherCompany._id,

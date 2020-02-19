@@ -155,7 +155,7 @@ const paymentUser = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'helper')._id,
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [paymentCustomerList[0]._id],
   company: authCompany._id,
 };
@@ -176,7 +176,7 @@ const userFromOtherCompany = {
   company: otherCompany._id,
   refreshToken: uuidv4(),
   identity: { firstname: 'toto', lastname: 'toto' },
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   local: { email: 'test_other_company@alenvi.io', password: '123456' },
 };
 

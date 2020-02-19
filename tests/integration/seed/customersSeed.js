@@ -360,7 +360,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[0]._id],
   },
   {
@@ -369,7 +369,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[1]._id],
   },
   {
@@ -378,7 +378,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[3]._id],
   },
   {
@@ -387,7 +387,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: otherCompanyCustomerId,
   },
   {
@@ -396,7 +396,7 @@ const userList = [
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'client_admin')._id,
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   },
 ];
 
