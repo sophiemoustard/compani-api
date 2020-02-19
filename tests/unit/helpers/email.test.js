@@ -6,20 +6,19 @@ const NodemailerHelper = require('../../../src/helpers/nodemailer');
 
 describe('helperWelcomeEmail', () => {
   let EmailOptionsHelperStub;
-  let NodemailerHelperStub;
+  let sendinBlueTransporter;
   const receiver = { email: 't@t.com', password: 'mdp' };
   const sentObj = { msg: 'Message sent !' };
 
   beforeEach(() => {
     EmailOptionsHelperStub = sinon.stub(EmailOptionsHelper, 'welcomeEmailContent');
-    NodemailerHelperStub = sinon
-      .stub(NodemailerHelper, 'testTransporter')
+    sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter')
       .returns({ sendMail: sinon.stub().returns(sentObj) });
   });
 
   afterEach(() => {
     EmailOptionsHelperStub.restore();
-    NodemailerHelperStub.restore();
+    sendinBlueTransporter.restore();
   });
 
   it('should send a welcoming email to newly registered helper with company trade name', async () => {
@@ -28,7 +27,7 @@ describe('helperWelcomeEmail', () => {
     const result = await EmailHelper.helperWelcomeEmail(receiver, company);
 
     sinon.assert.calledWithExactly(EmailOptionsHelperStub, receiver, company.tradeName);
-    sinon.assert.calledOnce(NodemailerHelperStub);
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
     expect(result).toMatchObject(sentObj);
   });
 
@@ -38,7 +37,7 @@ describe('helperWelcomeEmail', () => {
     const result = await EmailHelper.helperWelcomeEmail(receiver, company);
 
     sinon.assert.calledWithExactly(EmailOptionsHelperStub, receiver, company.name);
-    sinon.assert.calledOnce(NodemailerHelperStub);
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
     expect(result).toMatchObject(sentObj);
   });
 });
