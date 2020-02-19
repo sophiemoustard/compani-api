@@ -439,95 +439,95 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  // describe('GET /users/active', () => {
-  //   describe('CLIENT_ADMIN', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('client_admin');
-  //     });
+  describe('GET /users/active', () => {
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin');
+      });
 
-  //     it('should get all active users (company A)', async () => {
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: '/users/active',
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should get all active users (company A)', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active',
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(res.statusCode).toBe(200);
-  //       const activeUsers = userList.filter(u => isInList(res.result.data.users, u));
-  //       expect(res.result.data.users.length).toBe(activeUsers.length);
-  //       expect(res.result.data.users).toEqual(expect.arrayContaining([
-  //         expect.objectContaining({ isActive: true }),
-  //       ]));
-  //     });
+        expect(res.statusCode).toBe(200);
+        const activeUsers = userList.filter(u => isInList(res.result.data.users, u));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+      });
 
-  //     it('should get all active users (company B)', async () => {
-  //       authToken = await getTokenByCredentials(usersSeedList[0].local);
+      it('should get all active users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
 
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: '/users/active',
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(200);
-  //       const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u));
-  //       expect(res.result.data.users.length).toBe(activeUsers.length);
-  //       expect(res.result.data.users).toEqual(expect.arrayContaining([
-  //         expect.objectContaining({ isActive: true }),
-  //       ]));
-  //     });
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+      });
 
-  //     it('should get all active auxiliary users (company B)', async () => {
-  //       authToken = await getTokenByCredentials(usersSeedList[0].local);
+      it('should get all active auxiliary users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
 
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: '/users/active?role=auxiliary',
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(200);
-  //       const activeUsers = usersSeedList
-  //         .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
-  //       expect(res.result.data.users.length).toBe(activeUsers.length);
-  //       expect(res.result.data.users).toEqual(expect.arrayContaining([
-  //         expect.objectContaining({ isActive: true }),
-  //       ]));
-  //       expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
-  //       expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
-  //     });
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active?role=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        const activeUsers = usersSeedList
+          .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role.client, 'auxiliary'));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+        expect(res.result.data.users.every(user => user.role.client.name === 'auxiliary')).toBeTruthy();
+        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
+      });
 
-  //     it('should return a 403 if not from the same company', async () => {
-  //       const res = await app.inject({
-  //         method: 'GET',
-  //         url: `/users/active?email=${userFromOtherCompany.local.email}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(res.statusCode).toBe(403);
-  //     });
-  //   });
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/active?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 200 },
-  //       { name: 'auxiliary_without_company', expectedCode: 403 },
-  //       { name: 'coach', expectedCode: 200 },
-  //     ];
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: '/users/active',
-  //           headers: { 'x-access-token': authToken },
-  //         });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/users/active',
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
   // describe('GET /users/:id', () => {
   //   describe('CLIENT_ADMIN', () => {
