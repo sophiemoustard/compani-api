@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-const sendinBlueTransporter = nodemailer.createTransport({
+const sendinBlueTransporter = () => nodemailer.createTransport({
   service: 'SendinBlue',
   auth: {
     user: process.env.SENDINBLUE_USER,
