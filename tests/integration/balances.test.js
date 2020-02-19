@@ -34,51 +34,54 @@ describe('BALANCES ROUTES - GET /', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.balances).toBeDefined();
-      expect(response.result.data.balances).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          _id: { tpp: balanceThirdPartyPayer._id, customer: balanceCustomerList[1]._id },
-          customer: expect.objectContaining({
-            _id: balanceCustomerList[1]._id,
-            identity: balanceCustomerList[1].identity,
-            payment: expect.objectContaining({
-              bankAccountOwner: balanceCustomerList[1].payment.bankAccountOwner,
-              bic: balanceCustomerList[1].payment.bic,
-              iban: balanceCustomerList[1].payment.iban,
-              mandates: expect.arrayContaining([
-                expect.objectContaining({
-                  _id: balanceCustomerList[1].payment.mandates[0]._id,
-                  rum: balanceCustomerList[1].payment.mandates[0].rum,
-                }),
-              ]),
-            }),
-          }),
-          thirdPartyPayer: { _id: balanceThirdPartyPayer._id, name: balanceThirdPartyPayer.name },
-          paid: 0,
-          billed: balanceBillList[1].netInclTaxes,
-          balance: -balanceBillList[1].netInclTaxes,
-        }),
-        expect.objectContaining({
-          _id: { tpp: null, customer: balanceCustomerList[0]._id },
-          customer: expect.objectContaining({
-            _id: balanceCustomerList[0]._id,
-            identity: balanceCustomerList[0].identity,
-            payment: expect.objectContaining({
-              bankAccountOwner: balanceCustomerList[0].payment.bankAccountOwner,
-              bic: balanceCustomerList[0].payment.bic,
-              iban: balanceCustomerList[0].payment.iban,
-              mandates: expect.arrayContaining([
-                expect.objectContaining({
-                  _id: balanceCustomerList[0].payment.mandates[0]._id,
-                  rum: balanceCustomerList[0].payment.mandates[0].rum,
-                }),
-              ]),
-            }),
-          }),
-          paid: 0,
-          billed: balanceBillList[0].netInclTaxes,
-          balance: -balanceBillList[0].netInclTaxes,
-        }),
-      ]));
+      expect(response.result.data.balances[0]).toMatchObject({
+        _id: { tpp: balanceThirdPartyPayer._id, customer: balanceCustomerList[1]._id },
+        customer: {
+          _id: balanceCustomerList[1]._id,
+          identity: balanceCustomerList[1].identity,
+          fundings: [],
+          payment: {
+            bankAccountOwner: balanceCustomerList[1].payment.bankAccountOwner,
+            bic: balanceCustomerList[1].payment.bic,
+            iban: balanceCustomerList[1].payment.iban,
+            mandates: [{
+              _id: balanceCustomerList[1].payment.mandates[0]._id,
+              rum: balanceCustomerList[1].payment.mandates[0].rum,
+              signedAt: new Date('2020-01-23T00:00:00'),
+            }],
+          },
+        },
+        thirdPartyPayer: { _id: balanceThirdPartyPayer._id, name: balanceThirdPartyPayer.name },
+        paid: 0,
+        participationRate: 0,
+        toPay: 0,
+        billed: balanceBillList[1].netInclTaxes,
+        balance: -balanceBillList[1].netInclTaxes,
+      });
+      expect(response.result.data.balances[1]).toMatchObject({
+        _id: { tpp: null, customer: balanceCustomerList[0]._id },
+        customer: {
+          _id: balanceCustomerList[0]._id,
+          fundings: [],
+          identity: balanceCustomerList[0].identity,
+          payment: {
+            bankAccountOwner: balanceCustomerList[0].payment.bankAccountOwner,
+            bic: balanceCustomerList[0].payment.bic,
+            iban: balanceCustomerList[0].payment.iban,
+            mandates: [{
+              _id: balanceCustomerList[0].payment.mandates[0]._id,
+              rum: balanceCustomerList[0].payment.mandates[0].rum,
+              createdAt: expect.any(Date),
+              signedAt: new Date('2020-01-23T00:00:00'),
+            }],
+          },
+        },
+        paid: 0,
+        participationRate: 100,
+        toPay: 101.28,
+        billed: balanceBillList[0].netInclTaxes,
+        balance: -balanceBillList[0].netInclTaxes,
+      });
     });
   });
 

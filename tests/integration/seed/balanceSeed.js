@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
+const moment = require('../../../src/extensions/moment');
 const uuidv4 = require('uuid/v4');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
@@ -95,9 +95,7 @@ const balanceCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [
-        { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-      ],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' }],
     },
     subscriptions: [
       {
@@ -161,7 +159,7 @@ const balanceCustomerList = [
       iban: '',
       bic: '',
       mandates: [
-        { rum: 'R012345678903456789', _id: new ObjectID() },
+        { rum: 'R012345678903456789', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' },
       ],
     },
   },
