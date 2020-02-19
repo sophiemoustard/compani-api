@@ -163,7 +163,12 @@ describe('refreshToken', () => {
   });
   it('should return refresh token', async () => {
     const payload = { refreshToken: 'token' };
-    const user = { _id: new ObjectID(), refreshToken: 'token', local: { password: 'toto' }, role: { name: 'role' } };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+      role: { client: { name: 'role' } },
+    };
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
       .chain('lean')
@@ -178,10 +183,14 @@ describe('refreshToken', () => {
       token: 'token',
       refreshToken: user.refreshToken,
       expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString(), role: user.role.name },
+      user: { _id: user._id.toHexString(), role: [user.role.client.name] },
     });
     UserMock.verify();
-    sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString(), role: user.role.name }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledWithExactly(
+      encode,
+      { _id: user._id.toHexString(), role: [user.role.client.name] },
+      TOKEN_EXPIRE_TIME
+    );
   });
 });
 
