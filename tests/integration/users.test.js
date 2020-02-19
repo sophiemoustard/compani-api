@@ -293,10 +293,11 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
-        res.result.data.users.forEach((user) => {
-          expect(user).toMatchObject({ role: { client: { name: 'coach' } } });
-        });
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
+          }),
+        ]));
       });
 
       it('should get all coachs users (company B)', async () => {
@@ -312,9 +313,11 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
-        res.result.data.users.forEach((user) => {
-          expect(user).toMatchObject({ role: { client: { name: 'coach' } } });
-        });
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
+          }),
+        ]));
       });
 
       it('should get all auxiliary users (company B)', async () => {
@@ -329,10 +332,12 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
-        res.result.data.users.forEach((user) => {
-          expect(user).toMatchObject({ role: { client: { name: 'auxiliary' } }, sector: { name: expect.any(String) } });
-        });
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
+            sector: expect.objectContaining({ name: expect.any(String) }),
+          }),
+        ]));
       });
 
       it('should not get users if role given doesn\'t exist', async () => {
@@ -406,13 +411,14 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
-        res.result.data.users.forEach((user) => {
-          expect(user).toMatchObject({
-            role: { client: { name: expect.stringMatching(/auxiliary|planning_referent/) } },
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({
+              client: expect.objectContaining({ name: expect.stringMatching(/auxiliary|planning_referent/) }),
+            }),
             sectorHistories: expect.any(Array),
-          });
-        });
+          }),
+        ]));
       });
     });
 
@@ -490,10 +496,12 @@ describe('USERS ROUTES', () => {
           .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role.client, 'auxiliary'));
         expect(res.result.data.users.length).toBe(activeUsers.length);
         expect(res.result.data.users).toEqual(expect.arrayContaining([
-          expect.objectContaining({ isActive: true }),
+          expect.objectContaining({
+            isActive: true,
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
+            sector: expect.objectContaining({ name: expect.any(String) }),
+          }),
         ]));
-        expect(res.result.data.users.every(user => user.role.client.name === 'auxiliary')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
       });
 
       it('should return a 403 if not from the same company', async () => {
