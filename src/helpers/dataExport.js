@@ -167,7 +167,7 @@ exports.exportAuxiliaries = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ role: { $in: roleIds }, company: companyId })
+    .find({ 'role.client': { $in: roleIds }, company: companyId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .populate({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
@@ -206,7 +206,7 @@ exports.exportHelpers = async (credentials) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   const companyId = get(credentials, 'company._id', null);
   const helpers = await User
-    .find({ role: role._id, company: companyId })
+    .find({ 'role.client': role._id, company: companyId })
     .populate({
       path: 'customers',
       populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
