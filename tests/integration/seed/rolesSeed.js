@@ -22,6 +22,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'general',
+    interface: 'client',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -36,6 +37,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'chef',
+    interface: 'client',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -50,6 +52,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'adjudant',
+    interface: 'client',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -65,6 +68,7 @@ const rolesList = [
 
 const rolePayload = {
   name: 'Test',
+  interface: 'client',
   rights: [
     {
       right_id: rightsList[0]._id,

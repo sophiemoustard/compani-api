@@ -66,7 +66,7 @@ const auxiliaries = [
     local: { email: 't@p.com', password: 'tourdefrance' },
     administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: rolesList[1]._id,
+    role: { client: rolesList[1]._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
   },
@@ -76,7 +76,7 @@ const auxiliaries = [
     local: { email: 'm@p.com', password: 'tourdefrance' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: rolesList[1]._id,
+    role: { client: rolesList[1]._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
   },
@@ -103,7 +103,7 @@ const auxiliaryFromOtherCompany = {
   local: { email: 'j@m.com', password: '1234' },
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
-  role: rolesList[1]._id,
+  role: { client: rolesList[1]._id },
   company: otherCompany._id,
 };
 
@@ -199,7 +199,7 @@ const helpersCustomer = {
   local: { email: 'tt@tt.com', password: 'mdpdeouf' },
   refreshToken: uuidv4(),
   customers: [customerAuxiliary._id],
-  role: rolesList[4]._id,
+  role: { client: rolesList[4]._id },
   company: authCompany._id,
 };
 

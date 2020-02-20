@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
@@ -6,6 +5,7 @@ const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 const flat = require('flat');
 const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
@@ -28,7 +28,7 @@ exports.authenticate = async (payload) => {
   const correctPassword = await bcrypt.compare(payload.password, user.local.password);
   if (!correctPassword) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -38,7 +38,7 @@ exports.refreshToken = async (payload) => {
   const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
   if (!user) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: user.role.name });
+  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -46,23 +46,22 @@ exports.refreshToken = async (payload) => {
 
 exports.getUsersList = async (query, credentials) => {
   const params = {
-    ...pickBy(query),
+    ...pickBy(omit(query, ['role'])),
     company: get(credentials, 'company._id', null),
   };
 
   if (query.role) {
-    let role;
-    if (Array.isArray(query.role)) role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
-    else role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
+    const roleNames = Array.isArray(query.role) ? query.role : [query.role];
+    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
 
-    if (!role) throw Boom.notFound(translate[language].roleNotFound);
-    params.role = role;
+    if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
+    params['role.client'] = { $in: roles.map(role => role._id) };
   }
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
-    .populate({ path: 'role', select: 'name' })
+    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -75,10 +74,10 @@ exports.getUsersList = async (query, credentials) => {
 exports.getUsersListWithSectorHistories = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
-  const params = { company: get(credentials, 'company._id', null), role: { $in: roleIds } };
+  const params = { company: get(credentials, 'company._id', null), 'role.client': { $in: roleIds } };
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'role', select: 'name' })
+    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
@@ -138,9 +137,11 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 exports.createUser = async (userPayload, credentials) => {
-  const { sector, ...payload } = cloneDeep(userPayload);
-  const role = await Role.findById(payload.role, { name: 1 }).lean();
+  const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
+  const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
+
+  payload.role = { [role.interface]: role._id };
 
   if ([AUXILIARY, PLANNING_REFERENT].includes(role.name)) {
     const tasks = await Task.find({}, { _id: 1 }).lean();
@@ -148,31 +149,37 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const userId = mongoose.Types.ObjectId();
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  await User.create({ ...payload, _id: userId, company: companyId, refreshToken: uuidv4() });
-  if (sector) await SectorHistoriesHelper.createHistory({ _id: userId, sector }, companyId);
+  const user = await User.create({ ...payload, company: companyId, refreshToken: uuidv4() });
+  if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User
-    .findOne({ _id: userId })
+    .findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
+  const payload = cloneDeep(userPayload);
   const companyId = get(credentials, 'company._id', null);
   const options = { new: true };
   let update;
 
-  if (has(userPayload, 'administrative.certificates')) update = { $pull: userPayload };
-  else {
-    update = { $set: flat(userPayload) };
-    options.runValidators = true;
+  if (payload.role) {
+    const role = await Role.findById(payload.role, { name: 1, interface: 1 }).lean();
+    if (!role) throw Boom.badRequest('Role does not exist');
+    payload.role = { [role.interface]: role._id };
   }
 
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  if (has(payload, 'administrative.certificates')) {
+    update = { $pull: payload };
+  } else {
+    update = { $set: flat(payload, { maxDepth: 2 }) };
+  }
+
+  if (payload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
   return User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)

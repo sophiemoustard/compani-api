@@ -10,7 +10,7 @@ const user = {
   _id: new ObjectID(),
   identity: { firstname: 'Bob', lastname: 'Marley' },
   local: { email: 'lala@alenvi.io', password: '123456' },
-  role: rolesList[1]._id,
+  role: { client: rolesList[1]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
 };
@@ -19,14 +19,14 @@ const eventHistoryAuxiliaries = [{
   _id: new ObjectID(),
   identity: { firstname: 'Mimi', lastname: 'Mita' },
   local: { email: 'lili@alenvi.io', password: '123456' },
-  role: rolesList[2]._id,
+  role: { client: rolesList[2]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'Mimi2', lastname: 'Mita' },
   local: { email: 'lili2@alenvi.io', password: '123456' },
-  role: rolesList[2]._id,
+  role: { client: rolesList[2]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
 }];
@@ -117,7 +117,7 @@ const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'Mita' },
   local: { email: 'otherCompany@alenvi.io', password: '123456' },
-  role: rolesList[2]._id,
+  role: { client: rolesList[2]._id },
   company: otherCompany._id,
   refreshToken: uuidv4(),
 };

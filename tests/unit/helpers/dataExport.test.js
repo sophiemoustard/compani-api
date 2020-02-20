@@ -185,7 +185,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -227,7 +227,7 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -279,7 +279,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [{ sector: { name: 'La ruche' }, _id: new ObjectID() }];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -326,7 +326,7 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -387,7 +387,7 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -426,7 +426,7 @@ describe('exportAuxiliaries', () => {
       { contact: { address: { fullAddress: 'La ruche' } }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -461,7 +461,7 @@ describe('exportAuxiliaries', () => {
       { establishment: { name: 'Test' }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
+      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
@@ -508,7 +508,7 @@ describe('exportHelpers', () => {
 
     const helpers = [];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
+      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({
         path: 'customers',
@@ -548,7 +548,7 @@ describe('exportHelpers', () => {
       createdAt: '2019-02-01T09:38:18.653Z',
     }];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
+      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({
         path: 'customers',
@@ -584,7 +584,7 @@ describe('exportHelpers', () => {
       }],
     }];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId, company: credentials.company._id })
+      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
       .chain('populate')
       .withExactArgs({
         path: 'customers',
