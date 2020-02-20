@@ -924,9 +924,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/certificates', () => {
-    const updatePayload = {
-      'administrative.certificates': { driveId: usersSeedList[0].administrative.certificates.driveId },
-    };
+    const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -940,9 +938,8 @@ describe('USERS ROUTES', () => {
           payload: updatePayload,
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser.administrative.certificates.length)
-          .toBe(usersSeedList[0].administrative.certificates.length - 1);
       });
 
       it('should return a 404 error if no user found', async () => {

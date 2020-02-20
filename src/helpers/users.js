@@ -159,40 +159,38 @@ exports.createUser = async (userPayload, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-const formatUpdatePayload = async (payload) => {
-  let set;
-  let pull;
-  const certificates = get(payload, 'administrative.certificates');
-  if (!certificates) set = payload;
-  else {
-    pull = { administrative: { certificates } };
-    const omitKeys = Object.keys(payload.administrative).length === 1
-      ? ['administrative']
-      : ['administrative.certificates'];
-    set = omit(payload, omitKeys);
-  }
+const formatUpdatePayload = async (updatedUser) => {
+  const payload = omit(updatedUser, ['role']);
 
-  if (payload.role) {
-    const role = await Role.findById(payload.role, { name: 1, interface: 1 }).lean();
+  if (updatedUser.role) {
+    const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
     if (!role) throw Boom.badRequest('Role does not exist');
-    set.role = { [role.interface]: role._id };
+    payload.role = { [role.interface]: role._id.toHexString() };
   }
 
-  const update = Object.keys(set).length > 0 ? { $set: flat(set, { maxDepth: 2 }) } : {};
-
-  return pull ? { ...update, $pull: pull } : update;
+  return payload;
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
-  const payload = cloneDeep(userPayload);
   const companyId = get(credentials, 'company._id', null);
 
-  if (payload.sector) await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
+  if (userPayload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  }
 
-  const update = await formatUpdatePayload(payload);
-  return User.findOneAndUpdate({ _id: userId, company: companyId }, update, { new: true })
+  const payload = await formatUpdatePayload(userPayload);
+  return User.findOneAndUpdate({ _id: userId, company: companyId }, { $set: flat(payload) }, { new: true })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
+};
+
+exports.updateUserCertificates = async (userId, userPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+
+  return User.updateOne(
+    { _id: userId, company: companyId },
+    { $pull: { 'administrative.certificates': userPayload.certificates } }
+  );
 };
 
 exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {

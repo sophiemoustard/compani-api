@@ -156,6 +156,38 @@ const rightsList = [
   },
 ];
 
+const sellerAdminRights = [
+  'companies:create',
+  'users:edit',
+];
+const clientAdminRights = [
+  'config:edit',
+  'config:read',
+  'bills:edit',
+  'bills:read',
+  'payments:edit',
+  'payments:list:create',
+  'pay:edit',
+  'pay:read',
+  'contracts:edit',
+  'exports:read',
+  'users:list',
+  'users:edit',
+  'events:edit',
+  'events:read',
+  'events:own:edit',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative:edit',
+  'companies:edit',
+  'roles:read',
+  'paydocuments:edit',
+  'taxcertificates:read',
+  'taxcertificates:edit',
+  'establishments:edit',
+  'establishments:read',
+];
 const coachRights = [
   'config:read',
   'bills:read',
@@ -177,16 +209,6 @@ const coachRights = [
   'taxcertificates:edit',
   'establishments:read',
 ];
-const adminRights = [
-  ...coachRights,
-  'config:edit',
-  'bills:edit',
-  'payments:edit',
-  'payments:list:create',
-  'pay:edit',
-  'companies:edit',
-  'establishments:edit',
-];
 const auxiliaryRights = [
   'config:read',
   'pay:read',
@@ -207,7 +229,7 @@ const rolesList = [
     interface: SELLER,
     rights: rightsList.map(right => ({
       right_id: right._id,
-      hasAccess: true,
+      hasAccess: sellerAdminRights.includes(right.permission),
     })),
   },
   {
@@ -216,7 +238,7 @@ const rolesList = [
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
-      hasAccess: adminRights.includes(right.permission),
+      hasAccess: clientAdminRights.includes(right.permission),
     })),
   },
   {

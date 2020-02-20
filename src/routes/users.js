@@ -285,7 +285,7 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
           payload: Joi.object().keys({
-            'administrative.certificates': Joi.object().keys({
+            certificates: Joi.object().keys({
               driveId: Joi.string(),
             }),
           }),

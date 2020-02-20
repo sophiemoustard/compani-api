@@ -29,7 +29,7 @@ const validate = async (decoded) => {
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
     const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];
-    if (user.role.client.name !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
+    if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
 
     const credentials = {
       _id: decoded._id,

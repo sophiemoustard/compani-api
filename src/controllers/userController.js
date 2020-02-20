@@ -143,7 +143,7 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    const updatedUser = await UsersHelper.updateUserCertificates(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userUpdated,
