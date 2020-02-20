@@ -359,18 +359,19 @@ const sector = {
   company: authCompany._id,
 };
 
-const sectorHistories = [{
-  auxiliary: userList[2]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-},
-{
-  auxiliary: userList[4]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-},
+const sectorHistories = [
+  {
+    auxiliary: userList[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
+  {
+    auxiliary: userList[4]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
 ];
 
 const populateDBForAuthentication = async () => {

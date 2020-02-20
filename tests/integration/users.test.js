@@ -661,12 +661,12 @@ describe('USERS ROUTES', () => {
             firstname: updatePayload.identity.firstname,
           }),
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-          role: { _id: updatePayload.role },
+          role: { client: { _id: updatePayload.role } },
         });
-        const updatedUser = await User.findById(res.result.data.updatedUser._id).populate({ path: 'role' });
+        const updatedUser = await User.findById(res.result.data.updatedUser._id).lean({ autopopulate: true });
         expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
         expect(updatedUser.local.email).toBe(updatePayload.local.email);
-        expect(updatedUser.role._id).toEqual(updatePayload.role);
+        expect(updatedUser.role.client._id).toEqual(updatePayload.role);
       });
 
       it('should update the user sector and sector history', async () => {

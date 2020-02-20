@@ -9,7 +9,6 @@ const get = require('lodash/get');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const roleSchemaDefinition = require('./schemaDefinitions/role');
 const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
@@ -23,6 +22,12 @@ const procedureSchema = mongoose.Schema({
     at: { type: Date, default: null },
   },
 }, { id: false });
+
+const roleSchemaDefinition = {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Role',
+  autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
+};
 
 // User schema
 const UserSchema = mongoose.Schema({

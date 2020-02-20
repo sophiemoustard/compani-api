@@ -161,18 +161,25 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
+  const payload = cloneDeep(userPayload);
   const companyId = get(credentials, 'company._id', null);
   const options = { new: true };
   let update;
 
-  if (has(userPayload, 'administrative.certificates')) update = { $pull: userPayload };
-  else {
-    update = { $set: flat(userPayload) };
-    options.runValidators = true;
+  if (payload.role) {
+    const role = await Role.findById(payload.role, { name: 1, interface: 1 }).lean();
+    if (!role) throw Boom.badRequest('Role does not exist');
+    payload.role = { [role.interface]: role._id };
   }
 
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  if (has(payload, 'administrative.certificates')) {
+    update = { $pull: payload };
+  } else {
+    update = { $set: flat(payload, { maxDepth: 2 }) };
+  }
+
+  if (payload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
   return User.findOneAndUpdate({ _id: userId, company: companyId }, update, options)

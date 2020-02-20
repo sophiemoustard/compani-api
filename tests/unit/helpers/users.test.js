@@ -719,6 +719,7 @@ describe('createUser', () => {
 
 describe('updateUser', () => {
   let UserMock;
+  let RoleMock;
   let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
@@ -734,10 +735,12 @@ describe('updateUser', () => {
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
   });
   afterEach(() => {
     UserMock.restore();
+    RoleMock.restore();
     updateHistoryOnSectorUpdateStub.restore();
   });
 
@@ -748,16 +751,19 @@ describe('updateUser', () => {
       .withExactArgs(
         { _id: userId, company: credentials.company._id },
         { $set: flat(payload) },
-        { new: true, runValidators: true }
+        { new: true }
       )
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
 
+    RoleMock.expects('findById').never();
+
     const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
+    RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
@@ -768,16 +774,19 @@ describe('updateUser', () => {
       .withExactArgs(
         { _id: userId, company: credentials.company._id },
         { $set: flat(payload) },
-        { new: true, runValidators: true }
+        { new: true }
       )
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
 
+    RoleMock.expects('findById').never();
+
     const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({ ...user, ...payload });
     UserMock.verify();
+    RoleMock.verify();
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
   });
 
@@ -791,11 +800,60 @@ describe('updateUser', () => {
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
 
+    RoleMock.expects('findById').never();
+
     const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({ ...user, ...payload });
     UserMock.verify();
+    RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
+  it('should update a user role', async () => {
+    const payload = { role: new ObjectID() };
+    const payloadWithRole = { 'role.client': payload.role };
+
+    UserMock
+      .expects('findOneAndUpdate')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...user, ...payloadWithRole });
+
+    RoleMock
+      .expects('findById')
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
+      .chain('lean')
+      .returns({ _id: payload.role, name: 'test', interface: 'client' });
+
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
+
+    expect(result).toMatchObject({ ...user, ...payloadWithRole });
+    UserMock.verify();
+    RoleMock.verify();
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
+  it('should return a 400 error if role does not exists', async () => {
+    const payload = { role: new ObjectID() };
+
+    RoleMock
+      .expects('findById')
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
+      .chain('lean')
+      .returns(null);
+
+    UserMock.expects('find').never();
+
+    try {
+      await UsersHelper.updateUser(userId, payload, credentials);
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+    } finally {
+      RoleMock.verify();
+      sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    }
   });
 });
 

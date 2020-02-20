@@ -234,7 +234,7 @@ const userSectors = [
 const userPayload = {
   identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
   local: { email: 'kirk@alenvi.io', password: '123456' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   sector: userSectors[0]._id,
 };
 
