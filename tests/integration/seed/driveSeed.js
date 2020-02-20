@@ -7,7 +7,10 @@ const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Harry', lastname: 'Potter' },
   local: { email: 'h@p.com', password: 'baguette' },
-  administrative: { driveFolder: { driveId: '1234567890' } },
+  administrative: {
+    driveFolder: { driveId: '1234567890' },
+    passport: { driveId: '1234567890', link: 'https://test.com/1234567890' },
+  },
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
   company: authCompany._id,
