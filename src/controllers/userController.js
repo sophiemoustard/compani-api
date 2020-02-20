@@ -228,7 +228,7 @@ const forgotPassword = async (req) => {
       html: forgetPasswordEmail(payload.resetPassword),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendinBlueTransporter.sendMail(mailOptions)
+      ? await sendinBlueTransporter().sendMail(mailOptions)
       : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
