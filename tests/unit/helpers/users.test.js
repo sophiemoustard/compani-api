@@ -791,7 +791,7 @@ describe('updateUser', () => {
   });
 
   it('should update a user certificate', async () => {
-    const payload = { 'administrative.certificates': { driveId: '1234567890' } };
+    const payload = { administrative: { certificates: { driveId: '1234567890' } } };
 
     UserMock
       .expects('findOneAndUpdate')
