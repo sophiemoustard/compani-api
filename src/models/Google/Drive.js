@@ -60,7 +60,6 @@ exports.getFileById = async (params) => {
 };
 
 exports.downloadFileById = async (params) => {
-  console.log('params', params);
   const dest = fs.createWriteStream(params.tmpFilePath);
   const auth = jwtClient();
   await auth.authorize();
