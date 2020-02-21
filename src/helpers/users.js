@@ -187,7 +187,7 @@ exports.updateUser = async (userId, userPayload, credentials) => {
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
-  return User.updateOne(
+  await User.updateOne(
     { _id: userId, company: companyId },
     { $pull: { 'administrative.certificates': userPayload.certificates } }
   );
