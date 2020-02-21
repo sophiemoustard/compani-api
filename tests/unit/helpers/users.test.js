@@ -790,29 +790,9 @@ describe('updateUser', () => {
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
   });
 
-  it('should update a user certificate', async () => {
-    const payload = { 'administrative.certificates': { driveId: '1234567890' } };
-
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $pull: payload }, { new: true })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
-
-    RoleMock.expects('findById').never();
-
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
-
-    expect(result).toMatchObject({ ...user, ...payload });
-    UserMock.verify();
-    RoleMock.verify();
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-  });
-
   it('should update a user role', async () => {
     const payload = { role: new ObjectID() };
-    const payloadWithRole = { 'role.client': payload.role };
+    const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
     UserMock
       .expects('findOneAndUpdate')
@@ -854,6 +834,30 @@ describe('updateUser', () => {
       RoleMock.verify();
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
+  });
+});
+
+describe('updateUserCertificates', async () => {
+  let updateOne;
+  const credentials = { company: { _id: new ObjectID() } };
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update a user certificate', async () => {
+    const payload = { certificates: { driveId: '1234567890' } };
+    const userId = new ObjectID();
+
+    await UsersHelper.updateUserCertificates(userId, payload, credentials);
+
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: userId, company: credentials.company._id },
+      { $pull: { 'administrative.certificates': payload.certificates } }
+    );
   });
 });
 

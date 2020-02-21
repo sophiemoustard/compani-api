@@ -143,12 +143,9 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    await UsersHelper.updateUserCertificates(req.params._id, req.payload, req.auth.credentials);
 
-    return {
-      message: translate[language].userUpdated,
-      data: { updatedUser },
-    };
+    return { message: translate[language].userUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

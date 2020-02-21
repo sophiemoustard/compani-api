@@ -310,7 +310,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'seller_admin', expectedCode: 200 },
+        { name: 'client_admin', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
