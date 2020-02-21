@@ -41,7 +41,7 @@ const helper = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'helper')._id,
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [customersList[0]._id],
   company: authCompany._id,
 };

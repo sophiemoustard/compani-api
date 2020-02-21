@@ -92,10 +92,14 @@ exports.createContract = async (contractPayload, credentials) => {
 
   const contract = await Contract.create(payload);
 
-  const role = await Role.findOne({ name: AUXILIARY }).lean();
+  const role = await Role.findOne({ name: AUXILIARY }, { _id: 1, interface: 1 }).lean();
   await User.updateOne(
     { _id: contract.user },
-    { $push: { contracts: contract._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+    {
+      $push: { contracts: contract._id },
+      $unset: { inactivityDate: '' },
+      $set: { [`role.${role.interface}`]: role._id },
+    }
   );
   if (user.sector) await SectorHistoryHelper.createHistoryOnContractCreation(user, contract, companyId);
   if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $push: { contracts: contract._id } });

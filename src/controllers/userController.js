@@ -143,12 +143,9 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    await UsersHelper.updateUserCertificates(req.params._id, req.payload, req.auth.credentials);
 
-    return {
-      message: translate[language].userUpdated,
-      data: { updatedUser },
-    };
+    return { message: translate[language].userUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -228,7 +225,7 @@ const forgotPassword = async (req) => {
       html: forgetPasswordEmail(payload.resetPassword),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendinBlueTransporter.sendMail(mailOptions)
+      ? await sendinBlueTransporter().sendMail(mailOptions)
       : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
     return { message: translate[language].emailSent, data: { mailInfo } };

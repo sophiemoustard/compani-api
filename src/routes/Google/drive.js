@@ -9,6 +9,7 @@ const {
   generateDocxFromDrive,
   getList,
   uploadFile,
+  downloadFile,
 } = require('../../controllers/Google/driveController');
 
 exports.plugin = {
@@ -32,6 +33,20 @@ exports.plugin = {
       method: 'GET',
       path: '/file/{id}',
       handler: getFileById,
+      options: {
+        validate: {
+          params: { id: Joi.string() },
+        },
+        auth: {
+          strategy: 'jwt',
+        },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/file/{id}/download',
+      handler: downloadFile,
       options: {
         validate: {
           params: { id: Joi.string() },

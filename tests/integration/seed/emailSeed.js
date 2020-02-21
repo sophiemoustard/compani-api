@@ -8,7 +8,7 @@ const emailUser = {
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: authCompany._id,
 };
 
@@ -17,7 +17,7 @@ const emailUserFromOtherCompany = {
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,
 };
 

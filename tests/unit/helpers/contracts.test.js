@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const EventHelper = require('../../../src/helpers/events');
@@ -240,14 +239,17 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
-    const role = { _id: new ObjectID() };
+    const role = { _id: new ObjectID(), interface: 'client' };
     const user = { name: 'toto' };
 
     isCreationAllowed.returns(true);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    RoleMock.expects('findOne')
+      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
+      .chain('lean')
+      .returns(role);
     UserMock.expects('findOne')
       .withExactArgs({ _id: payload.user })
       .chain('populate')
@@ -259,7 +261,7 @@ describe('createContract', () => {
     UserMock.expects('updateOne')
       .withExactArgs(
         { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
     CustomerMock.expects('updateOne').never();
@@ -297,14 +299,17 @@ describe('createContract', () => {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
     };
-    const role = { _id: new ObjectID() };
+    const role = { _id: new ObjectID(), interface: 'client' };
 
     isCreationAllowed.returns(true);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
     ContractMock.expects('create')
       .withExactArgs(contractWithDoc)
       .returns(contractWithDoc);
-    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    RoleMock.expects('findOne')
+      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
+      .chain('lean')
+      .returns(role);
     UserMock.expects('findOne')
       .withExactArgs({ _id: payload.user })
       .chain('populate')
@@ -316,7 +321,7 @@ describe('createContract', () => {
     UserMock.expects('updateOne')
       .withExactArgs(
         { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
     CustomerMock.expects('updateOne').never();
@@ -344,7 +349,7 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
-    const role = { _id: new ObjectID() };
+    const role = { _id: new ObjectID(), interface: 'client' };
     const user = { name: 'Toto' };
 
     isCreationAllowed.returns(true);
@@ -352,7 +357,10 @@ describe('createContract', () => {
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    RoleMock.expects('findOne')
+      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
+      .chain('lean')
+      .returns(role);
     UserMock.expects('findOne')
       .withExactArgs({ _id: payload.user })
       .chain('populate')
@@ -364,7 +372,7 @@ describe('createContract', () => {
     UserMock.expects('updateOne')
       .withExactArgs(
         { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
     CustomerMock.expects('updateOne')
@@ -393,14 +401,17 @@ describe('createContract', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
-    const role = { _id: new ObjectID() };
+    const role = { _id: new ObjectID(), interface: 'client' };
     const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
 
     isCreationAllowed.returns(true);
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
-    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }).chain('lean').returns(role);
+    RoleMock.expects('findOne')
+      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
+      .chain('lean')
+      .returns(role);
     UserMock.expects('findOne')
       .withExactArgs({ _id: payload.user })
       .chain('populate')
@@ -412,7 +423,7 @@ describe('createContract', () => {
     UserMock.expects('updateOne')
       .withExactArgs(
         { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { role: role._id } }
+        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
     CustomerMock.expects('updateOne').never();

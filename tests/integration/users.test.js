@@ -60,7 +60,7 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.user._id).toEqual(expect.any(Object));
         expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
-        expect(res.result.data.user.role).toMatchObject({
+        expect(res.result.data.user.role.client).toMatchObject({
           name: 'auxiliary',
           rights: expect.arrayContaining([
             expect.objectContaining({
@@ -197,7 +197,7 @@ describe('USERS ROUTES', () => {
         token: expect.any(String),
         refreshToken: expect.any(String),
         expiresIn: expect.any(Number),
-        user: expect.objectContaining({ _id: expect.any(String), role: expect.any(String) }),
+        user: expect.objectContaining({ _id: expect.any(String), role: expect.arrayContaining([expect.any(String)]) }),
       }));
     });
 
@@ -265,7 +265,7 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(userList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
 
       it('should get all users (company B)', async () => {
@@ -280,11 +280,11 @@ describe('USERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(usersSeedList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
 
       it('should get all coachs users (company A)', async () => {
-        const coachUsers = userList.filter(u => isExistingRole(u.role, 'coach'));
+        const coachUsers = userList.filter(u => isExistingRole(u.role.client, 'coach'));
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=coach',
@@ -293,12 +293,16 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
+          }),
+        ]));
       });
 
       it('should get all coachs users (company B)', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role, 'coach'));
+        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'coach'));
 
         const res = await app.inject({
           method: 'GET',
@@ -308,12 +312,17 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
+          }),
+        ]));
       });
 
       it('should get all auxiliary users (company B)', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role, 'auxiliary'));
+        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'auxiliary'));
 
         const res = await app.inject({
           method: 'GET',
@@ -323,8 +332,12 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
+            sector: expect.objectContaining({ name: expect.any(String) }),
+          }),
+        ]));
       });
 
       it('should not get users if role given doesn\'t exist', async () => {
@@ -388,7 +401,7 @@ describe('USERS ROUTES', () => {
       it('should get all auxiliary users', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
         const auxiliaryUsers = usersSeedList.filter(u =>
-          isExistingRole(u.role, 'auxiliary') || isExistingRole(u.role, 'planning_referent'));
+          isExistingRole(u.role.client, 'auxiliary') || isExistingRole(u.role.client, 'planning_referent'));
 
         const res = await app.inject({
           method: 'GET',
@@ -398,9 +411,14 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users.every(user =>
-          user.role.name === 'auxiliary' || user.role.name === 'planning_referent')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sectorHistories)).toBeTruthy();
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            role: expect.objectContaining({
+              client: expect.objectContaining({ name: expect.stringMatching(/auxiliary|planning_referent/) }),
+            }),
+            sectorHistories: expect.any(Array),
+          }),
+        ]));
       });
     });
 
@@ -475,13 +493,15 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(200);
         const activeUsers = usersSeedList
-          .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
+          .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role.client, 'auxiliary'));
         expect(res.result.data.users.length).toBe(activeUsers.length);
         expect(res.result.data.users).toEqual(expect.arrayContaining([
-          expect.objectContaining({ isActive: true }),
+          expect.objectContaining({
+            isActive: true,
+            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
+            sector: expect.objectContaining({ name: expect.any(String) }),
+          }),
         ]));
-        expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
       });
 
       it('should return a 403 if not from the same company', async () => {
@@ -538,7 +558,7 @@ describe('USERS ROUTES', () => {
             lastname: usersSeedList[0].identity.lastname,
           }),
           local: expect.objectContaining({ email: usersSeedList[0].local.email }),
-          role: expect.objectContaining({ name: 'auxiliary' }),
+          role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
           isActive: expect.any(Boolean),
           sector: userSectors[0]._id,
         }));
@@ -641,12 +661,12 @@ describe('USERS ROUTES', () => {
             firstname: updatePayload.identity.firstname,
           }),
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-          role: { _id: updatePayload.role },
+          role: { client: { _id: updatePayload.role } },
         });
-        const updatedUser = await User.findById(res.result.data.updatedUser._id).populate({ path: 'role' });
+        const updatedUser = await User.findById(res.result.data.updatedUser._id).lean({ autopopulate: true });
         expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
         expect(updatedUser.local.email).toBe(updatePayload.local.email);
-        expect(updatedUser.role._id).toEqual(updatePayload.role);
+        expect(updatedUser.role.client._id).toEqual(updatePayload.role);
       });
 
       it('should update the user sector and sector history', async () => {
@@ -904,9 +924,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/certificates', () => {
-    const updatePayload = {
-      'administrative.certificates': { driveId: usersSeedList[0].administrative.certificates.driveId },
-    };
+    const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -920,9 +938,8 @@ describe('USERS ROUTES', () => {
           payload: updatePayload,
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser.administrative.certificates.length)
-          .toBe(usersSeedList[0].administrative.certificates.length - 1);
       });
 
       it('should return a 404 error if no user found', async () => {

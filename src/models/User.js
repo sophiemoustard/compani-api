@@ -23,6 +23,12 @@ const procedureSchema = mongoose.Schema({
   },
 }, { id: false });
 
+const roleSchemaDefinition = {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Role',
+  autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
+};
+
 // User schema
 const UserSchema = mongoose.Schema({
   refreshToken: String,
@@ -43,10 +49,14 @@ const UserSchema = mongoose.Schema({
     password: String,
   },
   role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role',
-    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
-    required: true,
+    client: {
+      ...roleSchemaDefinition,
+      required() { return !this.role.seller; },
+    },
+    seller: {
+      ...roleSchemaDefinition,
+      required() { return !this.role.client; },
+    },
   },
   youtube: {
     link: { type: String, trim: true },
@@ -171,7 +181,8 @@ async function findOneAndUpdate(next) {
 }
 
 const isActive = (auxiliary) => {
-  if (auxiliary.role && [AUXILIARY, PLANNING_REFERENT].includes(auxiliary.role.name)) {
+  const auxiliaryRoleName = get(auxiliary, 'role.client.name');
+  if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
     const { contracts, inactivityDate, createdAt } = auxiliary;
     const hasCompanyContract = contracts && contracts.some(c => c.status === COMPANY_CONTRACT);
     const isNew = (!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(createdAt, 'd') < 45;

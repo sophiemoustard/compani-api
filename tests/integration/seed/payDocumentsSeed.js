@@ -9,7 +9,7 @@ const payDocumentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'Bob', lastname: 'Marley' },
   local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456' },
-  role: rolesList[1]._id,
+  role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
   company: authCompany._id,
 };
@@ -24,7 +24,7 @@ const userFromOtherCompany = {
     lastname: 'toto',
   },
   local: { email: 'test@alenvi.io', password: '1234' },
-  role: rolesList[1]._id,
+  role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
 };
 

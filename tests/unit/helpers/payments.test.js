@@ -34,7 +34,7 @@ describe('getPayments', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: '_id identity' })
       .chain('lean')
@@ -57,7 +57,7 @@ describe('getPayments', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id, date: { $lte: '2019-11-01' } })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: '_id identity' })
       .chain('lean')
@@ -80,7 +80,7 @@ describe('getPayments', () => {
       .expects('find')
       .withExactArgs({ company: credentials.company._id, date: { $gte: '2019-11-01' } })
       .chain('populate')
-      .withExactArgs({ path: 'client', select: '_id name' })
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
       .chain('populate')
       .withExactArgs({ path: 'customer', select: '_id identity' })
       .chain('lean')
@@ -106,7 +106,7 @@ describe('generateXML', () => {
     company: company._id,
     date: '2019-11-20',
     customer: new ObjectID(),
-    client: new ObjectID(),
+    thirdPartyPayer: new ObjectID(),
     netInclTaxes: 190,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -115,7 +115,7 @@ describe('generateXML', () => {
     company: company._id,
     date: '2019-11-20',
     customer: new ObjectID(),
-    client: new ObjectID(),
+    thirdPartyPayer: new ObjectID(),
     netInclTaxes: 120,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -287,7 +287,7 @@ describe('createPayment', () => {
     const payment = {
       date: '2019-11-28',
       customer: new ObjectID(),
-      client: new ObjectID(),
+      thirdPartyPayer: new ObjectID(),
       netInclTaxes: 190,
       nature: PAYMENT,
       type: 'direct_debit',
@@ -331,7 +331,7 @@ describe('formatPayment', () => {
   it('should add an id, a number and a company to payment', async () => {
     const payment = {
       customer: new ObjectID(),
-      client: new ObjectID(),
+      thirdPartyPayer: new ObjectID(),
       netInclTaxes: 190,
       nature: PAYMENT,
       type: 'direct_debit',
@@ -426,7 +426,7 @@ describe('savePayments', () => {
     company: credentials.company._id,
     date: '2019-11-20',
     customer: new ObjectID(),
-    client: new ObjectID(),
+    thirdPartyPayer: new ObjectID(),
     netInclTaxes: 190,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -435,7 +435,7 @@ describe('savePayments', () => {
     company: credentials.company._id,
     date: '2019-11-20',
     customer: new ObjectID(),
-    client: new ObjectID(),
+    thirdPartyPayer: new ObjectID(),
     netInclTaxes: 120,
     nature: REFUND,
     type: 'direct_debit',

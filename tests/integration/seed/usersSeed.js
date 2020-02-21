@@ -103,7 +103,7 @@ const userFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io', password: '123456' },
-  role: rolesList.find(role => role.name === 'helper')._id,
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
   procedure: [{ task: task._id }],
@@ -119,7 +119,7 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
     administrative: {
@@ -135,7 +135,7 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
     contracts: [],
@@ -152,7 +152,7 @@ const usersSeedList = [
     local: { email: 'horseman@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'client_admin')._id,
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -161,7 +161,7 @@ const usersSeedList = [
     local: { email: 'vador@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'client_admin')._id,
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -170,7 +170,7 @@ const usersSeedList = [
     local: { email: 'kitty@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'client_admin')._id,
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -180,7 +180,7 @@ const usersSeedList = [
     inactivityDate: null,
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'coach')._id,
+    role: { client: rolesList.find(role => role.name === 'coach')._id },
     contracts: [new ObjectID()],
   },
   {
@@ -190,14 +190,14 @@ const usersSeedList = [
     inactivityDate: null,
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     contracts: [new ObjectID()],
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary2', lastname: 'White' },
     local: { email: 'aux@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
     contracts: [contractNotStartedId],
@@ -212,7 +212,7 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
     local: { email: 'withouCompany@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
     refreshToken: uuidv4(),
     company: company._id,
     contracts: [],
@@ -258,7 +258,7 @@ const contracts = [
 ];
 
 const sectorHistories = usersSeedList
-  .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
+  .filter(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id)
   .map(user => ({
     auxiliary: user._id,
     sector: userSectors[0]._id,

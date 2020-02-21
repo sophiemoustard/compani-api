@@ -7,6 +7,10 @@ const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const {
+  CLIENT,
+  SELLER,
+} = require('../../../src/helpers/constants');
 const app = require('../../../server');
 
 const rightsList = [
@@ -152,6 +156,38 @@ const rightsList = [
   },
 ];
 
+const sellerAdminRights = [
+  'companies:create',
+  'users:edit',
+];
+const clientAdminRights = [
+  'config:edit',
+  'config:read',
+  'bills:edit',
+  'bills:read',
+  'payments:edit',
+  'payments:list:create',
+  'pay:edit',
+  'pay:read',
+  'contracts:edit',
+  'exports:read',
+  'users:list',
+  'users:edit',
+  'events:edit',
+  'events:read',
+  'events:own:edit',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative:edit',
+  'companies:edit',
+  'roles:read',
+  'paydocuments:edit',
+  'taxcertificates:read',
+  'taxcertificates:edit',
+  'establishments:edit',
+  'establishments:read',
+];
 const coachRights = [
   'config:read',
   'bills:read',
@@ -173,16 +209,6 @@ const coachRights = [
   'taxcertificates:edit',
   'establishments:read',
 ];
-const adminRights = [
-  ...coachRights,
-  'config:edit',
-  'bills:edit',
-  'payments:edit',
-  'payments:list:create',
-  'pay:edit',
-  'companies:edit',
-  'establishments:edit',
-];
 const auxiliaryRights = [
   'config:read',
   'pay:read',
@@ -200,22 +226,25 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'seller_admin',
+    interface: SELLER,
     rights: rightsList.map(right => ({
       right_id: right._id,
-      hasAccess: true,
+      hasAccess: sellerAdminRights.includes(right.permission),
     })),
   },
   {
     _id: new ObjectID(),
     name: 'client_admin',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
-      hasAccess: adminRights.includes(right.permission),
+      hasAccess: clientAdminRights.includes(right.permission),
     })),
   },
   {
     _id: new ObjectID(),
     name: 'coach',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: coachRights.includes(right.permission),
@@ -224,6 +253,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'auxiliary',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryRights.includes(right.permission),
@@ -232,6 +262,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'auxiliary_without_company',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
@@ -240,6 +271,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'planning_referent',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: planningReferentRights.includes(right.permission),
@@ -248,6 +280,7 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'helper',
+    interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: helperRights.includes(right.permission),
@@ -289,7 +322,7 @@ const userList = [
     identity: { firstname: 'Admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'client_admin')._id,
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     company: authCompany._id,
   },
   {
@@ -297,7 +330,7 @@ const userList = [
     identity: { firstname: 'Coach', lastname: 'Calif' },
     local: { email: 'coach@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'coach')._id,
+    role: { client: rolesList.find(role => role.name === 'coach')._id },
     company: authCompany._id,
   },
   {
@@ -305,7 +338,7 @@ const userList = [
     identity: { firstname: 'Auxiliary', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
   },
   {
@@ -313,7 +346,7 @@ const userList = [
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
     local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'auxiliary_without_company')._id,
+    role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
     company: authCompany._id,
   },
   {
@@ -321,7 +354,7 @@ const userList = [
     identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'planning_referent')._id,
+    role: { client: rolesList.find(role => role.name === 'planning_referent')._id },
     company: authCompany._id,
   },
   {
@@ -329,7 +362,7 @@ const userList = [
     identity: { firstname: 'Helper', lastname: 'Test' },
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
+    role: { client: rolesList.find(role => role.name === 'helper')._id },
     company: authCompany._id,
   },
   {
@@ -337,7 +370,7 @@ const userList = [
     identity: { firstname: 'seller_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
     local: { email: 'super-admin@alenvi.io', password: '123456' },
-    role: rolesList.find(role => role.name === 'seller_admin')._id,
+    role: { seller: rolesList.find(role => role.name === 'seller_admin')._id },
     company: authCompany._id,
   },
 ];
@@ -348,18 +381,19 @@ const sector = {
   company: authCompany._id,
 };
 
-const sectorHistories = [{
-  auxiliary: userList[2]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-},
-{
-  auxiliary: userList[4]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-},
+const sectorHistories = [
+  {
+    auxiliary: userList[2]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
+  {
+    auxiliary: userList[4]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
 ];
 
 const populateDBForAuthentication = async () => {
@@ -376,14 +410,12 @@ const populateDBForAuthentication = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
-  for (let i = 0; i < userList.length; i++) {
-    await (new User(userList[i]).save());
-  }
+  await User.create(userList);
 };
 
 const getUser = (roleName, list = userList) => {
   const role = rolesList.find(r => r.name === roleName);
-  return list.find(u => u.role.toHexString() === role._id.toHexString());
+  return list.find(u => u.role[role.interface] && u.role[role.interface].toHexString() === role._id.toHexString());
 };
 
 const getTokenByCredentials = memoize(

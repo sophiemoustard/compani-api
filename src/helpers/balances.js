@@ -47,8 +47,8 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
   const fundings = get(balanceDocument, 'customer.fundings') || null;
   if (!fundings) return 100;
 
-  const sortedFundings = fundings.filter(fund =>
-    tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString() && tpp.isApa))
+  const sortedFundings = fundings
+    .filter(fund => tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString() && tpp.isApa))
     .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
     .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
 
@@ -152,10 +152,9 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
     return isCustomerPayment && (noTpp || isTppPayment);
   }));
 
-  for (const cn of remainingPayments) {
-    balances.push(exports.getBalancesFromPayments(cn, payments, tppList));
+  for (const payment of remainingPayments) {
+    balances.push(exports.getBalancesFromPayments(payment, tppList));
   }
-
 
   return balances;
 };

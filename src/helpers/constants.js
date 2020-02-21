@@ -225,4 +225,7 @@ module.exports = {
   // PAY DOCUMENT NATURE
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
+  // INTERFACE
+  CLIENT: 'client',
+  SELLER: 'seller',
 };

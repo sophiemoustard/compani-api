@@ -25,14 +25,14 @@ const internalHourUsers = [{
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'admin_internal_hour@alenvi.io', password: '123456' },
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: internalHoursCompany._id,
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'Auxiliary', lastname: 'Test' },
   local: { email: 'auxiliary_internal_hour@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   company: internalHoursCompany._id,
 }];
 

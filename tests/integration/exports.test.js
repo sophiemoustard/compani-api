@@ -197,8 +197,8 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(3);
         expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"');
-        expect(rows[1]).toEqual(`"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].client}";"Toto";"Prélèvement";"220,00"`);
-        expect(rows[2]).toEqual(`"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].client}";"Toto";"Prélèvement";"190,00"`);
+        expect(rows[1]).toEqual(`"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`);
+        expect(rows[2]).toEqual(`"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`);
       });
     });
 

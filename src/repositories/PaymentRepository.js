@@ -12,7 +12,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
     { $match: rules.length === 0 ? {} : { $and: rules } },
     {
       $group: {
-        _id: { customer: '$customer', tpp: { $ifNull: ['$client', null] } },
+        _id: { customer: '$customer', tpp: { $ifNull: ['$thirdPartyPayer', null] } },
         payments: { $push: '$$ROOT' },
       },
     },
@@ -56,7 +56,7 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
     {
       $match: {
         customer: customerId,
-        client: { $exists: false },
+        thirdPartyPayer: { $exists: false },
         date: { $gte: startDate, $lte: endDate },
       },
     },

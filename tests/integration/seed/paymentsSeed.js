@@ -117,7 +117,7 @@ const paymentsList = [
     number: 'REG-101031900201',
     date: '2019-05-26T15:47:42',
     customer: paymentCustomerList[0]._id,
-    client: paymentTppList[0]._id,
+    thirdPartyPayer: paymentTppList[0]._id,
     netInclTaxes: 190,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -138,7 +138,7 @@ const paymentsList = [
     number: 'REMB-101031900201',
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,
-    client: paymentTppList[1]._id,
+    thirdPartyPayer: paymentTppList[1]._id,
     netInclTaxes: 220,
     nature: REFUND,
     type: 'direct_debit',
@@ -155,7 +155,7 @@ const paymentUser = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: rolesList.find(role => role.name === 'helper')._id,
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [paymentCustomerList[0]._id],
   company: authCompany._id,
 };
@@ -176,7 +176,7 @@ const userFromOtherCompany = {
   company: otherCompany._id,
   refreshToken: uuidv4(),
   identity: { firstname: 'toto', lastname: 'toto' },
-  role: rolesList.find(role => role.name === 'client_admin')._id,
+  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   local: { email: 'test_other_company@alenvi.io', password: '123456' },
 };
 

@@ -4,7 +4,7 @@ const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
-  ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+  ? NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions)
   : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions));
 
 exports.billAlertEmail = async (receiver, company) => {
@@ -61,7 +61,5 @@ exports.helperWelcomeEmail = async (receiver, company) => {
     html: EmailOptionsHelper.welcomeEmailContent(receiver, companyName),
   };
 
-  return process.env.NODE_ENV !== 'test'
-    ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
-    : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+  return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
 };
