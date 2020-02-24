@@ -372,12 +372,12 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/forgotPassword',
+      path: '/forgot-password',
       options: {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().valid('p', 'w').default('w').required(),
+            from: Joi.string().valid('p', 'w').default('w'),
           }),
         },
         auth: false,

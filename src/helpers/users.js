@@ -6,7 +6,7 @@ const get = require('lodash/get');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
@@ -17,6 +17,7 @@ const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
+const EmailHelper = require('./email');
 
 const { language } = translate;
 
@@ -150,7 +151,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  const user = await User.create({ ...payload, company: companyId, refreshToken: uuidv4() });
+  const user = await User.create({ ...payload, company: companyId, refreshToken: uuid.v4() });
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User
@@ -227,4 +228,18 @@ exports.checkResetPasswordToken = async (token) => {
   const expireTime = 86400;
 
   return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
+};
+
+exports.forgotPassword = async (email, from) => {
+  const payload = {
+    resetPassword: {
+      token: uuid.v4(),
+      expiresIn: Date.now() + 3600000, // 1 hour
+      from,
+    },
+  };
+  const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  return EmailHelper.forgotPasswordEmail(email, payload.resetPassword);
 };

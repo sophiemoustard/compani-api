@@ -1,16 +1,12 @@
 const flat = require('flat');
 const _ = require('lodash');
 const Boom = require('boom');
-const nodemailer = require('nodemailer');
 const moment = require('moment');
-const uuidv4 = require('uuid/v4');
-const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
-const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
 const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser } = require('../helpers/users');
-const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
+const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
 
@@ -207,25 +203,7 @@ const getUserTasks = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    const payload = {
-      resetPassword: {
-        token: uuidv4(),
-        expiresIn: Date.now() + 3600000, // 1 hour
-        from: req.payload.from,
-      },
-    };
-    const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true });
-    if (!user) return Boom.notFound(translate[language].userNotFound);
-
-    const mailOptions = {
-      from: `Compani <${SENDER_MAIL}>`,
-      to: req.payload.email,
-      subject: 'Changement de mot de passe de votre compte Compani',
-      html: forgetPasswordEmail(payload.resetPassword),
-    };
-    const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendinBlueTransporter().sendMail(mailOptions)
-      : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email, req.payload.from);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {

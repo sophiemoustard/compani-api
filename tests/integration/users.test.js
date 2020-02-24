@@ -21,6 +21,7 @@ const {
 } = require('./seed/usersSeed');
 const { getToken, getUser, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const EmailHelper = require('../../src/helpers/email');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -1310,6 +1311,55 @@ describe('USERS ROUTES', () => {
 
       expect(response.statusCode).toBe(401);
       fakeDate.restore();
+    });
+  });
+
+  describe('POST /users/forgot-password', () => {
+    let forgotPasswordEmail;
+    beforeEach(populateDB);
+    beforeEach(() => {
+      forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    });
+    afterEach(() => {
+      forgotPasswordEmail.restore();
+    });
+
+    it('should send an email to renew password', async () => {
+      const userEmail = usersSeedList[0].local.email;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { email: userEmail, from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledWith(
+        forgotPasswordEmail,
+        userEmail,
+        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number, from: 'w' })
+      );
+    });
+
+    it('should return a 400 error if missing email parameter', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(forgotPasswordEmail);
+    });
+
+    it('should return a 404 error if user does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { email: 't@t.com', from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      sinon.assert.notCalled(forgotPasswordEmail);
     });
   });
 });

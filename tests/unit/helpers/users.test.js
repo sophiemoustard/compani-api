@@ -8,9 +8,11 @@ const Boom = require('boom');
 const flat = require('flat');
 const bcrypt = require('bcrypt');
 const omit = require('lodash/omit');
+const uuid = require('uuid');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
+const EmailHelper = require('../../../src/helpers/email');
 const translate = require('../../../src/helpers/translate');
 const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
@@ -975,5 +977,76 @@ describe('checkResetPasswordToken', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, userPayload, TOKEN_EXPIRE_TIME);
+  });
+});
+
+describe('forgotPassword', () => {
+  let UserMock;
+  let forgotPasswordEmail;
+  let fakeDate;
+  let uuidv4;
+  const token = '1234567890';
+  const email = 'toto@toto.com';
+  const from = 'w';
+  const date = new Date('2020-01-13');
+  const payload = {
+    resetPassword: {
+      token,
+      expiresIn: date.getTime() + 3600000,
+      from,
+    },
+  };
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    fakeDate = sinon.useFakeTimers(date);
+    uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
+  });
+  afterEach(() => {
+    UserMock.restore();
+    forgotPasswordEmail.restore();
+    fakeDate.restore();
+    uuidv4.restore();
+  });
+
+  it('should throw an error if user does not exist', async () => {
+    try {
+      UserMock.expects('findOneAndUpdate')
+        .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
+        .chain('lean')
+        .withExactArgs()
+        .once()
+        .returns(null);
+
+      await UsersHelper.forgotPassword(email, from);
+    } catch (e) {
+      expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
+    } finally {
+      UserMock.verify();
+      sinon.assert.notCalled(forgotPasswordEmail);
+    }
+  });
+
+  it('should return a new access token after checking reset password token', async () => {
+    const user = {
+      _id: new ObjectID(),
+      local: { email: 'toto@toto.com' },
+      resetPassword: { from: 'w' },
+    };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
+      .chain('lean')
+      .withExactArgs()
+      .once()
+      .returns(user);
+    forgotPasswordEmail.returns({ sent: true });
+
+    const result = await UsersHelper.forgotPassword(email, from);
+
+    expect(result).toEqual({ sent: true });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(forgotPasswordEmail, email, payload.resetPassword);
   });
 });
