@@ -104,7 +104,6 @@ describe('authenticate', () => {
       _id: new ObjectID(),
       refreshToken: 'token',
       local: { password: 'toto' },
-      role: { client: { name: 'role' } },
     };
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -121,13 +120,13 @@ describe('authenticate', () => {
       token: 'token',
       refreshToken: user.refreshToken,
       expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString(), role: [user.role.client.name] },
+      user: { _id: user._id.toHexString() },
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledWithExactly(
       encode,
-      { _id: user._id.toHexString(), role: [user.role.client.name] },
+      { _id: user._id.toHexString() },
       TOKEN_EXPIRE_TIME
     );
   });
@@ -169,7 +168,6 @@ describe('refreshToken', () => {
       _id: new ObjectID(),
       refreshToken: 'token',
       local: { password: 'toto' },
-      role: { client: { name: 'role' } },
     };
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
@@ -185,14 +183,10 @@ describe('refreshToken', () => {
       token: 'token',
       refreshToken: user.refreshToken,
       expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString(), role: [user.role.client.name] },
+      user: { _id: user._id.toHexString() },
     });
     UserMock.verify();
-    sinon.assert.calledWithExactly(
-      encode,
-      { _id: user._id.toHexString(), role: [user.role.client.name] },
-      TOKEN_EXPIRE_TIME
-    );
+    sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
   });
 });
 

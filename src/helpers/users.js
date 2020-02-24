@@ -28,7 +28,7 @@ exports.authenticate = async (payload) => {
   const correctPassword = await bcrypt.compare(payload.password, user.local.password);
   if (!correctPassword) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
+  const tokenPayload = pickBy({ _id: user._id.toHexString() });
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -38,7 +38,7 @@ exports.refreshToken = async (payload) => {
   const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
   if (!user) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
+  const tokenPayload = pickBy({ _id: user._id.toHexString() });
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
