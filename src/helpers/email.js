@@ -72,5 +72,5 @@ exports.forgotPasswordEmail = async (receiver, resetPassword) => {
     html: EmailOptionsHelper.forgetPasswordEmail(resetPassword),
   };
 
-  return exports.sendEmail(mailOptions);
+  return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
 };
