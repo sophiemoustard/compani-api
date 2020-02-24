@@ -387,7 +387,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/checkResetPassword/{token}',
+      path: '/check-reset-password/{token}',
       options: {
         validate: {
           params: Joi.object().keys({

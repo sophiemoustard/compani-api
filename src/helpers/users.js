@@ -207,3 +207,24 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
     );
   }
 };
+
+exports.checkResetPasswordToken = async (token) => {
+  const filter = {
+    resetPassword: {
+      token,
+      expiresIn: { $gt: Date.now() },
+    },
+  };
+  const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
+  if (!user) throw Boom.unauthorized();
+
+  const payload = {
+    _id: user._id,
+    email: user.local.email,
+    from: user.resetPassword.from,
+  };
+  const userPayload = pickBy(payload);
+  const expireTime = 86400;
+
+  return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
+};

@@ -6,7 +6,6 @@ const moment = require('moment');
 const uuidv4 = require('uuid/v4');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
-const { encode } = require('../helpers/authentication');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
@@ -237,26 +236,9 @@ const forgotPassword = async (req) => {
 
 const checkResetPasswordToken = async (req) => {
   try {
-    const filter = {
-      resetPassword: {
-        token: req.params.token,
-        expiresIn: { $gt: Date.now() },
-      },
-    };
-    const user = await User.findOne(flat(filter, { maxDepth: 2 }));
-    if (!user) return Boom.notFound(translate[language].resetPasswordTokenNotFound);
+    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
 
-    const payload = {
-      _id: user._id,
-      email: user.local.email,
-      role: user.role.name,
-      from: user.resetPassword.from,
-    };
-    const userPayload = _.pickBy(payload);
-    const expireTime = 86400;
-    const token = encode(userPayload, expireTime);
-    // return the information including token as JSON
-    return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
+    return { message: translate[language].resetPasswordTokenFound, data: { ...token } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

@@ -19,7 +19,7 @@ const {
   sectorHistories,
   establishmentList,
 } = require('./seed/usersSeed');
-const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
@@ -1280,6 +1280,36 @@ describe('USERS ROUTES', () => {
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
+    });
+  });
+
+  describe('GET /users/check-reset-password/:token', () => {
+    beforeEach(populateDB);
+
+    it('should return a new access token after checking reset password token', async () => {
+      const user = getUser('helper', usersSeedList);
+      const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/check-reset-password/${user.resetPassword.token}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.token).toEqual(expect.any(String));
+      fakeDate.restore();
+    });
+
+    it('should return a 401 error if token is not valid', async () => {
+      const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/users/check-reset-password/1234567890',
+      });
+
+      expect(response.statusCode).toBe(401);
+      fakeDate.restore();
     });
   });
 });
