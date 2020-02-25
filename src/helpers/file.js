@@ -29,6 +29,7 @@ exports.exportToCsv = async (data) => {
   data.forEach((rowArray, index) => {
     const rowArrayQuoted = rowArray.map((cell) => {
       if (cell === '') return cell;
+      if (typeof cell === 'string' && cell.match('PHONE_NUMBER')) return `="${cell.replace('PHONE_NUMBER', '').replace(/"/g, '""')}"`;
       return typeof cell === 'string' ? `"${cell.replace(/"/g, '""')}"` : cell;
     });
     const row = rowArrayQuoted.join(';');

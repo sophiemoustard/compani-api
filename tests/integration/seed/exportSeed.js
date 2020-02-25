@@ -805,6 +805,7 @@ const creditNotesList = [
 
 const user = {
   _id: new ObjectID(),
+  contact: { phone: '0123456789' },
   identity: { firstname: 'test', lastname: 'Toto' },
   local: { email: 'toto@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
