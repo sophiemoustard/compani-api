@@ -28,7 +28,7 @@ exports.authenticate = async (payload) => {
   const correctPassword = await bcrypt.compare(payload.password, user.local.password);
   if (!correctPassword) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString() });
+  const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -38,7 +38,7 @@ exports.refreshToken = async (payload) => {
   const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
   if (!user) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString() });
+  const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -210,20 +210,11 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.checkResetPasswordToken = async (token) => {
-  const filter = {
-    resetPassword: {
-      token,
-      expiresIn: { $gt: Date.now() },
-    },
-  };
+  const filter = { resetPassword: { token, expiresIn: { $gt: Date.now() } } };
   const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
-  if (!user) throw Boom.unauthorized();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  const payload = {
-    _id: user._id,
-    email: user.local.email,
-    from: user.resetPassword.from,
-  };
+  const payload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
   const userPayload = pickBy(payload);
   const expireTime = 86400;
 
@@ -231,13 +222,7 @@ exports.checkResetPasswordToken = async (token) => {
 };
 
 exports.forgotPassword = async (email, from) => {
-  const payload = {
-    resetPassword: {
-      token: uuid.v4(),
-      expiresIn: Date.now() + 3600000, // 1 hour
-      from,
-    },
-  };
+  const payload = { resetPassword: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 

@@ -1301,7 +1301,7 @@ describe('USERS ROUTES', () => {
       fakeDate.restore();
     });
 
-    it('should return a 401 error if token is not valid', async () => {
+    it('should return a 404 error if token is not valid', async () => {
       const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
 
       const response = await app.inject({
@@ -1309,7 +1309,7 @@ describe('USERS ROUTES', () => {
         url: '/users/check-reset-password/1234567890',
       });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(404);
       fakeDate.restore();
     });
   });

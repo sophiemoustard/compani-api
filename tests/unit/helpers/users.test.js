@@ -156,7 +156,7 @@ describe('refreshToken', () => {
 
       await UsersHelper.refreshToken(payload);
     } catch (e) {
-      expect(e.output.statusCode).toEqual(401);
+      expect(e).toEqual(Boom.unauthorized());
     } finally {
       UserMock.verify();
       sinon.assert.notCalled(encode);
@@ -939,7 +939,7 @@ describe('checkResetPasswordToken', () => {
 
       await UsersHelper.checkResetPasswordToken(token);
     } catch (e) {
-      expect(e).toEqual(Boom.unauthorized());
+      expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
       UserMock.verify();
       sinon.assert.notCalled(encode);
