@@ -19,8 +19,9 @@ const {
   sectorHistories,
   establishmentList,
 } = require('./seed/usersSeed');
-const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const EmailHelper = require('../../src/helpers/email');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -197,7 +198,7 @@ describe('USERS ROUTES', () => {
         token: expect.any(String),
         refreshToken: expect.any(String),
         expiresIn: expect.any(Number),
-        user: expect.objectContaining({ _id: expect.any(String), role: expect.arrayContaining([expect.any(String)]) }),
+        user: expect.objectContaining({ _id: expect.any(String) }),
       }));
     });
 
@@ -1280,6 +1281,85 @@ describe('USERS ROUTES', () => {
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
+    });
+  });
+
+  describe('GET /users/check-reset-password/:token', () => {
+    beforeEach(populateDB);
+
+    it('should return a new access token after checking reset password token', async () => {
+      const user = getUser('helper', usersSeedList);
+      const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/check-reset-password/${user.resetPassword.token}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.token).toEqual(expect.any(String));
+      fakeDate.restore();
+    });
+
+    it('should return a 404 error if token is not valid', async () => {
+      const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/users/check-reset-password/1234567890',
+      });
+
+      expect(response.statusCode).toBe(404);
+      fakeDate.restore();
+    });
+  });
+
+  describe('POST /users/forgot-password', () => {
+    let forgotPasswordEmail;
+    beforeEach(populateDB);
+    beforeEach(() => {
+      forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    });
+    afterEach(() => {
+      forgotPasswordEmail.restore();
+    });
+
+    it('should send an email to renew password', async () => {
+      const userEmail = usersSeedList[0].local.email;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { email: userEmail, from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledWith(
+        forgotPasswordEmail,
+        userEmail,
+        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number, from: 'w' })
+      );
+    });
+
+    it('should return a 400 error if missing email parameter', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(forgotPasswordEmail);
+    });
+
+    it('should return a 404 error if user does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgot-password',
+        payload: { email: 't@t.com', from: 'w' },
+      });
+
+      expect(response.statusCode).toBe(404);
+      sinon.assert.notCalled(forgotPasswordEmail);
     });
   });
 });

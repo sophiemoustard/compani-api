@@ -192,6 +192,7 @@ const usersSeedList = [
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     contracts: [new ObjectID()],
+    resetPassword: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
   },
   {
     _id: new ObjectID(),
