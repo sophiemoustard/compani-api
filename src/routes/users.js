@@ -24,7 +24,7 @@ const {
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
-const { addressValidation, objectIdOrArray } = require('./validations/utils');
+const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -83,7 +83,7 @@ exports.plugin = {
               title: Joi.string().valid(CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
-              phone: Joi.string().allow('', null),
+              phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
             }),
             administrative: Joi.object().keys({
@@ -190,7 +190,7 @@ exports.plugin = {
               socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({
-              phone: Joi.string().allow('', null),
+              phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
             }),
             administrative: Joi.object().keys({

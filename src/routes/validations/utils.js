@@ -1,6 +1,7 @@
 const Joi = require('joi');
 
 const monthValidation = Joi.string().regex(new RegExp(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/));
+const phoneNumberValidation = Joi.string().regex(new RegExp(/^([0]{1}\d{9}$)/));
 
 const addressValidation = Joi.object().keys({
   street: Joi.string().required(),
@@ -17,6 +18,7 @@ const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items
 
 module.exports = {
   monthValidation,
+  phoneNumberValidation,
   addressValidation,
   objectIdOrArray,
 };

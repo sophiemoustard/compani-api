@@ -112,6 +112,19 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(409);
       });
 
+      it('should not create a user if phone number is not correct', async () => {
+        const payload = { ...userPayload, contact: { phone: '023' } };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
       it('should return a 403 if customer is not from the same company', async () => {
         const payload = { ...userPayload, customers: [customerFromOtherCompany] };
         const response = await app.inject({
@@ -794,6 +807,17 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(403);
+      });
+
+      it('should not update a user if phone number is not correct', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { contact: { phone: '09876' } },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
       });
     });
 
