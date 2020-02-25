@@ -1,17 +1,12 @@
 const flat = require('flat');
 const _ = require('lodash');
 const Boom = require('boom');
-const nodemailer = require('nodemailer');
 const moment = require('moment');
-const uuidv4 = require('uuid/v4');
-const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
-const { encode } = require('../helpers/authentication');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
-const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
 const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser } = require('../helpers/users');
-const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
+const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
 
@@ -208,25 +203,7 @@ const getUserTasks = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    const payload = {
-      resetPassword: {
-        token: uuidv4(),
-        expiresIn: Date.now() + 3600000, // 1 hour
-        from: req.payload.from,
-      },
-    };
-    const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true });
-    if (!user) return Boom.notFound(translate[language].userNotFound);
-
-    const mailOptions = {
-      from: `Compani <${SENDER_MAIL}>`,
-      to: req.payload.email,
-      subject: 'Changement de mot de passe de votre compte Compani',
-      html: forgetPasswordEmail(payload.resetPassword),
-    };
-    const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendinBlueTransporter().sendMail(mailOptions)
-      : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email, req.payload.from);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
@@ -237,26 +214,9 @@ const forgotPassword = async (req) => {
 
 const checkResetPasswordToken = async (req) => {
   try {
-    const filter = {
-      resetPassword: {
-        token: req.params.token,
-        expiresIn: { $gt: Date.now() },
-      },
-    };
-    const user = await User.findOne(flat(filter, { maxDepth: 2 }));
-    if (!user) return Boom.notFound(translate[language].resetPasswordTokenNotFound);
+    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
 
-    const payload = {
-      _id: user._id,
-      email: user.local.email,
-      role: user.role.name,
-      from: user.resetPassword.from,
-    };
-    const userPayload = _.pickBy(payload);
-    const expireTime = 86400;
-    const token = encode(userPayload, expireTime);
-    // return the information including token as JSON
-    return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
+    return { message: translate[language].resetPasswordTokenFound, data: { ...token } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

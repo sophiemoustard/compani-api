@@ -6,7 +6,7 @@ const get = require('lodash/get');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
@@ -17,6 +17,7 @@ const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
+const EmailHelper = require('./email');
 
 const { language } = translate;
 
@@ -27,7 +28,7 @@ exports.authenticate = async (payload) => {
   const correctPassword = await bcrypt.compare(payload.password, user.local.password);
   if (!correctPassword) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
+  const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -37,7 +38,7 @@ exports.refreshToken = async (payload) => {
   const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
   if (!user) throw Boom.unauthorized();
 
-  const tokenPayload = pickBy({ _id: user._id.toHexString(), role: Object.values(user.role).map(role => role.name) });
+  const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
@@ -150,7 +151,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  const user = await User.create({ ...payload, company: companyId, refreshToken: uuidv4() });
+  const user = await User.create({ ...payload, company: companyId, refreshToken: uuid.v4() });
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User
@@ -206,4 +207,24 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
       { $set: { inactivityDate: moment(contractEndDate).add('1', 'month').startOf('M').toDate() } }
     );
   }
+};
+
+exports.checkResetPasswordToken = async (token) => {
+  const filter = { resetPassword: { token, expiresIn: { $gt: Date.now() } } };
+  const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  const payload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
+  const userPayload = pickBy(payload);
+  const expireTime = 86400;
+
+  return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
+};
+
+exports.forgotPassword = async (email, from) => {
+  const payload = { resetPassword: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
+  const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  return EmailHelper.forgotPasswordEmail(email, payload.resetPassword);
 };
