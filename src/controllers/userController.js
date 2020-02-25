@@ -62,7 +62,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const users = await getUsersList(req.query, req.auth.credentials);
+    const users = await getUserList(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
