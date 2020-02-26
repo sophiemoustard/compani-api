@@ -223,7 +223,7 @@ exports.exportHelpers = async (credentials) => {
 
     data.push([
       get(hel, 'local.email', ''),
-      get(hel, 'contact.phone', '') !== '' ? `PHONE_NUMBER${hel.contact.phone}` : '',
+      get(hel, 'contact.phone', '') !== '' ? `+33${hel.contact.phone.substring(1)}` : '',
       get(hel, 'identity.lastname', '').toUpperCase(),
       get(hel, 'identity.firstname', ''),
       CIVILITY_LIST[get(customer, 'identity.title')] || '',

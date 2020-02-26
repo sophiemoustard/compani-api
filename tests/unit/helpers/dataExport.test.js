@@ -564,7 +564,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'PHONE_NUMBER0123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', '+33123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
   });
 
   it('should return customer helper info', async () => {
