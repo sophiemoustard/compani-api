@@ -200,12 +200,12 @@ describe('COMPANIES ROUTES', () => {
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('SELLER_ADMIN', () => {
+    describe('VENDOR_ADMIN', () => {
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('seller_admin');
+        authToken = await getToken('vendor_admin');
         createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
         createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
       });

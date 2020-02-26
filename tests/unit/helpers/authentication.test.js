@@ -25,7 +25,7 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: 'coach' }, seller: { name: 'admin' } },
+      role: { client: { name: 'coach' }, vendor: { name: 'admin' } },
       local: { email: 'email@email.com' },
       customers: [],
       sector: new ObjectID(),
@@ -53,7 +53,7 @@ describe('validate', () => {
           name: 'coach',
           rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
-        seller: {
+        vendor: {
           name: 'admin',
           rights: [{ hasAccess: true, permission: 'bof' }, { hasAccess: true, permission: 'bien' }],
         },

@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const autopopulate = require('mongoose-autopopulate');
 const Right = require('./Right'); // required to help mongoose detect the Right model
-const { SELLER, CLIENT } = require('../helpers/constants');
+const { VENDOR, CLIENT } = require('../helpers/constants');
+
+const INTERFACE_TYPES = [CLIENT, VENDOR];
 
 const RoleSchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },
-  interface: { type: String, enum: [CLIENT, SELLER], required: true },
+  interface: { type: String, enum: INTERFACE_TYPES, required: true },
   rights: [{
     right_id: {
       type: mongoose.Schema.Types.ObjectId,
