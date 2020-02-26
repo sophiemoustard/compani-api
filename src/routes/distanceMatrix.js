@@ -15,5 +15,5 @@ exports.plugin = {
       path: '/',
       handler: list,
     });
-  }
+  },
 };
