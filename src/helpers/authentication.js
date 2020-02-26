@@ -33,7 +33,6 @@ const validate = async (decoded) => {
 
     const credentials = {
       email: get(user, 'local.email', null),
-      toto: 'test',
       _id: decoded._id,
       identity: user.identity || null,
       company: user.company,
