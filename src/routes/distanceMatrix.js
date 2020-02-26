@@ -1,7 +1,7 @@
 
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { list } = require('../controllers/distanceMatrixController');

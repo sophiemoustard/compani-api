@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -60,9 +60,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
-          },
+          }),
         },
         pre: [{ method: authorizeSurchargesUpdate }],
       },
@@ -75,9 +75,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
-          },
+          }),
           payload: Joi.object().keys({
             name: Joi.string(),
             saturday: Joi.number().allow('', null).default(null),

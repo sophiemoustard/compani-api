@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, list, remove } = require('../controllers/payDocumentController');
@@ -30,7 +30,7 @@ exports.plugin = {
             date: Joi.date(),
             fileName: Joi.string().required(),
             payDoc: Joi.any().required(),
-            nature: Joi.string().valid(PAY_DOCUMENT_NATURES).required(),
+            nature: Joi.string().valid(...PAY_DOCUMENT_NATURES).required(),
             mimeType: Joi.string().required(),
             driveFolderId: Joi.string().required(),
             user: Joi.objectId().required(),

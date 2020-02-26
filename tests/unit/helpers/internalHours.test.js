@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const InternalHour = require('../../../src/models/InternalHour');
 const InternalHoursHelper = require('../../../src/helpers/internalHours');
 const EventHelper = require('../../../src/helpers/events');

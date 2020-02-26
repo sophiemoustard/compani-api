@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { payValidation } = require('./validations/pay');
 const {
@@ -22,10 +22,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          query: {
+          query: Joi.object({
             endDate: Joi.date(),
             startDate: Joi.date(),
-          },
+          }),
         },
       },
       handler: draftPayList,
@@ -69,10 +69,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:read'] },
         validate: {
-          query: {
+          query: Joi.object({
             sector: objectIdOrArray.required(),
             month: monthValidation.required(),
-          },
+          }),
         },
         pre: [{ method: authorizeGetHoursToWork }],
       },

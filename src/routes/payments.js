@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -30,8 +30,8 @@ exports.plugin = {
             customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(PAYMENT_NATURES).required(),
-            type: Joi.string().valid(PAYMENT_TYPES).required(),
+            nature: Joi.string().valid(...PAYMENT_NATURES).required(),
+            type: Joi.string().valid(...PAYMENT_TYPES).required(),
           }),
         },
         pre: [{ method: authorizePaymentCreation }],
@@ -50,8 +50,8 @@ exports.plugin = {
             customer: Joi.objectId().required(),
             customerInfo: Joi.object(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(PAYMENT_NATURES).required(),
-            type: Joi.string().valid(PAYMENT_TYPES).required(),
+            nature: Joi.string().valid(...PAYMENT_NATURES).required(),
+            type: Joi.string().valid(...PAYMENT_TYPES).required(),
             rum: Joi.string().required(),
           })).min(1).required(),
         },
@@ -66,13 +66,13 @@ exports.plugin = {
       options: {
         auth: { scope: ['payments:edit'] },
         validate: {
-          params: { _id: Joi.objectId() },
-          payload: {
+          params: Joi.object({ _id: Joi.objectId() }),
+          payload: Joi.object({
             date: Joi.date().required(),
             netInclTaxes: Joi.number().required(),
-            type: Joi.string().valid(PAYMENT_TYPES).required(),
+            type: Joi.string().valid(...PAYMENT_TYPES).required(),
             nature: Joi.string(),
-          },
+          }),
         },
         pre: [
           { method: getPayment, assign: 'payment' },

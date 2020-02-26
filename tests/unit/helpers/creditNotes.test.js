@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
 const FundingHistory = require('../../../src/models/FundingHistory');

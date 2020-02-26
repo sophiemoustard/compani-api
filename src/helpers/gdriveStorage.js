@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const Gdrive = require('../models/Google/Drive');
 
 exports.addFile = async (params) => {

@@ -1,5 +1,5 @@
 const flat = require('flat');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');

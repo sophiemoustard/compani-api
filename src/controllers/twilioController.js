@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const TwilioHelper = require('../helpers/twilio');
 const translate = require('../helpers/translate');
 

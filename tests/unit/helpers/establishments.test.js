@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const Establishment = require('../../../src/models/Establishment');
 const EstablishmentsHelper = require('../../../src/helpers/establishments');
 

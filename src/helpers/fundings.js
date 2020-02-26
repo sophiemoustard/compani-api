@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const has = require('lodash/has');
 const Customer = require('../models/Customer');

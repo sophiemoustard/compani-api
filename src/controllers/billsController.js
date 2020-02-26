@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const BillHelper = require('../helpers/bills');

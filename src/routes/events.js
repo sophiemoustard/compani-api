@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
@@ -54,7 +54,7 @@ exports.plugin = {
         auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(EVENT_TYPES),
+            type: Joi.string().required().valid(...EVENT_TYPES),
             startDate: Joi.date().required(),
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
@@ -64,19 +64,19 @@ exports.plugin = {
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             internalHour: Joi.objectId().when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
-            absence: Joi.string().valid(ABSENCE_TYPES)
+            absence: Joi.string().valid(...ABSENCE_TYPES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(ABSENCE_NATURES)
+            absenceNature: Joi.string().valid(...ABSENCE_NATURES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }).when('absence', { is: Joi.exist().valid([ILLNESS, WORK_ACCIDENT]), then: Joi.required() }),
+            }).when('absence', { is: Joi.exist().valid(ILLNESS, WORK_ACCIDENT), then: Joi.required() }),
             repetition: Joi.object().keys({
-              frequency: Joi.string().required().valid(REPETITION_FREQUENCIES),
+              frequency: Joi.string().required().valid(...REPETITION_FREQUENCIES),
             }),
-            status: Joi.string().valid(CONTRACT_STATUS)
+            status: Joi.string().valid(...CONTRACT_STATUS)
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).xor('sector', 'auxiliary'),
         },
@@ -91,7 +91,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read', 'customer-{query.customer}'] },
         validate: {
-          query: {
+          query: Joi.object({
             startDate: Joi.date(),
             endDate: Joi.date(),
             auxiliary: objectIdOrArray,
@@ -100,7 +100,7 @@ exports.plugin = {
             type: Joi.string(),
             groupBy: Joi.string(),
             status: Joi.string(),
-          },
+          }),
         },
         pre: [{ method: authorizeEventGet }],
       },
@@ -113,13 +113,13 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: {
+          query: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
             isBilled: Joi.boolean().required(),
-          },
+          }),
         },
         pre: [{ method: authorizeEventForCreditNoteGet }],
       },
@@ -133,11 +133,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: {
+          query: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             auxiliary: objectIdOrArray,
-          },
+          }),
         },
         pre: [{ method: authorizeEventGet }],
       },
@@ -165,7 +165,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             startDate: Joi.date(),
             endDate: Joi.date().greater(Joi.ref('startDate')),
@@ -181,32 +181,32 @@ exports.plugin = {
             ),
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
-            absence: Joi.string().valid(ABSENCE_TYPES)
+            absence: Joi.string().valid(...ABSENCE_TYPES)
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(ABSENCE_NATURES),
+            absenceNature: Joi.string().valid(...ABSENCE_NATURES),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }).when('absence', { is: Joi.exist().valid([ILLNESS, WORK_ACCIDENT]), then: Joi.required() }),
+            }).when('absence', { is: Joi.exist().valid(ILLNESS, WORK_ACCIDENT), then: Joi.required() }),
             misc: Joi.string().allow(null, '').default('')
               .when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() })
               .when('isCancelled', { is: Joi.exist().valid(true), then: Joi.required() }),
             repetition: Joi.object().keys({
-              frequency: Joi.string().valid(REPETITION_FREQUENCIES),
+              frequency: Joi.string().valid(...REPETITION_FREQUENCIES),
               parentId: Joi.objectId(),
             }),
             isCancelled: Joi.boolean(),
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
               condition: Joi.string()
-                .valid(EVENT_CANCELLATION_CONDITIONS)
+                .valid(...EVENT_CANCELLATION_CONDITIONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string()
-                .valid(EVENT_CANCELLATION_REASONS)
+                .valid(...EVENT_CANCELLATION_REASONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),
-            status: Joi.string().valid(CONTRACT_STATUS),
+            status: Joi.string().valid(...CONTRACT_STATUS),
             bills: Joi.object(),
           })
             .and('startDate', 'endDate')
@@ -227,7 +227,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getEvent, assign: 'event' },
@@ -243,7 +243,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getEvent, assign: 'event' },

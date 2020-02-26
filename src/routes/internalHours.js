@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeInternalHourUpdate, getInternalHour } = require('./preHandlers/internalHours');
 const {
@@ -34,9 +34,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
-          },
+          }),
           payload: Joi.object().keys({
             default: Joi.boolean(),
           }),
@@ -64,9 +64,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
-          },
+          }),
         },
         pre: [
           { method: getInternalHour, assign: 'internalHour' },

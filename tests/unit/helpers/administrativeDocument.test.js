@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const Company = require('../../../src/models/Company');
 const Drive = require('../../../src/models/Google/Drive');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');

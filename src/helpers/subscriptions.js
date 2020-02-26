@@ -1,5 +1,5 @@
 const moment = require('moment');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const pick = require('lodash/pick');

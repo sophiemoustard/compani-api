@@ -1,12 +1,16 @@
 const pick = require('lodash/pick');
+const { formatIdentity } = require('../helpers/utils');
 
 const beforeSendHandler = (event) => {
-  if (event.user) {
-    if (event.user.company) {
-      event.user.company = { _id: event.user.company._id, name: event.user.company.name };
+  const { user } = event;
+  const payload = {};
+  if (user) {
+    payload.id = user._id;
+    if (user.company) {
+      payload.company = { _id: user.company._id, name: user.company.name };
     }
-    if (event.user.identity) event.user.identity = pick(event.user.identity, ['firstname', 'lastname']);
-    if (event.user.scope) delete event.user.scope;
+    if (user.identity) payload.identity = formatIdentity(user.identity, 'fl');
+    event.user = payload;
   }
   return event;
 };

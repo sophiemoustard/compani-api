@@ -1,7 +1,7 @@
 
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { list, listWithDetails } = require('../controllers/balanceController');
@@ -25,11 +25,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:read', 'customer-{query.customer}'] },
         validate: {
-          query: {
+          query: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             customer: Joi.objectId().required(),
-          },
+          }),
         },
         pre: [{ method: authorizeGetDetails }],
       },

@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -80,7 +80,7 @@ exports.plugin = {
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
-              title: Joi.string().valid(CIVILITY_OPTIONS),
+              title: Joi.string().valid(...CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
               phone: phoneNumberValidation.allow('', null),
@@ -105,11 +105,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: {
+          query: Joi.object({
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             customers: objectIdOrArray,
-          },
+          }),
         },
         pre: [{ method: authorizeUserGet }],
       },
@@ -131,10 +131,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: {
+          query: Joi.object({
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-          },
+          }),
         },
         pre: [{ method: authorizeUserGet }],
       },
@@ -281,9 +281,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
-          },
+          }),
           payload: Joi.object().keys({
             certificates: Joi.object().keys({
               driveId: Joi.string(),
@@ -304,10 +304,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
             task_id: Joi.objectId(),
-          },
+          }),
           payload: Joi.object().keys({
             isDone: Joi.boolean(),
           }),
@@ -326,9 +326,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
-          },
+          }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -344,9 +344,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
-          },
+          }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -361,9 +361,9 @@ exports.plugin = {
       path: '/refreshToken',
       options: {
         validate: {
-          payload: {
+          payload: Joi.object({
             refreshToken: Joi.string().required(),
-          },
+          }),
         },
         auth: false,
       },
@@ -415,13 +415,13 @@ exports.plugin = {
           payload: Joi.object({
             date: Joi.date(),
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid(driveUploadKeys),
+            type: Joi.string().required().valid(...driveUploadKeys),
             file: Joi.any().required(),
           }),
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),
-          },
+          }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -436,9 +436,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
-          },
+          }),
           payload: Joi.object().keys({
             parentFolderId: Joi.string().required(),
           }),

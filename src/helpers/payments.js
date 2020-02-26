@@ -2,7 +2,7 @@ const moment = require('moment');
 const get = require('lodash/get');
 const randomize = require('randomatic');
 const { ObjectID } = require('mongodb');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');

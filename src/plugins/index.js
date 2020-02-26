@@ -12,7 +12,7 @@ const plugins = [
     options: { reporters: good.reporters },
   },
   { plugin: hapiAuthJwt2 },
-  { plugin: require('inert') },
+  { plugin: require('@hapi/inert') },
   {
     plugin: cron,
     options: {

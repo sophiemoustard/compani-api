@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -23,9 +23,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['companies:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
-          },
+          }),
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: Joi.string().allow('', null),
@@ -77,7 +77,7 @@ exports.plugin = {
               }),
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
+              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),
               templates: Joi.object().keys({
                 debitMandate: Joi.object().keys({
                   driveId: Joi.string().allow(null),
@@ -112,9 +112,9 @@ exports.plugin = {
           maxBytes: 5242880,
         },
         validate: {
-          payload: {
+          payload: Joi.object({
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid([
+            type: Joi.string().required().valid(...[
               'contractWithCompany',
               'contractWithCompanyVersion',
               'contractWithCustomer',
@@ -123,7 +123,7 @@ exports.plugin = {
               'quote',
             ]),
             file: Joi.any().required(),
-          },
+          }),
         },
         pre: [{ method: authorizeCompanyUpdate }],
       },
@@ -139,7 +139,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             tradeName: Joi.string().max(11).required(),
-            type: Joi.string().valid(COMPANY_TYPES).required(),
+            type: Joi.string().valid(...COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
             ics: Joi.string(),
@@ -161,7 +161,7 @@ exports.plugin = {
               }).required().min(1)],
             }).required(),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
+              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
             }),
           }),
         },
