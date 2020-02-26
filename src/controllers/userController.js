@@ -91,7 +91,7 @@ const listWithSectorHistories = async (req) => {
 const activeList = async (req) => {
   try {
     const users = await getUsersList(req.query, req.auth.credentials);
-    const activeUsers = users.flter(user => user.isActive);
+    const activeUsers = users.filter(user => user.isActive);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,

@@ -53,7 +53,7 @@ const plugins = [
   },
 ];
 
-if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'staging') {
+if (['production', 'staging'].includes(process.env.NODE_ENV)) {
   plugins.push({
     plugin: require('hapi-sentry'),
     options: hapiSentry.options,
