@@ -153,7 +153,8 @@ module.exports = {
   COACH: 'coach',
   PLANNING_REFERENT: 'planning_referent',
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
-  SELLER_ADMIN: 'seller_admin',
+  VENDOR_ADMIN: 'vendor_admin',
+  CLIENT_ADMIN: 'client_admin',
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',
@@ -227,5 +228,5 @@ module.exports = {
   CERTIFICATE: 'certificate',
   // INTERFACE
   CLIENT: 'client',
-  SELLER: 'seller',
+  VENDOR: 'vendor',
 };

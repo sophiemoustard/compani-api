@@ -5,7 +5,7 @@ const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { SELLER_ADMIN } = require('../../helpers/constants');
+const { VENDOR_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -51,9 +51,7 @@ exports.authorizeUserCreation = async (req) => {
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 
-  if (req.payload.company && !credentials.scope.includes(SELLER_ADMIN)) {
-    throw Boom.forbidden();
-  }
+  if (req.payload.company && !credentials.scope.includes(VENDOR_ADMIN)) throw Boom.forbidden();
 
   return null;
 };
