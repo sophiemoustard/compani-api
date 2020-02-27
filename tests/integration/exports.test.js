@@ -300,9 +300,9 @@ describe('EXPORTS ROUTES', () => {
       exportType: HELPER,
       populate: populateUser,
       expectedRows: [
-        '\ufeff"Email";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
-        `"helper@alenvi.io";"TEST";"Helper";;;;;;;"Inactif";"${moment().format('DD/MM/YYYY')}"`,
-        `"toto@alenvi.io";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
+        '\ufeff"Email";"Téléphone";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
+        `"helper@alenvi.io";;"TEST";"Helper";;;;;;;"Inactif";"${moment().format('DD/MM/YYYY')}"`,
+        `"toto@alenvi.io";"+33123456789";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
       ],
     },
     {

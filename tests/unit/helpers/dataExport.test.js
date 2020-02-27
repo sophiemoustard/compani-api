@@ -523,6 +523,7 @@ describe('exportHelpers', () => {
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
       'Email',
+      'Téléphone',
       'Aidant - Nom',
       'Aidant - Prénom',
       'Bénéficiaire - Titre',
@@ -544,6 +545,7 @@ describe('exportHelpers', () => {
 
     const helpers = [{
       local: { email: 'aide@sos.io' },
+      contact: { phone: '0123456789' },
       identity: { lastname: 'Je', firstname: 'suis' },
       createdAt: '2019-02-01T09:38:18.653Z',
     }];
@@ -562,7 +564,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', '+33123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
   });
 
   it('should return customer helper info', async () => {
@@ -573,6 +575,7 @@ describe('exportHelpers', () => {
       customers: [{
         firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
         identity: { title: 'mr', lastname: 'Patate' },
+        local: { phone: '' },
         contact: {
           primaryAddress: {
             fullAddress: '37 rue de Ponthieu 75008 Paris',
@@ -600,6 +603,7 @@ describe('exportHelpers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
+      '',
       '',
       '',
       '',
