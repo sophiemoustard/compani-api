@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const User = require('../../models/User');
 const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
@@ -58,16 +59,21 @@ exports.authorizeUserCreation = async (req) => {
 
 exports.authorizeUserGet = async (req) => {
   const { auth, query } = req;
-  const companyId = get(auth.credentials, 'company._id', null);
+  const userCompanyId = get(auth, 'credentials.company._id', null);
+  const queryCompanyId = query.company;
+  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
+
+  if (!has(authenticatedUser, 'role.vendor') && !queryCompanyId) throw Boom.forbidden();
+  if (!has(authenticatedUser, 'role.vendor') && queryCompanyId !== userCompanyId.toHexString()) throw Boom.forbidden();
 
   if (query.email) {
-    const user = await User.findOne({ email: query.email, company: companyId }).lean();
+    const user = await User.findOne({ email: query.email, company: userCompanyId }).lean();
     if (!user) throw Boom.forbidden();
   }
 
   if (query.customers) {
     const customers = UtilsHelper.formatIdsArray(query.customers);
-    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
+    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: userCompanyId });
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 
