@@ -54,6 +54,8 @@ exports.getUsersList = async (query, credentials) => {
     params['role.client'] = { $in: roles.map(role => role._id) };
   }
 
+  const authenticatedUser = await User.findById(credentials._id).lean({ autopopulate: true });
+
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
@@ -64,6 +66,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: authenticatedUser.role.vendor })
     .lean({ virtuals: true, autopopulate: true });
 };
 

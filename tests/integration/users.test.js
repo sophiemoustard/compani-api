@@ -295,12 +295,13 @@ describe('USERS ROUTES', () => {
         authToken = await getToken('vendor_admin');
         const res = await app.inject({
           method: 'GET',
-          url: `/users?company=${authCompany._id}`,
+          url: '/users',
           headers: { 'x-access-token': authToken },
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(7);
+        const usersCount = await User.countDocuments({});
+        expect(res.result.data.users.length).toBe(usersCount);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
