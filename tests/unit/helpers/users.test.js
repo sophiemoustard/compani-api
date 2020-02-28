@@ -195,7 +195,7 @@ describe('getUsersList', () => {
   let RoleMock;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const roles = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
@@ -209,7 +209,14 @@ describe('getUsersList', () => {
   });
 
   it('should get users', async () => {
-    const query = { email: 'toto@test.com' };
+    const query = { email: 'toto@test.com', company: companyId };
+
+    UserMock
+      .expects('findById')
+      .withExactArgs(credentials._id)
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ role: { client: {} } });
 
     UserMock
       .expects('find')
@@ -228,6 +235,46 @@ describe('getUsersList', () => {
       })
       .chain('populate')
       .withExactArgs('contracts')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: false })
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns(users);
+
+    const result = await UsersHelper.getUsersList(query, credentials);
+    expect(result).toEqual(users);
+    UserMock.verify();
+  });
+
+  it('should get users with vendor role', async () => {
+    const query = { email: 'toto@test.com' };
+
+    UserMock
+      .expects('findById')
+      .withExactArgs(credentials._id)
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ role: { vendor: {}, client: {} } });
+
+    UserMock
+      .expects('find')
+      .withExactArgs({ ...query }, {}, { autopopulate: false })
+      .chain('populate')
+      .withExactArgs({ path: 'procedure.task', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
+      .chain('populate')
+      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: true })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
@@ -238,13 +285,20 @@ describe('getUsersList', () => {
   });
 
   it('should get users according to roles', async () => {
-    const query = { role: ['auxiliary', 'planning_referent'] };
+    const query = { role: ['auxiliary', 'planning_referent'], company: companyId };
 
     RoleMock
       .expects('find')
       .withExactArgs({ name: { $in: query.role } }, { _id: 1 })
       .chain('lean')
       .returns(roles);
+
+    UserMock
+      .expects('findById')
+      .withExactArgs(credentials._id)
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ role: { client: {} } });
 
     UserMock
       .expects('find')
@@ -263,6 +317,8 @@ describe('getUsersList', () => {
       })
       .chain('populate')
       .withExactArgs('contracts')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: false })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
@@ -275,13 +331,17 @@ describe('getUsersList', () => {
 
 
   it('should return a 404 error if role in query does not exist', async () => {
-    const query = { role: 'toto' };
+    const query = { role: 'toto', company: companyId };
 
     RoleMock
       .expects('find')
       .withExactArgs({ name: { $in: [query.role] } }, { _id: 1 })
       .chain('lean')
       .returns([]);
+
+    UserMock
+      .expects('findById')
+      .never();
 
     UserMock
       .expects('find')
@@ -303,7 +363,7 @@ describe('getUsersListWithSectorHistories', () => {
   let RoleMock;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const roles = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
@@ -317,6 +377,8 @@ describe('getUsersListWithSectorHistories', () => {
   });
 
   it('should get users', async () => {
+    const query = { company: companyId };
+
     RoleMock
       .expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
@@ -324,6 +386,13 @@ describe('getUsersListWithSectorHistories', () => {
       .returns(roles);
 
     const roleIds = roles.map(role => role._id);
+
+    UserMock
+      .expects('findById')
+      .withExactArgs(credentials._id)
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ role: { client: {} } });
 
     UserMock
       .expects('find')
@@ -338,11 +407,55 @@ describe('getUsersListWithSectorHistories', () => {
       })
       .chain('populate')
       .withExactArgs('contracts')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: false })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
-    const result = await UsersHelper.getUsersListWithSectorHistories(credentials);
+    const result = await UsersHelper.getUsersListWithSectorHistories(query, credentials);
+    expect(result).toEqual(users);
+    RoleMock.verify();
+    UserMock.verify();
+  });
+
+  it('should get users with role vendor', async () => {
+    const query = {};
+    RoleMock
+      .expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
+      .chain('lean')
+      .returns(roles);
+
+    const roleIds = roles.map(role => role._id);
+
+    UserMock
+      .expects('findById')
+      .withExactArgs(credentials._id)
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ role: { client: {}, vendor: {} } });
+
+    UserMock
+      .expects('find')
+      .withExactArgs({ 'role.client': { $in: roleIds } }, {}, { autopopulate: false })
+      .chain('populate')
+      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sectorHistories',
+        select: '_id sector startDate endDate',
+        match: { company: get(credentials, 'company._id', null) },
+      })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: true })
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns(users);
+
+    const result = await UsersHelper.getUsersListWithSectorHistories(query, credentials);
     expect(result).toEqual(users);
     RoleMock.verify();
     UserMock.verify();
