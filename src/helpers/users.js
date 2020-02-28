@@ -73,7 +73,10 @@ exports.getUsersList = async (query, credentials) => {
 exports.getUsersListWithSectorHistories = async (query, credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
-  const params = { company: get(query, 'company', null), 'role.client': { $in: roleIds } };
+  const params = { 'role.client': { $in: roleIds } };
+  if (query.company) params.company = query.company;
+
+  const authenticatedUser = await User.findById(credentials._id).lean({ autopopulate: true });
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
@@ -83,6 +86,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: authenticatedUser.role.vendor })
     .lean({ virtuals: true, autopopulate: true });
 };
 

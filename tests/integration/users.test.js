@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   usersSeedList,
@@ -498,6 +499,22 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(1);
+      });
+
+      it('should get all auxiliary users from an other company if role vendor', async () => {
+        authToken = await getToken('vendor_admin');
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/sector-histories',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const roles = await Role.find({ name: { $in: ['auxiliary', 'planning_referent'] } }).lean();
+        const roleIds = roles.map(role => role._id);
+        const usersCount = await User.countDocuments({ 'role.client': { $in: roleIds } });
+        expect(res.result.data.users.length).toBe(usersCount);
       });
 
       it('should shoudl return a 403 if not role vendor and try to get other company', async () => {
