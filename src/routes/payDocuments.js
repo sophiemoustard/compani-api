@@ -47,9 +47,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['paydocuments:edit', 'user:edit-{query.user}'] },
         validate: {
-          query: Joi.object({
-            user: Joi.objectId().required(),
-          }),
+          query: Joi.object({ user: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetPayDocuments }],
       },
@@ -62,9 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['paydocuments:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [{ method: authorizePayDocumentDeletion }],
       },

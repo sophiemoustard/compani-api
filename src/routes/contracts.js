@@ -120,9 +120,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date(),

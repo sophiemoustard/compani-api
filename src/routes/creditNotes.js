@@ -94,9 +94,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
@@ -112,9 +110,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             date: Joi.date(),
             startDate: Joi.date(),

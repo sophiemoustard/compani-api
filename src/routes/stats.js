@@ -23,9 +23,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
-          query: Joi.object({
-            customer: Joi.objectId().required(),
-          }),
+          query: Joi.object({ customer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetStats }],
       },
@@ -38,9 +36,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
-          query: Joi.object({
-            customer: Joi.objectId().required(),
-          }),
+          query: Joi.object({ customer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetStats }],
       },

@@ -34,12 +34,8 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
-          payload: Joi.object().keys({
-            default: Joi.boolean(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object().keys({ default: Joi.boolean() }),
         },
         pre: [
           { method: getInternalHour, assign: 'internalHour' },
@@ -64,9 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getInternalHour, assign: 'internalHour' },

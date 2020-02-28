@@ -14,9 +14,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['roles:read'] },
         validate: {
-          query: Joi.object().keys({
-            name: [Joi.string(), Joi.array().items(Joi.string())],
-          }),
+          query: Joi.object().keys({ name: [Joi.string(), Joi.array().items(Joi.string())] }),
         },
       },
       handler: list,

@@ -281,13 +281,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
-            certificates: Joi.object().keys({
-              driveId: Joi.string(),
-            }),
+            certificates: Joi.object().keys({ driveId: Joi.string() }),
           }),
         },
         pre: [
@@ -308,9 +304,7 @@ exports.plugin = {
             _id: Joi.objectId(),
             task_id: Joi.objectId(),
           }),
-          payload: Joi.object().keys({
-            isDone: Joi.boolean(),
-          }),
+          payload: Joi.object().keys({ isDone: Joi.boolean() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -326,9 +320,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -344,9 +336,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -361,9 +351,7 @@ exports.plugin = {
       path: '/refreshToken',
       options: {
         validate: {
-          payload: Joi.object({
-            refreshToken: Joi.string().required(),
-          }),
+          payload: Joi.object({ refreshToken: Joi.string().required() }),
         },
         auth: false,
       },
@@ -390,9 +378,7 @@ exports.plugin = {
       path: '/check-reset-password/{token}',
       options: {
         validate: {
-          params: Joi.object().keys({
-            token: Joi.string().required(),
-          }),
+          params: Joi.object().keys({ token: Joi.string().required() }),
         },
         auth: false,
       },
@@ -436,9 +422,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             parentFolderId: Joi.string().required(),
           }),

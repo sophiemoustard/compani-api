@@ -72,9 +72,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:edit', 'customer-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
@@ -273,9 +271,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerGet }],
       },
@@ -330,9 +326,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [{ method: authorizeCustomerGet }],
       },
@@ -345,9 +339,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
               serviceName: Joi.string(),
@@ -436,9 +428,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customer-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
               service: Joi.string(),
@@ -466,9 +456,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             nature: Joi.string().valid(...FUNDING_NATURES).required(),
             thirdPartyPayer: Joi.objectId().required(),

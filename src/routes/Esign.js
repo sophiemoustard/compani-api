@@ -12,9 +12,7 @@ exports.plugin = {
       path: '/{id}',
       options: {
         validate: {
-          params: Joi.object({
-            id: Joi.string().required(),
-          }),
+          params: Joi.object({ id: Joi.string().required() }),
         },
       },
       handler: show,

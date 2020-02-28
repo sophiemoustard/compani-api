@@ -23,9 +23,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['companies:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: Joi.string().allow('', null),

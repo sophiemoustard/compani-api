@@ -60,9 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeSurchargesUpdate }],
       },
@@ -75,9 +73,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
             saturday: Joi.number().allow('', null).default(null),

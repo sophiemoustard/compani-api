@@ -19,9 +19,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-          }),
+          payload: Joi.object().keys({ name: Joi.string().required() }),
         },
       },
       handler: create,
@@ -33,12 +31,8 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
-          payload: Joi.object().keys({
-            name: Joi.string(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object().keys({ name: Joi.string() }),
         },
         pre: [
           { method: getSector, assign: 'sector' },
@@ -54,9 +48,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:read'] },
         validate: {
-          query: Joi.object().keys({
-            name: Joi.string(),
-          }),
+          query: Joi.object().keys({ name: Joi.string() }),
         },
       },
       handler: list,
@@ -68,9 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getSector, assign: 'sector' },
