@@ -95,3 +95,18 @@ exports.list = async (params) => {
     else resolve(response.data);
   }));
 };
+
+exports.createPermission = async (params) => {
+  const auth = jwtClient();
+  await auth.authorize();
+
+  return new Promise((resolve, reject) => drive.permissions.create({
+    auth,
+    resource: params.permission,
+    fileId: params.fileId,
+    fields: 'id',
+  }, (err, response) => {
+    if (err) reject(new Error(`Google Drive API ${err}`));
+    else resolve(response.data);
+  }));
+};
