@@ -45,11 +45,7 @@ exports.refreshToken = async (payload) => {
 };
 
 exports.getUsersList = async (query, credentials) => {
-  const params = {
-    ...pickBy(omit(query, ['role'])),
-    company: get(credentials, 'company._id', null),
-  };
-
+  const params = { ...pickBy(omit(query, ['role'])) };
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
@@ -71,10 +67,10 @@ exports.getUsersList = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getUsersListWithSectorHistories = async (credentials) => {
+exports.getUsersListWithSectorHistories = async (query, credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
-  const params = { company: get(credentials, 'company._id', null), 'role.client': { $in: roleIds } };
+  const params = { company: get(query, 'company', null), 'role.client': { $in: roleIds } };
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })

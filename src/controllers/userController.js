@@ -76,7 +76,7 @@ const list = async (req) => {
 
 const listWithSectorHistories = async (req) => {
   try {
-    const users = await getUsersListWithSectorHistories(req.auth.credentials);
+    const users = await getUsersListWithSectorHistories(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,

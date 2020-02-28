@@ -123,6 +123,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: { query: { company: Joi.objectId() } },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: listWithSectorHistories,
     });
