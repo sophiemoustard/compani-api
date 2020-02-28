@@ -3,6 +3,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const Boom = require('boom');
 const Company = require('../../../src/models/Company');
+const Drive = require('../../../src/models/Google/Drive');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const AdministrativeDocumentHelper = require('../../../src/helpers/administrativeDocument');
@@ -17,16 +18,19 @@ describe('createAdministrativeDocument', () => {
   let CompanyMock;
   let AdministrativeDocumentMock;
   let addFileStub;
+  let createPermissionStub;
   beforeEach(() => {
     CompanyMock = sinon.mock(Company);
     AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
     addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
+    createPermissionStub = sinon.stub(Drive, 'createPermission');
   });
 
   afterEach(() => {
     CompanyMock.restore();
     AdministrativeDocumentMock.restore();
     addFileStub.restore();
+    createPermissionStub.restore();
   });
 
   it('should create an administrative document', async () => {
@@ -51,6 +55,10 @@ describe('createAdministrativeDocument', () => {
       addFileStub,
       { driveFolderId: '1234', name: payload.name, type: payload.mimeType, body: payload.file }
     );
+    sinon.assert.calledWithExactly(
+      createPermissionStub,
+      { fileId: uploadedFile.id, permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false } }
+    );
     administrativeDocumentMock.verify();
     AdministrativeDocumentMock.verify();
     CompanyMock.verify();
@@ -70,6 +78,7 @@ describe('createAdministrativeDocument', () => {
         addFileStub,
         { driveFolderId: '1234', name: payload.name, type: payload.mimeType, body: payload.file }
       );
+      sinon.assert.notCalled(createPermissionStub);
       AdministrativeDocumentMock.verify();
       CompanyMock.verify();
     }

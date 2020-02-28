@@ -68,14 +68,17 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
 
   describe('CLIENT_ADMIN', () => {
     let addStub;
+    let createPermissionStub;
 
     beforeEach(async () => {
       addStub = sinon.stub(Drive, 'add');
+      createPermissionStub = sinon.stub(Drive, 'createPermission');
       authToken = await getToken('client_admin');
     });
 
     afterEach(() => {
       addStub.restore();
+      createPermissionStub.restore();
     });
 
     const payload = {
@@ -97,6 +100,10 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
       });
 
       expect(response.statusCode).toBe(200);
+      sinon.assert.calledWithExactly(
+        createPermissionStub,
+        { fileId: 'fakeFileDriveId', permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false } }
+      );
       const administrativeDocumentsAfter = await AdministrativeDocument.find({ company: authCompany._id }).lean();
       expect(administrativeDocumentsAfter.length).toBe(administrativeDocumentsBefore.length + 1);
     });
