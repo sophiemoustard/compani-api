@@ -307,7 +307,9 @@ const populateDBForAuthentication = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
-  await User.create(userList);
+  for (let i = 0; i < userList.length; i++) {
+    await (new User(userList[i])).save();
+  }
 };
 
 const getUser = (roleName, list = userList) => {
