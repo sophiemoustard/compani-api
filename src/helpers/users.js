@@ -3,6 +3,7 @@ const moment = require('moment');
 const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
@@ -64,7 +65,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
-    .setOptions({ isVendorUser: get(credentials, 'role.vendor', false) })
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -82,7 +83,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
-    .setOptions({ isVendorUser: get(credentials, 'role.vendor', false) })
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
