@@ -153,10 +153,10 @@ exports.plugin = {
               }),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
-              transportSubs: [Joi.array().items({
+              transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              }).required().min(1)],
+              }),
             }).required(),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).default(TWO_WEEKS),

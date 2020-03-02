@@ -134,3 +134,47 @@ describe('getFirstIntervention', () => {
     EventModel.verify();
   });
 });
+
+describe('updateCompany', () => {
+  let findOneAndUpdate;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Company, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
+  it('should update transport sub', async () => {
+    const companyId = new ObjectID();
+    const subId = new ObjectID();
+    const payload = {
+      rhConfig: { transportSubs: { subId } },
+    };
+    findOneAndUpdate.returns({ _id: companyId });
+
+    const result = await CompanyHelper.updateCompany(companyId, payload);
+
+    expect(result).toEqual({ _id: companyId });
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
+      { _id: companyId, 'rhConfig.transportSubs._id': subId },
+      { $set: flat({ 'rhConfig.transportSubs.$': { subId } }) },
+      { new: true }
+    );
+  });
+  it('should update company', async () => {
+    const companyId = new ObjectID();
+    const payload = { tradeName: 'toto' };
+    findOneAndUpdate.returns({ _id: companyId });
+
+    const result = await CompanyHelper.updateCompany(companyId, payload);
+
+    expect(result).toEqual({ _id: companyId });
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
+      { _id: companyId },
+      { $set: flat({ tradeName: 'toto' }) },
+      { new: true }
+    );
+  });
+});

@@ -57,3 +57,19 @@ exports.getFirstIntervention = async (credentials) => {
 
   return firstIntervention;
 };
+
+exports.updateCompany = async (companyId, payload) => {
+  const transportSubs = get(payload, 'rhConfig.transportSubs');
+  if (transportSubs && !Array.isArray(transportSubs)) {
+    const { subId } = payload.rhConfig.transportSubs;
+    const set = { 'rhConfig.transportSubs.$': transportSubs };
+
+    return Company.findOneAndUpdate(
+      { _id: companyId, 'rhConfig.transportSubs._id': subId },
+      { $set: flat(set) },
+      { new: true }
+    );
+  }
+
+  return Company.findOneAndUpdate({ _id: companyId }, { $set: flat(payload) }, { new: true });
+};

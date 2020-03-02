@@ -27,7 +27,7 @@ describe('COMPANIES ROUTES', () => {
         authToken = await getToken('client_admin');
       });
 
-      it('should update company service', async () => {
+      it('should update company', async () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
@@ -195,7 +195,6 @@ describe('COMPANIES ROUTES', () => {
         contractWithCustomer: { grossHourlyRate: 5 },
         feeAmount: 2,
         amountPerKm: 10,
-        transportSubs: [{ department: '75', price: 75 }],
       },
       customersConfig: { billingPeriod: MONTH },
     };

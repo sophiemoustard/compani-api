@@ -1,40 +1,17 @@
 const Boom = require('@hapi/boom');
-const flat = require('flat');
-
 const translate = require('../helpers/translate');
 const CompanyHelper = require('../helpers/companies');
-const Company = require('../models/Company');
 
 const { language } = translate;
 
 const update = async (req) => {
   try {
-    let companyUpdated;
-    if (req.payload.rhConfig && req.payload.rhConfig.transportSubs && !Array.isArray(req.payload.transportSubs)) {
-      const { subId } = req.payload.rhConfig.transportSubs;
-      req.payload.rhConfig['transportSubs.$'] = req.payload.rhConfig.transportSubs;
-      delete req.payload.rhConfig.transportSubs;
-      delete req.payload._id;
-      companyUpdated = await Company.findOneAndUpdate({
-        _id: req.params._id,
-        'rhConfig.transportSubs._id': subId,
-      }, { $set: flat(req.payload) }, { new: true });
-    } else {
-      companyUpdated = await Company.findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload) },
-        { new: true }
-      );
-    }
+    const company = await CompanyHelper.updateCompany(req.params._id, req.payload);
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
 
-    if (!companyUpdated) {
-      return Boom.notFound(translate[language].companyNotFound);
-    }
     return {
       message: translate[language].companyUpdated,
-      data: {
-        company: companyUpdated,
-      },
+      data: { company },
     };
   } catch (e) {
     req.log('error', e);
