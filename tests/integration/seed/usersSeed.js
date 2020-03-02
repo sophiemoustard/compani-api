@@ -106,7 +106,6 @@ const helperFromOtherCompany = {
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
-  procedure: [{ task: task._id }],
   inactivityDate: null,
   customers: [customerFromOtherCompany._id],
 };
@@ -118,9 +117,7 @@ const coachFromOtherCompany = {
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
-  procedure: [{ task: task._id }],
   inactivityDate: null,
-  customers: [customerFromOtherCompany._id],
 };
 
 const auxiliaryFromOtherCompany = {
@@ -132,7 +129,6 @@ const auxiliaryFromOtherCompany = {
   company: otherCompany._id,
   procedure: [{ task: task._id }],
   inactivityDate: null,
-  customers: [customerFromOtherCompany._id],
 };
 
 const contractId = new ObjectID();
