@@ -122,7 +122,7 @@ exports.plugin = {
       path: '/sector-histories',
       options: {
         auth: { scope: ['users:list'] },
-        validate: { query: { company: Joi.objectId() } },
+        validate: { query: Joi.object({ company: Joi.objectId() }) },
         pre: [{ method: authorizeUserGet }],
       },
       handler: listWithSectorHistories,
