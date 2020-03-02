@@ -59,6 +59,30 @@ describe('createCompany', () => {
   });
 });
 
+describe('list', () => {
+  let CompanyMock;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+  });
+
+  it('should return companies', async () => {
+    const companyList = [{ _id: new ObjectID() }];
+    CompanyMock.expects('find')
+      .withExactArgs({ toto: 'qwerty' })
+      .chain('lean')
+      .once()
+      .returns(companyList);
+
+    const result = await CompanyHelper.list({ toto: 'qwerty' });
+
+    expect(result).toEqual(companyList);
+    CompanyMock.restore();
+  });
+});
+
 describe('uploadFile', () => {
   let CompanyModel;
   let addStub;

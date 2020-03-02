@@ -47,6 +47,20 @@ const create = async (req) => {
   }
 };
 
+const list = async (req) => {
+  try {
+    const companies = await CompanyHelper.list(req.payload, req.auth.credentials);
+
+    return {
+      message: translate[language].companyCreated,
+      data: { companies },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const getFirstIntervention = async (req) => {
   try {
     const firstIntervention = await CompanyHelper.getFirstIntervention(req.auth.credentials);
@@ -67,5 +81,6 @@ module.exports = {
   update,
   uploadFile,
   create,
+  list,
   getFirstIntervention,
 };

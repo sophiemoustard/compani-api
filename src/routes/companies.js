@@ -8,6 +8,7 @@ const {
   uploadFile,
   create,
   getFirstIntervention,
+  list,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
@@ -172,6 +173,15 @@ exports.plugin = {
       handler: getFirstIntervention,
       options: {
         auth: { scope: ['events:read'] },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: list,
+      options: {
+        auth: { scope: ['companies:read'] },
       },
     });
   },

@@ -26,6 +26,8 @@ exports.createCompany = async (companyPayload) => {
   });
 };
 
+exports.list = async query => Company.find(query).lean();
+
 exports.uploadFile = async (payload, params) => {
   const { fileName, type, file } = payload;
 

@@ -52,11 +52,13 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Éditer une attestion fiscale', permission: 'taxcertificates:edit' },
   { _id: new ObjectID(), description: 'Editer un établissement', permission: 'establishments:edit' },
   { _id: new ObjectID(), description: 'Consulter la liste des établissements', permission: 'establishments:read' },
+  { _id: new ObjectID(), description: 'Consulter la liste des structures', permission: 'companies:read' },
 ];
 const vendorAdminRights = [
   'companies:create',
   'users:edit',
   'users:list',
+  'companies:read',
 ];
 const clientAdminRights = [
   'config:edit',

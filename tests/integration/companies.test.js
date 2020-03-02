@@ -326,4 +326,46 @@ describe('COMPANIES ROUTES', () => {
       });
     });
   });
+
+  describe('GET /companies', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+
+      it('should create a new company', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: '/companies',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.companies).toBeDefined();
+        expect(response.result.data.companies.length).toEqual(3);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/companies',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 });
