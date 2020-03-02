@@ -64,7 +64,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
-    .setOptions({ isVendorUser: !!credentials.role.vendor })
+    .setOptions({ isVendorUser: get(credentials, 'role.vendor', false) })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -82,7 +82,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
-    .setOptions({ isVendorUser: !!credentials.role.vendor })
+    .setOptions({ isVendorUser: get(credentials, 'role.vendor', false) })
     .lean({ virtuals: true, autopopulate: true });
 };
 
