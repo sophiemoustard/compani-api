@@ -331,7 +331,7 @@ describe('COMPANIES ROUTES', () => {
     describe('VENDOR_ADMIN', () => {
       beforeEach(populateDB);
 
-      it('should create a new company', async () => {
+      it('should list companies', async () => {
         authToken = await getToken('vendor_admin');
         const response = await app.inject({
           method: 'GET',
@@ -352,6 +352,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {

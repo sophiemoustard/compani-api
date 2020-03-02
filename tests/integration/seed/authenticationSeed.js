@@ -17,6 +17,7 @@ const {
   COACH,
   PLANNING_REFERENT,
   AUXILIARY_WITHOUT_COMPANY,
+  TRAINING_ORGANISATION_MANAGER,
 } = require('../../../src/helpers/constants');
 const app = require('../../../server');
 
@@ -58,6 +59,11 @@ const vendorAdminRights = [
   'companies:create',
   'users:edit',
   'users:list',
+  'companies:read',
+];
+const trainingOrganisationManagerRights = [
+  'companies:create',
+  'users:edit',
   'companies:read',
 ];
 const clientAdminRights = [
@@ -186,6 +192,15 @@ const rolesList = [
       hasAccess: helperRights.includes(right.permission),
     })),
   },
+  {
+    _id: new ObjectID(),
+    name: TRAINING_ORGANISATION_MANAGER,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainingOrganisationManagerRights.includes(right.permission),
+    })),
+  },
 ];
 
 const authCompany = {
@@ -219,7 +234,7 @@ const otherCompany = {
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Admin', lastname: 'Chef' },
+    identity: { firstname: 'client_admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
@@ -269,8 +284,16 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
-    local: { email: 'super-admin@alenvi.io', password: '123456' },
+    local: { email: 'vendor-admin@alenvi.io', password: '123456' },
     role: { vendor: rolesList.find(role => role.name === VENDOR_ADMIN)._id },
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'training_organisation_manager', lastname: 'ROP' },
+    refreshToken: uuidv4(),
+    local: { email: 'training-organisation-manager@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id },
     company: authCompany._id,
   },
 ];
