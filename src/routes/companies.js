@@ -112,14 +112,14 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid(...[
+            type: Joi.string().required().valid(
               'contractWithCompany',
               'contractWithCompanyVersion',
               'contractWithCustomer',
               'contractWithCustomerVersion',
               'debitMandate',
-              'quote',
-            ]),
+              'quote'
+            ),
             file: Joi.any().required(),
           }),
         },
