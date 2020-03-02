@@ -46,7 +46,7 @@ const CompanySchema = mongoose.Schema({
     },
   },
   customersConfig: {
-    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS, required: true },
+    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
     templates: {
       folderId: String,
       debitMandate: driveResourceSchemaDefinition,
