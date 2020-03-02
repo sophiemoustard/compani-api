@@ -517,7 +517,7 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users.length).toBe(usersCount);
       });
 
-      it('should shoudl return a 403 if not role vendor and try to get other company', async () => {
+      it('should return a 403 if not role vendor and try to get other company', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
 
         const res = await app.inject({
