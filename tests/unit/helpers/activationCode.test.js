@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const ActivationCodeHelper = require('../../../src/helpers/activationCode');
 const ActivationCode = require('../../../src/models/ActivationCode');
 const authenticationHelper = require('../../../src/helpers/authentication');

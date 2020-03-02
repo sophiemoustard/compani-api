@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { authorizeThirdPartyPayersUpdate } = require('./preHandlers/thirdPartyPayers');
@@ -51,9 +51,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
             address: addressValidation.default({}),
@@ -74,9 +72,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],
       },

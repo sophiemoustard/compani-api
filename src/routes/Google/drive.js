@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -21,7 +21,7 @@ exports.plugin = {
       handler: deleteFile,
       options: {
         validate: {
-          params: { id: Joi.string() },
+          params: Joi.object({ id: Joi.string() }),
         },
         auth: {
           strategy: 'jwt',
@@ -35,7 +35,7 @@ exports.plugin = {
       handler: getFileById,
       options: {
         validate: {
-          params: { id: Joi.string() },
+          params: Joi.object({ id: Joi.string() }),
         },
         auth: {
           strategy: 'jwt',
@@ -49,7 +49,7 @@ exports.plugin = {
       handler: downloadFile,
       options: {
         validate: {
-          params: { id: Joi.string() },
+          params: Joi.object({ id: Joi.string() }),
         },
         auth: {
           strategy: 'jwt',
@@ -63,10 +63,10 @@ exports.plugin = {
       handler: getList,
       options: {
         validate: {
-          query: {
+          query: Joi.object({
             folderId: Joi.string(),
             nextPageToken: Joi.string(),
-          },
+          }),
         },
         auth: {
           strategy: 'jwt',
@@ -80,7 +80,7 @@ exports.plugin = {
       handler: generateDocxFromDrive,
       options: {
         validate: {
-          params: { id: Joi.string() },
+          params: Joi.object({ id: Joi.string() }),
         },
         auth: {
           strategy: 'jwt',

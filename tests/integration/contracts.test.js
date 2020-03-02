@@ -323,7 +323,7 @@ describe('CONTRACTS ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/contracts',
-          payload: omit(cloneDeep(test.payload || payload), test.path),
+          payload: omit(cloneDeep(payload), test.path),
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);
@@ -724,7 +724,7 @@ describe('CONTRACTS ROUTES', () => {
         fileName: 'contrat_signe',
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedContract',
-        status: COMPANY_CONTRACT,
+        status: CUSTOMER_CONTRACT,
         contractId: contractsList[0]._id.toHexString(),
         versionId: contractsList[0].versions[0]._id.toHexString(),
         customer: contractCustomer._id.toHexString(),
@@ -738,8 +738,8 @@ describe('CONTRACTS ROUTES', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      sinon.assert.calledOnce(addStub);
-      sinon.assert.calledOnce(getFileByIdStub);
+      sinon.assert.calledTwice(addStub);
+      sinon.assert.calledTwice(getFileByIdStub);
     });
 
     it('should not upload a customer contract if customer is not from the same company', async () => {

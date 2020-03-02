@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { list } = require('../controllers/roleController');
@@ -14,9 +14,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['roles:read'] },
         validate: {
-          query: Joi.object().keys({
-            name: [Joi.string(), Joi.array().items(Joi.string())],
-          }),
+          query: Joi.object().keys({ name: [Joi.string(), Joi.array().items(Joi.string())] }),
         },
       },
       handler: list,

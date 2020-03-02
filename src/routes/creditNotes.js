@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -67,7 +67,7 @@ exports.plugin = {
               service: Joi.object().required().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid(SERVICE_NATURES),
+                nature: Joi.string().required().valid(...SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
@@ -94,9 +94,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
@@ -112,9 +110,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             date: Joi.date(),
             startDate: Joi.date(),
@@ -153,7 +149,7 @@ exports.plugin = {
               service: Joi.object().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid(SERVICE_NATURES),
+                nature: Joi.string().required().valid(...SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
@@ -172,7 +168,7 @@ exports.plugin = {
       path: '/{_id}/pdfs',
       options: {
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },

@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, generateBillSlipDocx } = require('../controllers/billSlipController');
 const { authorizeGetBillSlipDocx } = require('./preHandlers/billSlips');
@@ -22,7 +22,7 @@ exports.plugin = {
       path: '/{_id}/docx',
       options: {
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         auth: { scope: ['bills:edit'] },
         pre: [{ method: authorizeGetBillSlipDocx }],

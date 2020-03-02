@@ -32,9 +32,9 @@ const validate = async (decoded) => {
     if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
 
     const credentials = {
+      email: get(user, 'local.email', null),
       _id: decoded._id,
       identity: user.identity || null,
-      email: get(user, 'local.email', null),
       company: user.company,
       sector: user.sector ? user.sector.toHexString() : null,
       scope,

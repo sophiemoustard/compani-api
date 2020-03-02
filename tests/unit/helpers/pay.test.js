@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
 const Pay = require('../../../src/models/Pay');
 const User = require('../../../src/models/User');

@@ -1,6 +1,6 @@
 const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Pay = require('../models/Pay');

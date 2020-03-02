@@ -12,7 +12,7 @@ const plugins = [
     options: { reporters: good.reporters },
   },
   { plugin: hapiAuthJwt2 },
-  { plugin: require('inert') },
+  { plugin: require('@hapi/inert') },
   {
     plugin: cron,
     options: {
@@ -53,7 +53,7 @@ const plugins = [
   },
 ];
 
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+if (['production', 'staging'].includes(process.env.NODE_ENV)) {
   plugins.push({
     plugin: require('hapi-sentry'),
     options: hapiSentry.options,

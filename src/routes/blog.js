@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { getRssFeeds } = require('../controllers/blogController');
@@ -13,7 +13,7 @@ exports.plugin = {
       path: '/rssFeeds',
       options: {
         validate: {
-          query: { feed_url: Joi.string().uri().required() },
+          query: Joi.object({ feed_url: Joi.string().uri().required() }),
         },
         auth: false,
       },

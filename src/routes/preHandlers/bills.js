@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const Bill = require('../../models/Bill');

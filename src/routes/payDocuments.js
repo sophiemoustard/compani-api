@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, list, remove } = require('../controllers/payDocumentController');
@@ -30,7 +30,7 @@ exports.plugin = {
             date: Joi.date(),
             fileName: Joi.string().required(),
             payDoc: Joi.any().required(),
-            nature: Joi.string().valid(PAY_DOCUMENT_NATURES).required(),
+            nature: Joi.string().valid(...PAY_DOCUMENT_NATURES).required(),
             mimeType: Joi.string().required(),
             driveFolderId: Joi.string().required(),
             user: Joi.objectId().required(),
@@ -47,9 +47,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['paydocuments:edit', 'user:edit-{query.user}'] },
         validate: {
-          query: Joi.object({
-            user: Joi.objectId().required(),
-          }),
+          query: Joi.object({ user: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetPayDocuments }],
       },
@@ -62,9 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['paydocuments:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-          }),
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [{ method: authorizePayDocumentDeletion }],
       },

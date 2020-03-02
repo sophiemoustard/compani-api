@@ -50,6 +50,7 @@ const contractCustomer = {
       { rum: 'R012345678903456789' },
     ],
   },
+  driveFolder: { driveId: '1234567890' },
 };
 
 const otherCompanyContractUser = {

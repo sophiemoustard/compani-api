@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 const { payValidation } = require('./validations/pay');
 const { draftFinalPayList, createList } = require('../controllers/finalPayController');
 const { authorizeFinalPayCreation } = require('./preHandlers/finalPay');
@@ -14,10 +14,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          query: {
+          query: Joi.object({
             endDate: Joi.date(),
             startDate: Joi.date(),
-          },
+          }),
         },
       },
       handler: draftFinalPayList,

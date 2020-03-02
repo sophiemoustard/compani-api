@@ -1,7 +1,7 @@
 'use strict';
 
 const { CronJob } = require('cron');
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 const internals = {};
 

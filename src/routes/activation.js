@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { authorizeActivationCodeCreate, authorizeActivationCodeGet } = require('./preHandlers/activationCode');
@@ -29,9 +29,7 @@ exports.plugin = {
       path: '/{code}',
       options: {
         validate: {
-          params: Joi.object().keys({
-            code: Joi.string().length(4).required(),
-          }),
+          params: Joi.object().keys({ code: Joi.string().length(4).required() }),
         },
         auth: false,
         pre: [{ method: authorizeActivationCodeGet }],

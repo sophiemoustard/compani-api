@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const billDispatch = require('../jobs/billDispatch');
 const eventRepetitions = require('../jobs/eventRepetitions');
 const updateRole = require('../jobs/updateRole');

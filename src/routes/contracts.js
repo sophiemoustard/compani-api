@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
@@ -54,10 +54,16 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            status: Joi.string().required().valid(CONTRACT_STATUS),
+            status: Joi.string()
+              .required()
+              .valid(...CONTRACT_STATUS),
             versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
-              weeklyHours: Joi.number(),
+              weeklyHours: Joi.number().when(Joi.ref('/status'), {
+                is: COMPANY_CONTRACT,
+                then: Joi.required(),
+                otherwise: Joi.forbidden(),
+              }),
               startDate: Joi.date().required(),
               signature: Joi.object().keys({
                 templateId: Joi.string().required(),
@@ -70,24 +76,24 @@ exports.plugin = {
                 })).required(),
                 meta: Joi.object({
                   auxiliaryDriveId: Joi.string().required(),
-                  customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                  customerDriveId: Joi.string().when('status', {
+                    is: CUSTOMER_CONTRACT,
+                    then: Joi.required(),
+                    otherwise: Joi.forbidden(),
+                  }),
                   status: Joi.string(),
                 }),
                 redirect: Joi.string().uri(),
                 redirectDecline: Joi.string().uri(),
               }),
-            }).required()
-              .when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })
-              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.object({ weeklyHours: Joi.forbidden() }) })),
+            }).required()),
             user: Joi.objectId().required(),
             customer: Joi.objectId()
               .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })
               .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
           }),
         },
-        pre: [
-          { method: authorizeContractCreation },
-        ],
+        pre: [{ method: authorizeContractCreation }],
       },
       handler: create,
     });
@@ -98,13 +104,13 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: { _id: Joi.objectId().required() },
-          payload: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
             endDate: Joi.date(),
-            endReason: Joi.string().valid(END_CONTRACT_REASONS),
+            endReason: Joi.string().valid(...END_CONTRACT_REASONS),
             otherMisc: Joi.string(),
             endNotificationDate: Joi.date(),
-          },
+          }),
         },
         pre: [
           { method: getContract, assign: 'contract' },
@@ -120,10 +126,8 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date(),
             weeklyHours: Joi.number(),
@@ -139,18 +143,19 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                customerDriveId: Joi.string().when('status', {
+                  is: CUSTOMER_CONTRACT,
+                  then: Joi.required(),
+                  otherwise: Joi.forbidden(),
+                }),
                 status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
             }),
-          },
+          }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: createContractVersion,
     });
@@ -161,11 +166,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
             versionId: Joi.objectId().required(),
-          },
-          payload: {
+          }),
+          payload: Joi.object({
             startDate: Joi.date(),
             endDate: Joi.date(),
             grossHourlyRate: Joi.number(),
@@ -180,18 +185,19 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                customerDriveId: Joi.string().when('status', {
+                  is: CUSTOMER_CONTRACT,
+                  then: Joi.required(),
+                  otherwise: Joi.forbidden(),
+                }),
                 status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
             }),
-          },
+          }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: updateContractVersion,
     });
@@ -202,10 +208,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
             versionId: Joi.objectId().required(),
-          },
+          }),
         },
         pre: [
           { method: getContract, assign: 'contract' },
@@ -228,16 +234,20 @@ exports.plugin = {
           maxBytes: 5242880,
         },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),
-          },
+          }),
           payload: Joi.object({
             fileName: Joi.string().required(),
             contractId: Joi.objectId().required(),
             versionId: Joi.objectId().required(),
-            customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
-            status: Joi.string().required().valid(CONTRACT_STATUS),
+            customer: Joi.objectId().when('/status', {
+              is: CUSTOMER_CONTRACT,
+              then: Joi.required(),
+              otherwise: Joi.forbidden(),
+            }),
+            status: Joi.string().required().valid(...CONTRACT_STATUS),
             file: Joi.any().required(),
             type: Joi.string().required().valid('signedContract'),
           }),

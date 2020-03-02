@@ -1,4 +1,4 @@
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 const surchargedHoursValidation = Joi.object().keys({
   hours: Joi.number().required(),

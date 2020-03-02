@@ -1,6 +1,6 @@
 const User = require('../../models/User');
 const ActivationCode = require('../../models/ActivationCode');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 
