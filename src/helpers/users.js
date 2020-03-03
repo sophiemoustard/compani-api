@@ -52,7 +52,10 @@ exports.getUsersList = async (query, credentials) => {
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
 
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
-    params['role.client'] = { $in: roles.map(role => role._id) };
+    params.$or = [
+      { 'client.role': { $in: roles.map(role => role._id) } },
+      { 'client.vendor': { $in: roles.map(role => role._id) } },
+    ];
   }
 
   return User.find(params, {}, { autopopulate: false })
@@ -71,8 +74,12 @@ exports.getUsersList = async (query, credentials) => {
 
 exports.getUsersListWithSectorHistories = async (query, credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
-  const roleIds = roles.map(role => role._id);
-  const params = { 'role.client': { $in: roleIds } };
+  const params = {
+    $or: [
+      { 'client.role': { $in: roles.map(role => role._id) } },
+      { 'client.vendor': { $in: roles.map(role => role._id) } },
+    ],
+  };
   if (query.company) params.company = query.company;
 
   return User.find(params, {}, { autopopulate: false })

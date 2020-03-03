@@ -44,6 +44,9 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
+  // USER
+  INTERNAL: 'internal',
+  EXTERNAL: 'external',
   // CUSTOMER
   MISTER: 'mr',
   MRS: 'mrs',
@@ -148,14 +151,17 @@ module.exports = {
     };
   },
   // ROLE
+  // CLIENT
   AUXILIARY: 'auxiliary',
   HELPER: 'helper',
   COACH: 'coach',
   PLANNING_REFERENT: 'planning_referent',
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
-  VENDOR_ADMIN: 'vendor_admin',
   CLIENT_ADMIN: 'client_admin',
+  // VENDOR
+  VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
+  TRAINER: 'trainer',
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',

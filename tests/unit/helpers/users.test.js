@@ -281,7 +281,13 @@ describe('getUsersList', () => {
 
     UserMock
       .expects('find')
-      .withExactArgs({ 'role.client': { $in: roles.map(r => r._id) }, company: companyId }, {}, { autopopulate: false })
+      .withExactArgs({
+        $or: [
+          { 'client.role': { $in: roles.map(role => role._id) } },
+          { 'client.vendor': { $in: roles.map(role => role._id) } },
+        ],
+        company: companyId,
+      }, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name' })
       .chain('populate')
@@ -358,11 +364,15 @@ describe('getUsersListWithSectorHistories', () => {
       .chain('lean')
       .returns(roles);
 
-    const roleIds = roles.map(role => role._id);
-
     UserMock
       .expects('find')
-      .withExactArgs({ 'role.client': { $in: roleIds }, company: companyId }, {}, { autopopulate: false })
+      .withExactArgs({
+        $or: [
+          { 'client.role': { $in: roles.map(role => role._id) } },
+          { 'client.vendor': { $in: roles.map(role => role._id) } },
+        ],
+        company: companyId,
+      }, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')
@@ -393,11 +403,14 @@ describe('getUsersListWithSectorHistories', () => {
       .chain('lean')
       .returns(roles);
 
-    const roleIds = roles.map(role => role._id);
-
     UserMock
       .expects('find')
-      .withExactArgs({ 'role.client': { $in: roleIds } }, {}, { autopopulate: false })
+      .withExactArgs({
+        $or: [
+          { 'client.role': { $in: roles.map(role => role._id) } },
+          { 'client.vendor': { $in: roles.map(role => role._id) } },
+        ],
+      }, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')

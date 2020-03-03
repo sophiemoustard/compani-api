@@ -32,6 +32,7 @@ const {
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const { generateFormData } = require('./utils');
+const { INTERNAL } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -54,6 +55,16 @@ describe('USERS ROUTES', () => {
           method: 'POST',
           url: '/users',
           payload: omit(userPayload, 'role'),
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should not create a trainer if missing status', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, status: INTERNAL },
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);

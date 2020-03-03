@@ -25,6 +25,7 @@ const {
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { INTERNAL, EXTERNAL } = require('../helpers/constants');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -92,6 +93,7 @@ exports.plugin = {
               }),
             }),
             customers: Joi.array(),
+            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],
@@ -269,6 +271,7 @@ exports.plugin = {
             isActive: Joi.boolean(),
             isConfirmed: Joi.boolean(),
             establishment: Joi.objectId(),
+            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
         },
         pre: [
