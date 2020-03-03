@@ -200,6 +200,7 @@ const rolesList = [
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: trainingOrganisationManagerRights.includes(right.permission),
+    })),
   },
   {
     _id: new ObjectID(),

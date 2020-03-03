@@ -266,7 +266,7 @@ function populateSectors(docs, next) {
 async function validateUserPayload(next) {
   if (this.role.vendor) {
     const role = await Role.findById(this.role.vendor).lean();
-    if (role.name === TRAINER) throw Boom.badRequest();
+    if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
   }
   validatePayload.call(this, next);
 }

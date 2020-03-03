@@ -64,7 +64,7 @@ describe('USERS ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { ...userPayload, status: INTERNAL },
+          payload: { ...userPayload, role: 'trainer' },
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);

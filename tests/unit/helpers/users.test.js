@@ -283,8 +283,8 @@ describe('getUsersList', () => {
       .expects('find')
       .withExactArgs({
         $or: [
-          { 'client.role': { $in: roles.map(role => role._id) } },
-          { 'client.vendor': { $in: roles.map(role => role._id) } },
+          { 'role.client': { $in: roles.map(role => role._id) } },
+          { 'role.vendor': { $in: roles.map(role => role._id) } },
         ],
         company: companyId,
       }, {}, { autopopulate: false })
@@ -368,8 +368,8 @@ describe('getUsersListWithSectorHistories', () => {
       .expects('find')
       .withExactArgs({
         $or: [
-          { 'client.role': { $in: roles.map(role => role._id) } },
-          { 'client.vendor': { $in: roles.map(role => role._id) } },
+          { 'role.client': { $in: roles.map(role => role._id) } },
+          { 'role.vendor': { $in: roles.map(role => role._id) } },
         ],
         company: companyId,
       }, {}, { autopopulate: false })
@@ -407,8 +407,8 @@ describe('getUsersListWithSectorHistories', () => {
       .expects('find')
       .withExactArgs({
         $or: [
-          { 'client.role': { $in: roles.map(role => role._id) } },
-          { 'client.vendor': { $in: roles.map(role => role._id) } },
+          { 'role.client': { $in: roles.map(role => role._id) } },
+          { 'role.vendor': { $in: roles.map(role => role._id) } },
         ],
       }, {}, { autopopulate: false })
       .chain('populate')
