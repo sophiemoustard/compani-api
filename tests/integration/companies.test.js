@@ -241,6 +241,22 @@ describe('COMPANIES ROUTES', () => {
         expect(companiesCount).toEqual(companiesBefore.length + 1);
       });
 
+      it('should not create a company if name provided already exists', async () => {
+        createFolderForCompany.returns({ id: '1234567890' });
+        createFolder.onCall(0).returns({ id: '0987654321' });
+        createFolder.onCall(1).returns({ id: 'qwerty' });
+        createFolder.onCall(2).returns({ id: 'asdfgh' });
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/companies',
+          payload: { name: authCompany.name, tradeName: 'qwerty', type: 'association' },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
+
       const missingParams = [
         { path: 'name' },
         { path: 'tradeName' },
