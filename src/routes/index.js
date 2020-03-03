@@ -135,4 +135,8 @@ exports.routes = [
     plugin: require('./establishments'),
     routes: { prefix: '/establishments' },
   },
+  {
+    plugin: require('./courses'),
+    routes: { prefix: '/courses' },
+  },
 ];
