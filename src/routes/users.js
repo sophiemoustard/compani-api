@@ -109,6 +109,7 @@ exports.plugin = {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             customers: objectIdOrArray,
+            company: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeUserGet }],
@@ -121,6 +122,8 @@ exports.plugin = {
       path: '/sector-histories',
       options: {
         auth: { scope: ['users:list'] },
+        validate: { query: Joi.object({ company: Joi.objectId() }) },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: listWithSectorHistories,
     });
@@ -134,6 +137,7 @@ exports.plugin = {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
+            company: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeUserGet }],

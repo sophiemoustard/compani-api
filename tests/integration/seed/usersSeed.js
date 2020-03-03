@@ -99,16 +99,36 @@ const customerFromOtherCompany = {
   },
 };
 
-const userFromOtherCompany = {
+const helperFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io', password: '123456' },
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
-  procedure: [{ task: task._id }],
   inactivityDate: null,
   customers: [customerFromOtherCompany._id],
+};
+
+const coachFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'toto' },
+  local: { email: 'othercompanycoach@alenvi.io', password: '123456' },
+  role: { client: rolesList.find(role => role.name === 'coach')._id },
+  refreshToken: uuidv4(),
+  company: otherCompany._id,
+  inactivityDate: null,
+};
+
+const auxiliaryFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'toto' },
+  local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456' },
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  refreshToken: uuidv4(),
+  company: otherCompany._id,
+  procedure: [{ task: task._id }],
+  inactivityDate: null,
 };
 
 const contractId = new ObjectID();
@@ -282,7 +302,7 @@ const populateDB = async () => {
   await Establishment.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create(usersSeedList.concat(userFromOtherCompany));
+  await User.create(usersSeedList.concat([helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany]));
   await Customer.create(customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
@@ -299,9 +319,10 @@ module.exports = {
   isInList,
   isExistingRole,
   customerFromOtherCompany,
-  userFromOtherCompany,
+  helperFromOtherCompany,
   userSectors,
   company,
   sectorHistories,
   establishmentList,
+  coachFromOtherCompany,
 };

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const User = require('../models/User');
 const { AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 
@@ -37,6 +38,7 @@ const validate = async (decoded) => {
       identity: user.identity || null,
       company: user.company,
       sector: user.sector ? user.sector.toHexString() : null,
+      role: pick(user.role, ['client.name', 'vendor.name']),
       scope,
     };
 

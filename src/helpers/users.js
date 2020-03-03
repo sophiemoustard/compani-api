@@ -3,6 +3,7 @@ const moment = require('moment');
 const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
@@ -45,11 +46,7 @@ exports.refreshToken = async (payload) => {
 };
 
 exports.getUsersList = async (query, credentials) => {
-  const params = {
-    ...pickBy(omit(query, ['role'])),
-    company: get(credentials, 'company._id', null),
-  };
-
+  const params = { ...pickBy(omit(query, ['role'])) };
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
@@ -68,13 +65,15 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getUsersListWithSectorHistories = async (credentials) => {
+exports.getUsersListWithSectorHistories = async (query, credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
   const roleIds = roles.map(role => role._id);
-  const params = { company: get(credentials, 'company._id', null), 'role.client': { $in: roleIds } };
+  const params = { 'role.client': { $in: roleIds } };
+  if (query.company) params.company = query.company;
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
@@ -84,6 +83,7 @@ exports.getUsersListWithSectorHistories = async (credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 

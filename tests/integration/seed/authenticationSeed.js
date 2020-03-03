@@ -56,6 +56,7 @@ const rightsList = [
 const vendorAdminRights = [
   'companies:create',
   'users:edit',
+  'users:list',
 ];
 const clientAdminRights = [
   'config:edit',

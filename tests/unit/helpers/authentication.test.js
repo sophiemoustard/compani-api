@@ -54,7 +54,7 @@ describe('validate', () => {
           rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
         vendor: {
-          name: 'admin',
+          name: 'vendor_admin',
           rights: [{ hasAccess: true, permission: 'bof' }, { hasAccess: true, permission: 'bien' }],
         },
       },
@@ -80,10 +80,12 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'coach', 'admin', 'top', 'bof', 'bien', `user:edit-${userId}`],
+        scope: [`user:read-${userId}`, 'coach', 'vendor_admin', 'top', 'bof', 'bien', `user:edit-${userId}`],
+        role: { client: { name: 'coach' }, vendor: { name: 'vendor_admin' } },
       },
     });
   });
+
   it('should authenticate user with customers', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
@@ -120,9 +122,11 @@ describe('validate', () => {
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, 'helper', 'top', `customer-${customerId.toHexString()}`, `user:edit-${userId}`],
+        role: { client: { name: 'helper' } },
       },
     });
   });
+
   it('should authenticate auxiliary without comapny', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
@@ -158,6 +162,7 @@ describe('validate', () => {
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, 'auxiliary_without_company', 'top'],
+        role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
   });
