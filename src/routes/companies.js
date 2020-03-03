@@ -148,20 +148,20 @@ exports.plugin = {
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              }),
+              }).min(1),
               contractWithCustomer: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              }),
+              }).min(1),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              }),
-            }).required(),
+              }).min(1),
+            }).min(1),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
-            }),
+            }).min(1),
           }),
         },
       },
