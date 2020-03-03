@@ -40,7 +40,7 @@ const {
   authorizeCustomerGetBySector,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { addressValidation } = require('./validations/utils');
+const { addressValidation, objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -139,7 +139,7 @@ exports.plugin = {
         auth: { scope: ['customers:read'] },
         validate: {
           query: Joi.object().keys({
-            sector: Joi.array().items(Joi.string()),
+            sector: objectIdOrArray,
             startDate: Joi.date(),
             endDate: Joi.date(),
           }),
