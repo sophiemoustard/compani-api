@@ -155,6 +155,7 @@ module.exports = {
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
   VENDOR_ADMIN: 'vendor_admin',
   CLIENT_ADMIN: 'client_admin',
+  TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',

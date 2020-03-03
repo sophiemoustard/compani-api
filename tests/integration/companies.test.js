@@ -27,7 +27,7 @@ describe('COMPANIES ROUTES', () => {
         authToken = await getToken('client_admin');
       });
 
-      it('should update company service', async () => {
+      it('should update company', async () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
@@ -195,7 +195,6 @@ describe('COMPANIES ROUTES', () => {
         contractWithCustomer: { grossHourlyRate: 5 },
         feeAmount: 2,
         amountPerKm: 10,
-        transportSubs: [{ department: '75', price: 75 }],
       },
       customersConfig: { billingPeriod: MONTH },
     };
@@ -319,6 +318,49 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/companies/first-intervention',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /companies', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+
+      it('should list companies', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: '/companies',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.companies).toBeDefined();
+        expect(response.result.data.companies.length).toEqual(3);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/companies',
             headers: { 'x-access-token': authToken },
           });
 
