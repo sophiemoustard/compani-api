@@ -54,17 +54,24 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Editer un établissement', permission: 'establishments:edit' },
   { _id: new ObjectID(), description: 'Consulter la liste des établissements', permission: 'establishments:read' },
   { _id: new ObjectID(), description: 'Consulter la liste des structures', permission: 'companies:read' },
+  { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
+  { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
 ];
 const vendorAdminRights = [
   'companies:create',
   'users:edit',
   'users:list',
   'companies:read',
+  'courses:read',
+  'courses:edit',
 ];
 const trainingOrganisationManagerRights = [
   'companies:create',
   'users:edit',
+  'users:list',
   'companies:read',
+  'courses:read',
+  'courses:edit',
 ];
 const clientAdminRights = [
   'config:edit',
