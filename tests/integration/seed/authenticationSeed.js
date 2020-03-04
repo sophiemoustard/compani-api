@@ -18,6 +18,7 @@ const {
   PLANNING_REFERENT,
   AUXILIARY_WITHOUT_COMPANY,
   TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
 } = require('../../../src/helpers/constants');
 const app = require('../../../server');
 
@@ -211,7 +212,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'trainer',
+    name: TRAINER,
     interface: VENDOR,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -311,6 +312,15 @@ const userList = [
     refreshToken: uuidv4(),
     local: { email: 'training-organisation-manager@alenvi.io', password: '123456' },
     role: { vendor: rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id },
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainer', lastname: 'trainer' },
+    status: 'internal',
+    refreshToken: uuidv4(),
+    local: { email: 'trainer@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
     company: authCompany._id,
   },
 ];
