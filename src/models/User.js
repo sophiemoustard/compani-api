@@ -132,7 +132,6 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
     autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
-    required: true,
   },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],

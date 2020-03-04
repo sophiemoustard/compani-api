@@ -150,6 +150,9 @@ module.exports = {
       [this.AUXILIARY_INITIATIVE]: 'Initiative du de l\'intervenant',
     };
   },
+  // INTERFACES
+  CLIENT: 'client',
+  VENDIR: 'vendor',
   // ROLE
   // CLIENT
   AUXILIARY: 'auxiliary',
