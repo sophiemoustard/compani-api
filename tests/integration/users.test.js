@@ -32,7 +32,6 @@ const {
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const { generateFormData } = require('./utils');
-const { INTERNAL } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -512,7 +511,7 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users.length).toBe(1);
       });
 
-      it('should get all auxiliary users from an other company if role vendor', async () => {
+      it('should get all auxiliary users if role vendor', async () => {
         authToken = await getToken('vendor_admin');
 
         const res = await app.inject({

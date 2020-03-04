@@ -190,26 +190,88 @@ describe('refreshToken', () => {
   });
 });
 
+describe('formatQueryForUsersList', () => {
+  let RoleMock;
+  const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+  const companyId = credentials.company._id;
+
+  beforeEach(() => {
+    RoleMock = sinon.mock(Role);
+  });
+
+  afterEach(() => {
+    RoleMock.restore();
+  });
+
+  it('should returns params without role if no role in query', async () => {
+    const query = { company: companyId };
+    RoleMock.expects('find').never();
+
+    const result = await UsersHelper.formatQueryForUsersList(query);
+
+    expect(result).toEqual(query);
+    RoleMock.verify();
+  });
+
+  it('should return params with role', async () => {
+    const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
+    const roles = [{ _id: query.role[0]._id, interface: 'vendor' }, { _id: query.role[1]._id, interface: 'vendor' }];
+
+    RoleMock
+      .expects('find')
+      .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
+      .chain('lean')
+      .returns(roles);
+
+    const result = await UsersHelper.formatQueryForUsersList(query);
+    expect(result).toEqual({
+      company: companyId,
+      'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
+    });
+    RoleMock.verify();
+  });
+
+  it('should return 404 if role does not exist', async () => {
+    try {
+      const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
+
+      RoleMock
+        .expects('find')
+        .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
+        .chain('lean')
+        .returns([]);
+
+      const result = await UsersHelper.formatQueryForUsersList(query);
+      expect(result).toBeUndefined();
+    } catch (e) {
+      expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
+    } finally {
+      RoleMock.verify();
+    }
+  });
+});
+
 describe('getUsersList', () => {
   let UserMock;
-  let RoleMock;
+  let formatQueryForUsersListStub;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-  const roles = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    formatQueryForUsersListStub = sinon.stub(UsersHelper, 'formatQueryForUsersList');
   });
 
   afterEach(() => {
     UserMock.restore();
-    RoleMock.restore();
+    formatQueryForUsersListStub.restore();
   });
 
   it('should get users', async () => {
     const query = { email: 'toto@test.com', company: companyId };
+
+    formatQueryForUsersListStub.returns(query);
 
     UserMock
       .expects('find')
@@ -236,58 +298,22 @@ describe('getUsersList', () => {
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
     expect(result).toEqual(users);
-    UserMock.verify();
-  });
-
-  it('should get users with vendor role', async () => {
-    const query = { email: 'toto@test.com' };
-
-    UserMock
-      .expects('find')
-      .withExactArgs({ ...query }, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'procedure.task', select: 'name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-      })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: true })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
-
-    const result = await UsersHelper.getUsersList(query, { ...credentials, role: { vendor: 'test' } });
-    expect(result).toEqual(users);
+    sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
     UserMock.verify();
   });
 
   it('should get users according to roles', async () => {
     const query = { role: ['auxiliary', 'planning_referent'], company: companyId };
-
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: query.role } }, { _id: 1 })
-      .chain('lean')
-      .returns(roles);
+    const roles = [new ObjectID(), new ObjectID()];
+    const formattedQuery = {
+      company: companyId,
+      'role.client': { $in: roles },
+    };
+    formatQueryForUsersListStub.returns(formattedQuery);
 
     UserMock
       .expects('find')
-      .withExactArgs({
-        $or: [
-          { 'role.client': { $in: roles.map(role => role._id) } },
-          { 'role.vendor': { $in: roles.map(role => role._id) } },
-        ],
-        company: companyId,
-      }, {}, { autopopulate: false })
+      .withExactArgs(formattedQuery, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name' })
       .chain('populate')
@@ -310,69 +336,41 @@ describe('getUsersList', () => {
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
     expect(result).toEqual(users);
-    RoleMock.verify();
+    sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
     UserMock.verify();
-  });
-
-
-  it('should return a 404 error if role in query does not exist', async () => {
-    const query = { role: 'toto', company: companyId };
-
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: [query.role] } }, { _id: 1 })
-      .chain('lean')
-      .returns([]);
-
-    UserMock.expects('find').never();
-
-    try {
-      await UsersHelper.getUsersList(query, credentials);
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
-    } finally {
-      RoleMock.verify();
-      UserMock.verify();
-    }
   });
 });
 
 describe('getUsersListWithSectorHistories', () => {
   let UserMock;
-  let RoleMock;
+  let formatQueryForUsersListStub;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-  const roles = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    formatQueryForUsersListStub = sinon.stub(UsersHelper, 'formatQueryForUsersList');
   });
 
   afterEach(() => {
     UserMock.restore();
-    RoleMock.restore();
+    formatQueryForUsersListStub.restore();
   });
 
   it('should get users', async () => {
     const query = { company: companyId };
+    const roles = [new ObjectID(), new ObjectID()];
 
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
-      .chain('lean')
-      .returns(roles);
+    const formattedQuery = {
+      company: companyId,
+      'role.client': { $in: roles },
+    };
+    formatQueryForUsersListStub.returns(formattedQuery);
 
     UserMock
       .expects('find')
-      .withExactArgs({
-        $or: [
-          { 'role.client': { $in: roles.map(role => role._id) } },
-          { 'role.vendor': { $in: roles.map(role => role._id) } },
-        ],
-        company: companyId,
-      }, {}, { autopopulate: false })
+      .withExactArgs(formattedQuery, {}, { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
       .chain('populate')
@@ -389,50 +387,12 @@ describe('getUsersListWithSectorHistories', () => {
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
-    const result = await UsersHelper.getUsersListWithSectorHistories(query, { ...credentials, role: { client: 'test' } });
-    expect(result).toEqual(users);
-    RoleMock.verify();
-    UserMock.verify();
-  });
-
-  it('should get users with role vendor', async () => {
-    const query = {};
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent'] } })
-      .chain('lean')
-      .returns(roles);
-
-    UserMock
-      .expects('find')
-      .withExactArgs({
-        $or: [
-          { 'role.client': { $in: roles.map(role => role._id) } },
-          { 'role.vendor': { $in: roles.map(role => role._id) } },
-        ],
-      }, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sectorHistories',
-        select: '_id sector startDate endDate',
-        match: { company: get(credentials, 'company._id', null) },
-      })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: true })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
-
     const result = await UsersHelper.getUsersListWithSectorHistories(
       query,
-      { ...credentials, role: { vendor: 'test' } }
+      { ...credentials, role: { client: 'test' } }
     );
     expect(result).toEqual(users);
-    RoleMock.verify();
+    sinon.assert.calledWithExactly(formatQueryForUsersListStub, { ...query, role: ['auxiliary', 'planning_referent'] });
     UserMock.verify();
   });
 });
