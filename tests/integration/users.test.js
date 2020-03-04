@@ -60,10 +60,11 @@ describe('USERS ROUTES', () => {
       });
 
       it('should not create a trainer if missing status', async () => {
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { ...userPayload, role: 'trainer' },
+          payload: { ...userPayload, role: roleTrainer._id },
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);
