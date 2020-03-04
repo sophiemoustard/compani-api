@@ -45,15 +45,22 @@ exports.refreshToken = async (payload) => {
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
 
-exports.getUsersList = async (query, credentials) => {
+exports.formatQueryForUsersList = async (query) => {
   const params = { ...pickBy(omit(query, ['role'])) };
+
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
-    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
-
+    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1, interface: 1 }).lean();
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
-    params['role.client'] = { $in: roles.map(role => role._id) };
+
+    params[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
   }
+
+  return params;
+};
+
+exports.getUsersList = async (query, credentials) => {
+  const params = await exports.formatQueryForUsersList(query);
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
@@ -70,10 +77,7 @@ exports.getUsersList = async (query, credentials) => {
 };
 
 exports.getUsersListWithSectorHistories = async (query, credentials) => {
-  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
-  const roleIds = roles.map(role => role._id);
-  const params = { 'role.client': { $in: roleIds } };
-  if (query.company) params.company = query.company;
+  const params = await exports.formatQueryForUsersList({ ...query, role: [AUXILIARY, PLANNING_REFERENT] });
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })

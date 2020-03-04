@@ -134,6 +134,7 @@ const auxiliaryRights = [
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
+const trainerRights = [];
 
 const rolesList = [
   {
@@ -206,6 +207,15 @@ const rolesList = [
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: trainingOrganisationManagerRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: 'trainer',
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainerRights.includes(right.permission),
     })),
   },
 ];

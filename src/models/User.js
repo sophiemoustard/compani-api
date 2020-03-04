@@ -1,3 +1,4 @@
+const Boom = require('@hapi/boom');
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
@@ -6,14 +7,16 @@ const validator = require('validator');
 const moment = require('moment');
 const get = require('lodash/get');
 
+const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT, INTERNAL, EXTERNAL, TRAINER } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
+const USER_STATUS = [INTERNAL, EXTERNAL];
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -134,6 +137,7 @@ const UserSchema = mongoose.Schema({
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
+  status: { type: String, enum: USER_STATUS },
 }, {
   timestamps: true,
   toObject: { virtuals: true },
@@ -259,6 +263,14 @@ function populateSectors(docs, next) {
   return next();
 }
 
+async function validateUserPayload(next) {
+  if (this.role.vendor) {
+    const role = await Role.findById(this.role.vendor).lean();
+    if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
+  }
+  validatePayload.call(this, next);
+}
+
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
   localField: '_id',
@@ -283,7 +295,7 @@ UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissing
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
-UserSchema.pre('validate', validatePayload);
+UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);
 
 UserSchema.post('save', populateAfterSave);

@@ -59,6 +59,17 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
 
+      it('should not create a trainer if missing status', async () => {
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
       it('should create a user', async () => {
         const res = await app.inject({
           method: 'POST',
@@ -501,7 +512,7 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users.length).toBe(1);
       });
 
-      it('should get all auxiliary users from an other company if role vendor', async () => {
+      it('should get all auxiliary users if role vendor', async () => {
         authToken = await getToken('vendor_admin');
 
         const res = await app.inject({
