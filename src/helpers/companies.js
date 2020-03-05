@@ -75,3 +75,5 @@ exports.updateCompany = async (companyId, payload) => {
 
   return Company.findOneAndUpdate({ _id: companyId }, { $set: flat(payload) }, { new: true });
 };
+
+exports.getCompany = async companyId => Company.findOne({ _id: companyId }).lean();

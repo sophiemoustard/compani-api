@@ -83,6 +83,30 @@ describe('list', () => {
   });
 });
 
+describe('getCompany', () => {
+  let CompanyMock;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+  });
+
+  it('should return company', async () => {
+    const company = { _id: new ObjectID() };
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: company._id })
+      .chain('lean')
+      .once()
+      .returns(company);
+
+    const result = await CompanyHelper.getCompany(company._id);
+
+    expect(result).toEqual(company);
+    CompanyMock.restore();
+  });
+});
+
 describe('uploadFile', () => {
   let CompanyModel;
   let addStub;

@@ -9,6 +9,7 @@ const {
   create,
   getFirstIntervention,
   list,
+  show,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
@@ -180,6 +181,15 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       handler: list,
+      options: {
+        auth: { scope: ['companies:read'] },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      handler: show,
       options: {
         auth: { scope: ['companies:read'] },
       },

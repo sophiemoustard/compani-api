@@ -100,6 +100,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -283,6 +284,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -325,6 +327,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 200 },
       ];
 
@@ -368,6 +371,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
@@ -377,6 +381,50 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/companies',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /companies/_id', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+
+      it('should return company', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies/${authCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.company).toBeDefined();
+        expect(response.result.data.company._id).toEqual(authCompany._id);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/companies/${authCompany._id}`,
             headers: { 'x-access-token': authToken },
           });
 
