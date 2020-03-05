@@ -23,6 +23,8 @@ const sectors = [
   { name: 'Titi', _id: new ObjectID(), company: authCompany._id },
   { name: 'Tutu', _id: new ObjectID(), company: otherCompany._id },
 ];
+const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
+
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
@@ -61,7 +63,7 @@ const auxiliaryFromOtherCompany = {
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId2,
-  sector: sectors[0]._id,
+  sector: sectorFromOtherCompany._id,
   company: otherCompany._id,
 };
 
@@ -194,8 +196,6 @@ const sectorHistories = [
   },
 ];
 
-const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
-
 const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
@@ -207,13 +207,13 @@ const populateDB = async () => {
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
+  await Sector.create([...sectors, sectorFromOtherCompany]);
+  await SectorHistory.create(sectorHistories);
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await Sector.create([...sectors, sectorFromOtherCompany]);
-  await SectorHistory.create(sectorHistories);
 };
 
 module.exports = {

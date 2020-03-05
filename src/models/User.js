@@ -229,25 +229,13 @@ function setContractCreationMissingInfo() {
 
 async function populateAfterSave(doc, next) {
   try {
-    if (doc.sector) {
-      await doc.populate({
-        path: 'role',
-        select: '-__v -createdAt -updatedAt',
-        populate: { path: 'role.right_id', select: 'description permission _id' },
-      })
-        .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-        .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
-        .execPopulate();
-      doc.sector = doc.sector.sector._id;
-    } else {
-      await doc.populate({
-        path: 'role',
-        select: '-__v -createdAt -updatedAt',
-        populate: { path: 'role.right_id', select: 'description permission _id' },
-      })
-        .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-        .execPopulate();
-    }
+    await doc.populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: { path: 'role.right_id', select: 'description permission _id' },
+    })
+      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+      .execPopulate();
 
     return next();
   } catch (e) {
