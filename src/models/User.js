@@ -49,7 +49,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: String,
+    password: { type: String, required: true },
   },
   role: {
     client: {
@@ -229,16 +229,25 @@ function setContractCreationMissingInfo() {
 
 async function populateAfterSave(doc, next) {
   try {
-    await doc.populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: { path: 'role.right_id', select: 'description permission _id' },
-    })
-      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-      .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
-      .execPopulate();
-
-    if (doc.sector) doc.sector = doc.sector.sector._id;
+    if (doc.sector) {
+      await doc.populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: { path: 'role.right_id', select: 'description permission _id' },
+      })
+        .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+        .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
+        .execPopulate();
+      doc.sector = doc.sector.sector._id;
+    } else {
+      await doc.populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: { path: 'role.right_id', select: 'description permission _id' },
+      })
+        .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+        .execPopulate();
+    }
 
     return next();
   } catch (e) {
@@ -267,7 +276,7 @@ async function validateUserPayload(next) {
     const role = await Role.findById(this.role.vendor).lean();
     if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
   }
-  validatePayload.call(this, next);
+  validatePayload.call(this, next, !!this.role.vendor);
 }
 
 UserSchema.virtual('sector', {

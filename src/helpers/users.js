@@ -158,6 +158,7 @@ exports.createUser = async (userPayload, credentials) => {
   if (role.name !== TRAINER) payload.company = companyId;
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email });
+
     if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
     if (userInDB) {
       return User
