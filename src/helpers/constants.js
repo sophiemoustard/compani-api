@@ -152,7 +152,7 @@ module.exports = {
   },
   // INTERFACES
   CLIENT: 'client',
-  VENDIR: 'vendor',
+  VENDOR: 'vendor',
   // ROLE
   // CLIENT
   AUXILIARY: 'auxiliary',
@@ -236,7 +236,4 @@ module.exports = {
   // PAY DOCUMENT NATURE
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
-  // INTERFACE
-  CLIENT: 'client',
-  VENDOR: 'vendor',
 };

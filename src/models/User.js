@@ -227,22 +227,6 @@ function setContractCreationMissingInfo() {
   return contractCreationMissingInfo;
 }
 
-async function populateAfterSave(doc, next) {
-  try {
-    await doc.populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: { path: 'role.right_id', select: 'description permission _id' },
-    })
-      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-      .execPopulate();
-
-    return next();
-  } catch (e) {
-    return next(e);
-  }
-}
-
 function populateSector(doc, next) {
   if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
 
@@ -294,7 +278,6 @@ UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);
 
-UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);

@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, CLIENT, VENDOR } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -157,12 +157,12 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (role.name !== TRAINER) payload.company = companyId;
   if (role.interface === VENDOR) {
-    const userInDB = await User.findOne({ 'local.email': payload.local.email });
+    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
     if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
     if (userInDB) {
       return User
-        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id })
+        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
         .lean({ virtuals: true, autopopulate: true });
     }
