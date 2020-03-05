@@ -32,7 +32,22 @@ const create = async (req) => {
   }
 };
 
+const getById = async (req) => {
+  try {
+    const course = await CourseHelper.getCourse(req.params._id);
+
+    return {
+      message: translate[language].courseFound,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
+  getById,
 };

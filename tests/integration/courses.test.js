@@ -38,6 +38,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -94,6 +95,55 @@ describe('COURSES ROUTES - GET /courses', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/courses',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get course', async () => {
+      const courseId = coursesList[0]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course._id).toEqual(courseId);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const courseId = coursesList[0]._id;
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
