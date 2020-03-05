@@ -1,7 +1,8 @@
 'use-strict';
 
 const Joi = require('@hapi/joi');
-const { list, create } = require('../controllers/courseController');
+Joi.objectId = require('joi-objectid')(Joi);
+const { list, create, getById, update } = require('../controllers/courseController');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -27,6 +28,33 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
+        auth: { scope: ['courses:read'] },
+      },
+      handler: getById,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+          payload: Joi.object({
+            name: Joi.string(),
+          }),
+        },
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: update,
     });
   },
 };
