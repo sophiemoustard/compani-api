@@ -802,7 +802,7 @@ describe('createUser', () => {
       .returns(userInDB);
 
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: userInDB._id }, { 'role.vendor': roleId })
+      .withExactArgs({ _id: userInDB._id }, { 'role.vendor': roleId }, { new: true })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -839,7 +839,9 @@ describe('createUser', () => {
 
       const userInDB = { _id: new ObjectID(), role: { vendor: 'blabla' } };
       UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.local.email }).returns(userInDB);
+        .withExactArgs({ 'local.email': payload.local.email })
+        .chain('lean')
+        .returns(userInDB);
 
       UserMock.expects('findOneAndUpdate')
         .never();
