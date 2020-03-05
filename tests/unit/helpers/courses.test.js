@@ -67,3 +67,27 @@ describe('getCourse', () => {
     expect(result).toMatchObject(course);
   });
 });
+
+describe('update', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should return courses', async () => {
+    const courseId = new ObjectID();
+    const payload = { name: 'toto' };
+
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: courseId }, { $set: payload }, { new: true })
+      .chain('lean')
+      .once()
+      .returns({ _id: courseId, name: 'toto' });
+
+    const result = await CourseHelper.updateCourse(courseId, payload);
+    expect(result).toMatchObject({ _id: courseId, name: 'toto' });
+  });
+});

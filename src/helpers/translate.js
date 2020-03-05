@@ -227,6 +227,7 @@ module.exports = {
     coursesNotFound: 'Courses not found',
     courseCreated: 'Course created',
     courseFound: 'Course found',
+    courseUpdated: 'Course updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -453,5 +454,6 @@ module.exports = {
     coursesNotFound: 'Liste des formations non trouvées',
     courseCreated: 'Formation créée',
     courseFound: 'Formation trouvée',
+    courseUpdated: 'Formation mise à jour',
   },
 };
