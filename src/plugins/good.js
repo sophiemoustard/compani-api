@@ -1,5 +1,5 @@
 let reporters = {};
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV !== 'test') {
   reporters = {
     console: [{
       module: 'good-squeeze',
