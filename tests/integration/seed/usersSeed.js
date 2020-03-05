@@ -244,6 +244,20 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'vendoruser', lastname: 'trainer' },
+    local: { email: 'vendoruser@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+    refreshToken: uuidv4(),
+    contracts: [],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    inactivityDate: null,
+    status: 'internal',
+  },
 ];
 
 const userSectors = [
