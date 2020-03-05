@@ -1,5 +1,5 @@
 let reporters = {};
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV === 'test') {
   reporters = {
     console: [{
       module: 'good-squeeze',
@@ -7,29 +7,29 @@ if (process.env.NODE_ENV !== 'test') {
       args: [{
         log: '*',
         response: '*',
-        request: '*'
-      }]
+        request: '*',
+      }],
     },
     {
-      module: 'good-console'
+      module: 'good-console',
     },
-    'stdout'
-    ]
+    'stdout',
+    ],
   };
 } else {
   reporters = {
     console: [{
       module: 'good-squeeze',
       name: 'Squeeze',
-      args: [{ log: { exclude: ['log', 'info'] }, request: { include: ['request', 'error'], exclude: ['db'] } }]
+      args: [{ log: { exclude: ['log', 'info'] }, request: { include: ['request', 'error'], exclude: ['db'] } }],
     },
     {
       module: 'good-console',
       args: [{
-        format: 'DDMMYYYY-HH:MM:ss'
-      }]
+        format: 'DDMMYYYY-HH:MM:ss',
+      }],
     },
-    'stdout'
+    'stdout',
     ],
   };
 }
