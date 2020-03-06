@@ -49,27 +49,6 @@ describe('USERS ROUTES', () => {
         authToken = await getToken('client_admin');
       });
 
-      it('should not create a user if missing parameters', async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: omit(userPayload, 'role'),
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
-      });
-
-      it('should not create a trainer if missing status', async () => {
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
-      });
-
       it('should create a user', async () => {
         const res = await app.inject({
           method: 'POST',
@@ -145,6 +124,16 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
 
+      it('should not create a user if missing parameters', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: omit(userPayload, 'role'),
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
       it('should return a 403 if customer is not from the same company', async () => {
         const payload = { ...userPayload, customers: [customerFromOtherCompany] };
         const response = await app.inject({
@@ -180,6 +169,70 @@ describe('USERS ROUTES', () => {
         expect(usersCount).toBe(usersCountBefore + 1);
       });
 
+      it('should create a trainer', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id, status: 'internal' },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore + 1);
+      });
+
+      it('should update a user with vendor role', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const trainerPayload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: usersSeedList[0].local.email, password: '123456' },
+          role: roleTrainer._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: trainerPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore);
+      });
+
+      it('should return an error if user already has vendor role', async () => {
+        const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
+        const trainerPayload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: usersSeedList[9].local.email, password: '123456' },
+          role: vendorAdminRole._id,
+          sector: userSectors[0]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: trainerPayload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should not create a trainer if missing status', async () => {
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
       const roles = ['helper', 'auxiliary', 'coach', 'client_admin'];
       roles.forEach((role) => {
         it(`should return a 403 error as user is ${role}`, async () => {
@@ -202,6 +255,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
+      beforeEach(populateDB);
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

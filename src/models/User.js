@@ -49,7 +49,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: String,
+    password: { type: String, required: true },
   },
   role: {
     client: {
@@ -132,7 +132,6 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
     autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
-    required: true,
   },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
@@ -228,25 +227,6 @@ function setContractCreationMissingInfo() {
   return contractCreationMissingInfo;
 }
 
-async function populateAfterSave(doc, next) {
-  try {
-    await doc.populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: { path: 'role.right_id', select: 'description permission _id' },
-    })
-      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-      .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
-      .execPopulate();
-
-    if (doc.sector) doc.sector = doc.sector.sector._id;
-
-    return next();
-  } catch (e) {
-    return next(e);
-  }
-}
-
 function populateSector(doc, next) {
   if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
 
@@ -268,7 +248,7 @@ async function validateUserPayload(next) {
     const role = await Role.findById(this.role.vendor).lean();
     if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
   }
-  validatePayload.call(this, next);
+  validatePayload.call(this, next, !!this.role.vendor);
 }
 
 UserSchema.virtual('sector', {
@@ -298,7 +278,6 @@ UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);
 
-UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);

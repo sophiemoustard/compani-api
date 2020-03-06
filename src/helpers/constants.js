@@ -150,6 +150,9 @@ module.exports = {
       [this.AUXILIARY_INITIATIVE]: 'Initiative du de l\'intervenant',
     };
   },
+  // INTERFACES
+  CLIENT: 'client',
+  VENDOR: 'vendor',
   // ROLE
   // CLIENT
   AUXILIARY: 'auxiliary',
@@ -233,7 +236,4 @@ module.exports = {
   // PAY DOCUMENT NATURE
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
-  // INTERFACE
-  CLIENT: 'client',
-  VENDOR: 'vendor',
 };

@@ -3,6 +3,6 @@
 
 - Périmetre interface : 
 
-- Périmetre pages : 
+- Périmetre roles : 
 
 - Cas d'usage : 

@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -142,6 +142,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
 exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
+  const companyId = payload.company || get(credentials, 'company._id', null);
+
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
 
@@ -153,9 +155,20 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const companyId = payload.company || get(credentials, 'company._id', null);
+  if (role.name !== TRAINER) payload.company = companyId;
+  if (role.interface === VENDOR) {
+    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-  const user = await User.create({ ...payload, company: companyId, refreshToken: uuid.v4() });
+    if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
+    if (userInDB) {
+      return User
+        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+        .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+        .lean({ virtuals: true, autopopulate: true });
+    }
+  }
+  const user = await User.create({ ...payload, refreshToken: uuid.v4() });
+
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User
