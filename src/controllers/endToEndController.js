@@ -1,11 +1,9 @@
 const Boom = require('@hapi/boom');
-const usersSeed = require('../../seeds/users');
+const authenticationSeed = require('../../tests/end2end/seed/authenticationSeed');
 
 const seedDb = async (req) => {
   try {
-    if (process.env.NODE_ENV !== 'test') throw Boom.forbidden();
-
-    await usersSeed.seedDb();
+    await authenticationSeed.seedDb();
 
     return { message: 'Test database populated !' };
   } catch (e) {

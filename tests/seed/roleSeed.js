@@ -1,16 +1,17 @@
-
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
-const Role = require('../src/models/Role');
-const Right = require('../src/models/Right');
-const User = require('../src/models/User');
-const Company = require('../src/models/Company');
-const Sector = require('../src/models/Sector');
-const SectorHistory = require('../src/models/SectorHistory');
 const {
-  CLIENT,
+  VENDOR_ADMIN,
   CLIENT_ADMIN,
-} = require('../src/helpers/constants');
+  CLIENT,
+  TRAINER,
+  TRAINING_ORGANISATION_MANAGER,
+  HELPER,
+  AUXILIARY_WITHOUT_COMPANY,
+  VENDOR,
+  AUXILIARY,
+  PLANNING_REFERENT,
+  COACH,
+} = require('../../src/helpers/constants');
 
 const rightsList = [
   { _id: new ObjectID(), description: 'Edit config', permission: 'config:edit' },
@@ -48,7 +49,22 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
   { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
 ];
-
+const vendorAdminRights = [
+  'companies:create',
+  'users:edit',
+  'users:list',
+  'companies:read',
+  'courses:read',
+  'courses:edit',
+];
+const trainingOrganisationManagerRights = [
+  'companies:create',
+  'users:edit',
+  'users:list',
+  'companies:read',
+  'courses:read',
+  'courses:edit',
+];
 const clientAdminRights = [
   'config:edit',
   'config:read',
@@ -77,8 +93,51 @@ const clientAdminRights = [
   'establishments:edit',
   'establishments:read',
 ];
+const coachRights = [
+  'config:read',
+  'bills:read',
+  'payments:edit',
+  'pay:read',
+  'contracts:edit',
+  'exports:read',
+  'users:list',
+  'users:edit',
+  'events:edit',
+  'events:read',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative:edit',
+  'roles:read',
+  'paydocuments:edit',
+  'taxcertificates:read',
+  'taxcertificates:edit',
+  'establishments:read',
+];
+const auxiliaryRights = [
+  'config:read',
+  'pay:read',
+  'users:list',
+  'events:read',
+  'events:own:edit',
+  'customers:read',
+  'customers:edit',
+];
+const planningReferentRights = [...auxiliaryRights, 'events:edit'];
+const helperRights = [];
+const auxiliaryWithoutCompanyRights = [];
+const trainerRights = [];
 
 const rolesList = [
+  {
+    _id: new ObjectID(),
+    name: VENDOR_ADMIN,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: vendorAdminRights.includes(right.permission),
+    })),
+  },
   {
     _id: new ObjectID(),
     name: CLIENT_ADMIN,
@@ -88,52 +147,69 @@ const rolesList = [
       hasAccess: clientAdminRights.includes(right.permission),
     })),
   },
-];
-
-const authCompany = {
-  _id: new ObjectID(),
-  name: 'Test SAS',
-  tradeName: 'Test',
-  prefixNumber: 101,
-  iban: '1234',
-  bic: '5678',
-  ics: '9876',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'iuytre',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-};
-
-const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'client_admin', lastname: 'Chef' },
-    refreshToken: uuidv4(),
-    local: { email: 'admin@alenvi.io', password: '123456' },
-    role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
-    company: authCompany._id,
+    name: COACH,
+    interface: CLIENT,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: coachRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: AUXILIARY,
+    interface: CLIENT,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: auxiliaryRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: AUXILIARY_WITHOUT_COMPANY,
+    interface: CLIENT,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: auxiliaryWithoutCompanyRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: PLANNING_REFERENT,
+    interface: CLIENT,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: planningReferentRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: HELPER,
+    interface: CLIENT,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: helperRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: TRAINING_ORGANISATION_MANAGER,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainingOrganisationManagerRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: TRAINER,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainerRights.includes(right.permission),
+    })),
   },
 ];
 
-const seedDb = async () => {
-  await Role.deleteMany({});
-  await Right.deleteMany({});
-  await User.deleteMany({});
-  await Company.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-
-  await new Company(authCompany).save();
-  await Right.insertMany(rightsList);
-  await Role.insertMany(rolesList);
-  for (let i = 0; i < userList.length; i++) {
-    await (new User(userList[i])).save();
-  }
-};
-
-
-module.exports = { seedDb };
-
+module.exports = { rolesList, rightsList };
