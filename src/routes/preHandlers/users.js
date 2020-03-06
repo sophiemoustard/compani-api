@@ -23,19 +23,19 @@ exports.getUser = async (req) => {
   }
 };
 
-exports.authorizeUserUpdate = async (req) => {
+exports.authorizeUserUpdateOrGetById = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-
+  const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
   if (establishmentId) {
     const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
     if (!establishment) throw Boom.forbidden();
   }
 
-  if (user.company.toHexString() === companyId.toHexString()) return null;
+  if (isVendorUser || user.company.toHexString() === companyId.toHexString()) return null;
 
   throw Boom.forbidden();
 };

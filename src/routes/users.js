@@ -23,7 +23,12 @@ const {
   createDriveFolder,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
+const {
+  getUser,
+  authorizeUserUpdateOrGetById,
+  authorizeUserGet,
+  authorizeUserCreation,
+} = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { INTERNAL, EXTERNAL } = require('../helpers/constants');
 
@@ -154,7 +159,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: show,
@@ -276,7 +281,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: update,
@@ -295,7 +300,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: updateCertificates,
@@ -315,7 +320,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: updateTask,
@@ -331,7 +336,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: getUserTasks,
@@ -347,7 +352,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: remove,
@@ -418,7 +423,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
     });
@@ -436,7 +441,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: createDriveFolder,
