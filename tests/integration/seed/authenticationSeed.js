@@ -65,6 +65,7 @@ const vendorAdminRights = [
   'companies:read',
   'courses:read',
   'courses:edit',
+  'companies:edit',
 ];
 const trainingOrganisationManagerRights = [
   'companies:create',
@@ -73,6 +74,7 @@ const trainingOrganisationManagerRights = [
   'companies:read',
   'courses:read',
   'courses:edit',
+  'companies:edit',
 ];
 const clientAdminRights = [
   'config:edit',
@@ -94,7 +96,6 @@ const clientAdminRights = [
   'customers:read',
   'customers:edit',
   'customers:administrative:edit',
-  'companies:edit',
   'roles:read',
   'paydocuments:edit',
   'taxcertificates:read',
