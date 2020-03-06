@@ -35,9 +35,9 @@ exports.authorizeUserUpdateOrGetById = async (req) => {
     if (!establishment) throw Boom.forbidden();
   }
 
-  if (isVendorUser || user.company.toHexString() === companyId.toHexString()) return null;
+  if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
-  throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeUserCreation = async (req) => {
