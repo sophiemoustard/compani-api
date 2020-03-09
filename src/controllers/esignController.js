@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 
 const Esign = require('../models/ESign');
 const translate = require('../helpers/translate');

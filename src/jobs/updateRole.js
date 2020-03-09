@@ -13,7 +13,7 @@ const updateRole = {
 
       const updatedUsers = await User.updateMany(
         { inactivityDate: moment().startOf('M').toDate() },
-        { $set: { role: role._id } }
+        { $set: { 'role.client': role._id } }
       );
       updatedUsersCount = updatedUsers.nModified;
     } catch (e) {

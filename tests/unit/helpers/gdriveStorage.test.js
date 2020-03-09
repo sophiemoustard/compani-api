@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const Gdrive = require('../../../src/models/Google/Drive');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 

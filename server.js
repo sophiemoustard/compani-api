@@ -1,8 +1,8 @@
 'use strict';
 
 require('dotenv').config();
-const Hapi = require('hapi');
-const Boom = require('boom');
+const Hapi = require('@hapi/hapi');
+const Boom = require('@hapi/boom');
 
 const { mongooseConnection } = require('./src/config/mongoose');
 const { routes } = require('./src/routes/index');

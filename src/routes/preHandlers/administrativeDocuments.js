@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const AdministrativeDocument = require('../../models/AdministrativeDocument');
 const translate = require('../../helpers/translate');

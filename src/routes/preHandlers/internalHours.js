@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
 

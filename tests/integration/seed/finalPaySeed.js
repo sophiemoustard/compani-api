@@ -167,13 +167,13 @@ const populateDB = async () => {
   await FinalPay.deleteMany({});
 
   await populateDBForAuthentication();
+  await (new Sector(sector)).save();
+  await SectorHistory.create(sectorHistory);
   await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await (new Contract(contract)).save();
-  await (new Sector(sector)).save();
-  await SectorHistory.create(sectorHistory);
 };
 
 module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };

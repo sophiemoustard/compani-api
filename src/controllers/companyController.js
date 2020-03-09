@@ -1,40 +1,17 @@
-const Boom = require('boom');
-const flat = require('flat');
-
+const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const CompanyHelper = require('../helpers/companies');
-const Company = require('../models/Company');
 
 const { language } = translate;
 
 const update = async (req) => {
   try {
-    let companyUpdated;
-    if (req.payload.rhConfig && req.payload.rhConfig.transportSubs && !Array.isArray(req.payload.transportSubs)) {
-      const { subId } = req.payload.rhConfig.transportSubs;
-      req.payload.rhConfig['transportSubs.$'] = req.payload.rhConfig.transportSubs;
-      delete req.payload.rhConfig.transportSubs;
-      delete req.payload._id;
-      companyUpdated = await Company.findOneAndUpdate({
-        _id: req.params._id,
-        'rhConfig.transportSubs._id': subId,
-      }, { $set: flat(req.payload) }, { new: true });
-    } else {
-      companyUpdated = await Company.findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload) },
-        { new: true }
-      );
-    }
+    const company = await CompanyHelper.updateCompany(req.params._id, req.payload);
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
 
-    if (!companyUpdated) {
-      return Boom.notFound(translate[language].companyNotFound);
-    }
     return {
       message: translate[language].companyUpdated,
-      data: {
-        company: companyUpdated,
-      },
+      data: { company },
     };
   } catch (e) {
     req.log('error', e);
@@ -65,6 +42,38 @@ const create = async (req) => {
       data: { company: newCompany },
     };
   } catch (e) {
+    if (e.code === 11000) {
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].companyExists);
+    }
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const list = async (req) => {
+  try {
+    const companies = await CompanyHelper.list(req.payload, req.auth.credentials);
+
+    return {
+      message: translate[language].companyCreated,
+      data: { companies },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const show = async (req) => {
+  try {
+    const company = await CompanyHelper.getCompany(req.params._id);
+
+    return {
+      message: translate[language].companyFound,
+      data: { company },
+    };
+  } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -90,5 +99,7 @@ module.exports = {
   update,
   uploadFile,
   create,
+  list,
+  show,
   getFirstIntervention,
 };

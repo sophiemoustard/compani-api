@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -20,13 +20,13 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          query: {
+          query: Joi.object({
             endDate: Joi.date().required(),
             startDate: Joi.date(),
             billingStartDate: Joi.date().required(),
-            billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).required(),
+            billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).required(),
             customer: Joi.objectId(),
-          },
+          }),
         },
         pre: [{ method: authorizeGetBill }],
       },
@@ -38,7 +38,7 @@ exports.plugin = {
       path: '/{_id}/pdfs',
       options: {
         validate: {
-          params: { _id: Joi.objectId() },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getBill, assign: 'bill' },
@@ -54,7 +54,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          payload: {
+          payload: Joi.object({
             bills: Joi.array().items(Joi.object({
               customer: Joi.object().required(),
               endDate: Joi.date().required(),
@@ -127,7 +127,7 @@ exports.plugin = {
                 total: Joi.number(),
               })),
             })),
-          },
+          }),
         },
         pre: [{ method: authorizeBillsCreation }],
       },

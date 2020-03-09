@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { deleteImage } = require('../controllers/cloudinaryController');
@@ -14,7 +14,7 @@ exports.plugin = {
       handler: deleteImage,
       options: {
         validate: {
-          params: { id: Joi.string() },
+          params: Joi.object({ id: Joi.string() }),
         },
       },
     });

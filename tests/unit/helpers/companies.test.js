@@ -59,6 +59,54 @@ describe('createCompany', () => {
   });
 });
 
+describe('list', () => {
+  let CompanyMock;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+  });
+
+  it('should return companies', async () => {
+    const companyList = [{ _id: new ObjectID() }];
+    CompanyMock.expects('find')
+      .withExactArgs({ toto: 'qwerty' })
+      .chain('lean')
+      .once()
+      .returns(companyList);
+
+    const result = await CompanyHelper.list({ toto: 'qwerty' });
+
+    expect(result).toEqual(companyList);
+    CompanyMock.restore();
+  });
+});
+
+describe('getCompany', () => {
+  let CompanyMock;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+  });
+
+  it('should return company', async () => {
+    const company = { _id: new ObjectID() };
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: company._id })
+      .chain('lean')
+      .once()
+      .returns(company);
+
+    const result = await CompanyHelper.getCompany(company._id);
+
+    expect(result).toEqual(company);
+    CompanyMock.restore();
+  });
+});
+
 describe('uploadFile', () => {
   let CompanyModel;
   let addStub;
@@ -132,5 +180,49 @@ describe('getFirstIntervention', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ startDate: '2019-11-12' }]);
     EventModel.verify();
+  });
+});
+
+describe('updateCompany', () => {
+  let findOneAndUpdate;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Company, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
+  it('should update transport sub', async () => {
+    const companyId = new ObjectID();
+    const subId = new ObjectID();
+    const payload = {
+      rhConfig: { transportSubs: { subId } },
+    };
+    findOneAndUpdate.returns({ _id: companyId });
+
+    const result = await CompanyHelper.updateCompany(companyId, payload);
+
+    expect(result).toEqual({ _id: companyId });
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
+      { _id: companyId, 'rhConfig.transportSubs._id': subId },
+      { $set: flat({ 'rhConfig.transportSubs.$': { subId } }) },
+      { new: true }
+    );
+  });
+  it('should update company', async () => {
+    const companyId = new ObjectID();
+    const payload = { tradeName: 'toto' };
+    findOneAndUpdate.returns({ _id: companyId });
+
+    const result = await CompanyHelper.updateCompany(companyId, payload);
+
+    expect(result).toEqual({ _id: companyId });
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
+      { _id: companyId },
+      { $set: flat({ tradeName: 'toto' }) },
+      { new: true }
+    );
   });
 });

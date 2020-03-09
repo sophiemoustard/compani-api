@@ -1,3 +1,4 @@
+const Boom = require('@hapi/boom');
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
@@ -6,14 +7,16 @@ const validator = require('validator');
 const moment = require('moment');
 const get = require('lodash/get');
 
+const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT, INTERNAL, EXTERNAL, TRAINER } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
+const USER_STATUS = [INTERNAL, EXTERNAL];
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -46,14 +49,14 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: String,
+    password: { type: String, required: true },
   },
   role: {
     client: {
       ...roleSchemaDefinition,
-      required() { return !this.role.seller; },
+      required() { return !this.role.vendor; },
     },
-    seller: {
+    vendor: {
       ...roleSchemaDefinition,
       required() { return !this.role.client; },
     },
@@ -129,11 +132,11 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
     autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
-    required: true,
   },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
+  status: { type: String, enum: USER_STATUS },
 }, {
   timestamps: true,
   toObject: { virtuals: true },
@@ -224,25 +227,6 @@ function setContractCreationMissingInfo() {
   return contractCreationMissingInfo;
 }
 
-async function populateAfterSave(doc, next) {
-  try {
-    await doc.populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: { path: 'role.right_id', select: 'description permission _id' },
-    })
-      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
-      .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
-      .execPopulate();
-
-    if (doc.sector) doc.sector = doc.sector.sector._id;
-
-    return next();
-  } catch (e) {
-    return next(e);
-  }
-}
-
 function populateSector(doc, next) {
   if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
 
@@ -257,6 +241,14 @@ function populateSectors(docs, next) {
   }
 
   return next();
+}
+
+async function validateUserPayload(next) {
+  if (this.role.vendor) {
+    const role = await Role.findById(this.role.vendor).lean();
+    if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
+  }
+  validatePayload.call(this, next, !!this.role.vendor);
 }
 
 UserSchema.virtual('sector', {
@@ -283,10 +275,9 @@ UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissing
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
-UserSchema.pre('validate', validatePayload);
+UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);
 
-UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);

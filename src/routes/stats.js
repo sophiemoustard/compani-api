@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -23,9 +23,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
-          query: {
-            customer: Joi.objectId().required(),
-          },
+          query: Joi.object({ customer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetStats }],
       },
@@ -38,9 +36,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
-          query: {
-            customer: Joi.objectId().required(),
-          },
+          query: Joi.object({ customer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeGetStats }],
       },

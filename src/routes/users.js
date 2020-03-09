@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -23,8 +23,14 @@ const {
   createDriveFolder,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
-const { addressValidation, objectIdOrArray } = require('./validations/utils');
+const {
+  getUser,
+  authorizeUserUpdateOrGetById,
+  authorizeUserGet,
+  authorizeUserCreation,
+} = require('./preHandlers/users');
+const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { INTERNAL, EXTERNAL } = require('../helpers/constants');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -80,10 +86,10 @@ exports.plugin = {
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
-              title: Joi.string().valid(CIVILITY_OPTIONS),
+              title: Joi.string().valid(...CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
-              phone: Joi.string().allow('', null),
+              phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
             }),
             administrative: Joi.object().keys({
@@ -92,6 +98,7 @@ exports.plugin = {
               }),
             }),
             customers: Joi.array(),
+            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],
@@ -105,11 +112,12 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: {
+          query: Joi.object({
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             customers: objectIdOrArray,
-          },
+            company: Joi.objectId(),
+          }),
         },
         pre: [{ method: authorizeUserGet }],
       },
@@ -121,6 +129,8 @@ exports.plugin = {
       path: '/sector-histories',
       options: {
         auth: { scope: ['users:list'] },
+        validate: { query: Joi.object({ company: Joi.objectId() }) },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: listWithSectorHistories,
     });
@@ -131,10 +141,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: {
+          query: Joi.object({
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-          },
+            company: Joi.objectId(),
+          }),
         },
         pre: [{ method: authorizeUserGet }],
       },
@@ -148,7 +159,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: show,
@@ -190,7 +201,7 @@ exports.plugin = {
               socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({
-              phone: Joi.string().allow('', null),
+              phone: phoneNumberValidation.allow('', null),
               address: addressValidation,
             }),
             administrative: Joi.object().keys({
@@ -265,11 +276,12 @@ exports.plugin = {
             isActive: Joi.boolean(),
             isConfirmed: Joi.boolean(),
             establishment: Joi.objectId(),
+            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: update,
@@ -281,18 +293,14 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
-          params: {
-            _id: Joi.objectId(),
-          },
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
-            certificates: Joi.object().keys({
-              driveId: Joi.string(),
-            }),
+            certificates: Joi.object().keys({ driveId: Joi.string() }),
           }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: updateCertificates,
@@ -304,17 +312,15 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
+          params: Joi.object({
             _id: Joi.objectId(),
             task_id: Joi.objectId(),
-          },
-          payload: Joi.object().keys({
-            isDone: Joi.boolean(),
           }),
+          payload: Joi.object().keys({ isDone: Joi.boolean() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: updateTask,
@@ -326,13 +332,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId(),
-          },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: getUserTasks,
@@ -344,13 +348,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId(),
-          },
+          params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: remove,
@@ -361,9 +363,7 @@ exports.plugin = {
       path: '/refreshToken',
       options: {
         validate: {
-          payload: {
-            refreshToken: Joi.string().required(),
-          },
+          payload: Joi.object({ refreshToken: Joi.string().required() }),
         },
         auth: false,
       },
@@ -390,9 +390,7 @@ exports.plugin = {
       path: '/check-reset-password/{token}',
       options: {
         validate: {
-          params: Joi.object().keys({
-            token: Joi.string().required(),
-          }),
+          params: Joi.object().keys({ token: Joi.string().required() }),
         },
         auth: false,
       },
@@ -415,17 +413,17 @@ exports.plugin = {
           payload: Joi.object({
             date: Joi.date(),
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid(driveUploadKeys),
+            type: Joi.string().required().valid(...driveUploadKeys),
             file: Joi.any().required(),
           }),
-          params: {
+          params: Joi.object({
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),
-          },
+          }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
     });
@@ -436,16 +434,14 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId(),
-          },
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             parentFolderId: Joi.string().required(),
           }),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
+          { method: authorizeUserUpdateOrGetById },
         ],
       },
       handler: createDriveFolder,

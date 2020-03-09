@@ -1,8 +1,9 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
@@ -15,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -44,19 +45,22 @@ exports.refreshToken = async (payload) => {
   return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
 
-exports.getUsersList = async (query, credentials) => {
-  const params = {
-    ...pickBy(omit(query, ['role'])),
-    company: get(credentials, 'company._id', null),
-  };
+exports.formatQueryForUsersList = async (query) => {
+  const params = { ...pickBy(omit(query, ['role'])) };
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
-    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1 }).lean();
-
+    const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1, interface: 1 }).lean();
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
-    params['role.client'] = { $in: roles.map(role => role._id) };
+
+    params[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
   }
+
+  return params;
+};
+
+exports.getUsersList = async (query, credentials) => {
+  const params = await exports.formatQueryForUsersList(query);
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
@@ -68,13 +72,12 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getUsersListWithSectorHistories = async (credentials) => {
-  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
-  const roleIds = roles.map(role => role._id);
-  const params = { company: get(credentials, 'company._id', null), 'role.client': { $in: roleIds } };
+exports.getUsersListWithSectorHistories = async (query, credentials) => {
+  const params = await exports.formatQueryForUsersList({ ...query, role: [AUXILIARY, PLANNING_REFERENT] });
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
@@ -84,6 +87,7 @@ exports.getUsersListWithSectorHistories = async (credentials) => {
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -138,6 +142,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
 exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
+  const companyId = payload.company || get(credentials, 'company._id', null);
+
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
 
@@ -149,9 +155,20 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const companyId = payload.company || get(credentials, 'company._id', null);
+  if (role.name !== TRAINER) payload.company = companyId;
+  if (role.interface === VENDOR) {
+    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-  const user = await User.create({ ...payload, company: companyId, refreshToken: uuid.v4() });
+    if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
+    if (userInDB) {
+      return User
+        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+        .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+        .lean({ virtuals: true, autopopulate: true });
+    }
+  }
+  const user = await User.create({ ...payload, refreshToken: uuid.v4() });
+
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
   return User

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');

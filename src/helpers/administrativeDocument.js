@@ -1,8 +1,9 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const AdministrativeDocument = require('../models/AdministrativeDocument');
 const Company = require('../models/Company');
 const GdriveStorage = require('./gdriveStorage');
+const Drive = require('../models/Google/Drive');
 
 exports.createAdministrativeDocument = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -18,6 +19,12 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
   if (!uploadedFile) throw Boom.failedDependency('Google drive: File not uploaded');
 
   const { id: driveId, webViewLink: link } = uploadedFile;
+
+  await Drive.createPermission({
+    fileId: driveId,
+    permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false },
+  });
+
   const administrativeDocument = await AdministrativeDocument.create({
     company: companyId,
     name: payload.name,

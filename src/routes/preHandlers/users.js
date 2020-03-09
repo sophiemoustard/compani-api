@@ -1,11 +1,12 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const User = require('../../models/User');
 const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { SELLER_ADMIN } = require('../../helpers/constants');
+const { VENDOR_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -22,21 +23,21 @@ exports.getUser = async (req) => {
   }
 };
 
-exports.authorizeUserUpdate = async (req) => {
+exports.authorizeUserUpdateOrGetById = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-
+  const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
   if (establishmentId) {
     const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
     if (!establishment) throw Boom.forbidden();
   }
 
-  if (user.company.toHexString() === companyId.toHexString()) return null;
+  if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
-  throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeUserCreation = async (req) => {
@@ -51,25 +52,28 @@ exports.authorizeUserCreation = async (req) => {
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 
-  if (req.payload.company && !credentials.scope.includes(SELLER_ADMIN)) {
-    throw Boom.forbidden();
-  }
+  if (req.payload.company && !credentials.scope.includes(VENDOR_ADMIN)) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeUserGet = async (req) => {
   const { auth, query } = req;
-  const companyId = get(auth.credentials, 'company._id', null);
+  const userCompanyId = get(auth, 'credentials.company._id', null);
+  const queryCompanyId = query.company;
+  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
+
+  if (!has(authenticatedUser, 'role.vendor') && !queryCompanyId) throw Boom.forbidden();
+  if (!has(authenticatedUser, 'role.vendor') && queryCompanyId !== userCompanyId.toHexString()) throw Boom.forbidden();
 
   if (query.email) {
-    const user = await User.findOne({ email: query.email, company: companyId }).lean();
+    const user = await User.findOne({ email: query.email, company: userCompanyId }).lean();
     if (!user) throw Boom.forbidden();
   }
 
   if (query.customers) {
     const customers = UtilsHelper.formatIdsArray(query.customers);
-    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
+    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: userCompanyId });
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 

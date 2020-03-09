@@ -190,7 +190,8 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
     if (!has(auxiliary, 'contact.address.zipCode')) return 0;
     if (!get(auxiliary, 'administrative.transportInvoice.link', null)) return 0;
 
-    const transportSub = company.rhConfig.transportSubs.find(ts => ts.department === auxiliary.contact.address.zipCode.slice(0, 2));
+    const transportSub = company.rhConfig.transportSubs
+      .find(ts => ts.department === auxiliary.contact.address.zipCode.slice(0, 2));
     if (!transportSub) return 0;
 
     return transportSub.price * 0.5 * workedDaysRatio;

@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 

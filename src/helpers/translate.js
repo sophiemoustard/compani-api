@@ -222,6 +222,12 @@ module.exports = {
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
     siretAlreadyExists: 'Siret already used by another establishment.',
+    /* Courses */
+    coursesFound: 'Courses found',
+    coursesNotFound: 'Courses not found',
+    courseCreated: 'Course created',
+    courseFound: 'Course found',
+    courseUpdated: 'Course updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -443,5 +449,11 @@ module.exports = {
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
+    /* Courses */
+    coursesFound: 'Liste des formations trouvées',
+    coursesNotFound: 'Liste des formations non trouvées',
+    courseCreated: 'Formation créée',
+    courseFound: 'Formation trouvée',
+    courseUpdated: 'Formation mise à jour',
   },
 };

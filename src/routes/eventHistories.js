@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list } = require('../controllers/eventHistoryController');
 const { authorizeEventsHistoriesGet } = require('./preHandlers/eventHistories');
@@ -13,11 +13,11 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          query: {
+          query: Joi.object({
             auxiliaries: [Joi.array().items(Joi.string()), Joi.string()],
             sectors: [Joi.array().items(Joi.string()), Joi.string()],
             createdAt: Joi.date(),
-          },
+          }),
         },
         pre: [{ method: authorizeEventsHistoriesGet }],
       },

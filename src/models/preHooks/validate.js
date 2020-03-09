@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 
@@ -7,11 +7,13 @@ module.exports = {
     const query = this.getQuery();
     const isPopulate = get(query, '_id.$in', null);
     const hasCompany = (query.$and && query.$and.some(q => !!get(q, 'company', null))) || query.company;
-    if (!hasCompany && !isPopulate) next(Boom.badRequest());
+    const { isVendorUser } = this.getOptions();
+
+    if (!hasCompany && !isPopulate && !isVendorUser) next(Boom.badRequest());
     next();
   },
-  validatePayload(next) {
-    if (!this.company) next(Boom.badRequest());
+  validatePayload(next, isVendorUser = false) {
+    if (!this.company && !isVendorUser) next(Boom.badRequest());
     next();
   },
   validateAggregation(next) {

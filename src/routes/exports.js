@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { exportData, exportHistory } = require('../controllers/exportController');
@@ -29,11 +29,11 @@ exports.plugin = {
       path: '/{type}/data',
       options: {
         validate: {
-          params: {
+          params: Joi.object({
             type: Joi.string()
               .required()
               .valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR, RUP),
-          },
+          }),
         },
         auth: { scope: ['exports:read'] },
       },
@@ -45,13 +45,13 @@ exports.plugin = {
       path: '/{type}/history',
       options: {
         validate: {
-          params: {
+          params: Joi.object({
             type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, CONTRACT),
-          },
-          query: {
+          }),
+          query: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
-          },
+          }),
         },
         auth: { scope: ['exports:read'] },
       },

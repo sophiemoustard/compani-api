@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const Surcharge = require('../../models/Surcharge');
 const translate = require('../../helpers/translate');
 

@@ -1,6 +1,6 @@
 const flat = require('flat');
 const _ = require('lodash');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const translate = require('../helpers/translate');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
@@ -76,7 +76,7 @@ const list = async (req) => {
 
 const listWithSectorHistories = async (req) => {
   try {
-    const users = await getUsersListWithSectorHistories(req.auth.credentials);
+    const users = await getUsersListWithSectorHistories(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,

@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { generateTaxCertificatePdf, list, create, remove } = require('../controllers/taxCertificateController');
@@ -20,9 +20,7 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          query: {
-            customer: Joi.objectId().required(),
-          },
+          query: Joi.object({ customer: Joi.objectId().required() }),
         },
         auth: { scope: ['taxcertificates:read', 'customer-{query.customer}'] },
         pre: [
@@ -37,9 +35,7 @@ exports.plugin = {
       path: '/{_id}/pdfs',
       options: {
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getTaxCertificate, assign: 'taxCertificate' },
@@ -82,9 +78,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['taxcertificates:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: getTaxCertificate }],
       },

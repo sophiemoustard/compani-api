@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { SERVICE_NATURES } = require('../models/Service');
@@ -26,7 +26,7 @@ exports.plugin = {
         auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(CONTRACT_STATUS),
+            type: Joi.string().required().valid(...CONTRACT_STATUS),
             versions: Joi.array().items({
               startDate: Joi.date().required(),
               defaultUnitAmount: Joi.number().required(),
@@ -35,7 +35,7 @@ exports.plugin = {
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean().required(),
             }),
-            nature: Joi.string().required().valid(SERVICE_NATURES),
+            nature: Joi.string().required().valid(...SERVICE_NATURES),
           }),
         },
       },
@@ -57,9 +57,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeServicesUpdate }],
       },
@@ -72,9 +70,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
             defaultUnitAmount: Joi.number(),

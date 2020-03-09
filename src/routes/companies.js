@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -8,6 +8,8 @@ const {
   uploadFile,
   create,
   getFirstIntervention,
+  list,
+  show,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
@@ -21,11 +23,9 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['companies:edit'] },
+        auth: { scope: ['companies:edit', 'company-{params._id}'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: Joi.string().allow('', null),
@@ -77,7 +77,7 @@ exports.plugin = {
               }),
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
+              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),
               templates: Joi.object().keys({
                 debitMandate: Joi.object().keys({
                   driveId: Joi.string().allow(null),
@@ -104,7 +104,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['companies:edit'] },
+        auth: { scope: ['company-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -112,18 +112,18 @@ exports.plugin = {
           maxBytes: 5242880,
         },
         validate: {
-          payload: {
+          payload: Joi.object({
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid([
+            type: Joi.string().required().valid(
               'contractWithCompany',
               'contractWithCompanyVersion',
               'contractWithCustomer',
               'contractWithCustomerVersion',
               'debitMandate',
-              'quote',
-            ]),
+              'quote'
+            ),
             file: Joi.any().required(),
-          },
+          }),
         },
         pre: [{ method: authorizeCompanyUpdate }],
       },
@@ -139,7 +139,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             tradeName: Joi.string().max(11).required(),
-            type: Joi.string().valid(COMPANY_TYPES).required(),
+            type: Joi.string().valid(...COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
             ics: Joi.string(),
@@ -149,20 +149,20 @@ exports.plugin = {
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              }),
+              }).min(1),
               contractWithCustomer: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              }),
+              }).min(1),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
-              transportSubs: [Joi.array().items({
+              transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              }).required().min(1)],
-            }).required(),
+              }).min(1),
+            }).min(1),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
-            }),
+              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
+            }).min(1),
           }),
         },
       },
@@ -174,6 +174,24 @@ exports.plugin = {
       handler: getFirstIntervention,
       options: {
         auth: { scope: ['events:read'] },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: list,
+      options: {
+        auth: { scope: ['companies:read'] },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      handler: show,
+      options: {
+        auth: { scope: ['companies:read'] },
       },
     });
   },

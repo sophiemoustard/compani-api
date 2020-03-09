@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const activationCodeHelper = require('../helpers/activationCode');
 

@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const sinon = require('sinon');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const Customer = require('../../../src/models/Customer');

@@ -1,6 +1,6 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');

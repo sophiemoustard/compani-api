@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   usersSeedList,
@@ -13,13 +14,21 @@ const {
   isExistingRole,
   isInList,
   customerFromOtherCompany,
-  userFromOtherCompany,
+  helperFromOtherCompany,
   userSectors,
   company,
   sectorHistories,
   establishmentList,
+  coachFromOtherCompany,
 } = require('./seed/usersSeed');
-const { getToken, getUser, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const {
+  getToken,
+  getUser,
+  userList,
+  getTokenByCredentials,
+  otherCompany,
+  authCompany,
+} = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const { generateFormData } = require('./utils');
@@ -38,16 +47,6 @@ describe('USERS ROUTES', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('client_admin');
-      });
-
-      it('should not create a user if missing parameters', async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: omit(userPayload, 'role'),
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
       });
 
       it('should create a user', async () => {
@@ -112,6 +111,29 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(409);
       });
 
+      it('should not create a user if phone number is not correct', async () => {
+        const payload = { ...userPayload, contact: { phone: '023' } };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should not create a user if missing parameters', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: omit(userPayload, 'role'),
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
       it('should return a 403 if customer is not from the same company', async () => {
         const payload = { ...userPayload, customers: [customerFromOtherCompany] };
         const response = await app.inject({
@@ -124,14 +146,15 @@ describe('USERS ROUTES', () => {
       });
     });
 
-    describe('SELLER_ADMIN', () => {
+    describe('VENDOR_ADMIN', () => {
       const payload = { ...userPayload, company: otherCompany._id };
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('seller_admin');
+        authToken = await getToken('vendor_admin');
       });
 
       it('should create a user for another company', async () => {
+        const usersCountBefore = await User.countDocuments({ company: otherCompany._id });
         const response = await app.inject({
           method: 'POST',
           url: '/users',
@@ -143,7 +166,71 @@ describe('USERS ROUTES', () => {
         expect(response.result.data.user.company).toBeDefined();
         expect(response.result.data.user.company._id).toEqual(otherCompany._id);
         const usersCount = await User.countDocuments({ company: otherCompany._id });
-        expect(usersCount).toBe(2);
+        expect(usersCount).toBe(usersCountBefore + 1);
+      });
+
+      it('should create a trainer', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id, status: 'internal' },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore + 1);
+      });
+
+      it('should update a user with vendor role', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const trainerPayload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: usersSeedList[0].local.email, password: '123456' },
+          role: roleTrainer._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: trainerPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore);
+      });
+
+      it('should return an error if user already has vendor role', async () => {
+        const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
+        const trainerPayload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: usersSeedList[9].local.email, password: '123456' },
+          role: vendorAdminRole._id,
+          sector: userSectors[0]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: trainerPayload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should not create a trainer if missing status', async () => {
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
       });
 
       const roles = ['helper', 'auxiliary', 'coach', 'client_admin'];
@@ -168,6 +255,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
+      beforeEach(populateDB);
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -259,7 +347,7 @@ describe('USERS ROUTES', () => {
       it('should get all users (company A)', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: '/users',
+          url: `/users?company=${authCompany._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -269,9 +357,8 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
 
-      it('should get all users (company B)', async () => {
-        authToken = await getTokenByCredentials(usersSeedList[0].local);
-
+      it('should get all users from all companies', async () => {
+        authToken = await getToken('vendor_admin');
         const res = await app.inject({
           method: 'GET',
           url: '/users',
@@ -279,7 +366,39 @@ describe('USERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(usersSeedList.length);
+        const usersCount = await User.countDocuments({});
+        expect(res.result.data.users.length).toBe(usersCount);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
+      });
+
+      it('should get users from an other companies', async () => {
+        authToken = await getToken('vendor_admin');
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${otherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const users = await User.find({ company: otherCompany._id }).lean();
+        expect(res.result.data.users.length).toBe(users.length);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
+      });
+
+      it('should get all users (company B)', async () => {
+        authToken = await getTokenByCredentials(coachFromOtherCompany.local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${otherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const users = await User.find({ company: otherCompany._id });
+        expect(res.result.data.users.length).toBe(users.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
@@ -288,7 +407,7 @@ describe('USERS ROUTES', () => {
         const coachUsers = userList.filter(u => isExistingRole(u.role.client, 'coach'));
         const res = await app.inject({
           method: 'GET',
-          url: '/users?role=coach',
+          url: `/users?company=${authCompany._id}&role=coach`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -302,17 +421,16 @@ describe('USERS ROUTES', () => {
       });
 
       it('should get all coachs users (company B)', async () => {
-        authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'coach'));
+        authToken = await getTokenByCredentials(coachFromOtherCompany.local);
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users?role=coach',
+          url: `/users?company=${otherCompany._id}&role=coach`,
           headers: { 'x-access-token': authToken },
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(coachUsers.length);
+        expect(res.result.data.users.length).toBe(1);
         expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({
@@ -322,29 +440,22 @@ describe('USERS ROUTES', () => {
       });
 
       it('should get all auxiliary users (company B)', async () => {
-        authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'auxiliary'));
+        authToken = await getTokenByCredentials(coachFromOtherCompany.local);
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users?role=auxiliary',
+          url: `/users?company=${otherCompany._id}&role=auxiliary`,
           headers: { 'x-access-token': authToken },
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
-        expect(res.result.data.users).toEqual(expect.arrayContaining([
-          expect.objectContaining({
-            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
-            sector: expect.objectContaining({ name: expect.any(String) }),
-          }),
-        ]));
+        expect(res.result.data.users.length).toBe(1);
       });
 
       it('should not get users if role given doesn\'t exist', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: '/users?role=Babouin',
+          url: `/users?company=${authCompany._id}&role=Babouin`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -354,7 +465,7 @@ describe('USERS ROUTES', () => {
       it('should return a 403 if email not from the same company', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/users?email=${userFromOtherCompany.local.email}`,
+          url: `/users?company=${authCompany._id}&email=${helperFromOtherCompany.local.email}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -364,7 +475,27 @@ describe('USERS ROUTES', () => {
       it('should return a 403 if customer not from the same company', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/users?customers=${customerFromOtherCompany._id}`,
+          url: `/users?company=${authCompany._id}&customers=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 403 if company is not the same and does not have a vendor role', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${new ObjectID()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 403 if missing company params', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?company=${new ObjectID()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -385,7 +516,7 @@ describe('USERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/users',
+            url: `/users?company=${authCompany._id}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -406,7 +537,7 @@ describe('USERS ROUTES', () => {
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users/sector-histories',
+          url: `/users/sector-histories?company=${company._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -420,6 +551,47 @@ describe('USERS ROUTES', () => {
             sectorHistories: expect.any(Array),
           }),
         ]));
+      });
+
+      it('should get all auxiliary users from an other company if role vendor', async () => {
+        authToken = await getToken('vendor_admin');
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/sector-histories?company=${otherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(1);
+      });
+
+      it('should get all auxiliary users if role vendor', async () => {
+        authToken = await getToken('vendor_admin');
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/sector-histories',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const roles = await Role.find({ name: { $in: ['auxiliary', 'planning_referent'] } }).lean();
+        const roleIds = roles.map(role => role._id);
+        const usersCount = await User.countDocuments({ 'role.client': { $in: roleIds } });
+        expect(res.result.data.users.length).toBe(usersCount);
+      });
+
+      it('should return a 403 if not role vendor and try to get other company', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/sector-histories?company=${otherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -436,7 +608,7 @@ describe('USERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/users/sector-histories',
+            url: `/users/sector-histories?company=${authCompany._id}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -456,7 +628,7 @@ describe('USERS ROUTES', () => {
       it('should get all active users (company A)', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: '/users/active',
+          url: `/users/active?company=${authCompany._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -468,47 +640,52 @@ describe('USERS ROUTES', () => {
         ]));
       });
 
+      it('should get all active users from other company if role vendor', async () => {
+        authToken = await getToken('vendor_admin');
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/active?company=${otherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(1);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+      });
+
       it('should get all active users (company B)', async () => {
-        authToken = await getTokenByCredentials(usersSeedList[0].local);
+        authToken = await getTokenByCredentials(coachFromOtherCompany.local);
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users/active',
+          url: `/users/active?company=${otherCompany._id}`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u));
-        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users.length).toBe(1);
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({ isActive: true }),
         ]));
       });
 
       it('should get all active auxiliary users (company B)', async () => {
-        authToken = await getTokenByCredentials(usersSeedList[0].local);
+        authToken = await getTokenByCredentials(coachFromOtherCompany.local);
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users/active?role=auxiliary',
+          url: `/users/active?company=${otherCompany._id}&role=auxiliary`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        const activeUsers = usersSeedList
-          .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role.client, 'auxiliary'));
-        expect(res.result.data.users.length).toBe(activeUsers.length);
-        expect(res.result.data.users).toEqual(expect.arrayContaining([
-          expect.objectContaining({
-            isActive: true,
-            role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
-            sector: expect.objectContaining({ name: expect.any(String) }),
-          }),
-        ]));
+        expect(res.result.data.users.length).toBe(1);
       });
 
       it('should return a 403 if not from the same company', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/users/active?email=${userFromOtherCompany.local.email}`,
+          url: `/users/active?email=${helperFromOtherCompany.local.email}`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(403);
@@ -528,7 +705,7 @@ describe('USERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/users/active',
+            url: `/users/active?company=${authCompany._id}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -587,6 +764,22 @@ describe('USERS ROUTES', () => {
       });
     });
 
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should return trainer', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+    });
+
     describe('Other roles', () => {
       it('should return user if it is me - auxiliary', async () => {
         authToken = await getToken('auxiliary', usersSeedList);
@@ -617,6 +810,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -769,7 +963,7 @@ describe('USERS ROUTES', () => {
       it('should return a 403 error if user is not from the same company', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${userFromOtherCompany._id}`,
+          url: `/users/${helperFromOtherCompany._id}`,
           payload: {},
           headers: { 'x-access-token': authToken },
         });
@@ -795,6 +989,34 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(403);
       });
+
+      it('should not update a user if phone number is not correct', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { contact: { phone: '09876' } },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should update trainer', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload: { identity: { firstname: 'trainerUpdate' } },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
     });
 
     describe('Other roles', () => {
@@ -818,6 +1040,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -880,12 +1103,31 @@ describe('USERS ROUTES', () => {
       });
     });
 
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should update trainer', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+    });
+
     describe('Other roles', () => {
+      beforeEach(populateDB);
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -946,7 +1188,7 @@ describe('USERS ROUTES', () => {
       it('should return a 404 error if no user found', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${new ObjectID().toHexString()}`,
+          url: `/users/${new ObjectID().toHexString()}/certificates`,
           payload: {},
           headers: { 'x-access-token': authToken },
         });

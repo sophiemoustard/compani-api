@@ -9,156 +9,72 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const {
   CLIENT,
-  SELLER,
+  VENDOR,
+  VENDOR_ADMIN,
+  CLIENT_ADMIN,
+  AUXILIARY,
+  HELPER,
+  COACH,
+  PLANNING_REFERENT,
+  AUXILIARY_WITHOUT_COMPANY,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
 } = require('../../../src/helpers/constants');
 const app = require('../../../server');
 
 const rightsList = [
-  {
-    _id: new ObjectID(),
-    description: 'Edit config',
-    permission: 'config:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Read config',
-    permission: 'config:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Edit billing info',
-    permission: 'bills:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Read billing info',
-    permission: 'bills:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Edit payment info',
-    permission: 'payments:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Create payment list',
-    permission: 'payments:list:create',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Edit pay info',
-    permission: 'pay:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Read pay info',
-    permission: 'pay:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer la liste de contrats',
-    permission: 'contracts:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Exporter des données',
-    permission: 'exports:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Lister les utilisateurs',
-    permission: 'users:list',
-    name: 'users-list',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer un utilisateur',
-    permission: 'users:edit',
-    name: 'users-edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer un évènement',
-    permission: 'events:edit',
-    name: 'events-edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter les évènements',
-    permission: 'events:read',
-    name: 'events-read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer son évènement',
-    permission: 'events:own:edit',
-    name: 'events-own-edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Créer ou supprimer des bénéficiaires',
-    permission: 'customers:create',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter les données de bénéficiaires',
-    permission: 'customers:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer les données de bénéficiaires',
-    permission: 'customers:edit',
-  },
+  { _id: new ObjectID(), description: 'Edit config', permission: 'config:edit' },
+  { _id: new ObjectID(), description: 'Read config', permission: 'config:read' },
+  { _id: new ObjectID(), description: 'Edit billing info', permission: 'bills:edit' },
+  { _id: new ObjectID(), description: 'Read billing info', permission: 'bills:read' },
+  { _id: new ObjectID(), description: 'Edit payment info', permission: 'payments:edit' },
+  { _id: new ObjectID(), description: 'Create payment list', permission: 'payments:list:create' },
+  { _id: new ObjectID(), description: 'Edit pay info', permission: 'pay:edit' },
+  { _id: new ObjectID(), description: 'Read pay info', permission: 'pay:read' },
+  { _id: new ObjectID(), description: 'Editer la liste de contrats', permission: 'contracts:edit' },
+  { _id: new ObjectID(), description: 'Exporter des données', permission: 'exports:read' },
+  { _id: new ObjectID(), description: 'Lister les utilisateurs', permission: 'users:list', name: 'users-list' },
+  { _id: new ObjectID(), description: 'Editer un utilisateur', permission: 'users:edit', name: 'users-edit' },
+  { _id: new ObjectID(), description: 'Editer un évènement', permission: 'events:edit', name: 'events-edit' },
+  { _id: new ObjectID(), description: 'Consulter les évènements', permission: 'events:read', name: 'events-read' },
+  { _id: new ObjectID(), description: 'Editer son évènement', permission: 'events:own:edit', name: 'events-own-edit' },
+  { _id: new ObjectID(), description: 'Créer ou supprimer des bénéficiaires', permission: 'customers:create' },
+  { _id: new ObjectID(), description: 'Consulter les données de bénéficiaires', permission: 'customers:read' },
+  { _id: new ObjectID(), description: 'Editer les données de bénéficiaires', permission: 'customers:edit' },
   {
     _id: new ObjectID(),
     description: 'Editer les données administratives de bénéficiaires',
     permission: 'customers:administrative:edit',
   },
-  {
-    _id: new ObjectID(),
-    description: 'Editer les informations de la compagnie',
-    permission: 'companies:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter les roles',
-    permission: 'roles:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer les documents de paie',
-    permission: 'paydocuments:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Créer une entreprise',
-    permission: 'companies:create',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter les attestions fiscales',
-    permission: 'taxcertificates:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Éditer une attestion fiscale',
-    permission: 'taxcertificates:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer un établissement',
-    permission: 'establishments:edit',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter la liste des établissements',
-    permission: 'establishments:read',
-  },
+  { _id: new ObjectID(), description: 'Editer les informations de la compagnie', permission: 'companies:edit' },
+  { _id: new ObjectID(), description: 'Consulter les roles', permission: 'roles:read' },
+  { _id: new ObjectID(), description: 'Editer les documents de paie', permission: 'paydocuments:edit' },
+  { _id: new ObjectID(), description: 'Créer une entreprise', permission: 'companies:create' },
+  { _id: new ObjectID(), description: 'Consulter les attestions fiscales', permission: 'taxcertificates:read' },
+  { _id: new ObjectID(), description: 'Éditer une attestion fiscale', permission: 'taxcertificates:edit' },
+  { _id: new ObjectID(), description: 'Editer un établissement', permission: 'establishments:edit' },
+  { _id: new ObjectID(), description: 'Consulter la liste des établissements', permission: 'establishments:read' },
+  { _id: new ObjectID(), description: 'Consulter la liste des structures', permission: 'companies:read' },
+  { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
+  { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
 ];
-
-const sellerAdminRights = [
+const vendorAdminRights = [
   'companies:create',
   'users:edit',
+  'users:list',
+  'companies:read',
+  'courses:read',
+  'courses:edit',
+  'companies:edit',
+];
+const trainingOrganisationManagerRights = [
+  'companies:create',
+  'users:edit',
+  'users:list',
+  'companies:read',
+  'courses:read',
+  'courses:edit',
+  'companies:edit',
 ];
 const clientAdminRights = [
   'config:edit',
@@ -180,7 +96,6 @@ const clientAdminRights = [
   'customers:read',
   'customers:edit',
   'customers:administrative:edit',
-  'companies:edit',
   'roles:read',
   'paydocuments:edit',
   'taxcertificates:read',
@@ -221,20 +136,21 @@ const auxiliaryRights = [
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
+const trainerRights = [];
 
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'seller_admin',
-    interface: SELLER,
+    name: VENDOR_ADMIN,
+    interface: VENDOR,
     rights: rightsList.map(right => ({
       right_id: right._id,
-      hasAccess: sellerAdminRights.includes(right.permission),
+      hasAccess: vendorAdminRights.includes(right.permission),
     })),
   },
   {
     _id: new ObjectID(),
-    name: 'client_admin',
+    name: CLIENT_ADMIN,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -243,7 +159,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'coach',
+    name: COACH,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -252,7 +168,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'auxiliary',
+    name: AUXILIARY,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -261,7 +177,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'auxiliary_without_company',
+    name: AUXILIARY_WITHOUT_COMPANY,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -270,7 +186,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'planning_referent',
+    name: PLANNING_REFERENT,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -279,11 +195,29 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'helper',
+    name: HELPER,
     interface: CLIENT,
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: helperRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: TRAINING_ORGANISATION_MANAGER,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainingOrganisationManagerRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: TRAINER,
+    interface: VENDOR,
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: trainerRights.includes(right.permission),
     })),
   },
 ];
@@ -319,10 +253,10 @@ const otherCompany = {
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Admin', lastname: 'Chef' },
+    identity: { firstname: 'client_admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
-    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+    role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: authCompany._id,
   },
   {
@@ -330,7 +264,7 @@ const userList = [
     identity: { firstname: 'Coach', lastname: 'Calif' },
     local: { email: 'coach@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'coach')._id },
+    role: { client: rolesList.find(role => role.name === COACH)._id },
     company: authCompany._id,
   },
   {
@@ -338,7 +272,7 @@ const userList = [
     identity: { firstname: 'Auxiliary', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
   },
   {
@@ -346,7 +280,7 @@ const userList = [
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
     local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
+    role: { client: rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id },
     company: authCompany._id,
   },
   {
@@ -354,7 +288,7 @@ const userList = [
     identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'planning_referent')._id },
+    role: { client: rolesList.find(role => role.name === PLANNING_REFERENT)._id },
     company: authCompany._id,
   },
   {
@@ -362,15 +296,32 @@ const userList = [
     identity: { firstname: 'Helper', lastname: 'Test' },
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: rolesList.find(role => role.name === HELPER)._id },
     company: authCompany._id,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'seller_admin', lastname: 'SuperChef' },
+    identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
-    local: { email: 'super-admin@alenvi.io', password: '123456' },
-    role: { seller: rolesList.find(role => role.name === 'seller_admin')._id },
+    local: { email: 'vendor-admin@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === VENDOR_ADMIN)._id },
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'training_organisation_manager', lastname: 'ROP' },
+    refreshToken: uuidv4(),
+    local: { email: 'training-organisation-manager@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id },
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainer', lastname: 'trainer' },
+    status: 'internal',
+    refreshToken: uuidv4(),
+    local: { email: 'trainer@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
     company: authCompany._id,
   },
 ];
@@ -410,7 +361,9 @@ const populateDBForAuthentication = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
-  await User.create(userList);
+  for (let i = 0; i < userList.length; i++) {
+    await (new User(userList[i])).save();
+  }
 };
 
 const getUser = (roleName, list = userList) => {

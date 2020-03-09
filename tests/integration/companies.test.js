@@ -21,13 +21,13 @@ describe('NODE ENV', () => {
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
   describe('PUT /companies/:id', () => {
-    describe('CLIENT_ADMIN', () => {
+    describe('VENDOR_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getToken('vendor_admin');
       });
 
-      it('should update company service', async () => {
+      it('should update company', async () => {
         const payload = {
           name: 'Alenvi Alenvi',
           rhConfig: { feeAmount: 70 },
@@ -44,7 +44,7 @@ describe('COMPANIES ROUTES', () => {
         expect(response.result.data.company).toMatchObject(payload);
       });
 
-      it('should return 404 if no company found', async () => {
+      it('should return 404 if not found', async () => {
         const invalidId = new ObjectID();
         const payload = {
           name: 'Alenvi Alenvi',
@@ -57,6 +57,45 @@ describe('COMPANIES ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(404);
+      });
+    });
+
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin');
+      });
+
+      it('should update company', async () => {
+        const payload = {
+          name: 'Alenvi Alenvi',
+          rhConfig: { feeAmount: 70 },
+          apeCode: '8110Z',
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${authCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.company).toMatchObject(payload);
+      });
+
+      it('should return 403 if not its company', async () => {
+        const invalidId = new ObjectID();
+        const payload = {
+          name: 'Alenvi Alenvi',
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${invalidId}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(403);
       });
 
       it('should return 403 if not the same ids', async () => {
@@ -100,6 +139,8 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -195,17 +236,16 @@ describe('COMPANIES ROUTES', () => {
         contractWithCustomer: { grossHourlyRate: 5 },
         feeAmount: 2,
         amountPerKm: 10,
-        transportSubs: [{ department: '75', price: 75 }],
       },
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('SELLER_ADMIN', () => {
+    describe('VENDOR_ADMIN', () => {
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('seller_admin');
+        authToken = await getToken('vendor_admin');
         createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
         createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
       });
@@ -242,6 +282,22 @@ describe('COMPANIES ROUTES', () => {
         expect(companiesCount).toEqual(companiesBefore.length + 1);
       });
 
+      it('should not create a company if name provided already exists', async () => {
+        createFolderForCompany.returns({ id: '1234567890' });
+        createFolder.onCall(0).returns({ id: '0987654321' });
+        createFolder.onCall(1).returns({ id: 'qwerty' });
+        createFolder.onCall(2).returns({ id: 'asdfgh' });
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/companies',
+          payload: { name: authCompany.name, tradeName: 'qwerty', type: 'association' },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
+
       const missingParams = [
         { path: 'name' },
         { path: 'tradeName' },
@@ -268,6 +324,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -310,6 +367,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 200 },
       ];
 
@@ -319,6 +377,94 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/companies/first-intervention',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /companies', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+
+      it('should list companies', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: '/companies',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.companies).toBeDefined();
+        expect(response.result.data.companies.length).toEqual(3);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/companies',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /companies/_id', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+
+      it('should return company', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies/${authCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.company).toBeDefined();
+        expect(response.result.data.company._id).toEqual(authCompany._id);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/companies/${authCompany._id}`,
             headers: { 'x-access-token': authToken },
           });
 

@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');

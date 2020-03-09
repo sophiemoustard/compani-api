@@ -190,6 +190,7 @@ exports.exportAuxiliaries = async (credentials) => {
 
 const helperExportHeader = [
   'Email',
+  'Téléphone',
   'Aidant - Nom',
   'Aidant - Prénom',
   'Bénéficiaire - Titre',
@@ -222,6 +223,7 @@ exports.exportHelpers = async (credentials) => {
 
     data.push([
       get(hel, 'local.email', ''),
+      get(hel, 'contact.phone', '') !== '' ? `+33${hel.contact.phone.substring(1)}` : '',
       get(hel, 'identity.lastname', '').toUpperCase(),
       get(hel, 'identity.firstname', ''),
       CIVILITY_LIST[get(customer, 'identity.title')] || '',

@@ -1,4 +1,4 @@
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const DistanceMatrixHelper = require('../helpers/distanceMatrix');
 const translate = require('../helpers/translate');
 

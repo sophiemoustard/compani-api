@@ -1,5 +1,5 @@
 const flat = require('flat');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const mongoose = require('mongoose');
 const moment = require('../extensions/moment');
 const path = require('path');

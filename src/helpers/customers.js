@@ -1,5 +1,5 @@
 const flat = require('flat');
-const Boom = require('boom');
+const Boom = require('@hapi/boom');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');

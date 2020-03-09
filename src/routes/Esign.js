@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 const { show } = require('../controllers/esignController');
 
@@ -12,9 +12,7 @@ exports.plugin = {
       path: '/{id}',
       options: {
         validate: {
-          params: {
-            id: Joi.string().required(),
-          },
+          params: Joi.object({ id: Joi.string().required() }),
         },
       },
       handler: show,
