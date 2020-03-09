@@ -947,11 +947,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(
-      userId,
-      payload,
-      { ...credentials, role: { vendor: 'test' }, scope: ['users:edit'] }
-    );
+    const result = await UsersHelper.updateUser(userId, payload, credentials, true);
 
     expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();

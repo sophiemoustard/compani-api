@@ -40,6 +40,11 @@ exports.authorizeUserUpdateOrGetById = async (req) => {
   return null;
 };
 
+exports.authorizeUserUpdateWithoutCompany = (req) => {
+  const { credentials } = req.auth;
+  return get(credentials, 'role.vendor', null) && credentials.scope.includes('users:edit');
+};
+
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
 

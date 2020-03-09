@@ -189,9 +189,8 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials) => {
+exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
-  const canEditWithoutCompany = get(credentials, 'role.vendor', null) && credentials.scope.includes('users:edit');
 
   const query = { _id: userId };
   if (!canEditWithoutCompany) query.company = companyId;

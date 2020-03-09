@@ -119,7 +119,7 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials, req.pre.canEditWithoutCompany);
 
     return {
       message: translate[language].userUpdated,
