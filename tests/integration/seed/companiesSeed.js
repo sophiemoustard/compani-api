@@ -1,8 +1,11 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { INTERVENTION, COMPANY_CONTRACT } = require('../../../src/helpers/constants');
+const { rolesList } = require('../../seed/roleSeed');
+const { INTERVENTION, COMPANY_CONTRACT, CLIENT_ADMIN } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -44,13 +47,24 @@ const event = {
   },
 };
 
+const clientAdmin = {
+  _id: new ObjectID(),
+  identity: { firstname: 'client_admin', lastname: 'Chef' },
+  refreshToken: uuidv4(),
+  local: { email: 'client_admin@alenvi.io', password: '123456' },
+  role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
+  company: company._id,
+};
+
 const populateDB = async () => {
   await Company.deleteMany({});
   await Event.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentication();
   await (new Company(company)).save();
   await (new Event(event)).save();
+  await (new User(clientAdmin)).save();
 };
 
-module.exports = { company, populateDB };
+module.exports = { company, clientAdmin, populateDB };
