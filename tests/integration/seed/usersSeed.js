@@ -258,6 +258,34 @@ const usersSeedList = [
     inactivityDate: null,
     status: 'internal',
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'vendoradmin', lastname: 'admin' },
+    local: { email: 'vendoradmin@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === 'vendor_admin')._id },
+    refreshToken: uuidv4(),
+    contracts: [],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    inactivityDate: null,
+    company: company._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'rop', lastname: 'admin' },
+    local: { email: 'rop@alenvi.io', password: '123456' },
+    role: { vendor: rolesList.find(role => role.name === 'training_organisation_manager')._id },
+    refreshToken: uuidv4(),
+    contracts: [],
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    inactivityDate: null,
+    company: company._id,
+  },
 ];
 
 const userSectors = [

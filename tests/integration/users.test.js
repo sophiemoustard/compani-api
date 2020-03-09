@@ -764,6 +764,22 @@ describe('USERS ROUTES', () => {
       });
     });
 
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should return trainer', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+    });
+
     describe('Other roles', () => {
       it('should return user if it is me - auxiliary', async () => {
         authToken = await getToken('auxiliary', usersSeedList);
@@ -794,6 +810,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -985,6 +1002,23 @@ describe('USERS ROUTES', () => {
       });
     });
 
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should update trainer', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload: { identity: { firstname: 'trainerUpdate' } },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+    });
+
     describe('Other roles', () => {
       beforeEach(populateDB);
 
@@ -1006,6 +1040,7 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1068,12 +1103,31 @@ describe('USERS ROUTES', () => {
       });
     });
 
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin', usersSeedList);
+      });
+      it('should update trainer', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+    });
+
     describe('Other roles', () => {
+      beforeEach(populateDB);
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1134,7 +1188,7 @@ describe('USERS ROUTES', () => {
       it('should return a 404 error if no user found', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${new ObjectID().toHexString()}`,
+          url: `/users/${new ObjectID().toHexString()}/certificates`,
           payload: {},
           headers: { 'x-access-token': authToken },
         });
