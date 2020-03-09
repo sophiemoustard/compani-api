@@ -932,6 +932,33 @@ describe('updateUser', () => {
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
+  it('should update a user without company', async () => {
+    const payload = { identity: { firstname: 'Titi' } };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId },
+        { $set: flat(payload) },
+        { new: true }
+      )
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...user, ...payload });
+
+    RoleMock.expects('findById').never();
+
+    const result = await UsersHelper.updateUser(
+      userId,
+      payload,
+      { ...credentials, role: { vendor: 'test' }, scope: ['users:edit'] }
+    );
+
+    expect(result).toEqual({ ...user, ...payload });
+    UserMock.verify();
+    RoleMock.verify();
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
   it('should update a user and create sector history', async () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 

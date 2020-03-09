@@ -191,13 +191,17 @@ const formatUpdatePayload = async (updatedUser) => {
 
 exports.updateUser = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
+  const canEditWithoutCompany = get(credentials, 'role.vendor', null) && credentials.scope.includes('users:edit');
+
+  const query = { _id: userId };
+  if (!canEditWithoutCompany) query.company = companyId;
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  return User.findOneAndUpdate({ _id: userId, company: companyId }, { $set: flat(payload) }, { new: true })
+  return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
 };
