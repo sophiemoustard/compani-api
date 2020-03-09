@@ -23,7 +23,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['companies:edit'] },
+        auth: { scope: ['companies:edit', 'company-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
@@ -104,7 +104,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['companies:edit'] },
+        auth: { scope: ['company-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,

@@ -21,6 +21,45 @@ describe('NODE ENV', () => {
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
   describe('PUT /companies/:id', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin');
+      });
+
+      it('should update company', async () => {
+        const payload = {
+          name: 'Alenvi Alenvi',
+          rhConfig: { feeAmount: 70 },
+          apeCode: '8110Z',
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${authCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.company).toMatchObject(payload);
+      });
+
+      it('should return 404 if not found', async () => {
+        const invalidId = new ObjectID();
+        const payload = {
+          name: 'Alenvi Alenvi',
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${invalidId}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+    });
+
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -44,7 +83,7 @@ describe('COMPANIES ROUTES', () => {
         expect(response.result.data.company).toMatchObject(payload);
       });
 
-      it('should return 404 if no company found', async () => {
+      it('should return 403 if not its company', async () => {
         const invalidId = new ObjectID();
         const payload = {
           name: 'Alenvi Alenvi',
@@ -56,7 +95,7 @@ describe('COMPANIES ROUTES', () => {
           payload,
         });
 
-        expect(response.statusCode).toBe(404);
+        expect(response.statusCode).toBe(403);
       });
 
       it('should return 403 if not the same ids', async () => {
@@ -101,6 +140,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
         { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {

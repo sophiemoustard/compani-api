@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Company = require('../../models/Company');
 const translate = require('../../helpers/translate');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -19,6 +20,9 @@ exports.companyExists = async (req) => {
 
 exports.authorizeCompanyUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (!companyId || req.params._id !== companyId.toHexString()) throw Boom.forbidden();
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name') || null;
+  const isVendorAdmin = !!vendorRole && [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
+  if (!isVendorAdmin && (!companyId || req.params._id !== companyId.toHexString())) throw Boom.forbidden();
+
   return null;
 };
