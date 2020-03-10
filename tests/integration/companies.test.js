@@ -7,7 +7,7 @@ const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
-const { company, populateDB, clientAdmin } = require('./seed/companiesSeed');
+const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
 const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
@@ -63,7 +63,7 @@ describe('COMPANIES ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getTokenByCredentials(clientAdmin.local);
+        authToken = await getTokenByCredentials(companyClientAdmin.local);
       });
 
       it('should update company', async () => {
@@ -99,7 +99,7 @@ describe('COMPANIES ROUTES', () => {
       });
 
       it('should return 403 if not the same ids', async () => {
-        const invalidId = authCompany._id.toHexString();
+        const invalidId = otherCompany._id.toHexString();
         const payload = {
           name: 'Alenvi Alenvi',
         };
@@ -178,7 +178,7 @@ describe('COMPANIES ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getTokenByCredentials(clientAdmin.local);
+        authToken = await getTokenByCredentials(companyClientAdmin.local);
       });
 
       it('should upload a file', async () => {

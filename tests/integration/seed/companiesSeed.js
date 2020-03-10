@@ -47,7 +47,7 @@ const event = {
   },
 };
 
-const clientAdmin = {
+const companyClientAdmin = {
   _id: new ObjectID(),
   identity: { firstname: 'client_admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
@@ -64,7 +64,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
   await (new Company(company)).save();
   await (new Event(event)).save();
-  await (new User(clientAdmin)).save();
+  await (new User(companyClientAdmin)).save();
 };
 
-module.exports = { company, clientAdmin, populateDB };
+module.exports = { company, companyClientAdmin, populateDB };
