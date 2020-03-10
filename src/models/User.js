@@ -49,7 +49,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: { type: String, required: true },
+    password: { type: String },
   },
   role: {
     client: {
@@ -155,11 +155,6 @@ async function save(next) {
         return next(error);
       }
     }
-
-    if (!user.isModified('local.password')) return next();
-    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
-    const hash = await bcrypt.hash(user.local.password, salt);
-    user.local.password = hash;
 
     return next();
   } catch (e) {

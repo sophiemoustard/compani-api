@@ -239,6 +239,13 @@ exports.checkResetPasswordToken = async (token) => {
   return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
 };
 
+exports.createPasswordToken = async (email) => {
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000 } };
+  await User.updateOne({ 'local.email': email }, { $set: payload }, { new: true });
+
+  return payload.passwordToken;
+};
+
 exports.forgotPassword = async (email, from) => {
   const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();

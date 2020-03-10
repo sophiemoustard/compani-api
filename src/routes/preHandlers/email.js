@@ -7,7 +7,7 @@ const { language } = translate;
 
 exports.authorizeSendEmail = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id');
-  const user = await User.findOne({ 'local.email': req.payload.receiver.email }).lean();
+  const user = await User.findOne({ 'local.email': req.payload.email }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();

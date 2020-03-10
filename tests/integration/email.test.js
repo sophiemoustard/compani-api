@@ -26,7 +26,7 @@ describe('EMAIL ROUTES', () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
-      url: '/email/sendWelcome',
+      url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
       payload: { receiver: { email: emailUser.local.email, password: 'mdp' } },
     });
@@ -40,7 +40,7 @@ describe('EMAIL ROUTES', () => {
     const authToken = await getTokenByCredentials(emailUserFromOtherCompany.local);
     const response = await app.inject({
       method: 'POST',
-      url: '/email/sendWelcome',
+      url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
       payload: { receiver: { email: emailUserFromOtherCompany.local.email, password: '1234567890' } },
     });
@@ -55,7 +55,7 @@ describe('EMAIL ROUTES', () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
-      url: '/email/sendWelcome',
+      url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
       payload: { receiver: { email: emailUserFromOtherCompany.local.email, password: '1234567890' } },
     });
@@ -67,7 +67,7 @@ describe('EMAIL ROUTES', () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
-      url: '/email/sendWelcome',
+      url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
       payload: { receiver: { email: 'qwertyuiop@asdfghjkl.fr', password: '1234567890' } },
     });
@@ -79,7 +79,7 @@ describe('EMAIL ROUTES', () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
-      url: '/email/sendWelcome',
+      url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
       payload: {},
     });

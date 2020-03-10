@@ -4,21 +4,19 @@ const fs = require('fs');
 
 const fsPromises = fs.promises;
 
-const welcomeEmailContent = (receiver, companyName) => (
-  `<p>Bonjour,</p>
-  <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires d’envie chez votre proche, ainsi 
-  que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions également de finaliser votre souscription en remplissant la page 
-  “Abonnement”.<p>
-  <p>Voici le lien pour vous connecter : <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a></p>
-  <p>Vos identifiants pour y accéder :</p>
-  <ul>
-  <li>login : ${receiver.email}</li>
-  <li>mot de passe : ${receiver.password}</li>
-  </ul>
-  <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
-  <p>Bien cordialement,</p>
-  <p>L'équipe ${companyName}</p>`
-);
+const welcomeEmailContent = (options) => {
+  const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
+  return `<p>Bonjour,</p>
+    <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires 
+    d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions 
+    également de finaliser votre souscription en remplissant la page “Abonnement”.<p>
+    <p>Vous pouvez créer votre mot de passe en suivant ce lien <a href="${createPasswordLink}">${createPasswordLink}</a>.</p>
+    <p>Ce lien est valable 24heures.</p>
+    <p>Par la suite, voici le lien pour vous connecter : <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a></p>
+    <br />
+    <p>Bien cordialement,</p>
+    <p>L'équipe ${options.companyName}</p>`;
+};
 
 const forgetPasswordEmail = passwordToken => (
   `<p>Bonjour,</p>

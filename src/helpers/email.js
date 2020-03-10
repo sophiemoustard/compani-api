@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
+const UserHelper = require('./users');
 const { SENDER_MAIL } = require('./constants');
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
@@ -52,13 +53,14 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
   return exports.sendEmail(mailOptions);
 };
 
-exports.helperWelcomeEmail = async (receiver, company) => {
+exports.helperWelcomeEmail = async (email, company) => {
   const companyName = company.tradeName || company.name;
+  const passwordToken = await UserHelper.createPasswordToken(email);
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
-    to: receiver.email,
+    to: email,
     subject: `${companyName} - Bienvenue dans votre espace Compani`,
-    html: EmailOptionsHelper.welcomeEmailContent(receiver, companyName),
+    html: EmailOptionsHelper.welcomeEmailContent({ companyName, passwordToken }),
   };
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
