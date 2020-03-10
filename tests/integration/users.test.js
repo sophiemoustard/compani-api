@@ -1535,7 +1535,7 @@ describe('USERS ROUTES', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/users/check-reset-password/${user.resetPassword.token}`,
+        url: `/users/check-reset-password/${user.passwordToken.token}`,
       });
 
       expect(response.statusCode).toBe(200);

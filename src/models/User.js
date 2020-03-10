@@ -35,7 +35,7 @@ const roleSchemaDefinition = {
 // User schema
 const UserSchema = mongoose.Schema({
   refreshToken: String,
-  resetPassword: {
+  passwordToken: {
     token: { type: String, default: null },
     expiresIn: { type: Date, default: null },
     from: String,

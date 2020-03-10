@@ -20,10 +20,10 @@ const welcomeEmailContent = (receiver, companyName) => (
   <p>L'équipe ${companyName}</p>`
 );
 
-const forgetPasswordEmail = resetPassword => (
+const forgetPasswordEmail = passwordToken => (
   `<p>Bonjour,</p>
   <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
-  <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${resetPassword.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${resetPassword.token}</a></p>
+  <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}</a></p>
   <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
   <p>Bien cordialement,<br>
     L'équipe Compani</p>`

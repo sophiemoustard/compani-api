@@ -64,12 +64,12 @@ exports.helperWelcomeEmail = async (receiver, company) => {
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
 };
 
-exports.forgotPasswordEmail = async (receiver, resetPassword) => {
+exports.forgotPasswordEmail = async (receiver, passwordToken) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
     subject: 'Changement de mot de passe de votre compte Compani',
-    html: EmailOptionsHelper.forgetPasswordEmail(resetPassword),
+    html: EmailOptionsHelper.forgetPasswordEmail(passwordToken),
   };
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);

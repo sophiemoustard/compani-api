@@ -161,8 +161,7 @@ exports.createUser = async (userPayload, credentials) => {
 
     if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
     if (userInDB) {
-      return User
-        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+      return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
         .lean({ virtuals: true, autopopulate: true });
     }
@@ -171,8 +170,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
-  return User
-    .findOne({ _id: user._id })
+  return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -230,11 +228,11 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.checkResetPasswordToken = async (token) => {
-  const filter = { resetPassword: { token, expiresIn: { $gt: Date.now() } } };
+  const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
   const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  const payload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
+  const payload = { _id: user._id, email: user.local.email, from: user.passwordToken.from };
   const userPayload = pickBy(payload);
   const expireTime = 86400;
 
@@ -242,9 +240,9 @@ exports.checkResetPasswordToken = async (token) => {
 };
 
 exports.forgotPassword = async (email, from) => {
-  const payload = { resetPassword: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return EmailHelper.forgotPasswordEmail(email, payload.resetPassword);
+  return EmailHelper.forgotPasswordEmail(email, payload.passwordToken);
 };

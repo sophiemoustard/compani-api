@@ -1102,12 +1102,7 @@ describe('checkResetPasswordToken', () => {
   let fakeDate;
   const date = new Date('2020-01-13');
   const token = '1234567890';
-  const filter = {
-    resetPassword: {
-      token,
-      expiresIn: { $gt: date.getTime() },
-    },
-  };
+  const filter = { passwordToken: { token, expiresIn: { $gt: date.getTime() } } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -1142,10 +1137,10 @@ describe('checkResetPasswordToken', () => {
     const user = {
       _id: new ObjectID(),
       local: { email: 'toto@toto.com' },
-      resetPassword: { from: 'w' },
+      passwordToken: { from: 'w' },
     };
 
-    const userPayload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
+    const userPayload = { _id: user._id, email: user.local.email, from: user.passwordToken.from };
 
     UserMock.expects('findOne')
       .withExactArgs(flat(filter, { maxDepth: 2 }))
@@ -1175,13 +1170,7 @@ describe('forgotPassword', () => {
   const email = 'toto@toto.com';
   const from = 'w';
   const date = new Date('2020-01-13');
-  const payload = {
-    resetPassword: {
-      token,
-      expiresIn: date.getTime() + 3600000,
-      from,
-    },
-  };
+  const payload = { passwordToken: { token, expiresIn: date.getTime() + 3600000, from } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -1218,7 +1207,7 @@ describe('forgotPassword', () => {
     const user = {
       _id: new ObjectID(),
       local: { email: 'toto@toto.com' },
-      resetPassword: { from: 'w' },
+      passwordToken: { from: 'w' },
     };
 
     UserMock.expects('findOneAndUpdate')
@@ -1233,6 +1222,6 @@ describe('forgotPassword', () => {
 
     expect(result).toEqual({ sent: true });
     UserMock.verify();
-    sinon.assert.calledWithExactly(forgotPasswordEmail, email, payload.resetPassword);
+    sinon.assert.calledWithExactly(forgotPasswordEmail, email, payload.passwordToken);
   });
 });
