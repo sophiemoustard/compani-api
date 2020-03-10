@@ -189,15 +189,18 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials) => {
+exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
+
+  const query = { _id: userId };
+  if (!canEditWithoutCompany) query.company = companyId;
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  return User.findOneAndUpdate({ _id: userId, company: companyId }, { $set: flat(payload) }, { new: true })
+  return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
 };

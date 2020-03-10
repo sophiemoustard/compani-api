@@ -28,6 +28,7 @@ const {
   authorizeUserUpdateOrGetById,
   authorizeUserGet,
   authorizeUserCreation,
+  authorizeUserUpdateWithoutCompany,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { INTERNAL, EXTERNAL } = require('../helpers/constants');
@@ -282,6 +283,7 @@ exports.plugin = {
         pre: [
           { method: getUser, assign: 'user' },
           { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
         ],
       },
       handler: update,
