@@ -2,13 +2,13 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const { company, populateDB } = require('./seed/companiesSeed');
 const { MONTH } = require('../../src/helpers/constants');
 const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
-const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
+const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
+const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
 
@@ -35,7 +35,7 @@ describe('COMPANIES ROUTES', () => {
         };
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${authCompany._id.toHexString()}`,
+          url: `/companies/${company._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
           payload,
         });
@@ -63,7 +63,7 @@ describe('COMPANIES ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getTokenByCredentials(companyClientAdmin.local);
       });
 
       it('should update company', async () => {
@@ -74,7 +74,7 @@ describe('COMPANIES ROUTES', () => {
         };
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${authCompany._id.toHexString()}`,
+          url: `/companies/${company._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
           payload,
         });
@@ -99,7 +99,7 @@ describe('COMPANIES ROUTES', () => {
       });
 
       it('should return 403 if not the same ids', async () => {
-        const invalidId = company._id.toHexString();
+        const invalidId = otherCompany._id.toHexString();
         const payload = {
           name: 'Alenvi Alenvi',
         };
@@ -123,7 +123,7 @@ describe('COMPANIES ROUTES', () => {
         it(`should return a 400 error if ${assertion.case}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/companies/${authCompany._id.toHexString()}`,
+            url: `/companies/${company._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
             payload: assertion.payload,
           });
@@ -178,7 +178,7 @@ describe('COMPANIES ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getTokenByCredentials(companyClientAdmin.local);
       });
 
       it('should upload a file', async () => {
@@ -193,7 +193,7 @@ describe('COMPANIES ROUTES', () => {
         const form = generateFormData(payload);
         const response = await app.inject({
           method: 'POST',
-          url: `/companies/${authCompany._id}/gdrive/${fakeDriveId}/upload`,
+          url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
         });
