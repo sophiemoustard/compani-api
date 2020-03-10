@@ -1,16 +1,16 @@
 const Boom = require('@hapi/boom');
-const CourseHelper = require('../helpers/courses');
+const ProgramHelper = require('../helpers/programs');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courses = await CourseHelper.list(req.query);
+    const programs = await ProgramHelper.list(req.query);
 
     return {
-      message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
-      data: { courses },
+      message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,
+      data: { programs },
     };
   } catch (e) {
     req.log('error', e);
@@ -20,11 +20,11 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const course = await CourseHelper.createCourse(req.payload);
+    const program = await ProgramHelper.createProgram(req.payload);
 
     return {
-      message: translate[language].courseCreated,
-      data: { course },
+      message: translate[language].programCreated,
+      data: { program },
     };
   } catch (e) {
     req.log('error', e);
@@ -34,11 +34,11 @@ const create = async (req) => {
 
 const getById = async (req) => {
   try {
-    const course = await CourseHelper.getCourse(req.params._id);
+    const program = await ProgramHelper.getProgram(req.params._id);
 
     return {
-      message: translate[language].courseFound,
-      data: { course },
+      message: translate[language].programFound,
+      data: { program },
     };
   } catch (e) {
     req.log('error', e);
@@ -48,11 +48,11 @@ const getById = async (req) => {
 
 const update = async (req) => {
   try {
-    const course = await CourseHelper.updateCourse(req.params._id, req.payload);
+    const program = await ProgramHelper.updateProgram(req.params._id, req.payload);
 
     return {
-      message: translate[language].courseUpdated,
-      data: { course },
+      message: translate[language].programUpdated,
+      data: { program },
     };
   } catch (e) {
     req.log('error', e);

@@ -2,16 +2,16 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update } = require('../controllers/courseController');
+const { list, create, getById, update } = require('../controllers/programController');
 
 exports.plugin = {
-  name: 'routes-courses',
+  name: 'routes-programs',
   register: async (server) => {
     server.route({
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read'] },
+        auth: { scope: ['programs:read'] },
       },
       handler: list,
     });
@@ -25,7 +25,7 @@ exports.plugin = {
             name: Joi.string().required(),
           }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['programs:edit'] },
       },
       handler: create,
     });
@@ -37,7 +37,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        auth: { scope: ['courses:read'] },
+        auth: { scope: ['programs:read'] },
       },
       handler: getById,
     });
@@ -52,7 +52,7 @@ exports.plugin = {
             name: Joi.string(),
           }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['programs:edit'] },
       },
       handler: update,
     });
