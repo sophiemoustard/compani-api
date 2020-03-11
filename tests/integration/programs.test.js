@@ -1,6 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
-const { populateDB, coursesList } = require('./seed/coursesSeed');
+const { populateDB, programsList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -9,7 +9,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /courses', () => {
+describe('PROGRAMS ROUTES - POST /programs', () => {
   let token;
   beforeEach(populateDB);
 
@@ -18,12 +18,12 @@ describe('COURSES ROUTES - POST /courses', () => {
       token = await getToken('vendor_admin');
     });
 
-    it('should create course', async () => {
+    it('should create program', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/courses',
+        url: '/programs',
         headers: { 'x-access-token': token },
-        payload: { name: 'course' },
+        payload: { name: 'program' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -46,9 +46,9 @@ describe('COURSES ROUTES - POST /courses', () => {
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: '/courses',
+          url: '/programs',
           headers: { 'x-access-token': token },
-          payload: { name: 'course' },
+          payload: { name: 'program' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -57,7 +57,7 @@ describe('COURSES ROUTES - POST /courses', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses', () => {
+describe('PROGRAMS ROUTES - GET /programs', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -66,16 +66,16 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get all courses', async () => {
-      const coursesNumber = coursesList.length;
+    it('should get all programs', async () => {
+      const programsNumber = programsList.length;
       const response = await app.inject({
         method: 'GET',
-        url: '/courses',
+        url: '/programs',
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(coursesNumber);
+      expect(response.result.data.programs.length).toEqual(programsNumber);
     });
   });
 
@@ -94,7 +94,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/courses',
+          url: '/programs',
           headers: { 'x-access-token': authToken },
         });
 
@@ -104,7 +104,7 @@ describe('COURSES ROUTES - GET /courses', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/{_id}', () => {
+describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -113,16 +113,16 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get course', async () => {
-      const courseId = coursesList[0]._id;
+    it('should get program', async () => {
+      const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId.toHexString()}`,
+        url: `/programs/${programId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseId);
+      expect(response.result.data.program._id).toEqual(programId);
     });
   });
 
@@ -140,10 +140,10 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const courseId = coursesList[0]._id;
+        const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseId.toHexString()}`,
+          url: `/programs/${programId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -153,7 +153,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   });
 });
 
-describe('COURSES ROUTES - PUT /courses/{_id}', () => {
+describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -162,18 +162,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update course', async () => {
-      const courseId = coursesList[0]._id;
+    it('should update program', async () => {
+      const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${courseId.toHexString()}`,
+        url: `/programs/${programId.toHexString()}`,
         payload: { name: 'new name' },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseId);
-      expect(response.result.data.course.name).toEqual('new name');
+      expect(response.result.data.program._id).toEqual(programId);
+      expect(response.result.data.program.name).toEqual('new name');
     });
   });
 
@@ -191,11 +191,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const courseId = coursesList[0]._id;
+        const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'PUT',
           payload: { name: 'new name' },
-          url: `/courses/${courseId.toHexString()}`,
+          url: `/programs/${programId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

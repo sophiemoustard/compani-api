@@ -136,8 +136,8 @@ exports.routes = [
     routes: { prefix: '/establishments' },
   },
   {
-    plugin: require('./courses'),
-    routes: { prefix: '/courses' },
+    plugin: require('./programs'),
+    routes: { prefix: '/programs' },
   },
   {
     plugin: require('./endToEnd'),
