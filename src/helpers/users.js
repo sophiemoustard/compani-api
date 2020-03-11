@@ -232,7 +232,7 @@ exports.checkResetPasswordToken = async (token) => {
   const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  const payload = { _id: user._id, email: user.local.email, from: user.passwordToken.from };
+  const payload = { _id: user._id, email: user.local.email };
   const userPayload = pickBy(payload);
   const expireTime = 86400;
 
@@ -247,8 +247,8 @@ exports.createPasswordToken = async (email) => {
   return payload.passwordToken;
 };
 
-exports.forgotPassword = async (email, from) => {
-  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
+exports.forgotPassword = async (email) => {
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000 } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 

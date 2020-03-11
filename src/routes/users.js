@@ -182,7 +182,6 @@ exports.plugin = {
             passwordToken: Joi.object().keys({
               token: Joi.string().allow(null),
               expiresIn: Joi.number().allow(null),
-              from: Joi.string().allow(null),
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
@@ -373,7 +372,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().valid('p', 'w').default('w'),
           }),
         },
         auth: false,

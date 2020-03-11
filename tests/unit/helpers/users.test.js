@@ -1134,13 +1134,8 @@ describe('checkResetPasswordToken', () => {
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = {
-      _id: new ObjectID(),
-      local: { email: 'toto@toto.com' },
-      passwordToken: { from: 'w' },
-    };
-
-    const userPayload = { _id: user._id, email: user.local.email, from: user.passwordToken.from };
+    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com' } };
+    const userPayload = { _id: user._id, email: user.local.email };
 
     UserMock.expects('findOne')
       .withExactArgs(flat(filter, { maxDepth: 2 }))
@@ -1152,10 +1147,7 @@ describe('checkResetPasswordToken', () => {
 
     const result = await UsersHelper.checkResetPasswordToken(token);
 
-    expect(result).toEqual({
-      token,
-      user: userPayload,
-    });
+    expect(result).toEqual({ token, user: userPayload });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, userPayload, TOKEN_EXPIRE_TIME);
   });
@@ -1194,9 +1186,8 @@ describe('forgotPassword', () => {
   let uuidv4;
   const token = '1234567890';
   const email = 'toto@toto.com';
-  const from = 'w';
   const date = new Date('2020-01-13');
-  const payload = { passwordToken: { token, expiresIn: date.getTime() + 3600000, from } };
+  const payload = { passwordToken: { token, expiresIn: date.getTime() + 3600000 } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -1220,7 +1211,7 @@ describe('forgotPassword', () => {
         .once()
         .returns(null);
 
-      await UsersHelper.forgotPassword(email, from);
+      await UsersHelper.forgotPassword(email);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
@@ -1230,11 +1221,7 @@ describe('forgotPassword', () => {
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = {
-      _id: new ObjectID(),
-      local: { email: 'toto@toto.com' },
-      passwordToken: { from: 'w' },
-    };
+    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com', ...payload } };
 
     UserMock.expects('findOneAndUpdate')
       .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
@@ -1244,7 +1231,7 @@ describe('forgotPassword', () => {
       .returns(user);
     forgotPasswordEmail.returns({ sent: true });
 
-    const result = await UsersHelper.forgotPassword(email, from);
+    const result = await UsersHelper.forgotPassword(email);
 
     expect(result).toEqual({ sent: true });
     UserMock.verify();

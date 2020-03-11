@@ -38,7 +38,6 @@ const UserSchema = mongoose.Schema({
   passwordToken: {
     token: { type: String, default: null },
     expiresIn: { type: Date, default: null },
-    from: String,
   },
   local: {
     email: {

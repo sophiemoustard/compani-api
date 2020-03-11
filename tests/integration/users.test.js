@@ -1570,14 +1570,14 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { email: userEmail, from: 'w' },
+        payload: { email: userEmail },
       });
 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledWith(
         forgotPasswordEmail,
         userEmail,
-        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number, from: 'w' })
+        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number })
       );
     });
 
@@ -1585,7 +1585,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { from: 'w' },
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
@@ -1596,7 +1596,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { email: 't@t.com', from: 'w' },
+        payload: { email: 't@t.com' },
       });
 
       expect(response.statusCode).toBe(404);
