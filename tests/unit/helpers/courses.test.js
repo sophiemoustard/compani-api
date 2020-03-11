@@ -14,11 +14,13 @@ describe('createCourse', () => {
     save.restore();
   });
 
-  it('should create a program', async () => {
+  it('should create an intra course', async () => {
     const newCourse = { name: 'name', companies: [new ObjectID()], program: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
-    expect(result).toMatchObject(newCourse);
+    expect(result.name).toEqual(newCourse.name);
+    expect(result.program).toEqual(newCourse.program);
+    expect(result.companies[0]).toEqual(newCourse.companies[0]);
   });
 });
 
@@ -55,15 +57,15 @@ describe('getCourse', () => {
   });
 
   it('should return courses', async () => {
-    const program = { _id: new ObjectID() };
+    const course = { _id: new ObjectID() };
 
     CourseMock.expects('findOne')
-      .withExactArgs({ _id: program._id })
+      .withExactArgs({ _id: course._id })
       .chain('lean')
       .once()
-      .returns(program);
+      .returns(course);
 
-    const result = await CourseHelper.getCourse(program._id);
-    expect(result).toMatchObject(program);
+    const result = await CourseHelper.getCourse(course._id);
+    expect(result).toMatchObject(course);
   });
 });

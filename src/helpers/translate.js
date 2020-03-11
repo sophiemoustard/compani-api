@@ -456,6 +456,12 @@ module.exports = {
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
     /* Programs */
+    programsFound: 'Liste des programmes trouvés',
+    programsNotFound: 'Liste des programmes non trouvés',
+    programCreated: 'Programme créé',
+    programFound: 'Programme trouvé',
+    programUpdated: 'Programme mis à jour',
+    /* Formations */
     coursesFound: 'Liste des formations trouvés',
     coursesNotFound: 'Liste des formations non trouvés',
     courseCreated: 'Formation créée',
