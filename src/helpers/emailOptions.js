@@ -18,14 +18,16 @@ const welcomeEmailContent = (options) => {
     <p>L'équipe ${options.companyName}</p>`;
 };
 
-const forgotPasswordEmail = passwordToken => (
-  `<p>Bonjour,</p>
-  <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
-  <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}</a></p>
-  <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
-  <p>Bien cordialement,<br>
-    L'équipe Compani</p>`
-);
+const forgotPasswordEmail = (passwordToken) => {
+  const resetPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${passwordToken.token}`;
+
+  return `<p>Bonjour,</p>
+    <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
+    <p><a href="${resetPasswordLink}">${resetPasswordLink}</a></p>
+    <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
+    <p>Bien cordialement,<br>
+      L'équipe Compani</p>`;
+};
 
 const billEmail = async (companyName) => {
   const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
