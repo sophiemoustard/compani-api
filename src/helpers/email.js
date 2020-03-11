@@ -71,7 +71,7 @@ exports.forgotPasswordEmail = async (receiver, passwordToken) => {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
     subject: 'Changement de mot de passe de votre compte Compani',
-    html: EmailOptionsHelper.forgetPasswordEmail(passwordToken),
+    html: EmailOptionsHelper.forgotPasswordEmail(passwordToken),
   };
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);

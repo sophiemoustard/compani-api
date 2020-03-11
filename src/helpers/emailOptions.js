@@ -18,7 +18,7 @@ const welcomeEmailContent = (options) => {
     <p>L'équipe ${options.companyName}</p>`;
 };
 
-const forgetPasswordEmail = passwordToken => (
+const forgotPasswordEmail = passwordToken => (
   `<p>Bonjour,</p>
   <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
   <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${passwordToken.token}</a></p>
@@ -53,7 +53,7 @@ const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécut�
 
 module.exports = {
   welcomeEmailContent,
-  forgetPasswordEmail,
+  forgotPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,
