@@ -228,6 +228,12 @@ module.exports = {
     programCreated: 'Program created',
     programFound: 'Program found',
     programUpdated: 'Program updated',
+    /* Courses */
+    coursesFound: 'Coursess found',
+    coursesNotFound: 'Coursess not found',
+    courseCreated: 'Courses created',
+    courseFound: 'Courses found',
+    courseUpdated: 'Courses updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -450,10 +456,10 @@ module.exports = {
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
     /* Programs */
-    programsFound: 'Liste des programmes trouvés',
-    programsNotFound: 'Liste des programmes non trouvés',
-    programCreated: 'Programme créé',
-    programFound: 'Programme trouvé',
-    programUpdated: 'Programme mis à jour',
+    coursesFound: 'Liste des formations trouvés',
+    coursesNotFound: 'Liste des formations non trouvés',
+    courseCreated: 'Formation créée',
+    courseFound: 'Formation trouvéée',
+    courseUpdated: 'Formation mise à jour',
   },
 };
