@@ -1161,6 +1161,32 @@ describe('checkResetPasswordToken', () => {
   });
 });
 
+describe('createPasswordToken', () => {
+  let updateOne;
+  let fakeDate;
+  let uuidv4;
+  const token = '1234567890';
+  const email = 'toto@toto.com';
+  const date = new Date('2020-01-13');
+  const payload = { passwordToken: { token, expiresIn: date.getTime() + 86400000 } };
+
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+    fakeDate = sinon.useFakeTimers(date);
+    uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    fakeDate.restore();
+    uuidv4.restore();
+  });
+
+  it('should return a new password token', async () => {
+    await UsersHelper.createPasswordToken(email);
+    sinon.assert.calledOnceWithExactly(updateOne, { 'local.email': email }, { $set: payload }, { new: true });
+  });
+});
+
 describe('forgotPassword', () => {
   let UserMock;
   let forgotPasswordEmail;

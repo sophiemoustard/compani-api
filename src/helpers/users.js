@@ -240,7 +240,8 @@ exports.checkResetPasswordToken = async (token) => {
 };
 
 exports.createPasswordToken = async (email) => {
-  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000 } };
+  const expireTime = 24 * 3600 * 1000; // 1 day
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + expireTime } };
   await User.updateOne({ 'local.email': email }, { $set: payload }, { new: true });
 
   return payload.passwordToken;

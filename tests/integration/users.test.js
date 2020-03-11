@@ -75,7 +75,6 @@ describe('USERS ROUTES', () => {
         expect(user.identity.firstname).toBe(userPayload.identity.firstname);
         expect(user.identity.lastname).toBe(userPayload.identity.lastname);
         expect(user.local.email).toBe(userPayload.local.email);
-        expect(user.local.password).toBeDefined();
         expect(user).toHaveProperty('picture');
         expect(user.procedure).toBeDefined();
         expect(user.procedure.length).toBeGreaterThan(0);
@@ -99,7 +98,7 @@ describe('USERS ROUTES', () => {
       });
 
       it('should not create a user if email provided already exists', async () => {
-        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io', password: '123456' } };
+        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io' } };
 
         const response = await app.inject({
           method: 'POST',
@@ -188,7 +187,7 @@ describe('USERS ROUTES', () => {
         const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: usersSeedList[0].local.email, password: '123456' },
+          local: { email: usersSeedList[0].local.email },
           role: roleTrainer._id,
         };
 
@@ -208,7 +207,7 @@ describe('USERS ROUTES', () => {
         const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: usersSeedList[9].local.email, password: '123456' },
+          local: { email: usersSeedList[9].local.email },
           role: vendorAdminRole._id,
           sector: userSectors[0]._id,
         };

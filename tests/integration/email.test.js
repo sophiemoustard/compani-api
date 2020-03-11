@@ -28,7 +28,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { receiver: { email: emailUser.local.email, password: 'mdp' } },
+      payload: { email: emailUser.local.email },
     });
 
     expect(response.statusCode).toBe(200);
@@ -42,7 +42,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { receiver: { email: emailUserFromOtherCompany.local.email, password: '1234567890' } },
+      payload: { email: emailUserFromOtherCompany.local.email },
     });
 
     expect(response.statusCode).toBe(200);
@@ -57,7 +57,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { receiver: { email: emailUserFromOtherCompany.local.email, password: '1234567890' } },
+      payload: { email: emailUserFromOtherCompany.local.email },
     });
 
     expect(response.statusCode).toBe(403);
@@ -69,7 +69,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { receiver: { email: 'qwertyuiop@asdfghjkl.fr', password: '1234567890' } },
+      payload: { email: 'qwertyuiop@asdfghjkl.fr' },
     });
 
     expect(response.statusCode).toBe(404);
