@@ -15,7 +15,7 @@ describe('createCourse', () => {
   });
 
   it('should create a program', async () => {
-    const newCourse = { name: 'name' };
+    const newCourse = { name: 'name', companies: [new ObjectID()], program: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
     expect(result).toMatchObject(newCourse);

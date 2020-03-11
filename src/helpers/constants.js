@@ -237,6 +237,5 @@ module.exports = {
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
   // COURSES
-  INTER: 'inter',
   INTRA: 'intra',
 };

@@ -24,8 +24,8 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string().required(),
             type: Joi.string().required(),
-            company: Joi.objectId().required(),
             program: Joi.objectId().required(),
+            companies: Joi.array().items(Joi.objectId()).required().min(1),
           }),
         },
         auth: { scope: ['courses:edit'] },

@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const { INTER, INTRA } = require('../helpers/constants');
+const { INTRA } = require('../helpers/constants');
 
-const COURSE_TYPES = [INTER, INTRA];
+const COURSE_TYPES = [INTRA];
 
 const CourseSchema = mongoose.Schema({
   name: { type: String, required: true },
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: this.type === INTRA },
+  companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: this.type === INTRA }],
   type: { type: String, required: true, enum: COURSE_TYPES },
 }, { timestamps: true });
 
