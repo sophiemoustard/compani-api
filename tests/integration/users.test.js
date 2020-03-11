@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
+const moment = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -1083,6 +1084,18 @@ describe('USERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should update user resetPassword if it is me', async () => {
+      authToken = await getToken('auxiliary', usersSeedList);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+        payload: { ...updatePayload, isResetPassword: true },
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.updatedUser.resetPassword).toEqual({ token: null, expiresIn: null, from: null });
     });
 
     describe('Other roles', () => {

@@ -6,6 +6,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const flat = require('flat');
 const uuid = require('uuid');
 const Role = require('../models/Role');
@@ -200,6 +201,16 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   const payload = await formatUpdatePayload(userPayload);
   return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
+};
+
+exports.updatePassword = async (userId, userPayload, credentials) => {
+
+  const payload = { ...pick(userPayload, ['local.password']) };
+  if (userPayload.isResetPassword) payload.resetPassword = { token: null, from: null, expiresIn: null };
+
+  return User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true })
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
 };
 
