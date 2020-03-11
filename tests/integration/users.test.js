@@ -831,7 +831,7 @@ describe('USERS ROUTES', () => {
   describe('PUT /users/:id/', () => {
     const updatePayload = {
       identity: { firstname: 'Riri' },
-      local: { email: 'riri@alenvi.io', password: '098765' },
+      local: { email: 'riri@alenvi.io' },
       role: userPayload.role,
     };
     describe('CLIENT_ADMIN', () => {
@@ -999,6 +999,17 @@ describe('USERS ROUTES', () => {
 
         expect(response.statusCode).toBe(400);
       });
+
+      it('should not update a user if trying to update password', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { local: { password: '123456' } },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     describe('VENDOR_ADMIN', () => {
@@ -1049,6 +1060,51 @@ describe('USERS ROUTES', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/users/${userList[1]._id.toHexString()}`,
+            payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('PUT /users/:id/password', () => {
+    const updatePayload = { local: { password: '123456' } };
+    beforeEach(populateDB);
+
+    it('should update user password if it is me', async () => {
+      authToken = await getToken('auxiliary', usersSeedList);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+        payload: updatePayload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
             payload: updatePayload,
             headers: { 'x-access-token': authToken },
           });

@@ -119,7 +119,12 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials, req.pre.canEditWithoutCompany);
+    const updatedUser = await UsersHelper.updateUser(
+      req.params._id,
+      req.payload,
+      req.auth.credentials,
+      req.pre.canEditWithoutCompany
+    );
 
     return {
       message: translate[language].userUpdated,
@@ -131,6 +136,20 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
     }
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const updatePassword = async (req) => {
+  try {
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials, true);
+
+    return {
+      message: translate[language].userUpdated,
+      data: { updatedUser },
+    };
+  } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -317,4 +336,5 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  updatePassword,
 };

@@ -21,6 +21,7 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  updatePassword,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const {
@@ -172,16 +173,11 @@ exports.plugin = {
             'local.email': Joi.string().email(), // bot special case
             local: Joi.object().keys({
               email: Joi.string().email(),
-              password: Joi.string(),
             }),
             role: Joi.objectId(),
             picture: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
-            }),
-            passwordToken: Joi.object().keys({
-              token: Joi.string().allow(null),
-              expiresIn: Joi.number().allow(null),
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
@@ -280,6 +276,26 @@ exports.plugin = {
         ],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/password',
+      options: {
+        auth: { scope: ['user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+          payload: Joi.object().keys({
+            local: Joi.object().keys({ password: Joi.string().required() }),
+            resetPassword: Joi.object().keys({
+              token: Joi.string().allow(null),
+              expiresIn: Joi.number().allow(null),
+              from: Joi.string().allow(null),
+            }),
+          }),
+        },
+      },
+      handler: updatePassword,
     });
 
     server.route({
