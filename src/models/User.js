@@ -76,11 +76,11 @@ const UserSchema = mongoose.Schema({
       birthState: String,
       birthCity: String,
       socialSecurityNumber: Number,
-    }, { _id: false }),
+    }, { _id: false, id: false }),
     required: true,
   },
   contact: {
-    address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
+    address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
     phone: String,
   },
   emergencyPhone: String,
