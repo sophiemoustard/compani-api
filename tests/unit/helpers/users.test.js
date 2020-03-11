@@ -1033,7 +1033,7 @@ describe('updateUser', () => {
   });
 });
 
-describe('updateUser', () => {
+describe('updatePassword', () => {
   let UserMock;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
@@ -1066,7 +1066,7 @@ describe('updateUser', () => {
 
   it('should update a user password and resetPassword', async () => {
     const payload = { local: { password: '123456' }, isResetPassword: true };
-    const userPayload = { local: { password: '123456' }, resetPassword: { expiresIn: null, token: null, from: null } };
+    const userPayload = { local: { password: '123456' }, resetPassword: { expiresIn: null, token: null } };
 
     UserMock.expects('findOneAndUpdate')
       .withExactArgs(

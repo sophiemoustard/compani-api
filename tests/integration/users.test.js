@@ -1095,7 +1095,7 @@ describe('USERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.updatedUser.resetPassword).toEqual({ token: null, expiresIn: null, from: null });
+      expect(response.result.data.updatedUser.resetPassword).toEqual({ token: null, expiresIn: null });
     });
 
     describe('Other roles', () => {
