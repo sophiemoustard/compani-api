@@ -203,7 +203,7 @@ const getUserTasks = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    const mailInfo = await UsersHelper.forgotPassword(req.payload.email, req.payload.from);
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {

@@ -76,14 +76,8 @@ exports.plugin = {
           payload: Joi.object().keys({
             company: Joi.objectId(),
             sector: Joi.objectId(),
-            local: {
-              email: Joi.string().email().required(),
-              password: Joi.string().required(),
-            },
+            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             role: Joi.objectId().required(),
-            picture: Joi.object().keys({
-              link: Joi.string(),
-            }),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
@@ -185,10 +179,9 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
-            resetPassword: Joi.object().keys({
+            passwordToken: Joi.object().keys({
               token: Joi.string().allow(null),
               expiresIn: Joi.number().allow(null),
-              from: Joi.string().allow(null),
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
@@ -379,7 +372,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().valid('p', 'w').default('w'),
           }),
         },
         auth: false,

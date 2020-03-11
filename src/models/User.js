@@ -35,10 +35,9 @@ const roleSchemaDefinition = {
 // User schema
 const UserSchema = mongoose.Schema({
   refreshToken: String,
-  resetPassword: {
-    token: { type: String, default: null },
-    expiresIn: { type: Date, default: null },
-    from: String,
+  passwordToken: {
+    token: { type: String },
+    expiresIn: { type: Date },
   },
   local: {
     email: {
@@ -49,7 +48,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: { type: String, required: true },
+    password: { type: String },
   },
   role: {
     client: {
@@ -156,10 +155,11 @@ async function save(next) {
       }
     }
 
-    if (!user.isModified('local.password')) return next();
+    if (!get(user, 'local.password') || !user.isModified('local.password')) return next();
     const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
     const hash = await bcrypt.hash(user.local.password, salt);
     user.local.password = hash;
+
 
     return next();
   } catch (e) {

@@ -4,30 +4,30 @@ const fs = require('fs');
 
 const fsPromises = fs.promises;
 
-const welcomeEmailContent = (receiver, companyName) => (
-  `<p>Bonjour,</p>
-  <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires d’envie chez votre proche, ainsi 
-  que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions également de finaliser votre souscription en remplissant la page 
-  “Abonnement”.<p>
-  <p>Voici le lien pour vous connecter : <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a></p>
-  <p>Vos identifiants pour y accéder :</p>
-  <ul>
-  <li>login : ${receiver.email}</li>
-  <li>mot de passe : ${receiver.password}</li>
-  </ul>
-  <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
-  <p>Bien cordialement,</p>
-  <p>L'équipe ${companyName}</p>`
-);
+const welcomeEmailContent = (options) => {
+  const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
+  return `<p>Bonjour,</p>
+    <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires 
+    d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions 
+    également de finaliser votre souscription en remplissant la page “Abonnement”.<p>
+    <p>Vous pouvez créer votre mot de passe en suivant ce lien <a href="${createPasswordLink}">${createPasswordLink}</a>.</p>
+    <p>Ce lien est valable 24heures.</p>
+    <p>Par la suite, voici le lien pour vous connecter : <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a></p>
+    <br />
+    <p>Bien cordialement,</p>
+    <p>L'équipe ${options.companyName}</p>`;
+};
 
-const forgetPasswordEmail = resetPassword => (
-  `<p>Bonjour,</p>
-  <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
-  <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${resetPassword.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${resetPassword.token}</a></p>
-  <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
-  <p>Bien cordialement,<br>
-    L'équipe Compani</p>`
-);
+const forgotPasswordEmail = (passwordToken) => {
+  const resetPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${passwordToken.token}`;
+
+  return `<p>Bonjour,</p>
+    <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
+    <p><a href="${resetPasswordLink}">${resetPasswordLink}</a></p>
+    <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
+    <p>Bien cordialement,<br>
+      L'équipe Compani</p>`;
+};
 
 const billEmail = async (companyName) => {
   const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
@@ -55,7 +55,7 @@ const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécut�
 
 module.exports = {
   welcomeEmailContent,
-  forgetPasswordEmail,
+  forgotPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,

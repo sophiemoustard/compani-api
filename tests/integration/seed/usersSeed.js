@@ -212,7 +212,7 @@ const usersSeedList = [
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     contracts: [new ObjectID()],
-    resetPassword: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
+    passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
   },
   {
     _id: new ObjectID(),
@@ -296,7 +296,7 @@ const userSectors = [
 
 const userPayload = {
   identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-  local: { email: 'kirk@alenvi.io', password: '123456' },
+  local: { email: 'kirk@alenvi.io' },
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   sector: userSectors[0]._id,
 };
