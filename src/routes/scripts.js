@@ -1,3 +1,6 @@
+'use-strict';
+
+const Joi = require('@hapi/joi');
 const { billDispatchScript, eventRepetitionsScript, updateRoleScript } = require('../controllers/scriptController');
 
 exports.plugin = {
@@ -8,6 +11,11 @@ exports.plugin = {
       path: '/bill-dispatch',
       options: {
         auth: { scope: ['scripts:run'] },
+        validate: {
+          query: Joi.object({
+            date: Joi.date(),
+          }),
+        },
       },
       handler: billDispatchScript,
     });
@@ -17,6 +25,11 @@ exports.plugin = {
       path: '/events-repetitions',
       options: {
         auth: { scope: ['scripts:run'] },
+        validate: {
+          query: Joi.object({
+            date: Joi.date(),
+          }),
+        },
       },
       handler: eventRepetitionsScript,
     });

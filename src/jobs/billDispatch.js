@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const get = require('lodash/get');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const BillRepository = require('../repositories/BillRepository');
@@ -8,9 +9,10 @@ const BATCH_SIZE = 20;
 
 const billDispatch = {
   async method(server) {
+    const date = get(server, 'query.date') || new Date();
     const errors = [];
     const results = [];
-    const billsAndHelpers = await BillRepository.findBillsAndHelpersByCustomer();
+    const billsAndHelpers = await BillRepository.findBillsAndHelpersByCustomer(date);
     const companies = await Company.find().lean();
     if (billsAndHelpers.length) {
       for (let i = 0, l = billsAndHelpers.length; i < l; i += BATCH_SIZE) {

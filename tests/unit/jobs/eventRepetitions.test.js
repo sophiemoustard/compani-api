@@ -96,7 +96,7 @@ describe('method', () => {
       const result = await eventRepetitions.method(server);
 
       expect(result).toMatchObject({ results: [futureEvent], errors: [] });
-      sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0]);
+      sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0], new Date());
       RepetitionMock.verify();
       EventMock.verify();
       CompanyMock.verify();
