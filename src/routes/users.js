@@ -287,7 +287,6 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             local: Joi.object().keys({ password: Joi.string().required() }),
-            isResetPassword: Joi.boolean(),
           }),
         },
       },

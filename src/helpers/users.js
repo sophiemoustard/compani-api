@@ -205,10 +205,11 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
 };
 
 exports.updatePassword = async (userId, userPayload, credentials) => {
-  const payload = { ...pick(userPayload, ['local.password']) };
-  if (userPayload.isResetPassword) payload.resetPassword = { token: null, expiresIn: null };
-
-  return User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true })
+  return User.findOneAndUpdate(
+    { _id: userId },
+    { $set: flat(userPayload), $unset: { token: null, expiresIn: null } },
+    { new: true }
+  )
     .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
 };
