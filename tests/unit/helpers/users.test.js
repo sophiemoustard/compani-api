@@ -1052,7 +1052,7 @@ describe('updatePassword', () => {
     UserMock.expects('findOneAndUpdate')
       .withExactArgs(
         { _id: userId },
-        { $set: flat(payload), $unset: { token: null, expiresIn: null } },
+        { $set: flat(payload), $unset: { passwordToken: '' } },
         { new: true }
       )
       .chain('populate')

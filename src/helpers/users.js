@@ -204,15 +204,13 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.updatePassword = async (userId, userPayload, credentials) => {
-  return User.findOneAndUpdate(
-    { _id: userId },
-    { $set: flat(userPayload), $unset: { token: null, expiresIn: null } },
-    { new: true }
-  )
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-    .lean({ autopopulate: true, virtuals: true });
-};
+exports.updatePassword = async (userId, userPayload, credentials) => User.findOneAndUpdate(
+  { _id: userId },
+  { $set: flat(userPayload), $unset: { passwordToken: '' } },
+  { new: true }
+)
+  .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+  .lean({ autopopulate: true, virtuals: true });
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
