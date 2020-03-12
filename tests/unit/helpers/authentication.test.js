@@ -42,6 +42,28 @@ describe('validate', () => {
     expect(result).toEqual({ isValid: false });
   });
 
+  it('should not authenticate if roles do not exist', async () => {
+    const userId = new ObjectID();
+    const user = {
+      _id: userId,
+      identity: { lastname: 'lastname' },
+      role: { client: null, vendor: null },
+      local: { email: 'email@email.com' },
+      customers: [],
+      sector: new ObjectID(),
+    };
+    UserMock.expects('findById')
+      .withExactArgs(userId, '_id identity role company local customers sector')
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .once()
+      .returns(user);
+
+    const result = await AuthenticationHelper.validate({ _id: userId });
+
+    expect(result).toEqual({ isValid: false });
+  });
+
   it('should authenticate user', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
