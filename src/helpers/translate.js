@@ -228,6 +228,12 @@ module.exports = {
     programCreated: 'Program created',
     programFound: 'Program found',
     programUpdated: 'Program updated',
+    /* Courses */
+    coursesFound: 'Courses found',
+    coursesNotFound: 'Courses not found',
+    courseCreated: 'Courses created',
+    courseFound: 'Courses found',
+    courseUpdated: 'Courses updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -455,5 +461,11 @@ module.exports = {
     programCreated: 'Programme créé',
     programFound: 'Programme trouvé',
     programUpdated: 'Programme mis à jour',
+    /* Formations */
+    coursesFound: 'Liste des formations trouvée',
+    coursesNotFound: 'Liste des formations non trouvée',
+    courseCreated: 'Formation créée',
+    courseFound: 'Formation trouvée',
+    courseUpdated: 'Formation mise à jour',
   },
 };

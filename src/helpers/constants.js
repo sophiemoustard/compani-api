@@ -236,4 +236,6 @@ module.exports = {
   // PAY DOCUMENT NATURE
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
+  // COURSES
+  INTRA: 'intra',
 };
