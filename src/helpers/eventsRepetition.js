@@ -193,13 +193,13 @@ exports.deleteRepetition = async (event, credentials) => {
   return event;
 };
 
-exports.createFutureEventBasedOnRepetition = async (repetition) => {
+exports.createFutureEventBasedOnRepetition = async (repetition, date) => {
   const { frequency, parentId, startDate, endDate } = repetition;
   const startDateObj = moment(startDate).toObject();
   const endDateObj = moment(endDate).toObject();
   const timeFields = ['hours', 'minutes', 'seconds', 'milliseconds'];
-  const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, timeFields)).toDate();
-  const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, timeFields)).toDate();
+  const newEventStartDate = moment(date).add(90, 'd').set(pick(startDateObj, timeFields)).toDate();
+  const newEventEndDate = moment(date).add(90, 'd').set(pick(endDateObj, timeFields)).toDate();
   const pickedFields = [
     'type',
     'customer',

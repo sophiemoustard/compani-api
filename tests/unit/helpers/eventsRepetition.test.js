@@ -629,7 +629,7 @@ describe('createFutureEventBasedOnRepetition', () => {
     hasConflicts.returns(false);
     UserMock.expects('findOne').never();
 
-    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, new Date());
 
     expect(event.toObject()).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId', 'startDate', 'endDate']),
@@ -674,15 +674,15 @@ describe('createFutureEventBasedOnRepetition', () => {
       .once()
       .returns({ _id: repetition.auxiliary, sector: sectorId });
 
-    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, '2020-03-11T00:00:00');
 
 
     expect(event.toObject()).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId', 'auxiliary', 'startDate', 'endDate']),
       sector: sectorId,
       repetition: { frequency: 'never', parentId: repetition.parentId },
-      startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
-      endDate: moment().add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+      startDate: moment('2020-03-11').add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+      endDate: moment('2020-03-11').add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
       isBilled: false,
       isCancelled: false,
       bills: { surcharges: [] },

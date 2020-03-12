@@ -47,12 +47,12 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
   return billsAmounts;
 };
 
-exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
+exports.findBillsAndHelpersByCustomer = async date => Bill.aggregate([
   {
     $match: {
       createdAt: {
-        $lt: moment().startOf('d').toDate(),
-        $gte: moment().subtract(1, 'd').startOf('d').toDate(),
+        $lt: moment(date).startOf('d').toDate(),
+        $gte: moment(date).subtract(1, 'd').startOf('d').toDate(),
       },
       thirdPartyPayer: { $exists: false },
       sentAt: { $exists: false },

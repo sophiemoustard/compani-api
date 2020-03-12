@@ -23,7 +23,7 @@ const plugins = [
           request: {
             method: 'GET',
             url: '/scripts/bill-dispatch',
-            credentials: { scope: ['scripts:run'] },
+            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
           },
           onComplete: billDispatch.onComplete,
           env: 'production',
@@ -34,7 +34,7 @@ const plugins = [
           request: {
             method: 'GET',
             url: '/scripts/events-repetitions',
-            credentials: { scope: ['scripts:run'] },
+            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
           },
           onComplete: eventRepetitions.onComplete,
         },
@@ -44,7 +44,7 @@ const plugins = [
           request: {
             method: 'GET',
             url: '/scripts/update-role',
-            credentials: { scope: ['scripts:run'] },
+            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
           },
           onComplete: updateRole.onComplete,
         },
