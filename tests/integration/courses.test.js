@@ -1,4 +1,5 @@
 const expect = require('expect');
+const omit = require('lodash/omit');
 const app = require('../../server');
 const { populateDB, coursesList, programsList } = require('./seed/coursesSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
@@ -28,6 +29,26 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    const missingParams = [
+      { path: 'name' },
+      { path: 'companies' },
+      { path: 'program' },
+      { path: 'type' },
+    ];
+    missingParams.forEach((test) => {
+      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+        const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/courses',
+          payload: omit({ ...payload }, test.path),
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
 

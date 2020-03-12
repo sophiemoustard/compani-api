@@ -229,8 +229,8 @@ module.exports = {
     programFound: 'Program found',
     programUpdated: 'Program updated',
     /* Courses */
-    coursesFound: 'Coursess found',
-    coursesNotFound: 'Coursess not found',
+    coursesFound: 'Courses found',
+    coursesNotFound: 'Courses not found',
     courseCreated: 'Courses created',
     courseFound: 'Courses found',
     courseUpdated: 'Courses updated',
@@ -462,10 +462,10 @@ module.exports = {
     programFound: 'Programme trouvé',
     programUpdated: 'Programme mis à jour',
     /* Formations */
-    coursesFound: 'Liste des formations trouvés',
-    coursesNotFound: 'Liste des formations non trouvés',
+    coursesFound: 'Liste des formations trouvées',
+    coursesNotFound: 'Liste des formations non trouvées',
     courseCreated: 'Formation créée',
-    courseFound: 'Formation trouvéée',
+    courseFound: 'Formation trouvée',
     courseUpdated: 'Formation mise à jour',
   },
 };
