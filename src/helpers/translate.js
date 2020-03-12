@@ -462,8 +462,8 @@ module.exports = {
     programFound: 'Programme trouvé',
     programUpdated: 'Programme mis à jour',
     /* Formations */
-    coursesFound: 'Liste des formations trouvées',
-    coursesNotFound: 'Liste des formations non trouvées',
+    coursesFound: 'Liste des formations trouvée',
+    coursesNotFound: 'Liste des formations non trouvée',
     courseCreated: 'Formation créée',
     courseFound: 'Formation trouvée',
     courseUpdated: 'Formation mise à jour',
