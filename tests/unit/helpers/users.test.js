@@ -1050,7 +1050,11 @@ describe('updatePassword', () => {
     const payload = { local: { password: '123456' } };
 
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true })
+      .withExactArgs(
+        { _id: userId },
+        { $set: flat(payload), $unset: { token: null, expiresIn: null } },
+        { new: true }
+      )
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
@@ -1061,29 +1065,6 @@ describe('updatePassword', () => {
     const result = await UsersHelper.updatePassword(userId, payload, credentials);
 
     expect(result).toEqual({ ...user, ...payload });
-    UserMock.verify();
-  });
-
-  it('should update a user password and resetPassword', async () => {
-    const payload = { local: { password: '123456' }, isResetPassword: true };
-    const userPayload = { local: { password: '123456' }, resetPassword: { expiresIn: null, token: null } };
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId },
-        { $set: flat(userPayload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...userPayload });
-
-
-    const result = await UsersHelper.updatePassword(userId, payload, credentials);
-
-    expect(result).toEqual({ ...user, ...userPayload });
     UserMock.verify();
   });
 });
