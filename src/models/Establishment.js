@@ -11,7 +11,7 @@ const PHONE_VALIDATION = /^[0]{1}[1-9]{1}[0-9]{8}$/;
 const EstablishmentSchema = mongoose.Schema({
   name: { type: String, required: true, validate: NAME_VALIDATION },
   siret: { type: String, unique: true, validate: SIRET_VALIDATION, required: true },
-  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }), required: true },
+  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }), required: true },
   phone: { type: String, validate: PHONE_VALIDATION, required: true },
   workHealthService: { type: String, enum: workHealthServices, required: true },
   urssafCode: { type: String, enum: urssafCodes, required: true },
