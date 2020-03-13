@@ -7,7 +7,7 @@ const Customer = require('./Customer');
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: String,
-  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
+  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   email: String,
   unitTTCRate: Number,
   billingMode: {

@@ -17,7 +17,7 @@ const RepetitionSchema = mongoose.Schema({
   subscription: { type: mongoose.Schema.Types.ObjectId },
   internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
   address: {
-    type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+    type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }),
     required() { return this.type === INTERVENTION; },
   },
   misc: String,
