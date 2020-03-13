@@ -918,6 +918,8 @@ describe('updateUser', () => {
         { $set: flat(payload) },
         { new: true }
       )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -941,6 +943,8 @@ describe('updateUser', () => {
         { $set: flat(payload) },
         { new: true }
       )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -964,6 +968,8 @@ describe('updateUser', () => {
         { $set: flat(payload) },
         { new: true }
       )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -985,6 +991,8 @@ describe('updateUser', () => {
     UserMock
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payloadWithRole });
@@ -1022,6 +1030,42 @@ describe('updateUser', () => {
       RoleMock.verify();
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
+  });
+});
+
+describe('updatePassword', () => {
+  let UserMock;
+  const credentials = { company: { _id: new ObjectID() } };
+  const userId = new ObjectID();
+  const user = { _id: userId };
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    UserMock.restore();
+  });
+
+  it('should update a user password', async () => {
+    const payload = { local: { password: '123456' } };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId },
+        { $set: flat(payload), $unset: { passwordToken: '' } },
+        { new: true }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...user, ...payload });
+
+
+    const result = await UsersHelper.updatePassword(userId, payload, credentials);
+
+    expect(result).toEqual({ ...user, ...payload });
+    UserMock.verify();
   });
 });
 

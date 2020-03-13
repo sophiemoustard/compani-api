@@ -6,6 +6,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const flat = require('flat');
 const uuid = require('uuid');
 const Role = require('../models/Role');
@@ -202,6 +203,14 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
 };
+
+exports.updatePassword = async (userId, userPayload, credentials) => User.findOneAndUpdate(
+  { _id: userId },
+  { $set: flat(userPayload), $unset: { passwordToken: '' } },
+  { new: true }
+)
+  .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+  .lean({ autopopulate: true, virtuals: true });
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
