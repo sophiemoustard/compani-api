@@ -61,11 +61,37 @@ describe('getCourse', () => {
 
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs('companies')
+      .chain('populate')
+      .withExactArgs('program')
       .chain('lean')
       .once()
       .returns(course);
 
     const result = await CourseHelper.getCourse(course._id);
     expect(result).toMatchObject(course);
+  });
+});
+
+describe('updateCourse', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course, 'CourseMock');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should create an intra course', async () => {
+    const courseId = new ObjectID();
+    const payload = { name: 'name' };
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: courseId }, { $set: payload })
+      .chain('lean')
+      .returns(payload);
+
+    const result = await CourseHelper.updateCourse(courseId, payload);
+    expect(result.name).toEqual(payload.name);
   });
 });

@@ -8,6 +8,7 @@ const CourseSchema = mongoose.Schema({
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
   companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true }],
   type: { type: String, required: true, enum: COURSE_TYPES },
+  trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', CourseSchema);

@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const { populateDB, coursesList, programsList } = require('./seed/coursesSeed');
@@ -168,6 +169,56 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           method: 'GET',
           url: `/courses/${courseId.toHexString()}`,
           headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - PUT /courses/{_id}', () => {
+  let token;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      token = await getToken('vendor_admin');
+    });
+
+    it('should update course', async () => {
+      const payload = { name: 'new name', trainer: new ObjectID() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { name: 'new name' };
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[0]._id}`,
+          headers: { 'x-access-token': token },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
