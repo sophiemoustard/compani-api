@@ -17,6 +17,7 @@ const { validateQuery, validatePayload, validateAggregation } = require('./preHo
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
 const USER_STATUS = [INTERNAL, EXTERNAL];
+const PASSWORD_VALIDATION = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,128})/;
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -48,7 +49,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: { type: String },
+    password: { type: String, validate: PASSWORD_VALIDATION },
   },
   role: {
     client: {
@@ -287,3 +288,4 @@ UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
 module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
+module.exports.PASSWORD_VALIDATION = PASSWORD_VALIDATION;

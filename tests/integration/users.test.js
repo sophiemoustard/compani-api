@@ -1,6 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const moment = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -280,7 +279,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'horseman@alenvi.io', password: '123456' },
+        payload: { email: 'horseman@alenvi.io', password: '123456!eR' },
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data).toEqual(expect.objectContaining({
@@ -295,7 +294,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'Horseman@alenvi.io', password: '123456' },
+        payload: { email: 'Horseman@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -1143,7 +1142,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/password', () => {
-    const updatePayload = { local: { password: '123456' } };
+    const updatePayload = { local: { password: '123456!eR' } };
     beforeEach(populateDB);
 
     it('should update user password if it is me', async () => {
@@ -1156,6 +1155,15 @@ describe('USERS ROUTES', () => {
       });
       expect(response.statusCode).toBe(200);
     });
+
+    const falsyPassword = [
+      { case: 'numeric', value: 'dhduEReuyg!' },
+      { case: 'lowercase', value: 'dhduEReuyg!' },
+      { case: 'uppercase', value: 'dhduEReuyg!' },
+      { case: 'not containing number', value: 'dhduEReuyg!' },
+    ];
+
+    it('should return a 400 error if password does not contain ${case} character');
 
     describe('Other roles', () => {
       beforeEach(populateDB);
