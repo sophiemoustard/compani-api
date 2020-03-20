@@ -11,6 +11,8 @@ module.exports = {
   UNPAID_LEAVE: 'unpaid leave',
   MATERNITY_LEAVE: 'maternity leave',
   WORK_ACCIDENT: 'work accident',
+  CESSATION_OF_WORK_CHILD: 'cessation_of_work_child',
+  CESSATION_OF_WORK_RISK: 'cessation_of_work_risk',
   get EVENT_TYPE_LIST() {
     return {
       [this.INTERNAL_HOUR]: 'Heure interne',
@@ -27,6 +29,8 @@ module.exports = {
       [this.ILLNESS]: 'Maladie',
       [this.UNJUSTIFIED]: 'Absence injustifiée',
       [this.WORK_ACCIDENT]: 'Accident du travail',
+      [this.CESSATION_OF_WORK_CHILD]: 'Arrêt de travail - garde d’enfant',
+      [this.CESSATION_OF_WORK_RISK]: 'Arrêt de travail - salarié à risque',
       [this.OTHER]: 'other',
     };
   },
