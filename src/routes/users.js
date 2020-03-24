@@ -6,6 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   authenticate,
   create,
+  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
@@ -276,6 +277,25 @@ exports.plugin = {
         ],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/create-password-token',
+      options: {
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        validate: {
+          payload: Joi.object().keys({
+            email: Joi.string().email().required(),
+          }),
+        },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
+        ],
+      },
+      handler: createPasswordToken,
     });
 
     server.route({
