@@ -62,7 +62,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
-    local: { email: 'white@alenvi.io', password: '123456' },
+    local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: null,
     contracts: [contractList[0]._id],
@@ -72,7 +72,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
-    local: { email: 'black@alenvi.io', password: '123456' },
+    local: { email: 'black@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: '2019-01-01T23:59:59',
     company: authCompany._id,
@@ -81,7 +81,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
-    local: { email: 'blue@alenvi.io', password: '123456' },
+    local: { email: 'blue@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: '2019-01-01T23:59:59',
     company: otherCompany._id,

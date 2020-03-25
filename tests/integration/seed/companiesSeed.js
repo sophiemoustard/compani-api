@@ -51,7 +51,7 @@ const companyClientAdmin = {
   _id: new ObjectID(),
   identity: { firstname: 'client_admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
-  local: { email: 'client_admin@alenvi.io', password: '123456' },
+  local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
   company: company._id,
 };

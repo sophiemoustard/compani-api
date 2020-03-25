@@ -807,7 +807,7 @@ const user = {
   _id: new ObjectID(),
   contact: { phone: '0123456789' },
   identity: { firstname: 'test', lastname: 'Toto' },
-  local: { email: 'toto@alenvi.io', password: '123456' },
+  local: { email: 'toto@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   company: authCompany._id,

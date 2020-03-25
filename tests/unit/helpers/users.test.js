@@ -1047,7 +1047,7 @@ describe('updatePassword', () => {
   });
 
   it('should update a user password', async () => {
-    const payload = { local: { password: '123456' } };
+    const payload = { local: { password: '123456!eR' } };
 
     UserMock.expects('findOneAndUpdate')
       .withExactArgs(

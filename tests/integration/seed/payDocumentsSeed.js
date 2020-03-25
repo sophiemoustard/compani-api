@@ -8,7 +8,7 @@ const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants'
 const payDocumentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'Bob', lastname: 'Marley' },
-  local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456' },
+  local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
   company: authCompany._id,

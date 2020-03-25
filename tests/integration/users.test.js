@@ -312,7 +312,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'test@alenvi.io', password: '123456' },
+        payload: { email: 'test@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -331,7 +331,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'white@alenvi.io', password: '123456' },
+        payload: { email: 'white@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -1005,7 +1005,7 @@ describe('USERS ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { local: { password: '123456' } },
+          payload: { local: { password: '123456!eR' } },
           headers: { 'x-access-token': authToken },
         });
 
