@@ -23,7 +23,7 @@ const userFromOtherCompany = {
     firstname: 'test',
     lastname: 'toto',
   },
-  local: { email: 'test@alenvi.io', password: '1234' },
+  local: { email: 'test@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
 };

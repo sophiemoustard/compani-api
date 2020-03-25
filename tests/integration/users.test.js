@@ -1157,7 +1157,7 @@ describe('USERS ROUTES', () => {
     });
 
     const falsyPasswords = [
-      { case: 'numeric', value: 'd1hduEReuyg!' },
+      { case: 'numeric', value: 'dhduEReuyg!' },
       { case: 'lowercase', value: 'D1HDUEREUYG!' },
       { case: 'uppercase', value: 'd1hduereuyg!' },
       { case: 'special', value: 'd1hduEReuyg' },
