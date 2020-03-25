@@ -265,7 +265,6 @@ exports.plugin = {
               isDone: Joi.boolean(),
             }),
             isActive: Joi.boolean(),
-            isConfirmed: Joi.boolean(),
             establishment: Joi.objectId(),
             status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
@@ -307,6 +306,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             local: Joi.object().keys({ password: Joi.string().required() }),
+            isConfirmed: Joi.boolean(),
           }),
         },
       },
