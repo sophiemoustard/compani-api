@@ -46,8 +46,23 @@ const getById = async (req) => {
   }
 };
 
+const update = async (req) => {
+  try {
+    const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
+
+    return {
+      message: translate[language].courseUpdated,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   getById,
+  update,
 };

@@ -6,7 +6,6 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
-const pick = require('lodash/pick');
 const flat = require('flat');
 const uuid = require('uuid');
 const Role = require('../models/Role');
