@@ -291,7 +291,6 @@ exports.plugin = {
         pre: [
           { method: getUser, assign: 'user' },
           { method: authorizeUserUpdateOrGetById },
-          { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
         ],
       },
       handler: createPasswordToken,

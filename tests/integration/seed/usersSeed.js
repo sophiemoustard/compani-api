@@ -367,4 +367,5 @@ module.exports = {
   sectorHistories,
   establishmentList,
   coachFromOtherCompany,
+  auxiliaryFromOtherCompany,
 };
