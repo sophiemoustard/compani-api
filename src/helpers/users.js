@@ -249,17 +249,19 @@ exports.checkResetPasswordToken = async (token) => {
 };
 
 exports.createPasswordToken = async (email) => {
-  const expireTime = 24 * 3600 * 1000; // 1 day
-  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + expireTime } };
-  await User.updateOne({ 'local.email': email }, { $set: payload }, { new: true });
-
-  return payload.passwordToken;
+  const passwordToken = await exports.generatePasswordToken(email, 24 * 3600 * 1000);
+  return passwordToken;
 };
 
 exports.forgotPassword = async (email) => {
-  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + 3600000 } };
+  const passwordToken = await exports.generatePasswordToken(email, 3600000);
+  return EmailHelper.forgotPasswordEmail(email, passwordToken);
+};
+
+exports.generatePasswordToken = async (email, time) => {
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + time } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return EmailHelper.forgotPasswordEmail(email, payload.passwordToken);
+  return payload.passwordToken;
 };

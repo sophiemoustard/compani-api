@@ -1073,7 +1073,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/create-password-token', () => {
-    const payload = { email: 'riri@alenvi.io' };
+    const payload = { email: 'aux@alenvi.io' };
 
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);

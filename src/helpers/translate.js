@@ -38,12 +38,6 @@ module.exports = {
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
     smsListFound: 'SMS record list found.',
-    /* Activation Code */
-    activationCodeCreated: 'Activation code created.',
-    activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
-    activationCodeValidated: 'Activation code validated.',
-    refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Activation data deleted.',
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
@@ -273,12 +267,6 @@ module.exports = {
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
     smsListFound: 'Liste enregistrement SMS trouvée.',
-    /* Activation Code */
-    activationCodeCreated: 'Code activation créé.',
-    activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
-    activationCodeValidated: 'Code activation validé.',
-    refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Données d\'activations bien effacées.',
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
