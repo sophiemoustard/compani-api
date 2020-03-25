@@ -231,9 +231,12 @@ module.exports = {
     /* Courses */
     coursesFound: 'Courses found',
     coursesNotFound: 'Courses not found',
-    courseCreated: 'Courses created',
-    courseFound: 'Courses found',
-    courseUpdated: 'Courses updated',
+    courseCreated: 'Course created',
+    courseFound: 'Course found',
+    courseUpdated: 'Course updated',
+    /* Course slots */
+    courseSlotCreated: 'Course slot created',
+    courseSlotUpdated: 'Course slot updated',
   },
   'fr-FR': {
     /* Global errors */
@@ -467,5 +470,8 @@ module.exports = {
     courseCreated: 'Formation créée',
     courseFound: 'Formation trouvée',
     courseUpdated: 'Formation mise à jour',
+    /* Créneaux de formation */
+    courseSlotCreated: 'Créneau de formation créé',
+    courseSlotUpdated: 'Créneau de formation mis à jour',
   },
 };
