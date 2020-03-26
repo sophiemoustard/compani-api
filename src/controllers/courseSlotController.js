@@ -32,7 +32,21 @@ const update = async (req) => {
   }
 };
 
+const remove = async (req) => {
+  try {
+    await CourseSlotsHelper.removeCourseSlot(req.params._id);
+
+    return {
+      message: translate[language].courseSlotDeleted,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   create,
   update,
+  remove,
 };

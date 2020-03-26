@@ -237,6 +237,7 @@ module.exports = {
     /* Course slots */
     courseSlotCreated: 'Course slot created',
     courseSlotUpdated: 'Course slot updated',
+    courseSlotDeleted: 'Course slot deleted',
   },
   'fr-FR': {
     /* Global errors */
@@ -473,5 +474,6 @@ module.exports = {
     /* Créneaux de formation */
     courseSlotCreated: 'Créneau de formation créé',
     courseSlotUpdated: 'Créneau de formation mis à jour',
+    courseSlotDeleted: 'Créneau de formation supprimé',
   },
 };

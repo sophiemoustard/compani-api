@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create, update } = require('../controllers/courseSlotController');
+const { create, update, remove } = require('../controllers/courseSlotController');
 const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
@@ -40,6 +40,18 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: remove,
     });
   },
 };
