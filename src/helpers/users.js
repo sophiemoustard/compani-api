@@ -249,8 +249,7 @@ exports.checkResetPasswordToken = async (token) => {
 };
 
 exports.createPasswordToken = async (email) => {
-  const passwordToken = await exports.generatePasswordToken(email, 24 * 3600 * 1000);
-  return passwordToken;
+  return exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
 };
 
 exports.forgotPassword = async (email) => {
