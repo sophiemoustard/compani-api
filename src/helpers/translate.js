@@ -238,6 +238,7 @@ module.exports = {
     courseSlotCreated: 'Course slot created',
     courseSlotUpdated: 'Course slot updated',
     courseSlotDeleted: 'Course slot deleted',
+    courseSlotNotFound: 'Course slot not found',
   },
   'fr-FR': {
     /* Global errors */
@@ -475,5 +476,6 @@ module.exports = {
     courseSlotCreated: 'Créneau de formation créé',
     courseSlotUpdated: 'Créneau de formation mis à jour',
     courseSlotDeleted: 'Créneau de formation supprimé',
+    courseSlotNotFound: 'Créneau de formation non trouvé',
   },
 };

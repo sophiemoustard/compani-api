@@ -17,8 +17,8 @@ describe('createCourse', () => {
 
   it('should create a course slot', async () => {
     const newSlot = {
-      startDate: '2019-02-03T09:00:00',
-      endDate: '2019-02-03T10:00:00',
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
       courseId: new ObjectID(),
     };
@@ -49,5 +49,22 @@ describe('updateCourse', () => {
 
     const result = await CourseSlotsHelper.updateCourseSlot(slotId, payload);
     expect(result.startDate).toEqual(payload.startDate);
+  });
+});
+
+describe('removeSlot', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(CourseSlot, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should updte a course slot', async () => {
+    const slotId = new ObjectID();
+
+    await CourseSlotsHelper.removeCourseSlot(slotId);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: slotId });
   });
 });
