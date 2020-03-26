@@ -8,11 +8,27 @@ const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
+const {
+  FIXED,
+  ONCE,
+  COMPANY_CONTRACT,
+  HOURLY,
+  CUSTOMER_CONTRACT,
+  AUXILIARY,
+} = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
+
+const referent = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+  local: { email: 'auxiliaryreferent@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  company: authCompany._id,
+};
 
 const customerServiceList = [
   {
@@ -59,6 +75,7 @@ const customersList = [
       firstname: 'Romain',
       lastname: 'Bardet',
     },
+    referent: referent._id,
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -519,6 +536,7 @@ const populateDB = async () => {
   for (const user of userList) {
     await (new User(user).save());
   }
+  await new User(referent).save();
 };
 
 module.exports = {
