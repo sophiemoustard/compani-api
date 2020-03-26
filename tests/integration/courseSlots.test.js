@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /courses', () => {
+describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
   let token;
   beforeEach(populateDB);
 
@@ -25,6 +25,13 @@ describe('COURSES ROUTES - POST /courses', () => {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
         courseId: coursesList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
       };
       const response = await app.inject({
         method: 'POST',
@@ -40,6 +47,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       { path: 'startDate' },
       { path: 'endDate' },
       { path: 'courseId' },
+      { path: 'address.fullAddress' },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
@@ -47,6 +55,13 @@ describe('COURSES ROUTES - POST /courses', () => {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
           courseId: coursesList[0]._id,
+          address: {
+            street: '37 rue de Ponthieu',
+            zipCode: '75008',
+            city: 'Paris',
+            fullAddress: '37 rue de Ponthieu 75008 Paris',
+            location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+          },
         };
         const response = await app.inject({
           method: 'POST',
@@ -92,7 +107,7 @@ describe('COURSES ROUTES - POST /courses', () => {
   });
 });
 
-describe('COURSES ROUTES - PUT /courses/{_id}', () => {
+describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   let token;
   beforeEach(populateDB);
 

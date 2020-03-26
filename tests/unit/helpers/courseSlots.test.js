@@ -6,7 +6,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 require('sinon-mongoose');
 
-describe('createCourse', () => {
+describe('createCourseSlot', () => {
   let save;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
@@ -30,7 +30,7 @@ describe('createCourse', () => {
   });
 });
 
-describe('updateCourse', () => {
+describe('updateCourseSlot', () => {
   let CourseSlotMock;
   beforeEach(() => {
     CourseSlotMock = sinon.mock(CourseSlot);
