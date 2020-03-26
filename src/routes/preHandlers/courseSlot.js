@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeCourseSlotUpdate = async (req) => {
+exports.getCourseSlot = async (req) => {
   try {
     const courseSlot = await CourseSlot.findOne({ _id: req.params._id }).lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
