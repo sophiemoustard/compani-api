@@ -36,6 +36,18 @@ exports.getCustomerFundings = async companyId => Customer.aggregate([
 
 exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.aggregate([
   { $match: query },
+  {
+    $lookup: {
+      from: 'users',
+      as: 'referent',
+      let: { referentId: '$referent' },
+      pipeline: [
+        { $match: { $expr: { $eq: ['$_id', '$$referentId'] } } },
+        { $project: { identity: 1 } },
+      ],
+    },
+  },
+  { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
   { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
