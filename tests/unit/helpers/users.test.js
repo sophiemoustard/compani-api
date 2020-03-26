@@ -1198,34 +1198,52 @@ describe('checkResetPasswordToken', () => {
 });
 
 describe('createPasswordToken', () => {
-  let updateOne;
-  let fakeDate;
-  let uuidv4;
-  const token = '1234567890';
+  let generatePasswordTokenStub;
   const email = 'toto@toto.com';
-  const date = new Date('2020-01-13');
-  const payload = { passwordToken: { token, expiresIn: date.getTime() + 86400000 } };
 
   beforeEach(() => {
-    updateOne = sinon.stub(User, 'updateOne');
-    fakeDate = sinon.useFakeTimers(date);
-    uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
+    generatePasswordTokenStub = sinon.stub(UsersHelper, 'generatePasswordToken');
   });
   afterEach(() => {
-    updateOne.restore();
-    fakeDate.restore();
-    uuidv4.restore();
+    generatePasswordTokenStub.restore();
   });
 
   it('should return a new password token', async () => {
-    await UsersHelper.createPasswordToken(email);
-    sinon.assert.calledOnceWithExactly(updateOne, { 'local.email': email }, { $set: payload }, { new: true });
+    generatePasswordTokenStub.returns({ token: '123456789' });
+    const passwordToken = await UsersHelper.createPasswordToken(email);
+    sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 24 * 3600 * 1000);
+    expect(passwordToken).toEqual({ token: '123456789' });
   });
 });
 
 describe('forgotPassword', () => {
-  let UserMock;
   let forgotPasswordEmail;
+  let generatePasswordTokenStub;
+  const email = 'toto@toto.com';
+
+  beforeEach(() => {
+    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    generatePasswordTokenStub = sinon.stub(UsersHelper, 'generatePasswordToken');
+  });
+  afterEach(() => {
+    forgotPasswordEmail.restore();
+    generatePasswordTokenStub.restore();
+  });
+
+  it('should return a new access token after checking reset password token', async () => {
+    generatePasswordTokenStub.returns({ token: '123456789' });
+    forgotPasswordEmail.returns({ sent: true });
+
+    const result = await UsersHelper.forgotPassword(email);
+
+    expect(result).toEqual({ sent: true });
+    sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 3600000);
+    sinon.assert.calledWithExactly(forgotPasswordEmail, email, { token: '123456789' });
+  });
+});
+
+describe('generatePasswordToken', () => {
+  let UserMock;
   let fakeDate;
   let uuidv4;
   const token = '1234567890';
@@ -1235,13 +1253,11 @@ describe('forgotPassword', () => {
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
-    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
     fakeDate = sinon.useFakeTimers(date);
     uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
   });
   afterEach(() => {
     UserMock.restore();
-    forgotPasswordEmail.restore();
     fakeDate.restore();
     uuidv4.restore();
   });
@@ -1255,12 +1271,11 @@ describe('forgotPassword', () => {
         .once()
         .returns(null);
 
-      await UsersHelper.forgotPassword(email);
+      await UsersHelper.generatePasswordToken(email, 3600000);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
       UserMock.verify();
-      sinon.assert.notCalled(forgotPasswordEmail);
     }
   });
 
@@ -1273,12 +1288,10 @@ describe('forgotPassword', () => {
       .withExactArgs()
       .once()
       .returns(user);
-    forgotPasswordEmail.returns({ sent: true });
 
-    const result = await UsersHelper.forgotPassword(email);
+    const result = await UsersHelper.generatePasswordToken(email, 3600000);
 
-    expect(result).toEqual({ sent: true });
+    expect(result).toEqual(payload.passwordToken);
     UserMock.verify();
-    sinon.assert.calledWithExactly(forgotPasswordEmail, email, payload.passwordToken);
   });
 });

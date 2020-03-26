@@ -21,6 +21,7 @@ const {
   sectorHistories,
   establishmentList,
   coachFromOtherCompany,
+  auxiliaryFromOtherCompany,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -1062,6 +1063,76 @@ describe('USERS ROUTES', () => {
             method: 'PUT',
             url: `/users/${userList[1]._id.toHexString()}`,
             payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('PUT /users/:id/create-password-token', () => {
+    const payload = { email: 'aux@alenvi.io' };
+
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin', usersSeedList);
+      });
+
+      it('should create password token', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.passwordToken).toBeDefined();
+      });
+
+      it('should not create password token if user is from an other company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 404 if user not found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${id}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${userList[1]._id.toHexString()}/create-password-token`,
+            payload,
             headers: { 'x-access-token': authToken },
           });
 

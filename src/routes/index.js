@@ -12,10 +12,6 @@ exports.routes = [
     routes: { prefix: '/roles' },
   },
   {
-    plugin: require('./activation'),
-    routes: { prefix: '/activation' },
-  },
-  {
     plugin: require('./email'),
     routes: { prefix: '/email' },
   },

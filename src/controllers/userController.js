@@ -60,6 +60,20 @@ const create = async (req) => {
   }
 };
 
+const createPasswordToken = async (req) => {
+  try {
+    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
+
+    return {
+      message: translate[language].resetPasswordTokenFound,
+      data: { passwordToken },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const list = async (req) => {
   try {
     const users = await getUsersList(req.query, req.auth.credentials);
@@ -321,6 +335,7 @@ const createDriveFolder = async (req) => {
 module.exports = {
   authenticate,
   create,
+  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
