@@ -9,7 +9,7 @@ exports.getCourseSlot = async (req) => {
     const courseSlot = await CourseSlot.findOne({ _id: req.params._id }).lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
-    return null;
+    return courseSlot;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
