@@ -6,6 +6,58 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 require('sinon-mongoose');
 
+describe('hasConflicts', () => {
+  let countDocuments;
+  beforeEach(() => {
+    countDocuments = sinon.stub(CourseSlot, 'countDocuments');
+  });
+  afterEach(() => {
+    countDocuments.restore();
+  });
+
+  it('should return true if has conflicts', async () => {
+    const slot = {
+      _id: new ObjectID(),
+      courseId: new ObjectID(),
+      startDate: '2020-09-12T09:00:00',
+      endDate: '2020-09-12T11:00:00',
+    };
+    countDocuments.returns(2);
+    const result = await CourseSlotsHelper.hasConflicts(slot);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(
+      countDocuments,
+      {
+        _id: { $ne: slot._id },
+        courseId: slot.courseId,
+        startDate: { $lt: '2020-09-12T11:00:00' },
+        endDate: { $gt: '2020-09-12T09:00:00' },
+      }
+    );
+  });
+
+  it('should return false if no conflict', async () => {
+    const slot = {
+      courseId: new ObjectID(),
+      startDate: '2020-09-12T09:00:00',
+      endDate: '2020-09-12T11:00:00',
+    };
+    countDocuments.returns(0);
+    const result = await CourseSlotsHelper.hasConflicts(slot);
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(
+      countDocuments,
+      {
+        courseId: slot.courseId,
+        startDate: { $lt: '2020-09-12T11:00:00' },
+        endDate: { $gt: '2020-09-12T09:00:00' },
+      }
+    );
+  });
+});
+
 describe('createCourseSlot', () => {
   let save;
   let hasConflicts;

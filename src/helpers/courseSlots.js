@@ -10,7 +10,9 @@ exports.hasConflicts = async (slot) => {
     startDate: { $lt: slot.endDate },
     endDate: { $gt: slot.startDate },
   };
+  if (slot._id) query._id = { $ne: slot._id };
   const slotsInConflict = await CourseSlot.countDocuments(query);
+
   return !!slotsInConflict;
 };
 exports.createCourseSlot = async (payload) => {
