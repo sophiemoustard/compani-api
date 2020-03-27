@@ -153,7 +153,7 @@ const paymentNumberList = [
 const paymentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-  local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456' },
+  local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [paymentCustomerList[0]._id],
@@ -177,7 +177,7 @@ const userFromOtherCompany = {
   refreshToken: uuidv4(),
   identity: { firstname: 'toto', lastname: 'toto' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
-  local: { email: 'test_other_company@alenvi.io', password: '123456' },
+  local: { email: 'test_other_company@alenvi.io', password: '123456!eR' },
 };
 
 const customerFromOtherCompany = {

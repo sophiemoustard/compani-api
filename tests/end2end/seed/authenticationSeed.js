@@ -29,7 +29,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'client_admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
-    local: { email: 'admin@alenvi.io', password: '123456' },
+    local: { email: 'admin@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: authCompany._id,
   },

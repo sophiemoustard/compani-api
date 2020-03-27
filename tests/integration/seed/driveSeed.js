@@ -6,7 +6,7 @@ const { rolesList, populateDBForAuthentication, authCompany } = require('./authe
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Harry', lastname: 'Potter' },
-  local: { email: 'h@p.com', password: 'baguette' },
+  local: { email: 'h@p.com', password: '123456!eR' },
   administrative: {
     driveFolder: { driveId: '1234567890' },
     passport: { driveId: '1234567890', link: 'https://test.com/1234567890' },

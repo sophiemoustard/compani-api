@@ -1,6 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const moment = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -280,7 +279,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'horseman@alenvi.io', password: '123456' },
+        payload: { email: 'horseman@alenvi.io', password: '123456!eR' },
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data).toEqual(expect.objectContaining({
@@ -295,7 +294,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'Horseman@alenvi.io', password: '123456' },
+        payload: { email: 'Horseman@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -313,7 +312,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'test@alenvi.io', password: '123456' },
+        payload: { email: 'test@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -332,7 +331,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'white@alenvi.io', password: '123456' },
+        payload: { email: 'white@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -1006,7 +1005,7 @@ describe('USERS ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { local: { password: '123456' } },
+          payload: { local: { password: '123456!eR' } },
           headers: { 'x-access-token': authToken },
         });
 
@@ -1143,7 +1142,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/password', () => {
-    const updatePayload = { local: { password: '123456' } };
+    const updatePayload = { local: { password: '123456!eR' } };
     beforeEach(populateDB);
 
     it('should update user password if it is me', async () => {
@@ -1155,6 +1154,25 @@ describe('USERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
+    });
+
+    const falsyPasswords = [
+      { case: 'numeric', value: 'dhduEReuyg!' },
+      { case: 'lowercase', value: 'D1HDUEREUYG!' },
+      { case: 'uppercase', value: 'd1hduereuyg!' },
+      { case: 'special', value: 'd1hduEReuyg' },
+    ];
+
+    falsyPasswords.forEach((pwd) => {
+      it(`should return a 400 error if password does not contain ${pwd.case} character`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+          payload: { local: { password: pwd.value } },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     describe('Other roles', () => {

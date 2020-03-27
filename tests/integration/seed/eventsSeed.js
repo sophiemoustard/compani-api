@@ -63,7 +63,7 @@ const auxiliaries = [
   {
     _id: auxiliaryId,
     identity: { firstname: 'Thibaut', lastname: 'Pinot' },
-    local: { email: 't@p.com', password: 'tourdefrance' },
+    local: { email: 't@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
     role: { client: rolesList[1]._id },
@@ -73,7 +73,7 @@ const auxiliaries = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Marie', lastname: 'Pinot' },
-    local: { email: 'm@p.com', password: 'tourdefrance' },
+    local: { email: 'm@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
     role: { client: rolesList[1]._id },
@@ -100,7 +100,7 @@ const sectorHistories = [
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Jean', lastname: 'Martin' },
-  local: { email: 'j@m.com', password: '1234' },
+  local: { email: 'j@m.com', password: '123456!eR' },
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
@@ -196,7 +196,7 @@ const customerFromOtherCompany = {
 const helpersCustomer = {
   _id: new ObjectID(),
   identity: { firstname: 'Nicolas', lastname: 'Flammel' },
-  local: { email: 'tt@tt.com', password: 'mdpdeouf' },
+  local: { email: 'tt@tt.com', password: '123456!eR' },
   refreshToken: uuidv4(),
   customers: [customerAuxiliary._id],
   role: { client: rolesList[4]._id },

@@ -42,7 +42,7 @@ describe('authenticate', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      const payload = { email: 'toto@email.com', password: 'toto' };
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
         .chain('lean')
@@ -61,7 +61,7 @@ describe('authenticate', () => {
   });
   it('should throw an error if refresh token does not exist', async () => {
     try {
-      const payload = { email: 'toto@email.com', password: 'toto' };
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
         .chain('lean')
@@ -79,7 +79,7 @@ describe('authenticate', () => {
     }
   });
   it('should throw an error if wrong password', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto' };
+    const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -1047,7 +1047,7 @@ describe('updatePassword', () => {
   });
 
   it('should update a user password', async () => {
-    const payload = { local: { password: '123456' } };
+    const payload = { local: { password: '123456!eR' } };
 
     UserMock.expects('findOneAndUpdate')
       .withExactArgs(
