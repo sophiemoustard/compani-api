@@ -70,6 +70,8 @@ describe('getCourse', () => {
       .withExactArgs('program')
       .chain('populate')
       .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainees')
       .chain('lean')
       .once()
       .returns(course);

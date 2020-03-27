@@ -11,6 +11,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('companies')
   .populate('program')
   .populate('slots')
+  .populate('trainees')
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>
