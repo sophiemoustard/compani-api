@@ -1,8 +1,11 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const app = require('../../server');
-const { populateDB, coursesList, programsList } = require('./seed/coursesSeed');
+const User = require('../../src/models/User');
+const { AUXILIARY } = require('../../src/helpers/constants');
+const { populateDB, coursesList, programsList, auxiliary } = require('./seed/coursesSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -225,4 +228,76 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
     });
   });
+});
+
+describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
+  let token;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      token = await getToken('vendor_admin');
+    });
+
+    const payload = {
+      identity: { firstname: 'Coco', lastname: 'Bongo' },
+      local: { email: 'coco_bongo@alenvi.io' },
+      contact: { phone: '0689320234' },
+      company: authCompany._id,
+    };
+
+    it('should add existing user to course trainees', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/trainees`,
+        headers: { 'x-access-token': token },
+        payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
+    });
+
+    it('should add new user to course trainees', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/trainees`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
+      expect(newUser).toBeDefined();
+      expect(newUser.role.client.name).toBe(AUXILIARY);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
+    });
+  });
+
+  // describe('Other roles', () => {
+  //   const roles = [
+  //     { name: 'helper', expectedCode: 403 },
+  //     { name: 'auxiliary', expectedCode: 403 },
+  //     { name: 'auxiliary_without_company', expectedCode: 403 },
+  //     { name: 'coach', expectedCode: 403 },
+  //     { name: 'client_admin', expectedCode: 403 },
+  //     { name: 'training_organisation_manager', expectedCode: 200 },
+  //     { name: 'trainer', expectedCode: 403 },
+  //   ];
+
+  //   roles.forEach((role) => {
+  //     it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+  //       const payload = { name: 'new name' };
+  //       token = await getToken(role.name);
+  //       const response = await app.inject({
+  //         method: 'PUT',
+  //         url: `/courses/${coursesList[0]._id}`,
+  //         headers: { 'x-access-token': token },
+  //         payload,
+  //       });
+
+  //       expect(response.statusCode).toBe(role.expectedCode);
+  //     });
+  //   });
+  // });
 });

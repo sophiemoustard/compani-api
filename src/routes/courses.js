@@ -2,7 +2,8 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update } = require('../controllers/courseController');
+const { list, create, getById, update, addTrainee } = require('../controllers/courseController');
+const { phoneNumberValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -59,6 +60,26 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/trainees',
+      options: {
+        validate: {
+          payload: Joi.object({
+            identity: Joi.object().keys({
+              firstname: Joi.string(),
+              lastname: Joi.string().required(),
+            }).required(),
+            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
+            contact: Joi.object().keys({ phone: phoneNumberValidation }),
+            company: Joi.objectId().required(),
+          }),
+        },
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: addTrainee,
     });
   },
 };
