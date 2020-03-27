@@ -24,7 +24,7 @@ const otherCompanyCustomerId = new ObjectID();
 const referent = {
   _id: new ObjectID(),
   identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-  local: { email: 'auxiliaryreferent@alenvi.io', password: '123456' },
+  local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   company: authCompany._id,
