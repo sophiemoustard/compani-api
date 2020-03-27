@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addTrainee } = require('../controllers/courseController');
+const { list, create, getById, update, addTrainee, removeTrainee } = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
 const { getCourseTrainee } = require('./preHandlers/courses');
 
@@ -82,6 +82,15 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/trainees/{traineeId}',
+      options: {
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: removeTrainee,
     });
   },
 };

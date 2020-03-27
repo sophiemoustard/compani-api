@@ -4,8 +4,9 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const Course = require('../../src/models/Course');
 const { AUXILIARY } = require('../../src/helpers/constants');
-const { populateDB, coursesList, programsList, auxiliary } = require('./seed/coursesSeed');
+const { populateDB, coursesList, programsList, auxiliary, trainee } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -232,19 +233,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   let token;
+  const payload = {
+    identity: { firstname: 'Coco', lastname: 'Bongo' },
+    local: { email: 'coco_bongo@alenvi.io' },
+    contact: { phone: '0689320234' },
+    company: authCompany._id,
+  };
+
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       token = await getToken('vendor_admin');
     });
-
-    const payload = {
-      identity: { firstname: 'Coco', lastname: 'Bongo' },
-      local: { email: 'coco_bongo@alenvi.io' },
-      contact: { phone: '0689320234' },
-      company: authCompany._id,
-    };
 
     it('should add existing user to course trainees', async () => {
       const response = await app.inject({
@@ -314,13 +315,63 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { name: 'new name' };
         token = await getToken(role.name);
         const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${coursesList[0]._id}`,
+          method: 'POST',
+          url: `/courses/${coursesList[0]._id}/trainees`,
           headers: { 'x-access-token': token },
           payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
+  let authToken = null;
+  const courseId = coursesList[2]._id;
+  const traineeId = trainee._id;
+
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete course trainee', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseId.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const course = await Course.findById(courseId).lean();
+      expect(course.trainees).toHaveLength(0);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${courseId.toHexString()}/trainees/${traineeId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -74,10 +74,22 @@ const addTrainee = async (req) => {
   }
 };
 
+const removeTrainee = async (req) => {
+  try {
+    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
+
+    return { message: translate[language].courseTraineeRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   getById,
   update,
   addTrainee,
+  removeTrainee,
 };

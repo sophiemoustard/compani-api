@@ -152,3 +152,25 @@ describe('addCourseTrainee', () => {
     sinon.assert.calledWithExactly(createUserStub, { ...payload, role: role._id });
   });
 });
+
+describe('removeCourseTrainee', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course, 'CourseMock');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should remove a course trainee', async () => {
+    const courseId = new ObjectID();
+    const traineeId = new ObjectID();
+    CourseMock.expects('updateOne')
+      .withExactArgs({ _id: courseId }, { $pull: { trainees: traineeId } })
+      .chain('lean');
+
+    await CourseHelper.removeCourseTrainee(courseId, traineeId);
+    CourseMock.verify();
+  });
+});
+

@@ -24,3 +24,6 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: trainee._id } }, { new: true }).lean();
 };
+
+exports.removeCourseTrainee = async (courseId, traineeId) =>
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
