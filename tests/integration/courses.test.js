@@ -283,32 +283,48 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    const missingParams = ['local.email', 'identity.lastname'];
+    missingParams.forEach((path) => {
+      it(`should return a 400 error if missing '${path}' parameter`, async () => {
+        const falsyPayload = omit(payload, path);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/courses',
+          payload: falsyPayload,
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
   });
 
-  // describe('Other roles', () => {
-  //   const roles = [
-  //     { name: 'helper', expectedCode: 403 },
-  //     { name: 'auxiliary', expectedCode: 403 },
-  //     { name: 'auxiliary_without_company', expectedCode: 403 },
-  //     { name: 'coach', expectedCode: 403 },
-  //     { name: 'client_admin', expectedCode: 403 },
-  //     { name: 'training_organisation_manager', expectedCode: 200 },
-  //     { name: 'trainer', expectedCode: 403 },
-  //   ];
 
-  //   roles.forEach((role) => {
-  //     it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //       const payload = { name: 'new name' };
-  //       token = await getToken(role.name);
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/courses/${coursesList[0]._id}`,
-  //         headers: { 'x-access-token': token },
-  //         payload,
-  //       });
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
 
-  //       expect(response.statusCode).toBe(role.expectedCode);
-  //     });
-  //   });
-  // });
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { name: 'new name' };
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${coursesList[0]._id}`,
+          headers: { 'x-access-token': token },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
 });
