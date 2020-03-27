@@ -8,11 +8,14 @@ require('sinon-mongoose');
 
 describe('createCourseSlot', () => {
   let save;
+  let hasConflicts;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
+    hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
   });
   afterEach(() => {
     save.restore();
+    hasConflicts.restore();
   });
 
   it('should create a course slot', async () => {
@@ -22,33 +25,73 @@ describe('createCourseSlot', () => {
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
       courseId: new ObjectID(),
     };
+    hasConflicts.returns(false);
 
     const result = await CourseSlotsHelper.createCourseSlot(newSlot);
+    sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
     expect(result.courseId).toEqual(newSlot.courseId);
     expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
     expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());
+  });
+
+  it('should throw an error if conflicts', async () => {
+    const newSlot = {
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
+      address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
+      courseId: new ObjectID(),
+    };
+    hasConflicts.returns(true);
+
+    try {
+      await CourseSlotsHelper.createCourseSlot(newSlot);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
+    }
   });
 });
 
 describe('updateCourseSlot', () => {
   let CourseSlotMock;
+  let hasConflicts;
   beforeEach(() => {
     CourseSlotMock = sinon.mock(CourseSlot);
+    hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
   });
   afterEach(() => {
     CourseSlotMock.restore();
+    hasConflicts.restore();
   });
 
-  it('should updte a course slot', async () => {
-    const slotId = new ObjectID();
+  it('should update a course slot', async () => {
+    const slot = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00' };
     CourseSlotMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: slotId }, { $set: payload })
+      .withExactArgs({ _id: slot._id }, { $set: payload })
       .chain('lean')
       .returns(payload);
+    hasConflicts.returns(false);
 
-    const result = await CourseSlotsHelper.updateCourseSlot(slotId, payload);
+    const result = await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     expect(result.startDate).toEqual(payload.startDate);
+  });
+
+  it('should throw an error if conflicts', async () => {
+    const slot = { _id: new ObjectID() };
+    const payload = { startDate: '2020-03-03T22:00:00' };
+    CourseSlotMock.expects('findOneAndUpdate').chain('lean').never();
+    hasConflicts.returns(true);
+
+    try {
+      await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
+    }
   });
 });
 

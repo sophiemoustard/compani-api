@@ -20,7 +20,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const courseSlot = await CourseSlotsHelper.updateCourseSlot(req.params._id, req.payload);
+    const courseSlot = await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload);
 
     return {
       message: translate[language].courseSlotUpdated,

@@ -22,6 +22,29 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     it('should create course slot', async () => {
       const payload = {
+        startDate: courseSlotsList[0].startDate,
+        endDate: courseSlotsList[0].endDate,
+        courseId: courseSlotsList[0].courseId,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if slots conflict', async () => {
+      const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
         courseId: coursesList[0]._id,
