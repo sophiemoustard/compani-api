@@ -4,6 +4,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, getById, update, addTrainee } = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
+const { getCourseTrainee } = require('./preHandlers/courses');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -77,6 +78,7 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }),
         },
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,

@@ -6,7 +6,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const { AUXILIARY } = require('../../src/helpers/constants');
 const { populateDB, coursesList, programsList, auxiliary } = require('./seed/coursesSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -271,6 +271,17 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       expect(newUser).toBeDefined();
       expect(newUser.role.client.name).toBe(AUXILIARY);
       expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
+    });
+
+    it('should return a 409 error if user exists but not from same company as new user course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/trainees`,
+        headers: { 'x-access-token': token },
+        payload: { ...pick(auxiliary, ['identity', 'local.email', 'contact']), company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 

@@ -2,7 +2,6 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
-const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const CourseHelper = require('../../../src/helpers/courses');
 const UsersHelper = require('../../../src/helpers/users');
@@ -104,18 +103,15 @@ describe('updateCourse', () => {
 
 describe('addCourseTrainee', () => {
   let CourseMock;
-  let UserMock;
   let RoleMock;
   let createUserStub;
   beforeEach(() => {
     CourseMock = sinon.mock(Course, 'CourseMock');
-    UserMock = sinon.mock(User, 'UserMock');
     RoleMock = sinon.mock(Role, 'RoleMock');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
   });
   afterEach(() => {
     CourseMock.restore();
-    UserMock.restore();
     RoleMock.restore();
     createUserStub.restore();
   });
@@ -125,14 +121,13 @@ describe('addCourseTrainee', () => {
     const course = { _id: new ObjectID(), name: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
-    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns(user);
     RoleMock.expects('findOne').never();
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
     sinon.assert.notCalled(createUserStub);
@@ -144,7 +139,6 @@ describe('addCourseTrainee', () => {
     const payload = { local: { email: 'toto@toto.com' } };
     const role = { _id: new ObjectID() };
 
-    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns(null);
     RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }, { _id: 1 }).chain('lean').returns(role);
     createUserStub.returns(user);
     CourseMock.expects('findOneAndUpdate')
@@ -152,7 +146,7 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, null);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
     sinon.assert.calledWithExactly(createUserStub, { ...payload, role: role._id });

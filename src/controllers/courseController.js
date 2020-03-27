@@ -62,7 +62,7 @@ const update = async (req) => {
 
 const addTrainee = async (req) => {
   try {
-    const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload);
+    const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
 
     return {
       message: translate[language].courseTraineeAdded,

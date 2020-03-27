@@ -1,5 +1,4 @@
 const Course = require('../models/Course');
-const User = require('../models/User');
 const Role = require('../models/Role');
 const UsersHelper = require('./users');
 const { AUXILIARY } = require('./constants');
@@ -17,9 +16,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: payload }).lean();
 
-exports.addCourseTrainee = async (courseId, payload) => {
-  let trainee = await User.findOne({ 'local.email': payload.local.email }).lean();
-
+exports.addCourseTrainee = async (courseId, payload, trainee) => {
   if (!trainee) {
     const auxiliaryRole = await Role.findOne({ name: AUXILIARY }, { _id: 1 }).lean();
     trainee = await UsersHelper.createUser({ ...payload, role: auxiliaryRole._id });
