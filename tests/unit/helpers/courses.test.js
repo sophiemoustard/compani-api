@@ -2,7 +2,9 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
+const User = require('../../../src/models/User');
 const CourseHelper = require('../../../src/helpers/courses');
+const UsersHelper = require('../../../src/helpers/users');
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -95,5 +97,56 @@ describe('updateCourse', () => {
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.name).toEqual(payload.name);
+  });
+});
+
+describe('addCourseTrainee', () => {
+  let CourseMock;
+  let UserMock;
+  let createUserStub;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course, 'CourseMock');
+    UserMock = sinon.mock(User, 'UserMock');
+    createUserStub = sinon.stub(UsersHelper, 'createUser');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    UserMock.restore();
+    createUserStub.restore();
+  });
+
+  it('should add a course trainee using existing user', async () => {
+    const user = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), name: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' } };
+
+    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns(user);
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: course._id }, { $addToSet: { trainee: user._id } })
+      .chain('lean')
+      .returns({ ...course, trainee: [user._id] });
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload);
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    CourseMock.verify();
+    sinon.assert.notCalled(createUserStub);
+  });
+
+  it('should add a course trainee creating new user', async () => {
+    const user = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), name: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' } };
+
+    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns(null);
+    createUserStub.returns(user);
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: course._id }, { $addToSet: { trainee: user._id } })
+      .chain('lean')
+      .returns({ ...course, trainee: [user._id] });
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload);
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    CourseMock.verify();
+    sinon.assert.calledWithExactly(createUserStub, payload);
   });
 });
