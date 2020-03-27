@@ -20,7 +20,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'client_admin', lastname: 'Chef' },
     refreshToken: uuidv4(),
-    local: { email: 'admin@alenvi.io', password: '123456' },
+    local: { email: 'client-admin@alenvi.io', password: '123456' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: authCompany._id,
   },
@@ -43,7 +43,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
-    local: { email: 'auxiliarywithoutcompany@alenvi.io', password: '123456' },
+    local: { email: 'auxiliary-without-company@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id },
     company: authCompany._id,
