@@ -11,5 +11,12 @@ const CourseSchema = mongoose.Schema({
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+CourseSchema.virtual('slots', {
+  ref: 'CourseSlot',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { sort: { startDate: 1 } },
+});
+
 module.exports = mongoose.model('Course', CourseSchema);
 module.exports.COURSE_TYPES = COURSE_TYPES;

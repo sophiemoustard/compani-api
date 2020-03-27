@@ -65,6 +65,8 @@ describe('getCourse', () => {
       .withExactArgs('companies')
       .chain('populate')
       .withExactArgs('program')
+      .chain('populate')
+      .withExactArgs('slots')
       .chain('lean')
       .once()
       .returns(course);
@@ -83,7 +85,7 @@ describe('updateCourse', () => {
     CourseMock.restore();
   });
 
-  it('should create an intra course', async () => {
+  it('should update an intra course', async () => {
     const courseId = new ObjectID();
     const payload = { name: 'name' };
     CourseMock.expects('findOneAndUpdate')
