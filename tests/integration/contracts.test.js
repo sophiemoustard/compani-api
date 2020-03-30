@@ -59,7 +59,7 @@ describe('CONTRACTS ROUTES', () => {
         .toEqual(contractsList.filter(contract => contract.user === userId).length);
     });
 
-    it('should return the contracts owned by an auxiliary', async () => {
+    it('should get contracts of an auxiliary', async () => {
       const user = getUser('auxiliary');
       authToken = await getToken('auxiliary');
       const response = await app.inject({
@@ -74,7 +74,7 @@ describe('CONTRACTS ROUTES', () => {
         .toBe(contractsList.filter(contract => contract.user === user._id).length);
     });
 
-    it('should return the contracts owned by an auxiliary without company', async () => {
+    it('should get my contracts if I am an auxiliary without company', async () => {
       const user = getUser('auxiliary_without_company');
       authToken = await getToken('auxiliary_without_company');
       const response = await app.inject({

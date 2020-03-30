@@ -191,21 +191,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         expect(response.result.data.payDocuments.length).toBe(payDocumentsLength);
       });
 
-      it('should get my pay documents if I am an auxiliary without company', async () => {
-        const user = getUser('auxiliary_without_company');
-        authToken = await getToken('auxiliary_without_company');
-        const response = await app.inject({
-          method: 'GET',
-          url: `/paydocuments?user=${user._id}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.result.data.payDocuments).toBeDefined();
-        expect(response.result.data.payDocuments.length)
-          .toBe(payDocumentsList.filter(payDocument => payDocument.user === user._id).length);
-      });
-
       it('should not get all pay documents if user is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
@@ -226,6 +211,21 @@ describe('PAY DOCUMENT ROUTES', () => {
           headers: { 'x-access-token': auxiliaryToken },
         });
         expect(res.statusCode).toBe(200);
+      });
+
+      it('should get my pay documents if I am an auxiliary without company', async () => {
+        const user = getUser('auxiliary_without_company');
+        authToken = await getToken('auxiliary_without_company');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/paydocuments?user=${user._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.payDocuments).toBeDefined();
+        expect(response.result.data.payDocuments.length)
+          .toBe(payDocumentsList.filter(payDocument => payDocument.user === user._id).length);
       });
 
       const roles = [
