@@ -59,9 +59,24 @@ describe('CONTRACTS ROUTES', () => {
         .toEqual(contractsList.filter(contract => contract.user === userId).length);
     });
 
-    it('should return the contracts owned by an auxiliary', async () => {
+    it('should get contracts of an auxiliary', async () => {
       const user = getUser('auxiliary');
       authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${user._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contracts).toBeDefined();
+      expect(response.result.data.contracts.length)
+        .toBe(contractsList.filter(contract => contract.user === user._id).length);
+    });
+
+    it('should get my contracts if I am an auxiliary without company', async () => {
+      const user = getUser('auxiliary_without_company');
+      authToken = await getToken('auxiliary_without_company');
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${user._id}`,
@@ -98,8 +113,12 @@ describe('CONTRACTS ROUTES', () => {
 
     const roles = [
       { name: 'client_admin', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
