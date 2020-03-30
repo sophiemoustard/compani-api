@@ -388,6 +388,23 @@ const contractsList = [
       },
     ],
   },
+  {
+    createdAt: '2018-08-02T17:12:55.144Z',
+    user: getUser('auxiliary_without_company')._id,
+    startDate: '2018-08-02T17:12:55.144Z',
+    status: 'contract_with_company',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-08-02T17:12:55.144Z',
+        grossHourlyRate: 10.12,
+        startDate: '2018-08-02T17:12:55.144Z',
+        weeklyHours: 15,
+        _id: new ObjectID(),
+      },
+    ],
+  },
 ];
 
 const contractEvents = [
