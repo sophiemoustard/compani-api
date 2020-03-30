@@ -247,9 +247,8 @@ exports.checkResetPasswordToken = async (token) => {
   return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
 };
 
-exports.createPasswordToken = async (email) => {
-  return exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
-};
+exports.createPasswordToken = async email =>
+  exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
 
 exports.forgotPassword = async (email) => {
   const passwordToken = await exports.generatePasswordToken(email, 3600000);
