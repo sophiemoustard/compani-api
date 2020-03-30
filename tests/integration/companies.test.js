@@ -325,6 +325,7 @@ describe('COMPANIES ROUTES', () => {
         { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
         { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -369,6 +370,8 @@ describe('COMPANIES ROUTES', () => {
         { name: 'coach', expectedCode: 200 },
         { name: 'trainer', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
