@@ -60,9 +60,36 @@ const update = async (req) => {
   }
 };
 
+const addTrainee = async (req) => {
+  try {
+    const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
+
+    return {
+      message: translate[language].courseTraineeAdded,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const removeTrainee = async (req) => {
+  try {
+    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
+
+    return { message: translate[language].courseTraineeRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   getById,
   update,
+  addTrainee,
+  removeTrainee,
 };

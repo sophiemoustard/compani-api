@@ -228,6 +228,8 @@ module.exports = {
     courseCreated: 'Course created.',
     courseFound: 'Course found.',
     courseUpdated: 'Course updated.',
+    courseTraineeAdded: 'Course trainee added.',
+    courseTraineeRemoved: 'Course trainee removed.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -461,6 +463,8 @@ module.exports = {
     courseCreated: 'Formation créée.',
     courseFound: 'Formation trouvée.',
     courseUpdated: 'Formation mise à jour.',
+    courseTraineeAdded: 'Stagiaire ajouté à la formation.',
+    courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
     /* Créneaux de formation */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

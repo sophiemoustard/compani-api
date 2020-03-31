@@ -9,6 +9,7 @@ const CourseSchema = mongoose.Schema({
   companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true }],
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {
