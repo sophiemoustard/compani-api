@@ -25,11 +25,12 @@ const {
   customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
+  userForContractCustomer,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -109,6 +110,36 @@ describe('CONTRACTS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return customer contracts if I am its helper', async () => {
+      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${userForContractCustomer.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should not return customer contracts if it I am not its helper', async () => {
+      const helperToken = await getToken('helper');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${contractCustomer._id}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not return customer contracts customer does not exists', async () => {
+      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${new ObjectID()}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     const roles = [
