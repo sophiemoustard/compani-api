@@ -1164,25 +1164,6 @@ describe('USERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const falsyPasswords = [
-      { case: 'numeric', value: 'dhduEReuyg!' },
-      { case: 'lowercase', value: 'D1HDUEREUYG!' },
-      { case: 'uppercase', value: 'd1hduereuyg!' },
-      { case: 'special', value: 'd1hduEReuyg' },
-    ];
-
-    falsyPasswords.forEach((pwd) => {
-      it(`should return a 400 error if password does not contain ${pwd.case} character`, async () => {
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
-          payload: { local: { password: pwd.value } },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
-      });
-    });
-
     describe('Other roles', () => {
       beforeEach(populateDB);
 

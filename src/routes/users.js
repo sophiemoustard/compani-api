@@ -25,7 +25,6 @@ const {
   updatePassword,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { PASSWORD_VALIDATION } = require('../models/User');
 const {
   getUser,
   authorizeUserUpdateOrGetById,
@@ -305,7 +304,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
-            local: Joi.object().keys({ password: Joi.string().regex(new RegExp(PASSWORD_VALIDATION)).required() }),
+            local: Joi.object().keys({ password: Joi.string().required() }),
             isConfirmed: Joi.boolean(),
           }),
         },
