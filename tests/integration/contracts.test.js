@@ -25,11 +25,12 @@ const {
   customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
+  userForContractCustomer,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -90,25 +91,65 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     it('should not return the contracts if user is not from the company', async () => {
-      authToken = await getToken('auxiliary');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should not return the contracts if customer is not from the company', async () => {
-      authToken = await getToken('auxiliary');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${customerFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return customer contracts if I am its helper', async () => {
+      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${userForContractCustomer.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should not return customer contracts if it I am not its helper', async () => {
+      const helperToken = await getToken('helper');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${contractCustomer._id}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not return customer contracts if customer does not exists and I am a helper', async () => {
+      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${new ObjectID()}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not return customer contracts if customer does not exists and I am a coach', async () => {
+      const helperToken = await getToken('coach');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${new ObjectID()}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(404);
     });
 
     const roles = [

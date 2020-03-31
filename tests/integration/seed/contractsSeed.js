@@ -53,6 +53,18 @@ const contractCustomer = {
   driveFolder: { driveId: '1234567890' },
 };
 
+const userForContractCustomer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Helper1', lastname: 'Carolyn' },
+  local: { email: 'helperForContractCustomer@alenvi.io', password: '123456!eR' },
+  inactivityDate: null,
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  customers: [contractCustomer._id],
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
+};
+
 const otherCompanyContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
@@ -496,6 +508,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
+  await (new User(userForContractCustomer)).save();
   await new Sector(sector).save();
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
@@ -514,4 +527,5 @@ module.exports = {
   customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
+  userForContractCustomer,
 };
