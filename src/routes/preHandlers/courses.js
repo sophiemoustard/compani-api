@@ -6,9 +6,7 @@ exports.getCourseTrainee = async (req) => {
   try {
     const { company, local } = req.payload;
     const trainee = await User.findOne({ 'local.email': local.email }).lean();
-    if (trainee && trainee.company.toHexString() !== company) {
-      throw Boom.conflict();
-    }
+    if (trainee && trainee.company.toHexString() !== company) throw Boom.conflict();
 
     return trainee;
   } catch (e) {
