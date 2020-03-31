@@ -132,6 +132,7 @@ describe('addCourseTrainee', () => {
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
+    RoleMock.verify();
     sinon.assert.notCalled(createUserStub);
   });
 
@@ -151,6 +152,7 @@ describe('addCourseTrainee', () => {
     const result = await CourseHelper.addCourseTrainee(course._id, payload, null);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
+    RoleMock.verify();
     sinon.assert.calledWithExactly(createUserStub, { ...payload, role: role._id });
   });
 });
