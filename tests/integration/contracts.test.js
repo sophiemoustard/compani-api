@@ -91,25 +91,25 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     it('should not return the contracts if user is not from the company', async () => {
-      authToken = await getToken('auxiliary');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should not return the contracts if customer is not from the company', async () => {
-      authToken = await getToken('auxiliary');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${customerFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return customer contracts if I am its helper', async () => {
@@ -132,7 +132,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should not return customer contracts customer does not exists', async () => {
+    it('should not return customer contracts if customer does not exists and I am a helper', async () => {
       const helperToken = await getTokenByCredentials(userForContractCustomer.local);
       const res = await app.inject({
         method: 'GET',
@@ -140,6 +140,16 @@ describe('CONTRACTS ROUTES', () => {
         headers: { 'x-access-token': helperToken },
       });
       expect(res.statusCode).toBe(403);
+    });
+
+    it('should not return customer contracts if customer does not exists and I am a coach', async () => {
+      const helperToken = await getToken('coach');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/contracts?customer=${new ObjectID()}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(404);
     });
 
     const roles = [
