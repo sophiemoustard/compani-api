@@ -48,7 +48,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: { type: String },
+    password: { type: String, minLength: 6 },
   },
   role: {
     client: {

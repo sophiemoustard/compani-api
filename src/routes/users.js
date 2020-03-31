@@ -304,7 +304,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
-            local: Joi.object().keys({ password: Joi.string().required() }),
+            local: Joi.object().keys({ password: Joi.string().min(6).required() }),
             isConfirmed: Joi.boolean(),
           }),
         },

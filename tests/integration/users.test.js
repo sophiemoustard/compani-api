@@ -1164,6 +1164,16 @@ describe('USERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return a 400 error if password too short', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+        payload: { local: { password: '12345' } },
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
     describe('Other roles', () => {
       beforeEach(populateDB);
 
