@@ -157,15 +157,15 @@ module.exports = {
   // INTERFACES
   CLIENT: 'client',
   VENDOR: 'vendor',
-  // ROLE
-  // CLIENT
+  // ROLE CLIENT
   AUXILIARY: 'auxiliary',
   HELPER: 'helper',
   COACH: 'coach',
   PLANNING_REFERENT: 'planning_referent',
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
   CLIENT_ADMIN: 'client_admin',
-  // VENDOR
+  get AUXILIARY_ROLES() { return [this.AUXILIARY, this.PLANNING_REFERENT, this.AUXILIARY_WITHOUT_COMPANY]; },
+  // ROLE VENDOR
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
   TRAINER: 'trainer',

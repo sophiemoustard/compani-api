@@ -392,7 +392,10 @@ describe('getUsersListWithSectorHistories', () => {
       { ...credentials, role: { client: 'test' } }
     );
     expect(result).toEqual(users);
-    sinon.assert.calledWithExactly(formatQueryForUsersListStub, { ...query, role: ['auxiliary', 'planning_referent'] });
+    sinon.assert.calledWithExactly(
+      formatQueryForUsersListStub,
+      { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
+    );
     UserMock.verify();
   });
 });

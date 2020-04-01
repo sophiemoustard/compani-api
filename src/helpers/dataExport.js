@@ -4,15 +4,13 @@ const has = require('lodash/has');
 const {
   CIVILITY_LIST,
   HELPER,
-  AUXILIARY,
-  PLANNING_REFERENT,
+  AUXILIARY_ROLES,
   COMPANY_CONTRACT,
   DAYS_INDEX,
   FUNDING_FREQUENCIES,
   FUNDING_NATURES,
   CONTRACT_STATUS_LIST,
   SERVICE_NATURES,
-  AUXILIARY_WITHOUT_COMPANY,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
@@ -165,7 +163,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
 
 exports.exportAuxiliaries = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY] } }).lean();
+  const roles = await Role.find({ name: { $in: AUXILIARY_ROLES } }).lean();
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
     .find({ 'role.client': { $in: roleIds }, company: companyId })
