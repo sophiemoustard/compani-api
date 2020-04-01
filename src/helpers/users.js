@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -77,7 +77,7 @@ exports.getUsersList = async (query, credentials) => {
 };
 
 exports.getUsersListWithSectorHistories = async (query, credentials) => {
-  const params = await exports.formatQueryForUsersList({ ...query, role: [AUXILIARY, PLANNING_REFERENT] });
+  const params = await exports.formatQueryForUsersList({ ...query, role: AUXILIARY_ROLES });
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })

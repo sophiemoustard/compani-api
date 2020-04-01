@@ -536,8 +536,9 @@ describe('USERS ROUTES', () => {
 
       it('should get all auxiliary users', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
-        const auxiliaryUsers = usersSeedList.filter(u =>
-          isExistingRole(u.role.client, 'auxiliary') || isExistingRole(u.role.client, 'planning_referent'));
+        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role.client, 'auxiliary') ||
+          isExistingRole(u.role.client, 'planning_referent') ||
+          isExistingRole(u.role.client, 'auxiliary_without_company'));
 
         const res = await app.inject({
           method: 'GET',
@@ -550,7 +551,9 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({
             role: expect.objectContaining({
-              client: expect.objectContaining({ name: expect.stringMatching(/auxiliary|planning_referent/) }),
+              client: expect.objectContaining({
+                name: expect.stringMatching(/auxiliary|planning_referent|auxiliary_without_company/),
+              }),
             }),
             sectorHistories: expect.any(Array),
           }),
@@ -580,7 +583,9 @@ describe('USERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        const roles = await Role.find({ name: { $in: ['auxiliary', 'planning_referent'] } }).lean();
+        const roles = await Role
+          .find({ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } })
+          .lean();
         const roleIds = roles.map(role => role._id);
         const usersCount = await User.countDocuments({ 'role.client': { $in: roleIds } });
         expect(res.result.data.users.length).toBe(usersCount);
