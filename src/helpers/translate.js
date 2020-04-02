@@ -38,12 +38,6 @@ module.exports = {
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
     smsListFound: 'SMS record list found.',
-    /* Activation Code */
-    activationCodeCreated: 'Activation code created.',
-    activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
-    activationCodeValidated: 'Activation code validated.',
-    refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Activation data deleted.',
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
@@ -222,12 +216,26 @@ module.exports = {
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
     siretAlreadyExists: 'Siret already used by another establishment.',
+    /* Programs */
+    programsFound: 'Programs found.',
+    programsNotFound: 'Programs not found.',
+    programCreated: 'Program created.',
+    programFound: 'Program found.',
+    programUpdated: 'Program updated.',
     /* Courses */
-    coursesFound: 'Courses found',
-    coursesNotFound: 'Courses not found',
-    courseCreated: 'Course created',
-    courseFound: 'Course found',
-    courseUpdated: 'Course updated',
+    coursesFound: 'Courses found.',
+    coursesNotFound: 'Courses not found.',
+    courseCreated: 'Course created.',
+    courseFound: 'Course found.',
+    courseUpdated: 'Course updated.',
+    courseTraineeAdded: 'Course trainee added.',
+    courseTraineeRemoved: 'Course trainee removed.',
+    /* Course slots */
+    courseSlotCreated: 'Course slot created.',
+    courseSlotUpdated: 'Course slot updated.',
+    courseSlotDeleted: 'Course slot deleted.',
+    courseSlotNotFound: 'Course slot not found.',
+    courseSlotConflict: 'Course slot in conflict.',
   },
   'fr-FR': {
     /* Global errors */
@@ -267,12 +275,6 @@ module.exports = {
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
     smsListFound: 'Liste enregistrement SMS trouvée.',
-    /* Activation Code */
-    activationCodeCreated: 'Code activation créé.',
-    activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
-    activationCodeValidated: 'Code activation validé.',
-    refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Données d\'activations bien effacées.',
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
@@ -449,11 +451,25 @@ module.exports = {
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
-    /* Courses */
-    coursesFound: 'Liste des formations trouvées',
-    coursesNotFound: 'Liste des formations non trouvées',
-    courseCreated: 'Formation créée',
-    courseFound: 'Formation trouvée',
-    courseUpdated: 'Formation mise à jour',
+    /* Programs */
+    programsFound: 'Liste des programmes trouvés.',
+    programsNotFound: 'Liste des programmes non trouvés.',
+    programCreated: 'Programme créé.',
+    programFound: 'Programme trouvé.',
+    programUpdated: 'Programme mis à jour.',
+    /* Formations */
+    coursesFound: 'Liste des formations trouvée.',
+    coursesNotFound: 'Liste des formations non trouvée.',
+    courseCreated: 'Formation créée.',
+    courseFound: 'Formation trouvée.',
+    courseUpdated: 'Formation mise à jour.',
+    courseTraineeAdded: 'Stagiaire ajouté à la formation.',
+    courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
+    /* Créneaux de formation */
+    courseSlotCreated: 'Créneau de formation créé.',
+    courseSlotUpdated: 'Créneau de formation mis à jour.',
+    courseSlotDeleted: 'Créneau de formation supprimé.',
+    courseSlotNotFound: 'Créneau de formation non trouvé.',
+    courseSlotConflict: 'Créneau de formation en conflit.',
   },
 };

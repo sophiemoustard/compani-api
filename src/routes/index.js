@@ -12,10 +12,6 @@ exports.routes = [
     routes: { prefix: '/roles' },
   },
   {
-    plugin: require('./activation'),
-    routes: { prefix: '/activation' },
-  },
-  {
     plugin: require('./email'),
     routes: { prefix: '/email' },
   },
@@ -136,7 +132,19 @@ exports.routes = [
     routes: { prefix: '/establishments' },
   },
   {
+    plugin: require('./programs'),
+    routes: { prefix: '/programs' },
+  },
+  {
+    plugin: require('./endToEnd'),
+    routes: { prefix: '/end-to-end' },
+  },
+  {
     plugin: require('./courses'),
     routes: { prefix: '/courses' },
+  },
+  {
+    plugin: require('./courseSlots'),
+    routes: { prefix: '/courseslots' },
   },
 ];

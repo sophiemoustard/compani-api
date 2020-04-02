@@ -20,7 +20,7 @@ const sectorId = new ObjectID();
 
 const user = {
   _id: new ObjectID(),
-  local: { email: 'test4@alenvi.io', password: '123456' },
+  local: { email: 'test4@alenvi.io', password: '123456!eR' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'coach')._id },
@@ -31,7 +31,7 @@ const user = {
 const auxiliary = {
   _id: auxiliaryId,
   identity: { firstname: 'Test7', lastname: 'Test7' },
-  local: { email: 'test7@alenvi.io', password: '123456' },
+  local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: '2019-06-01T00:00:00',
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -44,7 +44,7 @@ const auxiliary = {
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'toto', lastname: 'test' },
-  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   employee_id: 9876543,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },

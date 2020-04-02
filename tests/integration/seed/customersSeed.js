@@ -8,11 +8,27 @@ const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
+const {
+  FIXED,
+  ONCE,
+  COMPANY_CONTRACT,
+  HOURLY,
+  CUSTOMER_CONTRACT,
+  AUXILIARY,
+} = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
+
+const referent = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+  local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  company: authCompany._id,
+};
 
 const customerServiceList = [
   {
@@ -59,6 +75,7 @@ const customersList = [
       firstname: 'Romain',
       lastname: 'Bardet',
     },
+    referent: referent._id,
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -358,7 +375,7 @@ const userList = [
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[0]._id],
@@ -367,7 +384,7 @@ const userList = [
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
-    local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[1]._id],
@@ -376,7 +393,7 @@ const userList = [
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
-    local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[3]._id],
@@ -385,7 +402,7 @@ const userList = [
     _id: new ObjectID(),
     company: otherCompany._id,
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
-    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: otherCompanyCustomerId,
@@ -394,7 +411,7 @@ const userList = [
     _id: new ObjectID(),
     company: otherCompany._id,
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
-    local: { email: 'admin_for_other_company@alenvi.io', password: '123456' },
+    local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   },
@@ -519,6 +536,7 @@ const populateDB = async () => {
   for (const user of userList) {
     await (new User(user).save());
   }
+  await new User(referent).save();
 };
 
 module.exports = {

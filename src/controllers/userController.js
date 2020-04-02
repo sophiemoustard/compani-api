@@ -60,6 +60,20 @@ const create = async (req) => {
   }
 };
 
+const createPasswordToken = async (req) => {
+  try {
+    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
+
+    return {
+      message: translate[language].resetPasswordTokenFound,
+      data: { passwordToken },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const list = async (req) => {
   try {
     const users = await getUsersList(req.query, req.auth.credentials);
@@ -119,7 +133,12 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
+    const updatedUser = await UsersHelper.updateUser(
+      req.params._id,
+      req.payload,
+      req.auth.credentials,
+      req.pre.canEditWithoutCompany
+    );
 
     return {
       message: translate[language].userUpdated,
@@ -131,6 +150,20 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
     }
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const updatePassword = async (req) => {
+  try {
+    const updatedUser = await UsersHelper.updatePassword(req.params._id, req.payload, req.auth.credentials);
+
+    return {
+      message: translate[language].userUpdated,
+      data: { updatedUser },
+    };
+  } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -203,7 +236,7 @@ const getUserTasks = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    const mailInfo = await UsersHelper.forgotPassword(req.payload.email, req.payload.from);
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
@@ -302,6 +335,7 @@ const createDriveFolder = async (req) => {
 module.exports = {
   authenticate,
   create,
+  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
@@ -317,4 +351,5 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  updatePassword,
 };

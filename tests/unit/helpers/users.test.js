@@ -42,7 +42,7 @@ describe('authenticate', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      const payload = { email: 'toto@email.com', password: 'toto' };
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
         .chain('lean')
@@ -61,7 +61,7 @@ describe('authenticate', () => {
   });
   it('should throw an error if refresh token does not exist', async () => {
     try {
-      const payload = { email: 'toto@email.com', password: 'toto' };
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
         .chain('lean')
@@ -79,7 +79,7 @@ describe('authenticate', () => {
     }
   });
   it('should throw an error if wrong password', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto' };
+    const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -921,6 +921,8 @@ describe('updateUser', () => {
         { $set: flat(payload) },
         { new: true }
       )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -928,6 +930,31 @@ describe('updateUser', () => {
     RoleMock.expects('findById').never();
 
     const result = await UsersHelper.updateUser(userId, payload, credentials);
+
+    expect(result).toEqual({ ...user, ...payload });
+    UserMock.verify();
+    RoleMock.verify();
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
+  it('should update a user without company', async () => {
+    const payload = { identity: { firstname: 'Titi' } };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId },
+        { $set: flat(payload) },
+        { new: true }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...user, ...payload });
+
+    RoleMock.expects('findById').never();
+
+    const result = await UsersHelper.updateUser(userId, payload, credentials, true);
 
     expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
@@ -944,6 +971,8 @@ describe('updateUser', () => {
         { $set: flat(payload) },
         { new: true }
       )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -965,6 +994,8 @@ describe('updateUser', () => {
     UserMock
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payloadWithRole });
@@ -1002,6 +1033,42 @@ describe('updateUser', () => {
       RoleMock.verify();
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
+  });
+});
+
+describe('updatePassword', () => {
+  let UserMock;
+  const credentials = { company: { _id: new ObjectID() } };
+  const userId = new ObjectID();
+  const user = { _id: userId };
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    UserMock.restore();
+  });
+
+  it('should update a user password', async () => {
+    const payload = { local: { password: '123456!eR' } };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId },
+        { $set: flat(payload), $unset: { passwordToken: '' } },
+        { new: true }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...user, ...payload });
+
+
+    const result = await UsersHelper.updatePassword(userId, payload, credentials);
+
+    expect(result).toEqual({ ...user, ...payload });
+    UserMock.verify();
   });
 });
 
@@ -1082,12 +1149,7 @@ describe('checkResetPasswordToken', () => {
   let fakeDate;
   const date = new Date('2020-01-13');
   const token = '1234567890';
-  const filter = {
-    resetPassword: {
-      token,
-      expiresIn: { $gt: date.getTime() },
-    },
-  };
+  const filter = { passwordToken: { token, expiresIn: { $gt: date.getTime() } } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -1119,13 +1181,8 @@ describe('checkResetPasswordToken', () => {
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = {
-      _id: new ObjectID(),
-      local: { email: 'toto@toto.com' },
-      resetPassword: { from: 'w' },
-    };
-
-    const userPayload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
+    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com' } };
+    const userPayload = { _id: user._id, email: user.local.email };
 
     UserMock.expects('findOne')
       .withExactArgs(flat(filter, { maxDepth: 2 }))
@@ -1137,41 +1194,73 @@ describe('checkResetPasswordToken', () => {
 
     const result = await UsersHelper.checkResetPasswordToken(token);
 
-    expect(result).toEqual({
-      token,
-      user: userPayload,
-    });
+    expect(result).toEqual({ token, user: userPayload });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, userPayload, TOKEN_EXPIRE_TIME);
   });
 });
 
+describe('createPasswordToken', () => {
+  let generatePasswordTokenStub;
+  const email = 'toto@toto.com';
+
+  beforeEach(() => {
+    generatePasswordTokenStub = sinon.stub(UsersHelper, 'generatePasswordToken');
+  });
+  afterEach(() => {
+    generatePasswordTokenStub.restore();
+  });
+
+  it('should return a new password token', async () => {
+    generatePasswordTokenStub.returns({ token: '123456789' });
+    const passwordToken = await UsersHelper.createPasswordToken(email);
+    sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 24 * 3600 * 1000);
+    expect(passwordToken).toEqual({ token: '123456789' });
+  });
+});
+
 describe('forgotPassword', () => {
-  let UserMock;
   let forgotPasswordEmail;
+  let generatePasswordTokenStub;
+  const email = 'toto@toto.com';
+
+  beforeEach(() => {
+    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    generatePasswordTokenStub = sinon.stub(UsersHelper, 'generatePasswordToken');
+  });
+  afterEach(() => {
+    forgotPasswordEmail.restore();
+    generatePasswordTokenStub.restore();
+  });
+
+  it('should return a new access token after checking reset password token', async () => {
+    generatePasswordTokenStub.returns({ token: '123456789' });
+    forgotPasswordEmail.returns({ sent: true });
+
+    const result = await UsersHelper.forgotPassword(email);
+
+    expect(result).toEqual({ sent: true });
+    sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 3600000);
+    sinon.assert.calledWithExactly(forgotPasswordEmail, email, { token: '123456789' });
+  });
+});
+
+describe('generatePasswordToken', () => {
+  let UserMock;
   let fakeDate;
   let uuidv4;
   const token = '1234567890';
   const email = 'toto@toto.com';
-  const from = 'w';
   const date = new Date('2020-01-13');
-  const payload = {
-    resetPassword: {
-      token,
-      expiresIn: date.getTime() + 3600000,
-      from,
-    },
-  };
+  const payload = { passwordToken: { token, expiresIn: date.getTime() + 3600000 } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
-    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
     fakeDate = sinon.useFakeTimers(date);
     uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
   });
   afterEach(() => {
     UserMock.restore();
-    forgotPasswordEmail.restore();
     fakeDate.restore();
     uuidv4.restore();
   });
@@ -1185,21 +1274,16 @@ describe('forgotPassword', () => {
         .once()
         .returns(null);
 
-      await UsersHelper.forgotPassword(email, from);
+      await UsersHelper.generatePasswordToken(email, 3600000);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
       UserMock.verify();
-      sinon.assert.notCalled(forgotPasswordEmail);
     }
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = {
-      _id: new ObjectID(),
-      local: { email: 'toto@toto.com' },
-      resetPassword: { from: 'w' },
-    };
+    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com', ...payload } };
 
     UserMock.expects('findOneAndUpdate')
       .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
@@ -1207,12 +1291,10 @@ describe('forgotPassword', () => {
       .withExactArgs()
       .once()
       .returns(user);
-    forgotPasswordEmail.returns({ sent: true });
 
-    const result = await UsersHelper.forgotPassword(email, from);
+    const result = await UsersHelper.generatePasswordToken(email, 3600000);
 
-    expect(result).toEqual({ sent: true });
+    expect(result).toEqual(payload.passwordToken);
     UserMock.verify();
-    sinon.assert.calledWithExactly(forgotPasswordEmail, email, payload.resetPassword);
   });
 });

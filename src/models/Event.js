@@ -71,7 +71,7 @@ const EventSchema = mongoose.Schema(
     absence: { type: String, enum: ABSENCE_TYPES, required() { return this.type === ABSENCE; } },
     absenceNature: { type: String, enum: ABSENCE_NATURES, required() { return this.type === ABSENCE; } },
     address: {
-      type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+      type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }),
       required() { return this.type === INTERVENTION; },
     },
     misc: {
@@ -79,7 +79,7 @@ const EventSchema = mongoose.Schema(
       required() { return (this.type === ABSENCE && this.absence === OTHER) || this.isCancelled; },
     },
     attachment: {
-      type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false }),
+      type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false, id: false }),
       required() { return [ILLNESS, WORK_ACCIDENT].includes(this.absence); },
     },
     repetition: {

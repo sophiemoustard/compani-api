@@ -2,7 +2,9 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update } = require('../controllers/courseController');
+const { list, create, getById, update, addTrainee, removeTrainee } = require('../controllers/courseController');
+const { phoneNumberValidation } = require('./validations/utils');
+const { getCourseTrainee } = require('./preHandlers/courses');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -23,6 +25,9 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             name: Joi.string().required(),
+            type: Joi.string().required(),
+            program: Joi.objectId().required(),
+            companies: Joi.array().items(Joi.objectId()).required().min(1),
           }),
         },
         auth: { scope: ['courses:edit'] },
@@ -50,11 +55,42 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object({
             name: Joi.string(),
+            trainer: Joi.objectId(),
           }),
         },
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/trainees',
+      options: {
+        validate: {
+          payload: Joi.object({
+            identity: Joi.object().keys({
+              firstname: Joi.string(),
+              lastname: Joi.string().required(),
+            }).required(),
+            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
+            contact: Joi.object().keys({ phone: phoneNumberValidation }),
+            company: Joi.objectId().required(),
+          }),
+        },
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }],
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: addTrainee,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/trainees/{traineeId}',
+      options: {
+        auth: { scope: ['courses:edit'] },
+      },
+      handler: removeTrainee,
     });
   },
 };

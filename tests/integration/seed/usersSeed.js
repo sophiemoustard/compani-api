@@ -102,7 +102,7 @@ const customerFromOtherCompany = {
 const helperFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
-  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
@@ -113,7 +113,7 @@ const helperFromOtherCompany = {
 const coachFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
-  local: { email: 'othercompanycoach@alenvi.io', password: '123456' },
+  local: { email: 'othercompanycoach@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
@@ -123,7 +123,7 @@ const coachFromOtherCompany = {
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
-  local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456' },
+  local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
@@ -138,7 +138,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
-    local: { email: 'black@alenvi.io', password: '123456' },
+    local: { email: 'black@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
@@ -154,7 +154,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
-    local: { email: 'white@alenvi.io', password: '123456' },
+    local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
@@ -169,7 +169,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Admin1', lastname: 'Horseman' },
-    local: { email: 'horseman@alenvi.io', password: '123456' },
+    local: { email: 'horseman@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
@@ -178,7 +178,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Admin2', lastname: 'Vador' },
-    local: { email: 'vador@alenvi.io', password: '123456' },
+    local: { email: 'vador@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
@@ -187,7 +187,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Admin3', lastname: 'Kitty' },
-    local: { email: 'kitty@alenvi.io', password: '123456' },
+    local: { email: 'kitty@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
@@ -196,7 +196,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Coach', lastname: 'Trump' },
-    local: { email: 'trump@alenvi.io', password: '123456' },
+    local: { email: 'trump@alenvi.io', password: '123456!eR' },
     inactivityDate: null,
     refreshToken: uuidv4(),
     company: company._id,
@@ -206,18 +206,18 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Helper1', lastname: 'Carolyn' },
-    local: { email: 'carolyn@alenvi.io', password: '123456' },
+    local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
     inactivityDate: null,
     refreshToken: uuidv4(),
     company: company._id,
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     contracts: [new ObjectID()],
-    resetPassword: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
+    passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary2', lastname: 'White' },
-    local: { email: 'aux@alenvi.io', password: '123456' },
+    local: { email: 'aux@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: company._id,
@@ -232,7 +232,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
-    local: { email: 'withouCompany@alenvi.io', password: '123456' },
+    local: { email: 'withouCompany@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
     refreshToken: uuidv4(),
     company: company._id,
@@ -247,7 +247,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'vendoruser', lastname: 'trainer' },
-    local: { email: 'vendoruser@alenvi.io', password: '123456' },
+    local: { email: 'vendoruser@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
     refreshToken: uuidv4(),
     contracts: [],
@@ -261,7 +261,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'vendoradmin', lastname: 'admin' },
-    local: { email: 'vendoradmin@alenvi.io', password: '123456' },
+    local: { email: 'vendoradmin@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === 'vendor_admin')._id },
     refreshToken: uuidv4(),
     contracts: [],
@@ -275,7 +275,7 @@ const usersSeedList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'rop', lastname: 'admin' },
-    local: { email: 'rop@alenvi.io', password: '123456' },
+    local: { email: 'rop@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === 'training_organisation_manager')._id },
     refreshToken: uuidv4(),
     contracts: [],
@@ -296,7 +296,7 @@ const userSectors = [
 
 const userPayload = {
   identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-  local: { email: 'kirk@alenvi.io', password: '123456' },
+  local: { email: 'kirk@alenvi.io' },
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   sector: userSectors[0]._id,
 };
@@ -367,4 +367,5 @@ module.exports = {
   sectorHistories,
   establishmentList,
   coachFromOtherCompany,
+  auxiliaryFromOtherCompany,
 };

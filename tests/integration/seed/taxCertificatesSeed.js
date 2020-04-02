@@ -39,7 +39,7 @@ const customersList = [
 const helper = {
   _id: new ObjectID(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-  local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456' },
+  local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [customersList[0]._id],

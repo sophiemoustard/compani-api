@@ -11,14 +11,11 @@ exports.plugin = {
   register: async (server) => {
     server.route({
       method: 'POST',
-      path: '/sendWelcome',
+      path: '/send-welcome',
       options: {
         validate: {
           payload: Joi.object().keys({
-            receiver: Joi.object().keys({
-              email: Joi.string().email().required(),
-              password: Joi.string().required(),
-            }).required(),
+            email: Joi.string().email().required(),
           }),
         },
         pre: [

@@ -2,13 +2,13 @@ const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, getUser } = require('./authenticationSeed');
 const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants');
 
 const payDocumentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'Bob', lastname: 'Marley' },
-  local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456' },
+  local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
   company: authCompany._id,
@@ -23,7 +23,7 @@ const userFromOtherCompany = {
     firstname: 'test',
     lastname: 'toto',
   },
-  local: { email: 'test@alenvi.io', password: '1234' },
+  local: { email: 'test@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
 };
@@ -56,6 +56,13 @@ const payDocumentsList = [{
   _id: new ObjectID(),
   company: authCompany._id,
   user: payDocumentUser._id,
+  nature: OTHER,
+  date: new Date('2019-01-04'),
+},
+{
+  _id: new ObjectID(),
+  company: authCompany._id,
+  user: getUser('auxiliary_without_company')._id,
   nature: OTHER,
   date: new Date('2019-01-04'),
 },

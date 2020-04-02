@@ -27,16 +27,16 @@ const CustomerSchema = mongoose.Schema({
   referent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String, lowercase: true, trim: true },
   identity: {
-    type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
+    type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
     required: true,
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
     primaryAddress: {
-      type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+      type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }),
       required: true,
     },
-    secondaryAddress: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
+    secondaryAddress: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
     phone: String,
     accessCodes: String,
   },

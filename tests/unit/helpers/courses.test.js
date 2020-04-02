@@ -2,7 +2,10 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
+const Role = require('../../../src/models/Role');
 const CourseHelper = require('../../../src/helpers/courses');
+const UsersHelper = require('../../../src/helpers/users');
+const { AUXILIARY } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -14,11 +17,13 @@ describe('createCourse', () => {
     save.restore();
   });
 
-  it('should create a course', async () => {
-    const newCourse = { name: 'name' };
+  it('should create an intra course', async () => {
+    const newCourse = { name: 'name', companies: [new ObjectID()], program: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
-    expect(result).toMatchObject(newCourse);
+    expect(result.name).toEqual(newCourse.name);
+    expect(result.program).toEqual(newCourse.program);
+    expect(result.companies[0]).toEqual(newCourse.companies[0]);
   });
 });
 
@@ -32,7 +37,7 @@ describe('list', () => {
   });
 
   it('should return courses', async () => {
-    const coursesList = [{ name: 'name' }, { name: 'course' }];
+    const coursesList = [{ name: 'name' }, { name: 'program' }];
 
     CourseMock.expects('find')
       .withExactArgs({ type: 'toto' })
@@ -59,6 +64,14 @@ describe('getCourse', () => {
 
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs('companies')
+      .chain('populate')
+      .withExactArgs('program')
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainees')
       .chain('lean')
       .once()
       .returns(course);
@@ -68,26 +81,100 @@ describe('getCourse', () => {
   });
 });
 
-describe('update', () => {
+describe('updateCourse', () => {
   let CourseMock;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    CourseMock = sinon.mock(Course, 'CourseMock');
   });
   afterEach(() => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
+  it('should update an intra course', async () => {
     const courseId = new ObjectID();
-    const payload = { name: 'toto' };
-
+    const payload = { name: 'name' };
     CourseMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: courseId }, { $set: payload }, { new: true })
+      .withExactArgs({ _id: courseId }, { $set: payload })
       .chain('lean')
-      .once()
-      .returns({ _id: courseId, name: 'toto' });
+      .returns(payload);
 
     const result = await CourseHelper.updateCourse(courseId, payload);
-    expect(result).toMatchObject({ _id: courseId, name: 'toto' });
+    expect(result.name).toEqual(payload.name);
   });
 });
+
+describe('addCourseTrainee', () => {
+  let CourseMock;
+  let RoleMock;
+  let createUserStub;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course, 'CourseMock');
+    RoleMock = sinon.mock(Role, 'RoleMock');
+    createUserStub = sinon.stub(UsersHelper, 'createUser');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    RoleMock.restore();
+    createUserStub.restore();
+  });
+
+  it('should add a course trainee using existing user', async () => {
+    const user = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), name: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' } };
+
+    RoleMock.expects('findOne').never();
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
+      .chain('lean')
+      .returns({ ...course, trainee: [user._id] });
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    CourseMock.verify();
+    RoleMock.verify();
+    sinon.assert.notCalled(createUserStub);
+  });
+
+  it('should add a course trainee creating new user', async () => {
+    const user = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), name: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' } };
+    const role = { _id: new ObjectID() };
+
+    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }, { _id: 1 }).chain('lean').returns(role);
+    createUserStub.returns(user);
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
+      .chain('lean')
+      .returns({ ...course, trainee: [user._id] });
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, null);
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    CourseMock.verify();
+    RoleMock.verify();
+    sinon.assert.calledWithExactly(createUserStub, { ...payload, role: role._id });
+  });
+});
+
+describe('removeCourseTrainee', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course, 'CourseMock');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should remove a course trainee', async () => {
+    const courseId = new ObjectID();
+    const traineeId = new ObjectID();
+    CourseMock.expects('updateOne')
+      .withExactArgs({ _id: courseId }, { $pull: { trainees: traineeId } })
+      .chain('lean');
+
+    await CourseHelper.removeCourseTrainee(courseId, traineeId);
+    CourseMock.verify();
+  });
+});
+

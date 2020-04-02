@@ -6,7 +6,7 @@ const { populateDBForAuthentication, rolesList, otherCompany, authCompany } = re
 const emailUser = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
-  local: { email: 'email_user@alenvi.io', password: '123456' },
+  local: { email: 'email_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: authCompany._id,
@@ -15,7 +15,7 @@ const emailUser = {
 const emailUserFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
-  local: { email: 'email_user_other_company@alenvi.io', password: '123456' },
+  local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,

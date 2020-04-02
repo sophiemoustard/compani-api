@@ -161,8 +161,7 @@ exports.createUser = async (userPayload, credentials) => {
 
     if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
     if (userInDB) {
-      return User
-        .findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+      return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
         .lean({ virtuals: true, autopopulate: true });
     }
@@ -171,8 +170,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
-  return User
-    .findOne({ _id: user._id })
+  return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -189,18 +187,29 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials) => {
+exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
+
+  const query = { _id: userId };
+  if (!canEditWithoutCompany) query.company = companyId;
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  return User.findOneAndUpdate({ _id: userId, company: companyId }, { $set: flat(payload) }, { new: true })
+  return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
 };
+
+exports.updatePassword = async (userId, userPayload, credentials) => User.findOneAndUpdate(
+  { _id: userId },
+  { $set: flat(userPayload), $unset: { passwordToken: '' } },
+  { new: true }
+)
+  .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+  .lean({ autopopulate: true, virtuals: true });
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -227,21 +236,29 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.checkResetPasswordToken = async (token) => {
-  const filter = { resetPassword: { token, expiresIn: { $gt: Date.now() } } };
+  const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
   const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  const payload = { _id: user._id, email: user.local.email, from: user.resetPassword.from };
+  const payload = { _id: user._id, email: user.local.email };
   const userPayload = pickBy(payload);
   const expireTime = 86400;
 
   return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
 };
 
-exports.forgotPassword = async (email, from) => {
-  const payload = { resetPassword: { token: uuid.v4(), expiresIn: Date.now() + 3600000, from } };
+exports.createPasswordToken = async email =>
+  exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
+
+exports.forgotPassword = async (email) => {
+  const passwordToken = await exports.generatePasswordToken(email, 3600000);
+  return EmailHelper.forgotPasswordEmail(email, passwordToken);
+};
+
+exports.generatePasswordToken = async (email, time) => {
+  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + time } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  return EmailHelper.forgotPasswordEmail(email, payload.resetPassword);
+  return payload.passwordToken;
 };

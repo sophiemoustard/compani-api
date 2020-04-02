@@ -225,7 +225,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [billCustomerList[0]._id],
@@ -234,7 +234,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
-    local: { email: 'toto@alenvi.io', password: '123456' },
+    local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
@@ -242,7 +242,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Titi', lastname: 'Toto' },
-    local: { email: 'titi@alenvi.io', password: '123456' },
+    local: { email: 'titi@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [billCustomerList[2]._id],
@@ -251,7 +251,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tutu', lastname: 'Toto' },
-    local: { email: 'tutu@alenvi.io', password: '123456' },
+    local: { email: 'tutu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: company._id,
@@ -259,7 +259,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tyty', lastname: 'Toto' },
-    local: { email: 'tyty@alenvi.io', password: '123456' },
+    local: { email: 'tyty@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'coach')._id },
     company: company._id,

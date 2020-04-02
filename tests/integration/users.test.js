@@ -20,6 +20,7 @@ const {
   sectorHistories,
   establishmentList,
   coachFromOtherCompany,
+  auxiliaryFromOtherCompany,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -75,7 +76,6 @@ describe('USERS ROUTES', () => {
         expect(user.identity.firstname).toBe(userPayload.identity.firstname);
         expect(user.identity.lastname).toBe(userPayload.identity.lastname);
         expect(user.local.email).toBe(userPayload.local.email);
-        expect(user.local.password).toBeDefined();
         expect(user).toHaveProperty('picture');
         expect(user.procedure).toBeDefined();
         expect(user.procedure.length).toBeGreaterThan(0);
@@ -99,7 +99,7 @@ describe('USERS ROUTES', () => {
       });
 
       it('should not create a user if email provided already exists', async () => {
-        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io', password: '123456' } };
+        const payload = { ...userPayload, local: { email: 'horseman@alenvi.io' } };
 
         const response = await app.inject({
           method: 'POST',
@@ -188,7 +188,7 @@ describe('USERS ROUTES', () => {
         const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: usersSeedList[0].local.email, password: '123456' },
+          local: { email: usersSeedList[0].local.email },
           role: roleTrainer._id,
         };
 
@@ -208,7 +208,7 @@ describe('USERS ROUTES', () => {
         const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: usersSeedList[9].local.email, password: '123456' },
+          local: { email: usersSeedList[9].local.email },
           role: vendorAdminRole._id,
           sector: userSectors[0]._id,
         };
@@ -254,6 +254,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
       beforeEach(populateDB);
 
@@ -279,7 +281,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'horseman@alenvi.io', password: '123456' },
+        payload: { email: 'horseman@alenvi.io', password: '123456!eR' },
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data).toEqual(expect.objectContaining({
@@ -294,7 +296,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'Horseman@alenvi.io', password: '123456' },
+        payload: { email: 'Horseman@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -312,7 +314,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'test@alenvi.io', password: '123456' },
+        payload: { email: 'test@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -331,7 +333,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: { email: 'white@alenvi.io', password: '123456' },
+        payload: { email: 'white@alenvi.io', password: '123456!eR' },
       });
       expect(res.statusCode).toBe(401);
     });
@@ -509,6 +511,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -606,6 +610,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -703,6 +709,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -837,7 +845,7 @@ describe('USERS ROUTES', () => {
   describe('PUT /users/:id/', () => {
     const updatePayload = {
       identity: { firstname: 'Riri' },
-      local: { email: 'riri@alenvi.io', password: '098765' },
+      local: { email: 'riri@alenvi.io' },
       role: userPayload.role,
     };
     describe('CLIENT_ADMIN', () => {
@@ -1005,6 +1013,17 @@ describe('USERS ROUTES', () => {
 
         expect(response.statusCode).toBe(400);
       });
+
+      it('should not update a user if trying to update password', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { local: { password: '123456!eR' } },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     describe('VENDOR_ADMIN', () => {
@@ -1055,6 +1074,131 @@ describe('USERS ROUTES', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/users/${userList[1]._id.toHexString()}`,
+            payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('PUT /users/:id/create-password-token', () => {
+    const payload = { email: 'aux@alenvi.io' };
+
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin', usersSeedList);
+      });
+
+      it('should create password token', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.passwordToken).toBeDefined();
+      });
+
+      it('should not create password token if user is from an other company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 404 if user not found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${id}/create-password-token`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${userList[1]._id.toHexString()}/create-password-token`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('PUT /users/:id/password', () => {
+    const updatePayload = { local: { password: '123456!eR' } };
+    beforeEach(populateDB);
+
+    it('should update user password if it is me', async () => {
+      authToken = await getToken('auxiliary', usersSeedList);
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+        payload: updatePayload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 400 error if password too short', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+        payload: { local: { password: '12345' } },
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
             payload: updatePayload,
             headers: { 'x-access-token': authToken },
           });
@@ -1230,6 +1374,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1278,6 +1424,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1339,6 +1487,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1447,6 +1597,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1512,6 +1664,8 @@ describe('USERS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1540,7 +1694,7 @@ describe('USERS ROUTES', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/users/check-reset-password/${user.resetPassword.token}`,
+        url: `/users/check-reset-password/${user.passwordToken.token}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -1576,14 +1730,14 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { email: userEmail, from: 'w' },
+        payload: { email: userEmail },
       });
 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledWith(
         forgotPasswordEmail,
         userEmail,
-        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number, from: 'w' })
+        sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number })
       );
     });
 
@@ -1591,7 +1745,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { from: 'w' },
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
@@ -1602,7 +1756,7 @@ describe('USERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/users/forgot-password',
-        payload: { email: 't@t.com', from: 'w' },
+        payload: { email: 't@t.com' },
       });
 
       expect(response.statusCode).toBe(404);

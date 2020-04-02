@@ -1,12 +1,12 @@
 const Boom = require('@hapi/boom');
-const CourseHelper = require('../helpers/courses');
+const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courses = await CourseHelper.list(req.query);
+    const courses = await CoursesHelper.list(req.query);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
@@ -20,7 +20,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const course = await CourseHelper.createCourse(req.payload);
+    const course = await CoursesHelper.createCourse(req.payload);
 
     return {
       message: translate[language].courseCreated,
@@ -34,7 +34,7 @@ const create = async (req) => {
 
 const getById = async (req) => {
   try {
-    const course = await CourseHelper.getCourse(req.params._id);
+    const course = await CoursesHelper.getCourse(req.params._id);
 
     return {
       message: translate[language].courseFound,
@@ -48,7 +48,7 @@ const getById = async (req) => {
 
 const update = async (req) => {
   try {
-    const course = await CourseHelper.updateCourse(req.params._id, req.payload);
+    const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
 
     return {
       message: translate[language].courseUpdated,
@@ -60,9 +60,36 @@ const update = async (req) => {
   }
 };
 
+const addTrainee = async (req) => {
+  try {
+    const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
+
+    return {
+      message: translate[language].courseTraineeAdded,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const removeTrainee = async (req) => {
+  try {
+    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
+
+    return { message: translate[language].courseTraineeRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   getById,
   update,
+  addTrainee,
+  removeTrainee,
 };

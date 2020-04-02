@@ -6,6 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   authenticate,
   create,
+  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
@@ -21,6 +22,7 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  updatePassword,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const {
@@ -28,6 +30,7 @@ const {
   authorizeUserUpdateOrGetById,
   authorizeUserGet,
   authorizeUserCreation,
+  authorizeUserUpdateWithoutCompany,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { INTERNAL, EXTERNAL } = require('../helpers/constants');
@@ -75,14 +78,8 @@ exports.plugin = {
           payload: Joi.object().keys({
             company: Joi.objectId(),
             sector: Joi.objectId(),
-            local: {
-              email: Joi.string().email().required(),
-              password: Joi.string().required(),
-            },
+            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             role: Joi.objectId().required(),
-            picture: Joi.object().keys({
-              link: Joi.string(),
-            }),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
@@ -177,17 +174,11 @@ exports.plugin = {
             'local.email': Joi.string().email(), // bot special case
             local: Joi.object().keys({
               email: Joi.string().email(),
-              password: Joi.string(),
             }),
             role: Joi.objectId(),
             picture: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
-            }),
-            resetPassword: Joi.object().keys({
-              token: Joi.string().allow(null),
-              expiresIn: Joi.number().allow(null),
-              from: Joi.string().allow(null),
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
@@ -274,7 +265,6 @@ exports.plugin = {
               isDone: Joi.boolean(),
             }),
             isActive: Joi.boolean(),
-            isConfirmed: Joi.boolean(),
             establishment: Joi.objectId(),
             status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
@@ -282,9 +272,44 @@ exports.plugin = {
         pre: [
           { method: getUser, assign: 'user' },
           { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
         ],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/create-password-token',
+      options: {
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        validate: {
+          payload: Joi.object().keys({
+            email: Joi.string().email().required(),
+          }),
+        },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdateOrGetById },
+        ],
+      },
+      handler: createPasswordToken,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/password',
+      options: {
+        auth: { scope: ['user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+          payload: Joi.object().keys({
+            local: Joi.object().keys({ password: Joi.string().min(6).required() }),
+            isConfirmed: Joi.boolean(),
+          }),
+        },
+      },
+      handler: updatePassword,
     });
 
     server.route({
@@ -377,7 +402,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().valid('p', 'w').default('w'),
           }),
         },
         auth: false,

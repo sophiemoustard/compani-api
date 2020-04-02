@@ -53,10 +53,22 @@ const contractCustomer = {
   driveFolder: { driveId: '1234567890' },
 };
 
+const userForContractCustomer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Helper1', lastname: 'Carolyn' },
+  local: { email: 'helperForContractCustomer@alenvi.io', password: '123456!eR' },
+  inactivityDate: null,
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  customers: [contractCustomer._id],
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
+};
+
 const otherCompanyContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
-  local: { email: 'other-company-contract-user@alenvi.io', password: '123456' },
+  local: { email: 'other-company-contract-user@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -80,7 +92,7 @@ const contractUsers = [{
     birthState: 75,
   },
   establishment: new ObjectID(),
-  local: { email: 'test7@alenvi.io', password: '123456' },
+  local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -110,7 +122,7 @@ const contractUsers = [{
     birthState: 75,
   },
   establishment: new ObjectID(),
-  local: { email: 'tototest@alenvi.io', password: '123456' },
+  local: { email: 'tototest@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -140,7 +152,7 @@ const contractUsers = [{
     birthState: 75,
   },
   establishment: new ObjectID(),
-  local: { email: 'ok@alenvi.io', password: '123456' },
+  local: { email: 'ok@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -161,7 +173,7 @@ const contractUsers = [{
 {
   _id: new ObjectID(),
   identity: { firstname: 'contract', lastname: 'Titi' },
-  local: { email: 'contract@alenvi.io', password: '123456' },
+  local: { email: 'contract@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -234,7 +246,7 @@ const otherCompanyContract = {
 const userFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
-  local: { email: 'test@othercompany.io', password: '123456' },
+  local: { email: 'test@othercompany.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 123456789,
   refreshToken: uuidv4(),
@@ -388,6 +400,23 @@ const contractsList = [
       },
     ],
   },
+  {
+    createdAt: '2018-08-02T17:12:55.144Z',
+    user: getUser('auxiliary_without_company')._id,
+    startDate: '2018-08-02T17:12:55.144Z',
+    status: 'contract_with_company',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-08-02T17:12:55.144Z',
+        grossHourlyRate: 10.12,
+        startDate: '2018-08-02T17:12:55.144Z',
+        weeklyHours: 15,
+        _id: new ObjectID(),
+      },
+    ],
+  },
 ];
 
 const contractEvents = [
@@ -479,6 +508,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
+  await (new User(userForContractCustomer)).save();
   await new Sector(sector).save();
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
@@ -497,4 +527,5 @@ module.exports = {
   customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
+  userForContractCustomer,
 };
