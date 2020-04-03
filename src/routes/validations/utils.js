@@ -1,7 +1,8 @@
 const Joi = require('@hapi/joi');
+const { MONTH_VALIDATION, PHONE_VALIDATION } = require('../../models/utils');
 
-const monthValidation = Joi.string().regex(new RegExp(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/));
-const phoneNumberValidation = Joi.string().regex(new RegExp(/^([0]{1}\d{9}$)/));
+const monthValidation = Joi.string().regex(new RegExp(MONTH_VALIDATION));
+const phoneNumberValidation = Joi.string().regex(new RegExp(PHONE_VALIDATION));
 
 const addressValidation = Joi.object().keys({
   street: Joi.string().required(),

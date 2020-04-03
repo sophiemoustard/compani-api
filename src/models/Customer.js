@@ -13,6 +13,7 @@ const {
 const Event = require('./Event');
 const User = require('./User');
 const Drive = require('./Google/Drive');
+const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
@@ -37,8 +38,9 @@ const CustomerSchema = mongoose.Schema({
       required: true,
     },
     secondaryAddress: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
-    phone: String,
+    phone: { type: String, validate: PHONE_VALIDATION },
     accessCodes: String,
+    others: String,
   },
   followUp: {
     environment: String,
