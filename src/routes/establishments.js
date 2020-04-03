@@ -8,7 +8,7 @@ const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandler
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 const { addressValidation, phoneNumberValidation } = require('./validations/utils');
-const { SIRET_VALIDATION, NAME_VALIDATION } = require('../models/utils');
+const { SIRET_VALIDATION, ESTABLISHMENT_NAME_VALIDATION } = require('../models/utils');
 
 exports.plugin = {
   name: 'routes-establishments',
@@ -21,7 +21,7 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(new RegExp(NAME_VALIDATION)).required(),
+            name: Joi.string().regex(new RegExp(ESTABLISHMENT_NAME_VALIDATION)).required(),
             siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)).required(),
             phone: phoneNumberValidation.required(),
             workHealthService: Joi.string().valid(...workHealthServices).required(),
@@ -40,7 +40,7 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(new RegExp(NAME_VALIDATION)),
+            name: Joi.string().regex(new RegExp(ESTABLISHMENT_NAME_VALIDATION)),
             siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)),
             phone: phoneNumberValidation,
             workHealthService: Joi.string().valid(...workHealthServices),

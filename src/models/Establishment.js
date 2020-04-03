@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const { PHONE_VALIDATION, NAME_VALIDATION, SIRET_VALIDATION } = require('./utils');
+const { PHONE_VALIDATION, ESTABLISHMENT_NAME_VALIDATION, SIRET_VALIDATION } = require('./utils');
 const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 
 const EstablishmentSchema = mongoose.Schema({
-  name: { type: String, required: true, validate: NAME_VALIDATION },
+  name: { type: String, required: true, validate: ESTABLISHMENT_NAME_VALIDATION },
   siret: { type: String, unique: true, validate: SIRET_VALIDATION, required: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }), required: true },
   phone: { type: String, validate: PHONE_VALIDATION, required: true },
