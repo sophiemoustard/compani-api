@@ -3,12 +3,12 @@
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { PHONE_VALIDATION, SIRET_VALIDATION, NAME_VALIDATION } = require('../models/Establishment');
 const { create, update, list, remove } = require('../controllers/establishmentController');
 const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandlers/establishments');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
-const { addressValidation } = require('./validations/utils');
+const { addressValidation, phoneNumberValidation } = require('./validations/utils');
+const { SIRET_VALIDATION, NAME_VALIDATION } = require('../models/utils');
 
 exports.plugin = {
   name: 'routes-establishments',
@@ -23,7 +23,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().regex(new RegExp(NAME_VALIDATION)).required(),
             siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)).required(),
-            phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)).required(),
+            phone: phoneNumberValidation.required(),
             workHealthService: Joi.string().valid(...workHealthServices).required(),
             urssafCode: Joi.string().valid(...urssafCodes).required(),
             address: addressValidation,
@@ -42,7 +42,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().regex(new RegExp(NAME_VALIDATION)),
             siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)),
-            phone: Joi.string().regex(new RegExp(PHONE_VALIDATION)),
+            phone: phoneNumberValidation,
             workHealthService: Joi.string().valid(...workHealthServices),
             urssafCode: Joi.string().valid(...urssafCodes),
             address: addressValidation,

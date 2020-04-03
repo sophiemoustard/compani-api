@@ -8,6 +8,7 @@ const moment = require('moment');
 const get = require('lodash/get');
 
 const Role = require('./Role');
+const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
@@ -81,7 +82,7 @@ const UserSchema = mongoose.Schema({
   },
   contact: {
     address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
-    phone: String,
+    phone: { type: String, validate: PHONE_VALIDATION },
   },
   emergencyPhone: String,
   mentor: String,

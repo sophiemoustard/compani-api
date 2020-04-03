@@ -93,6 +93,7 @@ const customersList = [
       },
       phone: '0123456789',
       accessCodes: 'porte c3po',
+      others: 'autre telephone: 0987654321',
     },
     followUp: {
       environment: 'ne va pas bien',
