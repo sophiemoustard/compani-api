@@ -40,7 +40,7 @@ const {
   authorizeCustomerGetBySector,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { addressValidation, objectIdOrArray } = require('./validations/utils');
+const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -83,10 +83,11 @@ exports.plugin = {
             }).min(1),
             email: Joi.string().email(),
             contact: Joi.object().keys({
-              phone: Joi.string().allow('', null),
+              phone: phoneNumberValidation.allow('', null),
               primaryAddress: addressValidation,
               secondaryAddress: Joi.alternatives().try(addressValidation, {}),
               accessCodes: Joi.string().allow('', null),
+              others: Joi.string().allow('', null),
             }).min(1),
             followUp: Joi.object().keys({
               environment: Joi.string().allow('', null),

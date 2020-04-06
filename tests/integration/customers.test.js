@@ -645,6 +645,18 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('should return a 400 error if phone number is invalid', async () => {
+      const customer = customersList[0];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { contact: { phone: '123dcsnejnf' } },
+        headers: { 'x-access-token': clientAdminToken },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
         const helper = userList[0];
