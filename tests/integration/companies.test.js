@@ -118,6 +118,9 @@ describe('COMPANIES ROUTES', () => {
         { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
         { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
         { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
+        { payload: { billingAssistance: 'test@test.f' }, case: 'billing assistance email format is wrong' },
+        { payload: { customersConfig: { billingPeriod: 'falsy billing period' } }, case: 'wrong billing period' },
+        { payload: { address: { street: '38 rue de ponthieu' } }, case: 'wrong address' },
       ];
       falsyAssertions.forEach((assertion) => {
         it(`should return a 400 error if ${assertion.case}`, async () => {
@@ -231,6 +234,7 @@ describe('COMPANIES ROUTES', () => {
       ics: '12345678900000',
       iban: '0987654321234567890987654',
       bic: 'BR12345678',
+      billingAssistance: 'test@alenvi.io',
       rhConfig: {
         contractWithCompany: { grossHourlyRate: 10 },
         contractWithCustomer: { grossHourlyRate: 5 },
@@ -310,6 +314,29 @@ describe('COMPANIES ROUTES', () => {
             url: '/companies',
             payload: omit({ ...payload }, test.path),
             headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(400);
+        });
+      });
+
+      const falsyAssertions = [
+        { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
+        { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
+        { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
+        { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
+        { payload: { billingAssistance: 'test@test.f' }, case: 'billing assistance email format is wrong' },
+        { payload: { customersConfig: { billingPeriod: 'falsy billing period' } }, case: 'wrong billing period' },
+        { payload: { type: 'falsy type' }, case: 'wrong company type' },
+        { payload: { address: { street: '38 rue de ponthieu' } }, case: 'wrong address' },
+      ];
+      falsyAssertions.forEach((assertion) => {
+        it(`should return a 400 error if ${assertion.case}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/companies',
+            headers: { 'x-access-token': authToken },
+            payload: { ...payload, ...assertion.payload },
           });
 
           expect(response.statusCode).toBe(400);
