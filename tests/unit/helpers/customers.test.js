@@ -389,38 +389,200 @@ describe('formatRumNumber', () => {
   });
 });
 
-describe('updateCustomer', () => {
+describe('formatPaymentPayload', () => {
   let CustomerMock;
-  let getRumNumberStub;
-  let formatRumNumberStub;
-  let updateMany;
+  let getRumNumber;
+  let formatRumNumber;
   let updateOne;
-  const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
-    getRumNumberStub = sinon.stub(CustomerHelper, 'getRumNumber');
-    formatRumNumberStub = sinon.stub(CustomerHelper, 'formatRumNumber');
-    updateMany = sinon.stub(Event, 'updateMany');
+    getRumNumber = sinon.stub(CustomerHelper, 'getRumNumber');
+    formatRumNumber = sinon.stub(CustomerHelper, 'formatRumNumber');
     updateOne = sinon.stub(Rum, 'updateOne');
   });
   afterEach(() => {
     CustomerMock.restore();
-    getRumNumberStub.restore();
-    formatRumNumberStub.restore();
+    getRumNumber.restore();
+    formatRumNumber.restore();
     updateOne.restore();
+  });
+
+  it('should generate a new mandate', async () => {
+    const company = { _id: new ObjectID(), prefixNumber: 101 };
+    const rumNumber = { prefix: '1219', seq: 1 };
+    const formattedRumNumber = 'R-1011219000010987654321';
+    const customerId = new ObjectID();
+    const customer = { payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] } };
+    const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    getRumNumber.returns(rumNumber);
+    formatRumNumber.returns(formattedRumNumber);
+
+    const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
+
+    expect(result).toEqual({
+      $set: { 'payment.iban': 'FR8312739000501844178231W37' },
+      $unset: { 'payment.bic': '' },
+      $push: { 'payment.mandates': { rum: formattedRumNumber } },
+    });
+    CustomerMock.verify();
+    sinon.assert.calledWithExactly(getRumNumber, company._id);
+    sinon.assert.calledWithExactly(formatRumNumber, company.prefixNumber, rumNumber.prefix, 1);
+    sinon.assert.calledWithExactly(updateOne, { prefix: rumNumber.prefix, company: company._id }, { $inc: { seq: 1 } });
+  });
+
+  it('shouldn\'t generate a new mandate (create iban)', async () => {
+    const company = { _id: new ObjectID(), prefixNumber: 101 };
+    const customerId = new ObjectID();
+    const customer = { payment: { bankAccountNumber: '', iban: '', bic: '', mandates: [] } };
+    const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
+
+    CustomerMock.verify();
+    sinon.assert.notCalled(getRumNumber);
+    sinon.assert.notCalled(formatRumNumber);
+    sinon.assert.notCalled(updateOne);
+    expect(result).toEqual({ $set: { 'payment.iban': 'FR4717569000303461796573B36' } });
+  });
+});
+
+describe('updateCustomerEvents', () => {
+  let updateMany;
+  let CustomerMock;
+  const customerId = new ObjectID();
+  beforeEach(() => {
+    updateMany = sinon.stub(Event, 'updateMany');
+    CustomerMock = sinon.mock(Customer);
+  });
+  afterEach(() => {
     updateMany.restore();
+    CustomerMock.restore();
+  });
+
+  it('should update events if primaryAddress is changed', async () => {
+    const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns({ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+
+    await CustomerHelper.updateCustomerEvents(customerId, payload);
+
+    sinon.assert.calledWithExactly(
+      updateMany,
+      {
+        customer: customerId,
+        'address.fullAddress': '37 rue Ponthieu 75008 Paris',
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
+      { $set: { address: payload.contact.primaryAddress } }
+    );
+    CustomerMock.verify();
+  });
+
+  it('should update events if secondaryAddress is changed', async () => {
+    const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns({ contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+
+    await CustomerHelper.updateCustomerEvents(customerId, payload);
+
+    sinon.assert.calledWithExactly(
+      updateMany,
+      {
+        customer: customerId,
+        'address.fullAddress': '37 rue Ponthieu 75008 Paris',
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
+      { $set: { address: payload.contact.secondaryAddress } }
+    );
+    CustomerMock.verify();
+  });
+
+  it('shouldn\'t update events if secondaryAddress is created', async () => {
+    const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns({ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+
+    await CustomerHelper.updateCustomerEvents(customerId, payload);
+
+    CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
+  });
+
+  it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
+    const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
+    const customer = {
+      contact: {
+        secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' },
+        primaryAddress: { fullAddress: '46 rue Barrault 75013 Paris' },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    await CustomerHelper.updateCustomerEvents(customerId, payload);
+
+    sinon.assert.calledWithExactly(
+      updateMany,
+      {
+        customer: customerId,
+        'address.fullAddress': '37 rue Ponthieu 75008 Paris',
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
+      { $set: { address: customer.contact.primaryAddress } }
+    );
+    CustomerMock.verify();
+  });
+});
+
+describe('updateCustomer', () => {
+  let CustomerMock;
+  let formatPaymentPayload;
+  let updateCustomerEvents;
+  const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+    formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
+    updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+    formatPaymentPayload.restore();
+    updateCustomerEvents.restore();
   });
 
   it('should unset the referent of a customer', async () => {
-    const customer = {
-      _id: 'qwertyuiop',
-      referent: 'asdfghjkl',
-    };
+    const customer = { _id: 'qwertyuiop', referent: 'asdfghjkl' };
     const payload = { referent: '' };
 
-    const customerResult = {
-      _id: 'qwertyuiop',
-    };
+    const customerResult = { _id: 'qwertyuiop' };
 
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customer._id }, { $unset: { referent: '' } }, { new: true })
@@ -431,46 +593,19 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
-    sinon.assert.notCalled(updateMany);
-    expect(result).toBe(customerResult);
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
+    expect(result).toEqual(customerResult);
   });
 
   it('should generate a new mandate', async () => {
-    const rumNumber = { prefix: '1219', seq: 1 };
     const formattedRumNumber = 'R-1011219000010987654321';
-    const customerId = 'qwertyuiop';
-    const customer = {
-      payment: {
-        bankAccountNumber: '',
-        iban: 'FR4717569000303461796573B36',
-        bic: '',
-        mandates: [],
-      },
-    };
-    const payload = {
-      payment: {
-        iban: 'FR8312739000501844178231W37',
-      },
+    const customerId = new ObjectID();
+    const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
+    const customerResult = {
+      payment: { bankAccountNumber: '', iban: 'FR8312739000501844178231W37', bic: '', mandates: [formattedRumNumber] },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    getRumNumberStub.returns(rumNumber);
-    formatRumNumberStub.returns(formattedRumNumber);
-    const customerResult = {
-      payment: {
-        bankAccountNumber: '',
-        iban: 'FR8312739000501844178231W37',
-        bic: '',
-        mandates: [formattedRumNumber],
-      },
-    };
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs(
         { _id: customerId },
@@ -485,143 +620,30 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
-
-    expect(result).toBe(customerResult);
-    CustomerMock.verify();
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
-    sinon.assert.calledWithExactly(
-      formatRumNumberStub,
-      credentials.company.prefixNumber,
-      rumNumber.prefix,
-      1
-    );
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { prefix: rumNumber.prefix, company: credentials.company._id },
-      { $set: { seq: 2 } }
-    );
-  });
-
-  it('shouldn\'t generate a new mandate (update bic)', async () => {
-    const customerId = 'qwertyuiop';
-    const customer = {
-      payment: {
-        bankAccountNumber: '',
-        iban: 'FR4717569000303461796573B36',
-        bic: '',
-        mandates: [],
-      },
-    };
-    const payload = {
-      payment: {
-        iban: 'FR4717569000303461796573B36',
-        bic: 'BNPAFRPPXXX',
-      },
-    };
-
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-
-    const customerResult = {
-      payment: {
-        bankAccountNumber: '',
-        iban: 'FR4717569000303461796573B36',
-        bic: 'BNPAFRPPXXX',
-        mandates: [],
-      },
-    };
-
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    formatPaymentPayload.returns({
+      $set: flat(payload, { safe: true }),
+      $push: { 'payment.mandates': { rum: formattedRumNumber } },
+      $unset: { 'payment.bic': '' },
+    });
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
+    expect(result).toEqual(customerResult);
     CustomerMock.verify();
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
-    expect(result).toBe(customerResult);
-  });
-
-  it('shouldn\'t generate a new mandate (update name)', async () => {
-    const customerId = 'qwertyuiop';
-    const customer = {
-      payment: {
-        bankAccountNumber: '',
-        iban: 'FR4717569000303461796573B36',
-        bic: '',
-        mandates: [],
-      },
-    };
-    const payload = {
-      payment: {
-        iban: 'FR4717569000303461796573B36',
-        bankAccountOwner: 'Jake Peralta',
-      },
-    };
-    const customerResult = {
-      payment: {
-        bankAccountNumber: 'Jake Peralta',
-        iban: 'FR4717569000303461796573B36',
-        bic: '',
-        mandates: [],
-      },
-    };
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
-
-    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
-
-    CustomerMock.verify();
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
-    expect(result).toBe(customerResult);
+    sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
     const customerId = 'qwertyuiop';
-    const customer = {
-      payment: {
-        bankAccountNumber: '',
-        iban: '',
-        bic: '',
-        mandates: [],
-      },
-    };
-    const payload = {
-      payment: {
-        iban: 'FR4717569000303461796573B36',
-      },
+    const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
+    const customerResult = {
+      payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.payment.iban = 'FR4717569000303461796573B36';
+    formatPaymentPayload.returns(payload);
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId }, payload, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
@@ -629,37 +651,15 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(updateCustomerEvents);
     expect(result).toBe(customerResult);
+    sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
   });
 
   it('should update events if primaryAddress is changed', async () => {
     const customerId = 'qwertyuiop';
-    const payload = {
-      contact: {
-        primaryAddress: {
-          fullAddress: '27 rue des renaudes 75017 Paris',
-        },
-      },
-    };
-    const customer = {
-      contact: {
-        primaryAddress: {
-          fullAddress: '37 rue Ponthieu 75008 Paris',
-        },
-      },
-    };
-
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.contact.primaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+    const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+    const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
@@ -669,46 +669,16 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    sinon.assert.calledWithExactly(
-      updateMany,
-      {
-        'address.fullAddress': customer.contact.primaryAddress.fullAddress,
-        startDate: { $gte: moment().startOf('day').toDate() },
-      },
-      { $set: { address: payload.contact.primaryAddress } },
-      { new: true }
-    );
+    sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(formatPaymentPayload);
     expect(result).toBe(customerResult);
   });
 
   it('should update events if secondaryAddress is changed', async () => {
     const customerId = 'qwertyuiop';
-    const payload = {
-      contact: {
-        secondaryAddress: {
-          fullAddress: '27 rue des renaudes 75017 Paris',
-        },
-      },
-    };
-    const customer = {
-      contact: {
-        secondaryAddress: {
-          fullAddress: '37 rue Ponthieu 75008 Paris',
-        },
-      },
-    };
-
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.contact.secondaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+    const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+    const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
@@ -718,46 +688,16 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    sinon.assert.calledWithExactly(
-      updateMany,
-      {
-        'address.fullAddress': customer.contact.secondaryAddress.fullAddress,
-        startDate: { $gte: moment().startOf('day').toDate() },
-      },
-      { $set: { address: payload.contact.secondaryAddress } },
-      { new: true }
-    );
+    sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(formatPaymentPayload);
     expect(result).toBe(customerResult);
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
     const customerId = 'qwertyuiop';
-    const payload = {
-      contact: {
-        secondaryAddress: {
-          fullAddress: '27 rue des renaudes 75017 Paris',
-        },
-      },
-    };
-    const customer = {
-      contact: {
-        primaryAddress: {
-          fullAddress: '37 rue Ponthieu 75008 Paris',
-        },
-      },
-    };
-
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.contact.secondaryAddress = { fullAddress: '27 rue des renaudes 75017 Paris' };
+    const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
+    const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
@@ -768,40 +708,20 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
+    sinon.assert.notCalled(formatPaymentPayload);
     expect(result).toBe(customerResult);
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
     const customerId = 'qwertyuiop';
-    const payload = {
+    const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
+    const customerResult = {
       contact: {
-        secondaryAddress: {
-          fullAddress: '',
-        },
+        secondaryAddress: { fullAddress: '' },
+        primaryAddress: { fullAddress: '46 rue Barrault 75013 Paris' },
       },
     };
-    const customer = {
-      contact: {
-        secondaryAddress: {
-          fullAddress: '37 rue Ponthieu 75008 Paris',
-        },
-        primaryAddress: {
-          fullAddress: '46 rue Barrault 75013 Paris',
-        },
-      },
-    };
-
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.contact.secondaryAddress = { fullAddress: '' };
 
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
@@ -811,34 +731,17 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    sinon.assert.calledWithExactly(
-      updateMany,
-      {
-        'address.fullAddress': customer.contact.secondaryAddress.fullAddress,
-        startDate: { $gte: moment().startOf('day').toDate() },
-      },
-      { $set: { address: customer.contact.primaryAddress } },
-      { new: true }
-    );
+    sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(formatPaymentPayload);
     expect(result).toBe(customerResult);
   });
 
   it('should update a customer', async () => {
     const customerId = 'qwertyuiop';
-    const customer = {
-      identity: { firstname: 'Jake', lastname: 'Peralta' },
-    };
-    const payload = {
-      identity: { firstname: 'Raymond', lastname: 'Holt' },
-    };
+    const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
-    const customerResult = cloneDeep(customer);
-    customerResult.identity.firstname = 'Raymond';
-    customerResult.identity.lastname = 'Holt';
+    const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
@@ -848,10 +751,8 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
-    sinon.assert.notCalled(getRumNumberStub);
-    sinon.assert.notCalled(formatRumNumberStub);
-    sinon.assert.notCalled(updateMany);
-    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
     expect(result).toBe(customerResult);
   });
 });

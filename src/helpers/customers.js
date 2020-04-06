@@ -125,54 +125,65 @@ exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
   { $unset: { referent: '' } }
 );
 
+exports.formatPaymentPayload = async (customerId, payload, company) => {
+  const customer = await Customer.findById(customerId).lean();
+
+  // if the user updates its RIB, we should generate a new mandate.
+  const customerIban = get(customer, 'payment.iban') || null;
+  if (customerIban && customerIban !== payload.payment.iban) {
+    const number = await exports.getRumNumber(company._id);
+    const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
+
+    await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $inc: { seq: 1 } });
+    return {
+      $set: flat(payload, { safe: true }),
+      $push: { 'payment.mandates': mandate },
+      $unset: { 'payment.bic': '' },
+    };
+  }
+
+  return { $set: flat(payload, { safe: true }) };
+};
+
+exports.updateCustomerEvents = async (customerId, payload) => {
+  const addressField = payload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
+  const customer = await Customer.findById(customerId).lean();
+  const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
+
+  if (customerHasAddress) {
+    const isSecondaryAddressDeleted = has(payload, 'contact.secondaryAddress') &&
+      get(payload, 'contact.secondaryAddress.fullAddress') === '';
+
+    const setAddressToEventPayload = isSecondaryAddressDeleted ?
+      { $set: { address: customer.contact.primaryAddress } } :
+      { $set: { address: payload.contact[addressField] } };
+
+    await Event.updateMany(
+      {
+        customer: customerId,
+        'address.fullAddress': customer.contact[addressField].fullAddress,
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
+      setAddressToEventPayload
+    );
+  }
+};
+
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
-  let number;
   const { company } = credentials;
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
   } else if (has(customerPayload, 'payment.iban')) {
-    const customer = await Customer.findById(customerId).lean();
-    // if the user updates its RIB, we should generate a new mandate.
-    if (customer.payment.iban && customer.payment.iban !== '' &&
-      customer.payment.iban !== customerPayload.payment.iban) {
-      number = await exports.getRumNumber(company._id);
-      const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
-      payload = {
-        $set: flat(customerPayload, { safe: true }),
-        $push: { 'payment.mandates': mandate },
-        $unset: { 'payment.bic': '' },
-      };
-      number.seq += 1;
-    } else {
-      payload = { $set: flat(customerPayload, { safe: true }) };
-    }
+    payload = await exports.formatPaymentPayload(customerId, customerPayload, company);
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
-    const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
-    const customer = await Customer.findById(customerId).lean();
-    const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
-    const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
-      get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
-    if (customerHasAddress) {
-      const setAddressToEventPayload = noSecondaryAddressInPayload ?
-        { $set: { address: customer.contact.primaryAddress } } :
-        { $set: { address: customerPayload.contact[addressField] } };
-      await Event.updateMany(
-        {
-          'address.fullAddress': customer.contact[addressField].fullAddress,
-          startDate: { $gte: moment().startOf('day').toDate() },
-        },
-        setAddressToEventPayload,
-        { new: true }
-      );
-    }
+    await exports.updateCustomerEvents(customerId, customerPayload);
     payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
   const customer = Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
-  if (number) await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
 
   return customer;
 };
