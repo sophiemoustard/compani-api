@@ -10,13 +10,13 @@ const Company = require('../../../src/models/Company');
 const Rum = require('../../../src/models/Rum');
 const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
+const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const UtilsHelper = require('../../../src/helpers/utils');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
-const cloneDeep = require('lodash/cloneDeep');
 const moment = require('moment');
 const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
@@ -566,26 +566,29 @@ describe('updateCustomer', () => {
   let CustomerMock;
   let formatPaymentPayload;
   let updateCustomerEvents;
+  let updateCustomerReferent;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
+    updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
   });
   afterEach(() => {
     CustomerMock.restore();
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
+    updateCustomerReferent.restore();
   });
 
   it('should unset the referent of a customer', async () => {
-    const customer = { _id: 'qwertyuiop', referent: 'asdfghjkl' };
+    const customer = { _id: new ObjectID(), referent: 'asdfghjkl' };
     const payload = { referent: '' };
 
-    const customerResult = { _id: 'qwertyuiop' };
+    const customerResult = { _id: customer._id };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customer._id }, { $unset: { referent: '' } }, { new: true })
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customer._id })
       .chain('lean')
       .once()
       .returns(customerResult);
@@ -595,6 +598,7 @@ describe('updateCustomer', () => {
     CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
     expect(result).toEqual(customerResult);
   });
 
@@ -631,6 +635,7 @@ describe('updateCustomer', () => {
     expect(result).toEqual(customerResult);
     CustomerMock.verify();
     sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
   });
 
@@ -653,6 +658,7 @@ describe('updateCustomer', () => {
     CustomerMock.verify();
     sinon.assert.notCalled(updateCustomerEvents);
     expect(result).toBe(customerResult);
+    sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
   });
 
@@ -672,6 +678,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerReferent);
     expect(result).toBe(customerResult);
   });
 
@@ -691,6 +698,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerReferent);
     expect(result).toBe(customerResult);
   });
 
@@ -710,6 +718,7 @@ describe('updateCustomer', () => {
     CustomerMock.verify();
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerReferent);
     expect(result).toBe(customerResult);
   });
 
@@ -734,6 +743,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerReferent);
     expect(result).toBe(customerResult);
   });
 
@@ -753,6 +763,7 @@ describe('updateCustomer', () => {
     CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
     expect(result).toBe(customerResult);
   });
 });

@@ -8,7 +8,7 @@ const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const ESignHelper = require('../../../src/helpers/eSign');
-const CustomerHelper = require('../../../src/helpers/customers');
+const ReferentHistoryHelper = require('../../../src/helpers/referentHistories');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT, AUXILIARY } = require('../../../src/helpers/constants');
@@ -495,7 +495,7 @@ describe('endContract', () => {
       'removeEventsExceptInterventionsOnContractEnd'
     );
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
-    unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
+    unassignReferentOnContractEnd = sinon.stub(ReferentHistoryHelper, 'unassignReferentOnContractEnd');
     updateEndDateStub = sinon.stub(SectorHistoryHelper, 'updateEndDate');
   });
   afterEach(() => {

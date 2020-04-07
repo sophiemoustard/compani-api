@@ -14,6 +14,7 @@ const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const SubscriptionsHelper = require('./subscriptions');
+const ReferentHistoriesHelper = require('../helpers/referentHistories');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
@@ -93,8 +94,8 @@ exports.getCustomer = async (customerId, credentials) => {
     .populate({ path: 'fundings.thirdPartyPayer' })
     // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
-    .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
-    .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
+    .populate({ path: 'referent', match: { company: companyId } })
+    .lean({ autopopulate: true }); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
 
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
@@ -119,11 +120,6 @@ exports.formatRumNumber = (companyPrefixNumber, prefix, seq) => {
 
   return `R-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}${random}`;
 };
-
-exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
-  { referent: contract.user._id },
-  { $unset: { referent: '' } }
-);
 
 exports.formatPaymentPayload = async (customerId, payload, company) => {
   const customer = await Customer.findById(customerId).lean();
@@ -172,8 +168,10 @@ exports.updateCustomerEvents = async (customerId, payload) => {
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
   const { company } = credentials;
-  if (customerPayload.referent === '') {
-    payload = { $unset: { referent: '' } };
+  if (has(customerPayload, 'referent')) {
+    await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
+
+    return Customer.findOne({ _id: customerId }).lean();
   } else if (has(customerPayload, 'payment.iban')) {
     payload = await exports.formatPaymentPayload(customerId, customerPayload, company);
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
