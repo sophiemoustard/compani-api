@@ -64,8 +64,8 @@ exports.exportCustomers = async (credentials) => {
     .populate({ path: 'subscriptions.service' })
   // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
-    .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
-    .lean();
+    .populate({ path: 'referent', match: { company: companyId } })
+    .lean({ autopopulate: true });
   const rows = [customerExportHeader];
 
   for (const cus of customers) {

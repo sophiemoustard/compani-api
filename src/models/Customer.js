@@ -3,6 +3,7 @@ const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const moment = require('../extensions/moment');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 const {
   MONTHLY,
@@ -25,7 +26,6 @@ const FUNDING_NATURES = [FIXED, HOURLY];
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   driveFolder: driveResourceSchemaDefinition,
-  referent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
@@ -149,6 +149,28 @@ function validateAddress(next) {
   next();
 }
 
+function populateReferent(doc, next) {
+  const referentEndDate = get(doc, 'referent.endDate');
+  if (referentEndDate && moment().isAfter(referentEndDate)) {
+    delete doc.referent;
+    return next();
+  }
+
+  if (get(doc, 'referent.auxiliary')) doc.referent = doc.referent.auxiliary;
+
+  return next();
+}
+
+function populateReferents(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.referent) {
+      doc.referent = doc.referent.auxiliary;
+    }
+  }
+
+  return next();
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -157,12 +179,24 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
+CustomerSchema.virtual('referent', {
+  ref: 'ReferentHistory',
+  localField: '_id',
+  foreignField: 'customer',
+  justOne: true,
+  options: { sort: { startDate: -1 } },
+});
+
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('validate', validatePayload);
 CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
+
+CustomerSchema.post('findOne', populateReferent);
+CustomerSchema.post('findOneAndUpdate', populateReferent);
+CustomerSchema.post('find', populateReferents);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);
 

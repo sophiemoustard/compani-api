@@ -10,6 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const {
   COMPANY_CONTRACT,
@@ -137,7 +138,6 @@ const customerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    referent: userList[0]._id,
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
@@ -206,7 +206,6 @@ const customerList = [
       _id: new ObjectID(),
       service: serviceList[0]._id,
     }],
-    referent: userList[0]._id,
     identity: { lastname: 'test' },
     contact: {
       primaryAddress: {
@@ -218,6 +217,21 @@ const customerList = [
       },
       phone: '0612345678',
     },
+  },
+];
+
+const referentList = [
+  {
+    auxiliary: userList[0]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: '2019-03-12T00:00:00',
+  },
+  {
+    auxiliary: userList[0]._id,
+    customer: customerList[1]._id,
+    company: customerList[1].company,
+    startDate: '2020-03-12T00:00:00',
   },
 ];
 
@@ -545,6 +559,7 @@ const populateDB = async () => {
   await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
+  await ReferentHistory.deleteMany({});
 
   await populateDBForAuthentication();
   for (const user of userList) {
@@ -556,6 +571,7 @@ const populateDB = async () => {
   await SectorHistory.insertMany(sectorHistoryList);
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
+  await ReferentHistory.insertMany(referentList);
 };
 
 module.exports = {

@@ -7,6 +7,7 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
 const {
   FIXED,
@@ -75,7 +76,6 @@ const customersList = [
       firstname: 'Romain',
       lastname: 'Bardet',
     },
-    referent: referent._id,
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -260,6 +260,15 @@ const customersList = [
       },
       phone: '0612345678',
     },
+  },
+];
+
+const referentList = [
+  {
+    customer: customersList[0]._id,
+    auxiliary: referent._id,
+    company: customersList[0].company,
+    startDate: '2019-05-13T00:00:00',
   },
 ];
 
@@ -528,12 +537,15 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
   await QuoteNumber.deleteMany({});
   await User.deleteMany({});
+  await ReferentHistory.deleteMany({});
+
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
+  await ReferentHistory.insertMany(referentList);
   for (const user of userList) {
     await (new User(user).save());
   }
