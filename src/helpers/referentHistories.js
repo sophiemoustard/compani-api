@@ -15,14 +15,14 @@ exports.updateCustomerReferent = async (customerId, referent, company) => {
   if (!lastHistory) return exports.createReferentHistory(customerId, referent, company);
 
   if (lastHistory.endDate) {
-    const lastHistroyEndsBeforeYesterday = moment().subtract(1, 'd').endOf('d').isAfter(lastHistory.endDate);
-    if (lastHistroyEndsBeforeYesterday) {
+    const lastHistoryEndsBeforeYesterday = moment(lastHistory.endDate).isBefore(moment().subtract(1, 'd').endOf('d'));
+    if (lastHistoryEndsBeforeYesterday) {
       if (!referent) return;
       return exports.createReferentHistory(customerId, referent, company);
     }
 
-    const lastHistroyEndsYesterday = moment().subtract(1, 'd').endOf('d').isSame(lastHistory.endDate);
-    if (lastHistroyEndsYesterday) {
+    const lastHistoryEndsYesterday = moment().subtract(1, 'd').endOf('d').isSame(lastHistory.endDate);
+    if (lastHistoryEndsYesterday) {
       if (!referent) return;
 
       const isSameReferent = referent === lastHistory.auxiliary._id.toHexString();
@@ -46,6 +46,9 @@ exports.updateCustomerReferent = async (customerId, referent, company) => {
   if (!customer.firstIntervention) {
     return exports.updateLastHistory(lastHistory, { startDate: moment().startOf('d').toDate(), auxiliary: referent });
   }
+
+  const lastHistoryStartsOnSameDay = moment().startOf('d').isSame(lastHistory.startDate);
+  if (lastHistoryStartsOnSameDay) return exports.updateLastHistory(lastHistory, { auxiliary: referent });
 
   await exports.updateLastHistory(lastHistory, { endDate: moment().subtract(1, 'd').endOf('d').toDate() });
   return exports.createReferentHistory(customerId, referent, company);
