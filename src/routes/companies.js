@@ -35,7 +35,7 @@ exports.plugin = {
             rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
-            billingAssistance: Joi.string().email(),
+            billingAssistance: Joi.string().email().allow(''),
             legalRepresentative: Joi.object().keys({
               lastname: Joi.string(),
               firstname: Joi.string(),
