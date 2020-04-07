@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const autopopulate = require('mongoose-autopopulate');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
@@ -200,7 +199,6 @@ CustomerSchema.post('findOneAndUpdate', populateReferent);
 CustomerSchema.post('find', populateReferents);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);
-CustomerSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
