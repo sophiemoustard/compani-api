@@ -12,9 +12,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: {
-        auth: { scope: ['courses:read'] },
-      },
+      options: { auth: { scope: ['courses:read'] } },
       handler: list,
     });
 
@@ -42,7 +40,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        auth: { scope: ['courses:read'] },
+        auth: false,
       },
       handler: getById,
     });
