@@ -154,15 +154,26 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
   });
 
+  it('should get course even if not authenticate', async () => {
+    const courseId = coursesList[0]._id;
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${courseId.toHexString()}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.course._id).toEqual(courseId);
+  });
+
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
