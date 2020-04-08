@@ -11,11 +11,8 @@ exports.generateZip = (fileList, zipName) => new Promise(async (resolve, reject)
 
   const tmpOutputPath = path.join(os.tmpdir(), zipName);
 
-  zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true })
-    .pipe(fs.createWriteStream(tmpOutputPath))
-    .on('finish', () => {
-      console.log('out.zip written.');
-      resolve({ zipPath: tmpOutputPath, zipName });
-    })
+  const stream = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
+  stream.pipe(fs.createWriteStream(tmpOutputPath))
+    .on('finish', () => resolve({ zipPath: tmpOutputPath, zipName }))
     .on('error', err => reject(err));
 });
