@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom');
 const CoursesHelper = require('../helpers/courses');
-const ZipHelper = require('../helpers/zip');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -88,10 +87,10 @@ const removeTrainee = async (req) => {
 
 const downloadAttendanceSheets = async (req, h) => {
   try {
-    const path = await ZipHelper.generateZip();
+    const { zipPath, zipName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
 
-    return h.file(path, { confine: false })
-      .header('content-disposition', 'attachment; filename=toto.zip')
+    return h.file(zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${zipName}`)
       .type('application/zip');
   } catch (e) {
     req.log('error', e);

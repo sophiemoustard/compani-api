@@ -1,6 +1,9 @@
 const Course = require('../models/Course');
 const Role = require('../models/Role');
 const UsersHelper = require('./users');
+const PdfHelper = require('./pdf');
+const UtilsHelper = require('./utils');
+const ZipHelper = require('./zip');
 const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -32,3 +35,20 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
+
+exports.generateAttendanceSheets = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate('companies')
+    .populate('program')
+    .populate('slots')
+    .populate('trainees')
+    .lean();
+
+  const fileList = [];
+  for (const trainee of course.trainees) {
+    const file = await PdfHelper.generatePdf({}, './src/data/attendanceSheet.html');
+    fileList.push({ name: `${UtilsHelper.formatIdentity(trainee.identity, 'FL')}.pdf`, file });
+  }
+
+  return ZipHelper.generateZip(fileList, 'emargement.zip');
+};
