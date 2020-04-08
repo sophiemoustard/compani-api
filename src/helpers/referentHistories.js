@@ -1,36 +1,35 @@
+const get = require('lodash/get');
 const moment = require('../extensions/moment');
 const Customer = require('../models/Customer');
 const ReferentHistory = require('../models/ReferentHistory');
 
 exports.updateCustomerReferent = async (customerId, referent, company) => {
-  const customer = await Customer.findOne({ _id: customerId })
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: company._id } })
-    .lean();
   const [lastHistory] = await ReferentHistory.find({ customer: customerId, company: company._id })
     .sort({ startDate: -1 })
     .limit(1)
     .lean();
 
-  if (!lastHistory && !referent) return;
-  if (!lastHistory) return exports.createReferentHistory(customerId, referent, company);
-
-  if (lastHistory.endDate) {
-    const lastHistoryEndsBeforeYesterday = moment(lastHistory.endDate).isBefore(moment().subtract(1, 'd').endOf('d'));
-    if (lastHistoryEndsBeforeYesterday) {
-      if (!referent) return;
-      return exports.createReferentHistory(customerId, referent, company);
-    }
-
-    const lastHistoryEndsYesterday = moment().subtract(1, 'd').endOf('d').isSame(lastHistory.endDate);
-    if (lastHistoryEndsYesterday) {
-      if (!referent) return;
-
-      const isSameReferent = referent === lastHistory.auxiliary._id.toHexString();
-      if (isSameReferent) return exports.updateLastHistory(lastHistory, { $unset: { endDate: '' } });
-
-      return exports.createReferentHistory(customerId, referent, company);
-    }
+  const lastHistoryEndsBeforeYesterday = get(lastHistory, 'endDate') &&
+    moment(lastHistory.endDate).isBefore(moment().subtract(1, 'd').endOf('d'));
+  if (!lastHistory || lastHistoryEndsBeforeYesterday) {
+    if (!referent) return;
+    return exports.createReferentHistory(customerId, referent, company);
   }
+
+  const lastHistoryEndsYesterday = lastHistory.endDate &&
+    moment().subtract(1, 'd').endOf('d').isSame(lastHistory.endDate);
+  if (lastHistoryEndsYesterday) {
+    if (!referent) return;
+
+    const isSameReferent = referent === lastHistory.auxiliary._id.toHexString();
+    if (isSameReferent) return exports.updateLastHistory(lastHistory, { $unset: { endDate: '' } });
+
+    return exports.createReferentHistory(customerId, referent, company);
+  }
+
+  const customer = await Customer.findOne({ _id: customerId })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: company._id } })
+    .lean();
 
   if (!referent) {
     const lastHistoryStartsOnSameDay = moment().startOf('d').isSame(lastHistory.startDate);
