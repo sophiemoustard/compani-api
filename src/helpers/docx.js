@@ -1,4 +1,4 @@
-const JSZip = require('jszip');
+const PizZip = require('pizzip');
 const DocxTemplater = require('docxtemplater');
 const get = require('lodash/get');
 const fs = require('fs');
@@ -17,7 +17,7 @@ const docxParser = tag => ({
 
 exports.createDocx = async (filePath, data) => {
   const file = await fsPromises.readFile(filePath, 'binary');
-  const zip = new JSZip(file);
+  const zip = new PizZip(file);
   const doc = new DocxTemplater();
   doc.loadZip(zip);
   doc.setOptions({ parser: docxParser });

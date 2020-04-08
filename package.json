@@ -58,6 +58,7 @@
     "mongoose-autopopulate": "^0.9.1",
     "mongoose-lean-virtuals": "^0.5.0",
     "nodemailer": "^4.6.7",
+    "pizzip": "^3.0.6",
     "puppeteer": "^1.14.0",
     "qs": "^6.7.0",
     "randomatic": "^3.0.0",
