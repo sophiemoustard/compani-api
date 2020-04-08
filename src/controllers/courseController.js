@@ -85,6 +85,19 @@ const removeTrainee = async (req) => {
   }
 };
 
+const downloadAttendanceSheets = async (req, h) => {
+  try {
+    const { zipPath, zipName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
+
+    return h.file(zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${zipName}`)
+      .type('application/zip');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -92,4 +105,5 @@ module.exports = {
   update,
   addTrainee,
   removeTrainee,
+  downloadAttendanceSheets,
 };

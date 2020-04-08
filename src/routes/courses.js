@@ -2,9 +2,17 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addTrainee, removeTrainee } = require('../controllers/courseController');
+const {
+  list,
+  create,
+  getById,
+  update,
+  addTrainee,
+  removeTrainee,
+  downloadAttendanceSheets,
+} = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee } = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -40,6 +48,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
         auth: false,
       },
       handler: getById,
@@ -56,6 +65,7 @@ exports.plugin = {
             trainer: Joi.objectId(),
           }),
         },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -89,6 +99,16 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: removeTrainee,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/attendancesheets',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: downloadAttendanceSheets,
     });
   },
 };
