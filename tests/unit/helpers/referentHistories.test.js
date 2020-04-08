@@ -69,7 +69,7 @@ describe('updateCustomerReferent', () => {
     });
   });
   describe('previous history with endDate before yesterday', () => {
-    it('Case 3 : no referent in payload', async () => {
+    it('Case 1 : no referent in payload', async () => {
       const lastHistory = { endDate: moment().subtract(1, 'month').toDate() };
       ReferentHistoryMock.expects('find')
         .withExactArgs({ customer: customerId, company: company._id })
@@ -89,7 +89,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 4 : referent in payload', async () => {
+    it('Case 2 : referent in payload', async () => {
       const referent = new ObjectID();
       const lastHistory = { endDate: moment().subtract(1, 'month').toDate() };
       ReferentHistoryMock.expects('find')
@@ -112,7 +112,7 @@ describe('updateCustomerReferent', () => {
     });
   });
   describe('previous history ends yesterday', () => {
-    it('Case 5 : no referent in payload', async () => {
+    it('Case 1 : no referent in payload', async () => {
       const lastHistory = { endDate: moment().subtract(1, 'd').endOf('d').toDate() };
       ReferentHistoryMock.expects('find')
         .withExactArgs({ customer: customerId, company: company._id })
@@ -132,7 +132,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 6 : same referent between payload and last history', async () => {
+    it('Case 2 : same referent between payload and last history', async () => {
       const referent = new ObjectID();
       const lastHistory = { endDate: moment().subtract(1, 'd').endOf('d').toDate(), auxiliary: { _id: referent } };
       ReferentHistoryMock.expects('find')
@@ -153,7 +153,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 7 : referent in payload', async () => {
+    it('Case 3 : referent in payload', async () => {
       const referent = new ObjectID();
       const lastHistory = {
         endDate: moment().subtract(1, 'd').endOf('d').toDate(),
@@ -179,7 +179,7 @@ describe('updateCustomerReferent', () => {
     });
   });
   describe('previous history has no end date or end after yesterday', () => {
-    it('Case 8 : no referent and previous history starts today', async () => {
+    it('Case 1 : no referent and previous history starts today', async () => {
       const lastHistory = { startDate: moment().startOf('d').toDate(), _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
         .withExactArgs({ customer: customerId, company: company._id })
@@ -205,7 +205,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 9 : no referent and customer doesn\'t have first intervention', async () => {
+    it('Case 2 : no referent and customer doesn\'t have first intervention', async () => {
       const lastHistory = { startDate: moment().subtract(1, 'month').startOf('d').toDate(), _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
         .withExactArgs({ customer: customerId, company: company._id })
@@ -231,7 +231,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 10 : no referent', async () => {
+    it('Case 3 : no referent', async () => {
       const lastHistory = { startDate: moment().subtract(1, 'month').startOf('d').toDate(), _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
         .withExactArgs({ customer: customerId, company: company._id })
@@ -261,7 +261,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 11 : same referent', async () => {
+    it('Case 4 : same referent', async () => {
       const referent = new ObjectID();
       const lastHistory = { auxiliary: { _id: referent }, _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
@@ -288,7 +288,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 12 : customer doesn\'t have first intervention', async () => {
+    it('Case 5 : customer doesn\'t have first intervention', async () => {
       const referent = new ObjectID();
       const lastHistory = { auxiliary: { _id: new ObjectID() }, _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
@@ -319,7 +319,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 13 : previous history starts on same day', async () => {
+    it('Case 6 : previous history starts on same day', async () => {
       const referent = new ObjectID();
       const lastHistory = {
         startDate: moment().startOf('d').toDate(),
@@ -350,7 +350,7 @@ describe('updateCustomerReferent', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 14 : different startDate and different auxiliary', async () => {
+    it('Case 7 : different startDate and different auxiliary', async () => {
       const referent = new ObjectID();
       const lastHistory = { auxiliary: { _id: new ObjectID() }, _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
