@@ -7,7 +7,7 @@ const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories'
 
 require('sinon-mongoose');
 
-describe('', () => {
+describe('updateCustomerReferent', () => {
   let CustomerMock;
   let ReferentHistoryMock;
   let createReferentHistory;
@@ -39,6 +39,7 @@ describe('', () => {
         .once()
         .returns([]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, null, company);
       sinon.assert.notCalled(updateLastHistory);
@@ -58,6 +59,7 @@ describe('', () => {
         .once()
         .returns([]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.notCalled(updateLastHistory);
@@ -79,6 +81,7 @@ describe('', () => {
         .once()
         .returns([lastHistory]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, null, company);
       sinon.assert.notCalled(updateLastHistory);
@@ -99,6 +102,7 @@ describe('', () => {
         .once()
         .returns([lastHistory]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.notCalled(updateLastHistory);
@@ -120,6 +124,7 @@ describe('', () => {
         .once()
         .returns([lastHistory]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, null, company);
       sinon.assert.notCalled(updateLastHistory);
@@ -140,6 +145,7 @@ describe('', () => {
         .once()
         .returns([lastHistory]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.calledOnceWithExactly(updateLastHistory, lastHistory, { $unset: { endDate: '' } });
@@ -163,6 +169,7 @@ describe('', () => {
         .once()
         .returns([lastHistory]);
       CustomerMock.expects('findOne').never();
+      ReferentHistoryMock.expects('deleteOne').never();
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.notCalled(updateLastHistory);
@@ -312,7 +319,38 @@ describe('', () => {
       CustomerMock.verify();
       ReferentHistoryMock.verify();
     });
-    it('Case 13 : previous history starts today', async () => {
+    it('Case 13 : previous history starts on same day', async () => {
+      const referent = new ObjectID();
+      const lastHistory = {
+        startDate: moment().startOf('d').toDate(),
+        _id: new ObjectID(),
+        auxiliary: { _id: new ObjectID() },
+      };
+      ReferentHistoryMock.expects('find')
+        .withExactArgs({ customer: customerId, company: company._id })
+        .chain('sort')
+        .withExactArgs({ startDate: -1 })
+        .chain('limit')
+        .withExactArgs(1)
+        .chain('lean')
+        .once()
+        .returns([lastHistory]);
+      CustomerMock.expects('findOne')
+        .withExactArgs({ _id: customerId })
+        .chain('populate')
+        .withExactArgs({ path: 'firstIntervention', select: 'startDate', match: { company: company._id } })
+        .chain('lean')
+        .once()
+        .returns({ firstIntervention: { startDate: moment().toDate() } });
+      ReferentHistoryMock.expects('deleteOne').never();
+
+      await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
+      sinon.assert.calledOnceWithExactly(updateLastHistory, lastHistory, { auxiliary: referent.toHexString() });
+      sinon.assert.notCalled(createReferentHistory);
+      CustomerMock.verify();
+      ReferentHistoryMock.verify();
+    });
+    it('Case 14 : different startDate and different auxiliary', async () => {
       const referent = new ObjectID();
       const lastHistory = { auxiliary: { _id: new ObjectID() }, _id: new ObjectID() };
       ReferentHistoryMock.expects('find')
