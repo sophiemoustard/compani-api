@@ -24,22 +24,5 @@ exports.plugin = {
       },
       handler: send,
     });
-    server.route({
-      method: 'POST',
-      path: '/compani',
-      options: {
-        auth: { scope: ['sms:compani:send'] },
-        validate: {
-          payload: Joi.object().keys({
-            to: Joi.string().required(),
-            body: Joi.string().required(),
-          }).required(),
-        },
-        pre: [
-          { method: authorizeSendSmsFromCompani },
-        ],
-      },
-      handler: sendCompaniSMS,
-    });
   },
 };

@@ -14,10 +14,3 @@ exports.authorizeSendSms = async (req) => {
 
   return null;
 };
-
-exports.authorizeSendSmsFromCompani = async (req) => {
-  const user = await User.findOne({ 'contact.phone': `0${req.payload.to.substring(3)}` }).lean();
-  if (!user) throw Boom.notFound(translate[language].userNotFound);
-
-  return null;
-};

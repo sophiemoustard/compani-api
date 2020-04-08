@@ -18,18 +18,4 @@ const send = async (req) => {
   }
 };
 
-const sendCompaniSMS = async (req) => {
-  try {
-    const sms = await TwilioHelper.sendCompaniSMS(req.payload.to, req.payload.body);
-
-    return {
-      message: translate[language].smsSent,
-      data: { sms },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-module.exports = { send, sendCompaniSMS };
+module.exports = { send };

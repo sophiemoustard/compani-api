@@ -60,6 +60,20 @@ const update = async (req) => {
   }
 };
 
+const sendSMS = async (req) => {
+  try {
+    const smsNotSent = await CoursesHelper.sendSMS(req.params._id, req.payload);
+
+    return {
+      message: smsNotSent.length ? translate[language].smsNotSent : translate[language].smsSent,
+      data: { smsNotSent },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const addTrainee = async (req) => {
   try {
     const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
@@ -106,4 +120,5 @@ module.exports = {
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,
+  sendSMS,
 };

@@ -2,8 +2,10 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
+const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const CourseHelper = require('../../../src/helpers/courses');
+const TwilioHelper = require('../../../src/helpers/twilio');
 const UsersHelper = require('../../../src/helpers/users');
 const { AUXILIARY } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
@@ -100,6 +102,87 @@ describe('updateCourse', () => {
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.name).toEqual(payload.name);
+  });
+});
+
+describe('sendSMS', () => {
+  const courseId = new ObjectID();
+  const traineesId = [new ObjectID(), new ObjectID()];
+  const trainees = [
+    { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' } },
+    { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
+  ];
+  const payload = { body: 'Ceci est un test.' };
+
+  let CourseMock;
+  let UserMock;
+  let sendStub;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    UserMock = sinon.mock(User);
+    sendStub = sinon.stub(TwilioHelper, 'send');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    UserMock.restore();
+    sendStub.restore();
+  });
+
+  it('should sens SMS to trainees', async () => {
+    CourseMock.expects('findById')
+      .withExactArgs(courseId)
+      .chain('lean')
+      .returns({ trainees: traineesId });
+
+    UserMock.expects('find')
+      .withExactArgs({ _id: { $in: traineesId } })
+      .chain('lean')
+      .returns(trainees);
+
+    sendStub.returns();
+
+    const result = await CourseHelper.sendSMS(courseId, payload);
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWith(
+      sendStub.getCall(0),
+      { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+    );
+    sinon.assert.calledWithExactly(
+      sendStub.getCall(1),
+      { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+    );
+    CourseMock.verify();
+    UserMock.verify();
+  });
+
+  it('should return identity of trainee for which there was a problem', async () => {
+    CourseMock.expects('findById')
+      .withExactArgs(courseId)
+      .chain('lean')
+      .returns({ trainees: traineesId });
+
+    UserMock.expects('find')
+      .withExactArgs({ _id: { $in: traineesId } })
+      .chain('lean')
+      .returns(trainees);
+
+    sendStub.onCall(0).throws('erreur');
+    sendStub.onCall(1).returns();
+
+    const result = await CourseHelper.sendSMS(courseId, payload);
+
+    expect(result).toEqual([trainees[0].identity]);
+    sinon.assert.calledWithExactly(
+      sendStub.getCall(0),
+      { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+    );
+    sinon.assert.calledWithExactly(
+      sendStub.getCall(1),
+      { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+    );
+    CourseMock.verify();
+    UserMock.verify();
   });
 });
 
