@@ -151,7 +151,7 @@ exports.formatFile = (billSlip, billList, creditNoteList, company) => {
       company: {
         ...pick(company, ['iban', 'bic', 'rcs', 'logo']),
         address: get(company, 'address.fullAddress') || '',
-        email: 'support@alenvi.io',
+        email: company.billingAssistance || '',
         website: 'www.alenvi.io',
       },
       period: {
