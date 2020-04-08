@@ -26,7 +26,7 @@ describe('generateZip', () => {
   it('should generate an empty zip', async () => {
     const outputPath = path.join(os.tmpdir(), 'toto.zip');
 
-    ZipHelper.generateZip([], 'toto.zip');
+    ZipHelper.generateZip('toto.zip', []);
     setTimeout(async () => {
       writable.emit('data', 'Ceci');
       writable.emit('data', 'est');
@@ -44,7 +44,7 @@ describe('generateZip', () => {
     const outputPath = path.join(os.tmpdir(), 'toto.zip');
     const files = [{ name: 'hello.txt', file: 'Hello world\n' }, { name: 'bye.txt', file: 'Bye world\n' }];
 
-    ZipHelper.generateZip(files, 'toto.zip');
+    ZipHelper.generateZip('toto.zip', files);
     setTimeout(async () => {
       writable.emit('data', 'Ceci');
       writable.emit('data', 'est');

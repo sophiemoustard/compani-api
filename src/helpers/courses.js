@@ -50,5 +50,5 @@ exports.generateAttendanceSheets = async (courseId) => {
     fileList.push({ name: `${UtilsHelper.formatIdentity(trainee.identity, 'FL')}.pdf`, file });
   }
 
-  return ZipHelper.generateZip(fileList, 'emargement.zip');
+  return ZipHelper.generateZip('emargement.zip', fileList);
 };
