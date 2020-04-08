@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const CoursesHelper = require('../helpers/courses');
+const ZipHelper = require('../helpers/zip');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -85,6 +86,19 @@ const removeTrainee = async (req) => {
   }
 };
 
+const downloadAttendanceSheets = async (req, h) => {
+  try {
+    const path = await ZipHelper.generateZip();
+
+    return h.file(path, { confine: false })
+      .header('content-disposition', 'attachment; filename=toto.zip')
+      .type('application/zip');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -92,4 +106,5 @@ module.exports = {
   update,
   addTrainee,
   removeTrainee,
+  downloadAttendanceSheets,
 };
