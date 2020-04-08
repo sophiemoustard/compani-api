@@ -6,3 +6,5 @@ exports.sendMessage = async (to, body, credentials) => {
 
   return twilio.messages.create({ to, from: company.tradeName, body });
 };
+
+exports.sendCompaniSMS = async (to, body) => twilio.messages.create({ to, from: 'Compani', body });
