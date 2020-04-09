@@ -267,6 +267,7 @@ exports.plugin = {
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
             status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
+            biography: Joi.string().allow(''),
           }).required(),
         },
         pre: [
