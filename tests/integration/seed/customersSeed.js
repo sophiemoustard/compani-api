@@ -25,8 +25,10 @@ const otherCompanyCustomerId = new ObjectID();
 const referent = {
   _id: new ObjectID(),
   identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+  contact: { phone: '0987654321' },
   local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
+  picture: { publicId: '1234', link: 'test' },
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   company: authCompany._id,
 };
@@ -70,6 +72,7 @@ const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
     company: authCompany._id,
+    referent: referent._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',

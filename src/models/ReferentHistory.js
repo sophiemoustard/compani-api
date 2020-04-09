@@ -6,7 +6,7 @@ const ReferentHistorySchema = mongoose.Schema({
   auxiliary: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    autopopulate: { select: '_id identity picture' },
+    autopopulate: { select: '_id identity picture contact' },
     required: true,
   },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
