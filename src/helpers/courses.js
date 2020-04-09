@@ -1,7 +1,6 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
-const User = require('../models/User');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -24,11 +23,12 @@ exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: payload }).lean();
 
 exports.sendSMS = async (courseId, payload) => {
-  const course = await Course.findById(courseId).lean();
-  const trainees = await User.find({ _id: { $in: course.trainees } }).lean();
-  const traineesWithPhoneNumber = trainees.filter(trainee => get(trainee, 'contact.phone'));
+  const course = await Course.findById(courseId)
+    .populate({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+    .lean();
+
   const promises = [];
-  for (const trainee of traineesWithPhoneNumber) {
+  for (const trainee of course.trainees) {
     promises.push(TwilioHelper.send({
       to: `+33${trainee.contact.phone.substring(1)}`,
       from: 'Compani',

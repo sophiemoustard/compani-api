@@ -39,7 +39,7 @@ describe('TWILIO ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sms).toBe('SMS SENT !');
-      sinon.assert.calledWith(
+      sinon.assert.calledWithExactly(
         TwilioHelperStub,
         payload.to,
         payload.body,
@@ -57,9 +57,10 @@ describe('TWILIO ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(TwilioHelperStub);
     });
 
-    it('should throw error id phone does not exist', async () => {
+    it('should throw error if phone does not exist', async () => {
       const payload = { to: '+33676543243', body: 'Ceci est un test' };
       const response = await app.inject({
         method: 'POST',
@@ -69,6 +70,7 @@ describe('TWILIO ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(404);
+      sinon.assert.notCalled(TwilioHelperStub);
     });
 
     const missingParams = [{ path: 'to' }, { path: 'body' }];
@@ -82,6 +84,7 @@ describe('TWILIO ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);
+        sinon.assert.notCalled(TwilioHelperStub);
       });
     });
 

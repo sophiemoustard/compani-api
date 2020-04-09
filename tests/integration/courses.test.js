@@ -284,6 +284,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
       headers: { 'x-access-token': authToken },
     });
     expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(TwilioHelperStub);
   });
 
   const roles = [
