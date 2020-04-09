@@ -141,39 +141,9 @@ describe('sendSMS', () => {
 
     sendStub.returns();
 
-    const result = await CourseHelper.sendSMS(courseId, payload);
+    await CourseHelper.sendSMS(courseId, payload);
 
-    expect(result).toEqual([]);
     sinon.assert.calledWith(
-      sendStub.getCall(0),
-      { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
-    );
-    sinon.assert.calledWithExactly(
-      sendStub.getCall(1),
-      { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
-    );
-    CourseMock.verify();
-    UserMock.verify();
-  });
-
-  it('should return identity of trainee for which there was a problem', async () => {
-    CourseMock.expects('findById')
-      .withExactArgs(courseId)
-      .chain('lean')
-      .returns({ trainees: traineesId });
-
-    UserMock.expects('find')
-      .withExactArgs({ _id: { $in: traineesId } })
-      .chain('lean')
-      .returns(trainees);
-
-    sendStub.onCall(0).throws('erreur');
-    sendStub.onCall(1).returns();
-
-    const result = await CourseHelper.sendSMS(courseId, payload);
-
-    expect(result).toEqual([trainees[0].identity]);
-    sinon.assert.calledWithExactly(
       sendStub.getCall(0),
       { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
     );

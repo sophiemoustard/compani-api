@@ -275,25 +275,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
     );
   });
 
-  it('should return identity of trainee for which there was a problem', async () => {
-    const payload = { body: 'Ceci est un test' };
-    TwilioHelperStub.throws('erreur');
-    const response = await app.inject({
-      method: 'POST',
-      url: `/courses/${coursesList[2]._id}/sms`,
-      payload,
-      headers: { 'x-access-token': authToken },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.message).toBe('SMS non envoyé.');
-    expect(response.result.data.smsNotSent[0]).toEqual(trainee.identity);
-    sinon.assert.calledWithExactly(
-      TwilioHelperStub,
-      { to: `+33${trainee.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
-    );
-  });
-
   it('should return a 400 error if missing body parameter', async () => {
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
