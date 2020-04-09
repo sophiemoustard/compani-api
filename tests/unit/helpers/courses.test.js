@@ -7,6 +7,9 @@ const Role = require('../../../src/models/Role');
 const CourseHelper = require('../../../src/helpers/courses');
 const TwilioHelper = require('../../../src/helpers/twilio');
 const UsersHelper = require('../../../src/helpers/users');
+const UtilsHelper = require('../../../src/helpers/utils');
+const PdfHelper = require('../../../src/helpers/pdf');
+const ZipHelper = require('../../../src/helpers/zip');
 const { AUXILIARY } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
@@ -227,3 +230,182 @@ describe('removeCourseTrainee', () => {
   });
 });
 
+describe('formatCourseSlotsForPdf', () => {
+  it('should format slot for pdf', () => {
+    const slot = {
+      startDate: '2020-03-20T09:00:00',
+      endDate: '2020-03-20T11:00:00',
+      address: { fullAddress: 'je suis une adress' },
+    };
+
+    const result = CourseHelper.formatCourseSlotsForPdf(slot);
+
+    expect(result).toEqual({
+      address: 'je suis une adress',
+      date: '20/03/2020',
+      startHour: '09:00',
+      endHour: '11:00',
+      duration: '2h',
+    });
+  });
+});
+
+describe('getCourseDuration', () => {
+  it('should return course duration with minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+    ];
+
+    const result = CourseHelper.getCourseDuration(slots);
+
+    expect(result).toEqual('4h30');
+  });
+  it('should return course duration without minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
+    ];
+
+    const result = CourseHelper.getCourseDuration(slots);
+
+    expect(result).toEqual('4h');
+  });
+});
+
+describe('formatCourseForPdf', () => {
+  let formatIdentity;
+  let getCourseDuration;
+  let formatCourseSlotsForPdf;
+  beforeEach(() => {
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    formatCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatCourseSlotsForPdf');
+  });
+  afterEach(() => {
+    formatIdentity.restore();
+    getCourseDuration.restore();
+    formatCourseSlotsForPdf.restore();
+  });
+
+  it('should format course for pdf', () => {
+    const course = {
+      slots: [
+        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      ],
+      name: 'Bonjour je suis une formation',
+      trainer: { identity: { lastname: 'MasterClass' } },
+      companies: [{ tradeName: 'Pfiou' }],
+    };
+    const sortedSlots = [
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+    ];
+    formatCourseSlotsForPdf.returns('slot');
+    formatIdentity.returns('Pere Castor');
+    getCourseDuration.returns('7h');
+
+    const result = CourseHelper.formatCourseForPdf(course);
+
+    expect(result).toEqual({
+      name: 'Bonjour je suis une formation',
+      company: 'Pfiou',
+      slots: ['slot', 'slot', 'slot'],
+      trainer: 'Pere Castor',
+      firstDate: '20/03/2020',
+      lastDate: '21/04/2020',
+      duration: '7h',
+    });
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledOnceWithExactly(getCourseDuration, sortedSlots);
+    sinon.assert.callCount(formatCourseSlotsForPdf, 3);
+  });
+});
+
+describe('generateAttendanceSheets', () => {
+  let CourseMock;
+  let formatCourseForPdf;
+  let formatIdentity;
+  let generatePdf;
+  let generateZip;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatCourseForPdf = sinon.stub(CourseHelper, 'formatCourseForPdf');
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    generateZip = sinon.stub(ZipHelper, 'generateZip');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatCourseForPdf.restore();
+    formatIdentity.restore();
+    generatePdf.restore();
+    generateZip.restore();
+  });
+
+  it('should download attendance sheet', async () => {
+    const courseId = new ObjectID();
+    const course = {
+      trainees: [
+        { identity: { lastname: 'trainee 1' } },
+        { identity: { lastname: 'trainee 2' } },
+        { identity: { lastname: 'trainee 3' } },
+      ],
+      name: 'Bonjour je suis une formation',
+    };
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('populate')
+      .withExactArgs('companies')
+      .chain('populate')
+      .withExactArgs('program')
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainees')
+      .chain('populate')
+      .withExactArgs('trainer')
+      .chain('lean')
+      .once()
+      .returns(course);
+    formatCourseForPdf.returns({ name: 'Bonjour je suis une formation' });
+    generatePdf.returns('pdf');
+    formatIdentity.onCall(0).returns('trainee 1');
+    formatIdentity.onCall(1).returns('trainee 2');
+    formatIdentity.onCall(2).returns('trainee 3');
+
+    await CourseHelper.generateAttendanceSheets(courseId);
+
+    sinon.assert.calledOnceWithExactly(formatCourseForPdf, course);
+    sinon.assert.calledWith(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
+    sinon.assert.calledWith(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
+    sinon.assert.calledWith(formatIdentity.getCall(2), { lastname: 'trainee 3' }, 'FL');
+    sinon.assert.calledWithExactly(
+      generatePdf.getCall(0),
+      { name: 'Bonjour je suis une formation', trainee: 'trainee 1' },
+      './src/data/attendanceSheet.html'
+    );
+    sinon.assert.calledWithExactly(
+      generatePdf.getCall(1),
+      { name: 'Bonjour je suis une formation', trainee: 'trainee 2' },
+      './src/data/attendanceSheet.html'
+    );
+    sinon.assert.calledWithExactly(
+      generatePdf.getCall(2),
+      { name: 'Bonjour je suis une formation', trainee: 'trainee 3' },
+      './src/data/attendanceSheet.html'
+    );
+    sinon.assert.calledOnceWithExactly(
+      generateZip,
+      'emargement.zip',
+      [
+        { name: 'trainee 1.pdf', file: 'pdf' },
+        { name: 'trainee 2.pdf', file: 'pdf' },
+        { name: 'trainee 3.pdf', file: 'pdf' }
+      ]
+    );
+  });
+});
