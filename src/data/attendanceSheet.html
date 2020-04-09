@@ -33,8 +33,9 @@
     flex-direction: row;
     justify-content: space-between;
     background-color: rgb(242, 148, 0, 0.1);
-    padding: 20px;
+    padding: 15px 20px;
     position: relative;
+    line-height: 22px;
   }
   .decision {
     width: 100px;
@@ -59,6 +60,7 @@
     padding: 5px;
     vertical-align: top;
     font-size: 14px;
+    height: 60px;
   }
   .signature {
     font-weight: 700;
@@ -69,17 +71,17 @@
   <div class="header margin-bottom">
     <img class="conscience"
       src="https://res.cloudinary.com/alenvi/image/upload/v1586426405/images/business/Compani/aux-conscience-eclairee.png">
-    <div class="title"><h4>Prenom Nom</h4></div>
+    <div class="title"><h4>{{ trainee }}</h4></div>
     <img class="logo"
       src="https://res.cloudinary.com/alenvi/image/upload/v1539605431/images/business/Compani/compani_logo_1L_RVB_S.png">
   </div>
   <div class="course-info margin-bottom">
     <div>
-      <div style="font-weight: bold">Nom de la formation : </div>
-      <div>Dates de la formation : </div>
-      <div>Durée : </div>
-      <div>Structure : </div>
-      <div>Formateur : </div>
+      <div style="font-weight: bold">Nom de la formation : {{ name }}</div>
+      <div>Dates de la formation : du {{ firstDate }} au {{ lastDate }}</div>
+      <div>Durée : {{ duration }}</div>
+      <div>Structure : {{ company }}</div>
+      <div>Formateur : {{ trainer }}</div>
     </div>
     <img class="decision"
       src="https://res.cloudinary.com/alenvi/image/upload/v1586426335/images/business/Compani/aux-prisededecision.png">
@@ -95,18 +97,20 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>
-            <div>Creneau 1</div>
-            <div>Lieu</div>
-          </td>
-          <td align="center">
-            <div>2h</div>
-            <div>10h a 12h</div>
-          </td>
-          <td></td>
-          <td></td>
-        </tr>
+        {{#table slots}}
+          <tr>
+            <td style="max-width: 150px">
+              <div>{{ date }}</div>
+              <div>{{ address }}</div>
+            </td>
+            <td align="center">
+              <div>{{ duration }}</div>
+              <div>{{ startHour }} - {{ endHour }}</div>
+            </td>
+            <td></td>
+            <td></td>
+          </tr>
+        {{/table}}
       </tbody>
     </table>
   </div>

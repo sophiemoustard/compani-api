@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const moment = require('moment');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
 const UsersHelper = require('./users');
@@ -54,18 +55,60 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
 
+exports.formatCourseSlotsForPdf = (slot) => {
+  const duration = moment.duration(moment(slot.endDate).diff(slot.startDate));
+
+  return {
+    address: get(slot, 'address.fullAddress') || null,
+    date: moment(slot.startDate).format('DD/MM/YYYY'),
+    startHour: moment(slot.startDate).format('HH:mm'),
+    endHour: moment(slot.endDate).format('HH:mm'),
+    duration: duration.minutes() ? `${duration.hours()}h${duration.minutes()}` : `${duration.hours()}h`,
+  };
+};
+
+exports.getCourseDuration = (slots) => {
+  const duration = slots.reduce(
+    (acc, slot) => acc.add(moment.duration(moment(slot.endDate).diff(slot.startDate))),
+    moment.duration()
+  );
+
+  return duration.minutes() ? `${duration.hours()}h${duration.minutes()}` : `${duration.hours()}h`;
+};
+
+exports.formatCourseForPdf = (course) => {
+  const slots = [...course.slots].sort((a, b) => new Date(a) - new Date(b));
+  const formattedCourseSlots = slots.map(exports.formatCourseSlotsForPdf);
+
+  return {
+    name: course.name,
+    company: course.companies[0].name,
+    slots: formattedCourseSlots,
+    trainer: UtilsHelper.formatIdentity(course.trainer.identity, 'FL'),
+    firstDate: moment(slots[0].startDate).format('DD/MM/YYYY'),
+    lastDate: moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY'),
+    duration: exports.getCourseDuration(slots),
+  };
+};
+
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('companies')
     .populate('program')
     .populate('slots')
     .populate('trainees')
+    .populate('trainer')
     .lean();
 
+  const courseData = exports.formatCourseForPdf(course);
   const fileList = [];
   for (const trainee of course.trainees) {
-    const file = await PdfHelper.generatePdf({}, './src/data/attendanceSheet.html');
-    fileList.push({ name: `${UtilsHelper.formatIdentity(trainee.identity, 'FL')}.pdf`, file });
+    const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+    const file = await PdfHelper.generatePdf(
+      { ...courseData, trainee: traineeIdentity },
+      './src/data/attendanceSheet.html'
+    );
+    fileList.push({ name: `${traineeIdentity}.pdf`, file });
   }
 
   return ZipHelper.generateZip('emargement.zip', fileList);
