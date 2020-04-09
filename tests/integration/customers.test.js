@@ -473,6 +473,11 @@ describe('CUSTOMERS ROUTES', () => {
           },
         ],
         subscriptionsAccepted: true,
+        referent: {
+          identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+          contact: { phone: '0987654321' },
+          picture: { publicId: '1234', link: 'test' },
+        },
       });
     });
 
