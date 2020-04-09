@@ -107,7 +107,6 @@ describe('updateCourse', () => {
 
 describe('sendSMS', () => {
   const courseId = new ObjectID();
-  const traineesId = [new ObjectID(), new ObjectID()];
   const trainees = [
     { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' } },
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
@@ -131,13 +130,10 @@ describe('sendSMS', () => {
   it('should sens SMS to trainees', async () => {
     CourseMock.expects('findById')
       .withExactArgs(courseId)
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
       .chain('lean')
-      .returns({ trainees: traineesId });
-
-    UserMock.expects('find')
-      .withExactArgs({ _id: { $in: traineesId } })
-      .chain('lean')
-      .returns(trainees);
+      .returns({ trainees });
 
     sendStub.returns();
 
