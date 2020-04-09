@@ -310,6 +310,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
       expect(res.result.data.customers.length).toEqual(1);
       expect(res.result.data.customers[0].subscriptions).toHaveLength(2);
+      expect(res.result.data.customers[0].referentHistories).toHaveLength(2);
     });
 
     describe('Other roles', () => {
@@ -363,6 +364,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customers[0].subscriptions).toBeDefined();
       expect(res.result.data.customers[0].subscriptions
         .some(sub => sub.service.type === 'contract_with_customer')).toBeTruthy();
+      expect(res.result.data.customers[0].referentHistories).toHaveLength(2);
     });
 
     describe('Other roles', () => {

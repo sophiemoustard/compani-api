@@ -22,16 +22,26 @@ const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = re
 const subId = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
 
-const referent = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-  contact: { phone: '0987654321' },
-  local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  picture: { publicId: '1234', link: 'test' },
-  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
-  company: authCompany._id,
-};
+const referentList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+    local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
+    contact: { phone: '0987654321' },
+    picture: { publicId: '1234', link: 'test' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Referent2', lastname: 'Test', title: 'mr' },
+    local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    company: authCompany._id,
+  },
+];
 
 const customerServiceList = [
   {
@@ -72,7 +82,7 @@ const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
     company: authCompany._id,
-    referent: referent._id,
+    referent: referentList[0]._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',
@@ -266,10 +276,16 @@ const customersList = [
   },
 ];
 
-const referentList = [
+const referentHistories = [
   {
     customer: customersList[0]._id,
-    auxiliary: referent._id,
+    auxiliary: referentList[0]._id,
+    company: customersList[0].company,
+    startDate: '2020-05-13T00:00:00',
+  },
+  {
+    customer: customersList[0]._id,
+    auxiliary: referentList[1]._id,
     company: customersList[0].company,
     startDate: '2019-05-13T00:00:00',
   },
@@ -548,11 +564,13 @@ const populateDB = async () => {
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
-  await ReferentHistory.insertMany(referentList);
+  await ReferentHistory.insertMany(referentHistories);
   for (const user of userList) {
     await (new User(user).save());
   }
-  await new User(referent).save();
+  for (const user of referentList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
