@@ -74,7 +74,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/send-sms',
+      path: '/{_id}/sms',
       options: {
         auth: { scope: ['courses:edit'] },
         validate: {

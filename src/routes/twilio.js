@@ -1,8 +1,8 @@
 'use strict';
 
 const Joi = require('@hapi/joi');
-const { send, sendCompaniSMS } = require('../controllers/twilioController');
-const { authorizeSendSms, authorizeSendSmsFromCompani } = require('./preHandlers/twilio');
+const { send } = require('../controllers/twilioController');
+const { authorizeSendSms } = require('./preHandlers/twilio');
 
 exports.plugin = {
   name: 'routes-twilio',

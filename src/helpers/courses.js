@@ -27,17 +27,15 @@ exports.sendSMS = async (courseId, payload) => {
   const course = await Course.findById(courseId).lean();
   const trainees = await User.find({ _id: { $in: course.trainees } }).lean();
   const traineesWithPhoneNumber = trainees.filter(trainee => get(trainee, 'contact.phone'));
-
-  const smsNotSent = [];
+  const promises = [];
   for (const trainee of traineesWithPhoneNumber) {
-    try {
-      await TwilioHelper.send({ to: `+33${trainee.contact.phone.substring(1)}`, from: 'Compani', body: payload.body });
-    } catch (e) {
-      console.log(e);
-      smsNotSent.push(trainee.identity);
-    }
+    promises.push(TwilioHelper.send({
+      to: `+33${trainee.contact.phone.substring(1)}`,
+      from: 'Compani',
+      body: payload.body,
+    }));
   }
-  return smsNotSent;
+  await Promise.all(promises);
 };
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {

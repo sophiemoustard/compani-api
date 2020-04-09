@@ -62,12 +62,9 @@ const update = async (req) => {
 
 const sendSMS = async (req) => {
   try {
-    const smsNotSent = await CoursesHelper.sendSMS(req.params._id, req.payload);
+    await CoursesHelper.sendSMS(req.params._id, req.payload);
 
-    return {
-      message: smsNotSent.length ? translate[language].smsNotSent : translate[language].smsSent,
-      data: { smsNotSent },
-    };
+    return { message: translate[language].smsSent };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

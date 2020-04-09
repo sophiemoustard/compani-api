@@ -51,7 +51,6 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
   { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
   { _id: new ObjectID(), description: 'Envoyer un sms', permission: 'sms:send' },
-  { _id: new ObjectID(), description: 'Envoyer un sms de l\'entreprise Compani', permission: 'sms:compani:send' },
 ];
 const vendorAdminRights = [
   'companies:create',
@@ -63,7 +62,6 @@ const vendorAdminRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
-  'sms:compani:send',
 ];
 const trainingOrganisationManagerRights = [
   'companies:create',
@@ -75,7 +73,6 @@ const trainingOrganisationManagerRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
-  'sms:compani:send',
 ];
 const clientAdminRights = [
   'config:edit',

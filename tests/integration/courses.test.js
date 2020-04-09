@@ -244,7 +244,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
   });
 });
 
-describe('COURSES ROUTES - PUT /courses/{_id}/send-sms', () => {
+describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
   let authToken;
   let TwilioHelperStub;
   beforeEach(populateDB);
@@ -262,7 +262,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/send-sms', () => {
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/send-sms`,
+      url: `/courses/${coursesList[2]._id}/sms`,
       payload,
       headers: { 'x-access-token': authToken },
     });
@@ -280,7 +280,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/send-sms', () => {
     TwilioHelperStub.throws('erreur');
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/send-sms`,
+      url: `/courses/${coursesList[2]._id}/sms`,
       payload,
       headers: { 'x-access-token': authToken },
     });
@@ -298,7 +298,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/send-sms', () => {
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/send-sms`,
+      url: `/courses/${coursesList[2]._id}/sms`,
       payload: {},
       headers: { 'x-access-token': authToken },
     });
@@ -321,7 +321,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/send-sms', () => {
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[2]._id}/send-sms`,
+        url: `/courses/${coursesList[2]._id}/sms`,
         headers: { 'x-access-token': authToken },
         payload,
       });
