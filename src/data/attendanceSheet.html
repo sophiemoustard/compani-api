@@ -7,6 +7,108 @@
     size: A4 portrait;
     margin: 1.5cm;
   }
+  .margin-bottom {
+    margin-bottom: 40px;
+  }
+  .header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .logo {
+    width: 200px;
+    height: 40px;
+  }
+  .conscience {
+    width: 100px
+  }
+  .title {
+    display: flex;
+    align-items: center;
+    color: #7B0046;
+    font-size: 20px;
+  }
+  .course-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: rgb(242, 148, 0, 0.1);
+    padding: 20px;
+    position: relative;
+  }
+  .decision {
+    width: 100px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0 30px 10px 0;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  table, th, td {
+    border: 1px solid rgba(0, 0, 0, 0.8);
+  }
+  thead {
+    background-color: #7B0046;
+    color: white;
+    font-weight: bold;
+  }
+  th, td {
+    padding: 5px;
+    vertical-align: top;
+    font-size: 14px;
+  }
+  .signature {
+    font-weight: 700;
+  }
 </style>
 
-<div></div>
+<div class="container">
+  <div class="header margin-bottom">
+    <img class="conscience"
+      src="https://res.cloudinary.com/alenvi/image/upload/v1586426405/images/business/Compani/aux-conscience-eclairee.png">
+    <div class="title"><h4>Prenom Nom</h4></div>
+    <img class="logo"
+      src="https://res.cloudinary.com/alenvi/image/upload/v1539605431/images/business/Compani/compani_logo_1L_RVB_S.png">
+  </div>
+  <div class="course-info margin-bottom">
+    <div>
+      <div style="font-weight: bold">Nom de la formation : </div>
+      <div>Dates de la formation : </div>
+      <div>Durée : </div>
+      <div>Structure : </div>
+      <div>Formateur : </div>
+    </div>
+    <img class="decision"
+      src="https://res.cloudinary.com/alenvi/image/upload/v1586426335/images/business/Compani/aux-prisededecision.png">
+  </div>
+  <div class="margin-bottom">
+    <table>
+      <thead>
+        <tr>
+          <th align="center">Creneaux</th>
+          <th align="center">Durée</th>
+          <th align="center">Signature stagiaire</th>
+          <th align="center">Signature formateur</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div>Creneau 1</div>
+            <div>Lieu</div>
+          </td>
+          <td align="center">
+            <div>2h</div>
+            <div>10h a 12h</div>
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="signature">Signature et tampon de l'organisme de formation :</div>
+</div>
