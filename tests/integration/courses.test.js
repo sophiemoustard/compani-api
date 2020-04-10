@@ -519,3 +519,61 @@ describe('COURSE ROUTES - GET /:_id/attendancesheets', () => {
     });
   });
 });
+
+describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
+  let authToken = null;
+  const courseId = coursesList[2]._id;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseId}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 404 error if course does not exist', async () => {
+      const invalidId = (new ObjectID()).toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${invalidId}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseId}/completion-certificates`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

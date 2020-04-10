@@ -1,15 +1,21 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const fs = require('fs');
+const os = require('os');
+const { PassThrough } = require('stream');
+const { fn: momentProto } = require('moment');
 const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
+const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
 const TwilioHelper = require('../../../src/helpers/twilio');
 const UsersHelper = require('../../../src/helpers/users');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
+const DocxHelper = require('../../../src/helpers/docx');
 const { AUXILIARY } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
@@ -404,8 +410,147 @@ describe('generateAttendanceSheets', () => {
       [
         { name: 'trainee 1.pdf', file: 'pdf' },
         { name: 'trainee 2.pdf', file: 'pdf' },
-        { name: 'trainee 3.pdf', file: 'pdf' }
+        { name: 'trainee 3.pdf', file: 'pdf' },
       ]
     );
+  });
+});
+
+describe('formatCourseForDocx', () => {
+  let getCourseDuration;
+  beforeEach(() => {
+    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+  });
+  afterEach(() => {
+    getCourseDuration.restore();
+  });
+
+  it('should format course for docx', () => {
+    const course = {
+      slots: [
+        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      ],
+      name: 'Bonjour je suis une formation',
+    };
+    getCourseDuration.returns('7h');
+
+    const result = CourseHelper.formatCourseForDocx(course);
+
+    expect(result).toEqual({
+      courseName: 'Bonjour je suis une formation'.toUpperCase(),
+      courseDuration: '7h',
+    });
+    sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
+  });
+});
+
+describe('generateCompletionCertificate', () => {
+  let CourseMock;
+  let formatCourseForDocx;
+  let formatIdentity;
+  let createDocx;
+  let generateZip;
+  let momentFormat;
+  let createReadStream;
+  let downloadFileById;
+  let tmpDir;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatCourseForDocx = sinon.stub(CourseHelper, 'formatCourseForDocx');
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    createDocx = sinon.stub(DocxHelper, 'createDocx');
+    generateZip = sinon.stub(ZipHelper, 'generateZip');
+    momentFormat = sinon.stub(momentProto, 'format').returns('20/01/2020');
+    createReadStream = sinon.stub(fs, 'createReadStream');
+    downloadFileById = sinon.stub(Drive, 'downloadFileById');
+    tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatCourseForDocx.restore();
+    formatIdentity.restore();
+    createDocx.restore();
+    generateZip.restore();
+    momentFormat.restore();
+    createReadStream.restore();
+    downloadFileById.restore();
+    tmpDir.restore();
+  });
+
+  it('should download completion certificates', async () => {
+    const courseId = new ObjectID();
+    const readable1 = new PassThrough();
+    const readable2 = new PassThrough();
+    const readable3 = new PassThrough();
+    const course = {
+      trainees: [
+        { identity: { lastname: 'trainee 1' } },
+        { identity: { lastname: 'trainee 2' } },
+        { identity: { lastname: 'trainee 3' } },
+      ],
+      name: 'Bonjour je suis une formation',
+    };
+    const formattedCourse = { courseName: 'Bonjour je suis une formation', courseDuration: '8h' };
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainees')
+      .chain('lean')
+      .once()
+      .returns(course);
+    formatCourseForDocx.returns(formattedCourse);
+    createDocx.onCall(0).returns('1.docx');
+    createDocx.onCall(1).returns('2.docx');
+    createDocx.onCall(2).returns('3.docx');
+    momentFormat.returns('20/01/2020');
+    formatIdentity.onCall(0).returns('trainee 1');
+    formatIdentity.onCall(1).returns('trainee 2');
+    formatIdentity.onCall(2).returns('trainee 3');
+    createReadStream.onCall(0).returns(readable1);
+    createReadStream.onCall(1).returns(readable2);
+    createReadStream.onCall(2).returns(readable3);
+
+    await CourseHelper.generateCompletionCertificates(courseId);
+
+    sinon.assert.calledOnceWithExactly(formatCourseForDocx, course);
+    sinon.assert.calledWith(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
+    sinon.assert.calledWith(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
+    sinon.assert.calledWith(formatIdentity.getCall(2), { lastname: 'trainee 3' }, 'FL');
+    sinon.assert.calledWithExactly(
+      createDocx.getCall(0),
+      '/path/certificate_template.docx',
+      { ...formattedCourse, traineeIdentity: 'trainee 1', date: '20/01/2020' }
+    );
+    sinon.assert.calledWithExactly(
+      createDocx.getCall(1),
+      '/path/certificate_template.docx',
+      { ...formattedCourse, traineeIdentity: 'trainee 2', date: '20/01/2020' }
+    );
+    sinon.assert.calledWithExactly(
+      createDocx.getCall(2),
+      '/path/certificate_template.docx',
+      { ...formattedCourse, traineeIdentity: 'trainee 3', date: '20/01/2020' }
+    );
+    sinon.assert.calledOnceWithExactly(
+      generateZip,
+      'attestations.zip',
+      [
+        { name: 'trainee 1.docx', file: readable1 },
+        { name: 'trainee 2.docx', file: readable2 },
+        { name: 'trainee 3.docx', file: readable3 },
+      ]
+    );
+    sinon.assert.calledWithExactly(createReadStream.getCall(0), '1.docx');
+    sinon.assert.calledWithExactly(createReadStream.getCall(1), '2.docx');
+    sinon.assert.calledWithExactly(createReadStream.getCall(2), '3.docx');
+    sinon.assert.calledOnceWithExactly(downloadFileById, {
+      fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
+      tmpFilePath: '/path/certificate_template.docx',
+    });
+    CourseMock.verify();
   });
 });

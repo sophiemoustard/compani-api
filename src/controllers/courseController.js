@@ -109,6 +109,19 @@ const downloadAttendanceSheets = async (req, h) => {
   }
 };
 
+const downloadCompletionCertificates = async (req, h) => {
+  try {
+    const { zipPath, zipName } = await CoursesHelper.generateCompletionCertificates(req.params._id);
+
+    return h.file(zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${zipName}`)
+      .type('application/zip');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -117,5 +130,6 @@ module.exports = {
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,
+  downloadCompletionCertificates,
   sendSMS,
 };
