@@ -364,7 +364,20 @@ const referentList = [
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[0]._id,
     company: customersList[0].company,
+    startDate: '2020-01-31T00:00:00',
+  },
+  {
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[0]._id,
+    company: customersList[0].company,
     startDate: '2019-03-12T00:00:00',
+    endDate: '2020-01-30T00:00:00',
+  },
+  {
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[1]._id,
+    company: customersList[1].company,
+    startDate: '2019-06-23T00:00:00',
   },
 ];
 

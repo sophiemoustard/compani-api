@@ -173,6 +173,7 @@ module.exports = {
   SERVICE: 'service',
   SECTOR: 'sector',
   RUP: 'rup',
+  REFERENT: 'referent',
   CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
