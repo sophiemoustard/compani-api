@@ -19,6 +19,7 @@ const {
   CONTRACT,
   SECTOR,
   RUP,
+  REFERENT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -32,7 +33,7 @@ exports.plugin = {
           params: Joi.object({
             type: Joi.string()
               .required()
-              .valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR, RUP),
+              .valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR, RUP, REFERENT),
           }),
         },
         auth: { scope: ['exports:read'] },
