@@ -23,9 +23,8 @@ exports.getBillSlips = async (credentials) => {
     billSlip.netInclTaxes -= creditNote.netInclTaxes;
   }
   for (const creditNote of creditNoteList) {
-    const bill = billSlipList.find(bs =>
-      creditNote.thirdPartyPayer._id.toHexString() === bs.thirdPartyPayer._id.toHexString()
-      && creditNote.month === bs.month);
+    const bill = billSlipList.find(bs => creditNote.month === bs.month &&
+      creditNote.thirdPartyPayer._id.toHexString() === bs.thirdPartyPayer._id.toHexString());
     if (bill) continue;
     billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
   }
