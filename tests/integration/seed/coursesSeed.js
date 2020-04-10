@@ -2,6 +2,7 @@ const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 
@@ -27,6 +28,16 @@ const trainee = {
   inactivityDate: null,
 };
 
+const trainer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'trainer', lastname: 'trainer' },
+  status: 'internal',
+  refreshToken: uuidv4(),
+  local: { email: 'coursetrainer@alenvi.io', password: '123456!eR' },
+  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  company: authCompany._id,
+};
+
 const programsList = [
   { _id: new ObjectID(), name: 'program' },
   { _id: new ObjectID(), name: 'training program' },
@@ -38,6 +49,7 @@ const coursesList = [
     name: 'first session',
     program: programsList[0]._id,
     companies: [authCompany._id],
+    trainer: trainer._id,
     type: 'intra',
   },
   {
@@ -45,6 +57,7 @@ const coursesList = [
     name: 'team formation',
     program: programsList[0]._id,
     companies: [otherCompany._id],
+    trainer: trainer._id,
     type: 'intra',
   },
   {
@@ -52,21 +65,31 @@ const coursesList = [
     name: 'second session',
     program: programsList[0]._id,
     companies: [authCompany._id],
+    trainer: trainer._id,
     type: 'intra',
     trainees: [trainee._id],
   },
+];
+
+const slots = [
+  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[0] },
+  { startDate: '2020-03-20T14:00:00', endDate: '2020-03-20T18:00:00', courseId: coursesList[0] },
+  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[1] },
+  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[2] },
 ];
 
 const populateDB = async () => {
   await Course.deleteMany({});
   await Program.deleteMany({});
   await User.deleteMany({});
+  await CourseSlot.deleteMany({});
 
   await populateDBForAuthentication();
 
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
-  await User.create([auxiliary, trainee]);
+  await CourseSlot.insertMany(slots);
+  await User.create([auxiliary, trainee, trainer]);
 };
 
 module.exports = {

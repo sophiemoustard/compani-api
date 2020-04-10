@@ -77,15 +77,15 @@ exports.getCourseDuration = (slots) => {
 };
 
 exports.formatCourseForPdf = (course) => {
-  const slots = [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+  const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
 
   return {
     name: course.name,
     company: course.companies[0].tradeName,
     slots: slots.map(exports.formatCourseSlotsForPdf),
-    trainer: UtilsHelper.formatIdentity(course.trainer.identity, 'FL'),
-    firstDate: moment(slots[0].startDate).format('DD/MM/YYYY'),
-    lastDate: moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY'),
+    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
+    lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
     duration: exports.getCourseDuration(slots),
   };
 };
