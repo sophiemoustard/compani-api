@@ -26,9 +26,10 @@ describe('GET /stats/customer-follow-up', () => {
         url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
         headers: { 'x-access-token': clientAdminToken },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.followUp.length).toBe(1);
-      expect(res.result.data.followUp[0].totalHours).toBe(2.5);
+      expect(res.result.data.followUp[0].totalHours).toBe(5);
       expect(res.result.data.followUp[0]._id.toHexString()).toEqual(userList[0]._id.toHexString());
     });
 
@@ -292,43 +293,67 @@ describe('GET /stats/customer-duration/sector', () => {
       clientAdminToken = await getToken('client_admin');
     });
 
-    // it('should get customer and duration stats for sector', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[0]._id}`,
-    //     headers: { 'x-access-token': clientAdminToken },
-    //   });
-    //   expect(res.statusCode).toBe(200);
-    //   expect(res.result.data.customersAndDuration[0]).toBeDefined();
-    //   expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
-    //   expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
-    //   expect(res.result.data.customersAndDuration[0].averageDuration).toEqual(2.5);
-    //   expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
-    // });
+    it('should get customer and duration stats for sector', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customersAndDuration[0]).toBeDefined();
+      expect(res.result.data.customersAndDuration[0].sector).toEqual(sectorList[0]._id);
+      expect(res.result.data.customersAndDuration[0].customerCount).toEqual(2);
+      expect(res.result.data.customersAndDuration[0].averageDuration).toEqual(2.5);
+      expect(res.result.data.customersAndDuration[0].auxiliaryTurnOver).toEqual(1.5);
+    });
 
-    // it('should return only relevant hours if an auxiliary has changed sector', async () => {
-    //   const res = await app.inject({
-    //     method: 'GET',
-    //     url: `/stats/customer-duration/sector?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-    //     headers: { 'x-access-token': clientAdminToken },
-    //   });
+    it('should return only relevant hours if an auxiliary has changed sector', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
 
-    //   expect(res.statusCode).toBe(200);
-    //   const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-    //     cad.sector.toHexString() === sectorList[0]._id.toHexString());
-    //   const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-    //     cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      expect(res.statusCode).toBe(200);
+      const oldSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[0]._id.toHexString());
+      const newSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[1]._id.toHexString());
 
-    //   expect(oldSectosrCustomersAndDuration).toBeDefined();
-    //   expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
-    //   expect(oldSectosrCustomersAndDuration.averageDuration).toEqual(1.5);
-    //   expect(oldSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+      expect(oldSectorCustomersAndDuration).toBeDefined();
+      expect(oldSectorCustomersAndDuration.customerCount).toEqual(1);
+      expect(oldSectorCustomersAndDuration.averageDuration).toEqual(1.5);
+      expect(oldSectorCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
 
-    //   expect(newSectosrCustomersAndDuration).toBeDefined();
-    //   expect(newSectosrCustomersAndDuration.customerCount).toEqual(2);
-    //   expect(newSectosrCustomersAndDuration.averageDuration).toEqual(2.5);
-    //   expect(newSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
-    // });
+      expect(newSectorCustomersAndDuration).toBeDefined();
+      expect(newSectorCustomersAndDuration.customerCount).toEqual(2);
+      expect(newSectorCustomersAndDuration.averageDuration).toEqual(2.5);
+      expect(newSectorCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+    });
+
+    it('should return only relevant hours if an customer has changed referent', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=01-2020&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[0]._id.toHexString());
+
+      expect(oldSectosrCustomersAndDuration).toBeDefined();
+      expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
+      expect(oldSectosrCustomersAndDuration.averageDuration).toEqual(2.5);
+      expect(oldSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+
+      expect(newSectosrCustomersAndDuration).toBeDefined();
+      expect(newSectosrCustomersAndDuration.customerCount).toEqual(1);
+      expect(newSectosrCustomersAndDuration.averageDuration).toEqual(1.5);
+      expect(newSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+    });
 
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({

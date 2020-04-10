@@ -322,7 +322,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
               ],
             },
           },
-          { $project: { customer: 1 } },
+          { $project: { customer: 1, startDate: 1, endDate: 1 } },
         ],
       },
     },
@@ -339,8 +339,8 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $addFields: {
         'customer.sector._id': '$sector',
-        'customer.sector.startDate': { $max: ['$startDate', '$referentHistories.startDate'] },
-        'customer.sector.endDate': { $min: ['$endDate', '$referentHistories.endDate'] },
+        'customer.sector.startDate': { $max: ['$startDate', '$referenthistories.startDate'] },
+        'customer.sector.endDate': { $min: ['$endDate', '$referenthistories.endDate'] },
       },
     },
     { $replaceRoot: { newRoot: '$customer' } },
