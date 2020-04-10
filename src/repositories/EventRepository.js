@@ -14,6 +14,7 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
+const { populateReferentHistories } = require('./utils');
 
 const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregate([
   { $match: rules },
@@ -617,9 +618,8 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
     { $replaceRoot: { newRoot: '$customer' } },
-    { $lookup: { from: 'users', as: 'referent', foreignField: '_id', localField: 'referent' } },
-    { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
-    { $project: { subscriptions: 1, identity: 1, contact: 1, referent: { identity: { firstname: 1, lastname: 1 } } } },
+    ...populateReferentHistories,
+    { $project: { subscriptions: 1, identity: 1, contact: 1, referentHistories: 1 } },
     { $unwind: '$subscriptions' },
     {
       $lookup: {
