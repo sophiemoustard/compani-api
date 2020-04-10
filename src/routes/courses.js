@@ -10,6 +10,7 @@ const {
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,
+  sendSMS,
 } = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
 const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
@@ -69,6 +70,20 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/sms',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          payload: Joi.object().keys({
+            body: Joi.string().required(),
+          }).required(),
+        },
+      },
+      handler: sendSMS,
     });
 
     server.route({

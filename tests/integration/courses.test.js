@@ -1,4 +1,5 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -8,6 +9,7 @@ const Course = require('../../src/models/Course');
 const { AUXILIARY } = require('../../src/helpers/constants');
 const { populateDB, coursesList, programsList, auxiliary, trainee } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
+const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -238,6 +240,75 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+  });
+});
+
+describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
+  let authToken;
+  let TwilioHelperStub;
+  beforeEach(populateDB);
+
+  beforeEach(async () => {
+    authToken = await getToken('vendor_admin');
+    TwilioHelperStub = sinon.stub(TwilioHelper, 'send');
+  });
+  afterEach(() => {
+    TwilioHelperStub.restore();
+  });
+
+  it('should send a SMS to user from compani', async () => {
+    const payload = { body: 'Ceci est un test' };
+    TwilioHelperStub.returns('SMS SENT !');
+    const response = await app.inject({
+      method: 'POST',
+      url: `/courses/${coursesList[2]._id}/sms`,
+      payload,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.message).toBe('SMS bien envoyé.');
+    sinon.assert.calledWithExactly(
+      TwilioHelperStub,
+      { to: `+33${trainee.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+    );
+  });
+
+  it('should return a 400 error if missing body parameter', async () => {
+    TwilioHelperStub.returns('SMS SENT !');
+    const response = await app.inject({
+      method: 'POST',
+      url: `/courses/${coursesList[2]._id}/sms`,
+      payload: {},
+      headers: { 'x-access-token': authToken },
+    });
+    expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(TwilioHelperStub);
+  });
+
+  const roles = [
+    { name: 'coach', expectedCode: 403 },
+    { name: 'auxiliary', expectedCode: 403 },
+    { name: 'auxiliary_without_company', expectedCode: 403 },
+    { name: 'helper', expectedCode: 403 },
+    { name: 'client_admin', expectedCode: 403 },
+    { name: 'training_organisation_manager', expectedCode: 200 },
+  ];
+
+  roles.forEach((role) => {
+    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      TwilioHelperStub.returns('SMS SENT !');
+      const payload = { body: 'Ceci est un test' };
+      authToken = await getToken(role.name);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[2]._id}/sms`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(role.expectedCode);
     });
   });
 });

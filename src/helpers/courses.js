@@ -1,9 +1,11 @@
+const get = require('lodash/get');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
+const TwilioHelper = require('./twilio');
 const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -19,6 +21,22 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: payload }).lean();
+
+exports.sendSMS = async (courseId, payload) => {
+  const course = await Course.findById(courseId)
+    .populate({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+    .lean();
+
+  const promises = [];
+  for (const trainee of course.trainees) {
+    promises.push(TwilioHelper.send({
+      to: `+33${trainee.contact.phone.substring(1)}`,
+      from: 'Compani',
+      body: payload.body,
+    }));
+  }
+  await Promise.all(promises);
+};
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
