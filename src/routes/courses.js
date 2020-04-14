@@ -119,7 +119,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/attendancesheets',
+      path: '/{_id}/attendance-sheets',
       options: {
         auth: { scope: ['courses:edit'] },
         pre: [{ method: authorizeCourseGetOrUpdate }],

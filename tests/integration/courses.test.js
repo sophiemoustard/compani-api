@@ -462,7 +462,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   });
 });
 
-describe('COURSE ROUTES - GET /:_id/attendancesheets', () => {
+describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken = null;
   const courseId = coursesList[2]._id;
   beforeEach(populateDB);
@@ -475,7 +475,7 @@ describe('COURSE ROUTES - GET /:_id/attendancesheets', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId}/attendancesheets`,
+        url: `/courses/${courseId}/attendance-sheets`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -486,7 +486,7 @@ describe('COURSE ROUTES - GET /:_id/attendancesheets', () => {
       const invalidId = (new ObjectID()).toHexString();
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${invalidId}/attendancesheets`,
+        url: `/courses/${invalidId}/attendance-sheets`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -510,7 +510,7 @@ describe('COURSE ROUTES - GET /:_id/attendancesheets', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseId}/attendancesheets`,
+          url: `/courses/${courseId}/attendance-sheets`,
           headers: { 'x-access-token': authToken },
         });
 
