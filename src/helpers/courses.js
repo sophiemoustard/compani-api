@@ -78,7 +78,11 @@ exports.getCourseDuration = (slots) => {
     moment.duration()
   );
 
-  return duration.minutes() ? `${duration.hours()}h${duration.minutes()}` : `${duration.hours()}h`;
+  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
+    ? duration.minutes().toString().padStart(2, 0)
+    : duration.minutes();
+
+  return paddedMinutes ? `${duration.hours()}h${paddedMinutes}` : `${duration.hours()}h`;
 };
 
 exports.formatCourseForPdf = (course) => {
@@ -138,11 +142,10 @@ exports.generateCompletionCertificates = async (courseId) => {
 
   const fileListPromises = course.trainees.map(async (trainee) => {
     const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
-    const filePath = await DocxHelper.createDocx(certificateTemplatePath, {
-      ...courseData,
-      traineeIdentity,
-      date: moment().format('DD/MM/YYYY'),
-    });
+    const filePath = await DocxHelper.createDocx(
+      certificateTemplatePath,
+      { ...courseData, traineeIdentity, date: moment().format('DD/MM/YYYY') }
+    );
 
     return { name: `${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
   });

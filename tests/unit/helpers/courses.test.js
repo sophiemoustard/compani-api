@@ -267,6 +267,16 @@ describe('getCourseDuration', () => {
 
     expect(result).toEqual('4h30');
   });
+  it('should return course duration with leading zero minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:08:00' },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
+    ];
+
+    const result = CourseHelper.getCourseDuration(slots);
+
+    expect(result).toEqual('4h08');
+  });
   it('should return course duration without minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -439,7 +449,7 @@ describe('formatCourseForDocx', () => {
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      courseName: 'Bonjour je suis une formation'.toUpperCase(),
+      courseName: 'BONJOUR JE SUIS UNE FORMATION',
       courseDuration: '7h',
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
@@ -517,9 +527,9 @@ describe('generateCompletionCertificate', () => {
     await CourseHelper.generateCompletionCertificates(courseId);
 
     sinon.assert.calledOnceWithExactly(formatCourseForDocx, course);
-    sinon.assert.calledWith(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
-    sinon.assert.calledWith(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
-    sinon.assert.calledWith(formatIdentity.getCall(2), { lastname: 'trainee 3' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'trainee 1' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 3' }, 'FL');
     sinon.assert.calledWithExactly(
       createDocx.getCall(0),
       '/path/certificate_template.docx',
