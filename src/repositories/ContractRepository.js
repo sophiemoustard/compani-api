@@ -42,6 +42,18 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
     },
   },
   { $unwind: { path: '$auxiliary.sector' } },
+  { $lookup: { from: payCollection, as: 'pays', localField: '_id', foreignField: 'auxiliary' } },
+  {
+    $addFields: {
+      pay: { $filter: { input: '$pays', as: 'pay', cond: { $eq: ['$$pay.month', moment(end).format('MM-YYYY')] } } },
+      prevPay: {
+        $filter: { input: '$pays', as: 'pay', cond: { $eq: ['$$pay.month', moment(end).subtract(1, 'M').format('MM-YYYY')] } },
+      },
+    },
+  },
+  { $unwind: { path: '$pay', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
+  { $match: { $or: [{ pay: null }, { pay: { $exists: false } }] } },
   {
     $project: {
       _id: 1,
@@ -53,42 +65,9 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
         mutualFund: '$auxiliary.administrative.mutualFund',
         transportInvoice: '$auxiliary.administrative.transportInvoice',
       },
+      prevPay: 1,
     },
   },
-  {
-    $lookup: {
-      from: payCollection,
-      as: 'pay',
-      let: { auxiliaryId: '$_id', month: moment(end).format('MM-YYYY') },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
-            },
-          },
-        },
-      ],
-    },
-  },
-  { $match: { pay: { $size: 0 } } },
-  {
-    $lookup: {
-      from: 'pays',
-      as: 'prevPay',
-      let: { auxiliaryId: '$_id', month: moment(end).subtract(1, 'M').format('MM-YYYY') },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
-            },
-          },
-        },
-      ],
-    },
-  },
-  { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
 ]).option({ company: companyId });
 
 exports.getUserCompanyContracts = async (contractUserId, companyId) => Contract.find(

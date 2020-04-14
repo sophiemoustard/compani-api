@@ -16,16 +16,19 @@ exports.getBillSlips = async (credentials) => {
   const creditNoteList = await CreditNoteRepository.getCreditNoteList(companyId);
 
   for (const billSlip of billSlipList) {
-    const creditNote = creditNoteList.find(cn =>
-      cn.thirdPartyPayer._id.toHexString() === billSlip.thirdPartyPayer._id.toHexString()
-      && cn.month === billSlip.month);
+    const billSlipMonth = billSlip.month;
+    const billSlipTppId = billSlip.thirdPartyPayer._id.toHexString();
+    const creditNote = creditNoteList.find(cn => cn.month === billSlipMonth &&
+      cn.thirdPartyPayer._id.toHexString() === billSlipTppId);
     if (!creditNote) continue;
     billSlip.netInclTaxes -= creditNote.netInclTaxes;
   }
+
   for (const creditNote of creditNoteList) {
-    const bill = billSlipList.find(bs =>
-      creditNote.thirdPartyPayer._id.toHexString() === bs.thirdPartyPayer._id.toHexString()
-      && creditNote.month === bs.month);
+    const creditNoteMonth = creditNote.month;
+    const creditNoteTppId = creditNote.thirdPartyPayer._id.toHexString();
+    const bill = billSlipList.find(bs => creditNoteMonth === bs.month &&
+      creditNoteTppId === bs.thirdPartyPayer._id.toHexString());
     if (bill) continue;
     billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
   }
