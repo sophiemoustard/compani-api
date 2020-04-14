@@ -471,7 +471,6 @@ exports.getAuxiliariesToPay = async (end, credentials) => {
 };
 
 exports.getDraftPay = async (query, credentials) => {
-  console.time('total');
   const startDate = moment(query.startDate).startOf('d').toDate();
   const endDate = moment(query.endDate).endOf('d').toDate();
 
