@@ -199,10 +199,31 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     { $unwind: { path: '$customer' } },
     {
       $lookup: {
-        from: 'users',
-        localField: 'customer.referent',
-        foreignField: '_id',
+        from: 'referenthistories',
         as: 'customer.referent',
+        let: { customerId: '$customer._id' },
+        pipeline: [
+          {
+            $match: {
+              $and: [
+                {
+                  $or: [
+                    { endDate: { $exists: false } },
+                    { endDate: { $exists: true, $gte: moment().startOf('month').toDate() } },
+                  ],
+                },
+                { startDate: { $lte: moment().endOf('month').toDate() } },
+                { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
+              ],
+            },
+          },
+          { $sort: { startDate: -1 } },
+          { $limit: 1 },
+          { $lookup: { from: 'users', as: 'auxiliary', foreignField: '_id', localField: 'auxiliary' } },
+          { $unwind: { path: '$auxiliary' } },
+          { $replaceRoot: { newRoot: '$auxiliary' } },
+          { $project: { identity: 1 } },
+        ],
       },
     },
     { $unwind: { path: '$customer.referent', preserveNullAndEmptyArrays: true } },
