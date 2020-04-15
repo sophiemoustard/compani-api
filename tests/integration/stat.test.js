@@ -141,7 +141,15 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
         headers: { 'x-access-token': clientAdminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.allCustomersFundingsMonitoring[0]).toBeDefined();
+      expect(res.result.data.allCustomersFundingsMonitoring).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          sector: expect.objectContaining({ name: 'Neptune' }),
+          referent: expect.objectContaining({ firstname: 'Auxiliary', lastname: 'White' }),
+          currentMonthCareHours: 6,
+          prevMonthCareHours: 4,
+          nextMonthCareHours: 0,
+        }),
+      ]));
     });
   });
 

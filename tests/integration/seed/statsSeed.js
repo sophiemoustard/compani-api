@@ -465,7 +465,7 @@ const dayOfCurrentMonth = (day) => {
 
 const mondayOfCurrentMonth = dayOfCurrentMonth(1);
 const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
-const saturdayOfCurrentMonth = dayOfCurrentMonth(0);
+const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
   const startOfMonth = moment().subtract(1, 'month').startOf('month');
@@ -530,8 +530,8 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
-    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
+    startDate: cloneDeep(sundayOfCurrentMonth).hour('8').toDate(),
+    endDate: cloneDeep(sundayOfCurrentMonth).hour('10').toDate(),
     address: {
       street: '37 rue de Ponthieu',
       zipCode: '75008',
