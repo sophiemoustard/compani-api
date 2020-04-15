@@ -145,7 +145,7 @@ exports.generateCompletionCertificates = async (courseId) => {
       { ...courseData, traineeIdentity, date: moment().format('DD/MM/YYYY') }
     );
 
-    return { name: `${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+    return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
   });
 
   return ZipHelper.generateZip('attestations.zip', await Promise.all(fileListPromises));
