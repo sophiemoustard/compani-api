@@ -305,21 +305,11 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
           {
             $match: {
               $or: [
-                {
-                  $and: [
-                    { endDate: { $exists: false } },
-                    { startDate: { $lte: maxStartDate } },
-                    { $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } },
-                  ],
-                },
-                {
-                  $and: [
-                    { endDate: { $exists: true, $gte: minStartDate } },
-                    { startDate: { $lte: maxStartDate } },
-                    { $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } },
-                  ],
-                },
+                { endDate: { $exists: false } },
+                { endDate: { $exists: true, $gte: minStartDate } },
               ],
+              startDate: { $lte: maxStartDate },
+              $and: [{ $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } }],
             },
           },
           { $project: { customer: 1, startDate: 1, endDate: 1 } },
