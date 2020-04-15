@@ -547,9 +547,9 @@ describe('generateCompletionCertificate', () => {
       generateZip,
       'attestations.zip',
       [
-        { name: 'trainee 1.docx', file: readable1 },
-        { name: 'trainee 2.docx', file: readable2 },
-        { name: 'trainee 3.docx', file: readable3 },
+        { name: 'Attestation - trainee 1.docx', file: readable1 },
+        { name: 'Attestation - trainee 2.docx', file: readable2 },
+        { name: 'Attestation - trainee 3.docx', file: readable3 },
       ]
     );
     sinon.assert.calledWithExactly(createReadStream.getCall(0), '1.docx');
