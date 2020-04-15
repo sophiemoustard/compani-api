@@ -377,8 +377,6 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('companies')
       .chain('populate')
-      .withExactArgs('program')
-      .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainees')

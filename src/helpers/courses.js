@@ -102,24 +102,22 @@ exports.formatCourseForPdf = (course) => {
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('companies')
-    .populate('program')
     .populate('slots')
     .populate('trainees')
     .populate('trainer')
     .lean();
 
   const courseData = exports.formatCourseForPdf(course);
-  const fileList = [];
-  for (const trainee of course.trainees) {
+  const promises = course.trainees.map(async (trainee) => {
     const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
-    const file = await PdfHelper.generatePdf(
-      { ...courseData, trainee: traineeIdentity },
-      './src/data/attendanceSheet.html'
-    );
-    fileList.push({ name: `${traineeIdentity}.pdf`, file });
-  }
 
-  return ZipHelper.generateZip('emargement.zip', fileList);
+    return {
+      name: `${traineeIdentity}.pdf`,
+      file: await PdfHelper.generatePdf({ ...courseData, trainee: traineeIdentity }, './src/data/attendanceSheet.html'),
+    };
+  });
+
+  return ZipHelper.generateZip('emargement.zip', await Promise.all(promises));
 };
 
 exports.formatCourseForDocx = course => ({
