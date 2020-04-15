@@ -204,7 +204,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course', async () => {
-      const payload = { name: 'new name', trainer: new ObjectID() };
+      const payload = { name: 'new name', trainer: new ObjectID(), referent: 'new referent' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[0]._id}`,
@@ -213,6 +213,12 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const course = await Course.findOne({ _id: coursesList[0]._id });
+
+      expect(course.name).toEqual(payload.name);
+      expect(course.trainer).toEqual(payload.trainer);
+      expect(course.referent).toEqual(payload.referent);
     });
   });
 
