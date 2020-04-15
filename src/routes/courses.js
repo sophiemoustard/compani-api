@@ -64,6 +64,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             trainer: Joi.objectId(),
+            referent: Joi.string(),
           }),
         },
         pre: [{ method: authorizeCourseGetOrUpdate }],

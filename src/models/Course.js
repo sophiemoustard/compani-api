@@ -10,6 +10,7 @@ const CourseSchema = mongoose.Schema({
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  referent: { type: String },
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {
