@@ -1,4 +1,7 @@
+const path = require('path');
 const get = require('lodash/get');
+const fs = require('fs');
+const os = require('os');
 const moment = require('moment');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
@@ -7,6 +10,8 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
 const TwilioHelper = require('./twilio');
+const DocxHelper = require('./docx');
+const drive = require('../models/Google/Drive');
 const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -73,7 +78,11 @@ exports.getCourseDuration = (slots) => {
     moment.duration()
   );
 
-  return duration.minutes() ? `${duration.hours()}h${duration.minutes()}` : `${duration.hours()}h`;
+  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
+    ? duration.minutes().toString().padStart(2, 0)
+    : duration.minutes();
+
+  return paddedMinutes ? `${duration.hours()}h${paddedMinutes}` : `${duration.hours()}h`;
 };
 
 exports.formatCourseForPdf = (course) => {
@@ -111,4 +120,35 @@ exports.generateAttendanceSheets = async (courseId) => {
   }
 
   return ZipHelper.generateZip('emargement.zip', fileList);
+};
+
+exports.formatCourseForDocx = course => ({
+  courseName: course.name.toUpperCase(),
+  courseDuration: exports.getCourseDuration(course.slots),
+});
+
+exports.generateCompletionCertificates = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate('slots')
+    .populate('trainees')
+    .lean();
+
+  const courseData = exports.formatCourseForDocx(course);
+  const certificateTemplatePath = path.join(os.tmpdir(), 'certificate_template.docx');
+  await drive.downloadFileById({
+    fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
+    tmpFilePath: certificateTemplatePath,
+  });
+
+  const fileListPromises = course.trainees.map(async (trainee) => {
+    const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+    const filePath = await DocxHelper.createDocx(
+      certificateTemplatePath,
+      { ...courseData, traineeIdentity, date: moment().format('DD/MM/YYYY') }
+    );
+
+    return { name: `${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+  });
+
+  return ZipHelper.generateZip('attestations.zip', await Promise.all(fileListPromises));
 };

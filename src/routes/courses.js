@@ -10,6 +10,7 @@ const {
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,
+  downloadCompletionCertificates,
   sendSMS,
 } = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
@@ -118,12 +119,22 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/attendancesheets',
+      path: '/{_id}/attendance-sheets',
       options: {
         auth: { scope: ['courses:edit'] },
         pre: [{ method: authorizeCourseGetOrUpdate }],
       },
       handler: downloadAttendanceSheets,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/completion-certificates',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: downloadCompletionCertificates,
     });
   },
 };
