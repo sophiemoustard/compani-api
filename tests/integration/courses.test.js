@@ -204,7 +204,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course', async () => {
-      const payload = { name: 'new name', trainer: new ObjectID(), referent: 'new referent' };
+      const payload = { 
+        name: 'new name',
+        trainer: new ObjectID(),
+        referent: { name: 'name new referent', email: 'test@toto.aa', phone: '0777228811' },
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[0]._id}`,
@@ -214,11 +218,27 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.findOne({ _id: coursesList[0]._id });
+      const course = await Course.findOne({ _id: coursesList[0]._id }).lean();
 
       expect(course.name).toEqual(payload.name);
       expect(course.trainer).toEqual(payload.trainer);
       expect(course.referent).toEqual(payload.referent);
+    });
+
+    it('should return 400 error', async () => {
+      const payload = {
+        name: 'new name',
+        trainer: new ObjectID(),
+        referent: { name: 'name new referent', email: 'test@toto.aa', phone: '07772211' },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
