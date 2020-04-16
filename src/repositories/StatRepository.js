@@ -209,10 +209,10 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
                 {
                   $or: [
                     { endDate: { $exists: false } },
-                    { endDate: { $exists: true, $gte: moment().startOf('month').toDate() } },
+                    { endDate: { $exists: true, $gte: moment().startOf('day').toDate() } },
                   ],
                 },
-                { startDate: { $lte: moment().endOf('month').toDate() } },
+                { startDate: { $lte: moment().endOf('day').toDate() } },
                 { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
               ],
             },

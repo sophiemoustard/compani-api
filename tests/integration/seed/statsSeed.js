@@ -225,20 +225,27 @@ const referentList = [
     auxiliary: userList[0]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: '2019-03-12T00:00:00',
-    endDate: '2020-01-10',
+    startDate: new Date('2019-03-12'),
+    endDate: new Date('2020-01-10'),
   },
   {
     auxiliary: userList[1]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: '2020-01-11',
+    startDate: new Date('2020-01-11'),
+    endDate: moment().add(1, 'days').toDate(),
+  },
+  {
+    auxiliary: userList[2]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: moment().add(2, 'days').toDate(),
   },
   {
     auxiliary: userList[0]._id,
     customer: customerList[1]._id,
     company: customerList[1].company,
-    startDate: '2018-03-12T00:00:00',
+    startDate: new Date('2018-03-12'),
   },
 ];
 
