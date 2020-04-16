@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const moment = require('moment');
+const flat = require('flat');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
 const UsersHelper = require('./users');
@@ -21,7 +22,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>
-  Course.findOneAndUpdate({ _id: courseId }, { $set: payload }).lean();
+  Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
 
 exports.sendSMS = async (courseId, payload) => {
   const course = await Course.findById(courseId)

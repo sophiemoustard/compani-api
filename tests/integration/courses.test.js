@@ -204,7 +204,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course', async () => {
-      const payload = { 
+      const payload = {
         name: 'new name',
         trainer: new ObjectID(),
         referent: { name: 'name new referent', email: 'test@toto.aa', phone: '0777228811' },
@@ -225,11 +225,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course.referent).toEqual(payload.referent);
     });
 
-    it('should return 400 error', async () => {
+    it('should return 400 error if referent phone number is invalid', async () => {
       const payload = {
-        name: 'new name',
-        trainer: new ObjectID(),
-        referent: { name: 'name new referent', email: 'test@toto.aa', phone: '07772211' },
+        referent: { phone: '07772211' },
       };
       const response = await app.inject({
         method: 'PUT',
