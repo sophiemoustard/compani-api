@@ -225,20 +225,27 @@ const referentList = [
     auxiliary: userList[0]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: '2019-03-12T00:00:00',
-    endDate: '2020-01-10',
+    startDate: new Date('2019-03-12'),
+    endDate: new Date('2020-01-10'),
   },
   {
     auxiliary: userList[1]._id,
     customer: customerList[0]._id,
     company: customerList[0].company,
-    startDate: '2020-01-11',
+    startDate: new Date('2020-01-11'),
+    endDate: moment().add(1, 'days').toDate(),
+  },
+  {
+    auxiliary: userList[2]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: moment().add(2, 'days').toDate(),
   },
   {
     auxiliary: userList[0]._id,
     customer: customerList[1]._id,
     company: customerList[1].company,
-    startDate: '2018-03-12T00:00:00',
+    startDate: new Date('2018-03-12'),
   },
 ];
 
@@ -465,7 +472,7 @@ const dayOfCurrentMonth = (day) => {
 
 const mondayOfCurrentMonth = dayOfCurrentMonth(1);
 const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
-const saturdayOfCurrentMonth = dayOfCurrentMonth(0);
+const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
   const startOfMonth = moment().subtract(1, 'month').startOf('month');
@@ -530,8 +537,8 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
-    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
+    startDate: cloneDeep(sundayOfCurrentMonth).hour('8').toDate(),
+    endDate: cloneDeep(sundayOfCurrentMonth).hour('10').toDate(),
     address: {
       street: '37 rue de Ponthieu',
       zipCode: '75008',
