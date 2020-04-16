@@ -83,6 +83,8 @@ describe('getCourse', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainees')
+      .chain('populate')
+      .withExactArgs('trainer')
       .chain('lean')
       .once()
       .returns(course);
