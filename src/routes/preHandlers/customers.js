@@ -7,6 +7,10 @@ const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
+const Bill = require('../../models/Bill');
+const Payment = require('../../models/Payment');
+const CreditNote = require('../../models/CreditNote');
+const TaxCertificate = require('../../models/TaxCertificate');
 
 const { language } = translate;
 
@@ -90,8 +94,22 @@ exports.authorizeCustomerGetBySector = async (req) => {
 
 exports.authorizeCustomerDelete = async (req) => {
   const { customer } = req.pre;
+  const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (customer.firstIntervention) throw Boom.forbidden();
+  if (customer.contracts.length) throw Boom.forbidden();
+
+  const bills = await Bill.find({ customer: customer._id, company: companyId }).lean();
+  if (bills.length) throw Boom.forbidden();
+
+  const payments = await Payment.find({ customer: customer._id, company: companyId }).lean();
+  if (payments.length) throw Boom.forbidden();
+
+  const creditNotes = await CreditNote.find({ customer: customer._id, company: companyId }).lean();
+  if (creditNotes.length) throw Boom.forbidden();
+
+  const taxCertificates = await TaxCertificate.find({ customer: customer._id, company: companyId }).lean();
+  if (taxCertificates.length) throw Boom.forbidden();
 
   return null;
 };
