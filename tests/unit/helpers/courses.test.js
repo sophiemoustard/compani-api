@@ -289,6 +289,16 @@ describe('getCourseDuration', () => {
 
     expect(result).toEqual('4h');
   });
+  it('should return course duration with days', () => {
+    const slots = [
+      { startDate: '2020-03-20T07:00:00', endDate: '2020-03-20T22:00:00' },
+      { startDate: '2020-04-21T07:00:00', endDate: '2020-04-21T22:00:00' },
+    ];
+
+    const result = CourseHelper.getCourseDuration(slots);
+
+    expect(result).toEqual('30h');
+  });
 });
 
 describe('formatCourseForPdf', () => {

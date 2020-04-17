@@ -82,8 +82,9 @@ exports.getCourseDuration = (slots) => {
   const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
     ? duration.minutes().toString().padStart(2, 0)
     : duration.minutes();
+  const hours = (duration.days() * 24) + duration.hours();
 
-  return paddedMinutes ? `${duration.hours()}h${paddedMinutes}` : `${duration.hours()}h`;
+  return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
 };
 
 exports.formatCourseForPdf = (course) => {
