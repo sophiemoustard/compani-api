@@ -16,7 +16,7 @@ const populateReferentHistories = [
       localField: 'referentHistories.auxiliary',
     },
   },
-  { $unwind: { path: '$referentHistories.auxiliary', preserveNullAndEmptyArrays: false } },
+  { $unwind: { path: '$referentHistories.auxiliary', preserveNullAndEmptyArrays: true } },
   {
     $group: {
       _id: '$_id',
