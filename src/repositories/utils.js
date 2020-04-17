@@ -24,7 +24,13 @@ const populateReferentHistories = [
       referentHistories: { $addToSet: '$referentHistories' },
     },
   },
-  { $addFields: { 'customer.referentHistories': '$referentHistories' } },
+  {
+    $addFields: {
+      'customer.referentHistories': {
+        $filter: { input: '$referentHistories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } },
+      },
+    },
+  },
   { $replaceRoot: { newRoot: '$customer' } },
 ];
 
