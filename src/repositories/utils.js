@@ -16,7 +16,7 @@ const populateReferentHistories = [
       localField: 'referentHistories.auxiliary',
     },
   },
-  { $unwind: { path: '$referentHistories.auxiliary', preserveNullAndEmptyArrays: false } },
+  { $unwind: { path: '$referentHistories.auxiliary', preserveNullAndEmptyArrays: true } },
   {
     $group: {
       _id: '$_id',
@@ -24,7 +24,13 @@ const populateReferentHistories = [
       referentHistories: { $addToSet: '$referentHistories' },
     },
   },
-  { $addFields: { 'customer.referentHistories': '$referentHistories' } },
+  {
+    $addFields: {
+      'customer.referentHistories': {
+        $filter: { input: '$referentHistories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } },
+      },
+    },
+  },
   { $replaceRoot: { newRoot: '$customer' } },
 ];
 
