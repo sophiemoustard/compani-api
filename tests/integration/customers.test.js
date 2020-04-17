@@ -312,7 +312,7 @@ describe('CUSTOMERS ROUTES', () => {
       const customer = res.result.data.customers.find(cus =>
         cus._id.toHexString() === customersList[0]._id.toHexString());
       expect(customer.subscriptions.length).toEqual(2);
-      // expect(customer.referentHistories.length).toEqual(2);
+      expect(customer.referentHistories.length).toEqual(2);
     });
 
     describe('Other roles', () => {
@@ -368,7 +368,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(customer.subscriptions).toBeDefined();
       expect(customer.subscriptions
         .some(sub => sub.service.type === 'contract_with_customer')).toBeTruthy();
-      // expect(customer.referentHistories.length).toEqual(2);
+      expect(customer.referentHistories.length).toEqual(2);
     });
 
     describe('Other roles', () => {

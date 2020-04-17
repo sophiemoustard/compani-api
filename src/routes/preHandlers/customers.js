@@ -99,17 +99,19 @@ exports.authorizeCustomerDelete = async (req) => {
   if (customer.firstIntervention) throw Boom.forbidden();
   if (customer.contracts.length) throw Boom.forbidden();
 
-  const bills = await Bill.find({ customer: customer._id, company: companyId }).lean();
-  if (bills.length) throw Boom.forbidden();
+  const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (billsCount > 0) throw Boom.forbidden();
 
-  const payments = await Payment.find({ customer: customer._id, company: companyId }).lean();
-  if (payments.length) throw Boom.forbidden();
+  const paymentsCount = await Payment.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (paymentsCount > 0) throw Boom.forbidden();
 
-  const creditNotes = await CreditNote.find({ customer: customer._id, company: companyId }).lean();
-  if (creditNotes.length) throw Boom.forbidden();
+  const creditNotesCount = await CreditNote.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (creditNotesCount > 0) throw Boom.forbidden();
 
-  const taxCertificates = await TaxCertificate.find({ customer: customer._id, company: companyId }).lean();
-  if (taxCertificates.length) throw Boom.forbidden();
+  const taxCertificatesCount = await TaxCertificate
+    .countDocuments({ customer: customer._id, company: companyId })
+    .lean();
+  if (taxCertificatesCount > 0) throw Boom.forbidden();
 
   return null;
 };
