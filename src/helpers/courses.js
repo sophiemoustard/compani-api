@@ -90,7 +90,7 @@ exports.getCourseDuration = (slots) => {
 exports.formatCourseForPdf = (course) => {
   const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
 
-  return {
+  const courseData = {
     name: course.name,
     company: course.companies[0].tradeName,
     slots: slots.map(exports.formatCourseSlotsForPdf),
@@ -98,6 +98,13 @@ exports.formatCourseForPdf = (course) => {
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
     lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
     duration: exports.getCourseDuration(slots),
+  };
+
+  return {
+    trainees: course.trainees.map(trainee => ({
+      traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
+      course: { ...courseData },
+    })),
   };
 };
 
@@ -109,17 +116,10 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('trainer')
     .lean();
 
-  const courseData = exports.formatCourseForPdf(course);
-  const promises = course.trainees.map(async (trainee) => {
-    const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
-
-    return {
-      name: `${traineeIdentity}.pdf`,
-      file: await PdfHelper.generatePdf({ ...courseData, trainee: traineeIdentity }, './src/data/attendanceSheet.html'),
-    };
-  });
-
-  return ZipHelper.generateZip('emargement.zip', await Promise.all(promises));
+  return {
+    fileName: 'emargement.pdf',
+    pdf: await PdfHelper.generatePdf(exports.formatCourseForPdf(course), './src/data/attendanceSheet.html'),
+  };
 };
 
 exports.formatCourseForDocx = course => ({

@@ -98,11 +98,11 @@ const removeTrainee = async (req) => {
 
 const downloadAttendanceSheets = async (req, h) => {
   try {
-    const { zipPath, zipName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
+    const { pdf, fileName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
 
-    return h.file(zipPath, { confine: false })
-      .header('content-disposition', `attachment; filename=${zipName}`)
-      .type('application/zip');
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${fileName}.pdf`)
+      .type('application/pdf');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
