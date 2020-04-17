@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { INTRA } = require('../helpers/constants');
+const { PHONE_VALIDATION } = require('./utils');
 
 const COURSE_TYPES = [INTRA];
 
@@ -10,6 +11,11 @@ const CourseSchema = mongoose.Schema({
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  referent: {
+    name: { type: String, default: '' },
+    email: { type: String },
+    phone: { type: String, validate: PHONE_VALIDATION },
+  },
 }, { timestamps: true });
 
 CourseSchema.virtual('slots', {

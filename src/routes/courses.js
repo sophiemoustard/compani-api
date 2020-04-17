@@ -65,6 +65,11 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             trainer: Joi.objectId(),
+            referent: Joi.object({
+              name: Joi.string(),
+              phone: phoneNumberValidation,
+              email: Joi.string().allow('', null),
+            }).min(1),
           }),
         },
         pre: [{ method: authorizeCourseGetOrUpdate }],
