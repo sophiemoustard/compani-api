@@ -69,7 +69,7 @@ exports.formatCourseSlotsForPdf = (slot) => {
     date: moment(slot.startDate).format('DD/MM/YYYY'),
     startHour: moment(slot.startDate).format('HH:mm'),
     endHour: moment(slot.endDate).format('HH:mm'),
-    duration: duration.minutes() ? `${duration.hours()}h${duration.minutes()}` : `${duration.hours()}h`,
+    duration: UtilsHelper.formatDuration(duration),
   };
 };
 
@@ -79,12 +79,7 @@ exports.getCourseDuration = (slots) => {
     moment.duration()
   );
 
-  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
-    ? duration.minutes().toString().padStart(2, 0)
-    : duration.minutes();
-  const hours = (duration.days() * 24) + duration.hours();
-
-  return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
+  return UtilsHelper.formatDuration(duration);
 };
 
 exports.formatCourseForPdf = (course) => {
