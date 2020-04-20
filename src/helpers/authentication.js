@@ -22,7 +22,6 @@ const validate = async (decoded) => {
     if (!decoded._id) throw new Error('No id present in token');
     const user = await User.findById(decoded._id, '_id identity role company local customers sector')
       .lean({ autopopulate: true });
-    if (!user.company) return { isValid: false };
 
     const userRoles = Object.values(user.role).filter(role => !!role);
     if (!userRoles.length) return { isValid: false };

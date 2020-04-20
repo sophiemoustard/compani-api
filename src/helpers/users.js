@@ -96,8 +96,14 @@ exports.getUser = async (userId, credentials) => {
     .populate('customers')
     .populate('contracts')
     .populate({ path: 'procedure.task', select: 'name _id' })
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    .populate({
+      path: 'sector',
+      select: '_id sector',
+      match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
+    })
     .lean({ autopopulate: true, virtuals: true });
+
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return user;
@@ -203,13 +209,11 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.updatePassword = async (userId, userPayload, credentials) => User.findOneAndUpdate(
+exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
   { _id: userId },
   { $set: flat(userPayload), $unset: { passwordToken: '' } },
   { new: true }
-)
-  .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-  .lean({ autopopulate: true, virtuals: true });
+).lean();
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
