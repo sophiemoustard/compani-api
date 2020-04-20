@@ -6,7 +6,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
-const { AUXILIARY } = require('../../src/helpers/constants');
+const { AUXILIARY, CONVOCATION } = require('../../src/helpers/constants');
 const { populateDB, coursesList, programsList, auxiliary, trainee } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
@@ -271,6 +271,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
   let authToken;
   let TwilioHelperStub;
+  const payload = { body: 'Ceci est un test', type: CONVOCATION };
+
   beforeEach(populateDB);
 
   beforeEach(async () => {
@@ -282,7 +284,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
   });
 
   it('should send a SMS to user from compani', async () => {
-    const payload = { body: 'Ceci est un test' };
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
@@ -299,16 +300,31 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
     );
   });
 
-  it('should return a 400 error if missing body parameter', async () => {
+  it('should return a 400 error if type is invalid', async () => {
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${coursesList[2]._id}/sms`,
-      payload: {},
+      payload: { ...payload, type: 'qwert' },
       headers: { 'x-access-token': authToken },
     });
     expect(response.statusCode).toBe(400);
     sinon.assert.notCalled(TwilioHelperStub);
+  });
+
+  const missingParams = ['body', 'type'];
+  missingParams.forEach((param) => {
+    it(`should return a 400 error if missing ${param} parameter`, async () => {
+      TwilioHelperStub.returns('SMS SENT !');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[2]._id}/sms`,
+        payload: omit(payload, param),
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(TwilioHelperStub);
+    });
   });
 
   const roles = [
@@ -323,7 +339,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
   roles.forEach((role) => {
     it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
       TwilioHelperStub.returns('SMS SENT !');
-      const payload = { body: 'Ceci est un test' };
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'POST',

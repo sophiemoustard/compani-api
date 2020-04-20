@@ -6,6 +6,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const Course = require('../../../src/models/Course');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
@@ -126,15 +127,18 @@ describe('sendSMS', () => {
   const payload = { body: 'Ceci est un test.' };
 
   let CourseMock;
+  let CourseSmsHistoryMock;
   let UserMock;
   let sendStub;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
     UserMock = sinon.mock(User);
     sendStub = sinon.stub(TwilioHelper, 'send');
   });
   afterEach(() => {
     CourseMock.restore();
+    CourseSmsHistoryMock.restore();
     UserMock.restore();
     sendStub.restore();
   });
@@ -149,6 +153,10 @@ describe('sendSMS', () => {
 
     sendStub.returns();
 
+    CourseSmsHistoryMock.expects('create')
+      .withExactArgs({ type: payload.type, course: courseId, message: payload.body })
+      .returns();
+
     await CourseHelper.sendSMS(courseId, payload);
 
     sinon.assert.calledWith(
@@ -160,6 +168,7 @@ describe('sendSMS', () => {
       { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
     );
     CourseMock.verify();
+    CourseSmsHistoryMock.verify();
     UserMock.verify();
   });
 });

@@ -6,6 +6,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
+const CourseSmsHistory = require('../models/CourseSmsHistory');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -43,6 +44,7 @@ exports.sendSMS = async (courseId, payload) => {
       body: payload.body,
     }));
   }
+  promises.push(CourseSmsHistory.create({ type: payload.type, course: courseId, message: payload.body }));
   await Promise.all(promises);
 };
 
