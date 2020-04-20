@@ -6,8 +6,9 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
+const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const { AUXILIARY, CONVOCATION } = require('../../src/helpers/constants');
-const { populateDB, coursesList, programsList, auxiliary, trainee } = require('./seed/coursesSeed');
+const { populateDB, coursesList, programsList, auxiliary, trainee, courseSmsHistory } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
@@ -284,6 +285,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
   });
 
   it('should send a SMS to user from compani', async () => {
+    const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: coursesList[2]._id }).lean();
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
@@ -294,6 +296,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.result.message).toBe('SMS bien envoyé.');
+    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: coursesList[2]._id }).lean();
+    expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
       TwilioHelperStub,
       { to: `+33${trainee.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
@@ -345,6 +349,51 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
         url: `/courses/${coursesList[2]._id}/sms`,
         headers: { 'x-access-token': authToken },
         payload,
+      });
+
+      expect(response.statusCode).toBe(role.expectedCode);
+    });
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
+  let authToken;
+
+  beforeEach(populateDB);
+
+  beforeEach(async () => {
+    authToken = await getToken('vendor_admin');
+  });
+
+  it('should get SMS from course', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${coursesList[0]._id}/sms`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.sms).toHaveLength(1);
+    expect(response.result.data.sms.every(sms => sms.course.toHexString() === coursesList[0]._id.toHexString()))
+      .toBeTruthy();
+  });
+
+  const roles = [
+    { name: 'coach', expectedCode: 403 },
+    { name: 'auxiliary', expectedCode: 403 },
+    { name: 'auxiliary_without_company', expectedCode: 403 },
+    { name: 'helper', expectedCode: 403 },
+    { name: 'client_admin', expectedCode: 403 },
+    { name: 'training_organisation_manager', expectedCode: 200 },
+  ];
+
+  roles.forEach((role) => {
+    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      authToken = await getToken(role.name);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id}/sms`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(role.expectedCode);

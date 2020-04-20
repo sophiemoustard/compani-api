@@ -173,6 +173,30 @@ describe('sendSMS', () => {
   });
 });
 
+describe('sendSMS', () => {
+  const courseId = new ObjectID();
+  const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
+  let CourseSmsHistoryMock;
+  beforeEach(() => {
+    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
+  });
+  afterEach(() => {
+    CourseSmsHistoryMock.restore();
+  });
+
+  it('should sens SMS to trainees', async () => {
+    CourseSmsHistoryMock.expects('find')
+      .withExactArgs({ course: courseId })
+      .chain('lean')
+      .returns(sms);
+
+    const result = await CourseHelper.getSMS(courseId);
+
+    expect(result).toEqual(sms);
+    CourseSmsHistoryMock.verify();
+  });
+});
+
 describe('addCourseTrainee', () => {
   let CourseMock;
   let RoleMock;

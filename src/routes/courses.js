@@ -12,6 +12,7 @@ const {
   downloadAttendanceSheets,
   downloadCompletionCertificates,
   sendSMS,
+  getSMS,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
@@ -93,6 +94,19 @@ exports.plugin = {
         },
       },
       handler: sendSMS,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/sms',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: getSMS,
     });
 
     server.route({

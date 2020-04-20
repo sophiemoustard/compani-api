@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 
@@ -71,6 +72,13 @@ const coursesList = [
   },
 ];
 
+const courseSmsHistory = {
+  date: '2020-01-01T00:00:00.000Z',
+  type: 'convocation',
+  message: 'Hola ! This is a test',
+  course: coursesList[0]._id,
+};
+
 const slots = [
   { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[0] },
   { startDate: '2020-03-20T14:00:00', endDate: '2020-03-20T18:00:00', courseId: coursesList[0] },
@@ -83,6 +91,7 @@ const populateDB = async () => {
   await Program.deleteMany({});
   await User.deleteMany({});
   await CourseSlot.deleteMany({});
+  await CourseSmsHistory.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -90,6 +99,7 @@ const populateDB = async () => {
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([auxiliary, trainee, trainer]);
+  await CourseSmsHistory.create(courseSmsHistory);
 };
 
 module.exports = {
@@ -98,4 +108,5 @@ module.exports = {
   programsList,
   auxiliary,
   trainee,
+  courseSmsHistory,
 };
