@@ -7,6 +7,10 @@ const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
+const Bill = require('../../models/Bill');
+const Payment = require('../../models/Payment');
+const CreditNote = require('../../models/CreditNote');
+const TaxCertificate = require('../../models/TaxCertificate');
 
 const { language } = translate;
 
@@ -90,8 +94,24 @@ exports.authorizeCustomerGetBySector = async (req) => {
 
 exports.authorizeCustomerDelete = async (req) => {
   const { customer } = req.pre;
+  const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (customer.firstIntervention) throw Boom.forbidden();
+  if (customer.contracts.length) throw Boom.forbidden();
+
+  const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (billsCount > 0) throw Boom.forbidden();
+
+  const paymentsCount = await Payment.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (paymentsCount > 0) throw Boom.forbidden();
+
+  const creditNotesCount = await CreditNote.countDocuments({ customer: customer._id, company: companyId }).lean();
+  if (creditNotesCount > 0) throw Boom.forbidden();
+
+  const taxCertificatesCount = await TaxCertificate
+    .countDocuments({ customer: customer._id, company: companyId })
+    .lean();
+  if (taxCertificatesCount > 0) throw Boom.forbidden();
 
   return null;
 };

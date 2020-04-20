@@ -8,7 +8,12 @@ const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
+const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
+const Bill = require('../../../src/models/Bill');
+const Payment = require('../../../src/models/Payment');
+const CreditNote = require('../../../src/models/CreditNote');
+const TaxCertificate = require('../../../src/models/TaxCertificate');
 const {
   FIXED,
   ONCE,
@@ -77,6 +82,8 @@ const customerThirdPartyPayer = {
   company: authCompany._id,
   isApa: true,
 };
+
+const contractCustomerId = new ObjectID();
 
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
@@ -274,7 +281,235 @@ const customersList = [
       phone: '0612345678',
     },
   },
+  // customer with contract
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    email: 'withContract@customer.io',
+    identity: {
+      title: 'mr',
+      firstname: 'withContract',
+      lastname: 'customer',
+    },
+    driveFolder: { driveId: '1234567890' },
+    contracts: [contractCustomerId],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
+  // customer with bill
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    email: 'withBills@customer.io',
+    identity: {
+      title: 'mr',
+      firstname: 'withBills',
+      lastname: 'customer',
+    },
+    driveFolder: { driveId: '1234567890' },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    }],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
+  // customer with payment
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    email: 'withPayments@customer.io',
+    identity: {
+      title: 'mr',
+      firstname: 'withPayments',
+      lastname: 'customer',
+    },
+    driveFolder: { driveId: '1234567890' },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    }],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
+  // customer with creditNote
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    email: 'withCreditNote@customer.io',
+    identity: {
+      title: 'mr',
+      firstname: 'withCreditNote',
+      lastname: 'customer',
+    },
+    driveFolder: { driveId: '1234567890' },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    }],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
+  // customer with taxcertificate
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    email: 'withBills@customer.io',
+    identity: {
+      title: 'mr',
+      firstname: 'withBills',
+      lastname: 'customer',
+    },
+    driveFolder: { driveId: '1234567890' },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    }],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
 ];
+
+const contractCustomer = {
+  _id: contractCustomerId,
+  company: customersList[4].company,
+  startDate: '2019-01-01',
+  status: 'contract_with_customer',
+  user: referentList[0]._id,
+  customer: customersList[4]._id,
+  versions: [{
+    startDate: '2019-01-01',
+    grossHourlyRate: '12',
+  }],
+};
+
+const bill = {
+  _id: new ObjectID(),
+  company: customersList[5].company,
+  number: 'FACT-1901001',
+  date: '2019-05-29',
+  customer: customersList[5]._id,
+  netInclTaxes: 75.96,
+  subscriptions: [{
+    startDate: '2019-05-29',
+    endDate: '2019-11-29',
+    subscription: customersList[5].subscriptions[0]._id,
+    service: {
+      serviceId: new ObjectID(),
+      name: 'Temps de qualité - autonomie',
+      nature: 'fixed',
+    },
+    vat: 5.5,
+    events: [{
+      eventId: new ObjectID(),
+      startDate: '2019-01-16T09:30:19.543Z',
+      endDate: '2019-01-16T11:30:21.653Z',
+      auxiliary: referentList[0]._id,
+      inclTaxesCustomer: 12,
+      exclTaxesCustomer: 10,
+    }],
+    hours: 8,
+    unitExclTaxes: 9,
+    unitInclTaxes: 9.495,
+    exclTaxes: 72,
+    inclTaxes: 75.96,
+    discount: 0,
+  }],
+};
+
+const payment = {
+  _id: new ObjectID(),
+  company: customersList[6].company,
+  number: 'REG-101031900201',
+  date: '2019-05-26T15:47:42',
+  customer: customersList[6]._id,
+  netInclTaxes: 190,
+  nature: 'payment',
+  type: 'direct_debit',
+};
+
+const creditNote = {
+  _id: new ObjectID(),
+  date: '2020-01-01',
+  startDate: '2020-01-01',
+  endDate: '2020-01-12',
+  customer: customersList[7]._id,
+  exclTaxesCustomer: 100,
+  inclTaxesCustomer: 112,
+  isEditable: true,
+  company: authCompany._id,
+};
+
+const taxCertificate = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  customer: customersList[8]._id,
+  year: '2019',
+};
 
 const referentHistories = [
   {
@@ -557,7 +792,11 @@ const populateDB = async () => {
   await QuoteNumber.deleteMany({});
   await User.deleteMany({});
   await ReferentHistory.deleteMany({});
-
+  await Contract.deleteMany({});
+  await Bill.deleteMany({});
+  await Payment.deleteMany({});
+  await CreditNote.deleteMany({});
+  await TaxCertificate.deleteMany({});
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
@@ -571,6 +810,11 @@ const populateDB = async () => {
   for (const user of referentList) {
     await (new User(user).save());
   }
+  await (new Contract(contractCustomer).save());
+  await (new Bill(bill).save());
+  await (new Payment(payment).save());
+  await (new CreditNote(creditNote).save());
+  await (new TaxCertificate(taxCertificate).save());
 };
 
 module.exports = {

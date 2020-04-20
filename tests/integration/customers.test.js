@@ -308,9 +308,11 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-      expect(res.result.data.customers.length).toEqual(1);
-      expect(res.result.data.customers[0].subscriptions).toHaveLength(2);
-      expect(res.result.data.customers[0].referentHistories).toHaveLength(2);
+      expect(res.result.data.customers.length).toEqual(5);
+      const customer = res.result.data.customers.find(cus =>
+        cus._id.toHexString() === customersList[0]._id.toHexString());
+      expect(customer.subscriptions.length).toEqual(2);
+      expect(customer.referentHistories.length).toEqual(2);
     });
 
     describe('Other roles', () => {
@@ -361,10 +363,12 @@ describe('CUSTOMERS ROUTES', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
-      expect(res.result.data.customers[0].subscriptions).toBeDefined();
-      expect(res.result.data.customers[0].subscriptions
+      const customer = res.result.data.customers.find(cus =>
+        cus._id.toHexString() === customersList[0]._id.toHexString());
+      expect(customer.subscriptions).toBeDefined();
+      expect(customer.subscriptions
         .some(sub => sub.service.type === 'contract_with_customer')).toBeTruthy();
-      expect(res.result.data.customers[0].referentHistories).toHaveLength(2);
+      expect(customer.referentHistories.length).toEqual(2);
     });
 
     describe('Other roles', () => {
@@ -748,6 +752,56 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer has contracts', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[4]._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer has bills', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[5]._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer has payments', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[6]._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer has creditnotes', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[7]._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer has taxcertificates', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[8]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 

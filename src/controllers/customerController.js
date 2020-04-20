@@ -137,8 +137,7 @@ const create = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { customer } = req.pre;
-    await customer.remove();
+    await req.pre.customer.remove();
 
     return { message: translate[language].customerRemoved };
   } catch (e) {
