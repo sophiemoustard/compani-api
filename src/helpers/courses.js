@@ -17,7 +17,13 @@ const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async query => Course.find(query).lean();
+exports.list = async query => Course.find(query)
+  .populate('companies')
+  .populate('program')
+  .populate('slots')
+  .populate('trainees')
+  .populate('trainer')
+  .lean();
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('companies')
