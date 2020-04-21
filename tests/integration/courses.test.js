@@ -117,6 +117,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -248,7 +249,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -318,6 +319,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/sms', () => {
     { name: 'helper', expectedCode: 403 },
     { name: 'client_admin', expectedCode: 403 },
     { name: 'training_organisation_manager', expectedCode: 200 },
+    { name: 'trainer', expectedCode: 200 },
   ];
 
   roles.forEach((role) => {
@@ -416,7 +418,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -468,7 +470,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -526,7 +528,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -584,7 +586,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {

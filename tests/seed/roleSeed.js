@@ -50,6 +50,7 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Editer une programme', permission: 'programs:edit' },
   { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
   { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
+  { _id: new ObjectID(), description: 'Créer une formation', permission: 'courses:create' },
   { _id: new ObjectID(), description: 'Envoyer un sms', permission: 'sms:send' },
 ];
 const vendorAdminRights = [
@@ -62,6 +63,7 @@ const vendorAdminRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
+  'courses:create',
 ];
 const trainingOrganisationManagerRights = [
   'companies:create',
@@ -73,6 +75,7 @@ const trainingOrganisationManagerRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
+  'courses:create',
 ];
 const clientAdminRights = [
   'config:edit',
@@ -136,7 +139,10 @@ const auxiliaryRights = [
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
-const trainerRights = [];
+const trainerRights = [
+  'courses:edit',
+  'courses:read',
+];
 
 const rolesList = [
   {
