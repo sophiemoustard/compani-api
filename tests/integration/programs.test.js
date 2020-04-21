@@ -162,7 +162,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update program', async () => {
+    it('should update program name', async () => {
       const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
@@ -174,6 +174,20 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.program._id).toEqual(programId);
       expect(response.result.data.program.name).toEqual('new name');
+    });
+
+    it('should update program learning goals', async () => {
+      const programId = programsList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/programs/${programId.toHexString()}`,
+        payload: { learningGoals: 'On apprend des trucs\nc\'est chouette' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program._id).toEqual(programId);
+      expect(response.result.data.program.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
     });
   });
 
