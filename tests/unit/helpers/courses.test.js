@@ -55,6 +55,7 @@ describe('list', () => {
     CourseMock.expects('find')
       .withExactArgs({ type: 'toto' })
       .chain('populate')
+<<<<<<< HEAD
       .withExactArgs('companies')
       .chain('populate')
       .withExactArgs('program')
@@ -62,6 +63,9 @@ describe('list', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainer')
+=======
+      .withExactArgs('slots')
+>>>>>>> COM-1134 add populate slot to course fetch
       .chain('lean')
       .once()
       .returns(coursesList);

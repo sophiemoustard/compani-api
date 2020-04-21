@@ -18,12 +18,16 @@ const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
+<<<<<<< HEAD
 exports.list = async query => Course.find(query)
   .populate('companies')
   .populate('program')
   .populate('slots')
   .populate('trainer')
   .lean();
+=======
+exports.list = async query => Course.find(query).populate('slots').lean();
+>>>>>>> COM-1134 add populate slot to course fetch
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('companies')
