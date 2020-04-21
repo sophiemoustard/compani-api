@@ -5,6 +5,7 @@ require('sinon-mongoose');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Role = require('../../../src/models/Role');
 const Service = require('../../../src/models/Service');
 const ExportHelper = require('../../../src/helpers/dataExport');
@@ -702,6 +703,94 @@ describe('exportSectors', () => {
       '10/12/2019',
     ]);
     SectorHistoryModel.verify();
+  });
+});
+
+describe('exportReferents', () => {
+  let ReferentHistoryModel;
+  beforeEach(() => {
+    ReferentHistoryModel = sinon.mock(ReferentHistory);
+  });
+
+  afterEach(() => {
+    ReferentHistoryModel.restore();
+  });
+
+  it('should return csv header', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    ReferentHistoryModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs('auxiliary')
+      .chain('populate')
+      .withExactArgs('customer')
+      .chain('lean')
+      .returns([]);
+
+    const result = await ExportHelper.exportReferents(credentials);
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject([
+      'Bénéficiaire - Titre',
+      'Bénéficiaire - Nom',
+      'Bénéficiaire - Prénom',
+      'Auxiliaire - Titre',
+      'Auxiliaire - Nom',
+      'Auxiliaire - Prénom',
+      'Date de début',
+      'Date de fin',
+    ]);
+    ReferentHistoryModel.verify();
+  });
+
+  it('should return referent info', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const referentHistories = [
+      {
+        auxiliary: { identity: { firstname: 'toto', title: 'mr' } },
+        customer: { identity: { firstname: 'titi', lastname: 'Tata', title: 'mr' } },
+        startDate: '2019-11-10',
+        endDate: '2020-01-21',
+      },
+      {
+        auxiliary: { identity: { firstname: 'toto', lastname: 'Tutu' } },
+        customer: { identity: { lastname: 'Tata', title: 'mr' } },
+        startDate: '2020-11-10',
+      },
+    ];
+    ReferentHistoryModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs('auxiliary')
+      .chain('populate')
+      .withExactArgs('customer')
+      .chain('lean')
+      .returns(referentHistories);
+
+    const result = await ExportHelper.exportReferents(credentials);
+
+    expect(result).toBeDefined();
+    expect(result[1]).toMatchObject([
+      'M.',
+      'TATA',
+      'titi',
+      'M.',
+      '',
+      'toto',
+      '10/11/2019',
+      '21/01/2020',
+    ]);
+    expect(result[2]).toMatchObject([
+      'M.',
+      'TATA',
+      '',
+      '',
+      'TUTU',
+      'toto',
+      '10/11/2020',
+      '',
+    ]);
+    ReferentHistoryModel.verify();
   });
 });
 

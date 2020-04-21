@@ -111,18 +111,13 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
   {
     $lookup: {
       from: 'billslips',
-      as: 'billSlip',
-      let: { thirdPartyPayerId: '$_id.thirdPartyPayer', month: '$month' },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [{ $eq: ['$thirdPartyPayer', '$$thirdPartyPayerId'] }, { $eq: ['$month', '$$month'] }],
-            },
-          },
-        },
-      ],
+      as: 'billSlips',
+      localField: '_id.thirdPartyPayer',
+      foreignField: 'thirdPartyPayer',
     },
+  },
+  {
+    $addFields: { billSlip: { $filter: { input: '$billSlips', as: 'bs', cond: { $eq: ['$$bs.month', '$month'] } } } },
   },
   { $unwind: { path: '$billSlip' } },
   {

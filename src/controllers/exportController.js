@@ -16,6 +16,7 @@ const {
   CONTRACT,
   SECTOR,
   RUP,
+  REFERENT,
 } = require('../helpers/constants');
 const HistoryExportHelper = require('../helpers/historyExport');
 const DataExportHelper = require('../helpers/dataExport');
@@ -51,6 +52,9 @@ const exportData = async (req, h) => {
         break;
       case RUP:
         data = await DataExportHelper.exportStaffRegister(credentials);
+        break;
+      case REFERENT:
+        data = await DataExportHelper.exportReferents(credentials);
         break;
     }
 

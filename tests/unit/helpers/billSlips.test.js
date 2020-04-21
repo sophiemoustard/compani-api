@@ -420,6 +420,7 @@ describe('formatFile', () => {
       iban: 'FR8512739000305678847384Q97',
       bic: 'AGFBFRCC',
       rcs: '530514157',
+      billingAssistance: 'support@alenvi.io',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     };
@@ -445,6 +446,47 @@ describe('formatFile', () => {
           address: company.address.fullAddress,
           logo: company.logo,
           email: 'support@alenvi.io',
+          website: 'www.alenvi.io',
+        },
+        date: expect.stringMatching(/^\d\d\/\d\d\/\d\d\d\d$/),
+        period: { start: '01/12/2019', end: '31/12/2019' },
+        total: 100,
+        formattedBills: [{ bills: 'bills' }],
+      },
+    });
+    sinon.assert.calledWithExactly(formatBillingDataForFile, billList, creditNoteList);
+  });
+
+  it('should empty strimg for email if company does not have one', async () => {
+    const company = {
+      iban: 'FR8512739000305678847384Q97',
+      bic: 'AGFBFRCC',
+      rcs: '530514157',
+      address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
+      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+    };
+    const billSlip = {
+      number: 'BORD-1234567890',
+      thirdPartyPayer: { name: 'Diocèse de Paris' },
+      month: '12-2019',
+    };
+    const billList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const creditNoteList = [{ _id: new ObjectID() }];
+    formatBillingDataForFile.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
+
+    const result = await BillSlipHelper.formatFile(billSlip, billList, creditNoteList, company);
+
+    expect(result).toEqual({
+      billSlip: {
+        number: billSlip.number,
+        thirdPartyPayer: billSlip.thirdPartyPayer,
+        company: {
+          iban: company.iban,
+          bic: company.bic,
+          rcs: company.rcs,
+          address: company.address.fullAddress,
+          logo: company.logo,
+          email: '',
           website: 'www.alenvi.io',
         },
         date: expect.stringMatching(/^\d\d\/\d\d\/\d\d\d\d$/),

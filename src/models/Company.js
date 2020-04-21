@@ -17,6 +17,7 @@ const CompanySchema = mongoose.Schema({
   ics: { type: String },
   iban: { type: String },
   bic: { type: String },
+  billingAssistance: { type: String, lowercase: true, trim: true },
   logo: { type: String },
   apeCode: { type: String, validate: /^\d{3,4}[A-Z]$/ },
   legalRepresentative: {

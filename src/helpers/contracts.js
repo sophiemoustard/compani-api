@@ -14,7 +14,7 @@ const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
-const CustomerHelper = require('./customers');
+const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, AUXILIARY } = require('./constants');
@@ -134,7 +134,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   await EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(updatedContract.user._id, updatedContract.endDate, credentials);
-  await CustomerHelper.unassignReferentOnContractEnd(updatedContract);
+  await ReferentHistoryHelper.unassignReferentOnContractEnd(updatedContract);
   await UserHelper.updateUserInactivityDate(updatedContract.user._id, updatedContract.endDate, credentials);
   await SectorHistoryHelper.updateEndDate(updatedContract.user._id, updatedContract.endDate);
 

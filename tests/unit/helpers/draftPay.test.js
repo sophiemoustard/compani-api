@@ -1580,7 +1580,7 @@ describe('getPreviousMonthPay', () => {
 
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
+    const auxiliaries = [];
     getEventsToPay.returns([]);
 
     const result = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, [], []);

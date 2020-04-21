@@ -2,9 +2,19 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addTrainee, removeTrainee } = require('../controllers/courseController');
+const {
+  list,
+  create,
+  getById,
+  update,
+  addTrainee,
+  removeTrainee,
+  downloadAttendanceSheets,
+  downloadCompletionCertificates,
+  sendSMS,
+} = require('../controllers/courseController');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee } = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -12,9 +22,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: {
-        auth: { scope: ['courses:read'] },
-      },
+      options: { auth: { scope: ['courses:read'] } },
       handler: list,
     });
 
@@ -42,7 +50,8 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        auth: { scope: ['courses:read'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+        auth: false,
       },
       handler: getById,
     });
@@ -56,11 +65,31 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             trainer: Joi.objectId(),
+            referent: Joi.object({
+              name: Joi.string(),
+              phone: phoneNumberValidation,
+              email: Joi.string().allow('', null),
+            }).min(1),
           }),
         },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/sms',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          payload: Joi.object().keys({
+            body: Joi.string().required(),
+          }).required(),
+        },
+      },
+      handler: sendSMS,
     });
 
     server.route({
@@ -91,6 +120,26 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: removeTrainee,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/attendance-sheets',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: downloadAttendanceSheets,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/completion-certificates',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: downloadCompletionCertificates,
     });
   },
 };

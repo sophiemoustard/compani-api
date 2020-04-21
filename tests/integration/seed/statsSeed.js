@@ -10,6 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const {
   COMPANY_CONTRACT,
@@ -137,7 +138,6 @@ const customerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    referent: userList[0]._id,
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
@@ -206,7 +206,6 @@ const customerList = [
       _id: new ObjectID(),
       service: serviceList[0]._id,
     }],
-    referent: userList[0]._id,
     identity: { lastname: 'test' },
     contact: {
       primaryAddress: {
@@ -218,6 +217,35 @@ const customerList = [
       },
       phone: '0612345678',
     },
+  },
+];
+
+const referentList = [
+  {
+    auxiliary: userList[0]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: new Date('2019-03-12'),
+    endDate: new Date('2020-01-10'),
+  },
+  {
+    auxiliary: userList[1]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: new Date('2020-01-11'),
+    endDate: moment().add(1, 'days').toDate(),
+  },
+  {
+    auxiliary: userList[2]._id,
+    customer: customerList[0]._id,
+    company: customerList[0].company,
+    startDate: moment().add(2, 'days').toDate(),
+  },
+  {
+    auxiliary: userList[0]._id,
+    customer: customerList[1]._id,
+    company: customerList[1].company,
+    startDate: new Date('2018-03-12'),
   },
 ];
 
@@ -373,6 +401,44 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: customerList[0].subscriptions[0]._id,
+    auxiliary: userList[0]._id,
+    startDate: '2020-01-04T09:00:00.000+00:00',
+    endDate: '2020-01-04T11:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: customerList[0].subscriptions[0]._id,
+    auxiliary: userList[1]._id,
+    startDate: '2020-01-13T09:00:00.000+00:00',
+    endDate: '2020-01-13T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
     type: 'internalHour',
     startDate: '2019-07-12T09:00:00',
     endDate: '2019-07-12T10:00:00',
@@ -406,7 +472,7 @@ const dayOfCurrentMonth = (day) => {
 
 const mondayOfCurrentMonth = dayOfCurrentMonth(1);
 const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
-const saturdayOfCurrentMonth = dayOfCurrentMonth(0);
+const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
   const startOfMonth = moment().subtract(1, 'month').startOf('month');
@@ -471,8 +537,8 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
-    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
+    startDate: cloneDeep(sundayOfCurrentMonth).hour('8').toDate(),
+    endDate: cloneDeep(sundayOfCurrentMonth).hour('10').toDate(),
     address: {
       street: '37 rue de Ponthieu',
       zipCode: '75008',
@@ -545,6 +611,7 @@ const populateDB = async () => {
   await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
+  await ReferentHistory.deleteMany({});
 
   await populateDBForAuthentication();
   for (const user of userList) {
@@ -556,6 +623,7 @@ const populateDB = async () => {
   await SectorHistory.insertMany(sectorHistoryList);
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
+  await ReferentHistory.insertMany(referentList);
 };
 
 module.exports = {

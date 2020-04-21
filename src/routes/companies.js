@@ -35,6 +35,7 @@ exports.plugin = {
             rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
+            billingAssistance: Joi.string().email().allow(''),
             legalRepresentative: Joi.object().keys({
               lastname: Joi.string(),
               firstname: Joi.string(),
@@ -145,6 +146,7 @@ exports.plugin = {
             ics: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
+            billingAssistance: Joi.string().email(),
             apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({

@@ -26,9 +26,10 @@ describe('GET /stats/customer-follow-up', () => {
         url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
         headers: { 'x-access-token': clientAdminToken },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.followUp.length).toBe(1);
-      expect(res.result.data.followUp[0].totalHours).toBe(2.5);
+      expect(res.result.data.followUp[0].totalHours).toBe(5);
       expect(res.result.data.followUp[0]._id.toHexString()).toEqual(userList[0]._id.toHexString());
     });
 
@@ -140,7 +141,16 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
         headers: { 'x-access-token': clientAdminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.allCustomersFundingsMonitoring[0]).toBeDefined();
+      expect(res.result.data.allCustomersFundingsMonitoring).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          sector: expect.objectContaining({ name: 'Vénus' }),
+          customer: expect.objectContaining({ lastname: 'Giscard d\'Estaing' }),
+          referent: expect.objectContaining({ firstname: 'Auxiliary', lastname: 'Black' }),
+          currentMonthCareHours: 6,
+          prevMonthCareHours: 4,
+          nextMonthCareHours: 0,
+        }),
+      ]));
     });
   });
 
@@ -314,19 +324,43 @@ describe('GET /stats/customer-duration/sector', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+      const oldSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
         cad.sector.toHexString() === sectorList[0]._id.toHexString());
-      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+      const newSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
         cad.sector.toHexString() === sectorList[1]._id.toHexString());
+
+      expect(oldSectorCustomersAndDuration).toBeDefined();
+      expect(oldSectorCustomersAndDuration.customerCount).toEqual(1);
+      expect(oldSectorCustomersAndDuration.averageDuration).toEqual(1.5);
+      expect(oldSectorCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+
+      expect(newSectorCustomersAndDuration).toBeDefined();
+      expect(newSectorCustomersAndDuration.customerCount).toEqual(2);
+      expect(newSectorCustomersAndDuration.averageDuration).toEqual(2.5);
+      expect(newSectorCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
+    });
+
+    it('should return only relevant hours if an customer has changed referent', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration/sector?month=01-2020&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
+        cad.sector.toHexString() === sectorList[0]._id.toHexString());
 
       expect(oldSectosrCustomersAndDuration).toBeDefined();
       expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
-      expect(oldSectosrCustomersAndDuration.averageDuration).toEqual(1.5);
+      expect(oldSectosrCustomersAndDuration.averageDuration).toEqual(2.5);
       expect(oldSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
 
       expect(newSectosrCustomersAndDuration).toBeDefined();
-      expect(newSectosrCustomersAndDuration.customerCount).toEqual(2);
-      expect(newSectosrCustomersAndDuration.averageDuration).toEqual(2.5);
+      expect(newSectosrCustomersAndDuration.customerCount).toEqual(1);
+      expect(newSectosrCustomersAndDuration.averageDuration).toEqual(1.5);
       expect(newSectosrCustomersAndDuration.auxiliaryTurnOver).toEqual(1);
     });
 
