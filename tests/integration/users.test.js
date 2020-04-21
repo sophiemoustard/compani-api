@@ -1036,7 +1036,7 @@ describe('USERS ROUTES', () => {
           method: 'PUT',
           url: `/users/${usersSeedList[9]._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
-          payload: { identity: { firstname: 'trainerUpdate' } },
+          payload: { identity: { firstname: 'trainerUpdate' }, biography: "It's my life" },
         });
 
         expect(res.statusCode).toBe(200);

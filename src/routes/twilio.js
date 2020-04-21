@@ -11,6 +11,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['sms:send'] },
         validate: {
           payload: Joi.object().keys({
             to: Joi.string().required(),

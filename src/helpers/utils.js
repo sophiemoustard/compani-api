@@ -1,4 +1,4 @@
-const moment = require('moment-timezone');
+const moment = require('../extensions/moment');
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
 const { ObjectID } = require('mongodb');
@@ -155,3 +155,12 @@ exports.formatObjectIdsArray = ids =>
   (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
 
 exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
+
+exports.formatDuration = (duration) => {
+  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
+    ? duration.minutes().toString().padStart(2, 0)
+    : duration.minutes();
+  const hours = (duration.days() * 24) + duration.hours();
+
+  return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
+};

@@ -3,7 +3,7 @@ const expect = require('expect');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const JSZip = require('jszip');
+const PizZip = require('pizzip');
 const DocxTemplater = require('docxtemplater');
 const Drive = require('../../../src/models/Google/Drive');
 const DocxHelper = require('../../../src/helpers/docx');
@@ -29,7 +29,7 @@ describe('generateDocx', () => {
 
 describe('createDocx', () => {
   it('should return filled docx template path', async () => {
-    sinon.createStubInstance(JSZip);
+    sinon.createStubInstance(PizZip);
     const loadZipStub = sinon.stub(DocxTemplater.prototype, 'loadZip');
     const setOptionsStub = sinon.stub(DocxTemplater.prototype, 'setOptions');
     const setDataStub = sinon.stub(DocxTemplater.prototype, 'setData');

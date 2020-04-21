@@ -199,10 +199,31 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     { $unwind: { path: '$customer' } },
     {
       $lookup: {
-        from: 'users',
-        localField: 'customer.referent',
-        foreignField: '_id',
+        from: 'referenthistories',
         as: 'customer.referent',
+        let: { customerId: '$customer._id' },
+        pipeline: [
+          {
+            $match: {
+              $and: [
+                {
+                  $or: [
+                    { endDate: { $exists: false } },
+                    { endDate: { $exists: true, $gte: moment().startOf('day').toDate() } },
+                  ],
+                },
+                { startDate: { $lte: moment().endOf('day').toDate() } },
+                { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
+              ],
+            },
+          },
+          { $sort: { startDate: -1 } },
+          { $limit: 1 },
+          { $lookup: { from: 'users', as: 'auxiliary', foreignField: '_id', localField: 'auxiliary' } },
+          { $unwind: { path: '$auxiliary' } },
+          { $replaceRoot: { newRoot: '$auxiliary' } },
+          { $project: { identity: 1 } },
+        ],
       },
     },
     { $unwind: { path: '$customer.referent', preserveNullAndEmptyArrays: true } },
@@ -298,21 +319,39 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
     {
       $lookup: {
-        from: 'customers',
-        as: 'customer',
+        from: 'referenthistories',
+        as: 'referenthistories',
         let: { referentId: '$auxiliary' },
         pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$referent', '$$referentId'] }] } } },
-          { $project: { _id: 1 } },
+          {
+            $match: {
+              $or: [
+                { endDate: { $exists: false } },
+                { endDate: { $exists: true, $gte: minStartDate } },
+              ],
+              startDate: { $lte: maxStartDate },
+              $and: [{ $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } }],
+            },
+          },
+          { $project: { customer: 1, startDate: 1, endDate: 1 } },
         ],
+      },
+    },
+    { $unwind: { path: '$referenthistories' } },
+    {
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        localField: 'referenthistories.customer',
+        foreignField: '_id',
       },
     },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
         'customer.sector._id': '$sector',
-        'customer.sector.startDate': '$startDate',
-        'customer.sector.endDate': '$endDate',
+        'customer.sector.startDate': { $max: ['$startDate', '$referenthistories.startDate'] },
+        'customer.sector.endDate': { $min: ['$endDate', '$referenthistories.endDate'] },
       },
     },
     { $replaceRoot: { newRoot: '$customer' } },

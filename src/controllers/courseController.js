@@ -60,6 +60,17 @@ const update = async (req) => {
   }
 };
 
+const sendSMS = async (req) => {
+  try {
+    await CoursesHelper.sendSMS(req.params._id, req.payload);
+
+    return { message: translate[language].smsSent };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const addTrainee = async (req) => {
   try {
     const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
@@ -85,6 +96,32 @@ const removeTrainee = async (req) => {
   }
 };
 
+const downloadAttendanceSheets = async (req, h) => {
+  try {
+    const { pdf, fileName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${fileName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const downloadCompletionCertificates = async (req, h) => {
+  try {
+    const { zipPath, zipName } = await CoursesHelper.generateCompletionCertificates(req.params._id);
+
+    return h.file(zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${zipName}`)
+      .type('application/zip');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -92,4 +129,7 @@ module.exports = {
   update,
   addTrainee,
   removeTrainee,
+  downloadAttendanceSheets,
+  downloadCompletionCertificates,
+  sendSMS,
 };

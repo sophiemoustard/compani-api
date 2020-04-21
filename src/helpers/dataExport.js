@@ -17,6 +17,7 @@ const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const SectorHistory = require('../models/SectorHistory');
+const ReferentHistory = require('../models/ReferentHistory');
 const Service = require('../models/Service');
 const ContractRepository = require('../repositories/ContractRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
@@ -64,8 +65,8 @@ exports.exportCustomers = async (credentials) => {
     .populate({ path: 'subscriptions.service' })
   // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
-    .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
-    .lean();
+    .populate({ path: 'referent', match: { company: companyId } })
+    .lean({ autopopulate: true });
   const rows = [customerExportHeader];
 
   for (const cus of customers) {
@@ -300,6 +301,40 @@ exports.exportStaffRegister = async (credentials) => {
       'CDI',
       moment(contract.startDate).format('DD/MM/YYYY'),
       contract.endDate ? moment(contract.endDate).format('DD/MM/YYYY') : '',
+    ]);
+  }
+
+  return rows;
+};
+
+const referentsHeader = [
+  'Bénéficiaire - Titre',
+  'Bénéficiaire - Nom',
+  'Bénéficiaire - Prénom',
+  'Auxiliaire - Titre',
+  'Auxiliaire - Nom',
+  'Auxiliaire - Prénom',
+  'Date de début',
+  'Date de fin',
+];
+
+exports.exportReferents = async (credentials) => {
+  const referentsHistories = await ReferentHistory.find({ company: get(credentials, 'company._id', '') })
+    .populate('auxiliary')
+    .populate('customer')
+    .lean();
+
+  const rows = [referentsHeader];
+  for (const referentHistory of referentsHistories) {
+    rows.push([
+      CIVILITY_LIST[get(referentHistory, 'customer.identity.title')] || '',
+      get(referentHistory, 'customer.identity.lastname', '').toUpperCase(),
+      get(referentHistory, 'customer.identity.firstname') || '',
+      CIVILITY_LIST[get(referentHistory, 'auxiliary.identity.title')] || '',
+      get(referentHistory, 'auxiliary.identity.lastname', '').toUpperCase(),
+      get(referentHistory, 'auxiliary.identity.firstname') || '',
+      moment(referentHistory.startDate).format('DD/MM/YYYY'),
+      referentHistory.endDate ? moment(referentHistory.endDate).format('DD/MM/YYYY') : '',
     ]);
   }
 

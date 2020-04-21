@@ -14,6 +14,7 @@ const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const SubscriptionsHelper = require('./subscriptions');
+const ReferentHistoriesHelper = require('../helpers/referentHistories');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
@@ -93,8 +94,8 @@ exports.getCustomer = async (customerId, credentials) => {
     .populate({ path: 'fundings.thirdPartyPayer' })
     // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
-    .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
-    .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
+    .populate({ path: 'referent', match: { company: companyId } })
+    .lean({ autopopulate: true }); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
 
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
@@ -120,59 +121,67 @@ exports.formatRumNumber = (companyPrefixNumber, prefix, seq) => {
   return `R-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}${random}`;
 };
 
-exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
-  { referent: contract.user._id },
-  { $unset: { referent: '' } }
-);
+exports.formatPaymentPayload = async (customerId, payload, company) => {
+  const customer = await Customer.findById(customerId).lean();
+
+  // if the user updates its RIB, we should generate a new mandate.
+  const customerIban = get(customer, 'payment.iban') || null;
+  if (customerIban && customerIban !== payload.payment.iban) {
+    const number = await exports.getRumNumber(company._id);
+    const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
+
+    await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $inc: { seq: 1 } });
+    return {
+      $set: flat(payload, { safe: true }),
+      $push: { 'payment.mandates': mandate },
+      $unset: { 'payment.bic': '' },
+    };
+  }
+
+  return { $set: flat(payload, { safe: true }) };
+};
+
+exports.updateCustomerEvents = async (customerId, payload) => {
+  const addressField = payload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
+  const customer = await Customer.findById(customerId).lean();
+  const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
+
+  if (customerHasAddress) {
+    const isSecondaryAddressDeleted = has(payload, 'contact.secondaryAddress') &&
+      get(payload, 'contact.secondaryAddress.fullAddress') === '';
+
+    const setAddressToEventPayload = isSecondaryAddressDeleted ?
+      { $set: { address: customer.contact.primaryAddress } } :
+      { $set: { address: payload.contact[addressField] } };
+
+    await Event.updateMany(
+      {
+        customer: customerId,
+        'address.fullAddress': customer.contact[addressField].fullAddress,
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
+      setAddressToEventPayload
+    );
+  }
+};
 
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
-  let number;
   const { company } = credentials;
-  if (customerPayload.referent === '') {
-    payload = { $unset: { referent: '' } };
+  if (has(customerPayload, 'referent')) {
+    await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
+
+    return Customer.findOne({ _id: customerId }).lean();
   } else if (has(customerPayload, 'payment.iban')) {
-    const customer = await Customer.findById(customerId).lean();
-    // if the user updates its RIB, we should generate a new mandate.
-    if (customer.payment.iban && customer.payment.iban !== '' &&
-      customer.payment.iban !== customerPayload.payment.iban) {
-      number = await exports.getRumNumber(company._id);
-      const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
-      payload = {
-        $set: flat(customerPayload, { safe: true }),
-        $push: { 'payment.mandates': mandate },
-        $unset: { 'payment.bic': '' },
-      };
-      number.seq += 1;
-    } else {
-      payload = { $set: flat(customerPayload, { safe: true }) };
-    }
+    payload = await exports.formatPaymentPayload(customerId, customerPayload, company);
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
-    const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
-    const customer = await Customer.findById(customerId).lean();
-    const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
-    const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
-      get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
-    if (customerHasAddress) {
-      const setAddressToEventPayload = noSecondaryAddressInPayload ?
-        { $set: { address: customer.contact.primaryAddress } } :
-        { $set: { address: customerPayload.contact[addressField] } };
-      await Event.updateMany(
-        {
-          'address.fullAddress': customer.contact[addressField].fullAddress,
-          startDate: { $gte: moment().startOf('day').toDate() },
-        },
-        setAddressToEventPayload,
-        { new: true }
-      );
-    }
+    await exports.updateCustomerEvents(customerId, customerPayload);
     payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
   const customer = Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
-  if (number) await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
 
   return customer;
 };

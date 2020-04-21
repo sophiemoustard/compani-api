@@ -137,6 +137,7 @@ const UserSchema = mongoose.Schema({
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
   status: { type: String, enum: USER_STATUS },
+  biography: String,
 }, {
   timestamps: true,
   toObject: { virtuals: true },

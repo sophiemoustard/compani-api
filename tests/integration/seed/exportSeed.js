@@ -15,6 +15,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
@@ -256,7 +257,6 @@ const customersList = [
       lastname: 'Bardet',
       birthDate: moment('1940-01-01').toDate(),
     },
-    referent: auxiliaryList[0]._id,
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -356,6 +356,28 @@ const customersList = [
       },
       phone: '0612345678',
     },
+  },
+];
+
+const referentList = [
+  {
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[0]._id,
+    company: customersList[0].company,
+    startDate: '2020-01-31T00:00:00',
+  },
+  {
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[0]._id,
+    company: customersList[0].company,
+    startDate: '2019-03-12T00:00:00',
+    endDate: '2020-01-30T00:00:00',
+  },
+  {
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[1]._id,
+    company: customersList[1].company,
+    startDate: '2019-06-23T00:00:00',
   },
 ];
 
@@ -884,6 +906,7 @@ const populateCustomer = async () => {
   await Company.deleteMany();
   await Event.deleteMany();
   await User.deleteMany();
+  await ReferentHistory.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -893,6 +916,7 @@ const populateCustomer = async () => {
   await User.insertMany(auxiliaryList);
   await Customer.insertMany(customersList);
   await Event.insertMany(eventList);
+  await ReferentHistory.insertMany(referentList);
 };
 
 const populateUser = async () => {
