@@ -134,8 +134,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         type: INTERVENTION,
         $or: [
           { isCancelled: false },
-          { 'cancel.condition': INVOICED_AND_PAID },
-          { 'cancel.condition': INVOICED_AND_NOT_PAID },
+          { 'cancel.condition': { $in: [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID] } },
         ],
       },
     },
@@ -143,53 +142,32 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     { $group: { _id: { customer: '$customer' }, events: { $push: '$$ROOT' } } },
   ];
 
-  const pipelineForLookupCustomer = [
+  const getCustomerWithFundings = [
+    { $lookup: { from: 'customers', as: 'customer', foreignField: '_id', localField: '_id.customer' } },
+    { $unwind: { path: '$customer' } },
+    { $match: { 'customer.fundings': { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } } } },
+    { $unwind: { path: '$customer.fundings' } },
+    { $addFields: { 'customer.fundings.version': { $arrayElemAt: ['$customer.fundings.versions', -1] } } },
     {
       $match: {
-        fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } },
-        $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
-      },
-    },
-    { $unwind: { path: '$fundings' } },
-    { $addFields: { 'fundings.version': { $arrayElemAt: ['$fundings.versions', -1] } } },
-    {
-      $match: {
-        'fundings.frequency': MONTHLY,
-        'fundings.nature': HOURLY,
-        'fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
+        'customer.fundings.frequency': MONTHLY,
+        'customer.fundings.nature': HOURLY,
+        'customer.fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
         $or: [
-          { 'fundings.endDate': { $exists: false }, $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] } },
-          {
-            'fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate },
-            $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
-          },
+          { 'customer.fundings.endDate': { $exists: false } },
+          { 'customer.fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate } },
         ],
       },
     },
     {
       $lookup: {
         from: 'thirdpartypayers',
-        localField: 'fundings.thirdPartyPayer',
+        localField: 'customer.fundings.thirdPartyPayer',
         foreignField: '_id',
-        as: 'fundings.thirdPartyPayer',
+        as: 'customer.fundings.thirdPartyPayer',
       },
     },
-    { $unwind: { path: '$fundings.thirdPartyPayer' } },
-  ];
-
-  const getCustomerWithFundings = [
-    {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        let: {
-          customerId: '$_id.customer',
-          eventStartDate: '$startDate',
-        },
-        pipeline: pipelineForLookupCustomer,
-      },
-    },
-    { $unwind: { path: '$customer' } },
+    { $unwind: { path: '$customer.fundings.thirdPartyPayer' } },
     {
       $lookup: {
         from: 'referenthistories',
@@ -199,12 +177,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
           {
             $match: {
               $and: [
-                {
-                  $or: [
-                    { endDate: { $exists: false } },
-                    { endDate: { $exists: true, $gte: moment().startOf('day').toDate() } },
-                  ],
-                },
+                { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: moment().startOf('day').toDate() } }] },
                 { startDate: { $lte: moment().endOf('day').toDate() } },
                 { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
               ],
@@ -224,17 +197,22 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       $lookup: {
         from: 'sectorhistories',
         as: 'customer.sector',
-        let: { auxiliaryId: '$customer.referent._id' },
-        pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] } } },
-          { $sort: { startDate: -1 } },
-          { $limit: 1 },
-          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
-          { $unwind: { path: '$lastSector' } },
-          { $replaceRoot: { newRoot: '$lastSector' } },
-        ],
+        localField: 'customer.referent._id',
+        foreignField: 'auxiliary',
       },
     },
+    { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
+    { $sort: { 'customer.sector.startDate': -1 } },
+    {
+      $group: {
+        _id: { customer: '$_id.customer', funding: '$customer.fundings._id' },
+        customer: { $first: '$customer' },
+        events: { $first: '$events' },
+        sectors: { $push: '$customer.sector' },
+      },
+    },
+    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', -1] } } },
+    { $lookup: { from: 'sectors', as: 'customer.sector', foreignField: '_id', localField: 'customer.sector.sector' } },
     { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
   ];
 
@@ -285,12 +263,11 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     },
   ];
 
-  return Event
-    .aggregate([
-      ...matchAndGroupEvents,
-      ...getCustomerWithFundings,
-      ...formatFundings,
-    ])
+  return Event.aggregate([
+    ...matchAndGroupEvents,
+    ...getCustomerWithFundings,
+    ...formatFundings,
+  ])
     .option({ company: companyId });
 };
 
