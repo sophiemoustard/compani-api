@@ -460,34 +460,30 @@ exports.workingStats = async (query, credentials) => {
 };
 
 exports.getPaidTransportStatsBySector = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id') || null;
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
-  const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices({}, credentials);
-  const paidTransportStatsBySector = await EventRepository.getPaidTransportStatsBySector(
-    sectors,
-    query.month,
-    companyId
-  );
+  const [distanceMatrix, paidTransportStatsBySector] = await Promise.all([
+    DistanceMatrixHelper.getDistanceMatrices(credentials),
+    EventRepository.getPaidTransportStatsBySector(sectors, query.month, companyId),
+  ]);
+
   const result = [];
   for (const sector of paidTransportStatsBySector) {
-    let duration = 0;
+    const promises = [];
     for (const auxiliary of sector.auxiliaries) {
       for (const day of auxiliary.days) {
         if (day.events.length > 1) {
           for (let i = 1; i < day.events.length; i++) {
-            const paidTransportInfo = await DraftPayHelper.getPaidTransportInfo(
-              day.events[i],
-              day.events[i - 1],
-              distanceMatrix
-            );
-            duration += paidTransportInfo.duration;
+            promises.push(DraftPayHelper.getPaidTransportInfo(day.events[i], day.events[i - 1], distanceMatrix));
           }
         }
       }
     }
-    result.push({ sector: sector._id, duration: duration / 60 });
+    const transports = await Promise.all(promises);
+    result.push({ sector: sector._id, duration: transports.reduce((acc, t) => acc + t.duration, 0) / 60 });
   }
+
   return result;
 };
 
