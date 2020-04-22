@@ -179,21 +179,18 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.result.data.program.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
     });
 
-    const missingParams = ['name', 'learningGoals'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 if missing ${param}`, async () => {
+    const falsyParams = ['name', 'learningGoals'];
+    falsyParams.forEach((param) => {
+      it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'PUT',
           url: `/programs/${programId.toHexString()}`,
-          payload: omit(payload, param),
+          payload: { ...payload, [param]: '' },
           headers: { 'x-access-token': authToken },
         });
 
-        expect(response.statusCode).toBe(200);
-        expect(response.result.data.program._id).toEqual(programId);
-        expect(response.result.data.program.name).toEqual('new name');
-        expect(response.result.data.program.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
+        expect(response.statusCode).toBe(400);
       });
     });
   });
