@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
-const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN } = require('./constants');
+const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
@@ -22,7 +22,7 @@ const validate = async (decoded) => {
     if (!decoded._id) throw new Error('No id present in token');
     const user = await User.findById(decoded._id, '_id identity role company local customers sector')
       .lean({ autopopulate: true });
-    if (!user.company) return { isValid: false };
+    if (!user.company && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
     const userRoles = Object.values(user.role).filter(role => !!role);
     if (!userRoles.length) return { isValid: false };

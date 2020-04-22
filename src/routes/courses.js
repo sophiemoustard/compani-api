@@ -38,7 +38,7 @@ exports.plugin = {
             companies: Joi.array().items(Joi.objectId()).required().min(1),
           }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['courses:create'] },
       },
       handler: create,
     });
