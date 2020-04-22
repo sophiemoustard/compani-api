@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./User');
+const SectorHistory = require('./SectorHistory');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SectorSchema = mongoose.Schema({
@@ -9,10 +9,10 @@ const SectorSchema = mongoose.Schema({
   timestamps: true,
 });
 
-const countAuxiliaries = async (docs) => {
+const hasAuxiliaries = async (docs) => {
   if (docs.length > 0) {
     for (const sector of docs) {
-      sector.auxiliaryCount = await User.countDocuments({ sector: sector._id });
+      sector.hasAuxiliaries = !!(await SectorHistory.countDocuments({ sector: sector._id }));
     }
   }
 };
@@ -20,6 +20,6 @@ const countAuxiliaries = async (docs) => {
 SectorSchema.pre('find', validateQuery);
 SectorSchema.pre('validate', validatePayload);
 SectorSchema.pre('aggregate', validateAggregation);
-SectorSchema.post('find', countAuxiliaries);
+SectorSchema.post('find', hasAuxiliaries);
 
 module.exports = mongoose.model('Sector', SectorSchema);

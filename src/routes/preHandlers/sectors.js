@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const Sector = require('../../models/Sector');
+const SectorHistory = require('../../models/SectorHistory');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -20,7 +21,18 @@ exports.getSector = async (req) => {
 exports.authorizeSectorUpdate = (req) => {
   const { credentials } = req.auth;
   const sector = req.pre.sector || req.payload;
-  if (sector.company.toHexString() === credentials.company._id.toHexString()) return null;
+  if (sector.company.toHexString() !== credentials.company._id.toHexString()) throw Boom.forbidden();
 
-  throw Boom.forbidden();
+  return null;
+};
+
+exports.authorizeSectorDeletion = async (req) => {
+  const { credentials } = req.auth;
+  const { sector } = req.pre;
+  if (sector.company.toHexString() !== credentials.company._id.toHexString()) throw Boom.forbidden();
+
+  const historiesCount = await SectorHistory.countDocuments({ sector: sector._id });
+  if (historiesCount) throw Boom.forbidden();
+
+  return null;
 };
