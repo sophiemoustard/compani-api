@@ -496,18 +496,22 @@ describe('formatCourseForDocx', () => {
     const course = {
       slots: [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
       name: 'Bonjour je suis une formation',
+      program: { learningGoals: 'Apprendre' },
     };
     getCourseDuration.returns('7h');
 
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      courseName: 'BONJOUR JE SUIS UNE FORMATION',
-      courseDuration: '7h',
+      name: 'BONJOUR JE SUIS UNE FORMATION',
+      duration: '7h',
+      learningGoals: course.program.learningGoals,
+      startDate: '20/03/2020',
+      endDate: '21/04/2020',
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
   });

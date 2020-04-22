@@ -128,14 +128,18 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocx = course => ({
-  courseName: course.name.toUpperCase(),
-  courseDuration: exports.getCourseDuration(course.slots),
+  name: course.name.toUpperCase(),
+  duration: exports.getCourseDuration(course.slots),
+  learningGoals: get(course, 'program.learningGoals') || '',
+  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
+  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
 });
 
 exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
+    .populate('program')
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);
