@@ -320,41 +320,28 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $lookup: {
         from: 'referenthistories',
-        as: 'referenthistories',
+        as: 'histories',
         let: { referentId: '$auxiliary' },
         pipeline: [
           {
             $match: {
-              $or: [
-                { endDate: { $exists: false } },
-                { endDate: { $exists: true, $gte: minStartDate } },
-              ],
+              $or: [{ endDate: { $exists: false } }, { endDate: { $exists: true, $gte: minStartDate } }],
               startDate: { $lte: maxStartDate },
               $and: [{ $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } }],
             },
           },
-          { $project: { customer: 1, startDate: 1, endDate: 1 } },
         ],
       },
     },
-    { $unwind: { path: '$referenthistories' } },
+    { $unwind: { path: '$histories' } },
     {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        localField: 'referenthistories.customer',
-        foreignField: '_id',
+      $project: {
+        sector: 1,
+        customer: '$histories.customer',
+        startDate: { $max: ['$startDate', '$histories.startDate'] },
+        endDate: { $min: ['$endDate', '$histories.endDate'] },
       },
     },
-    { $unwind: { path: '$customer' } },
-    {
-      $addFields: {
-        'customer.sector._id': '$sector',
-        'customer.sector.startDate': { $max: ['$startDate', '$referenthistories.startDate'] },
-        'customer.sector.endDate': { $min: ['$endDate', '$referenthistories.endDate'] },
-      },
-    },
-    { $replaceRoot: { newRoot: '$customer' } },
   ];
 
   const customersEvents = [
@@ -363,9 +350,9 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         from: 'events',
         as: 'event',
         let: {
-          customerId: '$_id',
-          startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+          customerId: '$customer',
+          startDate: { $max: ['$startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [
           {
@@ -390,14 +377,10 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   ];
 
   const group = [
-    {
-      $addFields: {
-        duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
-      },
-    },
+    { $addFields: { duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] } } },
     {
       $group: {
-        _id: { sector: '$sector._id', customer: '$event.customer' },
+        _id: { sector: '$sector', customer: '$event.customer' },
         duration: { $sum: '$duration' },
         auxiliaries: { $addToSet: '$event.auxiliary' },
       },
@@ -421,11 +404,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
   ];
 
-  return SectorHistory.aggregate([
-    ...sectorsCustomers,
-    ...customersEvents,
-    ...group,
-  ]).option({ company: companyId });
+  return SectorHistory.aggregate([...sectorsCustomers, ...customersEvents, ...group]).option({ company: companyId });
 };
 
 exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
