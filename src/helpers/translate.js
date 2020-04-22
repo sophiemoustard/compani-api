@@ -134,9 +134,6 @@ module.exports = {
     eventDeleted: 'Event deleted.',
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
-    /* Google Map */
-    distanceMatrixFound: 'Distance Matrix found.',
-    distanceMatrixNotFound: 'Distance Matrix not found.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -369,9 +366,6 @@ module.exports = {
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
-    /* Google Map */
-    distanceMatrixFound: 'Distance Matrix trouvée.',
-    distanceMatrixNotFound: 'Distance Matrix non trouvée.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
