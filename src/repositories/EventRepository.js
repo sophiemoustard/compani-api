@@ -377,13 +377,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
         {
           status: COMPANY_CONTRACT,
           type: INTERVENTION,
-          $and: [{
-            $or: [
-              { isCancelled: false },
-              { isCancelled: { $exists: false } },
-              { 'cancel.condition': INVOICED_AND_PAID },
-            ],
-          }],
+          $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
         },
         { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
       ],
@@ -393,14 +387,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
 
   const match = [
     { $match: { $and: rules } },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: 'customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
@@ -466,13 +453,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
       $project: {
         auxiliary: 1,
         events: 1,
-        absences: {
-          $reduce: {
-            input: '$absences',
-            initialValue: [],
-            in: { $setUnion: ['$$value', '$$this'] },
-          },
-        },
+        absences: { $reduce: { input: '$absences', initialValue: [], in: { $setUnion: ['$$value', '$$this'] } } },
       },
     },
   ];
@@ -605,13 +586,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
         as: 'customer',
         let: { customerId: '$customer' },
         pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [{ $eq: ['$_id', '$$customerId'] }],
-              },
-            },
-          },
+          { $match: { $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] } } },
         ],
       },
     },
@@ -660,9 +635,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
     { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
     { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
-    {
-      $project: { 'subscriptions.service.versions': 0, 'subscriptions.service.version': 0 },
-    },
+    { $project: { 'subscriptions.service.versions': 0, 'subscriptions.service.version': 0 } },
     {
       $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
     },

@@ -37,8 +37,7 @@ exports.getCustomerFundings = async companyId => Customer.aggregate([
 
 exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.aggregate([
   { $match: query },
-  ...populateReferentHistories,
-  { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$subscriptions' } },
   {
     $lookup: {
       from: 'services',
@@ -49,27 +48,31 @@ exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.agg
   },
   { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
   { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
-  { $sort: { 'subscriptions.service.versions.startDate': -1 } },
+  { $sort: { 'subscriptionsservice.versions.startDate': -1 } },
   {
     $group: {
-      _id: { _id: '$_id', subscription: '$subscriptions._id' },
+      _id: { _id: '$_id', subscription: '$subscriptions_id' },
       customer: { $first: '$$ROOT' },
-      serviceVersions: { $first: '$subscriptions.service.versions' },
+      serviceVersions: { $first: '$subscriptionsservice.versions' },
     },
   },
   {
     $addFields: {
-      'customer.subscriptions.service': {
-        $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'],
-      },
+      'customer.subscriptionsservice': { $mergeObjects: ['$serviceVersions', '$customer.subscriptionsservice'] },
     },
   },
   { $replaceRoot: { newRoot: '$customer' } },
-  {
-    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
-  },
+  { $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } } },
   { $addFields: { 'customer.subscriptions': '$subscriptions' } },
   { $replaceRoot: { newRoot: '$customer' } },
+  ...populateReferentHistories,
+  {
+    $project: {
+      subscriptions: 1,
+      referentHistories: 1,
+      identity: 1,
+    },
+  },
 ]).option({ company: companyId });
 
 exports.getCustomersList = async companyId => Customer.aggregate([

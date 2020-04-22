@@ -1,33 +1,19 @@
 const populateReferentHistories = [
-  {
-    $lookup: {
-      from: 'referenthistories',
-      as: 'referentHistories',
-      foreignField: 'customer',
-      localField: '_id',
-    },
-  },
-  { $unwind: { path: '$referentHistories', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'users',
-      as: 'referentHistories.auxiliary',
-      foreignField: '_id',
-      localField: 'referentHistories.auxiliary',
-    },
-  },
-  { $unwind: { path: '$referentHistories.auxiliary', preserveNullAndEmptyArrays: true } },
+  { $lookup: { from: 'referenthistories', as: 'histories', foreignField: 'customer', localField: '_id' } },
+  { $unwind: { path: '$histories', preserveNullAndEmptyArrays: true } },
+  { $lookup: { from: 'users', as: 'histories.auxiliary', foreignField: '_id', localField: 'histories.auxiliary' } },
+  { $unwind: { path: '$histories.auxiliary', preserveNullAndEmptyArrays: true } },
   {
     $group: {
       _id: '$_id',
       customer: { $first: '$$ROOT' },
-      referentHistories: { $addToSet: '$referentHistories' },
+      histories: { $push: '$histories' },
     },
   },
   {
     $addFields: {
       'customer.referentHistories': {
-        $filter: { input: '$referentHistories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } },
+        $filter: { input: '$histories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } }
       },
     },
   },
