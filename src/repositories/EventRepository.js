@@ -771,7 +771,7 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
-  return SectorHistory.aggregate([
+  const sectorAuxiliaries = [
     {
       $match: {
         sector: { $in: sectors },
@@ -781,8 +781,11 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
     },
     { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
-    { $addFields: { 'auxiliary.sector': '$sector' } },
+    { $addFields: { 'auxiliary.sector': { _id: '$sector', startDate: '$startDate', endDate: '$endDate' } } },
     { $replaceRoot: { newRoot: '$auxiliary' } },
+  ];
+
+  const auxiliariesEvents = [
     {
       $lookup: {
         from: 'events',
@@ -810,17 +813,16 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
       },
     },
     { $unwind: { path: '$events' } },
-    {
-      $addFields: {
-        'events.auxiliary.administrative.transportInvoice.transportType': '$administrative.transportInvoice.transportType',
-      },
-    },
+  ];
+
+  const formatAndGroup = [
+    { $addFields: { 'events.auxiliary.administrative.transportInvoice': '$administrative.transportInvoice' } },
     {
       $group: {
         _id: {
           date: { $dateToString: { format: '%Y-%m-%d', date: '$events.startDate' } },
           auxiliary: '$_id',
-          sector: '$sector',
+          sector: '$sector._id',
         },
         events: { $push: '$events' },
       },
@@ -832,6 +834,12 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
       },
     },
     { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
+  ];
+
+  return SectorHistory.aggregate([
+    ...sectorAuxiliaries,
+    ...auxiliariesEvents,
+    ...formatAndGroup,
   ]).option({ company: companyId });
 };
 

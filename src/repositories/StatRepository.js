@@ -393,7 +393,11 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
   ];
 
-  return SectorHistory.aggregate([...sectorsCustomers, ...customersEvents, ...group]).option({ company: companyId });
+  return SectorHistory.aggregate([
+    ...sectorsCustomers,
+    ...customersEvents,
+    ...group,
+  ]).option({ company: companyId });
 };
 
 exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
