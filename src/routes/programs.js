@@ -50,6 +50,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object({
             name: Joi.string(),
+            learningGoals: Joi.string().allow('', null),
           }),
         },
         auth: { scope: ['programs:edit'] },

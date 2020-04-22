@@ -167,13 +167,14 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/programs/${programId.toHexString()}`,
-        payload: { name: 'new name' },
+        payload: { name: 'new name', learningGoals: 'On apprend des trucs\nc\'est chouette' },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.program._id).toEqual(programId);
       expect(response.result.data.program.name).toEqual('new name');
+      expect(response.result.data.program.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
     });
   });
 
