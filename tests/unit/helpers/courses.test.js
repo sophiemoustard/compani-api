@@ -53,6 +53,14 @@ describe('list', () => {
 
     CourseMock.expects('find')
       .withExactArgs({ type: 'toto' })
+      .chain('populate')
+      .withExactArgs('companies')
+      .chain('populate')
+      .withExactArgs('program')
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainer')
       .chain('lean')
       .once()
       .returns(coursesList);
