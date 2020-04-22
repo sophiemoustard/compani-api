@@ -21,7 +21,6 @@ exports.list = async query => Course.find(query)
   .populate('companies')
   .populate('program')
   .populate('slots')
-  .populate('trainees')
   .populate('trainer')
   .lean();
 

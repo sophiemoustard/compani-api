@@ -60,8 +60,6 @@ describe('list', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainees')
-      .chain('populate')
       .withExactArgs('trainer')
       .chain('lean')
       .once()
