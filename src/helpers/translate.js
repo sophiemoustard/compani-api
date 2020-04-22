@@ -37,7 +37,7 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
-    smsListFound: 'SMS record list found.',
+    smsFound: 'SMS found.',
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
@@ -271,7 +271,7 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
-    smsListFound: 'Liste enregistrement SMS trouvée.',
+    smsFound: 'SMS trouvés.',
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',

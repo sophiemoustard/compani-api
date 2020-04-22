@@ -243,4 +243,6 @@ module.exports = {
   CERTIFICATE: 'certificate',
   // COURSES
   INTRA: 'intra',
+  CONVOCATION: 'convocation',
+  REMINDER: 'reminder',
 };

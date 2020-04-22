@@ -71,6 +71,20 @@ const sendSMS = async (req) => {
   }
 };
 
+const getSMSHistory = async (req) => {
+  try {
+    const sms = await CoursesHelper.getSMSHistory(req.params._id);
+
+    return {
+      message: translate[language].smsFound,
+      data: { sms },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const addTrainee = async (req) => {
   try {
     const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
@@ -132,4 +146,5 @@ module.exports = {
   downloadAttendanceSheets,
   downloadCompletionCertificates,
   sendSMS,
+  getSMSHistory,
 };
