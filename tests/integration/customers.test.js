@@ -348,7 +348,10 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       const areAllCustomersFromCompany = res.result.data.customers
-        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+        .every(async (cus) => {
+          const customer = await Customer.findOne({ _id: cus._id }).lean();
+          return customer.company.toHexString() === otherCompany._id.toHexString();
+        });
       expect(areAllCustomersFromCompany).toBe(true);
     });
   });

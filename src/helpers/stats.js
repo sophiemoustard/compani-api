@@ -69,6 +69,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
     eventsDate,
     get(credentials, 'company._id', null)
   );
+
   const allCustomersFundingsMonitoring = [];
   for (const funding of eventsGroupedByFundingsforAllCustomers) {
     const isPrevMonthRelevant = moment(funding.startDate).isBefore(moment().startOf('month').toDate());

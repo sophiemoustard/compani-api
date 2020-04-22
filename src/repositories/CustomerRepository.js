@@ -48,17 +48,17 @@ exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.agg
   },
   { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
   { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
-  { $sort: { 'subscriptionsservice.versions.startDate': -1 } },
+  { $sort: { 'subscriptions.service.versions.startDate': -1 } },
   {
     $group: {
-      _id: { _id: '$_id', subscription: '$subscriptions_id' },
+      _id: { _id: '$_id', subscription: '$subscriptions._id' },
       customer: { $first: '$$ROOT' },
-      serviceVersions: { $first: '$subscriptionsservice.versions' },
+      serviceVersions: { $first: '$subscriptions.service.versions' },
     },
   },
   {
     $addFields: {
-      'customer.subscriptionsservice': { $mergeObjects: ['$serviceVersions', '$customer.subscriptionsservice'] },
+      'customer.subscriptions.service': { $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'] },
     },
   },
   { $replaceRoot: { newRoot: '$customer' } },
