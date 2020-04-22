@@ -12,7 +12,7 @@ const {
   downloadAttendanceSheets,
   downloadCompletionCertificates,
   sendSMS,
-  getSMS,
+  getSMSHistory,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
@@ -106,7 +106,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCourseGetOrUpdate }],
       },
-      handler: getSMS,
+      handler: getSMSHistory,
     });
 
     server.route({

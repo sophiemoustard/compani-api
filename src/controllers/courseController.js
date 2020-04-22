@@ -71,9 +71,9 @@ const sendSMS = async (req) => {
   }
 };
 
-const getSMS = async (req) => {
+const getSMSHistory = async (req) => {
   try {
-    const sms = await CoursesHelper.getSMS(req.params._id);
+    const sms = await CoursesHelper.getSMSHistory(req.params._id);
 
     return {
       message: translate[language].smsFound,
@@ -146,5 +146,5 @@ module.exports = {
   downloadAttendanceSheets,
   downloadCompletionCertificates,
   sendSMS,
-  getSMS,
+  getSMSHistory,
 };

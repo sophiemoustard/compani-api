@@ -190,7 +190,7 @@ describe('sendSMS', () => {
       .chain('lean')
       .returns(sms);
 
-    const result = await CourseHelper.getSMS(courseId);
+    const result = await CourseHelper.getSMSHistory(courseId);
 
     expect(result).toEqual(sms);
     CourseSmsHistoryMock.verify();

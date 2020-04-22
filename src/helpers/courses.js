@@ -48,7 +48,7 @@ exports.sendSMS = async (courseId, payload) => {
   await Promise.all(promises);
 };
 
-exports.getSMS = async courseId => CourseSmsHistory.find({ course: courseId }).lean();
+exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId }).lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
