@@ -38,14 +38,7 @@ const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
       ],
     },
   },
-  {
-    $lookup: {
-      from: 'thirdpartypayers',
-      localField: 'thirdPartyPayer',
-      foreignField: '_id',
-      as: 'thirdPartyPayer',
-    },
-  },
+  { $lookup: { from: 'thirdpartypayers', localField: 'thirdPartyPayer', foreignField: '_id', as: 'thirdPartyPayer' } },
   { $unwind: { path: '$thirdPartyPayer' } },
 ];
 
@@ -261,11 +254,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
           },
         },
         nextMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: { $gte: ['$$event.startDate', endOfMonth] },
-          },
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', endOfMonth] } },
         },
       },
     },
@@ -419,42 +408,28 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
-    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
-    { $unwind: { path: '$auxiliary' } },
-    {
-      $addFields: {
-        'auxiliary.sector._id': '$sector',
-        'auxiliary.sector.startDate': '$startDate',
-        'auxiliary.sector.endDate': '$endDate',
-      },
-    },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
-    { $project: { _id: 1, sector: 1, identity: 1 } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: {
-          auxiliaryId: '$_id',
-          startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+          auxiliaryId: '$auxiliary',
+          startDate: { $max: ['$startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [
           {
             $match: {
+              type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+              $or: [
+                { isCancelled: false },
+                { 'cancel.condition': { $in: [INVOICED_AND_NOT_PAID, INVOICED_AND_PAID] } },
+              ],
               $expr: {
                 $and: [
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
-                  {
-                    $or: [
-                      { $eq: ['$isCancelled', false] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
-                    ],
-                  },
                 ],
               },
             },
@@ -468,9 +443,7 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
         'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
       },
     },
-    {
-      $group: { _id: '$sector._id', events: { $push: '$event' } },
-    },
+    { $group: { _id: '$sector', events: { $push: '$event' } } },
     {
       $addFields: {
         internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },
