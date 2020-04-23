@@ -1046,7 +1046,7 @@ describe('USERS ROUTES', () => {
     describe('Other roles', () => {
       beforeEach(populateDB);
 
-      it('should update user if it is me', async () => {
+      it('should update user if it is me, auxiliary', async () => {
         authToken = await getToken('auxiliary', usersSeedList);
 
         const response = await app.inject({
@@ -1059,10 +1059,24 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(200);
       });
 
+      it('should update user if it is me, trainer', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[9].local);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          payload: updatePayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];

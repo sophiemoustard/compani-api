@@ -287,6 +287,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -325,6 +326,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -377,7 +379,8 @@ describe('getUsersListWithSectorHistories', () => {
       .withExactArgs({
         path: 'sectorHistories',
         select: '_id sector startDate endDate',
-        match: { company: get(credentials, 'company._id', null) },
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -909,7 +912,12 @@ describe('updateUser', () => {
         { new: true }
       )
       .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
+      })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -934,7 +942,12 @@ describe('updateUser', () => {
         { new: true }
       )
       .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
+      })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -959,7 +972,12 @@ describe('updateUser', () => {
         { new: true }
       )
       .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
+      })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
@@ -982,7 +1000,12 @@ describe('updateUser', () => {
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
       .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
+      })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payloadWithRole });

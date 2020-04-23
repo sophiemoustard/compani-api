@@ -70,6 +70,7 @@ exports.getUsersList = async (query, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate('contracts')
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
@@ -85,6 +86,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
       match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate('contracts')
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
@@ -205,7 +207,12 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
 
   const payload = await formatUpdatePayload(userPayload);
   return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .populate({
+      path: 'sector',
+      select: '_id sector',
+      match: { company: companyId },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
+    })
     .lean({ autopopulate: true, virtuals: true });
 };
 
