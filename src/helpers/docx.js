@@ -20,7 +20,7 @@ exports.createDocx = async (filePath, data) => {
   const zip = new PizZip(file);
   const doc = new DocxTemplater();
   doc.loadZip(zip);
-  doc.setOptions({ parser: docxParser });
+  doc.setOptions({ parser: docxParser, linebreaks: true });
   doc.setData(data);
   doc.render();
   const filledZip = doc.getZip().generate({ type: 'nodebuffer' });

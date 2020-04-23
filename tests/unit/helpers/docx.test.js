@@ -49,7 +49,7 @@ describe('createDocx', () => {
     expect(result).toBe(outputPath);
     sinon.assert.calledWithExactly(readFileStub, filePath, 'binary');
     sinon.assert.calledOnce(loadZipStub);
-    sinon.assert.calledWithExactly(setOptionsStub, { parser: sinon.match.func });
+    sinon.assert.calledWithExactly(setOptionsStub, { parser: sinon.match.func, linebreaks: true });
     sinon.assert.calledWithExactly(setDataStub, data);
     sinon.assert.calledOnce(renderStub);
     sinon.assert.calledOnce(getZipStub);
