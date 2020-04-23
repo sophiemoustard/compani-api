@@ -8,7 +8,7 @@ const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const { AUXILIARY, CONVOCATION } = require('../../src/helpers/constants');
-const { populateDB, coursesList, programsList, auxiliary, trainee, courseSmsHistory } = require('./seed/coursesSeed');
+const { populateDB, coursesList, programsList, auxiliary, trainee, trainer } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
@@ -108,6 +108,17 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(coursesNumber);
     });
+
+    it('should get courses with a specific trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainer=${trainer._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
   });
 
   describe('Other roles', () => {
@@ -118,7 +129,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

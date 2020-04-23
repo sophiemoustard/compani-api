@@ -34,6 +34,7 @@ const validate = async (decoded) => {
     const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];
     if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
+    if (get(user, 'role.vendor.name') === TRAINER) scope.push(`courses:read-${user._id}`);
 
     const credentials = {
       email: get(user, 'local.email', null),

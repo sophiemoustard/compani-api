@@ -66,7 +66,6 @@ const coursesList = [
     name: 'second session',
     program: programsList[0]._id,
     companies: [authCompany._id],
-    trainer: trainer._id,
     type: 'intra',
     trainees: [trainee._id],
   },
@@ -109,4 +108,5 @@ module.exports = {
   auxiliary,
   trainee,
   courseSmsHistory,
+  trainer,
 };
