@@ -24,7 +24,10 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: { auth: { scope: ['courses:read'] } },
+      options: {
+        auth: { scope: ['courses:read', 'courses:read-{query.trainer}'] },
+        validate: { query: Joi.object({ trainer: Joi.objectId() }) },
+      },
       handler: list,
     });
 

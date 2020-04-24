@@ -287,6 +287,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -325,6 +326,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -377,7 +379,8 @@ describe('getUsersListWithSectorHistories', () => {
       .withExactArgs({
         path: 'sectorHistories',
         select: '_id sector startDate endDate',
-        match: { company: get(credentials, 'company._id', null) },
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -878,15 +881,6 @@ describe('updateUser', () => {
   let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
-  const user = {
-    _id: userId,
-    role: {
-      rights: [
-        { right_id: { _id: new ObjectID().toHexString(), permission: 'test' }, hasAccess: true },
-        { right_id: { _id: new ObjectID().toHexString(), permission: 'test2' }, hasAccess: false },
-      ],
-    },
-  };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -902,23 +896,14 @@ describe('updateUser', () => {
   it('should update a user', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -927,23 +912,14 @@ describe('updateUser', () => {
   it('should update a user without company', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials, true);
+    await UsersHelper.updateUser(userId, payload, credentials, true);
 
-    expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -952,23 +928,14 @@ describe('updateUser', () => {
   it('should update a user and create sector history', async () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toMatchObject({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
@@ -979,13 +946,9 @@ describe('updateUser', () => {
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
     UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payloadWithRole });
+      .expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole })
+      .returns();
 
     RoleMock
       .expects('findById')
@@ -993,9 +956,8 @@ describe('updateUser', () => {
       .chain('lean')
       .returns({ _id: payload.role, name: 'test', interface: 'client' });
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toMatchObject({ ...user, ...payloadWithRole });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);

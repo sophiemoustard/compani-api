@@ -862,8 +862,9 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser).toBeDefined();
-        expect(res.result.data.updatedUser).toMatchObject({
+        const updatedUser = await User.findById(usersSeedList[0]._id).lean({ autopopulate: true });
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser).toMatchObject({
           _id: usersSeedList[0]._id,
           identity: expect.objectContaining({
             firstname: updatePayload.identity.firstname,
@@ -871,10 +872,6 @@ describe('USERS ROUTES', () => {
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
           role: { client: { _id: updatePayload.role } },
         });
-        const updatedUser = await User.findById(res.result.data.updatedUser._id).lean({ autopopulate: true });
-        expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
-        expect(updatedUser.local.email).toBe(updatePayload.local.email);
-        expect(updatedUser.role.client._id).toEqual(updatePayload.role);
       });
 
       it('should update the user sector and sector history', async () => {
@@ -886,8 +883,12 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser).toBeDefined();
-        expect(res.result.data.updatedUser.sector).toEqual(userSectors[1]._id);
+        const updatedUser = await User.findById(userId)
+          .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+          .lean({ autopopulate: true, virtuals: true });
+
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser.sector).toEqual(userSectors[1]._id);
         const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
         const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company });
         expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
@@ -912,7 +913,11 @@ describe('USERS ROUTES', () => {
         });
 
         expect(secondRespons.statusCode).toBe(200);
-        expect(secondRespons.result.data.updatedUser.sector).toEqual(userSectors[2]._id);
+        const updatedUser = await User.findById(userId)
+          .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+          .lean({ autopopulate: true });
+
+        expect(updatedUser.sector).toEqual(userSectors[2]._id);
         const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).not.toBeDefined();
@@ -1063,6 +1068,7 @@ describe('USERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];
