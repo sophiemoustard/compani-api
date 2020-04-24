@@ -206,14 +206,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
-    .populate({
-      path: 'sector',
-      select: '_id sector',
-      match: { company: companyId },
-      options: { isVendorUser: has(credentials, 'role.vendor') },
-    })
-    .lean({ autopopulate: true, virtuals: true });
+  await User.updateOne(query, { $set: flat(payload) }, { new: true });
 };
 
 exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
