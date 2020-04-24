@@ -897,11 +897,7 @@ describe('updateUser', () => {
     const payload = { identity: { firstname: 'Titi' } };
 
     UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
       .returns();
 
     RoleMock.expects('findById').never();
@@ -917,11 +913,7 @@ describe('updateUser', () => {
     const payload = { identity: { firstname: 'Titi' } };
 
     UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: userId },
-        { $set: flat(payload) },
-        { new: true }
-      )
+      .withExactArgs({ _id: userId }, { $set: flat(payload) })
       .returns();
 
     RoleMock.expects('findById').never();
@@ -937,11 +929,7 @@ describe('updateUser', () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 
     UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
       .returns();
 
     RoleMock.expects('findById').never();
@@ -959,7 +947,7 @@ describe('updateUser', () => {
 
     UserMock
       .expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole })
       .returns();
 
     RoleMock

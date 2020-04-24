@@ -206,7 +206,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  await User.updateOne(query, { $set: flat(payload) }, { new: true });
+  await User.updateOne(query, { $set: flat(payload) });
 };
 
 exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
