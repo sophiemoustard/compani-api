@@ -1,8 +1,20 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const User = require('../../../src/models/User');
+const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+
+const trainer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'trainer', lastname: 'trainer' },
+  status: 'internal',
+  refreshToken: uuidv4(),
+  local: { email: 'coursetrainer@alenvi.io', password: '123456!eR' },
+  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  company: authCompany._id,
+};
 
 const programsList = [
   { _id: new ObjectID(), name: 'program' },
@@ -16,6 +28,7 @@ const coursesList = [
     program: programsList[0]._id,
     companies: [authCompany._id],
     type: 'intra',
+    trainer: new ObjectID(),
   },
   {
     _id: new ObjectID(),
@@ -23,6 +36,7 @@ const coursesList = [
     program: programsList[0]._id,
     companies: [otherCompany._id],
     type: 'intra',
+    trainer: trainer._id,
   },
 ];
 
@@ -57,6 +71,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(courseSlotsList);
+  await User.create(trainer);
 };
 
 module.exports = {
@@ -64,4 +79,5 @@ module.exports = {
   coursesList,
   programsList,
   courseSlotsList,
+  trainer,
 };
