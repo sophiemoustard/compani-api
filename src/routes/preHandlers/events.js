@@ -8,6 +8,7 @@ const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const { AUXILIARY } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -64,10 +65,9 @@ exports.authorizeEventDeletion = async (req) => {
   const { credentials } = req.auth;
   const { event } = req.pre;
 
-  const canEditEvent = credentials.scope.includes('events:edit');
-  const isOwnEvent = event.auxiliary && credentials.scope.includes('events:own:edit') &&
-    event.auxiliary.toHexString() === credentials._id;
-  if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
+  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
+  const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
+  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
 
   return null;
 };
@@ -76,21 +76,21 @@ exports.authorizeEventCreation = async (req) => {
   const { credentials } = req.auth;
   const { payload } = req;
 
-  const canEditEvent = credentials.scope.includes('events:edit');
-  const isOwnEvent = credentials.scope.includes('events:own:edit') && payload.auxiliary === credentials._id;
-  if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
+
+  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
+  const isOwnEvent = payload.auxiliary && payload.auxiliary === credentials._id;
+  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
 
   return exports.checkEventCreationOrUpdate(req);
 };
 
 exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
-  const { pre } = req;
+  const { event } = req.pre;
 
-  const canEditEvent = credentials.scope.includes('events:edit');
-  const isOwnEvent = pre.event.auxiliary && credentials.scope.includes('events:own:edit') &&
-    pre.event.auxiliary.toHexString() === credentials._id;
-  if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
+  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
+  const isOwnEvent = (event.auxiliary && event.auxiliary.toHexString() === credentials._id) || !event.auxiliary;
+  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
 
   return exports.checkEventCreationOrUpdate(req);
 };
@@ -128,6 +128,10 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
+
+  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
+  if (isAuxiliary) throw Boom.forbidden();
+
   const customer = await Customer.findOne({
     _id: req.query.customer,
     company: get(credentials, 'company._id', null),
