@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const { authCompany } = require('./companySeed');
+const { serviceList } = require('./serviceSeed');
 
 const customerList = [
   {
@@ -34,7 +35,16 @@ const customerList = [
       objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
     },
-    subscriptions: [],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: serviceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    }],
     subscriptionsHistory: [],
     payment: {
       bankAccountOwner: 'David gaudu',
