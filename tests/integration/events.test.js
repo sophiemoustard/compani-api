@@ -406,7 +406,7 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
@@ -509,7 +509,7 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
@@ -621,7 +621,7 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
@@ -1101,6 +1101,12 @@ describe('EVENTS ROUTES', () => {
           expectedCode: 200,
           customCredentials: auxiliaries[0].local,
         },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: auxiliaries[0].local,
+          customPayload: { ...omit(payload, 'auxiliary'), sector: sectors[0]._id },
+        },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1110,7 +1116,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: '/events',
-            payload,
+            payload: role.customPayload ? role.customPayload : payload,
             headers: { 'x-access-token': authToken },
           });
 
@@ -1439,15 +1445,22 @@ describe('EVENTS ROUTES', () => {
           expectedCode: 200,
           customCredentials: auxiliaries[0].local,
         },
+        {
+          name: 'auxiliary deleting unassigned event',
+          expectedCode: 200,
+          customCredentials: auxiliaries[0].local,
+          customEvent: eventsList[14]._id.toHexString(),
+        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const event = role.customEvent ? role.customEvent : eventsList[2]._id.toHexString();
           const response = await app.inject({
             method: 'DELETE',
-            url: `/events/${eventsList[2]._id.toHexString()}`,
+            url: `/events/${event}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -1532,10 +1545,62 @@ describe('EVENTS ROUTES', () => {
         const endDate = '2019-10-16';
 
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
             url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('DELETE /{_id}/repetition', () => {
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin');
+      });
+
+      it('should delete repetition', async () => {
+        const event = eventsList[18];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}/repetition`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const repetitionCount = await Repetition.countDocuments({
+          company: authCompany._id,
+          'repetition.parentId': event.repetition.parentId,
+        });
+        expect(repetitionCount).toEqual(0);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },
+        { name: 'planning_referent', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const event = eventsList[18];
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/events/${event._id.toHexString()}/repetition`,
             headers: { 'x-access-token': authToken },
           });
 

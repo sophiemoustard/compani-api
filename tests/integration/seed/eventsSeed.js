@@ -626,6 +626,32 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: sectors[0]._id,
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-10-23T14:30:19.543Z',
+    endDate: '2019-10-23T16:30:19.543Z',
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliary._id,
+    repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliary.subscriptions[0]._id,
+    isBilled: false,
+    bills: {
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const distanceMatrixList = [

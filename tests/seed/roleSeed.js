@@ -89,7 +89,6 @@ const clientAdminRights = [
   'exports:read',
   'users:list',
   'users:edit',
-  'events:edit',
   'events:read',
   'events:edit',
   'customers:create',
