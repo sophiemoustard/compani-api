@@ -11,7 +11,7 @@ const trainer = {
   identity: { firstname: 'trainer', lastname: 'trainer' },
   status: 'internal',
   refreshToken: uuidv4(),
-  local: { email: 'coursetrainer@alenvi.io', password: '123456!eR' },
+  local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
   company: authCompany._id,
 };
@@ -65,6 +65,7 @@ const populateDB = async () => {
   await Course.deleteMany({});
   await CourseSlot.deleteMany({});
   await Program.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentication();
 
