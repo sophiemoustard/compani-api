@@ -95,6 +95,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
       },
       handler: sendSMS,
     });
@@ -127,7 +128,7 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }),
         },
-        pre: [{ method: getCourseTrainee, assign: 'trainee' }],
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseGetOrUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -138,6 +139,7 @@ exports.plugin = {
       path: '/{_id}/trainees/{traineeId}',
       options: {
         auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
       },
       handler: removeTrainee,
     });
