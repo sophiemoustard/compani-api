@@ -192,8 +192,8 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     ];
 
     it('should return 200 as user is course trainer', async () => {
-      authToken = await getToken('trainer');
-      const courseId = coursesList[1]._id;
+      authToken = await getTokenByCredentials(trainer.local);
+      const courseId = coursesList[2]._id;
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseId.toHexString()}`,

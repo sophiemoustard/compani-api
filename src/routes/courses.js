@@ -56,7 +56,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [{ method: authorizeCourseGetOrUpdate }],
-        auth: false,
+        auth: { mode: 'optional' },
       },
       handler: getById,
     });
