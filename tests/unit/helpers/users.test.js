@@ -723,11 +723,12 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
-  it('should create a trainer', async () => {
+  it('should create an external trainer', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
+      status: 'external',
       company: new ObjectID(),
     };
     const newUser = {
@@ -769,12 +770,59 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
+  it('should create an internal trainer', async () => {
+    const payload = {
+      identity: { lastname: 'Admin', firstname: 'Toto' },
+      local: { email: 'trainer@test.com', password: '1234567890' },
+      role: { vendor: roleId },
+      status: 'internal',
+    };
+    const newUser = {
+      ...payload,
+      role: { _id: roleId, name: 'trainer', rights: [{ _id: new ObjectID() }] },
+    };
+
+    RoleMock.expects('findById')
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
+      .chain('lean')
+      .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
+
+    TaskMock.expects('find').never();
+
+    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns();
+
+    UserMock.expects('create')
+      .withExactArgs({ ...payload, refreshToken: sinon.match.string, company: credentials.company._id })
+      .returns({ ...newUser, _id: userId });
+
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns({ ...newUser });
+
+
+    const result = await UsersHelper.createUser(payload, credentials);
+
+    expect(result).toMatchObject(newUser);
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+  });
+
   it('should update a user with trainer role', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
       company: new ObjectID(),
+      status: 'external',
     };
     const newUser = {
       ...payload,
