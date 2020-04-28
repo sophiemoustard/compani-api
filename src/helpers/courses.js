@@ -64,7 +64,6 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
   } else {
     coursePayload = { trainees: trainee._id };
   }
-
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
 
