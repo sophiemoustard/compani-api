@@ -42,7 +42,7 @@ exports.authorizeUpdate = async (req) => {
     const { courseSlot } = req.pre;
     await checkAuthorization(courseSlot.courseId, req.auth.credentials);
 
-    return courseSlot;
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

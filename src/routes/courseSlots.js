@@ -39,7 +39,7 @@ exports.plugin = {
             address: Joi.alternatives().try(addressValidation, {}),
           }),
         },
-        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate, assign: 'courseSlot' }],
+        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,

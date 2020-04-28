@@ -221,10 +221,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     it('should a 200 as user is course trainer', async () => {
       token = await getTokenByCredentials(trainer.local);
-      const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
-      };
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[2]._id}`,
