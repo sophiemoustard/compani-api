@@ -1,5 +1,4 @@
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
 const { authCompany } = require('./companySeed');
 const { customerList } = require('./customerSeed');
 const { userList } = require('./userSeed');
@@ -7,7 +6,7 @@ const { NEVER, INTERVENTION, COMPANY_CONTRACT } = require('../../src/helpers/con
 
 const eventList = [
   {
-    _id: new ObjectID(),
+    _id: '1234567890abcdef12345678',
     type: INTERVENTION,
     status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
@@ -20,7 +19,7 @@ const eventList = [
     subscription: customerList[0].subscriptions[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: '123456789012345678abcdef',
     type: INTERVENTION,
     status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
@@ -33,12 +32,12 @@ const eventList = [
     subscription: customerList[0].subscriptions[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: 'abcdef123456789012345678',
     type: INTERVENTION,
     status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     company: authCompany._id,
-    auxiliary: userList[2]._id,
+    auxiliary: userList[4]._id,
     repetition: { frequency: NEVER },
     startDate: moment().subtract(1, 'week').set('hours', 11).set('minutes', 15),
     endDate: moment().subtract(1, 'week').set('hours', 12).set('minutes', 30),
