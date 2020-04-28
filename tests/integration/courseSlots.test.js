@@ -2,8 +2,8 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, coursesList, courseSlotsList } = require('./seed/courseSlotsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { populateDB, coursesList, courseSlotsList, trainer } = require('./seed/courseSlotsSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -106,8 +106,25 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
+
+    it('should return 200 as user is course trainer', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        courseId: coursesList[1]._id,
+      };
+      token = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -199,8 +216,21 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
+
+    it('should a 200 as user is course trainer', async () => {
+      token = await getTokenByCredentials(trainer.local);
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[2]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -257,8 +287,19 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
+
+    it('should return a 200 as user is course trainer', async () => {
+      token = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[2]._id}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

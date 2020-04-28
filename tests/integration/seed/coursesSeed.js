@@ -58,7 +58,7 @@ const coursesList = [
     name: 'team formation',
     program: programsList[0]._id,
     companies: [otherCompany._id],
-    trainer: trainer._id,
+    trainer: new ObjectID(),
     type: 'intra',
   },
   {
@@ -66,6 +66,7 @@ const coursesList = [
     name: 'second session',
     program: programsList[0]._id,
     companies: [authCompany._id],
+    trainer: trainer._id,
     type: 'intra',
     trainees: [trainee._id],
   },
