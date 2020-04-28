@@ -518,6 +518,17 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       expect(response.statusCode).toBe(409);
     });
 
+    it('should return a 409 error as user "trainee" exists and is already registered to course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[2]._id}/trainees`,
+        headers: { 'x-access-token': token },
+        payload: { ...pick(trainee, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
     const missingParams = ['local.email', 'identity.lastname', 'company'];
     missingParams.forEach((path) => {
       it(`should return a 400 error if missing '${path}' parameter`, async () => {
