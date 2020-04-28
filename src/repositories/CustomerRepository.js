@@ -71,6 +71,7 @@ exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.agg
       subscriptions: 1,
       referentHistories: 1,
       identity: 1,
+      contact: 1,
     },
   },
 ]).option({ company: companyId });

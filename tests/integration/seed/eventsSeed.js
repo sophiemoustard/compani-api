@@ -66,7 +66,7 @@ const auxiliaries = [
     local: { email: 't@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList[1]._id },
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
   },
@@ -76,7 +76,7 @@ const auxiliaries = [
     local: { email: 'm@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList[1]._id },
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
   },
@@ -626,7 +626,59 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: sectors[0]._id,
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-10-23T14:30:19.543Z',
+    endDate: '2019-10-23T16:30:19.543Z',
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliary._id,
+    repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliary.subscriptions[0]._id,
+    isBilled: false,
+    bills: {
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
+
+const eventFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  type: 'intervention',
+  status: 'contract_with_company',
+  startDate: '2019-10-23T14:30:19.543Z',
+  endDate: '2019-10-23T16:30:19.543Z',
+  auxiliary: auxiliaryFromOtherCompany._id,
+  customer: customerFromOtherCompany._id,
+  repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
+  createdAt: '2019-01-16T14:30:19.543Z',
+  subscription: customerFromOtherCompany.subscriptions[0]._id,
+  isBilled: false,
+  bills: {
+    inclTaxesCustomer: 20,
+    exclTaxesCustomer: 15,
+  },
+  address: {
+    fullAddress: '4 rue du test 92160 Antony',
+    street: '4 rue du test',
+    zipCode: '92160',
+    city: 'Antony',
+    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  },
+};
 
 const distanceMatrixList = [
   {
@@ -665,6 +717,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
+  await (new Event(eventFromOtherCompany)).save();
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
@@ -709,4 +762,5 @@ module.exports = {
   internalHourFromOtherCompany,
   serviceFromOtherCompany,
   thirdPartyPayerFromOtherCompany,
+  eventFromOtherCompany,
 };

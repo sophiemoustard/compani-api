@@ -309,6 +309,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
       expect(res.result.data.customers.length).toEqual(5);
+      expect(res.result.data.customers[0].contact).toBeDefined();
       const customer = res.result.data.customers.find(cus =>
         cus._id.toHexString() === customersList[0]._id.toHexString());
       expect(customer.subscriptions.length).toEqual(2);
