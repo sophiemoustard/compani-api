@@ -69,6 +69,9 @@ exports.authorizeEventDeletion = async (req) => {
   const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
   if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
 
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  if (event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+
   return null;
 };
 
@@ -89,7 +92,7 @@ exports.authorizeEventUpdate = async (req) => {
   const { event } = req.pre;
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  const isOwnEvent = (event.auxiliary && event.auxiliary.toHexString() === credentials._id) || !event.auxiliary;
+  const isOwnEvent = (event.auxiliary && event.auxiliary.toHexString() === credentials._id);
   if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
 
   return exports.checkEventCreationOrUpdate(req);
@@ -99,6 +102,8 @@ exports.checkEventCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = req.pre.event || req.payload;
   const companyId = get(credentials, 'company._id', null);
+
+  if (req.pre.event && event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;

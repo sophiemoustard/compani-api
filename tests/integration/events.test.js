@@ -17,6 +17,7 @@ const {
   auxiliaryFromOtherCompany,
   internalHourFromOtherCompany,
   thirdPartyPayerFromOtherCompany,
+  eventFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 const app = require('../../server');
@@ -1116,7 +1117,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: '/events',
-            payload: role.customPayload ? role.customPayload : payload,
+            payload: role.customPayload || payload,
             headers: { 'x-access-token': authToken },
           });
 
@@ -1354,6 +1355,24 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(403);
       });
+
+      it('should return a 403 if event is not from the same company', async () => {
+        const event = eventFromOtherCompany;
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          auxiliary: event.auxiliary.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -1375,22 +1394,15 @@ describe('EVENTS ROUTES', () => {
           expectedCode: 200,
           customCredentials: auxiliaries[0].local,
         },
-        {
-          name: 'auxiliary editing unassigned event',
-          expectedCode: 200,
-          customCredentials: auxiliaries[0].local,
-          customEvent: eventsList[14]._id.toHexString(),
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-          const event = role.customEvent ? role.customEvent : eventsList[2]._id.toHexString();
           const response = await app.inject({
             method: 'PUT',
-            url: `/events/${event}`,
+            url: `/events/${eventsList[2]._id.toHexString()}`,
             payload,
             headers: { 'x-access-token': authToken },
           });
@@ -1430,6 +1442,18 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toBe(404);
       });
+
+      it('should return a 403 if event is not from the same company', async () => {
+        const event = eventFromOtherCompany;
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -1445,22 +1469,16 @@ describe('EVENTS ROUTES', () => {
           expectedCode: 200,
           customCredentials: auxiliaries[0].local,
         },
-        {
-          name: 'auxiliary deleting unassigned event',
-          expectedCode: 200,
-          customCredentials: auxiliaries[0].local,
-          customEvent: eventsList[14]._id.toHexString(),
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-          const event = role.customEvent ? role.customEvent : eventsList[2]._id.toHexString();
+
           const response = await app.inject({
             method: 'DELETE',
-            url: `/events/${event}`,
+            url: `/events/${eventsList[2]._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
           });
 
