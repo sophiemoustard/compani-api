@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES, INTERNAL } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -163,7 +163,7 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  if (role.name !== TRAINER) payload.company = companyId;
+  if (role.name !== TRAINER || payload.status === INTERNAL) payload.company = companyId;
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
