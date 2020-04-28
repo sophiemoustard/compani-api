@@ -388,6 +388,7 @@ describe('formatCourseForPdf', () => {
         { identity: { lastname: 'trainee 1' } },
         { identity: { lastname: 'trainee 2' } },
       ],
+      program: { name: 'programme de formation' },
     };
     const sortedSlots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -414,6 +415,7 @@ describe('formatCourseForPdf', () => {
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
+            programName: 'programme de formation',
           },
         },
         {
@@ -426,6 +428,7 @@ describe('formatCourseForPdf', () => {
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
+            programName: 'programme de formation',
           },
         },
       ],
@@ -466,6 +469,8 @@ describe('generateAttendanceSheets', () => {
       .withExactArgs('trainees')
       .chain('populate')
       .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs('program')
       .chain('lean')
       .once()
       .returns(course);
@@ -500,18 +505,19 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
       name: 'Bonjour je suis une formation',
-      program: { learningGoals: 'Apprendre' },
+      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };
     getCourseDuration.returns('7h');
 
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      name: 'BONJOUR JE SUIS UNE FORMATION',
+      name: 'Bonjour je suis une formation',
       duration: '7h',
       learningGoals: course.program.learningGoals,
       startDate: '20/03/2020',
       endDate: '21/04/2020',
+      programName: 'NOM DU PROGRAMME',
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
   });
