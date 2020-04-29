@@ -1,6 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
-
+const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -55,11 +55,11 @@ const auxiliaryFromOtherCompany = {
 
 const contract = {
   createdAt: '2018-12-04T16:34:04',
-  endDate: '2019-05-28T16:34:04',
-  endNotificationDate: '2019-03-28T16:34:04',
+  endDate: moment('2019-05-28T23:59:59').toDate(),
+  endNotificationDate: moment('2019-03-28T00:00:00').toDate(),
   endReason: 'mutation',
   user: auxiliaryId,
-  startDate: '2018-12-03T23:00:00.000Z',
+  startDate: moment('2018-12-03T00:00:00').toDate(),
   status: 'contract_with_company',
   _id: contractId,
   company: authCompany._id,
@@ -68,7 +68,7 @@ const contract = {
       createdAt: '2018-12-04T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
-      startDate: '2018-12-03T23:00:00.000Z',
+      startDate: moment('2018-12-03T00:00:00').toDate(),
       weeklyHours: 9,
       _id: new ObjectID(),
     },
@@ -123,7 +123,7 @@ const customer = {
         estimatedWeeklyVolume: 12,
         evenings: 2,
         sundays: 1,
-        startDate: '2018-01-01T10:00:00.000+01:00',
+        startDate: '2018-01-01T10:00:00.000',
       }],
     },
   ],
@@ -137,7 +137,7 @@ const service = {
     defaultUnitAmount: 12,
     name: 'Service 1',
     exemptFromCharges: false,
-    startDate: '2019-01-16 17:58:15.519',
+    startDate: '2019-01-16T00:00:00',
     vat: 12,
   }],
   nature: 'hourly',
