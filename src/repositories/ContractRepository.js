@@ -2,6 +2,40 @@ const moment = require('moment');
 const Contract = require('../models/Contract');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
+const payLookupPipeline = (payCollection, end) => {
+  const payLookup = [
+    { $lookup: { from: payCollection, as: 'pays', localField: '_id', foreignField: 'auxiliary' } },
+    {
+      $addFields: {
+        pay: {
+          $filter: { input: '$pays', as: 'pay', cond: { $eq: ['$$pay.month', moment(end).format('MM-YYYY')] } },
+        },
+      },
+    },
+  ];
+
+  if (payCollection === 'finalpays') {
+    payLookup.push({ $lookup: { from: 'pays', as: 'pays', localField: '_id', foreignField: 'auxiliary' } });
+  }
+
+  return [
+    ...payLookup,
+    {
+      $addFields: {
+        prevPay: {
+          $filter: {
+            input: '$pays',
+            as: 'pay',
+            cond: { $eq: ['$$pay.month', moment(end).subtract(1, 'M').format('MM-YYYY')] },
+          },
+        },
+      },
+    },
+    { $unwind: { path: '$pay', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
+  ];
+};
+
 exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyId) => Contract.aggregate([
   { $match: { ...contractRules } },
   { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
@@ -42,17 +76,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
     },
   },
   { $unwind: { path: '$auxiliary.sector' } },
-  { $lookup: { from: payCollection, as: 'pays', localField: '_id', foreignField: 'auxiliary' } },
-  {
-    $addFields: {
-      pay: { $filter: { input: '$pays', as: 'pay', cond: { $eq: ['$$pay.month', moment(end).format('MM-YYYY')] } } },
-      prevPay: {
-        $filter: { input: '$pays', as: 'pay', cond: { $eq: ['$$pay.month', moment(end).subtract(1, 'M').format('MM-YYYY')] } },
-      },
-    },
-  },
-  { $unwind: { path: '$pay', preserveNullAndEmptyArrays: true } },
-  { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
+  ...payLookupPipeline(payCollection, end),
   { $match: { $or: [{ pay: null }, { pay: { $exists: false } }] } },
   {
     $project: {
