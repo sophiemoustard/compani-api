@@ -16,20 +16,32 @@
   .header {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    width: 100%;
+  }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .logo-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
   }
   .logo {
     width: 200px;
     height: 40px;
   }
   .conscience {
-    width: 80px
+    width: 80px;
   }
   .title {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     color: #7B0046;
     font-size: 20px;
+    padding-left: 20px;
   }
   .course-info {
     display: flex;
@@ -83,14 +95,19 @@
       <div class="header margin-bottom">
         <img class="conscience"
           src="https://res.cloudinary.com/alenvi/image/upload/v1586426405/images/business/Compani/aux-conscience-eclairee.png">
-        <div class="title"><h4>Émargements - {{ traineeName }}</h4></div>
-        <img class="logo"
-          src="https://res.cloudinary.com/alenvi/image/upload/v1539605431/images/business/Compani/compani_logo_1L_RVB_S.png">
+        <div class="header-right">
+          <div class="logo-container">
+            <img class="logo"
+            src="https://res.cloudinary.com/alenvi/image/upload/v1539605431/images/business/Compani/compani_logo_1L_RVB_S.png">
+          </div>
+          <div class="title"><h4>Émargements - {{ traineeName }}</h4></div>
+        </div>
       </div>
       <div class="course-info margin-bottom">
         <div style="width: 500px">
           <div style="font-weight: bold">Nom de la formation : {{ course.name }}</div>
-          <div>Dates de la formation : du {{ course.firstDate }} au {{ course.lastDate }}</div>
+          <div>Programme : {{ course.programName }}</div>
+          <div>Dates : du {{ course.firstDate }} au {{ course.lastDate }}</div>
           <div>Durée : {{ course.duration }}</div>
           <div>Structure : {{ course.company }}</div>
           <div>Formateur : {{ course.trainer }}</div>

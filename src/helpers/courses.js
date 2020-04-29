@@ -102,6 +102,7 @@ exports.formatCourseForPdf = (course) => {
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
     lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
     duration: exports.getCourseDuration(slots),
+    programName: get(course, 'program.name'),
   };
 
   return {
@@ -118,6 +119,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('slots')
     .populate('trainees')
     .populate('trainer')
+    .populate('program')
     .lean();
 
   return {
@@ -127,9 +129,10 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocx = course => ({
-  name: course.name.toUpperCase(),
+  name: course.name,
   duration: exports.getCourseDuration(course.slots),
   learningGoals: get(course, 'program.learningGoals') || '',
+  programName: get(course, 'program.name').toUpperCase() || '',
   startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
   endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
 });
