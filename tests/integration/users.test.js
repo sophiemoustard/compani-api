@@ -237,6 +237,7 @@ describe('USERS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(409);
+        expect(response.result.message).toBe('Formateur déjà existant');
       });
 
       it('should not create a trainer if missing status', async () => {
