@@ -1,4 +1,6 @@
 const expect = require('expect');
+const moment = require('moment');
+const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const { populateDB, auxiliary, auxiliaryFromOtherCompany } = require('./seed/finalPaySeed');
 const app = require('../../server');
@@ -30,6 +32,53 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftFinalPay).toBeDefined();
       expect(response.result.data.draftFinalPay.length).toEqual(1);
+      expect(omit(
+        response.result.data.draftFinalPay[0],
+        ['auxiliary', 'auxiliaryId']
+      )).toEqual({
+        overtimeHours: 0,
+        additionalHours: 0,
+        bonus: 0,
+        endDate: moment('2019-05-28T23:59:59').toDate(),
+        month: '05-2019',
+        contractHours: 39,
+        holidaysHours: 4.5,
+        absencesHours: 0,
+        hoursToWork: 34.5,
+        workedHours: 2,
+        internalHours: 0,
+        notSurchargedAndNotExempt: 2,
+        surchargedAndNotExempt: 0,
+        notSurchargedAndExempt: 0,
+        surchargedAndExempt: 0,
+        surchargedAndNotExemptDetails: {},
+        surchargedAndExemptDetails: {},
+        paidKm: 0,
+        paidTransportHours: 0,
+        hoursBalance: -32.5,
+        transport: 0,
+        otherFees: 0,
+        startDate: moment('2019-05-01T00:00:00').toDate(),
+        hoursCounter: -32.5,
+        mutual: true,
+        diff: {
+          absencesHours: 0,
+          workedHours: 0,
+          internalHours: 0,
+          paidTransportHours: 0,
+          notSurchargedAndNotExempt: 0,
+          surchargedAndNotExempt: 0,
+          surchargedAndNotExemptDetails: {},
+          notSurchargedAndExempt: 0,
+          surchargedAndExempt: 0,
+          surchargedAndExemptDetails: {},
+          hoursBalance: 0,
+        },
+        previousMonthHoursCounter: 0,
+        endReason: 'mutation',
+        endNotificationDate: moment('2019-03-28T00:00:00').toDate(),
+        compensation: 0,
+      });
     });
   });
 
