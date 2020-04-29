@@ -167,7 +167,7 @@ exports.createUser = async (userPayload, credentials) => {
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
+    if (userInDB && userInDB.role.vendor) throw Boom.conflict('Trainer already exists');
     if (userInDB) {
       return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
