@@ -4,6 +4,9 @@ const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const { TRAINER } = require('../../helpers/constants');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
 
 exports.authorizeCourseGetOrUpdate = async (req) => {
   try {
@@ -25,7 +28,14 @@ exports.getCourseTrainee = async (req) => {
   try {
     const { company, local } = req.payload;
     const trainee = await User.findOne({ 'local.email': local.email }).lean();
-    if (trainee && trainee.company.toHexString() !== company) throw Boom.conflict();
+    if (trainee) {
+      if (trainee.company.toHexString() !== company) {
+        throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
+      }
+
+      const courseTrainee = await Course.findOne({ _id: req.params._id, trainees: trainee._id }).lean();
+      if (courseTrainee) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+    }
 
     return trainee;
   } catch (e) {
