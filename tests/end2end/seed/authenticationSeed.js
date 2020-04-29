@@ -1,23 +1,31 @@
-const Role = require('../../../src/models/Role');
-const Right = require('../../../src/models/Right');
-const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
+const Right = require('../../../src/models/Right');
+const Role = require('../../../src/models/Role');
+const Service = require('../../../src/models/Service');
+const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
-const { rolesList, rightsList } = require('../../seed/roleSeed');
-const { userList } = require('../../seed/userSeed');
 const { authCompany } = require('../../seed/companySeed');
+const { rolesList, rightsList } = require('../../seed/roleSeed');
+const { serviceList } = require('../../seed/serviceSeed');
+const { eventList } = require('../../seed/eventSeed');
+const { userList } = require('../../seed/userSeed');
 const { customerList } = require('../../seed/customerSeed');
 
 const seedDb = async () => {
-  await Role.deleteMany({});
-  await Right.deleteMany({});
-  await User.deleteMany({});
   await Company.deleteMany({});
+  await Right.deleteMany({});
+  await Role.deleteMany({});
+  await Service.deleteMany({});
+  await Event.deleteMany({});
+  await User.deleteMany({});
   await Customer.deleteMany({});
 
   await new Company(authCompany).save();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
+  await Service.insertMany(serviceList);
+  await Event.insertMany(eventList);
   for (let i = 0; i < userList.length; i++) {
     await (new User(userList[i])).save();
   }
