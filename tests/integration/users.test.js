@@ -220,7 +220,7 @@ describe('USERS ROUTES', () => {
         expect(usersCountAfter).toEqual(usersCountBefore);
       });
 
-      it('should return an error if user already has vendor role', async () => {
+      it('should return an error 409 if trainer already has vendor role', async () => {
         const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
@@ -235,7 +235,8 @@ describe('USERS ROUTES', () => {
           payload: trainerPayload,
           headers: { 'x-access-token': authToken },
         });
-        expect(response.statusCode).toBe(400);
+
+        expect(response.statusCode).toBe(409);
       });
 
       it('should not create a trainer if missing status', async () => {
