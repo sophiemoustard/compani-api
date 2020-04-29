@@ -7,6 +7,10 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
   const lastSectorHistory = await SectorHistory
     .findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
     .lean();
+  if (!lastSectorHistory) {
+    return exports.createHistory({ _id: auxiliaryId, sector }, companyId, moment().startOf('day').toDate());
+  }
+
   if (lastSectorHistory.sector.toHexString() === sector) return;
 
   const contracts = await Contract

@@ -30,6 +30,26 @@ describe('updateHistoryOnSectorUpdate', () => {
     createHistoryStub.restore();
   });
 
+  it('should create sectot history if no previous one', async () => {
+    SectorHistoryMock.expects('findOne')
+      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
+      .chain('lean')
+      .once()
+      .returns(null);
+
+    const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+
+    expect(result).not.toBeDefined();
+    sinon.assert.calledWithExactly(
+      createHistoryStub,
+      { _id: auxiliaryId, sector: sector.toHexString() },
+      companyId,
+      moment().startOf('day').toDate()
+    );
+    SectorHistoryMock.verify();
+    ContractMock.verify();
+  });
+
   it('should return nothing if last sector history sector is same than new one', async () => {
     const sectorHistory = { _id: new ObjectID(), sector, startDate: '2019-09-10T00:00:00' };
     SectorHistoryMock
@@ -43,19 +63,19 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     expect(result).not.toBeDefined();
     sinon.assert.notCalled(createHistoryStub);
+    SectorHistoryMock.verify();
+    ContractMock.verify();
   });
 
   it('should update sector history if auxiliary does not have contract', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-09-10T00:00:00' };
-    SectorHistoryMock
-      .expects('findOne')
+    SectorHistoryMock.expects('findOne')
       .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
       .chain('lean')
       .once()
       .returns(sectorHistory);
 
-    ContractMock
-      .expects('find')
+    ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
         status: COMPANY_CONTRACT,
@@ -67,8 +87,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       .chain('lean')
       .returns([]);
 
-    SectorHistoryMock
-      .expects('updateOne')
+    SectorHistoryMock.expects('updateOne')
       .withExactArgs(
         { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
         { $set: { sector: sector.toHexString() } }
@@ -85,15 +104,13 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should update sector history if auxiliary contract has not started yet', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-09-10T00:00:00' };
-    SectorHistoryMock
-      .expects('findOne')
+    SectorHistoryMock.expects('findOne')
       .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
       .chain('lean')
       .once()
       .returns(sectorHistory);
 
-    ContractMock
-      .expects('find')
+    ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
         status: COMPANY_CONTRACT,
@@ -105,8 +122,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       .chain('lean')
       .returns([{ startDate: moment().add(1, 'd') }]);
 
-    SectorHistoryMock
-      .expects('updateOne')
+    SectorHistoryMock.expects('updateOne')
       .withExactArgs(
         { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
         { $set: { sector: sector.toHexString() } }
@@ -123,15 +139,13 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should update sector history if many changes made on the same day', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: moment().startOf('day') };
-    SectorHistoryMock
-      .expects('findOne')
+    SectorHistoryMock.expects('findOne')
       .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
       .chain('lean')
       .once()
       .returns(sectorHistory);
 
-    ContractMock
-      .expects('find')
+    ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
         status: COMPANY_CONTRACT,
@@ -143,8 +157,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       .chain('lean')
       .returns([{ _id: new ObjectID() }]);
 
-    SectorHistoryMock
-      .expects('updateOne')
+    SectorHistoryMock.expects('updateOne')
       .withExactArgs(
         { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
         { $set: { sector: sector.toHexString() } }
@@ -161,15 +174,13 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should update sector history and create new one', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-10-10' };
-    SectorHistoryMock
-      .expects('findOne')
+    SectorHistoryMock.expects('findOne')
       .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
       .chain('lean')
       .once()
       .returns(sectorHistory);
 
-    ContractMock
-      .expects('find')
+    ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
         status: COMPANY_CONTRACT,
@@ -181,8 +192,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       .chain('lean')
       .returns([{ _id: new ObjectID(), startDate: moment('2019-10-12').toDate() }]);
 
-    SectorHistoryMock
-      .expects('updateOne')
+    SectorHistoryMock.expects('updateOne')
       .withExactArgs(
         { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
         { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
