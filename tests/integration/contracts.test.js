@@ -660,7 +660,7 @@ describe('CONTRACTS ROUTES', () => {
         .lean();
 
       expect(sectorHistories.length).toEqual(1);
-      expect(sectorHistories.startDate).not.toBeDefined();
+      expect(sectorHistories.startDate).toBeUndefined();
     });
 
     it('should return a 404 error if contract not found', async () => {
