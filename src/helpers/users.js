@@ -153,7 +153,7 @@ exports.createUser = async (userPayload, credentials) => {
   const companyId = payload.company || get(credentials, 'company._id', null);
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
-  if (!role) throw Boom.badRequest('Role does not exist');
+  if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
   payload.role = { [role.interface]: role._id };
 
@@ -167,7 +167,7 @@ exports.createUser = async (userPayload, credentials) => {
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
+    if (userInDB && userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
     if (userInDB) {
       return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
@@ -188,7 +188,7 @@ const formatUpdatePayload = async (updatedUser) => {
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
-    if (!role) throw Boom.badRequest('Role does not exist');
+    if (!role) throw Boom.badRequest(translate[language].unknownRole);
     payload.role = { [role.interface]: role._id.toHexString() };
   }
 

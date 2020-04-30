@@ -862,7 +862,7 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
-  it('should return an error if user already has vendor role', async () => {
+  it('should return an error 409 if user already has vendor role', async () => {
     try {
       const payload = {
         identity: { lastname: 'Admin', firstname: 'Toto' },
@@ -889,7 +889,7 @@ describe('createUser', () => {
 
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
-      expect(e).toMatchObject(Boom.badRequest());
+      expect(e).toMatchObject(Boom.conflict('Formateur déjà existant'));
       RoleMock.verify();
       TaskMock.verify();
       UserMock.verify();
@@ -914,7 +914,7 @@ describe('createUser', () => {
 
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
       RoleMock.verify();
       UserMock.verify();
@@ -1025,7 +1025,7 @@ describe('updateUser', () => {
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
       RoleMock.verify();
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);

@@ -41,6 +41,7 @@ module.exports = {
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
+    unknownRole: 'Role does not exist',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -213,6 +214,8 @@ module.exports = {
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
     siretAlreadyExists: 'Siret already used by another establishment.',
+    /* Trainers */
+    trainerAlreadyExists: 'Trainer already exists',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -277,6 +280,7 @@ module.exports = {
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
+    unknownRole: 'Le rôle n\'existe pas',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
@@ -447,13 +451,15 @@ module.exports = {
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
+    /* Trainers */
+    trainerAlreadyExists: 'Formateur déjà existant',
     /* Programs */
     programsFound: 'Liste des programmes trouvés.',
     programsNotFound: 'Liste des programmes non trouvés.',
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
-    /* Formations */
+    /* Courses */
     coursesFound: 'Liste des formations trouvée.',
     coursesNotFound: 'Liste des formations non trouvée.',
     courseCreated: 'Formation créée.',
@@ -463,8 +469,7 @@ module.exports = {
     courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté à la formation.',
     courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
-
-    /* Créneaux de formation */
+    /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',
     courseSlotDeleted: 'Créneau de formation supprimé.',
