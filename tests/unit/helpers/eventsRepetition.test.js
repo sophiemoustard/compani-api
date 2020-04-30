@@ -80,7 +80,7 @@ describe('formatRepeatedPayload', () => {
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
-    expect(result.auxiliary).not.toBeDefined();
+    expect(result.auxiliary).toBeUndefined();
     expect(result.sector).toEqual(sector);
     expect(result.repetition.frequency).toEqual('never');
     sinon.assert.calledWithExactly(hasConflicts, payload);
@@ -108,7 +108,7 @@ describe('formatRepeatedPayload', () => {
 
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeDefined();
-    expect(result.sector).not.toBeDefined();
+    expect(result.sector).toBeUndefined();
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
@@ -130,7 +130,7 @@ describe('formatRepeatedPayload', () => {
     hasConflicts.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
     expect(result).toBeDefined();
-    expect(result.auxiliary).not.toBeDefined();
+    expect(result.auxiliary).toBeUndefined();
     expect(result.sector).toEqual(sector);
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
@@ -152,7 +152,7 @@ describe('formatRepeatedPayload', () => {
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
-    expect(result.auxiliary).not.toBeDefined();
+    expect(result.auxiliary).toBeUndefined();
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 

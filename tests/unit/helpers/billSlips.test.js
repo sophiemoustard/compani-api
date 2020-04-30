@@ -150,7 +150,7 @@ describe('createBillSlips', () => {
 
     const result = await BillSlipHelper.createBillSlips(billList, '2019-09-12T00:00:00', company);
 
-    expect(result).not.toBeDefined();
+    expect(result).toBeUndefined();
     sinon.assert.notCalled(getBillSlipNumber);
     sinon.assert.notCalled(formatBillSlipNumber);
     sinon.assert.notCalled(updateOneBillSlipNumber);

@@ -30,7 +30,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     createHistoryStub.restore();
   });
 
-  it('should create sectot history if no previous one', async () => {
+  it('should create sector history if no previous one', async () => {
     SectorHistoryMock.expects('findOne')
       .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
       .chain('lean')
@@ -39,7 +39,7 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
-    expect(result).not.toBeDefined();
+    expect(result).toBeUndefined();
     sinon.assert.calledWithExactly(
       createHistoryStub,
       { _id: auxiliaryId, sector: sector.toHexString() },
@@ -61,7 +61,7 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
-    expect(result).not.toBeDefined();
+    expect(result).toBeUndefined();
     sinon.assert.notCalled(createHistoryStub);
     SectorHistoryMock.verify();
     ContractMock.verify();

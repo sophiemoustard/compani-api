@@ -408,7 +408,7 @@ describe('populateEventSubscription', () => {
     };
 
     const result = await EventHelper.populateEventSubscription(event);
-    expect(result.subscription).not.toBeDefined();
+    expect(result.subscription).toBeUndefined();
     expect(result).toEqual(event);
   });
 

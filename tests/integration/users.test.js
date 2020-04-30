@@ -936,7 +936,7 @@ describe('USERS ROUTES', () => {
         expect(updatedUser.sector).toEqual(userSectors[2]._id);
         const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
-        expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).not.toBeDefined();
+        expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).toBeUndefined();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
       });
 
