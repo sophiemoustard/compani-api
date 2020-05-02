@@ -7,6 +7,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const Payment = require('../../../src/models/Payment');
 const { authCompany } = require('../../seed/companySeed');
 const { rolesList, rightsList } = require('../../seed/roleSeed');
 const { serviceList } = require('../../seed/serviceSeed');
@@ -15,6 +16,7 @@ const { userList } = require('../../seed/userSeed');
 const { customerList } = require('../../seed/customerSeed');
 const { billList } = require('../../seed/billSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
+const { paymentList } = require('../../seed/paymentSeed');
 
 const seedDb = async () => {
   await Company.deleteMany({});
@@ -26,6 +28,7 @@ const seedDb = async () => {
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
+  await Payment.deleteMany({});
 
   await new Company(authCompany).save();
   await Right.insertMany(rightsList);
@@ -34,6 +37,7 @@ const seedDb = async () => {
   await Event.insertMany(eventList);
   await Bill.insertMany(billList);
   await ThirdPartyPayer.insertMany(thirdPartyPayerList);
+  await Payment.insertMany(paymentList);
   for (let i = 0; i < userList.length; i++) {
     await (new User(userList[i])).save();
   }
