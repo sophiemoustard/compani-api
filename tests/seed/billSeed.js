@@ -12,14 +12,15 @@ const service = {
   nature: serviceList[0].nature,
 };
 const eventId = new ObjectID();
-const previousDate = moment().subtract(2, 'M');
+const previousYear = moment().subtract(1, 'y');
+const previousMonth = moment().subtract(2, 'M');
 
 const billList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `FACT-101${previousDate.format('MMYY')}00001`,
-    date: previousDate.endOf('M').toDate(),
+    number: `FACT-101${previousMonth.format('MMYY')}00001`,
+    date: previousMonth.endOf('M').toDate(),
     customer: customerList[0]._id,
     thirdPartyPayer: thirdPartyPayerList[0]._id,
     netInclTaxes: 20,
@@ -34,8 +35,8 @@ const billList = [
           {
             eventId,
             fundingId: customerList[0].fundings[0]._id,
-            startDate: previousDate.set({ hours: 10, minutes: 0 }),
-            endDate: previousDate.set({ hours: 12, minutes: 30 }),
+            startDate: previousMonth.set({ hours: 10, minutes: 0 }),
+            endDate: previousMonth.set({ hours: 12, minutes: 30 }),
             auxiliary: userList[2]._id,
             inclTaxesTpp: 20,
             exclTaxesTpp: 17.86,
@@ -52,8 +53,8 @@ const billList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `FACT-101${previousDate.format('MMYY')}00002`,
-    date: previousDate.endOf('M').toDate(),
+    number: `FACT-101${previousYear.format('MMYY')}00004`,
+    date: previousYear.endOf('M').toDate(),
     customer: customerList[0]._id,
     netInclTaxes: 10,
     subscriptions: [
@@ -65,8 +66,40 @@ const billList = [
         events: [
           {
             eventId,
-            startDate: previousDate.set({ hours: 10, minutes: 0 }),
-            endDate: previousDate.set({ hours: 12, minutes: 30 }),
+            startDate: previousYear.set({ hours: 10, minutes: 0 }),
+            endDate: previousYear.set({ hours: 12, minutes: 30 }),
+            auxiliary: userList[2]._id,
+            inclTaxesCustomer: 10,
+            exclTaxesCustomer: 8.93,
+          },
+        ],
+        service,
+        hours: 2.5,
+        unitInclTaxes: 12,
+        exclTaxes: 8.93,
+        inclTaxes: 10,
+        discount: 0,
+      },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    number: `FACT-101${previousMonth.format('MMYY')}00002`,
+    date: previousMonth.endOf('M').toDate(),
+    customer: customerList[0]._id,
+    netInclTaxes: 10,
+    subscriptions: [
+      {
+        startDate: new Date('2019-05-29'),
+        endDate: new Date('2019-11-29'),
+        subscription: customerList[0].subscriptions[0]._id,
+        vat: 12,
+        events: [
+          {
+            eventId,
+            startDate: previousMonth.set({ hours: 10, minutes: 0 }),
+            endDate: previousMonth.set({ hours: 12, minutes: 30 }),
             auxiliary: userList[2]._id,
             inclTaxesCustomer: 10,
             exclTaxesCustomer: 8.93,
