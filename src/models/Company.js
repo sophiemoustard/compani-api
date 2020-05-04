@@ -12,6 +12,7 @@ const CompanySchema = mongoose.Schema({
   tradeName: { type: String, maxLength: 11, required: true },
   prefixNumber: { type: Number, required: true, unique: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
+  subscriptions: { erp: { type: Boolean, default: false } },
   rcs: { type: String },
   rna: { type: String },
   ics: { type: String },

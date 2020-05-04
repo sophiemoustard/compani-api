@@ -275,6 +275,7 @@ describe('COMPANIES ROUTES', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
         expect(response.result.data.company).toMatchObject({
+          subscriptions: { erp: false },
           folderId: '1234567890',
           directDebitsFolderId: '0987654321',
           customersFolderId: 'qwerty',
