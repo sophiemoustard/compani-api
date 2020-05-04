@@ -65,7 +65,7 @@ describe('CUSTOMERS ROUTES', () => {
     };
 
     it('should create a new customer', async () => {
-      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
+      const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
       addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
 
       const res = await app.inject({
@@ -94,7 +94,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
       expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
       const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(customers).toHaveLength(customersBefore.length + 1);
+      expect(customers).toHaveLength(customersBefore + 1);
     });
 
     const missingParams = [
@@ -308,7 +308,7 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-      expect(res.result.data.customers.length).toEqual(5);
+      expect(res.result.data.customers.length).toEqual(6);
       expect(res.result.data.customers[0].contact).toBeDefined();
       const customer = res.result.data.customers.find(cus =>
         cus._id.toHexString() === customersList[0]._id.toHexString());
@@ -720,7 +720,7 @@ describe('CUSTOMERS ROUTES', () => {
   describe('DELETE /customers/{id}', () => {
     it('should delete a customer without interventions', async () => {
       const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
-      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
+      const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
@@ -730,7 +730,7 @@ describe('CUSTOMERS ROUTES', () => {
       sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
       deleteFileStub.restore();
       const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(customers.length).toBe(customersBefore.length - 1);
+      expect(customers.length).toBe(customersBefore - 1);
       const helper = await User.findById(userList[2]._id).lean();
       expect(helper).toBeNull();
     });

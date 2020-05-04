@@ -33,6 +33,7 @@ describe('SERVICES ROUTES', () => {
     };
 
     it('should create a new service', async () => {
+      const serviceBefore = await Service.countDocuments({ company: authCompany._id }).lean()
       const response = await app.inject({
         method: 'POST',
         url: '/services',
@@ -42,7 +43,7 @@ describe('SERVICES ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       const services = await Service.find({ company: authCompany._id });
-      expect(services.length).toEqual(servicesList.length + 1);
+      expect(services.length).toEqual(serviceBefore + 1);
       expect(response.result.data.service.company).toEqual(authCompany._id);
     });
 
@@ -122,7 +123,8 @@ describe('SERVICES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.services.length).toBe(servicesList.length);
+      const servicesCount = await Service.countDocuments({ company: authCompany._id }).lean();
+      expect(response.result.data.services).toHaveLength(servicesCount);
     });
 
     describe('Other roles', () => {
@@ -246,6 +248,7 @@ describe('SERVICES ROUTES', () => {
 
   describe('DELETE /services/:id', () => {
     it('should delete service', async () => {
+      const serviceBefore = await Service.countDocuments({ company: authCompany._id }).lean();
       const response = await app.inject({
         method: 'DELETE',
         url: `/services/${servicesList[0]._id.toHexString()}`,
@@ -254,7 +257,7 @@ describe('SERVICES ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       const services = await Service.find({ company: authCompany._id });
-      expect(services.length).toBe(servicesList.length - 1);
+      expect(services.length).toBe(serviceBefore - 1);
     });
 
     it('should return a 403 error if user is not from the same company', async () => {

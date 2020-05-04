@@ -37,7 +37,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     };
 
     it('should create a new third party payer', async () => {
-      const initialThirdPartyPayerNumber = thirdPartyPayersList.length;
+      const thirdPartyPayerCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
 
       const response = await app.inject({
         method: 'POST',
@@ -52,7 +52,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa']
       )).toEqual({ ...payload, company: authCompany._id });
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
+      expect(thirdPartyPayers.length).toBe(thirdPartyPayerCount + 1);
     });
 
     const missingParams = ['name', 'billingMode', 'isApa'];
@@ -96,8 +96,6 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
   describe('GET /thirdpartypayers', () => {
     it('should get company third party payers', async () => {
-      const thirdPartyPayerNumber = thirdPartyPayersList.length;
-
       const response = await app.inject({
         method: 'GET',
         url: '/thirdpartypayers',
@@ -105,7 +103,8 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerNumber);
+      const thirdPartyPayerCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
+      expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerCount);
     });
 
     describe('Other roles', () => {
@@ -205,6 +204,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
   describe('DELETE /thirdpartypayers/:id', () => {
     it('should delete company thirdPartyPayer', async () => {
+      const thirdPartyPayerBefore = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
@@ -212,7 +212,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       });
       expect(response.statusCode).toBe(200);
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(thirdPartyPayersList.length - 1);
+      expect(thirdPartyPayers.length).toBe(thirdPartyPayerBefore - 1);
     });
 
     it('should return a 404 error if company does not exist', async () => {
