@@ -1246,7 +1246,7 @@ describe('USERS ROUTES', () => {
         let message;
         let statusCode;
         const helperRoleId = rolesList.find(role => role.name === 'helper')._id;
-        if (get(user, 'role.client', '') === helperRoleId) {
+        if (get(user, 'role.client') === helperRoleId) {
           message = 'should delete a helper by id';
           statusCode = 200;
         } else {

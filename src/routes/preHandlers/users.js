@@ -43,8 +43,8 @@ exports.authorizeUserUpdateOrGetById = async (req) => {
 
 exports.authorizeUserDeletion = async (req) => {
   const { credentials } = req.auth;
-  const user = req.pre.user || req.payload;
-  const companyId = get(credentials, 'company._id', null);
+  const { user } = req.pre;
+  const companyId = get(credentials, 'company._id') || null;
 
   const clientRoleId = get(user, 'role.client');
   if (!clientRoleId) throw Boom.forbidden();
