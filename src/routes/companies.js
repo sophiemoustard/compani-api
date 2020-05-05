@@ -30,6 +30,9 @@ exports.plugin = {
             name: Joi.string(),
             tradeName: Joi.string().allow('', null),
             address: addressValidation,
+            subscriptions: Joi.object().keys({
+              erp: Joi.boolean(),
+            }).min(1),
             ics: Joi.string(),
             rcs: Joi.string(),
             rna: Joi.string(),
