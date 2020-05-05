@@ -2,11 +2,12 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const User = require('../../models/User');
+const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER } = require('../../helpers/constants');
+const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, HELPER } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -36,6 +37,22 @@ exports.authorizeUserUpdateOrGetById = async (req) => {
   }
 
   if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeUserDeletion = async (req) => {
+  const { credentials } = req.auth;
+  const user = req.pre.user || req.payload;
+  const companyId = get(credentials, 'company._id', null);
+
+  const clientRoleId = get(user, 'role.client');
+  if (!clientRoleId) throw Boom.forbidden();
+
+  const role = await Role.findById(clientRoleId).lean();
+  if (role.name !== HELPER) throw Boom.forbidden();
+
+  if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
   return null;
 };
