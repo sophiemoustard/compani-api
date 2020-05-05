@@ -1,8 +1,10 @@
 const moment = require('moment');
-const { authCompany } = require('./companySeed');
-const { customerList } = require('./customerSeed');
-const { userList } = require('./userSeed');
-const { NEVER, INTERVENTION, COMPANY_CONTRACT } = require('../../src/helpers/constants');
+const Event = require('../../../src/models/Event');
+const { populateAuthentication } = require('./authenticationSeed');
+const { authCompany } = require('../../seed/companySeed');
+const { customerList } = require('../../seed/customerSeed');
+const { userList } = require('../../seed/userSeed');
+const { NEVER, INTERVENTION, COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const eventList = [
   {
@@ -46,4 +48,10 @@ const eventList = [
   },
 ];
 
-module.exports = { eventList };
+const populatePlanning = async () => {
+  await Event.deleteMany({});
+  await populateAuthentication();
+  await Event.insertMany(eventList);
+};
+
+module.exports = { populatePlanning };

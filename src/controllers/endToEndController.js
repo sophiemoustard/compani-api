@@ -1,9 +1,9 @@
 const Boom = require('@hapi/boom');
-const authenticationSeed = require('../../tests/end2end/seed/authenticationSeed');
+const endToEndHelper = require('../helpers/endToEnd');
 
 const seedDb = async (req) => {
   try {
-    await authenticationSeed.seedDb();
+    await endToEndHelper.seedDb(req.params.type);
 
     return { message: 'Test database populated !' };
   } catch (e) {

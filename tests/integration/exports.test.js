@@ -281,6 +281,7 @@ describe('EXPORTS ROUTES', () => {
       populate: populateService,
       expectedRows: [
         '\ufeff"Nature";"Type";"Entreprise";"Nom";"Montant unitaire par défaut";"TVA (%)";"Plan de majoration";"Date de début";"Date de création";"Date de mise a jour"',
+        `"Horaire";"Prestataire";"Test SAS";"Service 1";"12,00";"12,00";;"16/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
         `"Horaire";"Prestataire";"Test SAS";"Service 1";"24,00";"0,00";;"16/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
         `"Horaire";"Mandataire";"Test SAS";"Service 2";"24,00";"12,00";;"18/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
       ],
@@ -303,7 +304,7 @@ describe('EXPORTS ROUTES', () => {
       populate: populateUser,
       expectedRows: [
         '\ufeff"Email";"Téléphone";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
-        `"helper@alenvi.io";;"TEST";"Helper";;;;;;;"Inactif";"${moment().format('DD/MM/YYYY')}"`,
+        `"helper@alenvi.io";;"TEST";"Helper";"M.";"BARDET";"Romain";"37 rue de Ponthieu";"75008";"Paris";"Inactif";"${moment().format('DD/MM/YYYY')}"`,
         `"toto@alenvi.io";"+33123456789";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
       ],
     },
@@ -312,6 +313,7 @@ describe('EXPORTS ROUTES', () => {
       populate: populateCustomer,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
+        `"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";;;"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
         '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
         ` Service 2";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
         `"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;"Lulu Lala";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
@@ -323,6 +325,7 @@ describe('EXPORTS ROUTES', () => {
       populate: populateCustomer,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du bénéficiaire"',
+        '"M.";"BARDET";"Romain";"Toto";"Forfaitaire";"Service 1";"01/10/2019";;"D123456";"Une seule fois";"1200,00";;;"Lundi Mardi Mercredi Jeudi Vendredi Samedi Dimanche ";"66,00"',
         '"M.";"BARDET";"Romain";"tiers payeurs";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi ";"12,00"',
       ],
     },
@@ -331,6 +334,7 @@ describe('EXPORTS ROUTES', () => {
       populate: populateCustomer,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
+        '"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1',
         '"M.";"BARDET";"Romain";"Service 1";"12,00";"30,00";1;2',
         '"M.";"BARDET";"Romain";"Service 2";;;;',
       ],

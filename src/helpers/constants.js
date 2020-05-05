@@ -245,4 +245,8 @@ module.exports = {
   INTRA: 'intra',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
+  // tests end2end
+  PLANNING: 'planning',
+  AUTHENTICATION: 'authentication',
+  BILLING: 'billing',
 };

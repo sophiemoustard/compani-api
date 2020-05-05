@@ -1,6 +1,10 @@
 const { ObjectID } = require('mongodb');
 const { authCompany } = require('./companySeed');
 const { serviceList } = require('./serviceSeed');
+const { thirdPartyPayerList } = require('./thirdPartyPayerSeed');
+const { FIXED, ONCE } = require('../../src/helpers/constants');
+
+const subscriptionId = new ObjectID();
 
 const customerList = [
   {
@@ -36,7 +40,7 @@ const customerList = [
       misc: 'code porte: 1234',
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: subscriptionId,
       service: serviceList[0]._id,
       versions: [{
         unitTTCRate: 12,
@@ -55,7 +59,23 @@ const customerList = [
       ],
     },
     quotes: [],
-    fundings: [],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: thirdPartyPayerList[0]._id,
+        subscription: subscriptionId,
+        frequency: ONCE,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: new Date('2019-10-01'),
+          effectiveDate: new Date('2019-10-01'),
+          amountTTC: 1200,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
+      },
+    ],
   },
 ];
 
