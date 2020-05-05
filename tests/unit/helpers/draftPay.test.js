@@ -1677,7 +1677,7 @@ describe('computeDraftPayByAuxiliary', () => {
     getContract.returns(null);
 
     const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, events, prevPay, company, query, [], []);
-    expect(result).not.toBeDefined();
+    expect(result).toBeUndefined();
   });
 
   it('should return draft pay by auxiliary', async () => {

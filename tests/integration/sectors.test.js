@@ -99,6 +99,7 @@ describe('SECTORS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.sectors.length).toEqual(sectors.length);
+        expect(response.result.data.sectors[0].hasAuxiliaries).toBeTruthy();
       });
     });
 
@@ -193,7 +194,7 @@ describe('SECTORS ROUTES', () => {
       });
 
       it('should delete a sector', async () => {
-        const sector = sectorsList[0];
+        const sector = sectorsList[2];
 
         const response = await app.inject({
           method: 'DELETE',
@@ -202,7 +203,16 @@ describe('SECTORS ROUTES', () => {
         });
         expect(response.statusCode).toBe(200);
       });
+      it('should return 403 if has auxiliaries', async () => {
+        const sector = sectorsList[0];
 
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/sectors/${sector._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(403);
+      });
       it('should return 403 if not in same comapny', async () => {
         const sector = sectorsList[1];
 

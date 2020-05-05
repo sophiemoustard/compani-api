@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES, INTERNAL } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -70,6 +70,7 @@ exports.getUsersList = async (query, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate('contracts')
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
@@ -85,6 +86,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
       match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate('contracts')
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
@@ -96,8 +98,14 @@ exports.getUser = async (userId, credentials) => {
     .populate('customers')
     .populate('contracts')
     .populate({ path: 'procedure.task', select: 'name _id' })
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    .populate({
+      path: 'sector',
+      select: '_id sector',
+      match: { company: get(credentials, 'company._id', null) },
+      options: { isVendorUser: has(credentials, 'role.vendor') },
+    })
     .lean({ autopopulate: true, virtuals: true });
+
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return user;
@@ -145,7 +153,7 @@ exports.createUser = async (userPayload, credentials) => {
   const companyId = payload.company || get(credentials, 'company._id', null);
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
-  if (!role) throw Boom.badRequest('Role does not exist');
+  if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
   payload.role = { [role.interface]: role._id };
 
@@ -155,11 +163,11 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  if (role.name !== TRAINER) payload.company = companyId;
+  if (role.name !== TRAINER || payload.status === INTERNAL) payload.company = companyId;
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.badRequest();
+    if (userInDB && userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
     if (userInDB) {
       return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
@@ -180,7 +188,7 @@ const formatUpdatePayload = async (updatedUser) => {
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
-    if (!role) throw Boom.badRequest('Role does not exist');
+    if (!role) throw Boom.badRequest(translate[language].unknownRole);
     payload.role = { [role.interface]: role._id.toHexString() };
   }
 
@@ -198,18 +206,14 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   }
 
   const payload = await formatUpdatePayload(userPayload);
-  return User.findOneAndUpdate(query, { $set: flat(payload) }, { new: true })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .lean({ autopopulate: true, virtuals: true });
+  await User.updateOne(query, { $set: flat(payload) });
 };
 
-exports.updatePassword = async (userId, userPayload, credentials) => User.findOneAndUpdate(
+exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
   { _id: userId },
   { $set: flat(userPayload), $unset: { passwordToken: '' } },
   { new: true }
-)
-  .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-  .lean({ autopopulate: true, virtuals: true });
+).lean();
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);

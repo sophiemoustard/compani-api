@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeSectorUpdate, getSector } = require('./preHandlers/sectors');
+const { authorizeSectorUpdate, authorizeSectorDeletion, getSector } = require('./preHandlers/sectors');
 const {
   create,
   update,
@@ -64,7 +64,7 @@ exports.plugin = {
         },
         pre: [
           { method: getSector, assign: 'sector' },
-          { method: authorizeSectorUpdate },
+          { method: authorizeSectorDeletion },
         ],
       },
       handler: remove,

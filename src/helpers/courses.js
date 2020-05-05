@@ -6,6 +6,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const Role = require('../models/Role');
+const CourseSmsHistory = require('../models/CourseSmsHistory');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -17,7 +18,12 @@ const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async query => Course.find(query).lean();
+exports.list = async query => Course.find(query)
+  .populate('companies')
+  .populate('program')
+  .populate('slots')
+  .populate('trainer')
+  .lean();
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('companies')
@@ -43,8 +49,11 @@ exports.sendSMS = async (courseId, payload) => {
       body: payload.body,
     }));
   }
+  promises.push(CourseSmsHistory.create({ type: payload.type, course: courseId, message: payload.body }));
   await Promise.all(promises);
 };
+
+exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId }).lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
@@ -55,7 +64,6 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
   } else {
     coursePayload = { trainees: trainee._id };
   }
-
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
 
@@ -94,6 +102,7 @@ exports.formatCourseForPdf = (course) => {
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
     lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
     duration: exports.getCourseDuration(slots),
+    programName: get(course, 'program.name'),
   };
 
   return {
@@ -110,6 +119,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('slots')
     .populate('trainees')
     .populate('trainer')
+    .populate('program')
     .lean();
 
   return {
@@ -119,14 +129,19 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocx = course => ({
-  courseName: course.name.toUpperCase(),
-  courseDuration: exports.getCourseDuration(course.slots),
+  name: course.name,
+  duration: exports.getCourseDuration(course.slots),
+  learningGoals: get(course, 'program.learningGoals') || '',
+  programName: get(course, 'program.name').toUpperCase() || '',
+  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
+  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
 });
 
 exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
+    .populate('program')
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);

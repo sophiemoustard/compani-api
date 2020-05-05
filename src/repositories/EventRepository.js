@@ -377,13 +377,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
         {
           status: COMPANY_CONTRACT,
           type: INTERVENTION,
-          $and: [{
-            $or: [
-              { isCancelled: false },
-              { isCancelled: { $exists: false } },
-              { 'cancel.condition': INVOICED_AND_PAID },
-            ],
-          }],
+          $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
         },
         { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
       ],
@@ -393,14 +387,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
 
   const match = [
     { $match: { $and: rules } },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: 'customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     {
       $addFields: {
@@ -466,13 +453,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
       $project: {
         auxiliary: 1,
         events: 1,
-        absences: {
-          $reduce: {
-            input: '$absences',
-            initialValue: [],
-            in: { $setUnion: ['$$value', '$$this'] },
-          },
-        },
+        absences: { $reduce: { input: '$absences', initialValue: [], in: { $setUnion: ['$$value', '$$this'] } } },
       },
     },
   ];
@@ -554,122 +535,94 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getCustomersFromEvent = async (query, companyId) => {
-  const { sector, startDate, endDate } = query;
-  const eventQuery = [
-    { $eq: ['$auxiliary', '$$auxiliaryId'] },
-    { $eq: ['$type', INTERVENTION] },
-    { $gt: ['$endDate', startDate] },
-    { $lt: ['$startDate', endDate] },
-  ];
-
-  return SectorHistory.aggregate([
-    {
-      $match: {
-        sector: { $in: UtilsHelper.formatObjectIdsArray(sector) },
-        startDate: { $lte: endDate },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: startDate } }],
-      },
+exports.getCustomersFromEvent = async (query, companyId) => SectorHistory.aggregate([
+  {
+    $match: {
+      sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) },
+      startDate: { $lte: query.endDate },
+      $or: [{ endDate: { $exists: false } }, { endDate: { $gte: query.startDate } }],
     },
-    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
-    { $unwind: { path: '$auxiliary' } },
-    {
-      $lookup: {
-        from: 'events',
-        as: 'event',
-        let: {
-          auxiliaryId: '$auxiliary._id',
-          startDateInSector: '$startDate',
-          endDateInSector: { $ifNull: ['$endDate', endDate] },
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  ...eventQuery,
-                  { $gt: ['$endDate', '$$startDateInSector'] },
-                  { $lt: ['$startDate', '$$endDateInSector'] },
-                ],
-              },
-            },
-          },
-        ],
+  },
+  { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'events',
+      as: 'event',
+      let: {
+        auxiliaryId: '$auxiliary._id',
+        startDate: { $max: ['$startDate', query.startDate] },
+        endDate: { $max: ['$endDate', { $ifNull: ['$endDate', query.endDate] }] },
       },
-    },
-    { $unwind: '$event' },
-    { $replaceRoot: { newRoot: '$event' } },
-    {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        let: { customerId: '$customer' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [{ $eq: ['$_id', '$$customerId'] }],
-              },
-            },
-          },
-        ],
-      },
-    },
-    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-    { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
-    { $replaceRoot: { newRoot: '$customer' } },
-    ...populateReferentHistories,
-    { $project: { subscriptions: 1, identity: 1, contact: 1, referentHistories: 1 } },
-    { $unwind: '$subscriptions' },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscriptions.service',
-        foreignField: '_id',
-        as: 'subscriptions.service',
-      },
-    },
-    { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        'subscriptions.service.version': {
-          $arrayElemAt: [
-            '$subscriptions.service.versions',
-            {
-              $indexOfArray: [
-                '$subscriptions.service.versions.startDate',
-                { $max: '$subscriptions.service.versions.startDate' },
+      pipeline: [
+        {
+          $match: {
+            type: INTERVENTION,
+            $expr: {
+              $and: [
+                { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                { $gt: ['$endDate', '$$startDate'] },
+                { $lt: ['$startDate', '$$endDate'] },
               ],
             },
-          ],
+          },
         },
+      ],
+    },
+  },
+  { $unwind: '$event' },
+  { $replaceRoot: { newRoot: '$event' } },
+  { $lookup: { from: 'customers', as: 'customer', foreignField: '_id', localField: 'customer' } },
+  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+  { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
+  { $replaceRoot: { newRoot: '$customer' } },
+  ...populateReferentHistories,
+  { $project: { subscriptions: 1, identity: 1, contact: 1, referentHistories: 1 } },
+  { $unwind: '$subscriptions' },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'subscriptions.service',
+      foreignField: '_id',
+      as: 'subscriptions.service',
+    },
+  },
+  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'subscriptions.service.version': {
+        $arrayElemAt: [
+          '$subscriptions.service.versions',
+          {
+            $indexOfArray: [
+              '$subscriptions.service.versions.startDate',
+              { $max: '$subscriptions.service.versions.startDate' },
+            ],
+          },
+        ],
       },
     },
-    {
-      $lookup: {
-        from: 'surcharges',
-        localField: 'subscriptions.service.version.surcharge',
-        foreignField: '_id',
-        as: 'subscriptions.service.version.surcharge',
-      },
+  },
+  {
+    $lookup: {
+      from: 'surcharges',
+      localField: 'subscriptions.service.version.surcharge',
+      foreignField: '_id',
+      as: 'subscriptions.service.version.surcharge',
     },
-    { $unwind: { path: '$subscriptions.service.version.surcharge', preserveNullAndEmptyArrays: true } },
-    { $addFields: { 'subscriptions.service.exemptFromCharges': '$subscriptions.service.version.exemptFromCharges' } },
-    { $addFields: { 'subscriptions.service.name': '$subscriptions.service.version.name' } },
-    { $addFields: { 'subscriptions.service.startDate': '$subscriptions.service.version.startDate' } },
-    { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
-    { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
-    { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
-    {
-      $project: { 'subscriptions.service.versions': 0, 'subscriptions.service.version': 0 },
-    },
-    {
-      $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
-    },
-    { $addFields: { 'customer.subscriptions': '$subscriptions' } },
-    { $replaceRoot: { newRoot: '$customer' } },
-  ]).option({ company: companyId });
-};
+  },
+  { $unwind: { path: '$subscriptions.service.version.surcharge', preserveNullAndEmptyArrays: true } },
+  { $addFields: { 'subscriptions.service.exemptFromCharges': '$subscriptions.service.version.exemptFromCharges' } },
+  { $addFields: { 'subscriptions.service.name': '$subscriptions.service.version.name' } },
+  { $addFields: { 'subscriptions.service.startDate': '$subscriptions.service.version.startDate' } },
+  { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
+  { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
+  { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
+  { $project: { 'subscriptions.service.versions': 0, 'subscriptions.service.version': 0 } },
+  { $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } } },
+  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+]).option({ company: companyId });
 
 exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggregate([
   { $match: query },
@@ -798,7 +751,7 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
-  return SectorHistory.aggregate([
+  const sectorAuxiliaries = [
     {
       $match: {
         sector: { $in: sectors },
@@ -808,8 +761,11 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
     },
     { $lookup: { from: 'users', localField: 'auxiliary', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
-    { $addFields: { 'auxiliary.sector': '$sector' } },
+    { $addFields: { 'auxiliary.sector': { _id: '$sector', startDate: '$startDate', endDate: '$endDate' } } },
     { $replaceRoot: { newRoot: '$auxiliary' } },
+  ];
+
+  const auxiliariesEvents = [
     {
       $lookup: {
         from: 'events',
@@ -837,17 +793,16 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
       },
     },
     { $unwind: { path: '$events' } },
-    {
-      $addFields: {
-        'events.auxiliary.administrative.transportInvoice.transportType': '$administrative.transportInvoice.transportType',
-      },
-    },
+  ];
+
+  const formatAndGroup = [
+    { $addFields: { 'events.auxiliary.administrative.transportInvoice': '$administrative.transportInvoice' } },
     {
       $group: {
         _id: {
           date: { $dateToString: { format: '%Y-%m-%d', date: '$events.startDate' } },
           auxiliary: '$_id',
-          sector: '$sector',
+          sector: '$sector._id',
         },
         events: { $push: '$events' },
       },
@@ -859,6 +814,12 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
       },
     },
     { $group: { _id: '$_id.sector', auxiliaries: { $push: '$$ROOT' } } },
+  ];
+
+  return SectorHistory.aggregate([
+    ...sectorAuxiliaries,
+    ...auxiliariesEvents,
+    ...formatAndGroup,
   ]).option({ company: companyId });
 };
 

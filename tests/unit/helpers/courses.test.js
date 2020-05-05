@@ -6,6 +6,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const Course = require('../../../src/models/Course');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
@@ -53,6 +54,14 @@ describe('list', () => {
 
     CourseMock.expects('find')
       .withExactArgs({ type: 'toto' })
+      .chain('populate')
+      .withExactArgs('companies')
+      .chain('populate')
+      .withExactArgs('program')
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs('trainer')
       .chain('lean')
       .once()
       .returns(coursesList);
@@ -126,15 +135,18 @@ describe('sendSMS', () => {
   const payload = { body: 'Ceci est un test.' };
 
   let CourseMock;
+  let CourseSmsHistoryMock;
   let UserMock;
   let sendStub;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
     UserMock = sinon.mock(User);
     sendStub = sinon.stub(TwilioHelper, 'send');
   });
   afterEach(() => {
     CourseMock.restore();
+    CourseSmsHistoryMock.restore();
     UserMock.restore();
     sendStub.restore();
   });
@@ -149,6 +161,10 @@ describe('sendSMS', () => {
 
     sendStub.returns();
 
+    CourseSmsHistoryMock.expects('create')
+      .withExactArgs({ type: payload.type, course: courseId, message: payload.body })
+      .returns();
+
     await CourseHelper.sendSMS(courseId, payload);
 
     sinon.assert.calledWith(
@@ -160,7 +176,32 @@ describe('sendSMS', () => {
       { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
     );
     CourseMock.verify();
+    CourseSmsHistoryMock.verify();
     UserMock.verify();
+  });
+});
+
+describe('sendSMS', () => {
+  const courseId = new ObjectID();
+  const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
+  let CourseSmsHistoryMock;
+  beforeEach(() => {
+    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
+  });
+  afterEach(() => {
+    CourseSmsHistoryMock.restore();
+  });
+
+  it('should sens SMS to trainees', async () => {
+    CourseSmsHistoryMock.expects('find')
+      .withExactArgs({ course: courseId })
+      .chain('lean')
+      .returns(sms);
+
+    const result = await CourseHelper.getSMSHistory(courseId);
+
+    expect(result).toEqual(sms);
+    CourseSmsHistoryMock.verify();
   });
 });
 
@@ -347,6 +388,7 @@ describe('formatCourseForPdf', () => {
         { identity: { lastname: 'trainee 1' } },
         { identity: { lastname: 'trainee 2' } },
       ],
+      program: { name: 'programme de formation' },
     };
     const sortedSlots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -373,6 +415,7 @@ describe('formatCourseForPdf', () => {
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
+            programName: 'programme de formation',
           },
         },
         {
@@ -385,6 +428,7 @@ describe('formatCourseForPdf', () => {
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
+            programName: 'programme de formation',
           },
         },
       ],
@@ -425,6 +469,8 @@ describe('generateAttendanceSheets', () => {
       .withExactArgs('trainees')
       .chain('populate')
       .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs('program')
       .chain('lean')
       .once()
       .returns(course);
@@ -455,18 +501,23 @@ describe('formatCourseForDocx', () => {
     const course = {
       slots: [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
       name: 'Bonjour je suis une formation',
+      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };
     getCourseDuration.returns('7h');
 
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      courseName: 'BONJOUR JE SUIS UNE FORMATION',
-      courseDuration: '7h',
+      name: 'Bonjour je suis une formation',
+      duration: '7h',
+      learningGoals: course.program.learningGoals,
+      startDate: '20/03/2020',
+      endDate: '21/04/2020',
+      programName: 'NOM DU PROGRAMME',
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
   });

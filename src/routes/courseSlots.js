@@ -4,7 +4,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create, update, remove } = require('../controllers/courseSlotController');
 const { addressValidation } = require('./validations/utils');
-const { getCourseSlot } = require('./preHandlers/courseSlot');
+const { getCourseSlot, authorizeCreate, authorizeUpdate } = require('./preHandlers/courseSlot');
 
 exports.plugin = {
   name: 'routes-course-slots',
@@ -21,6 +21,7 @@ exports.plugin = {
             courseId: Joi.objectId().required(),
           }),
         },
+        pre: [{ method: authorizeCreate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: create,
@@ -38,7 +39,7 @@ exports.plugin = {
             address: Joi.alternatives().try(addressValidation, {}),
           }),
         },
-        pre: [{ method: getCourseSlot, assign: 'courseSlot' }],
+        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -51,7 +52,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        pre: [{ method: getCourseSlot }],
+        pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: remove,

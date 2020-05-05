@@ -287,6 +287,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -325,6 +326,7 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -377,7 +379,8 @@ describe('getUsersListWithSectorHistories', () => {
       .withExactArgs({
         path: 'sectorHistories',
         select: '_id sector startDate endDate',
-        match: { company: get(credentials, 'company._id', null) },
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
       })
       .chain('populate')
       .withExactArgs('contracts')
@@ -402,7 +405,6 @@ describe('getUsersListWithSectorHistories', () => {
 
 describe('getUser', () => {
   let userMock;
-  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     userMock = sinon.mock(User);
   });
@@ -413,6 +415,7 @@ describe('getUser', () => {
   it('should return user without populating role', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { name: 'helper', rights: [] } };
+    const credentials = { company: { _id: new ObjectID() } };
     userMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
@@ -422,31 +425,12 @@ describe('getUser', () => {
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name _id' })
       .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
-
-    await UsersHelper.getUser(userId, credentials);
-
-    userMock.verify();
-  });
-
-  it('should return user and populate role', async () => {
-    const userId = new ObjectID();
-    const rightId = new ObjectID();
-    const user = { _id: userId, role: { name: 'helper', rights: [{ _id: rightId }] } };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs('customers')
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'procedure.task', select: 'name _id' })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false },
+      })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
@@ -460,6 +444,7 @@ describe('getUser', () => {
   it('should throw error if user not found', async () => {
     try {
       const userId = new ObjectID();
+      const credentials = { company: { _id: new ObjectID() }, role: { vendor: { _id: new ObjectID() } } };
       userMock.expects('findOne')
         .withExactArgs({ _id: userId })
         .chain('populate')
@@ -469,7 +454,12 @@ describe('getUser', () => {
         .chain('populate')
         .withExactArgs({ path: 'procedure.task', select: 'name _id' })
         .chain('populate')
-        .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+        .withExactArgs({
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: true },
+        })
         .chain('lean')
         .withExactArgs({ autopopulate: true, virtuals: true })
         .once()
@@ -733,11 +723,12 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
-  it('should create a trainer', async () => {
+  it('should create an external trainer', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
+      status: 'external',
       company: new ObjectID(),
     };
     const newUser = {
@@ -779,12 +770,59 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
+  it('should create an internal trainer', async () => {
+    const payload = {
+      identity: { lastname: 'Admin', firstname: 'Toto' },
+      local: { email: 'trainer@test.com', password: '1234567890' },
+      role: { vendor: roleId },
+      status: 'internal',
+    };
+    const newUser = {
+      ...payload,
+      role: { _id: roleId, name: 'trainer', rights: [{ _id: new ObjectID() }] },
+    };
+
+    RoleMock.expects('findById')
+      .withExactArgs(payload.role, { name: 1, interface: 1 })
+      .chain('lean')
+      .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
+
+    TaskMock.expects('find').never();
+
+    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns();
+
+    UserMock.expects('create')
+      .withExactArgs({ ...payload, refreshToken: sinon.match.string, company: credentials.company._id })
+      .returns({ ...newUser, _id: userId });
+
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns({ ...newUser });
+
+
+    const result = await UsersHelper.createUser(payload, credentials);
+
+    expect(result).toMatchObject(newUser);
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+  });
+
   it('should update a user with trainer role', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
       company: new ObjectID(),
+      status: 'external',
     };
     const newUser = {
       ...payload,
@@ -824,7 +862,7 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
-  it('should return an error if user already has vendor role', async () => {
+  it('should return an error 409 if user already has vendor role', async () => {
     try {
       const payload = {
         identity: { lastname: 'Admin', firstname: 'Toto' },
@@ -851,7 +889,7 @@ describe('createUser', () => {
 
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
-      expect(e).toMatchObject(Boom.badRequest());
+      expect(e).toMatchObject(Boom.conflict('Formateur déjà existant'));
       RoleMock.verify();
       TaskMock.verify();
       UserMock.verify();
@@ -876,7 +914,7 @@ describe('createUser', () => {
 
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
       RoleMock.verify();
       UserMock.verify();
@@ -891,15 +929,6 @@ describe('updateUser', () => {
   let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
-  const user = {
-    _id: userId,
-    role: {
-      rights: [
-        { right_id: { _id: new ObjectID().toHexString(), permission: 'test' }, hasAccess: true },
-        { right_id: { _id: new ObjectID().toHexString(), permission: 'test2' }, hasAccess: false },
-      ],
-    },
-  };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -915,23 +944,14 @@ describe('updateUser', () => {
   it('should update a user', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -940,23 +960,14 @@ describe('updateUser', () => {
   it('should update a user without company', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials, true);
+    await UsersHelper.updateUser(userId, payload, credentials, true);
 
-    expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -965,23 +976,14 @@ describe('updateUser', () => {
   it('should update a user and create sector history', async () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId, company: credentials.company._id },
-        { $set: flat(payload) },
-        { new: true }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payload });
+    UserMock.expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
+      .returns();
 
     RoleMock.expects('findById').never();
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toMatchObject({ ...user, ...payload });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
@@ -992,13 +994,9 @@ describe('updateUser', () => {
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
     UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }, { new: true })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns({ ...user, ...payloadWithRole });
+      .expects('updateOne')
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole })
+      .returns();
 
     RoleMock
       .expects('findById')
@@ -1006,9 +1004,8 @@ describe('updateUser', () => {
       .chain('lean')
       .returns({ _id: payload.role, name: 'test', interface: 'client' });
 
-    const result = await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
-    expect(result).toMatchObject({ ...user, ...payloadWithRole });
     UserMock.verify();
     RoleMock.verify();
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -1028,7 +1025,7 @@ describe('updateUser', () => {
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
       RoleMock.verify();
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -1038,7 +1035,6 @@ describe('updateUser', () => {
 
 describe('updatePassword', () => {
   let UserMock;
-  const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
   const user = { _id: userId };
 
@@ -1058,14 +1054,11 @@ describe('updatePassword', () => {
         { $set: flat(payload), $unset: { passwordToken: '' } },
         { new: true }
       )
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...user, ...payload });
 
 
-    const result = await UsersHelper.updatePassword(userId, payload, credentials);
+    const result = await UsersHelper.updatePassword(userId, payload);
 
     expect(result).toEqual({ ...user, ...payload });
     UserMock.verify();

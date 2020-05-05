@@ -38,14 +38,7 @@ const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
       ],
     },
   },
-  {
-    $lookup: {
-      from: 'thirdpartypayers',
-      localField: 'thirdPartyPayer',
-      foreignField: '_id',
-      as: 'thirdPartyPayer',
-    },
-  },
+  { $lookup: { from: 'thirdpartypayers', localField: 'thirdPartyPayer', foreignField: '_id', as: 'thirdPartyPayer' } },
   { $unwind: { path: '$thirdPartyPayer' } },
 ];
 
@@ -141,8 +134,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         type: INTERVENTION,
         $or: [
           { isCancelled: false },
-          { 'cancel.condition': INVOICED_AND_PAID },
-          { 'cancel.condition': INVOICED_AND_NOT_PAID },
+          { 'cancel.condition': { $in: [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID] } },
         ],
       },
     },
@@ -150,53 +142,32 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     { $group: { _id: { customer: '$customer' }, events: { $push: '$$ROOT' } } },
   ];
 
-  const pipelineForLookupCustomer = [
+  const getCustomerWithFundings = [
+    { $lookup: { from: 'customers', as: 'customer', foreignField: '_id', localField: '_id.customer' } },
+    { $unwind: { path: '$customer' } },
+    { $match: { 'customer.fundings': { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } } } },
+    { $unwind: { path: '$customer.fundings' } },
+    { $addFields: { 'customer.fundings.version': { $arrayElemAt: ['$customer.fundings.versions', -1] } } },
     {
       $match: {
-        fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } },
-        $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
-      },
-    },
-    { $unwind: { path: '$fundings' } },
-    { $addFields: { 'fundings.version': { $arrayElemAt: ['$fundings.versions', -1] } } },
-    {
-      $match: {
-        'fundings.frequency': MONTHLY,
-        'fundings.nature': HOURLY,
-        'fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
+        'customer.fundings.frequency': MONTHLY,
+        'customer.fundings.nature': HOURLY,
+        'customer.fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
         $or: [
-          { 'fundings.endDate': { $exists: false }, $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] } },
-          {
-            'fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate },
-            $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
-          },
+          { 'customer.fundings.endDate': { $exists: false } },
+          { 'customer.fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate } },
         ],
       },
     },
     {
       $lookup: {
         from: 'thirdpartypayers',
-        localField: 'fundings.thirdPartyPayer',
+        localField: 'customer.fundings.thirdPartyPayer',
         foreignField: '_id',
-        as: 'fundings.thirdPartyPayer',
+        as: 'customer.fundings.thirdPartyPayer',
       },
     },
-    { $unwind: { path: '$fundings.thirdPartyPayer' } },
-  ];
-
-  const getCustomerWithFundings = [
-    {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        let: {
-          customerId: '$_id.customer',
-          eventStartDate: '$startDate',
-        },
-        pipeline: pipelineForLookupCustomer,
-      },
-    },
-    { $unwind: { path: '$customer' } },
+    { $unwind: { path: '$customer.fundings.thirdPartyPayer' } },
     {
       $lookup: {
         from: 'referenthistories',
@@ -206,12 +177,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
           {
             $match: {
               $and: [
-                {
-                  $or: [
-                    { endDate: { $exists: false } },
-                    { endDate: { $exists: true, $gte: moment().startOf('day').toDate() } },
-                  ],
-                },
+                { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: moment().startOf('day').toDate() } }] },
                 { startDate: { $lte: moment().endOf('day').toDate() } },
                 { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
               ],
@@ -231,17 +197,22 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       $lookup: {
         from: 'sectorhistories',
         as: 'customer.sector',
-        let: { auxiliaryId: '$customer.referent._id' },
-        pipeline: [
-          { $match: { $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] } } },
-          { $sort: { startDate: -1 } },
-          { $limit: 1 },
-          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
-          { $unwind: { path: '$lastSector' } },
-          { $replaceRoot: { newRoot: '$lastSector' } },
-        ],
+        localField: 'customer.referent._id',
+        foreignField: 'auxiliary',
       },
     },
+    { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
+    { $sort: { 'customer.sector.startDate': -1 } },
+    {
+      $group: {
+        _id: { customer: '$_id.customer', funding: '$customer.fundings._id' },
+        customer: { $first: '$customer' },
+        events: { $first: '$events' },
+        sectors: { $push: '$customer.sector' },
+      },
+    },
+    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', -1] } } },
+    { $lookup: { from: 'sectors', as: 'customer.sector', foreignField: '_id', localField: 'customer.sector.sector' } },
     { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
   ];
 
@@ -261,11 +232,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
           },
         },
         nextMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: { $gte: ['$$event.startDate', endOfMonth] },
-          },
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', endOfMonth] } },
         },
       },
     },
@@ -296,12 +263,11 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     },
   ];
 
-  return Event
-    .aggregate([
-      ...matchAndGroupEvents,
-      ...getCustomerWithFundings,
-      ...formatFundings,
-    ])
+  return Event.aggregate([
+    ...matchAndGroupEvents,
+    ...getCustomerWithFundings,
+    ...formatFundings,
+  ])
     .option({ company: companyId });
 };
 
@@ -320,41 +286,28 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $lookup: {
         from: 'referenthistories',
-        as: 'referenthistories',
+        as: 'histories',
         let: { referentId: '$auxiliary' },
         pipeline: [
           {
             $match: {
-              $or: [
-                { endDate: { $exists: false } },
-                { endDate: { $exists: true, $gte: minStartDate } },
-              ],
+              $or: [{ endDate: { $exists: false } }, { endDate: { $exists: true, $gte: minStartDate } }],
               startDate: { $lte: maxStartDate },
               $and: [{ $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } }],
             },
           },
-          { $project: { customer: 1, startDate: 1, endDate: 1 } },
         ],
       },
     },
-    { $unwind: { path: '$referenthistories' } },
+    { $unwind: { path: '$histories' } },
     {
-      $lookup: {
-        from: 'customers',
-        as: 'customer',
-        localField: 'referenthistories.customer',
-        foreignField: '_id',
+      $project: {
+        sector: 1,
+        customer: '$histories.customer',
+        startDate: { $max: ['$startDate', '$histories.startDate'] },
+        endDate: { $min: ['$endDate', '$histories.endDate'] },
       },
     },
-    { $unwind: { path: '$customer' } },
-    {
-      $addFields: {
-        'customer.sector._id': '$sector',
-        'customer.sector.startDate': { $max: ['$startDate', '$referenthistories.startDate'] },
-        'customer.sector.endDate': { $min: ['$endDate', '$referenthistories.endDate'] },
-      },
-    },
-    { $replaceRoot: { newRoot: '$customer' } },
   ];
 
   const customersEvents = [
@@ -363,9 +316,9 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         from: 'events',
         as: 'event',
         let: {
-          customerId: '$_id',
-          startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+          customerId: '$customer',
+          startDate: { $max: ['$startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [
           {
@@ -390,14 +343,10 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   ];
 
   const group = [
-    {
-      $addFields: {
-        duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
-      },
-    },
+    { $addFields: { duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] } } },
     {
       $group: {
-        _id: { sector: '$sector._id', customer: '$event.customer' },
+        _id: { sector: '$sector', customer: '$event.customer' },
         duration: { $sum: '$duration' },
         auxiliaries: { $addToSet: '$event.auxiliary' },
       },
@@ -440,42 +389,28 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
-    { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
-    { $unwind: { path: '$auxiliary' } },
-    {
-      $addFields: {
-        'auxiliary.sector._id': '$sector',
-        'auxiliary.sector.startDate': '$startDate',
-        'auxiliary.sector.endDate': '$endDate',
-      },
-    },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
-    { $project: { _id: 1, sector: 1, identity: 1 } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: {
-          auxiliaryId: '$_id',
-          startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
+          auxiliaryId: '$auxiliary',
+          startDate: { $max: ['$startDate', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [
           {
             $match: {
+              type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+              $or: [
+                { isCancelled: false },
+                { 'cancel.condition': { $in: [INVOICED_AND_NOT_PAID, INVOICED_AND_PAID] } },
+              ],
               $expr: {
                 $and: [
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
                   { $gt: ['$endDate', '$$startDate'] },
                   { $lt: ['$startDate', '$$endDate'] },
-                  { $in: ['$type', [INTERVENTION, INTERNAL_HOUR]] },
-                  {
-                    $or: [
-                      { $eq: ['$isCancelled', false] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
-                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
-                    ],
-                  },
                 ],
               },
             },
@@ -489,9 +424,7 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
         'event.duration': { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
       },
     },
-    {
-      $group: { _id: '$sector._id', events: { $push: '$event' } },
-    },
+    { $group: { _id: '$sector', events: { $push: '$event' } } },
     {
       $addFields: {
         internalHours: { $filter: { input: '$events', as: 'event', cond: { $eq: ['$$event.type', INTERNAL_HOUR] } } },

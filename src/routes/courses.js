@@ -12,7 +12,9 @@ const {
   downloadAttendanceSheets,
   downloadCompletionCertificates,
   sendSMS,
+  getSMSHistory,
 } = require('../controllers/courseController');
+const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
 const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
 
@@ -22,7 +24,10 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: { auth: { scope: ['courses:read'] } },
+      options: {
+        auth: { scope: ['courses:read', 'courses:read-{query.trainer}'] },
+        validate: { query: Joi.object({ trainer: Joi.objectId() }) },
+      },
       handler: list,
     });
 
@@ -38,7 +43,7 @@ exports.plugin = {
             companies: Joi.array().items(Joi.objectId()).required().min(1),
           }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['courses:create'] },
       },
       handler: create,
     });
@@ -51,7 +56,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
         },
         pre: [{ method: authorizeCourseGetOrUpdate }],
-        auth: false,
+        auth: { mode: 'optional' },
       },
       handler: getById,
     });
@@ -84,12 +89,28 @@ exports.plugin = {
       options: {
         auth: { scope: ['courses:edit'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
             body: Joi.string().required(),
+            type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
       },
       handler: sendSMS,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/sms',
+      options: {
+        auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
+      },
+      handler: getSMSHistory,
     });
 
     server.route({
@@ -107,7 +128,7 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }),
         },
-        pre: [{ method: getCourseTrainee, assign: 'trainee' }],
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseGetOrUpdate }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -118,6 +139,7 @@ exports.plugin = {
       path: '/{_id}/trainees/{traineeId}',
       options: {
         auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseGetOrUpdate }],
       },
       handler: removeTrainee,
     });

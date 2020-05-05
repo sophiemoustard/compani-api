@@ -133,17 +133,14 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(
+    await UsersHelper.updateUser(
       req.params._id,
       req.payload,
       req.auth.credentials,
       req.pre.canEditWithoutCompany
     );
 
-    return {
-      message: translate[language].userUpdated,
-      data: { updatedUser },
-    };
+    return { message: translate[language].userUpdated };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
     if (e.code === 11000) {
@@ -157,7 +154,7 @@ const update = async (req) => {
 
 const updatePassword = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updatePassword(req.params._id, req.payload, req.auth.credentials);
+    const updatedUser = await UsersHelper.updatePassword(req.params._id, req.payload);
 
     return {
       message: translate[language].userUpdated,

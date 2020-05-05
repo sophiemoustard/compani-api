@@ -408,7 +408,7 @@ describe('populateEventSubscription', () => {
     };
 
     const result = await EventHelper.populateEventSubscription(event);
-    expect(result.subscription).not.toBeDefined();
+    expect(result.subscription).toBeUndefined();
     expect(result).toEqual(event);
   });
 
@@ -1737,32 +1737,32 @@ describe('workingStats', () => {
 });
 
 describe('getPaidTransportStatsBySector', () => {
-  let getDistanceMatrixStub;
-  let getPaidTransportStatsBySectorStub;
-  let getPaidTransportInfoStub;
+  let getDistanceMatrix;
+  let getPaidTransportStatsBySector;
+  let getPaidTransportInfo;
 
   beforeEach(() => {
-    getDistanceMatrixStub = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
-    getPaidTransportStatsBySectorStub = sinon.stub(EventRepository, 'getPaidTransportStatsBySector');
-    getPaidTransportInfoStub = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
+    getDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
+    getPaidTransportStatsBySector = sinon.stub(EventRepository, 'getPaidTransportStatsBySector');
+    getPaidTransportInfo = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
   });
   afterEach(() => {
-    getDistanceMatrixStub.restore();
-    getPaidTransportStatsBySectorStub.restore();
-    getPaidTransportInfoStub.restore();
+    getDistanceMatrix.restore();
+    getPaidTransportStatsBySector.restore();
+    getPaidTransportInfo.restore();
   });
 
   it('should return an empty array if there is no event', async () => {
     const query = { sector: new ObjectID(), month: '01-2020' };
     const credentials = { company: { _id: new ObjectID() } };
 
-    getDistanceMatrixStub.returns([{ duration: 10 }]);
-    getPaidTransportStatsBySectorStub.returns([]);
+    getDistanceMatrix.returns([{ duration: 10 }]);
+    getPaidTransportStatsBySector.returns([]);
 
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
   });
 
   it('should return paid transport stats', async () => {
@@ -1779,21 +1779,16 @@ describe('getPaidTransportStatsBySector', () => {
       auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
     }];
 
-    getDistanceMatrixStub.returns(distanceMatrix);
-    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
-    getPaidTransportInfoStub.returns({ duration: 60 });
+    getDistanceMatrix.returns(distanceMatrix);
+    getPaidTransportStatsBySector.returns(paidTransportStatsBySector);
+    getPaidTransportInfo.returns({ duration: 60 });
 
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector, duration: 1 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
-    sinon.assert.calledWithExactly(
-      getPaidTransportStatsBySectorStub,
-      [query.sector],
-      query.month,
-      credentials.company._id
-    );
-    sinon.assert.calledWithExactly(getPaidTransportInfoStub, events[1], events[0], distanceMatrix);
+    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledWithExactly(getPaidTransportStatsBySector, [query.sector], query.month, credentials.company._id);
+    sinon.assert.calledWithExactly(getPaidTransportInfo, events[1], events[0], distanceMatrix);
   });
 
   it('should return paid transport stats for many sectors', async () => {
@@ -1820,29 +1815,24 @@ describe('getPaidTransportStatsBySector', () => {
       },
     ];
 
-    getDistanceMatrixStub.returns(distanceMatrix);
-    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
-    getPaidTransportInfoStub.onCall(0).returns({ duration: 60 });
-    getPaidTransportInfoStub.onCall(1).returns({ duration: 90 });
+    getDistanceMatrix.returns(distanceMatrix);
+    getPaidTransportStatsBySector.returns(paidTransportStatsBySector);
+    getPaidTransportInfo.onCall(0).returns({ duration: 60 });
+    getPaidTransportInfo.onCall(1).returns({ duration: 90 });
 
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector[0], duration: 1 }, { sector: query.sector[1], duration: 1.5 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
+    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledWithExactly(getPaidTransportStatsBySector, query.sector, query.month, credentials.company._id);
     sinon.assert.calledWithExactly(
-      getPaidTransportStatsBySectorStub,
-      query.sector,
-      query.month,
-      credentials.company._id
-    );
-    sinon.assert.calledWithExactly(
-      getPaidTransportInfoStub.getCall(0),
+      getPaidTransportInfo.getCall(0),
       eventsFirstSector[1],
       eventsFirstSector[0],
       distanceMatrix
     );
     sinon.assert.calledWithExactly(
-      getPaidTransportInfoStub.getCall(1),
+      getPaidTransportInfo.getCall(1),
       eventsSecondSector[1],
       eventsSecondSector[0],
       distanceMatrix
@@ -1859,57 +1849,41 @@ describe('getPaidTransportStatsBySector', () => {
     ];
     const paidTransportStatsBySector = [{
       _id: query.sector,
-      auxiliaries: [{
-        auxiliary: new ObjectID(),
-        days: [{
-          day: '2020-01-02',
-          events,
-        }],
-      }],
+      auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
     }];
 
-    getDistanceMatrixStub.returns(distanceMatrix);
-    getPaidTransportStatsBySectorStub.returns(paidTransportStatsBySector);
+    getDistanceMatrix.returns(distanceMatrix);
+    getPaidTransportStatsBySector.returns(paidTransportStatsBySector);
 
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector, duration: 0 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrixStub, {}, credentials);
-    sinon.assert.calledWithExactly(
-      getPaidTransportStatsBySectorStub,
-      [query.sector],
-      query.month,
-      credentials.company._id
-    );
-    sinon.assert.notCalled(getPaidTransportInfoStub);
+    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledWithExactly(getPaidTransportStatsBySector, [query.sector], query.month, credentials.company._id);
+    sinon.assert.notCalled(getPaidTransportInfo);
   });
 });
 
 describe('getUnassignedHoursBySector', () => {
-  let getUnassignedHoursBySectorStub;
+  let getUnassignedHoursBySector;
 
   beforeEach(() => {
-    getUnassignedHoursBySectorStub = sinon.stub(EventRepository, 'getUnassignedHoursBySector');
+    getUnassignedHoursBySector = sinon.stub(EventRepository, 'getUnassignedHoursBySector');
   });
   afterEach(() => {
-    getUnassignedHoursBySectorStub.restore();
+    getUnassignedHoursBySector.restore();
   });
 
   it('should return an empty array if there is no unassigned event', async () => {
     const query = { sector: new ObjectID(), month: '01-2020' };
     const credentials = { company: { _id: new ObjectID() } };
 
-    getUnassignedHoursBySectorStub.returns([]);
+    getUnassignedHoursBySector.returns([]);
 
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(
-      getUnassignedHoursBySectorStub,
-      [query.sector],
-      query.month,
-      credentials.company._id
-    );
+    sinon.assert.calledWithExactly(getUnassignedHoursBySector, [query.sector], query.month, credentials.company._id);
   });
 
   it('should return unassigned hours', async () => {
@@ -1918,17 +1892,12 @@ describe('getUnassignedHoursBySector', () => {
 
     const unassignedhours = [{ sector: query.sector, duration: 12 }];
 
-    getUnassignedHoursBySectorStub.returns(unassignedhours);
+    getUnassignedHoursBySector.returns(unassignedhours);
 
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual(unassignedhours);
-    sinon.assert.calledWithExactly(
-      getUnassignedHoursBySectorStub,
-      [query.sector],
-      query.month,
-      credentials.company._id
-    );
+    sinon.assert.calledWithExactly(getUnassignedHoursBySector, [query.sector], query.month, credentials.company._id);
   });
 
   it('should return unassigned hours for many sectors', async () => {
@@ -1937,16 +1906,11 @@ describe('getUnassignedHoursBySector', () => {
 
     const unassignedHours = [{ sector: query.sector[0], duration: 12 }, { sector: query.sector[1], duration: 5 }];
 
-    getUnassignedHoursBySectorStub.returns(unassignedHours);
+    getUnassignedHoursBySector.returns(unassignedHours);
 
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual(unassignedHours);
-    sinon.assert.calledWithExactly(
-      getUnassignedHoursBySectorStub,
-      query.sector,
-      query.month,
-      credentials.company._id
-    );
+    sinon.assert.calledWithExactly(getUnassignedHoursBySector, query.sector, query.month, credentials.company._id);
   });
 });

@@ -28,7 +28,6 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Editer un utilisateur', permission: 'users:edit', name: 'users-edit' },
   { _id: new ObjectID(), description: 'Editer un évènement', permission: 'events:edit', name: 'events-edit' },
   { _id: new ObjectID(), description: 'Consulter les évènements', permission: 'events:read', name: 'events-read' },
-  { _id: new ObjectID(), description: 'Editer son évènement', permission: 'events:own:edit', name: 'events-own-edit' },
   { _id: new ObjectID(), description: 'Créer ou supprimer des bénéficiaires', permission: 'customers:create' },
   { _id: new ObjectID(), description: 'Consulter les données de bénéficiaires', permission: 'customers:read' },
   { _id: new ObjectID(), description: 'Editer les données de bénéficiaires', permission: 'customers:edit' },
@@ -50,6 +49,7 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Editer une programme', permission: 'programs:edit' },
   { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
   { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
+  { _id: new ObjectID(), description: 'Créer une formation', permission: 'courses:create' },
   { _id: new ObjectID(), description: 'Envoyer un sms', permission: 'sms:send' },
 ];
 const vendorAdminRights = [
@@ -62,6 +62,7 @@ const vendorAdminRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
+  'courses:create',
 ];
 const trainingOrganisationManagerRights = [
   'companies:create',
@@ -73,6 +74,7 @@ const trainingOrganisationManagerRights = [
   'programs:edit',
   'courses:read',
   'courses:edit',
+  'courses:create',
 ];
 const clientAdminRights = [
   'config:edit',
@@ -87,9 +89,8 @@ const clientAdminRights = [
   'exports:read',
   'users:list',
   'users:edit',
-  'events:edit',
   'events:read',
-  'events:own:edit',
+  'events:edit',
   'customers:create',
   'customers:read',
   'customers:edit',
@@ -129,14 +130,16 @@ const auxiliaryRights = [
   'pay:read',
   'users:list',
   'events:read',
-  'events:own:edit',
+  'events:edit',
   'customers:read',
   'customers:edit',
 ];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
-const trainerRights = [];
+const trainerRights = [
+  'courses:edit',
+];
 
 const rolesList = [
   {

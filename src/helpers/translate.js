@@ -37,10 +37,11 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
-    smsListFound: 'SMS record list found.',
+    smsFound: 'SMS found.',
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
+    unknownRole: 'Role does not exist',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -134,9 +135,6 @@ module.exports = {
     eventDeleted: 'Event deleted.',
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
-    /* Google Map */
-    distanceMatrixFound: 'Distance Matrix found.',
-    distanceMatrixNotFound: 'Distance Matrix not found.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -216,6 +214,8 @@ module.exports = {
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
     siretAlreadyExists: 'Siret already used by another establishment.',
+    /* Trainers */
+    trainerAlreadyExists: 'Trainer already exists',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -230,6 +230,8 @@ module.exports = {
     courseUpdated: 'Course updated.',
     courseTraineeAdded: 'Course trainee added.',
     courseTraineeRemoved: 'Course trainee removed.',
+    courseTraineeAlreadyExists: 'Course trainee already added to course.',
+    courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -274,10 +276,11 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
-    smsListFound: 'Liste enregistrement SMS trouvée.',
+    smsFound: 'SMS trouvés.',
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
+    unknownRole: 'Le rôle n\'existe pas',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
@@ -369,9 +372,6 @@ module.exports = {
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
-    /* Google Map */
-    distanceMatrixFound: 'Distance Matrix trouvée.',
-    distanceMatrixNotFound: 'Distance Matrix non trouvée.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
@@ -451,13 +451,15 @@ module.exports = {
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
+    /* Trainers */
+    trainerAlreadyExists: 'Formateur déjà existant',
     /* Programs */
     programsFound: 'Liste des programmes trouvés.',
     programsNotFound: 'Liste des programmes non trouvés.',
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
-    /* Formations */
+    /* Courses */
     coursesFound: 'Liste des formations trouvée.',
     coursesNotFound: 'Liste des formations non trouvée.',
     courseCreated: 'Formation créée.',
@@ -465,7 +467,9 @@ module.exports = {
     courseUpdated: 'Formation mise à jour.',
     courseTraineeAdded: 'Stagiaire ajouté à la formation.',
     courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
-    /* Créneaux de formation */
+    courseTraineeAlreadyExists: 'Stagiaire déjà ajouté à la formation.',
+    courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
+    /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',
     courseSlotDeleted: 'Créneau de formation supprimé.',

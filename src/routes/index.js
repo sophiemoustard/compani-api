@@ -48,10 +48,6 @@ exports.routes = [
     routes: { prefix: '/events' },
   },
   {
-    plugin: require('./distanceMatrix'),
-    routes: { prefix: '/distancematrix' },
-  },
-  {
     plugin: require('./sectors'),
     routes: { prefix: '/sectors' },
   },

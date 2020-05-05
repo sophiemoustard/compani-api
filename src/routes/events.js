@@ -51,7 +51,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['events:edit', 'events:own:edit'] },
+        auth: { scope: ['events:edit'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(...EVENT_TYPES),
@@ -163,7 +163,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['events:edit', 'events:own:edit'] },
+        auth: { scope: ['events:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object().keys({
@@ -225,7 +225,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
-        auth: { scope: ['events:edit', 'events:own:edit'] },
+        auth: { scope: ['events:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
@@ -241,7 +241,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/repetition',
       options: {
-        auth: { scope: ['events:edit', 'events:own:edit'] },
+        auth: { scope: ['events:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },

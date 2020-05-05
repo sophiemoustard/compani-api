@@ -10,19 +10,9 @@ const maps = require('../../../src/models/Google/Maps');
 require('sinon-mongoose');
 
 describe('getDistanceMatrices', () => {
-  const params = {
-    origins: 'Washington, DC',
-    destinations: 'New York City, NY',
-    mode: 'DRIVING',
-  };
   const distanceMatrix = {
     data: {
-      rows: [{
-        elements: [{
-          distance: { value: 363998 },
-          duration: { value: 13790 },
-        }],
-      }],
+      rows: [{ elements: [{ distance: { value: 363998 }, duration: { value: 13790 } }] }],
     },
     status: 200,
   };
@@ -37,15 +27,10 @@ describe('getDistanceMatrices', () => {
   });
 
   it('should return a distance matrix', async () => {
-    const query = { ...params, company: companyId };
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs(query)
-      .chain('lean')
-      .returns(distanceMatrix);
+    DistanceMatrixModel.expects('find').withExactArgs({ company: companyId }).chain('lean').returns(distanceMatrix);
 
     const credentials = { company: { _id: companyId } };
-    const result = await DistanceMatrixHelper.getDistanceMatrices(params, credentials);
+    const result = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
     expect(result).toEqual(distanceMatrix);
     DistanceMatrixModel.verify();

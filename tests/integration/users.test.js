@@ -169,7 +169,22 @@ describe('USERS ROUTES', () => {
         expect(usersCount).toBe(usersCountBefore + 1);
       });
 
-      it('should create a trainer', async () => {
+      it('should create an external trainer', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: { ...userPayload, role: roleTrainer._id, status: 'external', company: otherCompany._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore + 1);
+        expect(response.result.data.user.company._id).toEqual(otherCompany._id);
+      });
+
+      it('should create an internal trainer', async () => {
         const usersCountBefore = await User.countDocuments({});
         const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const response = await app.inject({
@@ -181,6 +196,7 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(200);
         const usersCountAfter = await User.countDocuments({});
         expect(usersCountAfter).toEqual(usersCountBefore + 1);
+        expect(response.result.data.user.company._id).toEqual(authCompany._id);
       });
 
       it('should update a user with vendor role', async () => {
@@ -204,7 +220,7 @@ describe('USERS ROUTES', () => {
         expect(usersCountAfter).toEqual(usersCountBefore);
       });
 
-      it('should return an error if user already has vendor role', async () => {
+      it('should return an error 409 if trainer already has vendor role', async () => {
         const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
         const trainerPayload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
@@ -219,7 +235,9 @@ describe('USERS ROUTES', () => {
           payload: trainerPayload,
           headers: { 'x-access-token': authToken },
         });
-        expect(response.statusCode).toBe(400);
+
+        expect(response.statusCode).toBe(409);
+        expect(response.result.message).toBe('Formateur déjà existant');
       });
 
       it('should not create a trainer if missing status', async () => {
@@ -862,8 +880,9 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser).toBeDefined();
-        expect(res.result.data.updatedUser).toMatchObject({
+        const updatedUser = await User.findById(usersSeedList[0]._id).lean({ autopopulate: true });
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser).toMatchObject({
           _id: usersSeedList[0]._id,
           identity: expect.objectContaining({
             firstname: updatePayload.identity.firstname,
@@ -871,10 +890,6 @@ describe('USERS ROUTES', () => {
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
           role: { client: { _id: updatePayload.role } },
         });
-        const updatedUser = await User.findById(res.result.data.updatedUser._id).lean({ autopopulate: true });
-        expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
-        expect(updatedUser.local.email).toBe(updatePayload.local.email);
-        expect(updatedUser.role.client._id).toEqual(updatePayload.role);
       });
 
       it('should update the user sector and sector history', async () => {
@@ -886,8 +901,12 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.updatedUser).toBeDefined();
-        expect(res.result.data.updatedUser.sector).toEqual(userSectors[1]._id);
+        const updatedUser = await User.findById(userId)
+          .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+          .lean({ autopopulate: true, virtuals: true });
+
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser.sector).toEqual(userSectors[1]._id);
         const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
         const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company });
         expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
@@ -912,10 +931,14 @@ describe('USERS ROUTES', () => {
         });
 
         expect(secondRespons.statusCode).toBe(200);
-        expect(secondRespons.result.data.updatedUser.sector).toEqual(userSectors[2]._id);
+        const updatedUser = await User.findById(userId)
+          .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+          .lean({ autopopulate: true });
+
+        expect(updatedUser.sector).toEqual(userSectors[2]._id);
         const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
-        expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).not.toBeDefined();
+        expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).toBeUndefined();
         expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
       });
 
@@ -1063,6 +1086,7 @@ describe('USERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];
