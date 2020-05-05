@@ -26,6 +26,7 @@ const otherCompany = {
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'iuytre',
+  subscriptions: { erp: true },
 };
 
 const sector = {

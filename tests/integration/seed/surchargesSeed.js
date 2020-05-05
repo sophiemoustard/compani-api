@@ -1,32 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
-const Company = require('../../../src/models/Company');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-
-const company = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  name: 'Test',
-  tradeName: 'TT',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfd',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  prefixNumber: 103,
-};
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const surchargesList = [
   {
@@ -65,7 +39,7 @@ const surchargesList = [
 
 const surchargeFromOtherCompany = {
   _id: new ObjectID(),
-  company: company._id,
+  company: otherCompany._id,
   name: 'Chasse aux monstres estivaux',
   saturday: 30,
   sunday: 25,
@@ -82,12 +56,10 @@ const surchargeFromOtherCompany = {
 
 const populateDB = async () => {
   await Surcharge.deleteMany({});
-  await Company.deleteMany({});
 
   await populateDBForAuthentication();
   await Surcharge.insertMany(surchargesList);
   await Surcharge.insertMany([surchargeFromOtherCompany]);
-  await (new Company(company)).save();
 };
 
 module.exports = { surchargesList, populateDB, surchargeFromOtherCompany };

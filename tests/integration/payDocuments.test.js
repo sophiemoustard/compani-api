@@ -233,8 +233,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'vendor_admin', expectedCode: 403 },
-        { name: 'training_organisation_manager', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {

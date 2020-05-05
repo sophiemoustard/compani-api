@@ -1,7 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
-
 const app = require('../../server');
 const InternalHour = require('../../src/models/InternalHour');
 const Event = require('../../src/models/Event');
@@ -10,9 +9,8 @@ const {
   internalHoursList,
   authInternalHoursList,
   internalHourUsers,
-  internalHoursCompany,
 } = require('./seed/internalHoursSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -236,7 +234,8 @@ describe('INTERNAL HOURS ROUTES', () => {
         const internalHour = internalHoursList[1];
         const defaultInternalHour = internalHoursList[0];
         const initialInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
-        const initialDefaultInternalHourEventsCount = await Event.countDocuments({ internalHour: defaultInternalHour._id });
+        const initialDefaultInternalHourEventsCount =
+          await Event.countDocuments({ internalHour: defaultInternalHour._id });
 
         const response = await app.inject({
           method: 'DELETE',
@@ -245,12 +244,13 @@ describe('INTERNAL HOURS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const internalHoursCount = await InternalHour.countDocuments({ company: internalHoursCompany._id });
+        const internalHoursCount = await InternalHour.countDocuments({ company: otherCompany._id });
         expect(internalHoursCount).toBe(internalHoursList.length - 1);
         const deletedInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
         expect(deletedInternalHourEventsCount).toBe(0);
         const defaultInternalHourEventsCount = await Event.countDocuments({ internalHour: defaultInternalHour._id });
-        expect(defaultInternalHourEventsCount).toBe(initialDefaultInternalHourEventsCount + initialInternalHourEventsCount);
+        expect(defaultInternalHourEventsCount)
+          .toBe(initialDefaultInternalHourEventsCount + initialInternalHourEventsCount);
       });
 
       it('should return 403 if default internal hour', async () => {
@@ -271,7 +271,7 @@ describe('INTERNAL HOURS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { 'x-access-token': await getToken('client_admin') },
         });
 
         expect(response.statusCode).toBe(403);

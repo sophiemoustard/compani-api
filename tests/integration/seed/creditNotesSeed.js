@@ -6,11 +6,10 @@ const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
-const Company = require('../../../src/models/Company');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -225,17 +224,6 @@ const creditNotesList = [
   },
 ];
 
-const otherCompany = {
-  _id: new ObjectID(),
-  name: 'eCorp SAS',
-  tradeName: 'eCorp',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfd',
-  prefixNumber: 103,
-};
-
 const otherCompanyThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Titi',
@@ -383,7 +371,6 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
 
   await populateDBForAuthentication();
-  await new Company(otherCompany).save();
   await Event.create([creditNoteEvent, otherCompanyEvent]);
   await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
   await Service.create([creditNoteService, otherCompanyService]);

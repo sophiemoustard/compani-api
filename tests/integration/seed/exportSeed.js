@@ -14,7 +14,6 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
-const Company = require('../../../src/models/Company');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
@@ -221,20 +220,6 @@ const customer = {
     },
     phone: '0612345678',
   },
-};
-
-const company = {
-  prefixNumber: 103,
-  _id: new ObjectID(),
-  name: 'Test',
-  tradeName: 'TT',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfds',
 };
 
 const customerThirdPartyPayer = {
@@ -892,10 +877,8 @@ const populatePayment = async () => {
 
 const populateService = async () => {
   await Service.deleteMany();
-  await Company.deleteMany();
 
   await populateDBForAuthentication();
-  await (new Company(company)).save();
   await Service.insertMany(serviceList);
 };
 
@@ -903,14 +886,12 @@ const populateCustomer = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
   await Service.deleteMany();
-  await Company.deleteMany();
   await Event.deleteMany();
   await User.deleteMany();
   await ReferentHistory.deleteMany();
 
   await populateDBForAuthentication();
 
-  await (new Company(company)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(serviceList);
   await User.insertMany(auxiliaryList);

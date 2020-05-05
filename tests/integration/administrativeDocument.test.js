@@ -69,23 +69,17 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
   describe('CLIENT_ADMIN', () => {
     let addStub;
     let createPermissionStub;
-
     beforeEach(async () => {
       addStub = sinon.stub(Drive, 'add');
       createPermissionStub = sinon.stub(Drive, 'createPermission');
       authToken = await getToken('client_admin');
     });
-
     afterEach(() => {
       addStub.restore();
       createPermissionStub.restore();
     });
 
-    const payload = {
-      name: 'contrat',
-      file: 'test',
-      mimeType: 'application/octet-stream',
-    };
+    const payload = { name: 'contrat', file: 'test', mimeType: 'application/octet-stream' };
 
     it('should create new document', async () => {
       const form = generateFormData(payload);
@@ -140,11 +134,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const payload = {
-          name: 'contrat',
-          file: 'test',
-          mimeType: 'pdf',
-        };
+        const payload = { name: 'contrat', file: 'test', mimeType: 'pdf' };
         const form = generateFormData(payload);
 
         const response = await app.inject({

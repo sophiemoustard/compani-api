@@ -93,8 +93,6 @@ describe('TWILIO ROUTES', () => {
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

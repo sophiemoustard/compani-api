@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
-const Company = require('../../../src/models/Company');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
@@ -785,7 +784,6 @@ const eventList = [
 
 const populateDB = async () => {
   await Service.deleteMany({});
-  await Company.deleteMany({});
   await Customer.deleteMany({});
   await Event.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
