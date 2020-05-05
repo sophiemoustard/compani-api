@@ -3,6 +3,7 @@ const expect = require('expect');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
@@ -29,6 +30,7 @@ const {
   getTokenByCredentials,
   otherCompany,
   authCompany,
+  rolesList,
 } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
@@ -1239,13 +1241,27 @@ describe('USERS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('client_admin', usersSeedList);
       });
-      it('should delete a user by id', async () => {
-        const res = await app.inject({
-          method: 'DELETE',
-          url: `/users/${usersSeedList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+
+      usersSeedList.forEach((user) => {
+        let message;
+        let statusCode;
+        const helperRoleId = rolesList.find(role => role.name === 'helper')._id;
+        if (get(user, 'role.client') === helperRoleId) {
+          message = 'should delete a helper by id';
+          statusCode = 200;
+        } else {
+          message = 'should return 403 as user is not helpers';
+          statusCode = 403;
+        }
+
+        it(message, async () => {
+          const res = await app.inject({
+            method: 'DELETE',
+            url: `/users/${user._id}`,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(res.statusCode).toBe(statusCode);
         });
-        expect(res.statusCode).toBe(200);
       });
 
       it('should return a 404 error if user is not found', async () => {
@@ -1269,7 +1285,7 @@ describe('USERS ROUTES', () => {
       it('should return a 403 error if user is not from same company', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/users/${userList[0]._id}`,
+          url: `/users/${helperFromOtherCompany._id}`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(403);
@@ -1281,14 +1297,22 @@ describe('USERS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('vendor_admin', usersSeedList);
       });
-      it('should update trainer', async () => {
+      it('should delete a helper by id', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/users/${usersSeedList[9]._id.toHexString()}`,
+          url: `/users/${usersSeedList[6]._id}`,
           headers: { 'x-access-token': authToken },
         });
-
         expect(res.statusCode).toBe(200);
+      });
+
+      it('should return a 403 error if user is not from same company', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${helperFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -1308,7 +1332,7 @@ describe('USERS ROUTES', () => {
           authToken = await getToken(role.name, usersSeedList);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/users/${usersSeedList[0]._id}`,
+            url: `/users/${usersSeedList[6]._id}`,
             headers: { 'x-access-token': authToken },
           });
 
