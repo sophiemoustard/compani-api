@@ -28,7 +28,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create course', async () => {
-      const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
+      const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -41,13 +41,13 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     const missingParams = [
       { path: 'name' },
-      { path: 'companies' },
+      { path: 'company' },
       { path: 'program' },
       { path: 'type' },
     ];
+    const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
-        const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
@@ -73,7 +73,7 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
+        const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',

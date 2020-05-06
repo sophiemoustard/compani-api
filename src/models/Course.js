@@ -7,7 +7,7 @@ const COURSE_TYPES = [INTRA];
 const CourseSchema = mongoose.Schema({
   name: { type: String, required: true },
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
-  companies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true }],
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
