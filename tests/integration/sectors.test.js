@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList } = require('./seed/sectorsSeed');
-const { getToken, rolesList, userList, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, rolesList, userList, otherCompany, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -42,7 +42,7 @@ describe('SECTORS ROUTES', () => {
       });
 
       it("should return a 400 error if 'name' params is missing", async () => {
-        const payload = { company: otherCompany._id };
+        const payload = { company: authCompany._id };
         const response = await app.inject({
           method: 'POST',
           url: '/sectors',
@@ -65,7 +65,7 @@ describe('SECTORS ROUTES', () => {
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
-          const payload = { name: 'Test3', company: otherCompany._id };
+          const payload = { name: 'Test3', company: authCompany._id };
           const response = await app.inject({
             method: 'POST',
             url: '/sectors',

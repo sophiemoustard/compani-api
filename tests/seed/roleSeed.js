@@ -96,7 +96,7 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Consulter la liste des formations', permission: 'courses:read' },
   { _id: new ObjectID(), description: 'Editer une formation', permission: 'courses:edit' },
   { _id: new ObjectID(), description: 'Créer une formation', permission: 'courses:create' },
-  { _id: new ObjectID(), description: 'Envoyer un sms', permission: 'sms:send' },
+  { _id: new ObjectID(), description: 'Envoyer un sms', permission: 'sms:send', subscription: 'erp' },
 ];
 const vendorAdminRights = [
   'companies:create',
