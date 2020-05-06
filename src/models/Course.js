@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
-const { INTRA } = require('../helpers/constants');
+const { INTRA, INTER_B2B } = require('../helpers/constants');
 const { PHONE_VALIDATION } = require('./utils');
 
-const COURSE_TYPES = [INTRA];
+const COURSE_TYPES = [INTRA, INTER_B2B];
 
 const CourseSchema = mongoose.Schema({
   name: { type: String, required: true },
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

@@ -243,6 +243,7 @@ module.exports = {
   CERTIFICATE: 'certificate',
   // COURSES
   INTRA: 'intra',
+  INTER_B2B: 'inter_b2b',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
   // tests end2end

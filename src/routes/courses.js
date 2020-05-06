@@ -17,6 +17,7 @@ const {
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
 const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
+const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -40,7 +41,7 @@ exports.plugin = {
             name: Joi.string().required(),
             type: Joi.string().required(),
             program: Joi.objectId().required(),
-            company: Joi.objectId().required(),
+            company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },

@@ -70,6 +70,13 @@ const coursesList = [
     type: 'intra',
     trainees: [trainee._id],
   },
+  {
+    _id: new ObjectID(),
+    name: 'inter b2b session',
+    program: programsList[0]._id,
+    type: 'inter_b2b',
+    trainees: [trainee._id],
+  },
 ];
 
 const courseSmsHistory = {

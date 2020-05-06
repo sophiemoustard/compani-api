@@ -27,8 +27,20 @@ describe('COURSES ROUTES - POST /courses', () => {
       token = await getToken('vendor_admin');
     });
 
-    it('should create course', async () => {
+    it('should create intra course', async () => {
       const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create inter_b2b course', async () => {
+      const payload = { name: 'course', type: 'inter_b2b', program: programsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
