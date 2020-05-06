@@ -2,14 +2,20 @@ const jwt = require('jsonwebtoken');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
-const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER } = require('./constants');
+const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
-const formatRights = (roles) => {
+const formatRights = (roles, company) => {
   const formattedRights = [];
   for (const role of roles) {
-    formattedRights.push(...role.rights
+    let rights = [...role.rights];
+    if (role.interface === CLIENT) {
+      const companySubscriptions = Object.keys(company.subscriptions).filter(key => company.subscriptions[key]);
+      rights = role.rights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
+    }
+
+    formattedRights.push(...rights
       .filter(right => right.hasAccess)
       .map((right) => { if (right.permission) return right.permission; }));
   }
@@ -28,7 +34,7 @@ const validate = async (decoded) => {
     if (!userRoles.length) return { isValid: false };
 
     const userRolesName = userRoles.map(role => role.name);
-    const rights = formatRights(userRoles);
+    const rights = formatRights(userRoles, user.company);
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
     const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];

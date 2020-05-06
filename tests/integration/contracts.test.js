@@ -42,7 +42,7 @@ describe('CONTRACTS ROUTES', () => {
   let authToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('coach');
+    authToken = await getToken('client_admin');
   });
 
   describe('GET /contracts', () => {
@@ -153,13 +153,10 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'client_admin', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -414,6 +411,7 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'client_admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -527,6 +525,7 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'client_admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -626,6 +625,7 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'client_admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -689,6 +689,7 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'client_admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -829,6 +830,7 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

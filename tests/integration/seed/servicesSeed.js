@@ -1,34 +1,7 @@
 const { ObjectID } = require('mongodb');
-
 const Service = require('../../../src/models/Service');
-const Company = require('../../../src/models/Company');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-
-const company = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  name: 'Test',
-  tradeName: 'TT',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  prefixNumber: 103,
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfd',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-};
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const servicesList = [
   {
@@ -38,7 +11,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -51,7 +24,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
-      startDate: '2019-01-18 19:58:15.519',
+      startDate: '2019-01-18T19:58:15.519',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -64,7 +37,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -75,11 +48,11 @@ const servicesList = [
 const serviceFromOtherCompany = {
   _id: new ObjectID(),
   type: COMPANY_CONTRACT,
-  company: company._id,
+  company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 150,
     name: 'Service 3',
-    startDate: '2019-01-16 17:58:15.519',
+    startDate: '2019-01-16T17:58:15.519',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -88,10 +61,9 @@ const serviceFromOtherCompany = {
 
 const populateDB = async () => {
   await Service.deleteMany({});
-  await Company.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new Company(company)).save();
+
   await Service.insertMany(servicesList);
   await Service.insertMany([serviceFromOtherCompany]);
 };

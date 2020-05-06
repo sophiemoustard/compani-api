@@ -92,4 +92,6 @@ const userList = [
   },
 ];
 
-module.exports = { userList };
+const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
+
+module.exports = { userList, trainer };

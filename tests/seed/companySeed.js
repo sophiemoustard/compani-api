@@ -12,9 +12,8 @@ const authCompany = {
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'iuytre',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
+  customersConfig: { billingPeriod: 'two_weeks' },
+  subscriptions: { erp: true },
 };
 
 module.exports = { authCompany };
