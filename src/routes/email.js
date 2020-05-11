@@ -16,6 +16,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
+            type: Joi.string(),
           }),
         },
         pre: [
