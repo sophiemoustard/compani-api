@@ -675,7 +675,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should return user', async () => {
@@ -740,7 +740,7 @@ describe('USERS TEST', () => {
 
     describe('Other roles', () => {
       it('should return user if it is me - auxiliary', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
+        authToken = await getToken('auxiliary', true, usersSeedList);
 
         const response = await app.inject({
           method: 'GET',
@@ -784,7 +784,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should update the user', async () => {
@@ -985,7 +985,7 @@ describe('USERS TEST', () => {
       beforeEach(populateDB);
 
       it('should update user if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
+        authToken = await getToken('auxiliary', true, usersSeedList);
 
         const response = await app.inject({
           method: 'PUT',
@@ -1030,7 +1030,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should create password token', async () => {
@@ -1102,7 +1102,7 @@ describe('USERS TEST', () => {
       beforeEach(populateDB);
 
       it('should update user password if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
+        authToken = await getToken('auxiliary', true, usersSeedList);
         const response = await app.inject({
           method: 'PUT',
           url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
@@ -1158,7 +1158,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       usersSeedList.forEach((user) => {
@@ -1254,7 +1254,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should update user certificates', async () => {
@@ -1291,7 +1291,7 @@ describe('USERS TEST', () => {
 
     describe('Other roles', () => {
       it('should update user certificate if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
+        authToken = await getToken('auxiliary', true, usersSeedList);
 
         const response = await app.inject({
           method: 'PUT',
@@ -1335,7 +1335,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should update a user task', async () => {
@@ -1380,7 +1380,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should return user tasks', async () => {
@@ -1503,7 +1503,7 @@ describe('USERS TEST', () => {
 
     describe('Other roles', () => {
       it('should add administrative document if it is me', async () => {
-        authToken = await getToken('auxiliary', usersSeedList);
+        authToken = await getToken('auxiliary', true, usersSeedList);
 
         const response = await app.inject({
           method: 'POST',
@@ -1553,7 +1553,7 @@ describe('USERS TEST', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin', usersSeedList);
+        authToken = await getToken('client_admin', true, usersSeedList);
       });
 
       it('should create a drive folder for a user', async () => {
@@ -1604,7 +1604,7 @@ describe('USERS TEST', () => {
     beforeEach(populateDB);
 
     it('should return a new access token after checking reset password token', async () => {
-      const user = getUser('helper', usersSeedList);
+      const user = getUser('helper', true, usersSeedList);
       const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
 
       const response = await app.inject({

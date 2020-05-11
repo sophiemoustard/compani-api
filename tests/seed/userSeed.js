@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const { rolesList } = require('./roleSeed');
-const { authCompany } = require('./companySeed');
+const { authCompany, companyWithoutSubscription } = require('./companySeed');
 const { customerList } = require('./customerSeed');
 const uuidv4 = require('uuid/v4');
 const {
@@ -89,6 +89,14 @@ const userList = [
     local: { email: 'trainer@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
     company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'client_admin_company_without_subscription', lastname: 'Chef' },
+    refreshToken: uuidv4(),
+    local: { email: 'client-admin-company-without-erp@alenvi.io', password: '123456!eR' },
+    role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
+    company: companyWithoutSubscription._id,
   },
 ];
 

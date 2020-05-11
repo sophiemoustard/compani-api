@@ -13,7 +13,7 @@ const { rolesList, rightsList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
 const { customerList } = require('../../seed/customerSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
-const { authCompany } = require('../../seed/companySeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { serviceList } = require('../../seed/serviceSeed');
 const app = require('../../../server');
 
@@ -63,6 +63,7 @@ const populateDBForAuthentication = async () => {
 
   await new Company(authCompany).save();
   await new Company(otherCompany).save();
+  await new Company(companyWithoutSubscription).save();
   await new Sector(sector).save();
   await SectorHistory.insertMany(sectorHistories);
   await Right.insertMany(rightsList);
@@ -77,9 +78,12 @@ const populateDBForAuthentication = async () => {
   }
 };
 
-const getUser = (roleName, list = userList) => {
+const getUser = (roleName, erp = true, list = userList) => {
   const role = rolesList.find(r => r.name === roleName);
-  return list.find(u => u.role[role.interface] && u.role[role.interface].toHexString() === role._id.toHexString());
+  const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
+
+  return list.find(u => u.role[role.interface] && u.role[role.interface].toHexString() === role._id.toHexString() &&
+    company._id.toHexString() === u.company.toHexString());
 };
 
 const getTokenByCredentials = memoize(
@@ -96,8 +100,8 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName, list) => {
-  const user = getUser(roleName, list);
+const getToken = (roleName, erp, list) => {
+  const user = getUser(roleName, erp, list);
   return getTokenByCredentials(user.local);
 };
 

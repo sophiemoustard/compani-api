@@ -412,10 +412,11 @@ describe('CONTRACTS ROUTES', () => {
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
         const payload = {
           status: COMPANY_CONTRACT,
           startDate: '2019-09-01T00:00:00',
@@ -426,7 +427,7 @@ describe('CONTRACTS ROUTES', () => {
           }],
           user: contractUsers[1]._id,
         };
-        authToken = await getToken(role.name);
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'POST',
           url: '/contracts',
@@ -575,26 +576,23 @@ describe('CONTRACTS ROUTES', () => {
       expect(moment(payload.startDate).isSame(sectorHistory.startDate, 'day')).toBeTruthy();
     });
 
-    it(
-      'should update a contract startDate and update corresponding sectorhistory and delete unrelevant ones',
-      async () => {
-        const payload = { startDate: '2020-02-01' };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
+    it('should update startDate, corresponding sectorhistory and delete unrelevant ones', async () => {
+      const payload = { startDate: '2020-02-01' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
 
-        expect(response.statusCode).toBe(200);
-        const contract = await Contract.findById(contractsList[6]._id).lean();
-        expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
+      expect(response.statusCode).toBe(200);
+      const contract = await Contract.findById(contractsList[6]._id).lean();
+      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
 
-        const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
-        expect(sectorHistories.length).toBe(1);
-        expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
-      }
-    );
+      const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
+      expect(sectorHistories.length).toBe(1);
+      expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
+    });
 
     it('should return a 403 if contract is not from the same company', async () => {
       const payload = { startDate: '2020-02-01' };
@@ -707,7 +705,7 @@ describe('CONTRACTS ROUTES', () => {
   });
 
   describe('GET contracts/staff-register', () => {
-    it('should return list of contracts', async () => {
+    it('should return staff-register list', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/contracts/staff-register',

@@ -218,7 +218,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'internalHour',
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
@@ -241,7 +240,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     repetition: { frequency: NEVER },
     type: 'absence',
     absence: PAID_LEAVE,
@@ -254,7 +252,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -275,7 +272,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -296,7 +292,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -328,12 +323,11 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
-    startDate: '2019-01-17T14:30:19.543Z',
-    endDate: '2019-01-17T16:30:19.543Z',
+    startDate: '2019-01-17T16:30:19.543Z',
+    endDate: '2019-01-17T18:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
@@ -354,7 +348,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'absence',
     absence: PAID_LEAVE,
     absenceNature: DAILY,
@@ -367,7 +360,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-17T14:30:19.543Z',
@@ -393,7 +385,6 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-15T14:30:19.543Z',
@@ -419,7 +410,6 @@ const eventsList = [
   {
     _id: repetitionParentId,
     company: authCompany._id,
-    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-16T14:30:19.543Z',
