@@ -12,7 +12,7 @@ exports.authorizeSendEmail = async (req) => {
   const user = await User.findOne({ 'local.email': req.payload.email }).lean();
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
-  if (user.company.toHexString() !== companyId.toHexString() && !isVendorUser) throw Boom.forbidden();
+  if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
   return null;
 };

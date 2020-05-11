@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES, INTERNAL } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, HELPER, AUXILIARY_ROLES, INTERNAL } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -150,7 +150,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
 exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
-  const companyId = payload.company || get(credentials, 'company._id', null);
+  const companyId = payload.company ||
+    (get(credentials, 'company._id') ? get(credentials, 'company._id').toHexString() : null);
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
@@ -164,23 +165,33 @@ exports.createUser = async (userPayload, credentials) => {
   }
 
   if (role.name !== TRAINER || payload.status === INTERNAL) payload.company = companyId;
-  if (role.interface === VENDOR) {
-    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
-    if (userInDB) {
-      return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+  const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
+  if (userInDB) {
+    const userInDBCompany = userInDB.company ? userInDB.company.toHexString() : null;
+    if (payload.company !== userInDBCompany) throw Boom.forbidden();
+    if (userInDB.role[role.interface]) throw Boom.conflict(translate[language].trainerAlreadyExists);
+
+    const setProperties = { [`role.${role.interface}`]: role._id };
+    if (role.name === HELPER) setProperties.customers = payload.customers;
+
+    return {
+      user: await User.findOneAndUpdate({ _id: userInDB._id }, setProperties, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-        .lean({ virtuals: true, autopopulate: true });
-    }
+        .lean({ virtuals: true, autopopulate: true }),
+      isNew: false,
+    };
   }
-  const user = await User.create({ ...payload, refreshToken: uuid.v4() });
 
+  const user = await User.create({ ...payload, refreshToken: uuid.v4() });
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
-  return User.findOne({ _id: user._id })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .lean({ virtuals: true, autopopulate: true });
+  return {
+    user: await User.findOne({ _id: user._id })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ virtuals: true, autopopulate: true }),
+    isNew: true,
+  };
 };
 
 const formatUpdatePayload = async (updatedUser) => {

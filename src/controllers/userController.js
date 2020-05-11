@@ -43,11 +43,11 @@ const refreshToken = async (req) => {
 
 const create = async (req) => {
   try {
-    const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials);
+    const { user, isNew } = await UsersHelper.createUser(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userSaved,
-      data: { user: newUser },
+      data: { user, isNew },
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)

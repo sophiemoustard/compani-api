@@ -59,8 +59,8 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
   if (!trainee) {
     const auxiliaryRole = await Role.findOne({ name: AUXILIARY }, { _id: 1 }).lean();
-    const newUser = await UsersHelper.createUser({ ...payload, role: auxiliaryRole._id });
-    coursePayload = { trainees: newUser._id };
+    const { user } = await UsersHelper.createUser({ ...payload, role: auxiliaryRole._id });
+    coursePayload = { trainees: user._id };
   } else {
     coursePayload = { trainees: trainee._id };
   }
