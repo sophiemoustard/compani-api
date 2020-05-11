@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const UserHelper = require('./users');
-const { SENDER_MAIL } = require('./constants');
+const { SENDER_MAIL, TRAINER, HELPER } = require('./constants');
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
   ? NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions)
@@ -53,6 +53,26 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
   return exports.sendEmail(mailOptions);
 };
 
+exports.sendWelcome = async (type, email, company) => {
+  if (type === HELPER) {
+    await exports.helperWelcomeEmail(email, company);
+  } else if (type === TRAINER) {
+    await exports.trainerWelcomeEmail(email, company);
+  }
+};
+
+exports.trainerWelcomeEmail = async (email) => {
+  const passwordToken = await UserHelper.createPasswordToken(email);
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: email,
+    subject: 'Alenvi - Bienvenue dans votre espace Formateur !',
+    html: EmailOptionsHelper.trainerWelcomeEmailContent({ passwordToken }),
+  };
+
+  return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
+};
+
 exports.helperWelcomeEmail = async (email, company) => {
   const companyName = company.tradeName || company.name;
   const passwordToken = await UserHelper.createPasswordToken(email);
@@ -60,7 +80,7 @@ exports.helperWelcomeEmail = async (email, company) => {
     from: `Compani <${SENDER_MAIL}>`,
     to: email,
     subject: `${companyName} - Bienvenue dans votre espace Compani`,
-    html: EmailOptionsHelper.welcomeEmailContent({ companyName, passwordToken }),
+    html: EmailOptionsHelper.helperWelcomeEmailContent({ companyName, passwordToken }),
   };
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
