@@ -92,7 +92,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainees')
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('lean')
@@ -383,10 +383,9 @@ describe('formatCourseForPdf', () => {
       ],
       name: 'Bonjour je suis une formation',
       trainer: { identity: { lastname: 'MasterClass' } },
-      company: { tradeName: 'Pfiou' },
       trainees: [
-        { identity: { lastname: 'trainee 1' } },
-        { identity: { lastname: 'trainee 2' } },
+        { identity: { lastname: 'trainee 1' }, company: { tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 2' }, company: { tradeName: 'Pfiou' } },
       ],
       program: { name: 'programme de formation' },
     };
@@ -407,9 +406,9 @@ describe('formatCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
+          company: 'Pfiou',
           course: {
             name: 'Bonjour je suis une formation',
-            company: 'Pfiou',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -420,9 +419,9 @@ describe('formatCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
+          company: 'Pfiou',
           course: {
             name: 'Bonjour je suis une formation',
-            company: 'Pfiou',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -466,7 +465,7 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainees')
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')

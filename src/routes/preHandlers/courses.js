@@ -3,7 +3,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
-const { TRAINER } = require('../../helpers/constants');
+const { TRAINER, INTRA } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -27,10 +27,15 @@ exports.authorizeCourseGetOrUpdate = async (req) => {
 exports.getCourseTrainee = async (req) => {
   try {
     const { company, local } = req.payload;
+    const course = await Course.findOne({ _id: req.params._id }).lean();
+
     const trainee = await User.findOne({ 'local.email': local.email }).lean();
     if (trainee) {
       if (trainee.company.toHexString() !== company) {
-        throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
+        const message = course.type === INTRA
+          ? translate[language].courseTraineeNotFromCourseCompany
+          : translate[language].companyUserConflict;
+        throw Boom.conflict(message);
       }
 
       const courseTrainee = await Course.findOne({ _id: req.params._id, trainees: trainee._id }).lean();
