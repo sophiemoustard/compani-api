@@ -72,7 +72,7 @@ describe('validate', () => {
       identity: { lastname: 'lastname' },
       role: {
         client: {
-          name: 'coach',
+          name: 'client_admin',
           rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
         vendor: {
@@ -102,8 +102,17 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'coach', 'vendor_admin', 'top', 'bof', 'bien', `user:edit-${userId}`],
-        role: { client: { name: 'coach' }, vendor: { name: 'vendor_admin' } },
+        scope: [
+          `user:read-${userId}`,
+          'client_admin',
+          'vendor_admin',
+          'top',
+          'bof',
+          'bien',
+          `user:edit-${userId}`,
+          `company-${user.company._id}`,
+        ],
+        role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
   });
@@ -185,6 +194,59 @@ describe('validate', () => {
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, 'auxiliary_without_company', 'top'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
+      },
+    });
+  });
+
+  it('should authenticate trainer', async () => {
+    const userId = new ObjectID();
+    const sectorId = new ObjectID();
+    const user = {
+      _id: userId,
+      identity: { lastname: 'lastname' },
+      role: {
+        client: {
+          name: 'coach',
+          rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
+        },
+        vendor: {
+          name: 'trainer',
+          rights: [{ hasAccess: true, permission: 'bof' }, { hasAccess: true, permission: 'bien' }],
+        },
+      },
+      company: { _id: 'company' },
+      local: { email: 'email@email.com' },
+      customers: [],
+      sector: sectorId,
+    };
+    UserMock.expects('findById')
+      .withExactArgs(userId, '_id identity role company local customers sector')
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .once()
+      .returns(user);
+
+    const result = await AuthenticationHelper.validate({ _id: userId });
+
+    expect(result).toEqual({
+      isValid: true,
+      credentials: {
+        _id: userId,
+        identity: { lastname: 'lastname' },
+        email: 'email@email.com',
+        company: { _id: 'company' },
+        sector: sectorId.toHexString(),
+        scope: [
+          `user:read-${userId}`,
+          'coach',
+          'trainer',
+          'top',
+          'bof',
+          'bien',
+          `user:edit-${userId}`,
+          `courses:read-${userId}`,
+        ],
+        role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
   });

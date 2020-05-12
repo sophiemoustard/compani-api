@@ -26,7 +26,7 @@ const company = {
   },
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'kjhgf',
-  prefixNumber: 103,
+  prefixNumber: 104,
 };
 
 const event = {

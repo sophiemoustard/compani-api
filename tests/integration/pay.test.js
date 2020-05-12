@@ -159,15 +159,16 @@ describe('PAY ROUTES - POST /pay', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'auxiliary', expectedCode: 403, erp: true },
+      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 403, erp: true },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'POST',
           url: '/pay',
