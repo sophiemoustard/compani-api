@@ -519,10 +519,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
     });
 
-    it('should return a 409 error if user exists but not from same company as new user course', async () => {
+    it('should return a 409 error if user exists but not from same company as in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/trainees`,
+        url: `/courses/${coursesList[1]._id}/trainees`,
         headers: { 'x-access-token': token },
         payload: { ...pick(auxiliary, ['identity', 'local.email', 'contact']), company: otherCompany._id },
       });
