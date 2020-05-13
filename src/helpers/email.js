@@ -57,7 +57,7 @@ exports.sendWelcome = async (type, email, company) => {
   if (type === HELPER) {
     await exports.helperWelcomeEmail(email, company);
   } else if (type === TRAINER) {
-    await exports.trainerWelcomeEmail(email, company);
+    await exports.trainerWelcomeEmail(email);
   }
 };
 
