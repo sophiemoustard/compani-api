@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const { sendWelcome } = require('../controllers/emailController');
 const { authorizeSendEmail } = require('./preHandlers/email');
+const { HELPER, TRAINER } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-email',
@@ -16,7 +17,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            type: Joi.string().required(),
+            type: Joi.string().valid(HELPER, TRAINER).required(),
           }),
         },
         pre: [

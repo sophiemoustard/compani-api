@@ -55,13 +55,8 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
 };
 
 exports.sendWelcome = async (type, email, company) => {
-  if (type === HELPER) {
-    return exports.helperWelcomeEmail(email, company);
-  }
-  if (type === TRAINER) {
-    return exports.trainerWelcomeEmail(email);
-  }
-  throw Boom.forbidden();
+  if (type === HELPER) return exports.helperWelcomeEmail(email, company);
+  if (type === TRAINER) return exports.trainerWelcomeEmail(email);
 };
 
 exports.trainerWelcomeEmail = async (email) => {

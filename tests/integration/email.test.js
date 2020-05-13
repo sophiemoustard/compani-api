@@ -89,6 +89,18 @@ describe('EMAIL ROUTES', () => {
     expect(response.statusCode).toBe(404);
   });
 
+  it('should throw an error if type is not trainer or helper', async () => {
+    const authToken = await getToken('client_admin');
+    const response = await app.inject({
+      method: 'POST',
+      url: '/email/send-welcome',
+      headers: { 'x-access-token': authToken },
+      payload: { ...payload, type: 'poiuyt' },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
   const missingParams = ['type', 'email'];
   missingParams.forEach((param) => {
     it(`should return a 400 error if ${param} param is missing`, async () => {
