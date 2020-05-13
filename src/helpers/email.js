@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
+const Boom = require('@hapi/boom');
 const EmailOptionsHelper = require('./emailOptions');
 const UserHelper = require('./users');
 const { SENDER_MAIL, TRAINER, HELPER } = require('./constants');
@@ -55,10 +56,12 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
 
 exports.sendWelcome = async (type, email, company) => {
   if (type === HELPER) {
-    await exports.helperWelcomeEmail(email, company);
-  } else if (type === TRAINER) {
-    await exports.trainerWelcomeEmail(email);
+    return exports.helperWelcomeEmail(email, company);
   }
+  if (type === TRAINER) {
+    return exports.trainerWelcomeEmail(email);
+  }
+  throw Boom.forbidden();
 };
 
 exports.trainerWelcomeEmail = async (email) => {

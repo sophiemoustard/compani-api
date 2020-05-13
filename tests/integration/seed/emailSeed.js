@@ -21,11 +21,22 @@ const emailUserFromOtherCompany = {
   company: otherCompany._id,
 };
 
+const trainerFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'emailUser', lastname: 'Test' },
+  local: { email: 'trainer_email_other_company@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  status: 'external',
+  company: otherCompany._id,
+};
+
 const populateDB = async () => {
   await User.deleteMany({});
   await populateDBForAuthentication();
   await new User(emailUser).save();
   await new User(emailUserFromOtherCompany).save();
+  await new User(trainerFromOtherCompany).save();
 };
 
-module.exports = { populateDB, emailUser, emailUserFromOtherCompany };
+module.exports = { populateDB, emailUser, emailUserFromOtherCompany, trainerFromOtherCompany };

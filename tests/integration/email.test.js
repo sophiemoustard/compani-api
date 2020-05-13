@@ -1,7 +1,8 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const app = require('../../server');
-const { populateDB, emailUser, emailUserFromOtherCompany } = require('./seed/emailSeed');
+const { populateDB, emailUser, emailUserFromOtherCompany, trainerFromOtherCompany } = require('./seed/emailSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const NodemailerHelper = require('../../src/helpers/nodemailer');
 
@@ -12,6 +13,7 @@ describe('NODE ENV', () => {
 });
 
 describe('EMAIL ROUTES', () => {
+  const payload = { email: emailUser.local.email, type: 'helper' };
   beforeEach(populateDB);
   let sendinBlueTransporter;
   beforeEach(() => {
@@ -28,7 +30,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { email: emailUser.local.email },
+      payload,
     });
 
     expect(response.statusCode).toBe(200);
@@ -42,7 +44,7 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { email: emailUserFromOtherCompany.local.email },
+      payload: { ...payload, email: emailUserFromOtherCompany.local.email },
     });
 
     expect(response.statusCode).toBe(200);
@@ -51,13 +53,25 @@ describe('EMAIL ROUTES', () => {
     sinon.assert.calledWithExactly(sendinBlueTransporter);
   });
 
+  it('should not throw an error if trainer is from an other company and user is vendor', async () => {
+    const authToken = await getToken('vendor_admin');
+    const response = await app.inject({
+      method: 'POST',
+      url: '/email/send-welcome',
+      headers: { 'x-access-token': authToken },
+      payload: { type: 'trainer', email: trainerFromOtherCompany.local.email },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
   it('should throw an error if email is from an other company', async () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { email: emailUserFromOtherCompany.local.email },
+      payload: { ...payload, email: emailUserFromOtherCompany.local.email },
     });
 
     expect(response.statusCode).toBe(403);
@@ -69,21 +83,24 @@ describe('EMAIL ROUTES', () => {
       method: 'POST',
       url: '/email/send-welcome',
       headers: { 'x-access-token': authToken },
-      payload: { email: 'qwertyuiop@asdfghjkl.fr' },
+      payload: { ...payload, email: 'qwertyuiop@asdfghjkl.fr' },
     });
 
     expect(response.statusCode).toBe(404);
   });
 
-  it("should return a 400 error if 'receiver' param is missing", async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
-      payload: {},
-    });
+  const missingParams = ['type', 'email'];
+  missingParams.forEach((param) => {
+    it(`should return a 400 error if ${param} param is missing`, async () => {
+      const authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { 'x-access-token': authToken },
+        payload: omit(payload, [param]),
+      });
 
-    expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(400);
+    });
   });
 });
