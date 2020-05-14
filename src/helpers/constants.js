@@ -80,6 +80,21 @@ module.exports = {
       { value: this.ONCE, label: 'Une seule fois' },
     ];
   },
+  // CUSTOMER SITUATION
+  UNKNOWN: 'unknown',
+  HOME: 'home',
+  NURSING_HOME: 'nursing_home',
+  HOSPITALIZED: 'hospitalized',
+  DECEASED: 'deceased',
+  get CUSTOMER_SITUATIONS() {
+    return [
+      { label: 'Non renseigné', value: this.UNKNOWN },
+      { label: 'Domicile', value: this.HOME },
+      { label: 'EHPAD', value: this.NURSING_HOME },
+      { label: 'Hospitalisé', value: this.HOSPITALIZED },
+      { label: 'Décédé', value: this.DECEASED },
+    ];
+  },
   // REPETITION FREQUENCY
   NEVER: 'never',
   EVERY_DAY: 'every_day',

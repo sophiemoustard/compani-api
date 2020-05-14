@@ -118,6 +118,7 @@ const customersList = [
       environment: 'ne va pas bien',
       objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
+      situation: 'home',
     },
     subscriptions: [
       {

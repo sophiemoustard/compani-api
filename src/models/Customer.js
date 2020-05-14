@@ -10,6 +10,11 @@ const {
   ONCE,
   HOURLY,
   FIXED,
+  UNKNOWN,
+  HOME,
+  NURSING_HOME,
+  HOSPITALIZED,
+  DECEASED,
 } = require('../helpers/constants');
 const Event = require('./Event');
 const User = require('./User');
@@ -22,6 +27,7 @@ const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription')
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
+const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, HOSPITALIZED, DECEASED];
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -43,6 +49,7 @@ const CustomerSchema = mongoose.Schema({
     others: String,
   },
   followUp: {
+    situation: { type: String, enum: SITUATION_OPTIONS, default: UNKNOWN },
     environment: String,
     objectives: String,
     misc: String,
@@ -203,3 +210,4 @@ CustomerSchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
 module.exports.FUNDING_NATURES = FUNDING_NATURES;
+module.exports.SITUATION_OPTIONS = SITUATION_OPTIONS;

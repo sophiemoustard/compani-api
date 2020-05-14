@@ -31,7 +31,7 @@ const {
   updateFunding,
   deleteFunding,
 } = require('../controllers/customerController');
-const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS } = require('../models/Customer');
 const {
   getCustomer,
   authorizeCustomerDelete,
@@ -90,6 +90,7 @@ exports.plugin = {
               others: Joi.string().allow('', null),
             }).min(1),
             followUp: Joi.object().keys({
+              situation: Joi.string().valid(...SITUATION_OPTIONS),
               environment: Joi.string().allow('', null),
               objectives: Joi.string().allow('', null),
               misc: Joi.string().allow('', null),
