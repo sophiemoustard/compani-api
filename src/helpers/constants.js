@@ -85,6 +85,14 @@ module.exports = {
   HOME: 'home',
   NURSING_HOME: 'nursing_home',
   DECEASED: 'deceased',
+  get CUSTOMER_SITUATIONS() {
+    return [
+      { label: 'Non renseigné', value: this.UNKNOWN },
+      { label: 'Domicile', value: this.HOME },
+      { label: 'EHPAD', value: this.NURSING_HOME },
+      { label: 'Décédé', value: this.DECEASED },
+    ];
+  },
   // REPETITION FREQUENCY
   NEVER: 'never',
   EVERY_DAY: 'every_day',

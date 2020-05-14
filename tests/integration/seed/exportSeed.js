@@ -297,6 +297,7 @@ const customersList = [
       bic: 'ABNAFRPP',
     },
     followUp: {
+      situation: 'home',
       misc: '123456789',
       environment: 'test',
       objectives: 'toto',
@@ -321,6 +322,7 @@ const customersList = [
       },
       phone: '0612345678',
     },
+    followUp: { situation: 'nursing_home' },
   },
   {
     _id: new ObjectID(),
@@ -341,6 +343,7 @@ const customersList = [
       },
       phone: '0612345678',
     },
+    followUp: { situation: 'home' },
   },
 ];
 

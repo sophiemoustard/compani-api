@@ -8,6 +8,7 @@ const {
   COMPANY_CONTRACT,
   DAYS_INDEX,
   FUNDING_FREQUENCIES,
+  CUSTOMER_SITUATIONS,
   FUNDING_NATURES,
   CONTRACT_STATUS_LIST,
   SERVICE_NATURES,
@@ -42,6 +43,7 @@ const customerExportHeader = [
   'Adresse',
   '1ère intervention',
   'Auxiliaire référent',
+  'Situation',
   'Environnement',
   'Objectifs',
   'Autres',
@@ -77,6 +79,7 @@ exports.exportCustomers = async (credentials) => {
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
     const firstIntervention = get(cus, 'firstIntervention.startDate');
+    const situation = CUSTOMER_SITUATIONS.find(sit => sit.value === get(cus, 'followUp.situation'));
 
     const cells = [
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
@@ -86,6 +89,7 @@ exports.exportCustomers = async (credentials) => {
       get(cus, 'contact.primaryAddress.fullAddress') || '',
       firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
       has(cus, 'referent.identity') ? formatIdentity(get(cus, 'referent.identity')) : '',
+      situation ? situation.label : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',
       get(cus, 'followUp.misc') || '',

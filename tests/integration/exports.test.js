@@ -312,12 +312,12 @@ describe('EXPORTS ROUTES', () => {
       exportType: CUSTOMER,
       populate: populateCustomer,
       expectedRows: [
-        '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
-        `"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";;;"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
-        '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
+        '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
+        `"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";;;"Non renseigné";"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
+        '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"Domicile";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
         ` Service 2";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
-        `"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;"Lulu Lala";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
-        `"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
+        `"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;"Lulu Lala";"EHPAD";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
+        `"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;"Domicile";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
       ],
     },
     {
