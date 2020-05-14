@@ -80,6 +80,11 @@ module.exports = {
       { value: this.ONCE, label: 'Une seule fois' },
     ];
   },
+  // CUSTOMER SITUATION
+  UNKNOWN: 'unknown',
+  HOME: 'home',
+  NURSING_HOME: 'nursing_home',
+  DECEASED: 'deceased',
   // REPETITION FREQUENCY
   NEVER: 'never',
   EVERY_DAY: 'every_day',
