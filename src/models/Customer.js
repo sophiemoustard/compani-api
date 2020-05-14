@@ -13,6 +13,7 @@ const {
   UNKNOWN,
   HOME,
   NURSING_HOME,
+  HOSPITALIZED,
   DECEASED,
 } = require('../helpers/constants');
 const Event = require('./Event');
@@ -26,7 +27,7 @@ const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription')
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
-const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, DECEASED];
+const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, HOSPITALIZED, DECEASED];
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
