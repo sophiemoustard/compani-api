@@ -42,12 +42,22 @@ const customerList = [
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
+      versions: [
+        {
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          createdAt: '2020-01-01T23:00:00',
+        },
+        {
+          unitTTCRate: 10,
+          estimatedWeeklyVolume: 8,
+          evenings: 0,
+          sundays: 2,
+          createdAt: '2019-06-01T23:00:00',
+        },
+      ],
     }],
     subscriptionsHistory: [],
     payment: {
@@ -69,10 +79,21 @@ const customerList = [
         versions: [{
           folderNumber: 'D123456',
           startDate: new Date('2019-10-01'),
+          createdAt: new Date('2019-10-01'),
+          endDate: new Date('2020-02-01'),
           effectiveDate: new Date('2019-10-01'),
           amountTTC: 1200,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5, 6],
+        },
+        {
+          folderNumber: 'D123456',
+          startDate: new Date('2020-02-02'),
+          createdAt: new Date('2020-02-02'),
+          effectiveDate: new Date('2020-02-02'),
+          amountTTC: 1600,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5],
         }],
       },
     ],
