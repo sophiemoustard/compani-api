@@ -132,7 +132,7 @@ describe('exportWorkingEventsHistory', () => {
         'Girafes - 75', '', '', '', 'Oui', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '',
         '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée',
-        'Initiative du de l\'intervenant'],
+        'Initiative de l\'intervenant'],
     ]);
   });
 });
