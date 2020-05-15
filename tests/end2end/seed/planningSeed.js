@@ -5,6 +5,7 @@ const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
+const User = require('../../../src/models/User');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
@@ -137,6 +138,7 @@ const populatePlanning = async () => {
   await Service.deleteMany({});
   await Event.deleteMany({});
   await ReferentHistory.deleteMany({});
+  await User.deleteMany({});
 
   await populateAuthentication();
 
@@ -144,6 +146,7 @@ const populatePlanning = async () => {
   await ReferentHistory.insertMany(referentHistories);
   await (new Customer(customer)).save();
   await new Service(service).save();
+  await User.insertMany(auxiliaries);
 };
 
 module.exports = { populatePlanning };

@@ -28,6 +28,7 @@ const {
   creditNotesList,
   auxiliaryList,
   establishment,
+  thirdPartyPayer,
 } = require('./seed/exportSeed');
 const { formatPrice } = require('../../src/helpers/utils');
 
@@ -58,9 +59,9 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(4);
         expect(rows[0]).toEqual('\ufeff"Type";"Heure interne";"Service";"Début";"Fin";"Durée";"Répétition";"Équipe";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"');
-        expect(rows[1]).toEqual('"Intervention";;"Service 1";"17/01/2019 15:30";"17/01/2019 17:30";"2,00";"Tous les jours";"Etoile";;;;"Oui";"Mme";"LILI";"Lola";;"Non";"Non";;');
+        expect(rows[1]).toEqual('"Intervention";;"Service 1";"17/01/2019 15:30";"17/01/2019 17:30";"2,00";"Tous les jours";"Etoile";;;;"Oui";"M.";"BARDET";"Romain";;"Non";"Non";;');
         expect(rows[2]).toEqual('"Heure interne";"planning";;"17/01/2019 15:30";"17/01/2019 17:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";;;;;"Non";"Non";;');
-        expect(rows[3]).toEqual('"Intervention";;"Service 1";"16/01/2019 10:30";"16/01/2019 12:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";"Mme";"LILI";"Lola";"test";"Non";"Oui";"Facturée & payée";"Initiative du de l\'intervenant"');
+        expect(rows[3]).toEqual('"Intervention";;"Service 1";"16/01/2019 10:30";"16/01/2019 12:30";"2,00";;"Etoile";"M.";"Lulu";"LALA";"Non";"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative du de l\'intervenant"');
       });
     });
 
@@ -151,9 +152,9 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(4);
         expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Nombre d\'heures";"Services";"Date de création"');
-        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"Mme";"LILI";"Lola";"${billsList[0].thirdPartyPayer.toHexString()}";"Toto";"72,00";"75,96";"8,00";"Temps de qualité - autonomie - 8,00h - ${formatPrice(billsList[0].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
-        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"Mme";"LILI";"Lola";;;"96,00";"101,28";"4,00";"Temps de qualité - autonomie - 4,00h - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
-        expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"Mme";"LILI";"Lola";;;"110,00";"202,00";;"toto";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[1]).toEqual(`"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${billsList[0].thirdPartyPayer.toHexString()}";"Toto";"72,00";"75,96";"8,00";"Temps de qualité - autonomie - 8,00h - ${formatPrice(billsList[0].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[2]).toEqual(`"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"M.";"BARDET";"Romain";;;"96,00";"101,28";"4,00";"Temps de qualité - autonomie - 4,00h - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`);
+        expect(rows[3]).toEqual(`"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${thirdPartyPayer._id}";"Toto";"110,00";"202,00";;"toto";"${moment().format('DD/MM/YYYY')}"`);
       });
     });
 
@@ -198,8 +199,8 @@ describe('EXPORTS ROUTES', () => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(3);
         expect(rows[0]).toEqual('\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"');
-        expect(rows[1]).toEqual(`"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`);
-        expect(rows[2]).toEqual(`"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"Mme";"LILI";"Lola";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`);
+        expect(rows[1]).toEqual(`"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`);
+        expect(rows[2]).toEqual(`"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`);
       });
     });
 
@@ -304,8 +305,8 @@ describe('EXPORTS ROUTES', () => {
       populate: populateUser,
       expectedRows: [
         '\ufeff"Email";"Téléphone";"Aidant - Nom";"Aidant - Prénom";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Bénéficiaire - Statut";"Date de création"',
-        `"helper@alenvi.io";;"TEST";"Helper";"M.";"BARDET";"Romain";"37 rue de Ponthieu";"75008";"Paris";"Inactif";"${moment().format('DD/MM/YYYY')}"`,
-        `"toto@alenvi.io";"+33123456789";"TOTO";"test";"Mme";"LILI";"Lola";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
+        `"helper@alenvi.io";;"TEST";"Helper";"M.";"BARDET";"Romain";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
+        `"toto@alenvi.io";"+33123456789";"TOTO";"test";"M.";"FROOME";"Christopher";"37 rue de Ponthieu";"75008";"Paris";"Actif";"${moment().format('DD/MM/YYYY')}"`,
       ],
     },
     {
@@ -313,8 +314,8 @@ describe('EXPORTS ROUTES', () => {
       populate: populateCustomer,
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Auxiliaire référent";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
-        `"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";;;"Non renseigné";"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
-        '"M.";"BARDET";"Romain";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"Domicile";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
+        `"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;"Non renseigné";"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
+        '"M.";"FROOME";"Christopher";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";"Lulu Lala";"Domicile";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1',
         ` Service 2";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
         `"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;"Lulu Lala";"EHPAD";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
         `"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;"Domicile";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Inactif"`,
@@ -326,7 +327,7 @@ describe('EXPORTS ROUTES', () => {
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du bénéficiaire"',
         '"M.";"BARDET";"Romain";"Toto";"Forfaitaire";"Service 1";"02/02/2020";;"D123456";"Une seule fois";"1600,00";;;"Lundi Mardi Mercredi Jeudi Vendredi Samedi ";"66,00"',
-        '"M.";"BARDET";"Romain";"tiers payeurs";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi ";"12,00"',
+        '"M.";"FROOME";"Christopher";"Toto";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi ";"12,00"',
       ],
     },
     {
@@ -335,8 +336,8 @@ describe('EXPORTS ROUTES', () => {
       expectedRows: [
         '\ufeff"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
         '"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1',
-        '"M.";"BARDET";"Romain";"Service 1";"12,00";"30,00";1;2',
-        '"M.";"BARDET";"Romain";"Service 2";;;;',
+        '"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";1;2',
+        '"M.";"FROOME";"Christopher";"Service 2";;;;',
       ],
     },
     {
@@ -364,8 +365,8 @@ describe('EXPORTS ROUTES', () => {
       populate: populateCustomer,
       expectedRows: [
         '\ufeff"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Auxiliaire - Titre";"Auxiliaire - Nom";"Auxiliaire - Prénom";"Date de début";"Date de fin"',
-        '"M.";"BARDET";"Romain";"M.";"LALA";"Lulu";"31/01/2020";',
-        '"M.";"BARDET";"Romain";"M.";"LOLO";"Lili";"12/03/2019";"30/01/2020"',
+        '"M.";"FROOME";"Christopher";"M.";"LALA";"Lulu";"31/01/2020";',
+        '"M.";"FROOME";"Christopher";"M.";"LOLO";"Lili";"12/03/2019";"30/01/2020"',
         '"M.";"BERNAL";"Egan";"M.";"LALA";"Lulu";"23/06/2019";',
       ],
     },
