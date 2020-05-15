@@ -17,6 +17,7 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
+const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const {
   PAYMENT,
@@ -37,6 +38,7 @@ const {
   EVERY_DAY,
   MISTER,
   MONTHLY,
+  ONCE,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -203,45 +205,15 @@ const sectorHistory = {
 
 const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
 
-const customer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  identity: { firstname: 'Lola', lastname: 'Lili', title: 'mrs' },
-  subscriptions: [
-    { _id: new ObjectID(), service: serviceList[0]._id },
-  ],
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0612345678',
-  },
-};
-
-const customerThirdPartyPayer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  isApa: true,
-  name: 'tiers payeurs',
-};
-
 const subscriptionId = new ObjectID();
+
+const thirdPartyPayer = { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true };
 
 const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Romain',
-      lastname: 'Bardet',
-      birthDate: moment('1940-01-01').toDate(),
-    },
+    identity: { title: 'mr', firstname: 'Christopher', lastname: 'Froome', birthDate: moment('1940-01-01').toDate() },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -256,28 +228,19 @@ const customersList = [
       {
         _id: subscriptionId,
         service: serviceList[0]._id,
-        versions: [
-          {
-            unitTTCRate: 12,
-            estimatedWeeklyVolume: 30,
-            evenings: 1,
-            sundays: 2,
-          },
-        ],
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
       },
       {
         _id: new ObjectID(),
         service: serviceList[1]._id,
-        versions: [{
-          startDate: '2018-01-05T15:00:00.000+01:00',
-        }],
+        versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }],
       },
     ],
     fundings: [
       {
         _id: new ObjectID(),
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: thirdPartyPayer._id,
         subscription: subscriptionId,
         frequency: MONTHLY,
         versions: [{
@@ -296,22 +259,12 @@ const customersList = [
       iban: 'FR6930003000405885475816L80',
       bic: 'ABNAFRPP',
     },
-    followUp: {
-      situation: 'home',
-      misc: '123456789',
-      environment: 'test',
-      objectives: 'toto',
-    },
+    followUp: { situation: 'home', misc: '123456789', environment: 'test', objectives: 'toto' },
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Egan',
-      lastname: 'Bernal',
-    },
+    identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -327,12 +280,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'toototjo@hfjld.io',
-    identity: {
-      title: 'mr',
-      firstname: 'Julian',
-      lastname: 'Alaphilippe',
-    },
+    identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -369,11 +317,64 @@ const referentList = [
   },
 ];
 
-const thirdPartyPayer = {
-  _id: new ObjectID(),
-  name: 'Toto',
-  company: authCompany._id,
-  isApa: true,
+const customerSubscriptionId = new ObjectID();
+const customer = {
+  ...authCustomer,
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0123456789',
+    accessCodes: 'porte c3po',
+  },
+  followUp: {
+    environment: 'ne va pas bien',
+    objectives: 'preparer le dejeuner + balade',
+    misc: 'code porte: 1234',
+  },
+  subscriptions: [{
+    _id: customerSubscriptionId,
+    service: serviceList[0]._id,
+    versions: [
+      { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+      { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+    ],
+  }],
+  subscriptionsHistory: [],
+  payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
+  fundings: [
+    {
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: thirdPartyPayer._id,
+      subscription: customerSubscriptionId,
+      frequency: ONCE,
+      versions: [{
+        folderNumber: 'D123456',
+        startDate: new Date('2019-10-01'),
+        createdAt: new Date('2019-10-01'),
+        endDate: new Date('2020-02-01'),
+        effectiveDate: new Date('2019-10-01'),
+        amountTTC: 1200,
+        customerParticipationRate: 66,
+        careDays: [0, 1, 2, 3, 4, 5, 6],
+      },
+      {
+        folderNumber: 'D123456',
+        startDate: new Date('2020-02-02'),
+        createdAt: new Date('2020-02-02'),
+        effectiveDate: new Date('2020-02-02'),
+        amountTTC: 1600,
+        customerParticipationRate: 66,
+        careDays: [0, 1, 2, 3, 4, 5],
+      }],
+    },
+  ],
 };
 
 const eventList = [
@@ -784,7 +785,7 @@ const creditNotesList = [
     startDate: '2019-05-27',
     endDate: '2019-11-25',
     customer: customer._id,
-    thirdPartyPayer: customerThirdPartyPayer._id,
+    thirdPartyPayer: thirdPartyPayer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
     exclTaxesTpp: 10,
@@ -821,7 +822,7 @@ const user = {
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   company: authCompany._id,
-  customers: [customer._id],
+  customers: [customersList[0]._id],
 };
 
 const populateEvents = async () => {
@@ -895,10 +896,10 @@ const populateCustomer = async () => {
 
   await populateDBForAuthentication();
 
-  await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await Service.insertMany(serviceList);
   await User.insertMany(auxiliaryList);
-  await Customer.insertMany(customersList);
+  await Customer.insertMany([customer, ...customersList]);
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentList);
 };
@@ -914,7 +915,7 @@ const populateUser = async () => {
   await (new User(user)).save();
   await User.insertMany(auxiliaryList);
   await Contract.insertMany(contractList);
-  await (new Customer(customer)).save();
+  await Customer.insertMany([customer, ...customersList]);
   await (new Establishment(establishment)).save();
 };
 
@@ -959,4 +960,5 @@ module.exports = {
   creditNotesList,
   auxiliaryList,
   establishment,
+  thirdPartyPayer,
 };

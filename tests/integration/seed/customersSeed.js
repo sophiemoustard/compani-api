@@ -24,6 +24,7 @@ const {
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
+const subId2 = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
 
 const referentList = [
@@ -88,13 +89,7 @@ const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
     company: authCompany._id,
-    referent: referentList[0]._id,
-    email: 'fake@test.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Romain',
-      lastname: 'Bardet',
-    },
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -120,97 +115,52 @@ const customersList = [
       misc: 'code porte: 1234',
       situation: 'home',
     },
-    subscriptions: [
-      {
-        _id: subId,
-        service: customerServiceList[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
-      },
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[1]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: subId,
+      service: customerServiceList[0]._id,
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }, {
+      _id: new ObjectID(),
+      service: customerServiceList[1]._id,
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }],
     subscriptionsHistory: [{
-      subscriptions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        service: 'Service 1',
-      }, {
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        service: 'Service 2',
-      }],
-      helper: {
-        firstname: 'Vladimir',
-        lastname: 'Poutine',
-        title: 'mr',
-      },
+      subscriptions: [
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, service: 'Service 1' },
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+      ],
+      helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
       approvalDate: '2018-01-01T10:00:00.000+01:00',
     }],
-    payment: {
-      bankAccountOwner: 'David gaudu',
-      iban: '',
-      bic: '',
-      mandates: [
-        { rum: 'R012345678903456789' },
-      ],
-    },
+    payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
     quotes: [{
       _id: new ObjectID(),
-      subscriptions: [{
-        serviceName: 'Test',
-        unitTTCRate: 23,
-        estimatedWeeklyVolume: 3,
-      }, {
-        serviceName: 'Test2',
-        unitTTCRate: 30,
-        estimatedWeeklyVolume: 10,
+      subscriptions: [
+        { serviceName: 'Test', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+        { serviceName: 'Test2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+      ],
+    }],
+    fundings: [{
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: customerThirdPartyPayer._id,
+      subscription: subId,
+      versions: [{
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: ONCE,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        effectiveDate: moment.utc().toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [0, 1, 2, 3, 4, 5, 6],
       }],
     }],
-    fundings: [
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
-        subscription: subId,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: ONCE,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [0, 1, 2, 3, 4, 5, 6],
-        }],
-      },
-    ],
   },
   { // Customer with mandates
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Egan',
-      lastname: 'Bernal',
-    },
+    identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -226,20 +176,13 @@ const customersList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [
-        { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-      ],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
     },
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'toototjo@hfjld.io',
-    identity: {
-      title: 'mr',
-      firstname: 'Julian',
-      lastname: 'Alaphilippe',
-    },
+    identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -251,24 +194,12 @@ const customersList = [
       phone: '0612345678',
       accessCodes: 'Bouton a l\'entrée',
     },
-    payment: {
-      bankAccountOwner: 'David gaudu',
-      iban: '',
-      bic: '',
-      mandates: [
-        { rum: 'R012345678903456789' },
-      ],
-    },
+    payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'volgarr@theviking.io',
-    identity: {
-      title: 'mr',
-      firstname: 'Volgarr',
-      lastname: 'Theviking',
-    },
+    identity: { title: 'mr', firstname: 'Volgarr', lastname: 'Theviking' },
     driveFolder: { driveId: '1234567890' },
     contact: {
       primaryAddress: {
@@ -285,12 +216,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withContract@customer.io',
-    identity: {
-      title: 'mr',
-      firstname: 'withContract',
-      lastname: 'customer',
-    },
+    identity: { title: 'mr', firstname: 'withContract', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     contracts: [contractCustomerId],
     contact: {
@@ -308,22 +234,12 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withBills@customer.io',
-    identity: {
-      title: 'mr',
-      firstname: 'withBills',
-      lastname: 'customer',
-    },
+    identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
       service: customerServiceList[0]._id,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -340,22 +256,12 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withPayments@customer.io',
-    identity: {
-      title: 'mr',
-      firstname: 'withPayments',
-      lastname: 'customer',
-    },
+    identity: { title: 'mr', firstname: 'withPayments', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
       service: customerServiceList[0]._id,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -372,22 +278,12 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withCreditNote@customer.io',
-    identity: {
-      title: 'mr',
-      firstname: 'withCreditNote',
-      lastname: 'customer',
-    },
+    identity: { title: 'mr', firstname: 'withCreditNote', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
       service: customerServiceList[0]._id,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -404,22 +300,12 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withBills@customer.io',
-    identity: {
-      title: 'mr',
-      firstname: 'withBills',
-      lastname: 'customer',
-    },
+    identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
       service: customerServiceList[0]._id,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -431,6 +317,68 @@ const customersList = [
       },
       phone: '0612345678',
     },
+  },
+  { // Helper's customer
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      secondaryAddress: {
+        fullAddress: '27 rue des renaudes 75017 Paris',
+        zipCode: '75017',
+        city: 'Paris',
+        street: '27 rue des renaudes',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0123456789',
+      accessCodes: 'porte c3po',
+    },
+    followUp: { environment: 'ne va pas bien', objectives: 'preparer le dejeuner + balade', misc: 'code porte: 1234' },
+    subscriptions: [{
+      _id: subId2,
+      service: customerServiceList[0]._id,
+      versions: [
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      ],
+    }],
+    subscriptionsHistory: [],
+    payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: subId2,
+        frequency: ONCE,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: new Date('2019-10-01'),
+          createdAt: new Date('2019-10-01'),
+          endDate: new Date('2020-02-01'),
+          effectiveDate: new Date('2019-10-01'),
+          amountTTC: 1200,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        },
+        {
+          folderNumber: 'D123456',
+          startDate: new Date('2020-02-02'),
+          createdAt: new Date('2020-02-02'),
+          effectiveDate: new Date('2020-02-02'),
+          amountTTC: 1600,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5],
+        }],
+      },
+    ],
   },
 ];
 
@@ -530,7 +478,6 @@ const otherCompanyCustomer = {
   company: otherCompany._id,
   _id: otherCompanyCustomerId,
   name: 'notFromCompany',
-  email: 'test@test.io',
   prefixNumber: 103,
   identity: {
     title: 'mr',

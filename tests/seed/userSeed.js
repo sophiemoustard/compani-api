@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { rolesList } = require('./roleSeed');
 const { authCompany, companyWithoutSubscription } = require('./companySeed');
-const { customerList } = require('./customerSeed');
+const { authCustomer } = require('./customerSeed');
 const uuidv4 = require('uuid/v4');
 const {
   VENDOR_ADMIN,
@@ -63,7 +63,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === HELPER)._id },
     company: authCompany._id,
-    customers: [customerList[0]._id],
+    customers: [authCustomer._id],
   },
   {
     _id: new ObjectID(),

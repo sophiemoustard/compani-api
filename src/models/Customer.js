@@ -32,7 +32,6 @@ const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, HOSPITALIZED, DECEASED];
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   driveFolder: driveResourceSchemaDefinition,
-  email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
     required: true,

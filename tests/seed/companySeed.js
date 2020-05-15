@@ -14,6 +14,7 @@ const authCompany = {
   auxiliariesFolderId: 'iuytre',
   customersConfig: { billingPeriod: 'two_weeks' },
   subscriptions: { erp: true },
+  billingAssistance: 'assistance@billing.eu',
 };
 
 const companyWithoutSubscription = {
