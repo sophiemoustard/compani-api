@@ -89,7 +89,6 @@ const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
@@ -161,7 +160,6 @@ const customersList = [
   { // Customer with mandates
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
@@ -184,7 +182,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'toototjo@hfjld.io',
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
       primaryAddress: {
@@ -202,7 +199,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'volgarr@theviking.io',
     identity: { title: 'mr', firstname: 'Volgarr', lastname: 'Theviking' },
     driveFolder: { driveId: '1234567890' },
     contact: {
@@ -220,7 +216,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withContract@customer.io',
     identity: { title: 'mr', firstname: 'withContract', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     contracts: [contractCustomerId],
@@ -239,7 +234,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withBills@customer.io',
     identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
@@ -262,7 +256,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withPayments@customer.io',
     identity: { title: 'mr', firstname: 'withPayments', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
@@ -285,7 +278,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withCreditNote@customer.io',
     identity: { title: 'mr', firstname: 'withCreditNote', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
@@ -308,7 +300,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'withBills@customer.io',
     identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
@@ -330,7 +321,6 @@ const customersList = [
   { // Helper's customer
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
@@ -488,7 +478,6 @@ const otherCompanyCustomer = {
   company: otherCompany._id,
   _id: otherCompanyCustomerId,
   name: 'notFromCompany',
-  email: 'test@test.io',
   prefixNumber: 103,
   identity: {
     title: 'mr',

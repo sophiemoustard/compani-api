@@ -35,12 +35,7 @@ const creditNoteService = {
 const creditNoteCustomer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  email: 'tito@ty.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Egan',
-    lastname: 'Bernal',
-  },
+  identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -55,9 +50,7 @@ const creditNoteCustomer = {
     bankAccountOwner: 'Lance Amstrong',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [
-      { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-    ],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
   },
   subscriptions: [
     {
@@ -248,7 +241,6 @@ const otherCompanyService = {
 const otherCompanyCustomer = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 't@t.com',
   identity: {
     title: 'mr',
     firstname: 'Jean',

@@ -9,7 +9,6 @@ const subscriptionId = new ObjectID();
 const authCustomer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  email: 'fake@test.com',
   identity: {
     title: 'mr',
     firstname: 'Romain',

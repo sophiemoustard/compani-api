@@ -18,7 +18,6 @@ const paymentCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
@@ -51,7 +50,6 @@ const paymentCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {

@@ -213,7 +213,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: { title: 'mr', firstname: 'Christopher', lastname: 'Froome', birthDate: moment('1940-01-01').toDate() },
     contact: {
       primaryAddress: {
@@ -265,7 +264,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
@@ -282,7 +280,6 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'toototjo@hfjld.io',
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
       primaryAddress: {
@@ -323,7 +320,6 @@ const referentList = [
 const customerSubscriptionId = new ObjectID();
 const customer = {
   ...authCustomer,
-  email: 'fakecustomer@test.com',
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {

@@ -49,7 +49,6 @@ const balanceCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
@@ -92,7 +91,6 @@ const balanceCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: {
       title: 'mr',
       firstname: 'Romain',
@@ -209,7 +207,6 @@ const balanceUserList = [{
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 'test@othercompany.com',
   identity: { title: 'mr', firstname: 'test', lastname: 'toto' },
   contact: {
     primaryAddress: {

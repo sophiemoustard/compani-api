@@ -47,7 +47,6 @@ const billCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
@@ -90,7 +89,6 @@ const billCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
@@ -121,7 +119,6 @@ const billCustomerList = [
   {
     _id: new ObjectID(),
     company: otherCompany._id,
-    email: 'r.alagna@test.com',
     identity: { title: 'mr', firstname: 'Roberto', lastname: 'Alagna' },
     contact: {
       primaryAddress: {
@@ -408,7 +405,6 @@ const creditNote = {
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 'fake@test.com',
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {

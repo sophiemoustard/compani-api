@@ -11,7 +11,6 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Service = require('../../../src/models/Service');
 const { rolesList, rightsList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
-const { authCustomer } = require('../../seed/customerSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { serviceList } = require('../../seed/serviceSeed');
