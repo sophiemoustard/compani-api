@@ -24,7 +24,7 @@ const { language } = translate;
 
 exports.authenticate = async (payload) => {
   const user = await User.findOne({ 'local.email': payload.email.toLowerCase() }).lean({ autopopulate: true });
-  const correctPassword = get(user, 'local.password');
+  const correctPassword = get(user, 'local.password') || '';
   const isCorrect = await bcrypt.compare(payload.password, correctPassword);
   if (!user || !user.refreshToken || !correctPassword || !isCorrect) throw Boom.unauthorized();
 

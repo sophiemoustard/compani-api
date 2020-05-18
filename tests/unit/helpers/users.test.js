@@ -55,7 +55,7 @@ describe('authenticate', () => {
       expect(e.output.statusCode).toEqual(401);
     } finally {
       UserMock.verify();
-      sinon.assert.notCalled(compare);
+      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
     }
   });
@@ -74,7 +74,7 @@ describe('authenticate', () => {
       expect(e.output.statusCode).toEqual(401);
     } finally {
       UserMock.verify();
-      sinon.assert.notCalled(compare);
+      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
     }
   });
