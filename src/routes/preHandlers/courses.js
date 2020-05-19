@@ -31,7 +31,7 @@ exports.authorizeCourseGetOrUpdate = async (req) => {
   }
 };
 
-exports.authorizeGetManyCourses = async (req) => {
+exports.authorizeGetCourseList = async (req) => {
   const { credentials } = req.auth;
   const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
   const userClientRole = get(req, 'auth.credentials.role.client.name');
@@ -39,10 +39,9 @@ exports.authorizeGetManyCourses = async (req) => {
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
-  const isTrainerAndAuthorized = userVendorRole === TRAINER && req.query.trainer
-    && req.query.trainer === credentials._id;
+  const isTrainerAndAuthorized = userVendorRole === TRAINER && get(req, 'query.trainer') === credentials._id;
   const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
-    && companyId.toHexString() === req.query.company;
+    && companyId.toHexString() === get(req, 'query.company');
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
   return null;

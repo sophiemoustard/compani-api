@@ -16,7 +16,7 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee, authorizeCourseGetOrUpdate, authorizeGetManyCourses } = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseGetOrUpdate, authorizeGetCourseList } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -28,7 +28,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['courses:read'] },
         validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId() }) },
-        pre: [{ method: authorizeGetManyCourses }],
+        pre: [{ method: authorizeGetCourseList }],
       },
       handler: list,
     });
