@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
+const { defineAbilitiesFor } = require('./ability');
 const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
@@ -42,6 +43,11 @@ const validate = async (decoded) => {
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
     if (get(user, 'role.vendor.name') === TRAINER) scope.push(`courses:read-${user._id}`);
 
+    let ability;
+    if (get(user, 'role.client')) {
+      ability = defineAbilitiesFor(get(user, 'role.client.name'));
+    }
+
     const credentials = {
       email: get(user, 'local.email', null),
       _id: decoded._id,
@@ -50,6 +56,7 @@ const validate = async (decoded) => {
       sector: user.sector ? user.sector.toHexString() : null,
       role: pick(user.role, ['client.name', 'vendor.name']),
       scope,
+      ability,
     };
 
     return { isValid: true, credentials };

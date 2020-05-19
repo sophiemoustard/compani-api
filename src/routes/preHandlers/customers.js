@@ -49,6 +49,10 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
 };
 
 exports.authorizeCustomerUpdate = async (req) => {
+  const ability = get(req, 'auth.credentials.ability');
+  console.log(ability.can('update', 'customers'));
+  if (!ability.can('update', 'customers')) throw Boom.forbidden();
+
   const companyId = get(req, 'auth.credentials.company._id', null);
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
 
