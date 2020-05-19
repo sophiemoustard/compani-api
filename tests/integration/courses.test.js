@@ -120,17 +120,30 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(coursesNumber);
     });
+  });
 
-    it('should get courses with a specific trainer', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainer=${trainer._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
+  it('should get courses with a specific trainer', async () => {
+    authToken = await getTokenByCredentials(trainer.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses?trainer=${trainer._id}`,
+      headers: { 'x-access-token': authToken },
     });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toEqual(2);
+  });
+
+  it('should get courses for a specific company', async () => {
+    authToken = await getToken('coach');
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses?company=${authCompany._id}`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toEqual(2);
   });
 
   describe('Other roles', () => {

@@ -148,6 +148,7 @@ const clientAdminRights = [
   'establishments:edit',
   'establishments:read',
   'sms:send',
+  'courses:read',
 ];
 const coachRights = [
   'config:read',
@@ -170,6 +171,7 @@ const coachRights = [
   'taxcertificates:edit',
   'establishments:read',
   'sms:send',
+  'courses:read',
 ];
 const auxiliaryRights = [
   'config:read',
@@ -185,6 +187,7 @@ const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
 const trainerRights = [
   'courses:edit',
+  'courses:read',
 ];
 
 const rolesList = [
