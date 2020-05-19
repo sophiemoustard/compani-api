@@ -12,12 +12,11 @@ const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT, INTERNAL, EXTERNAL, TRAINER } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
-const USER_STATUS = [INTERNAL, EXTERNAL];
 
 const procedureSchema = mongoose.Schema({
   task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -136,7 +135,6 @@ const UserSchema = mongoose.Schema({
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
-  status: { type: String, enum: USER_STATUS },
   biography: String,
 }, {
   timestamps: true,
@@ -246,10 +244,6 @@ function populateSectors(docs, next) {
 }
 
 async function validateUserPayload(next) {
-  if (this.role.vendor) {
-    const role = await Role.findById(this.role.vendor).lean();
-    if (role.name === TRAINER && !USER_STATUS.includes(this.status)) throw Boom.badRequest();
-  }
   validatePayload.call(this, next, !!this.role.vendor);
 }
 

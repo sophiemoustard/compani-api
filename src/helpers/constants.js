@@ -48,9 +48,6 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
-  // USER
-  INTERNAL: 'internal',
-  EXTERNAL: 'external',
   // CUSTOMER
   MISTER: 'mr',
   MRS: 'mrs',

@@ -16,7 +16,7 @@ exports.authorizeSendEmail = async (req) => {
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
   const isSendingToTrainer = isVendorUser && get(user, 'role.vendor.name') === TRAINER;
-  const sameCompany = user.company.toHexString() === companyId.toHexString();
+  const sameCompany = user.company && user.company.toHexString() === companyId.toHexString();
   if (!isSendingToTrainer && !sameCompany) throw Boom.forbidden();
 
   return null;

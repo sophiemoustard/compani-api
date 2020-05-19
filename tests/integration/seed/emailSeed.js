@@ -27,7 +27,6 @@ const trainerFromOtherCompany = {
   local: { email: 'trainer_email_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
-  status: 'external',
   company: otherCompany._id,
 };
 

@@ -32,7 +32,6 @@ const trainee = {
 const trainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
-  status: 'internal',
   refreshToken: uuidv4(),
   local: { email: 'coursetrainer@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },

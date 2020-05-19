@@ -169,34 +169,18 @@ describe('USERS TEST', () => {
         expect(usersCount).toBe(usersCountBefore + 1);
       });
 
-      it('should create an external trainer', async () => {
+      it('should create a trainer', async () => {
         const usersCountBefore = await User.countDocuments({});
         const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id, status: 'external', company: otherCompany._id },
+          payload: { ...userPayload, role: roleTrainer._id },
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
         const usersCountAfter = await User.countDocuments({});
         expect(usersCountAfter).toEqual(usersCountBefore + 1);
-        expect(response.result.data.user.company._id).toEqual(otherCompany._id);
-      });
-
-      it('should create an internal trainer', async () => {
-        const usersCountBefore = await User.countDocuments({});
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id, status: 'internal' },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(200);
-        const usersCountAfter = await User.countDocuments({});
-        expect(usersCountAfter).toEqual(usersCountBefore + 1);
-        expect(response.result.data.user.company._id).toEqual(authCompany._id);
       });
 
       it('should update a user with vendor role', async () => {
@@ -238,17 +222,6 @@ describe('USERS TEST', () => {
 
         expect(response.statusCode).toBe(409);
         expect(response.result.message).toBe('Formateur déjà existant');
-      });
-
-      it('should not create a trainer if missing status', async () => {
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
       });
     });
 
@@ -360,7 +333,7 @@ describe('USERS TEST', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(15);
+        expect(res.result.data.users.length).toBe(14);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
