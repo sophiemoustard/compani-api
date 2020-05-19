@@ -275,11 +275,12 @@ describe('COMPANIES ROUTES', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
         expect(response.result.data.company).toMatchObject({
+          subscriptions: { erp: false },
           folderId: '1234567890',
           directDebitsFolderId: '0987654321',
           customersFolderId: 'qwerty',
           auxiliariesFolderId: 'asdfgh',
-          prefixNumber: 104,
+          prefixNumber: 105,
         });
 
         const companiesCount = await Company.countDocuments();
@@ -430,7 +431,7 @@ describe('COMPANIES ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.companies).toBeDefined();
-        expect(response.result.data.companies.length).toEqual(3);
+        expect(response.result.data.companies.length).toEqual(4);
       });
     });
 

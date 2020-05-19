@@ -31,12 +31,12 @@ describe('createCourse', () => {
   });
 
   it('should create an intra course', async () => {
-    const newCourse = { name: 'name', companies: [new ObjectID()], program: new ObjectID(), type: 'intra' };
+    const newCourse = { name: 'name', company: new ObjectID(), program: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
     expect(result.name).toEqual(newCourse.name);
     expect(result.program).toEqual(newCourse.program);
-    expect(result.companies[0]).toEqual(newCourse.companies[0]);
+    expect(result.company).toEqual(newCourse.company);
   });
 });
 
@@ -55,7 +55,7 @@ describe('list', () => {
     CourseMock.expects('find')
       .withExactArgs({ type: 'toto' })
       .chain('populate')
-      .withExactArgs('companies')
+      .withExactArgs('company')
       .chain('populate')
       .withExactArgs('program')
       .chain('populate')
@@ -86,13 +86,13 @@ describe('getCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs('companies')
+      .withExactArgs('company')
       .chain('populate')
       .withExactArgs('program')
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainees')
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('lean')
@@ -383,10 +383,9 @@ describe('formatCourseForPdf', () => {
       ],
       name: 'Bonjour je suis une formation',
       trainer: { identity: { lastname: 'MasterClass' } },
-      companies: [{ tradeName: 'Pfiou' }],
       trainees: [
-        { identity: { lastname: 'trainee 1' } },
-        { identity: { lastname: 'trainee 2' } },
+        { identity: { lastname: 'trainee 1' }, company: { tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 2' }, company: { tradeName: 'Pfiou' } },
       ],
       program: { name: 'programme de formation' },
     };
@@ -407,9 +406,9 @@ describe('formatCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
+          company: 'Pfiou',
           course: {
             name: 'Bonjour je suis une formation',
-            company: 'Pfiou',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -420,9 +419,9 @@ describe('formatCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
+          company: 'Pfiou',
           course: {
             name: 'Bonjour je suis une formation',
-            company: 'Pfiou',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -462,11 +461,11 @@ describe('generateAttendanceSheets', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
-      .withExactArgs('companies')
+      .withExactArgs('company')
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainees')
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')

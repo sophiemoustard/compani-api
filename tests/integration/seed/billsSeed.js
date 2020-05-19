@@ -5,7 +5,6 @@ const { COMPANY_CONTRACT, HOURLY, DAILY, PAID_LEAVE } = require('../../../src/he
 const Bill = require('../../../src/models/Bill');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
-const Company = require('../../../src/models/Company');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
@@ -14,43 +13,9 @@ const CreditNote = require('../../../src/models/CreditNote');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
-const billThirdPartyPayer = {
-  _id: new ObjectID(),
-  name: 'Toto',
-  company: authCompany._id,
-  isApa: true,
-};
+const billThirdPartyPayer = { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true };
 
-const company = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  prefixNumber: 103,
-  name: 'Test',
-  tradeName: 'To',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'lkjhgf',
-};
-
-const otherCompanyBillThirdPartyPayer = {
-  _id: new ObjectID(),
-  name: 'Titi',
-  company: company._id,
-};
+const otherCompanyBillThirdPartyPayer = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
 const billServices = [{
   _id: new ObjectID(),
@@ -59,7 +24,7 @@ const billServices = [{
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
-    startDate: '2019-01-16 17:58:15.519',
+    startDate: '2019-01-16T17:58:15.519',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -67,33 +32,22 @@ const billServices = [{
 }, {
   _id: new ObjectID(),
   type: COMPANY_CONTRACT,
-  company: company._id,
+  company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 2',
-    startDate: '2019-01-16 17:58:15.519',
+    startDate: '2019-01-16T17:58:15.519',
     vat: 12,
     exemptFromCharges: false,
   }],
   nature: HOURLY,
 }];
 
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'fixed',
-};
-
 const billCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Egan',
-      lastname: 'Bernal',
-    },
+    identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -108,44 +62,34 @@ const billCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [
-        { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-      ],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: billServices[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-      {
-        _id: new ObjectID(),
-        service: billServices[1]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: billServices[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }, {
+      _id: new ObjectID(),
+      service: billServices[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Romain',
-      lastname: 'Bardet',
-    },
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -156,37 +100,26 @@ const billCustomerList = [
       },
       phone: '0612345678',
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: billServices[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: billServices[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
     payment: {
       bankAccountOwner: 'David gaudu',
-      iban: '',
-      bic: '',
-      mandates: [
-        { rum: 'R012345678903456789', _id: new ObjectID() },
-      ],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
     },
   },
   {
     _id: new ObjectID(),
-    company: company._id,
-    email: 'r.alagna@test.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Roberto',
-      lastname: 'Alagna',
-    },
+    company: otherCompany._id,
+    identity: { title: 'mr', firstname: 'Roberto', lastname: 'Alagna' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -197,26 +130,20 @@ const billCustomerList = [
       },
       phone: '0612345678',
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: billServices[1]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: billServices[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
     payment: {
       bankAccountOwner: 'Roberto Alagna',
-      iban: '',
-      bic: '',
-      mandates: [
-        { rum: 'R014345658903456780', _id: new ObjectID() },
-      ],
+      mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
     },
   },
 ];
@@ -241,28 +168,11 @@ const billUserList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Titi', lastname: 'Toto' },
-    local: { email: 'titi@alenvi.io', password: '123456!eR' },
-    refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [billCustomerList[2]._id],
-    company: company._id,
-  },
-  {
-    _id: new ObjectID(),
     identity: { firstname: 'Tutu', lastname: 'Toto' },
     local: { email: 'tutu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    company: company._id,
-  },
-  {
-    _id: new ObjectID(),
-    identity: { firstname: 'Tyty', lastname: 'Toto' },
-    local: { email: 'tyty@alenvi.io', password: '123456!eR' },
-    refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'coach')._id },
-    company: company._id,
+    company: otherCompany._id,
   },
 ];
 
@@ -279,7 +189,7 @@ const authBillsList = [
       startDate: '2019-05-29',
       endDate: '2019-11-29',
       subscription: billCustomerList[0].subscriptions[0]._id,
-      service: authBillService,
+      service: { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' },
       vat: 5.5,
       events: [{
         eventId: new ObjectID(),
@@ -317,7 +227,7 @@ const authBillsList = [
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
-      service: authBillService,
+      service: { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' },
       hours: 4,
       unitExclTaxes: 24,
       unitInclTaxes: 25.32,
@@ -331,7 +241,7 @@ const authBillsList = [
 const billsList = [
   {
     _id: new ObjectID(),
-    company: company._id,
+    company: otherCompany._id,
     number: 'FACT-1901001',
     date: '2019-05-29',
     customer: billCustomerList[2]._id,
@@ -340,13 +250,13 @@ const billsList = [
       startDate: '2019-05-29',
       endDate: '2019-11-29',
       subscription: billCustomerList[2].subscriptions[0]._id,
-      service: authBillService,
+      service: { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' },
       vat: 5.5,
       events: [{
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: billUserList[3]._id,
+        auxiliary: billUserList[2]._id,
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -360,17 +270,10 @@ const billsList = [
   },
 ];
 
-const billNumber = [{
-  _id: new ObjectID(),
-  seq: 2,
-  prefix: '0519',
-  company: authCompany._id,
-}, {
-  _id: new ObjectID(),
-  seq: 2,
-  prefix: '0919',
-  company: authCompany._id,
-}];
+const billNumber = [
+  { _id: new ObjectID(), seq: 2, prefix: '0519', company: authCompany._id },
+  { _id: new ObjectID(), seq: 2, prefix: '0919', company: authCompany._id },
+];
 
 const eventList = [
   {
@@ -383,10 +286,7 @@ const eventList = [
     auxiliary: new ObjectID(),
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    internalHour: {
-      _id: new ObjectID(),
-      name: 'Formation',
-    },
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
   },
   {
     _id: new ObjectID(),
@@ -462,7 +362,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    company: company._id,
+    company: otherCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',
@@ -495,10 +395,7 @@ const creditNote = {
     auxiliary: eventList[4].auxiliary,
     startDate: eventList[4].startDate,
     endDate: eventList[4].endDate,
-    bills: {
-      inclTaxesCustomer: 10,
-      exclTaxesCustomer: 8,
-    },
+    bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
     serviceName: billServices[0].versions[0].name,
   }],
   isEditable: true,
@@ -508,12 +405,7 @@ const creditNote = {
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 'fake@test.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -536,7 +428,6 @@ const fundingHistory = {
 
 const populateDB = async () => {
   await Service.deleteMany({});
-  await Company.deleteMany({});
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
@@ -547,7 +438,6 @@ const populateDB = async () => {
   await CreditNote.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new Company(company)).save();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
   await Service.insertMany(billServices);
   await Customer.insertMany(billCustomerList.concat(customerFromOtherCompany));

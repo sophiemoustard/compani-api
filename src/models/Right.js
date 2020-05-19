@@ -6,6 +6,7 @@ const RightSchema = mongoose.Schema({
     type: String,
     unique: true,
   },
+  subscription: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Right', RightSchema);

@@ -12,7 +12,7 @@ const RoleSchema = mongoose.Schema({
     right_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: Right,
-      autopopulate: { select: 'description permission _id' },
+      autopopulate: { select: 'description permission _id subscription' },
     },
     hasAccess: { type: Boolean, default: false },
   }],

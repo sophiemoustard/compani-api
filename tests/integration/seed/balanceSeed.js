@@ -3,7 +3,6 @@ const moment = require('../../../src/extensions/moment');
 const uuidv4 = require('uuid/v4');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
-const Company = require('../../../src/models/Company');
 const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
@@ -15,31 +14,6 @@ const balanceThirdPartyPayer = {
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
-};
-
-const company = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  name: 'Test',
-  prefixNumber: 103,
-  tradeName: 'To',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'khgfd',
 };
 
 const customerServiceList = [
@@ -75,12 +49,7 @@ const balanceCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Egan',
-      lastname: 'Bernal',
-    },
+    identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -97,35 +66,31 @@ const balanceCustomerList = [
       bic: 'BNMDHISOBD',
       mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' }],
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[1]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: moment().subtract(1, 'month').toDate(),
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }, {
+      _id: new ObjectID(),
+      service: customerServiceList[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: moment().subtract(1, 'month').toDate(),
+      }],
+    }],
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
     identity: {
       title: 'mr',
       firstname: 'Romain',
@@ -141,26 +106,22 @@ const balanceCustomerList = [
       },
       phone: '0612345678',
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
     payment: {
       bankAccountOwner: 'David gaudu',
       iban: '',
       bic: '',
-      mandates: [
-        { rum: 'R012345678903456789', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' },
-      ],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' }],
     },
   },
 ];
@@ -233,27 +194,20 @@ const balanceBillList = [
   },
 ];
 
-const balanceUserList = [
-  {
-    _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
-    refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [balanceCustomerList[0]._id],
-    company: authCompany._id,
-  },
-];
+const balanceUserList = [{
+  _id: new ObjectID(),
+  identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+  local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  customers: [balanceCustomerList[0]._id],
+  company: authCompany._id,
+}];
 
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 'test@othercompany.com',
-  identity: {
-    title: 'mr',
-    firstname: 'test',
-    lastname: 'toto',
-  },
+  identity: { title: 'mr', firstname: 'test', lastname: 'toto' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -268,7 +222,6 @@ const customerFromOtherCompany = {
 
 const populateDB = async () => {
   await Service.deleteMany({});
-  await Company.deleteMany({});
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
@@ -276,7 +229,6 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
-  await (new Company(company)).save();
   await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));

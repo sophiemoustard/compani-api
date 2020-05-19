@@ -4,18 +4,41 @@ const fs = require('fs');
 
 const fsPromises = fs.promises;
 
-const welcomeEmailContent = (options) => {
+const helperWelcomeEmailContent = (options) => {
   const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
   return `<p>Bonjour,</p>
     <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires 
     d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions 
     également de finaliser votre souscription en remplissant la page “Abonnement”.<p>
-    <p>Vous pouvez créer votre mot de passe en suivant ce lien <a href="${createPasswordLink}">${createPasswordLink}</a>.</p>
+    <p>
+      Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${createPasswordLink}">${createPasswordLink}</a>.
+    </p>
     <p>Ce lien est valable 24heures.</p>
-    <p>Par la suite, voici le lien pour vous connecter : <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a></p>
+    <p>
+      Par la suite, voici le lien pour vous connecter : 
+      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
+    </p>
     <br />
     <p>Bien cordialement,</p>
     <p>L'équipe ${options.companyName}</p>`;
+};
+
+const trainerWelcomeEmailContent = (options) => {
+  const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
+  return `<p>Bonjour,</p>
+    <p>Bienvenue chez Compani, nous venons de vous créer votre espace Formateur. :)<p>
+    <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations que vous animez pour Compani.<p>
+    <p>
+      Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${createPasswordLink}">${createPasswordLink}</a>.
+    </p>
+    <p>Ce lien est valable 24heures.</p>
+    <p>
+      Par la suite, voici le lien pour vous connecter : 
+      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
+    </p>
+    <br />
+    <p>Bien cordialement,</p>
+    <p>L'équipe Compani</p>`;
 };
 
 const forgotPasswordEmail = (passwordToken) => {
@@ -54,7 +77,8 @@ const completeEventRepScriptEmailBody = (nb, repIds) => {
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
 module.exports = {
-  welcomeEmailContent,
+  helperWelcomeEmailContent,
+  trainerWelcomeEmailContent,
   forgotPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,

@@ -5,36 +5,20 @@ const Payment = require('../../../src/models/Payment');
 const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
-const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
-  {
-    _id: new ObjectID(),
-    name: 'Toto',
-    company: authCompany._id,
-    isApa: true,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Tata',
-    company: authCompany._id,
-    isApa: true,
-  },
+  { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true },
+  { _id: new ObjectID(), name: 'Tata', company: authCompany._id, isApa: true },
 ];
 
 const paymentCustomerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'tito@ty.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Egan',
-      lastname: 'Bernal',
-    },
+    identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -49,33 +33,24 @@ const paymentCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [
-        { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-      ],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: new ObjectID(),
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: new ObjectID(),
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    email: 'fake@test.com',
-    identity: {
-      title: 'mr',
-      firstname: 'Romain',
-      lastname: 'Bardet',
-    },
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -86,26 +61,22 @@ const paymentCustomerList = [
       },
       phone: '0612345678',
     },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: new ObjectID(),
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
-        }],
-      },
-    ],
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: new ObjectID(),
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
     payment: {
       bankAccountOwner: 'David gaudu',
       iban: '',
       bic: '',
-      mandates: [
-        { rum: 'R012345678903456789', _id: new ObjectID() },
-      ],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
     },
   },
 ];
@@ -160,17 +131,6 @@ const paymentUser = {
   company: authCompany._id,
 };
 
-const otherCompany = {
-  _id: new ObjectID(),
-  name: 'Test2 SAS',
-  tradeName: 'Test2',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'jhgfdd',
-  prefixNumber: 103,
-};
-
 const userFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -209,10 +169,9 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
   await Customer.deleteMany({});
   await User.deleteMany({});
-  await Company.deleteMany({});
 
   await populateDBForAuthentication();
-  await new Company(otherCompany).save();
+
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);

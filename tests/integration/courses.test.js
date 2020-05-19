@@ -27,8 +27,20 @@ describe('COURSES ROUTES - POST /courses', () => {
       token = await getToken('vendor_admin');
     });
 
-    it('should create course', async () => {
-      const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
+    it('should create intra course', async () => {
+      const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create inter_b2b course', async () => {
+      const payload = { name: 'course', type: 'inter_b2b', program: programsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -41,13 +53,13 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     const missingParams = [
       { path: 'name' },
-      { path: 'companies' },
+      { path: 'company' },
       { path: 'program' },
       { path: 'type' },
     ];
+    const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
-        const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
@@ -73,7 +85,7 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { name: 'course', type: 'intra', companies: [authCompany._id], program: programsList[0]._id };
+        const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
@@ -507,10 +519,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
     });
 
-    it('should return a 409 error if user exists but not from same company as new user course', async () => {
+    it('should return a 409 error if user exists but not from same company as in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/trainees`,
+        url: `/courses/${coursesList[1]._id}/trainees`,
         headers: { 'x-access-token': token },
         payload: { ...pick(auxiliary, ['identity', 'local.email', 'contact']), company: otherCompany._id },
       });

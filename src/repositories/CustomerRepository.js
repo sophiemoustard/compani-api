@@ -30,9 +30,7 @@ exports.getCustomerFundings = async companyId => Customer.aggregate([
     },
   },
   { $unwind: { path: '$fundings.thirdPartyPayer' } },
-  {
-    $project: { funding: '$fundings', identity: 1 },
-  },
+  { $project: { funding: '$fundings', identity: 1 } },
 ]).option({ company: companyId });
 
 exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.aggregate([

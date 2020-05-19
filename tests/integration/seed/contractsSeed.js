@@ -13,12 +13,7 @@ const { populateDBForAuthentication, authCompany, otherCompany } = require('./au
 const contractCustomer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  email: 'fake@test.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -46,9 +41,7 @@ const contractCustomer = {
     bankAccountOwner: 'David gaudu',
     iban: '',
     bic: '',
-    mandates: [
-      { rum: 'R012345678903456789' },
-    ],
+    mandates: [{ rum: 'R012345678903456789' }],
   },
   driveFolder: { driveId: '1234567890' },
 };

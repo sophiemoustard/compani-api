@@ -50,6 +50,7 @@ describe('exportCustomers', () => {
       'Adresse',
       '1ère intervention',
       'Auxiliaire référent',
+      'Situation',
       'Environnement',
       'Objectifs',
       'Autres',
@@ -78,7 +79,7 @@ describe('exportCustomers', () => {
           birthDate: '1919-12-12T00:00:00.000+00:00',
         },
         contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
-        followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
+        followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
         referent: {
           identity: {
@@ -121,6 +122,7 @@ describe('exportCustomers', () => {
       '9 rue du paradis 70015 Paris',
       '08/08/2019',
       'Toto Test',
+      'Domicile',
       'Père Castor',
       'Savate et charentaises',
       'Lala',
@@ -154,7 +156,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
     ]);
     CustomerModel.verify();
   });

@@ -134,15 +134,16 @@ describe('PAY DOCUMENT ROUTES', () => {
       });
 
       const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
+        { name: 'helper', expectedCode: 403, erp: true },
+        { name: 'auxiliary', expectedCode: 403, erp: true },
+        { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+        { name: 'coach', expectedCode: 200, erp: true },
+        { name: 'client_admin', expectedCode: 403, erp: false },
       ];
 
       roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+        it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+          authToken = await getToken(role.name, role.erp);
           const docPayload = {
             payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
             driveFolderId: '09876543211',
@@ -233,8 +234,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'vendor_admin', expectedCode: 403 },
-        { name: 'training_organisation_manager', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {

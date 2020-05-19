@@ -6,11 +6,10 @@ const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
-const Company = require('../../../src/models/Company');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -36,12 +35,7 @@ const creditNoteService = {
 const creditNoteCustomer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  email: 'tito@ty.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Egan',
-    lastname: 'Bernal',
-  },
+  identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -56,9 +50,7 @@ const creditNoteCustomer = {
     bankAccountOwner: 'Lance Amstrong',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [
-      { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
-    ],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
   },
   subscriptions: [
     {
@@ -225,17 +217,6 @@ const creditNotesList = [
   },
 ];
 
-const otherCompany = {
-  _id: new ObjectID(),
-  name: 'eCorp SAS',
-  tradeName: 'eCorp',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'kjhgfd',
-  prefixNumber: 103,
-};
-
 const otherCompanyThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Titi',
@@ -260,7 +241,6 @@ const otherCompanyService = {
 const otherCompanyCustomer = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  email: 't@t.com',
   identity: {
     title: 'mr',
     firstname: 'Jean',
@@ -383,7 +363,6 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
 
   await populateDBForAuthentication();
-  await new Company(otherCompany).save();
   await Event.create([creditNoteEvent, otherCompanyEvent]);
   await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
   await Service.create([creditNoteService, otherCompanyService]);

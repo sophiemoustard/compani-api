@@ -3,8 +3,6 @@ const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const fs = require('fs').promises;
-
-const { customersList } = require('../../integration/seed/customersSeed');
 const {
   generateSEPAHeader,
   generatePaymentInfo,
@@ -159,6 +157,21 @@ describe('XML helper', () => {
         },
         DrctDbtTxInf: [],
       };
+
+      const customersList = [{
+        _id: new ObjectID(),
+        identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+        payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }], bic: '', iban: '' },
+      }, {
+        _id: new ObjectID(),
+        identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
+        payment: {
+          bankAccountOwner: 'Lance Amstrong',
+          iban: 'FR3514508000505917721779B12',
+          bic: 'BNMDHISOBD',
+          mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+        },
+      }];
       const payments = [
         {
           _id: new ObjectID(),

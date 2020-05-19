@@ -48,18 +48,6 @@ describe('EVENTS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('client_admin');
       });
-      it('should return all events', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: '/events',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.events).toBeDefined();
-        expect(response.result.data.events.length).toEqual(eventsList.length);
-      });
-
       it('should return a list of events', async () => {
         const startDate = moment('2019-01-18');
         const endDate = moment('2019-01-20');
@@ -111,17 +99,6 @@ describe('EVENTS ROUTES', () => {
         response.result.data.events[index].events.forEach((event) => {
           expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
         });
-      });
-
-      it('should return an empty list as no event is matching the request', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: '/events?startDate=20000101&endDate=20001010',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.events).toEqual([]);
       });
 
       it('should return a 403 if customer is not from the same company', async () => {
@@ -235,24 +212,6 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.events.length).toBe(filteredEvents.length);
       });
 
-      it('should return an empty list as no event is matching the request', async () => {
-        const query = {
-          startDate: moment('2017-01-01').toDate(),
-          endDate: moment('2017-01-20').toDate(),
-          customer: customerAuxiliary._id.toHexString(),
-          isBilled: true,
-        };
-
-        const response = await app.inject({
-          method: 'GET',
-          url: `/events/credit-notes?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.events).toEqual([]);
-      });
-
       const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
@@ -343,23 +302,12 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('GET /events/working-stats', () => {
-    const startDate = moment('2019-01-18').toDate();
+    const startDate = moment('2019-01-17').toDate();
     const endDate = moment('2019-01-20').toDate();
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('client_admin');
-      });
-
-      it('should return working stats for an auxiliary', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.workingStats).toBeDefined();
       });
 
       it('should return working stats for auxiliaries', async () => {
@@ -370,6 +318,9 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(200);
+        expect(response.result.data.workingStats[auxiliaries[0]._id]).toBeDefined();
+        expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(4);
+        expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(5.5);
       });
 
       it('should return working stats for all auxiliaries', async () => {
@@ -425,18 +376,6 @@ describe('EVENTS ROUTES', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('client_admin');
-      });
-
-      it('should return paid transport stats for a sector', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.paidTransportStatsBySector).toBeDefined();
-        expect(response.result.data.paidTransportStatsBySector[0].duration).toEqual(1);
       });
 
       it('should return paid transport stats for many sectors', async () => {
@@ -528,17 +467,6 @@ describe('EVENTS ROUTES', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('client_admin');
-      });
-
-      it('should return unassigned hours for a sector', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toEqual(200);
-        expect(response.result.data.unassignedHoursBySector[0].duration).toEqual(5);
       });
 
       it('should return an empty array if sector does not have unassigned event', async () => {
@@ -1093,27 +1021,32 @@ describe('EVENTS ROUTES', () => {
       };
 
       const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'planning_referent', expectedCode: 200 },
+        { name: 'helper', expectedCode: 403, erp: true },
+        { name: 'auxiliary', expectedCode: 403, erp: true },
+        { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+        { name: 'planning_referent', expectedCode: 200, erp: true },
         {
           name: 'auxiliary event',
           expectedCode: 200,
+          erp: true,
           customCredentials: auxiliaries[0].local,
         },
         {
           name: 'auxiliary unassigned event',
           expectedCode: 403,
+          erp: true,
           customCredentials: auxiliaries[0].local,
           customPayload: { ...omit(payload, 'auxiliary'), sector: sectors[0]._id },
         },
-        { name: 'coach', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200, erp: true },
+        { name: 'client_admin', expectedCode: 403, erp: false },
       ];
 
       roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+        it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+          authToken = role.customCredentials
+            ? await getUserToken(role.customCredentials)
+            : await getToken(role.name, role.erp);
           const response = await app.inject({
             method: 'POST',
             url: '/events',
@@ -1507,7 +1440,6 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toBe(200);
         expect(await Repetition.find({ company: authCompany._id })).toHaveLength(0);
       });
-
 
       it('should delete all events from startDate to endDate', async () => {
         const customer = customerAuxiliary._id;

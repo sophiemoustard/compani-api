@@ -10,7 +10,7 @@ const serviceList = [
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16 17:58:15',
+      startDate: '2019-01-16T17:58:15',
       vat: 12,
       exemptFromCharges: false,
     }],
