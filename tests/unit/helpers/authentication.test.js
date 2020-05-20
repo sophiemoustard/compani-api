@@ -94,7 +94,7 @@ describe('validate', () => {
 
     const result = await AuthenticationHelper.validate({ _id: userId });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       isValid: true,
       credentials: {
         _id: userId,
@@ -115,6 +115,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
+    expect(result.credentials.ability).toBeDefined();
   });
 
   it('should authenticate user with customers', async () => {
@@ -144,7 +145,7 @@ describe('validate', () => {
 
     const result = await AuthenticationHelper.validate({ _id: userId });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       isValid: true,
       credentials: {
         _id: userId,
@@ -156,6 +157,7 @@ describe('validate', () => {
         role: { client: { name: 'helper' } },
       },
     });
+    expect(result.credentials.ability).toBeDefined();
   });
 
   it('should authenticate auxiliary without comapny', async () => {
@@ -184,7 +186,7 @@ describe('validate', () => {
 
     const result = await AuthenticationHelper.validate({ _id: userId });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       isValid: true,
       credentials: {
         _id: userId,
@@ -196,6 +198,7 @@ describe('validate', () => {
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
+    expect(result.credentials.ability).toBeDefined();
   });
 
   it('should authenticate trainer', async () => {
@@ -228,7 +231,7 @@ describe('validate', () => {
 
     const result = await AuthenticationHelper.validate({ _id: userId });
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       isValid: true,
       credentials: {
         _id: userId,
@@ -249,5 +252,6 @@ describe('validate', () => {
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
+    expect(result.credentials.ability).toBeDefined();
   });
 });
