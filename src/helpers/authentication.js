@@ -43,10 +43,7 @@ const validate = async (decoded) => {
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
     if (get(user, 'role.vendor.name') === TRAINER) scope.push(`courses:read-${user._id}`);
 
-    let ability;
-    if (get(user, 'role.client')) {
-      ability = defineAbilitiesFor(user);
-    }
+    const ability = defineAbilitiesFor(user);
 
     const credentials = {
       email: get(user, 'local.email', null),

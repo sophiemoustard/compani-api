@@ -1,6 +1,6 @@
 class CustomerClass {
-  constructor(user) {
-    Object.assign(this, user);
+  constructor(customer) {
+    Object.assign(this, customer);
   }
 }
 

@@ -30,12 +30,9 @@ const helperRights = [
     options: { request: '{ "_id": { "$in": "userField" } }', userField: 'customers' },
   },
 ];
-const vendorAdminRights = [
-];
-const trainingOrgnaisationManagerRights = [
-];
-const trainerRights = [
-];
+const vendorAdminRights = [];
+const trainingOrgnaisationManagerRights = [];
+const trainerRights = [];
 
 exports.roleBasedAccessControl = {
   [CLIENT_ADMIN]: clientAdminRights,

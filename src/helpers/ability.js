@@ -5,10 +5,10 @@ const { roleBasedAccessControl } = require('./rbac');
 
 exports.defineAbilitiesFor = (user) => {
   const { can, rules } = new AbilityBuilder();
-  const clientRole = get(user, 'role.client.name');
-  const rightsArray = roleBasedAccessControl[clientRole];
+  const clientRightsArray = get(user, 'role.client.name') ? roleBasedAccessControl[get(user, 'role.client.name')] : [];
+  const vendorRightsArray = get(user, 'role.vendor.name') ? roleBasedAccessControl[get(user, 'role.vendor.name')] : [];
 
-  rightsArray.forEach((elem) => {
+  clientRightsArray.concat(vendorRightsArray).forEach((elem) => {
     if (elem.options) {
       const options = JSON.parse(elem.options.request, (key, value) => {
         if (value === 'userField') return user[elem.options.userField];
