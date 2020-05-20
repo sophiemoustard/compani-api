@@ -871,6 +871,7 @@ describe('createUser', () => {
     };
     const newUser = {
       ...payload,
+      _id: userId,
       role: {},
     };
 
@@ -884,10 +885,10 @@ describe('createUser', () => {
         role: {},
         refreshToken: sinon.match.string,
       })
-      .returns({ ...newUser, _id: userId });
+      .returns(newUser);
 
     const result = await UsersHelper.createUser(payload, credentials);
-    expect(result).toMatchObject(newUser);
+    expect(result).toEqualObject(newUser);
 
     RoleMock.verify();
     TaskMock.verify();

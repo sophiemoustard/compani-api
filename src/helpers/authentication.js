@@ -30,7 +30,7 @@ const validate = async (decoded) => {
       .lean({ autopopulate: true });
     if (!user.company && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
-    const userRoles = Object.values(user.role).filter(role => !!role);
+    const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 
     const userRolesName = userRoles.map(role => role.name);
     const rights = formatRights(userRoles, user.company);
