@@ -45,7 +45,7 @@ const validate = async (decoded) => {
 
     let ability;
     if (get(user, 'role.client')) {
-      ability = defineAbilitiesFor(get(user, 'role.client.name'));
+      ability = defineAbilitiesFor(user);
     }
 
     const credentials = {

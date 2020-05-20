@@ -4,6 +4,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
+const CustomerClass = require('../../classes/Customer');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -49,9 +50,12 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
 };
 
 exports.authorizeCustomerUpdate = async (req) => {
+  const customer = await Customer.findById(req.params._id).lean();
+
   const ability = get(req, 'auth.credentials.ability');
-  console.log(ability.can('update', 'customers'));
-  if (!ability.can('update', 'customers')) throw Boom.forbidden();
+  const customerClass = new CustomerClass(customer);
+
+  if (!ability.can('update', customerClass)) throw Boom.forbidden();
 
   const companyId = get(req, 'auth.credentials.company._id', null);
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
