@@ -862,6 +862,39 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
+  it('should create a user without role, if no role specified', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      contact: {},
+      company: new ObjectID(),
+    };
+    const newUser = {
+      ...payload,
+      role: {},
+    };
+
+    RoleMock.expects('findById').never();
+    TaskMock.expects('find').never();
+
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({
+        ...payload,
+        role: {},
+        refreshToken: sinon.match.string,
+      })
+      .returns({ ...newUser, _id: userId });
+
+    const result = await UsersHelper.createUser(payload, credentials);
+    expect(result).toMatchObject(newUser);
+
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
   it('should return an error 409 if user already has vendor role', async () => {
     try {
       const payload = {

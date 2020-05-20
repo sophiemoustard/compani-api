@@ -54,11 +54,9 @@ const UserSchema = mongoose.Schema({
   role: {
     client: {
       ...roleSchemaDefinition,
-      required() { return !this.role.vendor; },
     },
     vendor: {
       ...roleSchemaDefinition,
-      required() { return !this.role.client; },
     },
   },
   youtube: {

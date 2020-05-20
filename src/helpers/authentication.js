@@ -31,7 +31,6 @@ const validate = async (decoded) => {
     if (!user.company && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
     const userRoles = Object.values(user.role).filter(role => !!role);
-    if (!userRoles.length) return { isValid: false };
 
     const userRolesName = userRoles.map(role => role.name);
     const rights = formatRights(userRoles, user.company);
