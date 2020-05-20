@@ -79,7 +79,7 @@ const getUser = (roleName, erp = true, list = userList) => {
   const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
 
   return list.find(u => u.role[role.interface] && u.role[role.interface].toHexString() === role._id.toHexString() &&
-    company._id.toHexString() === u.company.toHexString());
+    (!u.company || company._id.toHexString() === u.company.toHexString()));
 };
 
 const getTokenByCredentials = memoize(
