@@ -110,6 +110,8 @@ exports.getUser = async (userId, credentials) => {
   return user;
 };
 
+exports.userExists = async email => User.findOne({ 'local.email': email }).lean();
+
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };
 
