@@ -71,6 +71,15 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
+    name: 'second team formation',
+    program: programsList[0]._id,
+    company: otherCompany._id,
+    trainer: new ObjectID(),
+    type: 'intra',
+    trainees: [trainee._id],
+  },
+  {
+    _id: new ObjectID(),
     name: 'inter b2b session',
     program: programsList[0]._id,
     type: 'inter_b2b',
@@ -90,6 +99,7 @@ const slots = [
   { startDate: '2020-03-20T14:00:00', endDate: '2020-03-20T18:00:00', courseId: coursesList[0] },
   { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[1] },
   { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[2] },
+  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[3] },
 ];
 
 const populateDB = async () => {

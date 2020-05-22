@@ -15,14 +15,30 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeCourseGetOrUpdate = async (req) => {
+const checkAuthorization = async (courseTrainerId, courseCompanyId, credentials) => {
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const userClientRole = get(credentials, 'role.client.name');
+  const userCompanyId = credentials.company ? credentials.company._id.toHexString() : undefined;
+  const userId = credentials._id;
+
+  const isAdminVendor = userVendorRole === VENDOR_ADMIN;
+  const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
+  const isTrainerAndAuthorized = userVendorRole === TRAINER && userId === courseTrainerId;
+  const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
+    && userCompanyId === courseCompanyId;
+
+  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
+};
+
+exports.authorizeCourseEdit = async (req) => {
   try {
+    const { credentials } = req.auth;
     const course = await Course.findOne({ _id: req.params._id }).lean();
     if (!course) throw Boom.notFound();
 
-    const userRole = get(req, 'auth.credentials.role.vendor.name');
-    const userId = get(req, 'auth.credentials._id');
-    if (userRole === TRAINER && course.trainer.toHexString() !== userId) throw Boom.forbidden();
+    const courseTrainerId = course.trainer ? course.trainer.toHexString() : undefined;
+    const courseCompanyId = course.company ? course.company.toHexString() : undefined;
+    await checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 
     return null;
   } catch (e) {
@@ -33,17 +49,11 @@ exports.authorizeCourseGetOrUpdate = async (req) => {
 
 exports.authorizeGetCourseList = async (req) => {
   const { credentials } = req.auth;
-  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  const userClientRole = get(req, 'auth.credentials.role.client.name');
-  const companyId = get(credentials, 'company._id');
 
-  const isAdminVendor = userVendorRole === VENDOR_ADMIN;
-  const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
-  const isTrainerAndAuthorized = userVendorRole === TRAINER && get(req, 'query.trainer') === credentials._id;
-  const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
-    && companyId.toHexString() === get(req, 'query.company');
+  const courseTrainerId = get(req, 'query.trainer');
+  const courseCompanyId = get(req, 'query.company');
+  await checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 
-  if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
   return null;
 };
 

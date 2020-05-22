@@ -174,6 +174,10 @@ describe('COURSES ROUTES - GET /courses', () => {
 
 describe('COURSES ROUTES - GET /courses/{_id}', () => {
   let authToken = null;
+  const courseId = {
+    authCompany: coursesList[0]._id,
+    otherCompany: coursesList[1]._id,
+  };
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -182,27 +186,25 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
 
     it('should get course', async () => {
-      const courseId = coursesList[0]._id;
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId.toHexString()}`,
+        url: `/courses/${courseId.authCompany.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseId);
+      expect(response.result.data.course._id).toEqual(courseId.authCompany);
     });
   });
 
   it('should get course even if not authenticate', async () => {
-    const courseId = coursesList[0]._id;
     const response = await app.inject({
       method: 'GET',
-      url: `/courses/${courseId.toHexString()}`,
+      url: `/courses/${courseId.authCompany.toHexString()}`,
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.course._id).toEqual(courseId);
+    expect(response.result.data.course._id).toEqual(courseId.authCompany);
   });
 
   describe('Other roles', () => {
@@ -213,15 +215,14 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
-      const courseId = coursesList[2]._id;
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId.toHexString()}`,
+        url: `/courses/${courseId.authCompany.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -231,10 +232,9 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const courseId = coursesList[1]._id;
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseId.toHexString()}`,
+          url: `/courses/${courseId.otherCompany.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -246,6 +246,10 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
 describe('COURSES ROUTES - PUT /courses/{_id}', () => {
   let token;
+  const courseId = {
+    authCompany: coursesList[0]._id,
+    otherCompany: coursesList[1]._id,
+  };
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -261,14 +265,14 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
+        url: `/courses/${courseId.authCompany}`,
         headers: { 'x-access-token': token },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.findOne({ _id: coursesList[0]._id }).lean();
+      const course = await Course.findOne({ _id: courseId.authCompany }).lean();
 
       expect(course.name).toEqual(payload.name);
       expect(course.trainer).toEqual(payload.trainer);
@@ -281,7 +285,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
+        url: `/courses/${courseId.authCompany}`,
         headers: { 'x-access-token': token },
         payload,
       });
@@ -292,21 +296,47 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'helper', situation: '', expectedCode: 403 },
+      { name: 'auxiliary', situation: '', expectedCode: 403 },
+      { name: 'auxiliary_without_company', situation: '', expectedCode: 403 },
+      { name: 'coach', situation: 'from other company', expectedCode: 403 },
+      { name: 'client_admin', situation: 'from other company', expectedCode: 403 },
+      { name: 'training_organisation_manager', situation: '', expectedCode: 200 },
+      { name: 'trainer', situation: 'for other course', expectedCode: 403 },
     ];
 
-    it('should return 200 as user is course trainer', async () => {
+    it('should return 200 as user is the course trainer', async () => {
       const payload = { name: 'new name' };
       token = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${coursesList[0]._id}`,
+        url: `/courses/${courseId.authCompany}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is coach from course company', async () => {
+      const payload = { name: 'new name' };
+      token = await getToken('coach');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseId.authCompany}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is client admin from course company', async () => {
+      const payload = { name: 'new name' };
+      token = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseId.authCompany}`,
         headers: { 'x-access-token': token },
         payload,
       });
@@ -315,12 +345,12 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} ${role.situation}`, async () => {
         const payload = { name: 'new name' };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/courses/${coursesList[1]._id}`,
+          url: `/courses/${courseId.otherCompany}`,
           headers: { 'x-access-token': token },
           payload,
         });
@@ -333,6 +363,10 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
+  const courseId = {
+    authCompany: coursesList[2]._id,
+    otherCompany: coursesList[3]._id,
+  };
   let TwilioHelperStub;
   const payload = { body: 'Ceci est un test', type: CONVOCATION };
 
@@ -347,18 +381,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   });
 
   it('should send a SMS to user from compani', async () => {
-    const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: coursesList[2]._id }).lean();
+    const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseId.authCompany }).lean();
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/sms`,
+      url: `/courses/${courseId.authCompany}/sms`,
       payload,
       headers: { 'x-access-token': authToken },
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.result.message).toBe('SMS bien envoyé.');
-    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: coursesList[2]._id }).lean();
+    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseId.authCompany }).lean();
     expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
       TwilioHelperStub,
@@ -370,7 +404,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     TwilioHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/sms`,
+      url: `/courses/${courseId.authCompany}/sms`,
       payload: { ...payload, type: 'qwert' },
       headers: { 'x-access-token': authToken },
     });
@@ -384,7 +418,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       TwilioHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[2]._id}/sms`,
+        url: `/courses/${courseId.authCompany}/sms`,
         payload: omit(payload, param),
         headers: { 'x-access-token': authToken },
       });
@@ -408,7 +442,20 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     authToken = await getTokenByCredentials(trainer.local);
     const response = await app.inject({
       method: 'POST',
-      url: `/courses/${coursesList[2]._id}/sms`,
+      url: `/courses/${courseId.authCompany}/sms`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('should return 200 as user is client admin from course company', async () => {
+    TwilioHelperStub.returns('SMS SENT !');
+    authToken = await getToken('client_admin');
+    const response = await app.inject({
+      method: 'POST',
+      url: `/courses/${courseId.authCompany}/sms`,
       headers: { 'x-access-token': authToken },
       payload,
     });
@@ -417,12 +464,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   });
 
   roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+    it(`should return ${role.expectedCode} as user is ${role.name} ${role.situation}`, async () => {
       TwilioHelperStub.returns('SMS SENT !');
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[2]._id}/sms`,
+        url: `/courses/${courseId.otherCompany}/sms`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -434,6 +481,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
 
 describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
   let authToken;
+  const courseId = {
+    authCompany: coursesList[0]._id,
+    otherCompany: coursesList[1]._id,
+  };
 
   beforeEach(populateDB);
 
@@ -468,7 +519,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     authToken = await getTokenByCredentials(trainer.local);
     const response = await app.inject({
       method: 'GET',
-      url: `/courses/${coursesList[0]._id}/sms`,
+      url: `/courses/${courseId.authCompany}/sms`,
       headers: { 'x-access-token': authToken },
     });
 
@@ -480,7 +531,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id}/sms`,
+        url: `/courses/${courseId.otherCompany}/sms`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -491,6 +542,11 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   let token;
+  const courseId = {
+    authCompany: coursesList[0]._id,
+    otherCompany: coursesList[1]._id,
+    withTrainee: coursesList[2]._id,
+  };
   const payload = {
     identity: { firstname: 'Coco', lastname: 'Bongo' },
     local: { email: 'coco_bongo@alenvi.io' },
@@ -508,7 +564,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     it('should add existing user to course trainees', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/trainees`,
+        url: `/courses/${courseId.authCompany}/trainees`,
         headers: { 'x-access-token': token },
         payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
       });
@@ -520,7 +576,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     it('should add new user to course trainees', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/trainees`,
+        url: `/courses/${courseId.authCompany}/trainees`,
         headers: { 'x-access-token': token },
         payload,
       });
@@ -535,7 +591,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     it('should return a 409 error if user exists but not from same company as in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[1]._id}/trainees`,
+        url: `/courses/${courseId.otherCompany}/trainees`,
         headers: { 'x-access-token': token },
         payload: { ...pick(auxiliary, ['identity', 'local.email', 'contact']), company: otherCompany._id },
       });
@@ -546,7 +602,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     it('should return a 409 error as user "trainee" exists and is already registered to course', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[2]._id}/trainees`,
+        url: `/courses/${courseId.withTrainee}/trainees`,
         headers: { 'x-access-token': token },
         payload: { ...pick(trainee, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
       });
@@ -586,7 +642,19 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       token = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/trainees`,
+        url: `/courses/${courseId.authCompany}/trainees`,
+        headers: { 'x-access-token': token },
+        payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is client admin from course company', async () => {
+      token = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseId.authCompany}/trainees`,
         headers: { 'x-access-token': token },
         payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
       });
@@ -599,7 +667,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/courses/${coursesList[0]._id}/trainees`,
+          url: `/courses/${courseId.otherCompany}/trainees`,
           headers: { 'x-access-token': token },
           payload,
         });
@@ -612,7 +680,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
 describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   let authToken = null;
-  const courseId = coursesList[2]._id;
+  const courseId = {
+    authCompany: coursesList[2]._id,
+    otherCompany: coursesList[3]._id,
+  };
   const traineeId = trainee._id;
 
   beforeEach(populateDB);
@@ -625,12 +696,12 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
     it('should delete course trainee', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseId.toHexString()}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${courseId.authCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const course = await Course.findById(courseId).lean();
+      const course = await Course.findById(courseId.authCompany).lean();
       expect(course.trainees).toHaveLength(0);
     });
   });
@@ -650,7 +721,18 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseId.toHexString()}/trainees/${traineeId.toHexString()}`,
+        url: `/courses/${courseId.authCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is client admin from course company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseId.authCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -662,7 +744,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/courses/${courseId.toHexString()}/trainees/${traineeId.toHexString()}`,
+          url: `/courses/${courseId.otherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -674,7 +756,10 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
 
 describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken = null;
-  const courseId = coursesList[2]._id;
+  const courseId = {
+    authCompany: coursesList[2]._id,
+    otherCompany: coursesList[3]._id,
+  };
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -685,7 +770,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId}/attendance-sheets`,
+        url: `/courses/${courseId.otherCompany}/attendance-sheets`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -719,7 +804,18 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId}/attendance-sheets`,
+        url: `/courses/${courseId.authCompany}/attendance-sheets`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is client admin from course company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseId.authCompany}/attendance-sheets`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -731,7 +827,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseId}/attendance-sheets`,
+          url: `/courses/${courseId.otherCompany}/attendance-sheets`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -743,7 +839,10 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
 
 describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   let authToken = null;
-  const courseId = coursesList[2]._id;
+  const courseId = {
+    authCompany: coursesList[2]._id,
+    otherCompany: coursesList[3]._id,
+  };
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -754,7 +853,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId}/completion-certificates`,
+        url: `/courses/${courseId.authCompany}/completion-certificates`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -788,7 +887,18 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseId}/completion-certificates`,
+        url: `/courses/${courseId.authCompany}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is client admin from course company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseId.authCompany}/completion-certificates`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -800,7 +910,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseId}/completion-certificates`,
+          url: `/courses/${courseId.otherCompany}/completion-certificates`,
           headers: { 'x-access-token': authToken },
         });
 
