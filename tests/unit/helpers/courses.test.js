@@ -238,13 +238,12 @@ describe('addCourseTrainee', () => {
     sinon.assert.notCalled(createUserStub);
   });
 
-  it('should add a course trainee creating new user', async () => {
+  it('should add a course trainee creating new user without role', async () => {
     const user = { _id: new ObjectID() };
     const course = { _id: new ObjectID(), name: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
-    const role = { _id: new ObjectID() };
 
-    RoleMock.expects('findOne').withExactArgs({ name: AUXILIARY }, { _id: 1 }).chain('lean').returns(role);
+    RoleMock.expects('findOne').never();
     createUserStub.returns(user);
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
@@ -255,7 +254,7 @@ describe('addCourseTrainee', () => {
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
     RoleMock.verify();
-    sinon.assert.calledWithExactly(createUserStub, { ...payload, role: role._id });
+    sinon.assert.calledWithExactly(createUserStub, payload);
   });
 });
 

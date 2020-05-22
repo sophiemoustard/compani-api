@@ -888,7 +888,7 @@ describe('createUser', () => {
       .returns(newUser);
 
     const result = await UsersHelper.createUser(payload, credentials);
-    expect(result).toEqualObject(newUser);
+    expect(result).toEqual(newUser);
 
     RoleMock.verify();
     TaskMock.verify();
