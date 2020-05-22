@@ -132,7 +132,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   await EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials);
-  await EventHelper.removeRepetitionOnContractEnd(updatedContract);
+  await EventHelper.removeRepetitionsOnContractEnd(updatedContract);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(updatedContract.user._id, updatedContract.endDate, credentials);
   await ReferentHistoryHelper.unassignReferentOnContractEnd(updatedContract);
