@@ -273,6 +273,14 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 
 exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
+  const { sector, _id: auxiliaryId } = contract.user;
+
+  await Repetition.updateMany(
+    { auxiliary: auxiliaryId, type: INTERVENTION },
+    { $unset: { auxiliary: '' }, $set: { sector } }
+  );
+  await Repetition.deleteMany({ auxiliary: auxiliaryId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } });
+
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
@@ -284,7 +292,6 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  const { sector, _id: auxiliaryId } = contract.user;
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(
     contract.endDate,
     auxiliaryId,
@@ -309,19 +316,10 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     }
   }
 
-  promises.push(
-    Event.updateMany(
-      { _id: { $in: ids } },
-      { $set: { 'repetition.frequency': NEVER, sector }, $unset: { auxiliary: '' } }
-    ),
-    Repetition.updateMany(
-      { auxiliary: auxiliaryId, type: INTERVENTION },
-      { $unset: { auxiliary: '' }, $set: { sector } }
-    ),
-    Repetition.deleteMany({ auxiliary: auxiliaryId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
+  await Event.updateMany(
+    { _id: { $in: ids } },
+    { $set: { 'repetition.frequency': NEVER, sector }, $unset: { auxiliary: '' } }
   );
-
-  return Promise.all(promises);
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
