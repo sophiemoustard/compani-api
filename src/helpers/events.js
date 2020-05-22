@@ -271,8 +271,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   return exports.populateEventSubscription(updatedEvent);
 };
 
-exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+exports.removeRepetitionOnContractEnd = async (contract) => {
   const { sector, _id: auxiliaryId } = contract.user;
 
   await Repetition.updateMany(
@@ -280,6 +279,11 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     { $unset: { auxiliary: '' }, $set: { sector } }
   );
   await Repetition.deleteMany({ auxiliary: auxiliaryId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } });
+};
+
+exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const { sector, _id: auxiliaryId } = contract.user;
 
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
 
