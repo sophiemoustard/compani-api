@@ -122,22 +122,23 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   return eventFromDb;
 };
 
-exports.updateRepetition = async (event, eventPayload, credentials) => {
+exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   const parentStartDate = moment(eventPayload.startDate);
   const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
   const companyId = get(credentials, 'company._id', null);
 
-  const events = await Event.find({
-    'repetition.parentId': event.repetition.parentId,
+  const query = {
+    'repetition.parentId': eventFromDb.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
-    startDate: { $gte: new Date(event.startDate) },
+    startDate: { $gte: new Date(eventFromDb.startDate) },
     company: companyId,
-  }).lean();
+  };
+  const events = await Event.find(query).lean();
 
-  let sectorId;
-  if (!event.sector) {
-    const user = await User.findOne({ _id: event.auxiliary })
+  let sectorId = eventFromDb.sector;
+  if (!eventFromDb.sector) {
+    const user = await User.findOne({ _id: eventFromDb.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean();
     sectorId = user.sector;
@@ -152,7 +153,7 @@ exports.updateRepetition = async (event, eventPayload, credentials) => {
 
     let unset;
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
-    if (eventPayload.auxiliary && event.type === INTERVENTION && hasConflicts) {
+    if (eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts) {
       eventToSet = {
         ...omit(eventToSet, ['repetition.frequency', 'auxiliary']),
         sector: sectorId,
@@ -169,10 +170,10 @@ exports.updateRepetition = async (event, eventPayload, credentials) => {
   }
   await Promise.all([
     ...promises,
-    RepetitionsHelper.updateRepetitions(eventPayload, event.repetition.parentId),
+    RepetitionsHelper.updateRepetitions(eventPayload, eventFromDb.repetition.parentId),
   ]);
 
-  return event;
+  return eventFromDb;
 };
 
 exports.deleteRepetition = async (event, credentials) => {
