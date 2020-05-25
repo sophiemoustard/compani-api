@@ -178,12 +178,12 @@ describe('formatEditionPayload', () => {
 
 describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
-  let populateEventSubscription;
   let updateRepetition;
+  let formatEditionPayload;
   let EventMock;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
-  let formatEditionPayload;
+  let populateEventSubscription;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
@@ -207,7 +207,8 @@ describe('updateEvent', () => {
   });
 
   it('should update repetition', async () => {
-    const credentials = { _id: new ObjectID() };
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
@@ -217,7 +218,22 @@ describe('updateEvent', () => {
       shouldUpdateRepetition: true,
     };
 
-    EventMock.expects('findOneAndUpdate').never();
+    EventMock.expects('updateOne').never();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.called(updateRepetition);
@@ -233,8 +249,9 @@ describe('updateEvent', () => {
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: event._id }, { $set: {}, unset: {} }, { new: true })
+    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
       .chain('populate')
       .withExactArgs({
         path: 'auxiliary',
@@ -269,8 +286,9 @@ describe('updateEvent', () => {
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: event._id }, { $set: {}, unset: {} }, { new: true })
+    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
       .chain('populate')
       .withExactArgs({
         path: 'auxiliary',
