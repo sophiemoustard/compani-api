@@ -7,7 +7,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
-const { AUXILIARY, CONVOCATION } = require('../../src/helpers/constants');
+const { CONVOCATION } = require('../../src/helpers/constants');
 const { populateDB, coursesList, programsList, auxiliary, trainee, trainer } = require('./seed/coursesSeed');
 const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
@@ -528,7 +528,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       expect(response.statusCode).toBe(200);
       const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
       expect(newUser).toBeDefined();
-      expect(newUser.role.client.name).toBe(AUXILIARY);
+      expect(newUser.role).toBeUndefined();
       expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
     });
 

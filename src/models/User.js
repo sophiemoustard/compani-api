@@ -51,14 +51,8 @@ const UserSchema = mongoose.Schema({
     password: { type: String, minLength: 6 },
   },
   role: {
-    client: {
-      ...roleSchemaDefinition,
-      required() { return !this.role.vendor; },
-    },
-    vendor: {
-      ...roleSchemaDefinition,
-      required() { return !this.role.client; },
-    },
+    client: roleSchemaDefinition,
+    vendor: roleSchemaDefinition,
   },
   youtube: {
     link: { type: String, trim: true },
