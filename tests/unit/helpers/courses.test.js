@@ -17,7 +17,6 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
-const { AUXILIARY } = require('../../../src/helpers/constants');
 const moment = require('moment');
 require('sinon-mongoose');
 
@@ -243,7 +242,6 @@ describe('addCourseTrainee', () => {
     const course = { _id: new ObjectID(), name: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
-    RoleMock.expects('findOne').never();
     createUserStub.returns(user);
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })

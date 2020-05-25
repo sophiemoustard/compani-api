@@ -882,7 +882,6 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
-        role: {},
         refreshToken: sinon.match.string,
       })
       .returns(newUser);
