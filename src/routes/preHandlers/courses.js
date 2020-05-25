@@ -15,11 +15,11 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-const checkAuthorization = async (courseTrainerId, courseCompanyId, credentials) => {
+exports.checkAuthorization = (courseTrainerId, courseCompanyId, credentials) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
-  const userCompanyId = credentials.company ? credentials.company._id.toHexString() : undefined;
-  const userId = credentials._id;
+  const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
+  const userId = get(credentials, '_id');
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
@@ -36,9 +36,9 @@ exports.authorizeCourseEdit = async (req) => {
     const course = await Course.findOne({ _id: req.params._id }).lean();
     if (!course) throw Boom.notFound();
 
-    const courseTrainerId = course.trainer ? course.trainer.toHexString() : undefined;
-    const courseCompanyId = course.company ? course.company.toHexString() : undefined;
-    await checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+    const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
+    const courseCompanyId = course.company ? course.company.toHexString() : null;
+    this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 
     return null;
   } catch (e) {
@@ -52,7 +52,7 @@ exports.authorizeGetCourseList = async (req) => {
 
   const courseTrainerId = get(req, 'query.trainer');
   const courseCompanyId = get(req, 'query.company');
-  await checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+  this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 
   return null;
 };

@@ -82,7 +82,6 @@ describe('COURSES ROUTES - POST /courses', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
-
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
@@ -156,9 +155,8 @@ describe('COURSES ROUTES - GET /courses', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
-
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} requesting all courses`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
@@ -208,16 +206,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
-
     it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
@@ -229,6 +217,15 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -296,14 +293,30 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', situation: '', expectedCode: 403 },
-      { name: 'auxiliary', situation: '', expectedCode: 403 },
-      { name: 'auxiliary_without_company', situation: '', expectedCode: 403 },
-      { name: 'coach', situation: 'from other company', expectedCode: 403 },
-      { name: 'client_admin', situation: 'from other company', expectedCode: 403 },
-      { name: 'training_organisation_manager', situation: '', expectedCode: 200 },
-      { name: 'trainer', situation: 'for other course', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
+    roles.forEach((role) => {
+      const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+        'otherCompany';
+      it(itMsg, async () => {
+        const payload = { name: 'new name' };
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${courseId.otherCompany}`,
+          headers: { 'x-access-token': token },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
     it('should return 200 as user is the course trainer', async () => {
       const payload = { name: 'new name' };
@@ -342,21 +355,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} ${role.situation}`, async () => {
-        const payload = { name: 'new name' };
-        token = await getToken(role.name);
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courses/${courseId.otherCompany}`,
-          headers: { 'x-access-token': token },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -437,6 +435,23 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     { name: 'trainer', expectedCode: 403 },
   ];
 
+  roles.forEach((role) => {
+    const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+        'otherCompany';
+    it(itMsg, async () => {
+      TwilioHelperStub.returns('SMS SENT !');
+      authToken = await getToken(role.name);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseId.otherCompany}/sms`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(role.expectedCode);
+    });
+  });
+
   it('should return 200 as user is course trainer', async () => {
     TwilioHelperStub.returns('SMS SENT !');
     authToken = await getTokenByCredentials(trainer.local);
@@ -461,21 +476,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     expect(response.statusCode).toBe(200);
-  });
-
-  roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name} ${role.situation}`, async () => {
-      TwilioHelperStub.returns('SMS SENT !');
-      authToken = await getToken(role.name);
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseId.otherCompany}/sms`,
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(role.expectedCode);
-    });
   });
 });
 
@@ -527,7 +527,9 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
   });
 
   roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+    const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+        'otherCompany';
+    it(itMsg, async () => {
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'GET',
@@ -637,6 +639,21 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
+    roles.forEach((role) => {
+      const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+        'otherCompany';
+      it(itMsg, async () => {
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseId.otherCompany}/trainees`,
+          headers: { 'x-access-token': token },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
     it('should return a 200 as user is course trainer', async () => {
       token = await getTokenByCredentials(trainer.local);
@@ -660,20 +677,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        token = await getToken(role.name);
-        const response = await app.inject({
-          method: 'POST',
-          url: `/courses/${courseId.otherCompany}/trainees`,
-          headers: { 'x-access-token': token },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -716,6 +719,20 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
+    roles.forEach((role) => {
+      const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+      'otherCompany';
+      it(itMsg, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${courseId.otherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
     it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
@@ -737,19 +754,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/courses/${courseId.otherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -799,6 +803,20 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
+    roles.forEach((role) => {
+      const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+      'otherCompany';
+      it(itMsg, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseId.otherCompany}/attendance-sheets`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
     it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
@@ -820,19 +838,6 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/${courseId.otherCompany}/attendance-sheets`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -882,6 +887,20 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
+    roles.forEach((role) => {
+      const itMsg = `should return ${role.expectedCode} as user is ${role.name} from authCompany requesting on` +
+      'otherCompany';
+      it(itMsg, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseId.otherCompany}/completion-certificates`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
 
     it('should return 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
@@ -903,19 +922,6 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/${courseId.otherCompany}/completion-certificates`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
