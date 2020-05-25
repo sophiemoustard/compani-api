@@ -474,6 +474,26 @@ describe('getUser', () => {
   });
 });
 
+describe('userExists', () => {
+  let userMock;
+  const email = 'test@test.fr';
+  const user = { local: { email: 'test@test.fr' } };
+  beforeEach(() => {
+    userMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    userMock.restore();
+  });
+
+  it('should find a user', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email);
+
+    expect(rep).toEqual(user);
+  });
+});
+
 describe('createAndSaveFile', () => {
   let addFileStub;
   let saveCertificateDriveIdStub;

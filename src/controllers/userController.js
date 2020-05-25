@@ -5,7 +5,13 @@ const moment = require('moment');
 const translate = require('../helpers/translate');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const UsersHelper = require('../helpers/users');
-const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser, userExists } = require('../helpers/users');
+const {
+  getUsersList,
+  getUsersListWithSectorHistories,
+  createAndSaveFile,
+  getUser,
+  userExists,
+} = require('../helpers/users');
 const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
