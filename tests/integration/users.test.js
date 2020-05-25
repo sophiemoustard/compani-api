@@ -4,6 +4,7 @@ const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
@@ -470,6 +471,65 @@ describe('USERS TEST', () => {
         expect(res.result.data.users.length).toBe(users.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+        { name: 'trainer', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users?company=${authCompany._id}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /users/exists', () => {
+    let authToken;
+    describe('CLIENT_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('client_admin');
+      });
+
+      it('should return true and user if user exists', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/exists?email=${usersSeedList[0].local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.exists).toBeTruthy();
+        expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id']));
+      });
+
+      it('should return false if user does not exists', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/exists?email=test@test.fr',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.exists).toBeFalsy();
+        expect(res.result.data.users).toBeUndefined();
       });
     });
 

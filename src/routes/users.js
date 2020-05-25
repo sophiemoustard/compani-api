@@ -11,6 +11,7 @@ const {
   listWithSectorHistories,
   activeList,
   show,
+  exists,
   update,
   remove,
   refreshToken,
@@ -159,6 +160,18 @@ exports.plugin = {
         ],
       },
       handler: show,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/exists',
+      options: {
+        auth: { scope: ['users:list'] },
+        validate: {
+          query: Joi.object({ email: Joi.string().email().required() }),
+        },
+      },
+      handler: exists,
     });
 
     server.route({
