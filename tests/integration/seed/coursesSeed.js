@@ -29,7 +29,7 @@ const trainee = {
   inactivityDate: null,
 };
 
-const trainer = {
+const courseTrainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
   refreshToken: uuidv4(),
@@ -49,7 +49,7 @@ const coursesList = [
     name: 'first session',
     program: programsList[0]._id,
     company: authCompany._id,
-    trainer: trainer._id,
+    trainer: courseTrainer._id,
     type: 'intra',
   },
   {
@@ -65,7 +65,7 @@ const coursesList = [
     name: 'second session',
     program: programsList[0]._id,
     company: authCompany._id,
-    trainer: trainer._id,
+    trainer: courseTrainer._id,
     type: 'intra',
     trainees: [trainee._id],
   },
@@ -114,7 +114,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, trainee, trainer]);
+  await User.create([auxiliary, trainee, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
@@ -125,5 +125,5 @@ module.exports = {
   auxiliary,
   trainee,
   courseSmsHistory,
-  trainer,
+  courseTrainer,
 };
