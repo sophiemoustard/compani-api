@@ -202,30 +202,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
   });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/${courseIdFromOtherCompany.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
 });
 
 describe('COURSES ROUTES - PUT /courses/{_id}', () => {
