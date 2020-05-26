@@ -72,7 +72,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             trainer: Joi.objectId(),
-            referent: Joi.object({
+            contact: Joi.object({
               name: Joi.string(),
               phone: phoneNumberValidation,
               email: Joi.string().allow('', null),
