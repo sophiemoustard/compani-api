@@ -481,6 +481,7 @@ describe('createContract', () => {
 describe('endContract', () => {
   let ContractMock;
   let updateUserInactivityDate;
+  let removeRepetitionsOnContractEnd;
   let unassignInterventionsOnContractEnd;
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
@@ -489,6 +490,7 @@ describe('endContract', () => {
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
+    removeRepetitionsOnContractEnd = sinon.stub(EventHelper, 'removeRepetitionsOnContractEnd');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
     removeEventsExceptInterventionsOnContractEnd = sinon.stub(
       EventHelper,
@@ -501,6 +503,7 @@ describe('endContract', () => {
   afterEach(() => {
     ContractMock.restore();
     updateUserInactivityDate.restore();
+    removeRepetitionsOnContractEnd.restore();
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
     updateAbsencesOnContractEnd.restore();
@@ -549,6 +552,7 @@ describe('endContract', () => {
     const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
 
     sinon.assert.calledWithExactly(updateUserInactivityDate, updatedContract.user._id, payload.endDate, credentials);
+    sinon.assert.calledWithExactly(removeRepetitionsOnContractEnd, updatedContract);
     sinon.assert.calledWithExactly(unassignInterventionsOnContractEnd, updatedContract, credentials);
     sinon.assert.calledWithExactly(unassignReferentOnContractEnd, updatedContract);
     sinon.assert.calledWithExactly(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
@@ -593,6 +597,7 @@ describe('endContract', () => {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.notCalled(updateUserInactivityDate);
+      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
       sinon.assert.notCalled(unassignInterventionsOnContractEnd);
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
