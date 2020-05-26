@@ -126,12 +126,46 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as user is client admin from course company', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        courseId: coursesList[0]._id,
+      };
+      token = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 200 as user is coach from course company', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        courseId: coursesList[0]._id,
+      };
+      token = await getToken('coach');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
-          courseId: coursesList[0]._id,
+          courseId: coursesList[1]._id,
         };
         token = await getToken(role.name);
         const response = await app.inject({
@@ -232,13 +266,26 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as user is client admin from course company', async () => {
+      token = await getToken('client_admin');
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/courseslots/${courseSlotsList[0]._id}`,
+          url: `/courseslots/${courseSlotsList[3]._id}`,
           headers: { 'x-access-token': token },
           payload,
         });
@@ -301,12 +348,23 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 as user is client admin from course company', async () => {
+      token = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/courseslots/${courseSlotsList[0]._id}`,
+          url: `/courseslots/${courseSlotsList[3]._id}`,
           headers: { 'x-access-token': token },
         });
 

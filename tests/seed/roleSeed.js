@@ -149,6 +149,7 @@ const clientAdminRights = [
   'establishments:read',
   'sms:send',
   'courses:read',
+  'courses:edit',
 ];
 const coachRights = [
   'config:read',
@@ -172,6 +173,7 @@ const coachRights = [
   'establishments:read',
   'sms:send',
   'courses:read',
+  'courses:edit',
 ];
 const auxiliaryRights = [
   'config:read',

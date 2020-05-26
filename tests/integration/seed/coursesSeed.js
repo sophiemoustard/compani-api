@@ -29,7 +29,7 @@ const trainee = {
   inactivityDate: null,
 };
 
-const trainer = {
+const courseTrainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
   refreshToken: uuidv4(),
@@ -49,7 +49,7 @@ const coursesList = [
     name: 'first session',
     program: programsList[0]._id,
     company: authCompany._id,
-    trainer: trainer._id,
+    trainer: courseTrainer._id,
     type: 'intra',
   },
   {
@@ -65,7 +65,16 @@ const coursesList = [
     name: 'second session',
     program: programsList[0]._id,
     company: authCompany._id,
-    trainer: trainer._id,
+    trainer: courseTrainer._id,
+    type: 'intra',
+    trainees: [trainee._id],
+  },
+  {
+    _id: new ObjectID(),
+    name: 'second team formation',
+    program: programsList[0]._id,
+    company: otherCompany._id,
+    trainer: new ObjectID(),
     type: 'intra',
     trainees: [trainee._id],
   },
@@ -90,6 +99,7 @@ const slots = [
   { startDate: '2020-03-20T14:00:00', endDate: '2020-03-20T18:00:00', courseId: coursesList[0] },
   { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[1] },
   { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[2] },
+  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[3] },
 ];
 
 const populateDB = async () => {
@@ -104,7 +114,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, trainee, trainer]);
+  await User.create([auxiliary, trainee, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
@@ -115,5 +125,5 @@ module.exports = {
   auxiliary,
   trainee,
   courseSmsHistory,
-  trainer,
+  courseTrainer,
 };

@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const translate = require('../../helpers/translate');
-const { TRAINER } = require('../../helpers/constants');
+const { checkAuthorization } = require('./courses.js');
 
 const { language } = translate;
 
@@ -19,16 +19,19 @@ exports.getCourseSlot = async (req) => {
   }
 };
 
-const checkAuthorization = async (courseId, credentials) => {
+const formatAndCheckAuthorization = async (courseId, credentials) => {
   const course = await Course.findById(courseId).lean();
+  if (!course) throw Boom.notFound();
+  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
+  const courseCompanyId = course.company ? course.company.toHexString() : null;
 
-  const userRole = get(credentials, 'role.vendor.name');
-  if (userRole === TRAINER && course.trainer.toHexString() !== credentials._id) throw Boom.forbidden();
+  checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 };
 
 exports.authorizeCreate = async (req) => {
   try {
-    await checkAuthorization(req.payload.courseId, req.auth.credentials);
+    const courseId = get(req, 'payload.courseId') || '';
+    await formatAndCheckAuthorization(courseId, req.auth.credentials);
 
     return null;
   } catch (e) {
@@ -39,8 +42,8 @@ exports.authorizeCreate = async (req) => {
 
 exports.authorizeUpdate = async (req) => {
   try {
-    const { courseSlot } = req.pre;
-    await checkAuthorization(courseSlot.courseId, req.auth.credentials);
+    const courseId = get(req, 'pre.courseSlot.courseId') || '';
+    await formatAndCheckAuthorization(courseId, req.auth.credentials);
 
     return null;
   } catch (e) {

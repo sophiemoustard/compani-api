@@ -58,6 +58,12 @@ const courseSlotsList = [
     endDate: '2020-03-10T12:00:00',
     courseId: coursesList[1]._id,
   },
+  {
+    _id: new ObjectID(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
+    courseId: coursesList[1]._id,
+  },
 ];
 
 const populateDB = async () => {

@@ -16,7 +16,7 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee, authorizeCourseGetOrUpdate, authorizeGetCourseList } = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseEdit, authorizeGetCourseList } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -57,7 +57,6 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
         auth: { mode: 'optional' },
       },
       handler: getById,
@@ -79,7 +78,7 @@ exports.plugin = {
             }).min(1),
           }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -97,7 +96,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: sendSMS,
     });
@@ -110,7 +109,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: getSMSHistory,
     });
@@ -130,7 +129,7 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }),
         },
-        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -141,7 +140,7 @@ exports.plugin = {
       path: '/{_id}/trainees/{traineeId}',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
     });
@@ -151,7 +150,7 @@ exports.plugin = {
       path: '/{_id}/attendance-sheets',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadAttendanceSheets,
     });
@@ -161,7 +160,7 @@ exports.plugin = {
       path: '/{_id}/completion-certificates',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
     });
