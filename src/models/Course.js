@@ -11,7 +11,7 @@ const CourseSchema = mongoose.Schema({
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  referent: {
+  contact: {
     name: { type: String, default: '' },
     email: { type: String },
     phone: { type: String, validate: PHONE_VALIDATION },
