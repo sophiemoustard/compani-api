@@ -24,13 +24,42 @@ exports.getUser = async (req) => {
   }
 };
 
-exports.authorizeUserUpdateOrGetById = async (req) => {
+
+exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
-
   const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
+
+  if (establishmentId) {
+    const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
+    if (!establishment) throw Boom.forbidden();
+  }
+
+  const userCompany = user.company || req.payload.company;
+  if (!isVendorUser && (!userCompany || user.company.toHexString() !== companyId.toHexString())) throw Boom.forbidden();
+
+  if (get(req, 'payload.company') && user.company) throw Boom.forbidden();
+
+  if (get(req, 'payload.customers')) {
+    const role = await Role.findOne({ name: HELPER }).lean();
+    if (get(req.payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
+    const customer = await Customer.findOne({ _id: req.payload.customers[0] }).lean();
+
+    if (userCompany !== customer.company.toHexString()) throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeUserGetById = async (req) => {
+  const { credentials } = req.auth;
+  const user = req.pre.user || req.payload;
+  const companyId = get(credentials, 'company._id', null);
+  const isVendorUser = get(credentials, 'role.vendor', null);
+  const establishmentId = get(req, 'payload.establishment');
+
   if (establishmentId) {
     const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
     if (!establishment) throw Boom.forbidden();

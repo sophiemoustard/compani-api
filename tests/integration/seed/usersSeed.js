@@ -9,6 +9,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const { authCustomer } = require('../../seed/customerSeed');
 
 const establishmentList = [
   {
@@ -239,6 +240,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat([helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany]));
   await Customer.create(customerFromOtherCompany);
+  await Customer.create(authCustomer);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
@@ -259,4 +261,5 @@ module.exports = {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
+  authCustomer,
 };
