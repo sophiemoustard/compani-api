@@ -40,10 +40,10 @@ const customer = {
   },
   contact: {
     primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
+      fullAddress: '12 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
-      street: '37 rue de Ponthieu',
+      street: '12 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
@@ -57,8 +57,8 @@ const customer = {
   }],
   payment: {
     bankAccountOwner: 'David gaudu',
-    iban: '',
-    bic: '',
+    iban: 'FR3617569000306699167186M11',
+    bic: 'ABNAFRPP',
     mandates: [{ rum: 'R012345678903456789' }],
   },
   fundings: [

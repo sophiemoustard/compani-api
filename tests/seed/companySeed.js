@@ -12,7 +12,17 @@ const authCompany = {
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'iuytre',
-  customersConfig: { billingPeriod: 'two_weeks' },
+  customersConfig: {
+    templates: { debitMandate: { driveId: process.env.ESIGN_TEST_DOC_DRIVEID } },
+    billingPeriod: 'two_weeks',
+  },
+  address: {
+    fullAddress: '37 rue de Ponthieu 75008 Paris',
+    city: 'Paris',
+    street: '37 rie de Ponthieu',
+    zipCode: '75008',
+    location: { type: 'Point', coordinates: [0, 0] },
+  },
   subscriptions: { erp: true },
   billingAssistance: 'assistance@billing.eu',
 };
