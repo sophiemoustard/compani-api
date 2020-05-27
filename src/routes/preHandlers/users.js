@@ -37,8 +37,8 @@ exports.authorizeUserUpdate = async (req) => {
     if (!establishment) throw Boom.forbidden();
   }
 
-  const userCompany = user.company || req.payload.company;
-  if (!isVendorUser && (!userCompany || user.company.toHexString() !== companyId.toHexString())) throw Boom.forbidden();
+  const userCompany = user.company ? user.company.toHexString() : get(req, 'payload.company');
+  if (!isVendorUser && (!userCompany || userCompany !== companyId.toHexString())) throw Boom.forbidden();
 
   if (get(req, 'payload.company') && user.company) throw Boom.forbidden();
 
