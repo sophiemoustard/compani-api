@@ -935,7 +935,7 @@ describe('USERS TEST', () => {
         expect(histories[0].sector).toEqual(userSectors[1]._id);
       });
 
-      it('should update user with helper role', async () => {
+      it('should add helper role to user', async () => {
         const role = await Role.findOne({ name: HELPER }).lean();
         const res = await app.inject({
           method: 'PUT',
@@ -947,19 +947,19 @@ describe('USERS TEST', () => {
         expect(res.statusCode).toBe(200);
       });
 
-      it('should update user with helper role if no company', async () => {
+      it('should add helper role to user if no company', async () => {
         const role = await Role.findOne({ name: HELPER }).lean();
         const res = await app.inject({
           method: 'PUT',
           url: `/users/${userList[8]._id}`,
-          payload: { customers: [customerFromOtherCompany._id], role: role._id },
+          payload: { customers: [authCustomer._id], role: role._id, company: authCompany._id },
           headers: { 'x-access-token': authToken },
         });
 
-        expect(res.statusCode).toBe(403);
+        expect(res.statusCode).toBe(200);
       });
 
-      it('should not update user with helper role if not from same company', async () => {
+      it('should not add helper role to user if customer is not from the same company as user', async () => {
         const role = await Role.findOne({ name: HELPER }).lean();
         const res = await app.inject({
           method: 'PUT',
@@ -971,7 +971,7 @@ describe('USERS TEST', () => {
         expect(res.statusCode).toBe(403);
       });
 
-      it('should not update user with helper role if already has a client role', async () => {
+      it('should not add helper role to user if already has a client role', async () => {
         const role = await Role.findOne({ name: HELPER }).lean();
         const res = await app.inject({
           method: 'PUT',
