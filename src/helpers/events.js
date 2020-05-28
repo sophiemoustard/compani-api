@@ -246,13 +246,15 @@ exports.formatEditionPayload = (event, payload) => {
 exports.updateEvent = async (event, eventPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
+
   if (eventPayload.shouldUpdateRepetition) {
-    return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
+  } else {
+    const payload = exports.formatEditionPayload(event, eventPayload);
+    await Event.updateOne({ _id: event._id }, { ...payload });
   }
 
-  const payload = exports.formatEditionPayload(event, eventPayload);
-  const updatedEvent = await Event
-    .findOneAndUpdate({ _id: event._id }, { ...payload }, { new: true })
+  const updatedEvent = await Event.findOne({ _id: event._id })
     .populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
