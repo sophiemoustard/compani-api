@@ -28,7 +28,8 @@ const {
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const {
   getUser,
-  authorizeUserUpdateOrGetById,
+  authorizeUserUpdate,
+  authorizeUserGetById,
   authorizeUserGet,
   authorizeUserCreation,
   authorizeUserUpdateWithoutCompany,
@@ -156,7 +157,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserGetById },
         ],
       },
       handler: show,
@@ -279,11 +280,13 @@ exports.plugin = {
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
+            customers: Joi.array(),
+            company: Joi.objectId(),
           }).required(),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
           { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
         ],
       },
@@ -302,7 +305,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: createPasswordToken,
@@ -337,7 +340,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: updateCertificates,
@@ -357,7 +360,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: updateTask,
@@ -373,7 +376,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserGetById },
         ],
       },
       handler: getUserTasks,
@@ -459,7 +462,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
     });
@@ -477,7 +480,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: createDriveFolder,

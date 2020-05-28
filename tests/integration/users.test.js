@@ -9,6 +9,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
+const { HELPER } = require('../../src/helpers/constants');
 const {
   usersSeedList,
   userPayload,
@@ -21,6 +22,7 @@ const {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
+  authCustomer,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -931,6 +933,54 @@ describe('USERS TEST', () => {
         const histories = await SectorHistory.find({ auxiliary: usersSeedList[4]._id, company: authCompany }).lean();
         expect(histories.length).toEqual(1);
         expect(histories[0].sector).toEqual(userSectors[1]._id);
+      });
+
+      it('should add helper role to user', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[6]._id}`,
+          payload: { customers: [authCustomer._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should add helper role to user if no company', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[8]._id}`,
+          payload: { customers: [authCustomer._id], role: role._id, company: authCompany._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should not add helper role to user if customer is not from the same company as user', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[6]._id}`,
+          payload: { customers: [customerFromOtherCompany._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should not add helper role to user if already has a client role', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { customers: [customerFromOtherCompany._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
       });
 
       it('should return a 404 error if no user found', async () => {
