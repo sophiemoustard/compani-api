@@ -39,7 +39,7 @@ exports.formatPdf = (taxCertificate, company, interventions, payments) => {
     taxCertificate: {
       totalHours: UtilsHelper.formatHour(totalHours),
       totalPaid: UtilsHelper.formatPrice(totalPaid),
-      cesu: payments.cesu ? UtilsHelper.formatPrice(payments.cesu) : 0,
+      cesu: payments && payments.cesu ? UtilsHelper.formatPrice(payments.cesu) : 0,
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
       company: {
