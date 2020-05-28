@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
@@ -110,7 +111,18 @@ exports.getUser = async (userId, credentials) => {
   return user;
 };
 
-exports.userExists = async email => User.findOne({ 'local.email': email }).lean();
+exports.userExists = async (email, credentials) => {
+  const user = await User.findOne({ 'local.email': email }).lean();
+
+  const targetUserCompany = user ? user.company.toHexString() : '';
+  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : '';
+  const hasVendorRole = has(credentials, 'role.vendor');
+  const isFromCompany = loggedUserCompany === targetUserCompany;
+
+  return hasVendorRole || isFromCompany
+    ? { exists: !!user, user: pick(user, ['role', '_id', 'company']) }
+    : { exists: !!user, user: {} };
+};
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };

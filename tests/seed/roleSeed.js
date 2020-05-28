@@ -31,6 +31,7 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Exporter des données', permission: 'exports:read', subscription: 'erp' },
   { _id: new ObjectID(), description: 'Lister les utilisateurs', permission: 'users:list' },
   { _id: new ObjectID(), description: 'Editer un utilisateur', permission: 'users:edit' },
+  { _id: new ObjectID(), description: 'Verifier si un email existe déjà en base', permission: 'users:exists' },
   { _id: new ObjectID(), description: 'Editer un évènement', permission: 'events:edit', subscription: 'erp' },
   { _id: new ObjectID(), description: 'Consulter les évènements', permission: 'events:read', subscription: 'erp' },
   {
@@ -103,6 +104,7 @@ const vendorAdminRights = [
   'companies:edit',
   'users:edit',
   'users:list',
+  'users:exists',
   'companies:read',
   'programs:read',
   'programs:edit',
@@ -115,6 +117,7 @@ const trainingOrganisationManagerRights = [
   'companies:edit',
   'users:edit',
   'users:list',
+  'users:exists',
   'companies:read',
   'programs:read',
   'programs:edit',
@@ -135,6 +138,7 @@ const clientAdminRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'users:exists',
   'events:read',
   'events:edit',
   'customers:create',
@@ -160,6 +164,7 @@ const coachRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'users:exists',
   'events:edit',
   'events:read',
   'customers:create',
@@ -190,6 +195,7 @@ const auxiliaryWithoutCompanyRights = [];
 const trainerRights = [
   'courses:edit',
   'courses:read',
+  'users:exists',
 ];
 
 const rolesList = [
