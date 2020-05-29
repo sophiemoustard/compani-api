@@ -536,56 +536,29 @@ describe('USERS TEST', () => {
     });
 
     describe('Other roles', () => {
-      describe('same company', () => {
-        const roles = [
-          { name: 'helper', expectedCode: 403 },
-          { name: 'auxiliary', expectedCode: 403 },
-          { name: 'auxiliary_without_company', expectedCode: 403 },
-          { name: 'coach', expectedCode: 200 },
-          { name: 'client_admin', expectedCode: 200 },
-          { name: 'training_organisation_manager', expectedCode: 200 },
-        ];
-        roles.forEach((role) => {
-          it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-            authToken = await getToken(role.name);
-            const response = await app.inject({
-              method: 'GET',
-              url: `/users/exists?email=${usersSeedList[0].local.email}`,
-              headers: { 'x-access-token': authToken },
-            });
-
-            expect(response.statusCode).toBe(role.expectedCode);
-
-            if (response.result.data) {
-              expect(response.result.data.exists).toBeTruthy();
-              expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
-            }
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'client_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/exists?email=${usersSeedList[0].local.email}`,
+            headers: { 'x-access-token': authToken },
           });
-        });
-      });
-      describe('other company', () => {
-        const roles = [
-          { name: 'coach', expectedCode: 200 },
-          { name: 'client_admin', expectedCode: 200 },
-          { name: 'training_organisation_manager', expectedCode: 200 },
-        ];
-        roles.forEach((role) => {
-          it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-            authToken = await getToken(role.name);
-            const response = await app.inject({
-              method: 'GET',
-              url: `/users/exists?email=${auxiliaryFromOtherCompany.local.email}`,
-              headers: { 'x-access-token': authToken },
-            });
 
-            expect(response.statusCode).toBe(role.expectedCode);
+          expect(response.statusCode).toBe(role.expectedCode);
+
+          if (response.result.data) {
             expect(response.result.data.exists).toBeTruthy();
-            if (role.name === 'coach' || role.name === 'client_admin') {
-              expect(response.result.data.user).toEqual({});
-            } else {
-              expect(response.result.data.user).toEqual(pick(auxiliaryFromOtherCompany, ['role', '_id', 'company']));
-            }
-          });
+            expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+          }
         });
       });
 
@@ -600,19 +573,6 @@ describe('USERS TEST', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.data.exists).toBeTruthy();
         expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
-      });
-
-      it('should all infos as target user as no company', async () => {
-        authToken = await getToken('coach');
-        const response = await app.inject({
-          method: 'GET',
-          url: '/users/exists?email=trainer@alenvi.io',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.result.data.exists).toBeTruthy();
-        expect(response.result.data.user.role).toBeDefined();
       });
     });
   });

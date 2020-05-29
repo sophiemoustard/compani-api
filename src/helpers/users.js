@@ -116,10 +116,9 @@ exports.userExists = async (email, credentials) => {
   if (!targetUser) return { exists: false, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const targetUserHasCompany = !!targetUser.company;
-
-  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
   const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
+  const targetUserHasCompany = !!targetUser.company;
+  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
   const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
 
   return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
