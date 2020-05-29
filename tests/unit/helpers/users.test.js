@@ -965,6 +965,49 @@ describe('createUser', () => {
   });
 });
 
+describe('removeHelper', () => {
+  let UserMock;
+  let RoleMock;
+
+  const user = { _id: new ObjectID() };
+  const roleId = new ObjectID();
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
+  });
+  afterEach(() => {
+    UserMock.restore();
+    RoleMock.restore();
+  });
+
+  it('should remove client role and customers', async () => {
+    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: user._id }, { $unset: { 'role.client': '', customers: '' } })
+      .returns();
+
+    await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
+
+    UserMock.verify();
+    RoleMock.verify();
+  });
+
+  it('should remove client role and customers and company if user is trainer', async () => {
+    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: user._id }, { $unset: { 'role.client': '', customers: '', company: '' } })
+      .returns();
+
+    await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
+
+    UserMock.verify();
+    RoleMock.verify();
+  });
+});
+
 describe('updateUser', () => {
   let UserMock;
   let RoleMock;
