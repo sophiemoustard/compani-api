@@ -504,10 +504,10 @@ describe('USERS TEST', () => {
 
   describe('GET /users/exists', () => {
     let authToken;
-    describe('CLIENT_ADMIN', () => {
+    describe('VENDOR_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getToken('vendor_admin');
       });
 
       it('should return true and user if user exists', async () => {
@@ -519,7 +519,7 @@ describe('USERS TEST', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.exists).toBeTruthy();
-        expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id']));
+        expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
       });
 
       it('should return false if user does not exists', async () => {
@@ -538,25 +538,41 @@ describe('USERS TEST', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
-        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'client_admin', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
-        { name: 'trainer', expectedCode: 403 },
       ];
-
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/users?company=${authCompany._id}`,
+            url: `/users/exists?email=${usersSeedList[0].local.email}`,
             headers: { 'x-access-token': authToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
+
+          if (response.result.data) {
+            expect(response.result.data.exists).toBeTruthy();
+            expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+          }
         });
+      });
+
+      it('should return 200 and all infos as logged user is trainer', async () => {
+        authToken = await getToken('trainer');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/exists?email=${usersSeedList[0].local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.exists).toBeTruthy();
+        expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
       });
     });
   });

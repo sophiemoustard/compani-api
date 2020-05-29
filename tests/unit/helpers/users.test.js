@@ -477,7 +477,16 @@ describe('getUser', () => {
 describe('userExists', () => {
   let userMock;
   const email = 'test@test.fr';
-  const user = { local: { email: 'test@test.fr' } };
+  const nonExistantEmail = 'toto.gateau@alenvi.io';
+  const user = {
+    _id: new ObjectID(),
+    local: { email: 'test@test.fr' },
+    role: { client: { _id: new ObjectID() } },
+    company: new ObjectID(),
+  };
+  const userWithoutCompany = omit(user, 'company');
+  const vendorCredentials = { role: { vendor: { _id: new ObjectID() } } };
+  const clientCredentials = { role: { client: { _id: new ObjectID() } } };
   beforeEach(() => {
     userMock = sinon.mock(User);
   });
@@ -488,10 +497,39 @@ describe('userExists', () => {
   it('should find a user', async () => {
     userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
 
-    const rep = await UsersHelper.userExists(email);
+    const rep = await UsersHelper.userExists(email, vendorCredentials);
 
-    expect(rep).toEqual(user);
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual(omit(user, 'local'));
   });
+
+  it('should not find as email does not exist', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(null);
+
+    const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
+
+    expect(rep.exists).toBeFalsy();
+    expect(rep.user).toEqual({});
+  });
+
+  it('should only confirm targeted user exist, as logged user has only client role', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual({});
+  });
+
+  it('should find targeted user and give all infos, as targeted user has no company', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(userWithoutCompany);
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+  });
+
 });
 
 describe('createAndSaveFile', () => {

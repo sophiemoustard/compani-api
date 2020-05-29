@@ -139,14 +139,11 @@ const show = async (req) => {
 
 const exists = async (req) => {
   try {
-    const user = await userExists(req.query.email);
+    const userInfo = await userExists(req.query.email, req.auth.credentials);
 
     return {
       message: translate[language].userFound,
-      data: {
-        exists: !!user,
-        user: pick(user, ['role', '_id']),
-      },
+      data: userInfo,
     };
   } catch (e) {
     req.log('error', e);
