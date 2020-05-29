@@ -477,7 +477,8 @@ describe('getUser', () => {
 describe('userExists', () => {
   let userMock;
   const email = 'test@test.fr';
-  const user = { local: { email: 'test@test.fr' } };
+  const user = { _id: 111111, local: { email: 'test@test.fr' }, role: { client: { _id: 222222 } } };
+  const credentials = { role: { vendor: { _id: new ObjectID() } } };
   beforeEach(() => {
     userMock = sinon.mock(User);
   });
@@ -488,9 +489,10 @@ describe('userExists', () => {
   it('should find a user', async () => {
     userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
 
-    const rep = await UsersHelper.userExists(email);
+    const rep = await UsersHelper.userExists(email, credentials);
 
-    expect(rep).toEqual(user);
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual({ _id: 111111, role: { client: { _id: 222222 } } });
   });
 });
 

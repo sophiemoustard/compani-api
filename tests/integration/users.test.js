@@ -544,7 +544,6 @@ describe('USERS TEST', () => {
           { name: 'coach', expectedCode: 200 },
           { name: 'client_admin', expectedCode: 200 },
           { name: 'training_organisation_manager', expectedCode: 200 },
-          { name: 'trainer', expectedCode: 200 },
         ];
         roles.forEach((role) => {
           it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -569,7 +568,6 @@ describe('USERS TEST', () => {
           { name: 'coach', expectedCode: 200 },
           { name: 'client_admin', expectedCode: 200 },
           { name: 'training_organisation_manager', expectedCode: 200 },
-          { name: 'trainer', expectedCode: 200 },
         ];
         roles.forEach((role) => {
           it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -589,6 +587,32 @@ describe('USERS TEST', () => {
             }
           });
         });
+      });
+
+      it('should return 200 and all infos as logged user is trainer', async () => {
+        authToken = await getToken('trainer');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/exists?email=${usersSeedList[0].local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.exists).toBeTruthy();
+        expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+      });
+
+      it('should all infos as target user as no company', async () => {
+        authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'GET',
+          url: '/users/exists?email=trainer@alenvi.io',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.exists).toBeTruthy();
+        expect(response.result.data.user.role).toBeDefined();
       });
     });
   });
