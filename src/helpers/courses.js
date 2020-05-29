@@ -1,5 +1,6 @@
 const path = require('path');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
@@ -59,6 +60,10 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
     const newUser = await UsersHelper.createUser(payload);
     coursePayload = { trainees: newUser._id };
   } else {
+    if (!trainee.company) {
+      const updateUserPayload = pick(payload, 'company');
+      await UsersHelper.updateUser(trainee._id, updateUserPayload, null);
+    }
     coursePayload = { trainees: trainee._id };
   }
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();

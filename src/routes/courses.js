@@ -122,11 +122,11 @@ exports.plugin = {
           payload: Joi.object({
             identity: Joi.object().keys({
               firstname: Joi.string(),
-              lastname: Joi.string().required(),
-            }).required(),
+              lastname: Joi.string(),
+            }).min(1),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             contact: Joi.object().keys({ phone: phoneNumberValidation }),
-            company: Joi.objectId().required(),
+            company: Joi.objectId(),
           }),
         },
         pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseEdit }],

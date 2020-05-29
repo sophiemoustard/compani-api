@@ -8,8 +8,17 @@ const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const { CONVOCATION } = require('../../src/helpers/constants');
-const { populateDB, coursesList, programsList, auxiliary, trainee, courseTrainer } = require('./seed/coursesSeed');
-const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const {
+  populateDB,
+  coursesList,
+  programsList,
+  auxiliary,
+  trainee,
+  traineeWithoutCompany,
+  courseTrainer,
+}
+  = require('./seed/coursesSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
@@ -173,7 +182,6 @@ describe('COURSES ROUTES - GET /courses', () => {
 describe('COURSES ROUTES - GET /courses/{_id}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[0]._id;
-  const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -497,137 +505,200 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   let token;
-  const courseIdFromAuthCompany = coursesList[0]._id;
-  const courseIdFromOtherCompany = coursesList[1]._id;
-  const courseIdWithTrainee = coursesList[2]._id;
+  const intraCourseIdFromAuthCompany = coursesList[0]._id;
+  const intraCourseIdFromOtherCompany = coursesList[1]._id;
+  const intraCourseIdWithTrainee = coursesList[2]._id;
+  const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
   const payload = {
     identity: { firstname: 'Coco', lastname: 'Bongo' },
     local: { email: 'coco_bongo@alenvi.io' },
     contact: { phone: '0689320234' },
     company: authCompany._id,
   };
+  const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
 
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      token = await getToken('vendor_admin');
-    });
-
-    it('should add existing user to course trainees', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdFromAuthCompany}/trainees`,
-        headers: { 'x-access-token': token },
-        payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
+  describe('intra', () => {
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(async () => {
+        token = await getToken('vendor_admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
-    });
-
-    it('should add new user to course trainees', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdFromAuthCompany}/trainees`,
-        headers: { 'x-access-token': token },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
-      expect(newUser).toBeDefined();
-      expect(newUser.role).toBeUndefined();
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
-    });
-
-    it('should return a 409 error if user exists but not from same company as in payload', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdFromOtherCompany}/trainees`,
-        headers: { 'x-access-token': token },
-        payload: { ...pick(auxiliary, ['identity', 'local.email', 'contact']), company: otherCompany._id },
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
-
-    it('should return a 409 error as user "trainee" exists and is already registered to course', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdWithTrainee}/trainees`,
-        headers: { 'x-access-token': token },
-        payload: { ...pick(trainee, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
-
-    const missingParams = ['local.email', 'identity.lastname', 'company'];
-    missingParams.forEach((path) => {
-      it(`should return a 400 error if missing '${path}' parameter`, async () => {
-        const falsyPayload = omit(payload, path);
+      it('should add existing user to course trainees', async () => {
         const response = await app.inject({
           method: 'POST',
-          url: '/courses',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+          headers: { 'x-access-token': token },
+          payload: existingUserPayload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
+      });
+
+      it('should add new user to course trainees', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+          headers: { 'x-access-token': token },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
+        expect(newUser).toBeDefined();
+        expect(newUser.role).toBeUndefined();
+        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
+      });
+
+      it('should add user to course trainees, and update user by adding his company', async () => {
+        const updatePayload = { local: { email: traineeWithoutCompany.local.email }, company: authCompany._id };
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+          payload: updatePayload,
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const updatedUser = await User.findOne({ 'local.email': updatePayload.local.email })
+          .lean({ autopopulate: true });
+        expect(updatedUser).toBeDefined();
+        expect(updatedUser.company).toBeDefined();
+        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([updatedUser._id]));
+      });
+
+      it('should return a 409 error if user is not from the course company', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
+          headers: { 'x-access-token': token },
+          payload: existingUserPayload,
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
+
+      it('should return a 409 error as user "trainee" exists and is already registered to course', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdWithTrainee}/trainees`,
+          headers: { 'x-access-token': token },
+          payload: { ...pick(trainee, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
+
+      it('should return a 400 error if missing email parameter', async () => {
+        const falsyPayload = omit(payload, 'local.email');
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
           payload: falsyPayload,
           headers: { 'x-access-token': token },
         });
 
         expect(response.statusCode).toBe(400);
       });
+
+      const missingParams = ['identity.lastname', 'company'];
+      missingParams.forEach((path) => {
+        it(`should return a 400 error if user has to be created, and missing '${path}' parameter`, async () => {
+          const falsyPayload = omit(payload, path);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+            payload: falsyPayload,
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(400);
+        });
+      });
     });
-  });
 
 
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-        token = await getToken(role.name);
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'client_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+        { name: 'trainer', expectedCode: 403 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+          token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+            headers: { 'x-access-token': token },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+
+      ['coach', 'client_admin'].forEach((role) => {
+        it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+          token = await getToken(role);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
+            headers: { 'x-access-token': token },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(403);
+        });
+      });
+
+      it('should return a 200 as user is course trainer', async () => {
+        token = await getTokenByCredentials(courseTrainer.local);
         const response = await app.inject({
           method: 'POST',
-          url: `/courses/${courseIdFromAuthCompany}/trainees`,
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
           headers: { 'x-access-token': token },
           payload,
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(200);
       });
     });
+  });
 
-    ['coach', 'client_admin'].forEach((role) => {
-      it(`should return 403 as user is ${role} requesting on an other company`, async () => {
-        token = await getToken(role);
-        const response = await app.inject({
-          method: 'POST',
-          url: `/courses/${courseIdFromOtherCompany}/trainees`,
-          headers: { 'x-access-token': token },
-          payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
-        });
-
-        expect(response.statusCode).toBe(403);
-      });
+  describe('inter_b2b vendor_role', () => {
+    beforeEach(async () => {
+      token = await getToken('vendor_admin');
     });
 
-    it('should return a 200 as user is course trainer', async () => {
-      token = await getTokenByCredentials(courseTrainer.local);
+    it('should add user to inter b2b course', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${courseIdFromAuthCompany}/trainees`,
+        url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
         headers: { 'x-access-token': token },
-        payload: pick(auxiliary, ['identity', 'local.email', 'contact', 'company']),
+        payload: existingUserPayload,
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
+    });
+
+    it('should return a 400 error if trainee exist, has no company, and missing company parameter', async () => {
+      const falsyPayload = { local: { email: traineeWithoutCompany.local.email } };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
+        payload: falsyPayload,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 });
