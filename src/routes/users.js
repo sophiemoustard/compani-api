@@ -13,7 +13,7 @@ const {
   show,
   exists,
   update,
-  remove,
+  removeHelper,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
@@ -395,7 +395,7 @@ exports.plugin = {
           { method: authorizeUserDeletion },
         ],
       },
-      handler: remove,
+      handler: removeHelper,
     });
 
     server.route({

@@ -197,9 +197,9 @@ const updateCertificates = async (req) => {
   }
 };
 
-const remove = async (req) => {
+const removeHelper = async (req) => {
   try {
-    await User.findByIdAndRemove(req.params._id);
+    await UsersHelper.removeHelper(req.pre.user);
 
     return { message: translate[language].userRemoved };
   } catch (e) {
@@ -359,7 +359,7 @@ module.exports = {
   show,
   exists,
   update,
-  remove,
+  removeHelper,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
