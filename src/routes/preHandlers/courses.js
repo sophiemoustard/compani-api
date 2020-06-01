@@ -6,6 +6,7 @@ const User = require('../../models/User');
 const {
   TRAINER,
   INTRA,
+  INTER_B2B,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
@@ -59,20 +60,28 @@ exports.authorizeGetCourseList = async (req) => {
 
 exports.getCourseTrainee = async (req) => {
   try {
-    const { company, local } = req.payload;
+    const { payload } = req;
     const course = await Course.findOne({ _id: req.params._id }).lean();
+    if (!course) throw Boom.notFound();
 
-    const trainee = await User.findOne({ 'local.email': local.email }).lean();
+    const trainee = await User.findOne({ 'local.email': payload.local.email }).lean();
     if (trainee) {
-      if (trainee.company.toHexString() !== company) {
-        const message = course.type === INTRA
-          ? translate[language].courseTraineeNotFromCourseCompany
-          : translate[language].companyUserConflict;
-        throw Boom.conflict(message);
+      if (course.type === INTRA) {
+        const traineeCompany = trainee.company ? trainee.company._id.toHexString() : null;
+        const conflictBetweenCompanies = course.company._id.toHexString() !== traineeCompany;
+        if (traineeCompany && conflictBetweenCompanies) {
+          throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
+        }
+      } else if (course.type === INTER_B2B) {
+        const missingPayloadCompany = !trainee.company && !payload.company;
+        if (missingPayloadCompany) throw Boom.badRequest();
       }
 
-      const courseTrainee = await Course.findOne({ _id: req.params._id, trainees: trainee._id }).lean();
-      if (courseTrainee) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+      const traineeAlreadyRegistered = course.trainees.some(t => t.toHexString() === trainee._id.toHexString());
+      if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+    } else {
+      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname');
+      if (missingFields) throw Boom.badRequest();
     }
 
     return trainee;

@@ -529,7 +529,6 @@ describe('userExists', () => {
     expect(rep.exists).toBeTruthy();
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
   });
-
 });
 
 describe('createAndSaveFile', () => {

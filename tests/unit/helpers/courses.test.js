@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const flat = require('flat');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -208,23 +209,25 @@ describe('addCourseTrainee', () => {
   let CourseMock;
   let RoleMock;
   let createUserStub;
+  let updateUserStub;
   beforeEach(() => {
     CourseMock = sinon.mock(Course, 'CourseMock');
     RoleMock = sinon.mock(Role, 'RoleMock');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
+    updateUserStub = sinon.stub(UsersHelper, 'updateUser');
   });
   afterEach(() => {
     CourseMock.restore();
     RoleMock.restore();
     createUserStub.restore();
+    updateUserStub.restore();
   });
 
   it('should add a course trainee using existing user', async () => {
-    const user = { _id: new ObjectID() };
+    const user = { _id: new ObjectID(), company: new ObjectID() };
     const course = { _id: new ObjectID(), name: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
-    RoleMock.expects('findOne').never();
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
       .chain('lean')
@@ -233,8 +236,8 @@ describe('addCourseTrainee', () => {
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
-    RoleMock.verify();
     sinon.assert.notCalled(createUserStub);
+    sinon.assert.notCalled(updateUserStub);
   });
 
   it('should add a course trainee creating new user without role', async () => {
@@ -243,6 +246,7 @@ describe('addCourseTrainee', () => {
     const payload = { local: { email: 'toto@toto.com' } };
 
     createUserStub.returns(user);
+    RoleMock.expects('findOne').never();
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
       .chain('lean')
@@ -253,6 +257,24 @@ describe('addCourseTrainee', () => {
     CourseMock.verify();
     RoleMock.verify();
     sinon.assert.calledWithExactly(createUserStub, payload);
+    sinon.assert.notCalled(updateUserStub);
+  });
+
+  it('should add a course trainee, and update it by adding his company', async () => {
+    const user = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), name: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' }, company: new ObjectID() };
+
+    CourseMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
+      .chain('lean')
+      .returns({ ...course, trainee: [user._id] });
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
+    CourseMock.verify();
+    sinon.assert.notCalled(createUserStub);
   });
 });
 

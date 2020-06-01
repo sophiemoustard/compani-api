@@ -29,6 +29,15 @@ const trainee = {
   inactivityDate: null,
 };
 
+const traineeWithoutCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Salut', lastname: 'Toi' },
+  local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
+  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  refreshToken: uuidv4(),
+  inactivityDate: null,
+};
+
 const courseTrainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
@@ -114,7 +123,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, trainee, courseTrainer]);
+  await User.create([auxiliary, trainee, traineeWithoutCompany, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
@@ -124,6 +133,7 @@ module.exports = {
   programsList,
   auxiliary,
   trainee,
+  traineeWithoutCompany,
   courseSmsHistory,
   courseTrainer,
 };
