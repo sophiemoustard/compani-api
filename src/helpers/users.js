@@ -286,7 +286,7 @@ exports.generatePasswordToken = async (email, time) => {
 
 exports.removeHelper = async (user) => {
   const role = await Role.findOne({ name: TRAINER }).lean();
-  const payload = { $unset: { 'role.client': '', customers: '' } };
+  const payload = { $set: { customers: [] }, $unset: { 'role.client': '' } };
 
   const userRoleVendor = get(user, 'role.vendor');
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';

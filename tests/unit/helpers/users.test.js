@@ -985,7 +985,7 @@ describe('removeHelper', () => {
     RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
 
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $unset: { 'role.client': '', customers: '' } })
+      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } })
       .returns();
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
@@ -998,7 +998,7 @@ describe('removeHelper', () => {
     RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
 
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $unset: { 'role.client': '', customers: '', company: '' } })
+      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } })
       .returns();
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
