@@ -30,8 +30,7 @@ const validate = async (decoded) => {
       .lean({ autopopulate: true });
     if (!user.company && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
-    const userRoles = Object.values(user.role).filter(role => !!role);
-    if (!userRoles.length) return { isValid: false };
+    const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 
     const userRolesName = userRoles.map(role => role.name);
     const rights = formatRights(userRoles, user.company);
@@ -40,7 +39,6 @@ const validate = async (decoded) => {
     const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];
     if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
-    if (get(user, 'role.vendor.name') === TRAINER) scope.push(`courses:read-${user._id}`);
 
     const credentials = {
       email: get(user, 'local.email', null),

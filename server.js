@@ -22,7 +22,7 @@ const server = Hapi.server({
       async failAction(request, h, err) {
         request.log('validationError', err.message);
         if (process.env.NODE_ENV === 'production') {
-          throw Boom.badRequest('Invalid request payload input');
+          throw Boom.badRequest();
         }
         throw err;
       },

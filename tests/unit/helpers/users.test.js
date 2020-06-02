@@ -474,6 +474,63 @@ describe('getUser', () => {
   });
 });
 
+describe('userExists', () => {
+  let userMock;
+  const email = 'test@test.fr';
+  const nonExistantEmail = 'toto.gateau@alenvi.io';
+  const user = {
+    _id: new ObjectID(),
+    local: { email: 'test@test.fr' },
+    role: { client: { _id: new ObjectID() } },
+    company: new ObjectID(),
+  };
+  const userWithoutCompany = omit(user, 'company');
+  const vendorCredentials = { role: { vendor: { _id: new ObjectID() } } };
+  const clientCredentials = { role: { client: { _id: new ObjectID() } } };
+  beforeEach(() => {
+    userMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    userMock.restore();
+  });
+
+  it('should find a user', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email, vendorCredentials);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual(omit(user, 'local'));
+  });
+
+  it('should not find as email does not exist', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(null);
+
+    const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
+
+    expect(rep.exists).toBeFalsy();
+    expect(rep.user).toEqual({});
+  });
+
+  it('should only confirm targeted user exist, as logged user has only client role', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual({});
+  });
+
+  it('should find targeted user and give all infos, as targeted user has no company', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(userWithoutCompany);
+
+    const rep = await UsersHelper.userExists(email, clientCredentials);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+  });
+});
+
 describe('createAndSaveFile', () => {
   let addFileStub;
   let saveCertificateDriveIdStub;
@@ -723,13 +780,11 @@ describe('createUser', () => {
     UserMock.verify();
   });
 
-  it('should create an external trainer', async () => {
+  it('should create a trainer', async () => {
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
-      status: 'external',
-      company: new ObjectID(),
     };
     const newUser = {
       ...payload,
@@ -747,52 +802,6 @@ describe('createUser', () => {
 
     UserMock.expects('create')
       .withExactArgs({ ...payload, refreshToken: sinon.match.string })
-      .returns({ ...newUser, _id: userId });
-
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: payload.company },
-      })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUser });
-
-
-    const result = await UsersHelper.createUser(payload, credentials);
-
-    expect(result).toMatchObject(newUser);
-    RoleMock.verify();
-    TaskMock.verify();
-    UserMock.verify();
-  });
-
-  it('should create an internal trainer', async () => {
-    const payload = {
-      identity: { lastname: 'Admin', firstname: 'Toto' },
-      local: { email: 'trainer@test.com', password: '1234567890' },
-      role: { vendor: roleId },
-      status: 'internal',
-    };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'trainer', rights: [{ _id: new ObjectID() }] },
-    };
-
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
-
-    TaskMock.expects('find').never();
-
-    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns();
-
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, refreshToken: sinon.match.string, company: credentials.company._id })
       .returns({ ...newUser, _id: userId });
 
     UserMock.expects('findOne')
@@ -822,7 +831,6 @@ describe('createUser', () => {
       local: { email: 'trainer@test.com', password: '1234567890' },
       role: { vendor: roleId },
       company: new ObjectID(),
-      status: 'external',
     };
     const newUser = {
       ...payload,
@@ -860,6 +868,39 @@ describe('createUser', () => {
     RoleMock.verify();
     TaskMock.verify();
     UserMock.verify();
+  });
+
+  it('should create a user without role, if no role specified', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      contact: {},
+      company: new ObjectID(),
+    };
+    const newUser = {
+      ...payload,
+      _id: userId,
+      role: {},
+    };
+
+    RoleMock.expects('findById').never();
+    TaskMock.expects('find').never();
+
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({
+        ...payload,
+        refreshToken: sinon.match.string,
+      })
+      .returns(newUser);
+
+    const result = await UsersHelper.createUser(payload, credentials);
+    expect(result).toEqual(newUser);
+
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should return an error 409 if user already has vendor role', async () => {
@@ -920,6 +961,49 @@ describe('createUser', () => {
       UserMock.verify();
       sinon.assert.notCalled(createHistoryStub);
     }
+  });
+});
+
+describe('removeHelper', () => {
+  let UserMock;
+  let RoleMock;
+
+  const user = { _id: new ObjectID() };
+  const roleId = new ObjectID();
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
+  });
+  afterEach(() => {
+    UserMock.restore();
+    RoleMock.restore();
+  });
+
+  it('should remove client role and customers', async () => {
+    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } })
+      .returns();
+
+    await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
+
+    UserMock.verify();
+    RoleMock.verify();
+  });
+
+  it('should remove client role and customers and company if user is trainer', async () => {
+    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } })
+      .returns();
+
+    await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
+
+    UserMock.verify();
+    RoleMock.verify();
   });
 });
 

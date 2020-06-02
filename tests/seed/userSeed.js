@@ -84,11 +84,9 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'trainer', lastname: 'trainer' },
-    status: 'internal',
     refreshToken: uuidv4(),
     local: { email: 'trainer@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
-    company: authCompany._id,
   },
   {
     _id: new ObjectID(),

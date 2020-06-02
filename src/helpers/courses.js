@@ -1,11 +1,11 @@
 const path = require('path');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
-const Role = require('../models/Role');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
@@ -14,7 +14,6 @@ const ZipHelper = require('./zip');
 const TwilioHelper = require('./twilio');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
-const { AUXILIARY } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -58,10 +57,13 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
   if (!trainee) {
-    const auxiliaryRole = await Role.findOne({ name: AUXILIARY }, { _id: 1 }).lean();
-    const newUser = await UsersHelper.createUser({ ...payload, role: auxiliaryRole._id });
+    const newUser = await UsersHelper.createUser(payload);
     coursePayload = { trainees: newUser._id };
   } else {
+    if (!trainee.company) {
+      const updateUserPayload = pick(payload, 'company');
+      await UsersHelper.updateUser(trainee._id, updateUserPayload, null);
+    }
     coursePayload = { trainees: trainee._id };
   }
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();

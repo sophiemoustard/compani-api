@@ -4,10 +4,12 @@ const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
+const { HELPER } = require('../../src/helpers/constants');
 const {
   usersSeedList,
   userPayload,
@@ -20,6 +22,7 @@ const {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
+  authCustomer,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -169,34 +172,18 @@ describe('USERS TEST', () => {
         expect(usersCount).toBe(usersCountBefore + 1);
       });
 
-      it('should create an external trainer', async () => {
+      it('should create a trainer', async () => {
         const usersCountBefore = await User.countDocuments({});
         const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id, status: 'external', company: otherCompany._id },
+          payload: { ...userPayload, role: roleTrainer._id },
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
         const usersCountAfter = await User.countDocuments({});
         expect(usersCountAfter).toEqual(usersCountBefore + 1);
-        expect(response.result.data.user.company._id).toEqual(otherCompany._id);
-      });
-
-      it('should create an internal trainer', async () => {
-        const usersCountBefore = await User.countDocuments({});
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id, status: 'internal' },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(200);
-        const usersCountAfter = await User.countDocuments({});
-        expect(usersCountAfter).toEqual(usersCountBefore + 1);
-        expect(response.result.data.user.company._id).toEqual(authCompany._id);
       });
 
       it('should update a user with vendor role', async () => {
@@ -238,17 +225,6 @@ describe('USERS TEST', () => {
 
         expect(response.statusCode).toBe(409);
         expect(response.result.message).toBe('Formateur déjà existant');
-      });
-
-      it('should not create a trainer if missing status', async () => {
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: { ...userPayload, role: roleTrainer._id },
-          headers: { 'x-access-token': authToken },
-        });
-        expect(response.statusCode).toBe(400);
       });
     });
 
@@ -360,7 +336,7 @@ describe('USERS TEST', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(15);
+        expect(res.result.data.users.length).toBe(14);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
@@ -522,6 +498,81 @@ describe('USERS TEST', () => {
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
+      });
+    });
+  });
+
+  describe('GET /users/exists', () => {
+    let authToken;
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin');
+      });
+
+      it('should return true and user if user exists', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/exists?email=${usersSeedList[0].local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.exists).toBeTruthy();
+        expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+      });
+
+      it('should return false if user does not exists', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/exists?email=test@test.fr',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.exists).toBeFalsy();
+        expect(res.result.data.users).toBeUndefined();
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'client_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/exists?email=${usersSeedList[0].local.email}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+
+          if (response.result.data) {
+            expect(response.result.data.exists).toBeTruthy();
+            expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+          }
+        });
+      });
+
+      it('should return 200 and all infos as logged user is trainer', async () => {
+        authToken = await getToken('trainer');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/exists?email=${usersSeedList[0].local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.exists).toBeTruthy();
+        expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
       });
     });
   });
@@ -898,6 +949,54 @@ describe('USERS TEST', () => {
         const histories = await SectorHistory.find({ auxiliary: usersSeedList[4]._id, company: authCompany }).lean();
         expect(histories.length).toEqual(1);
         expect(histories[0].sector).toEqual(userSectors[1]._id);
+      });
+
+      it('should add helper role to user', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[6]._id}`,
+          payload: { customers: [authCustomer._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should add helper role to user if no company', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[8]._id}`,
+          payload: { customers: [authCustomer._id], role: role._id, company: authCompany._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should not add helper role to user if customer is not from the same company as user', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[6]._id}`,
+          payload: { customers: [customerFromOtherCompany._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should not add helper role to user if already has a client role', async () => {
+        const role = await Role.findOne({ name: HELPER }).lean();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id}`,
+          payload: { customers: [customerFromOtherCompany._id], role: role._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
       });
 
       it('should return a 404 error if no user found', async () => {

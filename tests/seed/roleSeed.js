@@ -31,6 +31,7 @@ const rightsList = [
   { _id: new ObjectID(), description: 'Exporter des données', permission: 'exports:read', subscription: 'erp' },
   { _id: new ObjectID(), description: 'Lister les utilisateurs', permission: 'users:list' },
   { _id: new ObjectID(), description: 'Editer un utilisateur', permission: 'users:edit' },
+  { _id: new ObjectID(), description: 'Verifier si un email existe déjà en base', permission: 'users:exist' },
   { _id: new ObjectID(), description: 'Editer un évènement', permission: 'events:edit', subscription: 'erp' },
   { _id: new ObjectID(), description: 'Consulter les évènements', permission: 'events:read', subscription: 'erp' },
   {
@@ -103,6 +104,7 @@ const vendorAdminRights = [
   'companies:edit',
   'users:edit',
   'users:list',
+  'users:exist',
   'companies:read',
   'programs:read',
   'programs:edit',
@@ -115,6 +117,7 @@ const trainingOrganisationManagerRights = [
   'companies:edit',
   'users:edit',
   'users:list',
+  'users:exist',
   'companies:read',
   'programs:read',
   'programs:edit',
@@ -135,6 +138,7 @@ const clientAdminRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'users:exist',
   'events:read',
   'events:edit',
   'customers:create',
@@ -148,6 +152,8 @@ const clientAdminRights = [
   'establishments:edit',
   'establishments:read',
   'sms:send',
+  'courses:read',
+  'courses:edit',
 ];
 const coachRights = [
   'config:read',
@@ -158,6 +164,7 @@ const coachRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'users:exist',
   'events:edit',
   'events:read',
   'customers:create',
@@ -170,6 +177,8 @@ const coachRights = [
   'taxcertificates:edit',
   'establishments:read',
   'sms:send',
+  'courses:read',
+  'courses:edit',
 ];
 const auxiliaryRights = [
   'config:read',
@@ -185,6 +194,8 @@ const helperRights = [];
 const auxiliaryWithoutCompanyRights = [];
 const trainerRights = [
   'courses:edit',
+  'courses:read',
+  'users:exist',
 ];
 
 const rolesList = [

@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
@@ -16,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES, INTERNAL } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -110,6 +111,21 @@ exports.getUser = async (userId, credentials) => {
   return user;
 };
 
+exports.userExists = async (email, credentials) => {
+  const targetUser = await User.findOne({ 'local.email': email }).lean();
+  if (!targetUser) return { exists: false, user: {} };
+
+  const loggedUserhasVendorRole = has(credentials, 'role.vendor');
+  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
+  const targetUserHasCompany = !!targetUser.company;
+  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
+  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+
+  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+    ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
+    : { exists: !!targetUser, user: {} };
+};
+
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };
 
@@ -151,6 +167,8 @@ exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
   const companyId = payload.company || get(credentials, 'company._id', null);
 
+  if (!roleId) return User.create({ ...payload, refreshToken: uuid.v4() });
+
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
@@ -162,7 +180,7 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  if (role.name !== TRAINER || payload.status === INTERNAL) payload.company = companyId;
+  if (role.name !== TRAINER) payload.company = companyId;
   if (role.interface === VENDOR) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
@@ -264,4 +282,14 @@ exports.generatePasswordToken = async (email, time) => {
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return payload.passwordToken;
+};
+
+exports.removeHelper = async (user) => {
+  const role = await Role.findOne({ name: TRAINER }).lean();
+  const payload = { $set: { customers: [] }, $unset: { 'role.client': '' } };
+
+  const userRoleVendor = get(user, 'role.vendor');
+  if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
+
+  await User.findOneAndUpdate({ _id: user._id }, payload);
 };

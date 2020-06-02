@@ -11,8 +11,9 @@ const {
   listWithSectorHistories,
   activeList,
   show,
+  exists,
   update,
-  remove,
+  removeHelper,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
@@ -27,14 +28,14 @@ const {
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const {
   getUser,
-  authorizeUserUpdateOrGetById,
+  authorizeUserUpdate,
+  authorizeUserGetById,
   authorizeUserGet,
   authorizeUserCreation,
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
-const { INTERNAL, EXTERNAL } = require('../helpers/constants');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -96,7 +97,6 @@ exports.plugin = {
               }),
             }),
             customers: Joi.array(),
-            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],
@@ -157,10 +157,22 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserGetById },
         ],
       },
       handler: show,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/exists',
+      options: {
+        auth: { scope: ['users:exist'] },
+        validate: {
+          query: Joi.object({ email: Joi.string().email().required() }),
+        },
+      },
+      handler: exists,
     });
 
     server.route({
@@ -267,13 +279,14 @@ exports.plugin = {
             }),
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
-            status: Joi.string().valid(INTERNAL, EXTERNAL).allow('', null),
             biography: Joi.string().allow(''),
+            customers: Joi.array(),
+            company: Joi.objectId(),
           }).required(),
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
           { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
         ],
       },
@@ -292,7 +305,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: createPasswordToken,
@@ -327,7 +340,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: updateCertificates,
@@ -347,7 +360,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: updateTask,
@@ -363,7 +376,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserGetById },
         ],
       },
       handler: getUserTasks,
@@ -382,7 +395,7 @@ exports.plugin = {
           { method: authorizeUserDeletion },
         ],
       },
-      handler: remove,
+      handler: removeHelper,
     });
 
     server.route({
@@ -449,7 +462,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
     });
@@ -467,7 +480,7 @@ exports.plugin = {
         },
         pre: [
           { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdateOrGetById },
+          { method: authorizeUserUpdate },
         ],
       },
       handler: createDriveFolder,

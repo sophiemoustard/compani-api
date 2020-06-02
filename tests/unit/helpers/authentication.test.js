@@ -244,7 +244,6 @@ describe('validate', () => {
           'bof',
           'bien',
           `user:edit-${userId}`,
-          `courses:read-${userId}`,
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },

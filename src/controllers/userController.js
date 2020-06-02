@@ -1,11 +1,17 @@
 const flat = require('flat');
-const _ = require('lodash');
+const pick = require('lodash/pick');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const translate = require('../helpers/translate');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const UsersHelper = require('../helpers/users');
-const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser } = require('../helpers/users');
+const {
+  getUsersList,
+  getUsersListWithSectorHistories,
+  createAndSaveFile,
+  getUser,
+  userExists,
+} = require('../helpers/users');
 const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
@@ -131,6 +137,20 @@ const show = async (req) => {
   }
 };
 
+const exists = async (req) => {
+  try {
+    const userInfo = await userExists(req.query.email, req.auth.credentials);
+
+    return {
+      message: translate[language].userFound,
+      data: userInfo,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const update = async (req) => {
   try {
     await UsersHelper.updateUser(
@@ -177,9 +197,9 @@ const updateCertificates = async (req) => {
   }
 };
 
-const remove = async (req) => {
+const removeHelper = async (req) => {
   try {
-    await User.findByIdAndRemove(req.params._id);
+    await UsersHelper.removeHelper(req.pre.user);
 
     return { message: translate[language].userRemoved };
   } catch (e) {
@@ -221,7 +241,7 @@ const getUserTasks = async (req) => {
     return {
       message: translate[language].userTasksFound,
       data: {
-        user: _.pick(user, ['_id', 'identity']),
+        user: pick(user, ['_id', 'identity']),
         tasks: user.procedure,
       },
     };
@@ -337,8 +357,9 @@ module.exports = {
   listWithSectorHistories,
   activeList,
   show,
+  exists,
   update,
-  remove,
+  removeHelper,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,

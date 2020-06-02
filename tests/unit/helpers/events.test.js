@@ -534,13 +534,46 @@ describe('populateEvents', () => {
   });
 });
 
+describe('removeRepetitionsOnContractEnd', () => {
+  let updateManyRepetition;
+  let deleteManyRepetition;
+
+  const userId = new ObjectID();
+  const sectorId = new ObjectID();
+
+  beforeEach(() => {
+    updateManyRepetition = sinon.stub(Repetition, 'updateMany');
+    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
+  });
+  afterEach(() => {
+    updateManyRepetition.restore();
+    deleteManyRepetition.restore();
+  });
+
+  it('should unassigned repetition intervention and remove other repetitions', async () => {
+    const contract = {
+      status: COMPANY_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: { _id: userId, sector: sectorId },
+    };
+
+    await EventHelper.removeRepetitionsOnContractEnd(contract);
+    sinon.assert.calledWithExactly(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
+    );
+    sinon.assert.calledWithExactly(
+      deleteManyRepetition,
+      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
+    );
+  });
+});
+
 describe('unassignInterventionsOnContractEnd', () => {
   let getCustomerSubscriptions;
   let getUnassignedInterventions;
   let createEventHistoryOnUpdate;
   let updateManyEvent;
-  let updateManyRepetition;
-  let deleteManyRepetition;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -584,16 +617,12 @@ describe('unassignInterventionsOnContractEnd', () => {
     getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     updateManyEvent = sinon.stub(Event, 'updateMany');
-    updateManyRepetition = sinon.stub(Repetition, 'updateMany');
-    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
     getUnassignedInterventions.restore();
     createEventHistoryOnUpdate.restore();
     updateManyEvent.restore();
-    updateManyRepetition.restore();
-    deleteManyRepetition.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
@@ -619,14 +648,6 @@ describe('unassignInterventionsOnContractEnd', () => {
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
-    );
-    sinon.assert.calledWithExactly(
-      updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
-    );
-    sinon.assert.calledWithExactly(
-      deleteManyRepetition,
-      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
     );
   });
 
@@ -656,14 +677,6 @@ describe('unassignInterventionsOnContractEnd', () => {
       { _id: { $in: [interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWithExactly(
-      updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
-    );
-    sinon.assert.calledWithExactly(
-      deleteManyRepetition,
-      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
-    );
   });
 
   it('should create event history for non repeated event', async () => {
@@ -686,14 +699,6 @@ describe('unassignInterventionsOnContractEnd', () => {
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
-    );
-    sinon.assert.calledWithExactly(
-      updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
-    );
-    sinon.assert.calledWithExactly(
-      deleteManyRepetition,
-      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
     );
   });
 
@@ -721,14 +726,6 @@ describe('unassignInterventionsOnContractEnd', () => {
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
-    );
-    sinon.assert.calledWithExactly(
-      updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
-    );
-    sinon.assert.calledWithExactly(
-      deleteManyRepetition,
-      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
     );
   });
 });

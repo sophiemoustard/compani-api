@@ -9,7 +9,6 @@ const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = re
 const trainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
-  status: 'internal',
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
@@ -57,6 +56,12 @@ const courseSlotsList = [
     _id: new ObjectID(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
+    courseId: coursesList[1]._id,
+  },
+  {
+    _id: new ObjectID(),
+    startDate: '2020-04-10T09:00:00',
+    endDate: '2020-04-10T12:00:00',
     courseId: coursesList[1]._id,
   },
 ];

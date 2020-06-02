@@ -48,9 +48,6 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
-  // USER
-  INTERNAL: 'internal',
-  EXTERNAL: 'external',
   // CUSTOMER
   MISTER: 'mr',
   MRS: 'mrs',
@@ -166,7 +163,7 @@ module.exports = {
   get CANCELLATION_REASON_LIST() {
     return {
       [this.CUSTOMER_INITIATIVE]: 'Initiative du client',
-      [this.AUXILIARY_INITIATIVE]: 'Initiative du de l\'intervenant',
+      [this.AUXILIARY_INITIATIVE]: 'Initiative de l\'intervenant',
     };
   },
   // INTERFACES

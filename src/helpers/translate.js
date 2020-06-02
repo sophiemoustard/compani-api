@@ -26,7 +26,6 @@ module.exports = {
     userAuthentified: 'User authenticated successfully.',
     userPayDocumentDeleted: 'User pay document deleted successfully.',
     userPayDocumentNotFound: 'User pay document not found.',
-    companyUserConflict: 'User already linked to other company.',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Messages */
@@ -266,7 +265,6 @@ module.exports = {
     userAuthentified: 'Utilisateur authentifié avec succès.',
     userPayDocumentDeleted: "Document de paye d'utilisateur supprimé avec succès.",
     userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
-    companyUserConflict: 'L\'utilisateur est déjà rattaché à une autre entreprise.',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Messages */

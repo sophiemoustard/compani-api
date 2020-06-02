@@ -16,7 +16,7 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee, authorizeCourseGetOrUpdate } = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseEdit, authorizeGetCourseList } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -26,8 +26,9 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read', 'courses:read-{query.trainer}'] },
-        validate: { query: Joi.object({ trainer: Joi.objectId() }) },
+        auth: { scope: ['courses:read'] },
+        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId() }) },
+        pre: [{ method: authorizeGetCourseList }],
       },
       handler: list,
     });
@@ -56,7 +57,6 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
         auth: { mode: 'optional' },
       },
       handler: getById,
@@ -71,14 +71,14 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             trainer: Joi.objectId(),
-            referent: Joi.object({
+            contact: Joi.object({
               name: Joi.string(),
               phone: phoneNumberValidation,
               email: Joi.string().allow('', null),
             }).min(1),
           }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -96,7 +96,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: sendSMS,
     });
@@ -109,7 +109,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: getSMSHistory,
     });
@@ -122,14 +122,14 @@ exports.plugin = {
           payload: Joi.object({
             identity: Joi.object().keys({
               firstname: Joi.string(),
-              lastname: Joi.string().required(),
-            }).required(),
+              lastname: Joi.string(),
+            }).min(1),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             contact: Joi.object().keys({ phone: phoneNumberValidation }),
-            company: Joi.objectId().required(),
+            company: Joi.objectId(),
           }),
         },
-        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -140,7 +140,7 @@ exports.plugin = {
       path: '/{_id}/trainees/{traineeId}',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
     });
@@ -150,7 +150,7 @@ exports.plugin = {
       path: '/{_id}/attendance-sheets',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadAttendanceSheets,
     });
@@ -160,7 +160,7 @@ exports.plugin = {
       path: '/{_id}/completion-certificates',
       options: {
         auth: { scope: ['courses:edit'] },
-        pre: [{ method: authorizeCourseGetOrUpdate }],
+        pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
     });
