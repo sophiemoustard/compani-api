@@ -6,8 +6,8 @@ const beforeSendHandler = (event) => {
   if (user) {
     payload.id = user._id;
     payload.email = user.email;
-    if (user.company) payload.user.company = { _id: user.company._id.toHexString(), name: user.company.name };
-    if (event.user.identity) payload.user.identity = pick(user.identity, ['firstname', 'lastname']);
+    if (user.company) payload.company = pick(user.company, ['_id', 'name']);
+    if (event.user.identity) payload.identity = pick(user.identity, ['firstname', 'lastname']);
     event.user = payload;
   }
   return event;
