@@ -67,7 +67,12 @@ exports.authorizeEventDeletion = async (req) => {
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
-  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
+  const eventIsUnassignedAndFromSameSector =
+    !event.auxiliary &&
+    event.sector &&
+    event.sector.toHexString()
+     === credentials.sector;
+  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
 
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
@@ -79,10 +84,13 @@ exports.authorizeEventCreation = async (req) => {
   const { credentials } = req.auth;
   const { payload } = req;
 
-
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   const isOwnEvent = payload.auxiliary && payload.auxiliary === credentials._id;
-  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
+  const eventIsUnassignedAndFromSameSector =
+    !payload.auxiliary &&
+    payload.sector &&
+    payload.sector === credentials.sector;
+  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
 
   return exports.checkEventCreationOrUpdate(req);
 };
@@ -91,9 +99,16 @@ exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const { event } = req.pre;
 
+  console.log('credential sector and aux', credentials.sector, credentials._id);
+  console.log('payload sector and aux', event.sector, event.auxiliary);
+
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  const isOwnEvent = (event.auxiliary && event.auxiliary.toHexString() === credentials._id);
-  if (isAuxiliary && !isOwnEvent) throw Boom.forbidden();
+  const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
+  const eventIsUnassignedAndFromSameSector =
+    !event.auxiliary &&
+    event.sector &&
+    event.sector.toHexString() === credentials.sector;
+  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
 
   return exports.checkEventCreationOrUpdate(req);
 };
