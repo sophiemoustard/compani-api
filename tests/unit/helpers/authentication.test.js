@@ -86,7 +86,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -136,7 +138,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -158,7 +162,7 @@ describe('validate', () => {
     });
   });
 
-  it('should authenticate auxiliary without comapny', async () => {
+  it('should authenticate auxiliary without company', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
     const user = {
@@ -176,7 +180,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -220,7 +226,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()

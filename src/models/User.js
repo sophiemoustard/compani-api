@@ -1,4 +1,3 @@
-const Boom = require('@hapi/boom');
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
@@ -6,8 +5,6 @@ const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
 const get = require('lodash/get');
-
-const Role = require('./Role');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
