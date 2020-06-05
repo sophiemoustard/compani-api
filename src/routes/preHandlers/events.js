@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
 const Event = require('../../models/Event');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -61,18 +62,27 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
   return null;
 };
 
+const checkAuxiliaryPermission = (credentials, event) => {
+  const isOwnEvent = event.auxiliary && event.auxiliary === credentials._id;
+  const eventIsUnassignedAndFromSameSector =
+    !event.auxiliary &&
+    event.sector &&
+    event.sector === credentials.sector;
+
+  if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+  return null;
+};
+
 exports.authorizeEventDeletion = async (req) => {
   const { credentials } = req.auth;
   const { event } = req.pre;
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
-  const eventIsUnassignedAndFromSameSector =
-    !event.auxiliary &&
-    event.sector &&
-    event.sector.toHexString()
-     === credentials.sector;
-  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+  if (isAuxiliary) {
+    if (event.auxiliary) event.auxiliary = event.auxiliary.toHexString();
+    if (event.sector) event.sector = event.sector.toHexString();
+    checkAuxiliaryPermission(credentials, event);
+  }
 
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
@@ -85,30 +95,21 @@ exports.authorizeEventCreation = async (req) => {
   const { payload } = req;
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  const isOwnEvent = payload.auxiliary && payload.auxiliary === credentials._id;
-  const eventIsUnassignedAndFromSameSector =
-    !payload.auxiliary &&
-    payload.sector &&
-    payload.sector === credentials.sector;
-  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+  if (isAuxiliary) checkAuxiliaryPermission(credentials, payload);
 
   return exports.checkEventCreationOrUpdate(req);
 };
 
 exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
-  const { event } = req.pre;
-
-  console.log('credential sector and aux', credentials.sector, credentials._id);
-  console.log('payload sector and aux', event.sector, event.auxiliary);
+  const event = cloneDeep(req.pre.event);
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  const isOwnEvent = event.auxiliary && event.auxiliary.toHexString() === credentials._id;
-  const eventIsUnassignedAndFromSameSector =
-    !event.auxiliary &&
-    event.sector &&
-    event.sector.toHexString() === credentials.sector;
-  if (isAuxiliary && !isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+  if (isAuxiliary) {
+    if (event.auxiliary) event.auxiliary = event.auxiliary.toHexString();
+    if (event.sector) event.sector = event.sector.toHexString();
+    checkAuxiliaryPermission(credentials, event);
+  }
 
   return exports.checkEventCreationOrUpdate(req);
 };
