@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
+const { rights } = require('../data/rights');
 const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
@@ -9,15 +10,18 @@ const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECR
 const formatRights = (roles, company) => {
   const formattedRights = [];
   for (const role of roles) {
-    let rights = [...role.rights];
+    let interfaceRights = rights;
+
     if (role.interface === CLIENT) {
       const companySubscriptions = Object.keys(company.subscriptions).filter(key => company.subscriptions[key]);
-      rights = role.rights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
+      interfaceRights = interfaceRights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
     }
 
-    formattedRights.push(...rights
-      .filter(right => right.hasAccess)
-      .map((right) => { if (right.permission) return right.permission; }));
+    interfaceRights = interfaceRights
+      .filter(right => right.roleConcerned.includes(role.name))
+      .map(right => right.permission);
+
+    interfaceRights.forEach((right) => { if (!formattedRights.includes(right)) formattedRights.push(right); });
   }
 
   return formattedRights;
@@ -34,10 +38,13 @@ const validate = async (decoded) => {
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 
     const userRolesName = userRoles.map(role => role.name);
-    const rights = formatRights(userRoles, user.company);
+    const userRights = formatRights(userRoles, user.company);
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
-    const scope = [`user:read-${decoded._id}`, ...userRolesName, ...rights, ...customersScopes];
+    const scope = [`user:read-${decoded._id}`, ...userRolesName, ...userRights, ...customersScopes];
+
+    console.log(scope);
+
     if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
 

@@ -1,7 +1,6 @@
 const { ObjectID } = require('mongodb');
 const memoize = require('lodash/memoize');
 const Role = require('../../../src/models/Role');
-const Right = require('../../../src/models/Right');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Sector = require('../../../src/models/Sector');
@@ -9,7 +8,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Service = require('../../../src/models/Service');
-const { rolesList, rightsList } = require('../../seed/roleSeed');
+const { rolesList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
@@ -51,7 +50,6 @@ const sectorHistories = [
 
 const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
-  await Right.deleteMany({});
   await User.deleteMany({});
   await Company.deleteMany({});
   await Sector.deleteMany({});
@@ -65,7 +63,6 @@ const populateDBForAuthentication = async () => {
   await new Company(companyWithoutSubscription).save();
   await new Sector(sector).save();
   await SectorHistory.insertMany(sectorHistories);
-  await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   await ThirdPartyPayer.insertMany(thirdPartyPayerList);
   await Service.insertMany(serviceList);
@@ -103,7 +100,6 @@ const getToken = (roleName, erp, list) => {
 
 module.exports = {
   rolesList,
-  rightsList,
   userList,
   populateDBForAuthentication,
   getUser,
