@@ -22,7 +22,7 @@ const formatRights = (roles, company) => {
       .map(right => right.permission));
   }
 
-  return [...new Set([...formattedRights])];
+  return [...new Set(formattedRights)];
 };
 
 const validate = async (decoded) => {
