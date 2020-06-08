@@ -8,7 +8,7 @@ const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER, CLIENT } = require('./
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
 const formatRights = (roles, company) => {
-  const formattedRights = [];
+  let formattedRights = [];
   for (const role of roles) {
     let interfaceRights = rights;
 
@@ -17,14 +17,12 @@ const formatRights = (roles, company) => {
       interfaceRights = interfaceRights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
     }
 
-    interfaceRights = interfaceRights
-      .filter(right => right.roleConcerned.includes(role.name))
-      .map(right => right.permission);
-
-    interfaceRights.forEach((right) => { if (!formattedRights.includes(right)) formattedRights.push(right); });
+    formattedRights = formattedRights.concat(interfaceRights
+      .filter(right => right.rolesConcerned.includes(role.name))
+      .map(right => right.permission));
   }
 
-  return formattedRights;
+  return [...new Set([...formattedRights])];
 };
 
 const validate = async (decoded) => {
