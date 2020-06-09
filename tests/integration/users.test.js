@@ -66,14 +66,6 @@ describe('USERS TEST', () => {
         expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
         expect(res.result.data.user.role.client).toMatchObject({
           name: 'auxiliary',
-          rights: expect.arrayContaining([
-            expect.objectContaining({
-              description: expect.any(String),
-              hasAccess: expect.any(Boolean),
-              permission: expect.any(String),
-              right_id: expect.any(Object),
-            }),
-          ]),
         });
         const user = await User.findById(res.result.data.user._id);
         expect(user.identity.firstname).toBe(userPayload.identity.firstname);
