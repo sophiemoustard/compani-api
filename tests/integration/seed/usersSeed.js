@@ -182,6 +182,15 @@ const usersSeedList = [
     procedure: [{ task: task._id }],
     inactivityDate: null,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'no_role_trainee', lastname: 'test' },
+    local: { email: 'no_role_trainee@alenvi.io', password: '123456!eR' },
+    role: {},
+    refreshToken: uuidv4(),
+    company: authCompany._id,
+    inactivityDate: null,
+  },
 ];
 
 const userSectors = [

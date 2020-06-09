@@ -181,12 +181,22 @@ exports.createUser = async (userPayload, credentials) => {
   }
 
   if (role.name !== TRAINER) payload.company = companyId;
-  if (role.interface === VENDOR) {
+
+  const possiblyJustUpdateUser = role.interface === VENDOR || role.name === AUXILIARY;
+  if (possiblyJustUpdateUser) {
     const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
     if (userInDB) {
-      return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
+      let updateInfo = {};
+      if (role.interface === VENDOR) {
+        if (userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
+        updateInfo = { 'role.vendor': role._id };
+      } else {
+        if (get(userInDB, 'role')) throw Boom.conflict(translate[language].userExists);
+        updateInfo = payload;
+      }
+
+      return User.findOneAndUpdate({ _id: userInDB._id }, updateInfo, { new: true })
         .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
         .lean({ virtuals: true, autopopulate: true });
     }

@@ -139,6 +139,49 @@ describe('USERS TEST', () => {
         });
         expect(response.statusCode).toBe(403);
       });
+
+      it('should update a user who has no role, with auxiliary role', async () => {
+        const usersCountBefore = await User.countDocuments({});
+        const roleAuxiliary = await Role.findOne({ name: 'auxiliary' }).lean();
+        const auxiliaryPayload = {
+          identity: { lastname: 'Auxiliary' },
+          local: { email: usersSeedList[6].local.email },
+          role: roleAuxiliary._id,
+          sector: userSectors[0]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: auxiliaryPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const usersCountAfter = await User.countDocuments({});
+        expect(usersCountAfter).toEqual(usersCountBefore);
+        expect(response.result.data.user.identity.lastname).toEqual('Auxiliary');
+      });
+
+      it('should return an error 409 if user already has a role', async () => {
+        const roleAuxiliary = await Role.findOne({ name: 'auxiliary' }).lean();
+        const auxiliaryPayload = {
+          identity: { lastname: 'Auxiliary' },
+          local: { email: usersSeedList[0].local.email },
+          role: roleAuxiliary._id,
+          sector: userSectors[0]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: auxiliaryPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
+        expect(response.result.message).toBe('L\'utilisateur existe déjà.');
+      });
     });
 
     describe('VENDOR_ADMIN', () => {
@@ -328,7 +371,7 @@ describe('USERS TEST', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(14);
+        expect(res.result.data.users.length).toBe(15);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
