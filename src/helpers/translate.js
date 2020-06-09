@@ -28,6 +28,8 @@ module.exports = {
     userPayDocumentNotFound: 'User pay document not found.',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
+    /* Api */
+    apiVersionFound: 'api version found',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -267,6 +269,8 @@ module.exports = {
     userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
+    /* Api */
+    apiVersionFound: 'version de l\'api trouvée',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
