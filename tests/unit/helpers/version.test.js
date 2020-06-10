@@ -2,10 +2,11 @@ const expect = require('expect');
 const VersionHelper = require('../../../src/helpers/version');
 
 describe('checkUpdate', () => {
-  process.env.API_VERSION = '2.3.4';
   beforeEach(() => {
+    process.env.API_VERSION = '2.3.4';
   });
   afterEach(() => {
+    process.env.API_VERSION = '';
   });
 
   it('should return true if not same version', async () => {

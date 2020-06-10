@@ -7,10 +7,16 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('USERS TEST', () => {
+describe('VERSION TEST', () => {
+  beforeEach(() => {
+    process.env.API_VERSION = '1.2.3';
+  });
+  afterEach(() => {
+    process.env.API_VERSION = '';
+  });
+
   describe('POST /version/check-update', () => {
     it('should check if user should update app', async () => {
-      process.env.API_VERSION = '1.2.3';
       const response = await app.inject({
         method: 'GET',
         url: '/version/check-update?apiVersion=1',
