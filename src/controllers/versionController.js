@@ -10,7 +10,7 @@ const checkUpdate = async (req) => {
     const mustUpdate = await versionHelper.checkUpdate(req.query.apiVersion);
 
     return {
-      message: translate[language].apiVersionFound,
+      message: mustUpdate ? translate[language].apiVersionUpToDate : translate[language].apiVersionToUpdate,
       data: { mustUpdate },
     };
   } catch (e) {

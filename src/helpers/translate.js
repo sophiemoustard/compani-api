@@ -29,7 +29,8 @@ module.exports = {
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
-    apiVersionFound: 'api version found',
+    apiVersionUpToDate: 'api version up to date',
+    apiVersionToUpdate: 'api version must be updated',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -270,7 +271,8 @@ module.exports = {
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */
-    apiVersionFound: 'version de l\'api trouvée',
+    apiVersionUpToDate: 'La version de l\'api est à jour',
+    apiVersionToUpdate: 'La version de l\'api doit être mis à jour',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
