@@ -179,28 +179,8 @@ exports.createUser = async (userPayload, credentials) => {
     const taskIds = tasks.map(task => ({ task: task._id }));
     payload.procedure = taskIds;
   }
-
   if (role.name !== TRAINER) payload.company = companyId;
 
-  const possiblyJustUpdateUser = role.interface === VENDOR || role.name === AUXILIARY;
-  if (possiblyJustUpdateUser) {
-    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
-
-    if (userInDB) {
-      let updateInfo = {};
-      if (role.interface === VENDOR) {
-        if (userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
-        updateInfo = { 'role.vendor': role._id };
-      } else {
-        if (get(userInDB, 'role')) throw Boom.conflict(translate[language].userExists);
-        updateInfo = payload;
-      }
-
-      return User.findOneAndUpdate({ _id: userInDB._id }, updateInfo, { new: true })
-        .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-        .lean({ virtuals: true, autopopulate: true });
-    }
-  }
   const user = await User.create({ ...payload, refreshToken: uuid.v4() });
 
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
@@ -222,17 +202,21 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
+exports.updateUser = async (userId, userPayload, credentials, userInDB, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
 
   const query = { _id: userId };
   if (!canEditWithoutCompany) query.company = companyId;
 
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
-  }
-
   const payload = await formatUpdatePayload(userPayload);
+
+  const alreadyHasClientRole = !!get(payload, 'role.client') && !!get(userInDB, 'role.client');
+  const alreadyHasVendorRole = !!get(payload, 'role.vendor') && !!get(userInDB, 'role.vendor');
+  if (alreadyHasClientRole || alreadyHasVendorRole) throw Boom.conflict(translate[language].userRoleConflict);
+
+  if (payload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
+  }
   await User.updateOne(query, { $set: flat(payload) });
 };
 

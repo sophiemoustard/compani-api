@@ -675,11 +675,6 @@ describe('createUser', () => {
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns({ ...newUserWithProcedure });
 
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': 'toto@test.com' })
-      .chain('lean')
-      .returns(false);
-
     UserMock.expects('findOneAndUpdate').never();
 
     const result = await UsersHelper.createUser(payload, credentials);
@@ -689,63 +684,6 @@ describe('createUser', () => {
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, credentials.company._id);
-  });
-
-  it('should update a user who has no role, with auxiliary role', async () => {
-    const payload = {
-      identity: { lastname: 'Auxiliary', firstname: 'test' },
-      local: { email: 'trainee@test.com', password: '1234567890' },
-      role: { client: roleId },
-    };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'auxiliary' },
-    };
-    const tasks = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    const newUserWithProcedure = {
-      ...newUser,
-      procedure: [
-        { task: tasks[0]._id },
-        { task: tasks[1]._id },
-      ],
-    };
-    const userUpdateQuery = {
-      company: credentials.company._id,
-      ...payload,
-      procedure: [{ task: tasks[0]._id }, { task: tasks[1]._id }],
-    };
-
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'auxiliary', interface: 'client' });
-
-    TaskMock.expects('find').chain('lean').returns(tasks);
-
-    const userInDB = { _id: new ObjectID() };
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.local.email })
-      .chain('lean')
-      .returns(userInDB);
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: userInDB._id }, userUpdateQuery, { new: true })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-      })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUserWithProcedure });
-
-    const result = await UsersHelper.createUser(payload, credentials);
-
-    expect(result).toMatchObject(newUser);
-    RoleMock.verify();
-    TaskMock.verify();
-    UserMock.verify();
   });
 
   it('should create a coach', async () => {
@@ -861,8 +799,6 @@ describe('createUser', () => {
 
     TaskMock.expects('find').never();
 
-    UserMock.expects('findOne').withExactArgs({ 'local.email': payload.local.email }).chain('lean').returns();
-
     UserMock.expects('create')
       .withExactArgs({ ...payload, refreshToken: sinon.match.string })
       .returns({ ...newUser, _id: userId });
@@ -879,51 +815,6 @@ describe('createUser', () => {
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns({ ...newUser });
 
-
-    const result = await UsersHelper.createUser(payload, credentials);
-
-    expect(result).toMatchObject(newUser);
-    RoleMock.verify();
-    TaskMock.verify();
-    UserMock.verify();
-  });
-
-  it('should update a user with trainer role', async () => {
-    const payload = {
-      identity: { lastname: 'Admin', firstname: 'Toto' },
-      local: { email: 'trainer@test.com', password: '1234567890' },
-      role: { vendor: roleId },
-      company: new ObjectID(),
-    };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'trainer', rights: [{ _id: new ObjectID() }] },
-    };
-
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
-
-    TaskMock.expects('find').never();
-
-    const userInDB = { _id: new ObjectID(), role: { client: 'blabla' } };
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.local.email })
-      .chain('lean')
-      .returns(userInDB);
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: userInDB._id }, { 'role.vendor': roleId }, { new: true })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: payload.company },
-      })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUser });
 
     const result = await UsersHelper.createUser(payload, credentials);
 
@@ -966,7 +857,7 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should return an error 409 if user already has vendor role', async () => {
+  it('should return an error 409 if user already exist', async () => {
     try {
       const payload = {
         identity: { lastname: 'Admin', firstname: 'Toto' },
@@ -982,18 +873,19 @@ describe('createUser', () => {
 
       TaskMock.expects('find').never();
 
-      const userInDB = { _id: new ObjectID(), role: { vendor: 'blabla' } };
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.local.email })
-        .chain('lean')
-        .returns(userInDB);
+      UserMock.expects('create')
+        .withExactArgs({
+          ...payload,
+          refreshToken: sinon.match.string,
+        })
+        .throws({ code: 11000 });
 
       UserMock.expects('findOneAndUpdate')
         .never();
 
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
-      expect(e).toMatchObject(Boom.conflict('Formateur déjà existant'));
+      expect(e).toMatchObject({ code: 11000 });
       RoleMock.verify();
       TaskMock.verify();
       UserMock.verify();
@@ -1097,7 +989,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials, null);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1113,7 +1005,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials, true);
+    await UsersHelper.updateUser(userId, payload, credentials, null, true);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1129,7 +1021,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials, null);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1151,7 +1043,7 @@ describe('updateUser', () => {
       .chain('lean')
       .returns({ _id: payload.role, name: 'test', interface: 'client' });
 
-    await UsersHelper.updateUser(userId, payload, credentials);
+    await UsersHelper.updateUser(userId, payload, credentials, null);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1170,7 +1062,7 @@ describe('updateUser', () => {
     UserMock.expects('find').never();
 
     try {
-      await UsersHelper.updateUser(userId, payload, credentials);
+      await UsersHelper.updateUser(userId, payload, credentials, null);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {

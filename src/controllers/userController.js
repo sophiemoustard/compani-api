@@ -157,6 +157,7 @@ const update = async (req) => {
       req.params._id,
       req.payload,
       req.auth.credentials,
+      req.pre.user,
       req.pre.canEditWithoutCompany
     );
 
