@@ -89,7 +89,10 @@ exports.authorizeUserDeletion = async (req) => {
 
 exports.authorizeUserUpdateWithoutCompany = (req) => {
   const { credentials } = req.auth;
-  return get(credentials, 'role.vendor', null);
+  const targetUserHasNoCompany = !req.pre.user.company;
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor', null);
+
+  return loggedUserHasVendorRole || targetUserHasNoCompany;
 };
 
 exports.authorizeUserCreation = async (req) => {

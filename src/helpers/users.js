@@ -17,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, COACH, CLIENT_ADMIN, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -210,13 +210,26 @@ exports.updateUser = async (userId, userPayload, credentials, userInDB, canEditW
 
   const payload = await formatUpdatePayload(userPayload);
 
-  const alreadyHasClientRole = !!get(payload, 'role.client') && !!get(userInDB, 'role.client');
+  const newClientRole = get(payload, 'role.client');
+  const formerClientRole = get(userInDB, 'role.client');
+  let forbiddenRoleChange = false;
+  if (newClientRole && formerClientRole) {
+    const allowedRoleChanges = [
+      { from: AUXILIARY, to: PLANNING_REFERENT },
+      { from: PLANNING_REFERENT, to: AUXILIARY },
+      { from: COACH, to: CLIENT_ADMIN },
+      { from: CLIENT_ADMIN, to: COACH },
+    ];
+    forbiddenRoleChange = allowedRoleChanges.includes({ from: formerClientRole, to: newClientRole });
+  }
   const alreadyHasVendorRole = !!get(payload, 'role.vendor') && !!get(userInDB, 'role.vendor');
-  if (alreadyHasClientRole || alreadyHasVendorRole) throw Boom.conflict(translate[language].userRoleConflict);
+  if (forbiddenRoleChange || alreadyHasVendorRole) throw Boom.conflict(translate[language].userRoleConflict);
+
 
   if (payload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
+
   await User.updateOne(query, { $set: flat(payload) });
 };
 

@@ -10,7 +10,6 @@ exports.authorizeSendSms = async (req) => {
   const user = await User.findOne({ 'contact.phone': `0${req.payload.to.substring(3)}` }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
-  if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
-
+  if (user.company && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
   return null;
 };
