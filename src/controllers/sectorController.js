@@ -34,7 +34,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedSector = await SectorHelper.update(req.params._id, req.payload);
+    const updatedSector = await SectorHelper.update(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].sectorUpdated,

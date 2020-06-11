@@ -6,7 +6,7 @@ const translate = require('../helpers/translate');
 const { language } = translate;
 
 exports.list = async (query, credentials) => {
-  const formattedQuery = { ...query, company: get(credentials, 'company._id', null) };
+  const formattedQuery = { ...query, company: get(credentials, 'company._id') };
   if (query.name) query.name = { $regex: new RegExp(`^${query.name}$`), $options: 'i' };
 
   return Sector.find(formattedQuery).lean();
@@ -16,15 +16,16 @@ exports.create = async (payload, credentials) => {
   const existingSector = await Sector.countDocuments({ name: payload.name });
   if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
 
-  const sector = new Sector({ ...payload, company: get(credentials, 'company._id', null) });
-  return sector.save();
+  const sector = await Sector.create({ ...payload, company: get(credentials, 'company._id') });
+
+  return sector.toObject();
 };
 
-exports.update = async (sectorId, payload) => {
-  const existingSector = await Sector.countDocuments({ name: payload.name });
+exports.update = async (sectorId, payload, credentials) => {
+  const existingSector = await Sector.countDocuments({ name: payload.name, company: get(credentials, 'company._id') });
   if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
 
-  return Sector.findOneAndUpdate({ _id: sectorId }, { $set: payload }, { new: true });
+  return Sector.findOneAndUpdate({ _id: sectorId }, { $set: payload }, { new: true }).lean();
 };
 
-exports.remove = async sectorId => Sector.deleteOne(sectorId);
+exports.remove = async sectorId => Sector.deleteOne({ _id: sectorId });
