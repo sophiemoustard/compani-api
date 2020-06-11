@@ -6,10 +6,12 @@ const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
+const Contract = require('../../../src/models/Contract');
+const SectorHistory = require('../../../src/models/SectorHistory');
+const Sector = require('../../../src/models/Sector');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
-const { userList } = require('../../seed/userSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { NEVER, INTERVENTION, COMPANY_CONTRACT, HOURLY, AUXILIARY } = require('../../../src/helpers/constants');
 
@@ -58,20 +60,59 @@ const customer = {
 const auxiliaries = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary', lastname: 'Test', title: 'mr' },
+    identity: { firstname: 'Customer referent 1', lastname: 'Test', title: 'mr' },
     local: { email: 'customer-referent-1@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
+    contracts: [new ObjectID()],
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+    identity: { firstname: 'Customer referent 2', lastname: 'Test', title: 'mr' },
     local: { email: 'customer-referent-2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
     contact: { phone: '0987654321' },
+    contracts: [new ObjectID()],
+  },
+];
+
+const contracts = [
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: auxiliaries[0]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_company',
+    _id: auxiliaries[0].contracts[0],
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: auxiliaries[1]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_customer',
+    _id: auxiliaries[1].contracts[0],
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
   },
 ];
 
@@ -91,6 +132,26 @@ const referentHistories = [
   },
 ];
 
+const sectors = [{ _id: new ObjectID(), name: 'Test', company: authCompany._id }];
+
+const sectorHistories = [
+  {
+    _id: new ObjectID(),
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[0]._id,
+    startDate: '2020-03-20T00:00:00',
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    auxiliary: auxiliaries[1]._id,
+    sector: sectors[0]._id,
+    startDate: '2020-03-20T00:00:00',
+    company: authCompany._id,
+  },
+];
+
+
 const eventList = [
   {
     _id: '1234567890abcdef12345678',
@@ -98,7 +159,7 @@ const eventList = [
     status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
-    auxiliary: userList[2]._id,
+    auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
     startDate: moment().set('hours', 10).set('minutes', 0),
     endDate: moment().set('hours', 12).set('minutes', 30),
@@ -111,7 +172,7 @@ const eventList = [
     status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
-    auxiliary: userList[2]._id,
+    auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
     startDate: moment().subtract(1, 'week').set('hours', 18).set('minutes', 15),
     endDate: moment().subtract(1, 'week').set('hours', 20).set('minutes', 30),
@@ -124,7 +185,7 @@ const eventList = [
     status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
-    auxiliary: userList[4]._id,
+    auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
     startDate: moment().subtract(1, 'week').set('hours', 11).set('minutes', 15),
     endDate: moment().subtract(1, 'week').set('hours', 12).set('minutes', 30),
@@ -139,6 +200,9 @@ const populatePlanning = async () => {
   await Event.deleteMany({});
   await ReferentHistory.deleteMany({});
   await User.deleteMany({});
+  await Contract.deleteMany({});
+  await SectorHistory.deleteMany({});
+  await Sector.deleteMany({});
 
   await populateAuthentication();
 
@@ -147,6 +211,9 @@ const populatePlanning = async () => {
   await (new Customer(customer)).save();
   await new Service(service).save();
   await User.insertMany(auxiliaries);
+  await Contract.insertMany(contracts);
+  await SectorHistory.insertMany(sectorHistories);
+  await Sector.insertMany(sectors);
 };
 
 module.exports = { populatePlanning };
