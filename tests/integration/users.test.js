@@ -801,6 +801,7 @@ describe('USERS TEST', () => {
     const updatePayload = {
       identity: { firstname: 'Riri' },
       local: { email: 'riri@alenvi.io' },
+      company: authCompany._id,
     };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);

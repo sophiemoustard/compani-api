@@ -27,7 +27,6 @@ exports.getUser = async (req) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
   const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
@@ -37,10 +36,8 @@ exports.authorizeUserUpdate = async (req) => {
     if (!establishment) throw Boom.forbidden();
   }
 
-  const userCompany = user.company ? user.company.toHexString() : get(req, 'payload.company');
+  const userCompany = get(req, 'pre.user.company') ? req.pre.user.company.toHexString() : get(req, 'payload.company');
   if (!isVendorUser && (!userCompany || userCompany !== companyId.toHexString())) throw Boom.forbidden();
-
-  if (get(req, 'payload.company') && user.company) throw Boom.forbidden();
 
   if (get(req, 'payload.customers')) {
     const role = await Role.findOne({ name: HELPER }).lean();
@@ -65,7 +62,11 @@ exports.authorizeUserGetById = async (req) => {
     if (!establishment) throw Boom.forbidden();
   }
 
-  if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  const isClientFromDifferentCompany =
+    !isVendorUser &&
+    user.company &&
+    user.company.toHexString() !== companyId.toHexString();
+  if (isClientFromDifferentCompany) throw Boom.forbidden();
 
   return null;
 };
