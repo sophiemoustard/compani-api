@@ -9,7 +9,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
-const { HELPER } = require('../../src/helpers/constants');
+const { HELPER, AUXILIARY, TRAINER } = require('../../src/helpers/constants');
 const {
   usersSeedList,
   userPayload,
@@ -139,6 +139,26 @@ describe('USERS TEST', () => {
         });
         expect(response.statusCode).toBe(403);
       });
+
+      it('should return an error 409 if user already exist', async () => {
+        const roleAuxiliary = await Role.findOne({ name: 'auxiliary' }).lean();
+        const auxiliaryPayload = {
+          identity: { lastname: 'Auxiliary' },
+          local: { email: usersSeedList[0].local.email },
+          role: roleAuxiliary._id,
+          sector: userSectors[0]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: auxiliaryPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
+        expect(response.result.message).toBe('Cet email est déjà pris par un autre utilisateur.');
+      });
     });
 
     describe('VENDOR_ADMIN', () => {
@@ -176,47 +196,6 @@ describe('USERS TEST', () => {
         expect(response.statusCode).toBe(200);
         const usersCountAfter = await User.countDocuments({});
         expect(usersCountAfter).toEqual(usersCountBefore + 1);
-      });
-
-      it('should update a user with vendor role', async () => {
-        const usersCountBefore = await User.countDocuments({});
-        const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
-        const trainerPayload = {
-          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: usersSeedList[0].local.email },
-          role: roleTrainer._id,
-        };
-
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: trainerPayload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-        const usersCountAfter = await User.countDocuments({});
-        expect(usersCountAfter).toEqual(usersCountBefore);
-      });
-
-      it('should return an error 409 if trainer already has vendor role', async () => {
-        const vendorAdminRole = await Role.findOne({ name: 'vendor_admin' }).lean();
-        const trainerPayload = {
-          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-          local: { email: 'trainer@alenvi.io' },
-          role: vendorAdminRole._id,
-          sector: userSectors[0]._id,
-        };
-
-        const response = await app.inject({
-          method: 'POST',
-          url: '/users',
-          payload: trainerPayload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(409);
-        expect(response.result.message).toBe('Formateur déjà existant');
       });
     });
 
@@ -328,7 +307,7 @@ describe('USERS TEST', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(14);
+        expect(res.result.data.users.length).toBe(15);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
       });
@@ -822,7 +801,6 @@ describe('USERS TEST', () => {
     const updatePayload = {
       identity: { firstname: 'Riri' },
       local: { email: 'riri@alenvi.io' },
-      role: userPayload.role,
     };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
@@ -846,7 +824,6 @@ describe('USERS TEST', () => {
             firstname: updatePayload.identity.firstname,
           }),
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-          role: { client: { _id: updatePayload.role } },
         });
       });
 
@@ -988,7 +965,77 @@ describe('USERS TEST', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        expect(res.statusCode).toBe(403);
+        expect(res.statusCode).toBe(409);
+      });
+
+      it('should update a user with vendor role', async () => {
+        const roleTrainer = await Role.findOne({ name: TRAINER }).lean();
+        const userId = usersSeedList[0]._id;
+        const trainerPayload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: usersSeedList[0].local.email },
+          role: roleTrainer._id,
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: trainerPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const user = await User.findById(userId);
+        expect(user.identity.lastname).toEqual('Kirk');
+        expect(user.role.vendor._id).toEqual(roleTrainer._id);
+      });
+
+      it('should update a user who has no role, with auxiliary role', async () => {
+        const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
+        const userId = usersSeedList[6]._id;
+        const auxiliaryPayload = {
+          identity: { title: 'mr', lastname: 'Auxiliary', firstname: 'test' },
+          contact: { phone: '0600000001' },
+          local: { email: usersSeedList[6].local.email },
+          role: roleAuxiliary._id,
+          sector: userSectors[0]._id,
+          administrative: { transportInvoice: { transportType: 'public' } },
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: auxiliaryPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const user = await User.findById(userId);
+        expect(user.identity.lastname).toEqual('Auxiliary');
+        expect(user.role.client._id).toEqual(roleAuxiliary._id);
+      });
+
+      it('should return a 409 if the role switch is not allowed', async () => {
+        const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
+        const userId = usersSeedList[2]._id;
+        const auxiliaryPayload = {
+          identity: { title: 'mr', lastname: 'Kitty', firstname: 'Admin3' },
+          contact: { phone: '0600000001' },
+          local: { email: usersSeedList[2].local.email },
+          role: roleAuxiliary._id,
+          sector: userSectors[0]._id,
+          administrative: { transportInvoice: { transportType: 'public' } },
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: auxiliaryPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(409);
+        expect(response.result.message).toBe('L\'utilisateur a déjà un role sur cette interface');
       });
 
       it('should return a 404 error if no user found', async () => {

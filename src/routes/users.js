@@ -195,6 +195,7 @@ exports.plugin = {
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
+              title: Joi.string(),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               nationality: Joi.string(),
