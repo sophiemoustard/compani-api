@@ -141,6 +141,7 @@ module.exports = {
     sectorNotFound: 'Sector not found.',
     sectorsFound: 'Sectors found.',
     sectorDeleted: 'Sector deleted.',
+    sectorAlreadyExists: 'Sector already exists',
     /* Services */
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
@@ -378,6 +379,7 @@ module.exports = {
     sectorNotFound: 'Équipe non trouvée.',
     sectorsFound: 'Équipes trouvées.',
     sectorDeleted: 'Équipe supprimée.',
+    sectorAlreadyExists: 'Équipe déjà existante',
     /* Services */
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',
