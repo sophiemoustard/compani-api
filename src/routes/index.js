@@ -1,5 +1,9 @@
 exports.routes = [
   {
+    plugin: require('./version'),
+    routes: { prefix: '/version' },
+  },
+  {
     plugin: require('./users'),
     routes: { prefix: '/users' },
   },

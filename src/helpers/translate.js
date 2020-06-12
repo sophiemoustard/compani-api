@@ -29,6 +29,9 @@ module.exports = {
     userRoleConflict: 'User already has a role on this interface',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
+    /* Api */
+    apiVersionUpToDate: 'api version up to date',
+    apiVersionToUpdate: 'api version must be updated',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -268,6 +271,9 @@ module.exports = {
     userRoleConflict: "L'utilisateur a déjà un role sur cette interface",
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
+    /* Api */
+    apiVersionUpToDate: 'La version de l\'api est à jour',
+    apiVersionToUpdate: 'La version de l\'api doit être mis à jour',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
