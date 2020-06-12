@@ -14,6 +14,7 @@ const send = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
+    if (e.code === 21614) return Boom.badRequest();
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };

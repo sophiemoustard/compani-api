@@ -17,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, COACH, CLIENT_ADMIN, AUXILIARY_ROLES } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, COACH, CLIENT_ADMIN, AUXILIARY_ROLES, CLIENT } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -190,13 +190,37 @@ exports.createUser = async (userPayload, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-const formatUpdatePayload = async (updatedUser) => {
+const formatUpdatePayload = async (updatedUser, userInDB) => {
   const payload = omit(updatedUser, ['role']);
 
   if (updatedUser.role) {
-    const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
-    if (!role) throw Boom.badRequest(translate[language].unknownRole);
-    payload.role = { [role.interface]: role._id.toHexString() };
+    const newRole = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
+    if (!newRole) throw Boom.badRequest(translate[language].unknownRole);
+
+    const clientRoleSwitch =
+      newRole.interface === CLIENT &&
+      get(userInDB, 'role.client') &&
+      userInDB.role.client.toHexString() !== updatedUser.role;
+    if (clientRoleSwitch) {
+      const formerClientRole = await Role.findById(userInDB.role.client, { name: 1 }).lean();
+      const allowedRoleChanges = [
+        { from: AUXILIARY, to: PLANNING_REFERENT },
+        { from: PLANNING_REFERENT, to: AUXILIARY },
+        { from: COACH, to: CLIENT_ADMIN },
+        { from: CLIENT_ADMIN, to: COACH },
+      ];
+
+      let forbiddenRoleChange = true;
+      allowedRoleChanges.forEach((roleSwitch) => {
+        if (roleSwitch.from === formerClientRole.name && roleSwitch.to === newRole.name) forbiddenRoleChange = false;
+      });
+      if (forbiddenRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
+    }
+
+    const vendorRoleChange = !!get(payload, 'role.vendor') && !!get(userInDB, 'role.vendor');
+    if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
+
+    payload.role = { [newRole.interface]: newRole._id.toHexString() };
   }
 
   return payload;
@@ -208,23 +232,7 @@ exports.updateUser = async (userId, userPayload, credentials, userInDB, canEditW
   const query = { _id: userId };
   if (!canEditWithoutCompany) query.company = companyId;
 
-  const payload = await formatUpdatePayload(userPayload);
-
-  const newClientRole = get(payload, 'role.client');
-  const formerClientRole = get(userInDB, 'role.client');
-  let forbiddenRoleChange = false;
-  if (newClientRole && formerClientRole) {
-    const allowedRoleChanges = [
-      { from: AUXILIARY, to: PLANNING_REFERENT },
-      { from: PLANNING_REFERENT, to: AUXILIARY },
-      { from: COACH, to: CLIENT_ADMIN },
-      { from: CLIENT_ADMIN, to: COACH },
-    ];
-    forbiddenRoleChange = allowedRoleChanges.includes({ from: formerClientRole, to: newClientRole });
-  }
-  const alreadyHasVendorRole = !!get(payload, 'role.vendor') && !!get(userInDB, 'role.vendor');
-  if (forbiddenRoleChange || alreadyHasVendorRole) throw Boom.conflict(translate[language].userRoleConflict);
-
+  const payload = await formatUpdatePayload(userPayload, userInDB);
 
   if (payload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);

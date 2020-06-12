@@ -1016,13 +1016,13 @@ describe('USERS TEST', () => {
         expect(user.role.client._id).toEqual(roleAuxiliary._id);
       });
 
-      it('should return a 409 if user already has a role on this interface', async () => {
+      it('should return a 409 if the role switch is not allowed', async () => {
         const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
-        const userId = usersSeedList[5]._id;
+        const userId = usersSeedList[2]._id;
         const auxiliaryPayload = {
-          identity: { title: 'mr', lastname: 'Auxiliary', firstname: 'test' },
+          identity: { title: 'mr', lastname: 'Kitty', firstname: 'Admin3' },
           contact: { phone: '0600000001' },
-          local: { email: usersSeedList[6].local.email },
+          local: { email: usersSeedList[2].local.email },
           role: roleAuxiliary._id,
           sector: userSectors[0]._id,
           administrative: { transportInvoice: { transportType: 'public' } },
