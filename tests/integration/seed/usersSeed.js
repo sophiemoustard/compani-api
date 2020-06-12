@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
-const Task = require('../../../src/models/Task');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
@@ -45,8 +44,6 @@ const establishmentList = [
     company: otherCompany._id,
   },
 ];
-
-const task = { _id: new ObjectID(), name: 'Test' };
 
 const customerFromOtherCompany = {
   _id: new ObjectID(),
@@ -93,7 +90,6 @@ const auxiliaryFromOtherCompany = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   refreshToken: uuidv4(),
   company: otherCompany._id,
-  procedure: [{ task: task._id }],
   inactivityDate: null,
 };
 
@@ -112,7 +108,6 @@ const usersSeedList = [
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
     },
-    procedure: [{ task: task._id }],
     inactivityDate: null,
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,
@@ -129,7 +124,6 @@ const usersSeedList = [
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
     },
-    procedure: [{ task: task._id }],
     inactivityDate: null,
   },
   {
@@ -164,7 +158,6 @@ const usersSeedList = [
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
     },
-    procedure: [{ task: task._id }],
     inactivityDate: null,
   },
   {
@@ -179,7 +172,6 @@ const usersSeedList = [
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
     },
-    procedure: [{ task: task._id }],
     inactivityDate: null,
   },
   {
@@ -239,7 +231,6 @@ const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.na
 
 const populateDB = async () => {
   await User.deleteMany({});
-  await Task.deleteMany({});
   await Customer.deleteMany({});
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
@@ -254,7 +245,6 @@ const populateDB = async () => {
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
   await Establishment.insertMany(establishmentList);
-  await new Task(task).save();
 };
 
 module.exports = {

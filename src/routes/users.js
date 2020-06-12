@@ -18,8 +18,6 @@ const {
   forgotPassword,
   checkResetPasswordToken,
   updateCertificates,
-  updateTask,
-  getUserTasks,
   uploadFile,
   uploadImage,
   createDriveFolder,
@@ -273,11 +271,6 @@ exports.plugin = {
                 phoneNumber: Joi.string(),
               }),
             }),
-            procedure: Joi.object().keys({
-              _id: Joi.objectId(),
-              name: Joi.string(),
-              isDone: Joi.boolean(),
-            }),
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
@@ -345,42 +338,6 @@ exports.plugin = {
         ],
       },
       handler: updateCertificates,
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/tasks/{task_id}',
-      options: {
-        auth: { scope: ['users:edit'] },
-        validate: {
-          params: Joi.object({
-            _id: Joi.objectId(),
-            task_id: Joi.objectId(),
-          }),
-          payload: Joi.object().keys({ isDone: Joi.boolean() }),
-        },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
-      },
-      handler: updateTask,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/tasks',
-      options: {
-        auth: { scope: ['users:edit'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
-        },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserGetById },
-        ],
-      },
-      handler: getUserTasks,
     });
 
     server.route({

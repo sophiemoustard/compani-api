@@ -87,9 +87,6 @@ module.exports = {
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
     contractVersionUpdated: 'Contract amendment updated.',
-    /* User tasks */
-    userTasksFound: 'User tasks found',
-    userTaskUpdated: 'User task updated',
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -324,9 +321,6 @@ module.exports = {
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
     contractVersionUpdated: 'Avenant au contrat modifié.',
-    /* User tasks */
-    userTasksFound: "Tâches de l'utilisateur trouvés",
-    userTaskUpdated: "Tâche de l'utilisateur mise à jour",
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
