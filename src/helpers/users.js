@@ -17,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, COACH, CLIENT_ADMIN, AUXILIARY_ROLES, CLIENT } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -190,49 +190,26 @@ exports.createUser = async (userPayload, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-const formatUpdatePayload = async (updatedUser, userInDB) => {
+const formatUpdatePayload = async (updatedUser) => {
   const payload = omit(updatedUser, ['role']);
 
   if (updatedUser.role) {
-    const newRole = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
-    if (!newRole) throw Boom.badRequest(translate[language].unknownRole);
+    const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
+    if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
-    const clientRoleSwitch =
-      newRole.interface === CLIENT &&
-      get(userInDB, 'role.client') &&
-      userInDB.role.client.toHexString() !== updatedUser.role;
-    if (clientRoleSwitch) {
-      const formerClientRole = await Role.findById(userInDB.role.client, { name: 1 }).lean();
-      const allowedRoleChanges = [
-        { from: AUXILIARY, to: PLANNING_REFERENT },
-        { from: PLANNING_REFERENT, to: AUXILIARY },
-        { from: COACH, to: CLIENT_ADMIN },
-        { from: CLIENT_ADMIN, to: COACH },
-      ];
-
-      let forbiddenRoleChange = true;
-      allowedRoleChanges.forEach((roleSwitch) => {
-        if (roleSwitch.from === formerClientRole.name && roleSwitch.to === newRole.name) forbiddenRoleChange = false;
-      });
-      if (forbiddenRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
-    }
-
-    const vendorRoleChange = !!get(payload, 'role.vendor') && !!get(userInDB, 'role.vendor');
-    if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
-
-    payload.role = { [newRole.interface]: newRole._id.toHexString() };
+    payload.role = { [role.interface]: role._id.toHexString() };
   }
 
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials, userInDB, canEditWithoutCompany = false) => {
+exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
 
   const query = { _id: userId };
   if (!canEditWithoutCompany) query.company = companyId;
 
-  const payload = await formatUpdatePayload(userPayload, userInDB);
+  const payload = await formatUpdatePayload(userPayload);
 
   if (payload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);

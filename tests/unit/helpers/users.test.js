@@ -989,7 +989,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials, null);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1005,7 +1005,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials, null, true);
+    await UsersHelper.updateUser(userId, payload, credentials, true);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1021,7 +1021,7 @@ describe('updateUser', () => {
 
     RoleMock.expects('findById').never();
 
-    await UsersHelper.updateUser(userId, payload, credentials, null);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1043,7 +1043,7 @@ describe('updateUser', () => {
       .chain('lean')
       .returns({ _id: payload.role, name: 'test', interface: 'client' });
 
-    await UsersHelper.updateUser(userId, payload, credentials, null);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
     UserMock.verify();
     RoleMock.verify();
@@ -1062,7 +1062,7 @@ describe('updateUser', () => {
     UserMock.expects('find').never();
 
     try {
-      await UsersHelper.updateUser(userId, payload, credentials, null);
+      await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {

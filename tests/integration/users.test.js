@@ -801,7 +801,6 @@ describe('USERS TEST', () => {
     const updatePayload = {
       identity: { firstname: 'Riri' },
       local: { email: 'riri@alenvi.io' },
-      company: authCompany._id,
     };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
@@ -966,7 +965,7 @@ describe('USERS TEST', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        expect(res.statusCode).toBe(403);
+        expect(res.statusCode).toBe(409);
       });
 
       it('should update a user with vendor role', async () => {
