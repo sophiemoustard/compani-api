@@ -210,7 +210,9 @@ const populatePlanning = async () => {
   await ReferentHistory.insertMany(referentHistories);
   await (new Customer(customer)).save();
   await new Service(service).save();
-  await User.insertMany(auxiliaries);
+  for (const aux of auxiliaries) {
+    await (new User(aux)).save();
+  }
   await Contract.insertMany(contracts);
   await SectorHistory.insertMany(sectorHistories);
   await Sector.insertMany(sectors);
