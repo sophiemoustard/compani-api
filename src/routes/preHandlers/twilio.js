@@ -11,6 +11,5 @@ exports.authorizeSendSms = async (req) => {
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
-
   return null;
 };

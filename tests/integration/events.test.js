@@ -1032,8 +1032,8 @@ describe('EVENTS ROUTES', () => {
           customCredentials: auxiliaries[0].local,
         },
         {
-          name: 'auxiliary unassigned event',
-          expectedCode: 403,
+          name: 'auxiliary, unassigned event, same sector ',
+          expectedCode: 200,
           erp: true,
           customCredentials: auxiliaries[0].local,
           customPayload: { ...omit(payload, 'auxiliary'), sector: sectors[0]._id },

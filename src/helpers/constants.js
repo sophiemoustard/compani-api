@@ -181,6 +181,8 @@ module.exports = {
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
   TRAINER: 'trainer',
+  // SUBSCRIPTIONS
+  ERP: 'erp',
   // EXPORTS
   SERVICE: 'service',
   SECTOR: 'sector',

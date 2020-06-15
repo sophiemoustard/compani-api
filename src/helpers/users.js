@@ -17,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, VENDOR, AUXILIARY_ROLES } = require('./constants');
+const { AUXILIARY, PLANNING_REFERENT, TRAINER, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -179,18 +179,8 @@ exports.createUser = async (userPayload, credentials) => {
     const taskIds = tasks.map(task => ({ task: task._id }));
     payload.procedure = taskIds;
   }
-
   if (role.name !== TRAINER) payload.company = companyId;
-  if (role.interface === VENDOR) {
-    const userInDB = await User.findOne({ 'local.email': payload.local.email }).lean();
 
-    if (userInDB && userInDB.role.vendor) throw Boom.conflict(translate[language].trainerAlreadyExists);
-    if (userInDB) {
-      return User.findOneAndUpdate({ _id: userInDB._id }, { 'role.vendor': role._id }, { new: true })
-        .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-        .lean({ virtuals: true, autopopulate: true });
-    }
-  }
   const user = await User.create({ ...payload, refreshToken: uuid.v4() });
 
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
@@ -206,6 +196,7 @@ const formatUpdatePayload = async (updatedUser) => {
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
     if (!role) throw Boom.badRequest(translate[language].unknownRole);
+
     payload.role = { [role.interface]: role._id.toHexString() };
   }
 
@@ -218,11 +209,12 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   const query = { _id: userId };
   if (!canEditWithoutCompany) query.company = companyId;
 
-  if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
+  const payload = await formatUpdatePayload(userPayload);
+
+  if (payload.sector) {
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  const payload = await formatUpdatePayload(userPayload);
   await User.updateOne(query, { $set: flat(payload) });
 };
 

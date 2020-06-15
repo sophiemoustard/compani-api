@@ -34,7 +34,9 @@ describe('BALANCES ROUTES - GET /', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.balances).toBeDefined();
-      expect(response.result.data.balances[0]).toMatchObject({
+
+      const romainBalance = response.result.data.balances.find(b => b.customer.identity.firstname === 'Romain');
+      expect(romainBalance).toMatchObject({
         _id: { tpp: balanceThirdPartyPayer._id, customer: balanceCustomerList[1]._id },
         customer: {
           _id: balanceCustomerList[1]._id,
@@ -58,7 +60,9 @@ describe('BALANCES ROUTES - GET /', () => {
         billed: balanceBillList[1].netInclTaxes,
         balance: -balanceBillList[1].netInclTaxes,
       });
-      expect(response.result.data.balances[1]).toMatchObject({
+
+      const eganBalance = response.result.data.balances.find(b => b.customer.identity.firstname === 'Egan');
+      expect(eganBalance).toMatchObject({
         _id: { tpp: null, customer: balanceCustomerList[0]._id },
         customer: {
           _id: balanceCustomerList[0]._id,

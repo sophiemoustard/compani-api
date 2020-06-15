@@ -26,8 +26,12 @@ module.exports = {
     userAuthentified: 'User authenticated successfully.',
     userPayDocumentDeleted: 'User pay document deleted successfully.',
     userPayDocumentNotFound: 'User pay document not found.',
+    userRoleConflict: 'User already has a role on this interface',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
+    /* Api */
+    apiVersionUpToDate: 'api version up to date',
+    apiVersionToUpdate: 'api version must be updated',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -141,6 +145,7 @@ module.exports = {
     sectorNotFound: 'Sector not found.',
     sectorsFound: 'Sectors found.',
     sectorDeleted: 'Sector deleted.',
+    sectorAlreadyExists: 'Sector already exists',
     /* Services */
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
@@ -214,8 +219,6 @@ module.exports = {
     establishmentsFound: 'Establishments found.',
     establishmentRemoved: 'Establishment removed.',
     siretAlreadyExists: 'Siret already used by another establishment.',
-    /* Trainers */
-    trainerAlreadyExists: 'Trainer already exists',
     /* Programs */
     programsFound: 'Programs found.',
     programsNotFound: 'Programs not found.',
@@ -265,8 +268,12 @@ module.exports = {
     userAuthentified: 'Utilisateur authentifié avec succès.',
     userPayDocumentDeleted: "Document de paye d'utilisateur supprimé avec succès.",
     userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
+    userRoleConflict: "L'utilisateur a déjà un role sur cette interface",
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
+    /* Api */
+    apiVersionUpToDate: 'La version de l\'api est à jour',
+    apiVersionToUpdate: 'La version de l\'api doit être mis à jour',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
@@ -378,6 +385,7 @@ module.exports = {
     sectorNotFound: 'Équipe non trouvée.',
     sectorsFound: 'Équipes trouvées.',
     sectorDeleted: 'Équipe supprimée.',
+    sectorAlreadyExists: 'Équipe déjà existante',
     /* Services */
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',
@@ -451,8 +459,6 @@ module.exports = {
     establishmentsFound: 'Établissements trouvés.',
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
-    /* Trainers */
-    trainerAlreadyExists: 'Formateur déjà existant',
     /* Programs */
     programsFound: 'Liste des programmes trouvés.',
     programsNotFound: 'Liste des programmes non trouvés.',

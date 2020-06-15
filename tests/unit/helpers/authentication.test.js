@@ -73,11 +73,9 @@ describe('validate', () => {
       role: {
         client: {
           name: 'client_admin',
-          rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
         vendor: {
           name: 'vendor_admin',
-          rights: [{ hasAccess: true, permission: 'bof' }, { hasAccess: true, permission: 'bien' }],
         },
       },
       company: { _id: 'company' },
@@ -86,7 +84,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -106,9 +106,42 @@ describe('validate', () => {
           `user:read-${userId}`,
           'client_admin',
           'vendor_admin',
-          'top',
-          'bof',
-          'bien',
+          'bills:edit',
+          'bills:read',
+          'config:edit',
+          'config:read',
+          'contracts:edit',
+          'courses:edit',
+          'courses:read',
+          'customers:administrative:edit',
+          'customers:create',
+          'customers:edit',
+          'customers:read',
+          'establishments:edit',
+          'establishments:read',
+          'events:edit',
+          'events:read',
+          'exports:edit',
+          'exports:read',
+          'pay:edit',
+          'pay:read',
+          'paydocuments:edit',
+          'payments:edit',
+          'payments:list:create',
+          'roles:read',
+          'sms:send',
+          'taxcertificates:edit',
+          'taxcertificates:read',
+          'users:edit',
+          'users:exist',
+          'users:list',
+          'companies:create',
+          'companies:edit',
+          'companies:read',
+          'courses:create',
+          'programs:edit',
+          'programs:read',
+          'scripts:run',
           `user:edit-${userId}`,
           `company-${user.company._id}`,
         ],
@@ -127,7 +160,6 @@ describe('validate', () => {
       role: {
         client: {
           name: 'helper',
-          rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
       },
       customers: [customerId],
@@ -136,7 +168,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -152,13 +186,13 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'helper', 'top', `customer-${customerId.toHexString()}`, `user:edit-${userId}`],
+        scope: [`user:read-${userId}`, 'helper', `customer-${customerId.toHexString()}`, `user:edit-${userId}`],
         role: { client: { name: 'helper' } },
       },
     });
   });
 
-  it('should authenticate auxiliary without comapny', async () => {
+  it('should authenticate auxiliary without company', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
     const user = {
@@ -167,7 +201,6 @@ describe('validate', () => {
       role: {
         client: {
           name: AUXILIARY_WITHOUT_COMPANY,
-          rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
       },
       company: { _id: 'company' },
@@ -176,7 +209,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -192,7 +227,7 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'auxiliary_without_company', 'top'],
+        scope: [`user:read-${userId}`, 'auxiliary_without_company'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
@@ -207,11 +242,9 @@ describe('validate', () => {
       role: {
         client: {
           name: 'coach',
-          rights: [{ hasAccess: true, permission: 'top' }, { hasAccess: false, permission: 'bad' }],
         },
         vendor: {
           name: 'trainer',
-          rights: [{ hasAccess: true, permission: 'bof' }, { hasAccess: true, permission: 'bien' }],
         },
       },
       company: { _id: 'company' },
@@ -220,7 +253,9 @@ describe('validate', () => {
       sector: sectorId,
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -240,9 +275,30 @@ describe('validate', () => {
           `user:read-${userId}`,
           'coach',
           'trainer',
-          'top',
-          'bof',
-          'bien',
+          'bills:read',
+          'config:read',
+          'contracts:edit',
+          'courses:edit',
+          'courses:read',
+          'customers:administrative:edit',
+          'customers:create',
+          'customers:edit',
+          'customers:read',
+          'establishments:read',
+          'events:edit',
+          'events:read',
+          'exports:edit',
+          'exports:read',
+          'pay:read',
+          'paydocuments:edit',
+          'payments:edit',
+          'roles:read',
+          'sms:send',
+          'taxcertificates:edit',
+          'taxcertificates:read',
+          'users:edit',
+          'users:exist',
+          'users:list',
           `user:edit-${userId}`,
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },

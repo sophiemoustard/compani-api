@@ -52,6 +52,18 @@ describe('SECTORS ROUTES', () => {
 
         expect(response.statusCode).toBe(400);
       });
+
+      it('should return a 409 error if sector name already exists', async () => {
+        const payload = { name: sectorsList[0].name };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/sectors',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
     });
 
     describe('Other roles', () => {
@@ -147,6 +159,7 @@ describe('SECTORS ROUTES', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.data.updatedSector).toMatchObject(payload);
       });
+
       it('should return a 404 error if sector does not exist', async () => {
         const payload = { name: 'SuperTest' };
         const response = await app.inject({
@@ -157,6 +170,19 @@ describe('SECTORS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(404);
+      });
+
+      it('should return a 409 error if sector name already exists', async () => {
+        const sector = sectorsList[0];
+        const payload = { name: sectorsList[1].name };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/sectors/${sector._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(409);
       });
     });
 

@@ -29,14 +29,6 @@ describe('ROLES ROUTES', () => {
         expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
         expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
           name: expect.any(String),
-          rights: expect.arrayContaining([
-            expect.objectContaining({
-              permission: expect.any(String),
-              description: expect.any(String),
-              hasAccess: expect.any(Boolean),
-              right_id: expect.any(Object),
-            }),
-          ]),
         }));
       });
 

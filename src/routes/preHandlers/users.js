@@ -7,7 +7,17 @@ const Customer = require('../../models/Customer');
 const Establishment = require('../../models/Establishment');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, HELPER } = require('../../helpers/constants');
+const {
+  CLIENT_ADMIN,
+  COACH,
+  AUXILIARY,
+  PLANNING_REFERENT,
+  HELPER,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  CLIENT,
+  VENDOR,
+} = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -31,16 +41,42 @@ exports.authorizeUserUpdate = async (req) => {
   const companyId = get(credentials, 'company._id', null);
   const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
+  const payloadRole = get(req, 'payload.role');
 
   if (establishmentId) {
     const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
     if (!establishment) throw Boom.forbidden();
   }
 
-  const userCompany = user.company ? user.company.toHexString() : get(req, 'payload.company');
+  const userCompany = get(req, 'pre.user.company') ? req.pre.user.company.toHexString() : get(req, 'payload.company');
   if (!isVendorUser && (!userCompany || userCompany !== companyId.toHexString())) throw Boom.forbidden();
 
   if (get(req, 'payload.company') && user.company) throw Boom.forbidden();
+
+  if (payloadRole) {
+    const userInDB = req.pre.user;
+    const newRole = await Role.findById(payloadRole, { name: 1, interface: 1 }).lean();
+    const clientRoleSwitch = newRole.interface === CLIENT && get(userInDB, 'role.client') &&
+      userInDB.role.client.toHexString() !== payloadRole;
+    if (clientRoleSwitch) {
+      const formerClientRole = await Role.findById(userInDB.role.client, { name: 1 }).lean();
+      const allowedRoleChanges = [
+        { from: AUXILIARY, to: PLANNING_REFERENT },
+        { from: PLANNING_REFERENT, to: AUXILIARY },
+        { from: COACH, to: CLIENT_ADMIN },
+        { from: CLIENT_ADMIN, to: COACH },
+      ];
+
+      let forbiddenRoleChange = true;
+      allowedRoleChanges.forEach((roleSwitch) => {
+        if (roleSwitch.from === formerClientRole.name && roleSwitch.to === newRole.name) forbiddenRoleChange = false;
+      });
+      if (forbiddenRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
+    }
+
+    const vendorRoleChange = newRole.interface === VENDOR && !!get(userInDB, 'role.vendor');
+    if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
+  }
 
   if (get(req, 'payload.customers')) {
     const role = await Role.findOne({ name: HELPER }).lean();
@@ -65,7 +101,9 @@ exports.authorizeUserGetById = async (req) => {
     if (!establishment) throw Boom.forbidden();
   }
 
-  if (!isVendorUser && user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  const isClientFromDifferentCompany = !isVendorUser && user.company &&
+    user.company.toHexString() !== companyId.toHexString();
+  if (isClientFromDifferentCompany) throw Boom.forbidden();
 
   return null;
 };
@@ -88,7 +126,10 @@ exports.authorizeUserDeletion = async (req) => {
 
 exports.authorizeUserUpdateWithoutCompany = (req) => {
   const { credentials } = req.auth;
-  return get(credentials, 'role.vendor', null);
+  const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor', null);
+
+  return loggedUserHasVendorRole || addNewCompanyToTargetUser;
 };
 
 exports.authorizeUserCreation = async (req) => {
