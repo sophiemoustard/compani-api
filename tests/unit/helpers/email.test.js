@@ -1,160 +1,125 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const EmailHelper = require('../../../src/helpers/email');
 const EmailOptionsHelper = require('../../../src/helpers/emailOptions');
 const UserHelper = require('../../../src/helpers/users');
 const NodemailerHelper = require('../../../src/helpers/nodemailer');
 
 describe('sendWelcome', () => {
-  let trainerWelcomeEmail;
-  let helperWelcomeEmail;
+  let trainerCustomContent;
+  let helperCustomContent;
+  let baseWelcomeContent;
+  let createPasswordToken;
+  let sendinBlueTransporter;
+  let sendMail;
+
   const email = 't@t.com';
-  const companyId = new ObjectID();
+  const trainerWelcomeCustomText = 'content for trainer';
+  const helperWelcomeCustomText = 'content for helper';
+  const baseWelcomeText = 'base content';
+  const passwordToken = 'passwordToken';
+  const sentObj = { msg: 'Message sent !' };
 
   beforeEach(() => {
-    trainerWelcomeEmail = sinon.stub(EmailHelper, 'trainerWelcomeEmail');
-    helperWelcomeEmail = sinon.stub(EmailHelper, 'helperWelcomeEmail');
+    trainerCustomContent = sinon.stub(EmailOptionsHelper, 'trainerCustomContent');
+    helperCustomContent = sinon.stub(EmailOptionsHelper, 'helperCustomContent');
+    baseWelcomeContent = sinon.stub(EmailOptionsHelper, 'baseWelcomeContent');
+    createPasswordToken = sinon.stub(UserHelper, 'createPasswordToken');
+    sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter');
+    sendMail = sinon.stub();
   });
   afterEach(() => {
-    trainerWelcomeEmail.restore();
-    helperWelcomeEmail.restore();
+    trainerCustomContent.restore();
+    helperCustomContent.restore();
+    baseWelcomeContent.restore();
+    createPasswordToken.restore();
+    sendinBlueTransporter.restore();
   });
 
   it('should send email to trainer', async () => {
-    trainerWelcomeEmail.returns();
-
-    await EmailHelper.sendWelcome('trainer', email);
-
-    sinon.assert.calledWithExactly(trainerWelcomeEmail, email);
-    sinon.assert.notCalled(helperWelcomeEmail);
-  });
-
-  it('should send email to helper', async () => {
-    trainerWelcomeEmail.returns();
-
-    await EmailHelper.sendWelcome('helper', email, companyId);
-
-    sinon.assert.calledWithExactly(helperWelcomeEmail, email, companyId);
-    sinon.assert.notCalled(trainerWelcomeEmail);
-  });
-});
-
-describe('helperWelcomeEmail', () => {
-  let helperWelcomeEmailContent;
-  let createPasswordToken;
-  let sendMail;
-  let sendinBlueTransporter;
-  const email = 't@t.com';
-  const sentObj = { msg: 'Message sent !' };
-  const passwordToken = 'passwordToken';
-  const emailContent = 'emailContent';
-
-  beforeEach(() => {
-    helperWelcomeEmailContent = sinon.stub(EmailOptionsHelper, 'helperWelcomeEmailContent');
-    createPasswordToken = sinon.stub(UserHelper, 'createPasswordToken');
-    sendMail = sinon.stub();
-    sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter');
-  });
-
-  afterEach(() => {
-    helperWelcomeEmailContent.restore();
-    createPasswordToken.restore();
-    sendinBlueTransporter.restore();
-  });
-
-  it('should send a welcoming email to newly registered helper with company trade name', async () => {
-    const company = { _id: '1234567890', tradeName: 'Test' };
     createPasswordToken.returns(passwordToken);
-    helperWelcomeEmailContent.returns(emailContent);
+    trainerCustomContent.returns(trainerWelcomeCustomText);
+    baseWelcomeContent.returns(baseWelcomeText);
     sendinBlueTransporter.returns({ sendMail });
     sendMail.returns(sentObj);
 
-    const result = await EmailHelper.helperWelcomeEmail(email, company);
+    const result = await EmailHelper.sendWelcome('trainer', email);
 
-    sinon.assert.calledOnceWithExactly(createPasswordToken, email);
+    expect(result).toEqual(sentObj);
+    sinon.assert.calledWithExactly(trainerCustomContent);
+    sinon.assert.calledWithExactly(
+      baseWelcomeContent,
+      trainerWelcomeCustomText,
+      { passwordToken, companyName: 'Compani' }
+    );
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
     sinon.assert.calledOnceWithExactly(
       sendMail,
       {
         from: 'Compani <nepasrepondre@compani.fr>',
         to: email,
-        subject: `${company.tradeName} - Bienvenue dans votre espace Compani`,
-        html: emailContent,
+        subject: 'Bienvenue dans votre espace Compani',
+        html: baseWelcomeText,
       }
     );
-    sinon.assert.calledWithExactly(helperWelcomeEmailContent, { passwordToken, companyName: company.tradeName });
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-    expect(result).toMatchObject(sentObj);
+    sinon.assert.notCalled(helperCustomContent);
   });
 
-  it('should use comapny name if no trade name available', async () => {
-    const company = { _id: '1234567890', name: 'Test' };
+  it('should send email to helper with company trade name', async () => {
     createPasswordToken.returns(passwordToken);
-    helperWelcomeEmailContent.returns(emailContent);
+    helperCustomContent.returns(helperWelcomeCustomText);
+    baseWelcomeContent.returns(baseWelcomeText);
     sendinBlueTransporter.returns({ sendMail });
     sendMail.returns(sentObj);
 
-    const result = await EmailHelper.helperWelcomeEmail(email, company);
+    const result = await EmailHelper.sendWelcome('helper', email, { tradeName: 'test', name: 'ok' });
 
-    sinon.assert.calledOnceWithExactly(createPasswordToken, email);
+    expect(result).toEqual(sentObj);
+    sinon.assert.calledWithExactly(helperCustomContent);
+    sinon.assert.calledWithExactly(
+      baseWelcomeContent,
+      helperWelcomeCustomText,
+      { passwordToken, companyName: 'test' }
+    );
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
     sinon.assert.calledOnceWithExactly(
       sendMail,
       {
         from: 'Compani <nepasrepondre@compani.fr>',
         to: email,
-        subject: `${company.name} - Bienvenue dans votre espace Compani`,
-        html: emailContent,
+        subject: 'test - Bienvenue dans votre espace Compani',
+        html: baseWelcomeText,
       }
     );
-    sinon.assert.calledWithExactly(helperWelcomeEmailContent, { passwordToken, companyName: company.name });
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-    expect(result).toMatchObject(sentObj);
-  });
-});
-
-describe('trainerWelcomeEmail', () => {
-  let trainerWelcomeEmailContent;
-  let createPasswordToken;
-  let sendMail;
-  let sendinBlueTransporter;
-  const email = 't@t.com';
-  const sentObj = { msg: 'Message sent !' };
-  const passwordToken = 'passwordToken';
-  const emailContent = 'emailContent';
-
-  beforeEach(() => {
-    trainerWelcomeEmailContent = sinon.stub(EmailOptionsHelper, 'trainerWelcomeEmailContent');
-    createPasswordToken = sinon.stub(UserHelper, 'createPasswordToken');
-    sendMail = sinon.stub();
-    sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter');
+    sinon.assert.notCalled(trainerCustomContent);
   });
 
-  afterEach(() => {
-    trainerWelcomeEmailContent.restore();
-    createPasswordToken.restore();
-    sendinBlueTransporter.restore();
-  });
-
-  it('should send a welcoming email to newly registered trainer', async () => {
+  it('should send email to helper even if no trade name and use company name', async () => {
     createPasswordToken.returns(passwordToken);
-    trainerWelcomeEmailContent.returns(emailContent);
+    helperCustomContent.returns(helperWelcomeCustomText);
+    baseWelcomeContent.returns(baseWelcomeText);
     sendinBlueTransporter.returns({ sendMail });
     sendMail.returns(sentObj);
 
-    const result = await EmailHelper.trainerWelcomeEmail(email);
+    const result = await EmailHelper.sendWelcome('helper', email, { name: 'ok' });
 
-    sinon.assert.calledOnceWithExactly(createPasswordToken, email);
+    expect(result).toEqual(sentObj);
+    sinon.assert.calledWithExactly(helperCustomContent);
+    sinon.assert.calledWithExactly(
+      baseWelcomeContent,
+      helperWelcomeCustomText,
+      { passwordToken, companyName: 'ok' }
+    );
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
     sinon.assert.calledOnceWithExactly(
       sendMail,
       {
         from: 'Compani <nepasrepondre@compani.fr>',
         to: email,
-        subject: 'Alenvi - Bienvenue dans votre espace Formateur !',
-        html: emailContent,
+        subject: 'ok - Bienvenue dans votre espace Compani',
+        html: baseWelcomeText,
       }
     );
-    sinon.assert.calledWithExactly(trainerWelcomeEmailContent, { passwordToken });
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-    expect(result).toMatchObject(sentObj);
+    sinon.assert.notCalled(trainerCustomContent);
   });
 });
