@@ -29,6 +29,9 @@ const helperCustomContent = () => `<p>
 const trainerCustomContent = () => `<p>Bienvenue chez Compani, nous venons de vous créer votre espace Formateur. :)<p>
     <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations que vous animez pour Compani.<p>`;
 
+const coachCustomContent = () => `<p>Bienvenue chez Compani.<p>
+    <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations Compani dans votre structure.<p>`;
+
 const forgotPasswordEmail = (passwordToken) => {
   const resetPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${passwordToken.token}`;
 
@@ -68,6 +71,7 @@ module.exports = {
   baseWelcomeContent,
   helperCustomContent,
   trainerCustomContent,
+  coachCustomContent,
   forgotPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,

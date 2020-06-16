@@ -8,6 +8,7 @@ const NodemailerHelper = require('../../../src/helpers/nodemailer');
 describe('sendWelcome', () => {
   let trainerCustomContent;
   let helperCustomContent;
+  let coachCustomContent;
   let baseWelcomeContent;
   let createPasswordToken;
   let sendinBlueTransporter;
@@ -16,6 +17,7 @@ describe('sendWelcome', () => {
   const email = 't@t.com';
   const trainerWelcomeCustomText = 'content for trainer';
   const helperWelcomeCustomText = 'content for helper';
+  const coachWelcomeCustomText = 'content for coach';
   const baseWelcomeText = 'base content';
   const passwordToken = 'passwordToken';
   const sentObj = { msg: 'Message sent !' };
@@ -23,6 +25,7 @@ describe('sendWelcome', () => {
   beforeEach(() => {
     trainerCustomContent = sinon.stub(EmailOptionsHelper, 'trainerCustomContent');
     helperCustomContent = sinon.stub(EmailOptionsHelper, 'helperCustomContent');
+    coachCustomContent = sinon.stub(EmailOptionsHelper, 'coachCustomContent');
     baseWelcomeContent = sinon.stub(EmailOptionsHelper, 'baseWelcomeContent');
     createPasswordToken = sinon.stub(UserHelper, 'createPasswordToken');
     sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter');
@@ -31,6 +34,7 @@ describe('sendWelcome', () => {
   afterEach(() => {
     trainerCustomContent.restore();
     helperCustomContent.restore();
+    coachCustomContent.restore();
     baseWelcomeContent.restore();
     createPasswordToken.restore();
     sendinBlueTransporter.restore();
@@ -63,6 +67,7 @@ describe('sendWelcome', () => {
       }
     );
     sinon.assert.notCalled(helperCustomContent);
+    sinon.assert.notCalled(coachCustomContent);
   });
 
   it('should send email to helper with company trade name', async () => {
@@ -92,6 +97,7 @@ describe('sendWelcome', () => {
       }
     );
     sinon.assert.notCalled(trainerCustomContent);
+    sinon.assert.notCalled(coachCustomContent);
   });
 
   it('should send email to helper even if no trade name and use company name', async () => {
@@ -120,6 +126,67 @@ describe('sendWelcome', () => {
         html: baseWelcomeText,
       }
     );
+    sinon.assert.notCalled(trainerCustomContent);
+    sinon.assert.notCalled(coachCustomContent);
+  });
+
+  it('should send email to coach', async () => {
+    createPasswordToken.returns(passwordToken);
+    coachCustomContent.returns(coachWelcomeCustomText);
+    baseWelcomeContent.returns(baseWelcomeText);
+    sendinBlueTransporter.returns({ sendMail });
+    sendMail.returns(sentObj);
+
+    const result = await EmailHelper.sendWelcome('coach', email);
+
+    expect(result).toEqual(sentObj);
+    sinon.assert.calledWithExactly(coachCustomContent);
+    sinon.assert.calledWithExactly(
+      baseWelcomeContent,
+      coachWelcomeCustomText,
+      { passwordToken, companyName: 'Compani' }
+    );
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
+    sinon.assert.calledOnceWithExactly(
+      sendMail,
+      {
+        from: 'Compani <nepasrepondre@compani.fr>',
+        to: email,
+        subject: 'Bienvenue dans votre espace Compani',
+        html: baseWelcomeText,
+      }
+    );
+    sinon.assert.notCalled(helperCustomContent);
+    sinon.assert.notCalled(trainerCustomContent);
+  });
+
+  it('should send email to coach', async () => {
+    createPasswordToken.returns(passwordToken);
+    coachCustomContent.returns(coachWelcomeCustomText);
+    baseWelcomeContent.returns(baseWelcomeText);
+    sendinBlueTransporter.returns({ sendMail });
+    sendMail.returns(sentObj);
+
+    const result = await EmailHelper.sendWelcome('client_admin', email);
+
+    expect(result).toEqual(sentObj);
+    sinon.assert.calledWithExactly(coachCustomContent);
+    sinon.assert.calledWithExactly(
+      baseWelcomeContent,
+      coachWelcomeCustomText,
+      { passwordToken, companyName: 'Compani' }
+    );
+    sinon.assert.calledWithExactly(sendinBlueTransporter);
+    sinon.assert.calledOnceWithExactly(
+      sendMail,
+      {
+        from: 'Compani <nepasrepondre@compani.fr>',
+        to: email,
+        subject: 'Bienvenue dans votre espace Compani',
+        html: baseWelcomeText,
+      }
+    );
+    sinon.assert.notCalled(helperCustomContent);
     sinon.assert.notCalled(trainerCustomContent);
   });
 });
