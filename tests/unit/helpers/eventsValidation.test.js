@@ -772,6 +772,40 @@ describe('isEditionAllowed', () => {
     sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 
+  it('should return false as event cancellation is undone, but there is conflict', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      isCancelled: true,
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .returns(user);
+    checkContracts.returns(true);
+    hasConflicts.returns(true);
+
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+
   it('should return true as intervention is repeated and repetition should be updated', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();

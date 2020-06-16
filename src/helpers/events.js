@@ -219,7 +219,6 @@ exports.formatEditionPayload = (event, payload) => {
   let unset = null;
   let set = payload;
   if (!payload.isCancelled && event.isCancelled) {
-    set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
 

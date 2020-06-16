@@ -104,8 +104,9 @@ exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
   if (!await exports.checkContracts(event, user)) return false;
 
-  if (!(isRepetition(event) && event.type === INTERVENTION) &&
-    !event.isCancelled && (await exports.hasConflicts(event))) return false;
+  const isSingleIntervention = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
+  const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
+  if ((isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) return false;
 
   return true;
 };
