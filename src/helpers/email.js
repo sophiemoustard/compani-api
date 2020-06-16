@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
-const Boom = require('@hapi/boom');
 const EmailOptionsHelper = require('./emailOptions');
 const UserHelper = require('./users');
 const { SENDER_MAIL, TRAINER, HELPER } = require('./constants');
@@ -55,30 +54,27 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
 };
 
 exports.sendWelcome = async (type, email, company) => {
-  if (type === HELPER) return exports.helperWelcomeEmail(email, company);
-  if (type === TRAINER) return exports.trainerWelcomeEmail(email);
-};
-
-exports.trainerWelcomeEmail = async (email) => {
   const passwordToken = await UserHelper.createPasswordToken(email);
+
+  let companyName;
+  let subject;
+  let customContent;
+  const options = { passwordToken, companyName: 'Compani' };
+  if (type === HELPER) {
+    companyName = company.tradeName || company.name;
+    subject = `${companyName} - Bienvenue dans votre espace Compani`;
+    options.companyName = companyName;
+    customContent = EmailOptionsHelper.helperCustomContent();
+  } else if (type === TRAINER) {
+    subject = 'Bienvenue dans votre espace Compani';
+    customContent = EmailOptionsHelper.trainerCustomContent();
+  }
+
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: email,
-    subject: 'Alenvi - Bienvenue dans votre espace Formateur !',
-    html: EmailOptionsHelper.trainerWelcomeEmailContent({ passwordToken }),
-  };
-
-  return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
-};
-
-exports.helperWelcomeEmail = async (email, company) => {
-  const companyName = company.tradeName || company.name;
-  const passwordToken = await UserHelper.createPasswordToken(email);
-  const mailOptions = {
-    from: `Compani <${SENDER_MAIL}>`,
-    to: email,
-    subject: `${companyName} - Bienvenue dans votre espace Compani`,
-    html: EmailOptionsHelper.helperWelcomeEmailContent({ companyName, passwordToken }),
+    subject,
+    html: EmailOptionsHelper.baseWelcomeContent(customContent, options),
   };
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
