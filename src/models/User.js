@@ -15,14 +15,6 @@ const { validateQuery, validatePayload, validateAggregation } = require('./preHo
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
 
-const procedureSchema = mongoose.Schema({
-  task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
-  check: {
-    isDone: { type: Boolean, default: false },
-    at: { type: Date, default: null },
-  },
-}, { id: false });
-
 const roleSchemaDefinition = {
   type: mongoose.Schema.Types.ObjectId,
   ref: 'Role',
@@ -116,7 +108,6 @@ const UserSchema = mongoose.Schema({
       phoneNumber: String,
     },
   },
-  procedure: [procedureSchema],
   isConfirmed: { type: Boolean, default: false },
   company: {
     type: mongoose.Schema.Types.ObjectId,
