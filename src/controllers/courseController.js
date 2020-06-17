@@ -62,7 +62,7 @@ const update = async (req) => {
 
 const sendSMS = async (req) => {
   try {
-    await CoursesHelper.sendSMS(req.params._id, req.payload);
+    await CoursesHelper.sendSMS(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].smsSent };
   } catch (e) {
