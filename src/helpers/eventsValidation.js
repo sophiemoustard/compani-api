@@ -1,3 +1,4 @@
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
@@ -16,6 +17,9 @@ const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const ContractsHelper = require('../helpers/contracts');
 const EventRepository = require('../repositories/EventRepository');
+const translate = require('./translate');
+
+const { language } = translate;
 
 momentRange.extendMoment(moment);
 
@@ -74,7 +78,7 @@ const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
   payload.auxiliary !== eventFromDB.auxiliary.toHexString();
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
-exports.isCreationAllowed = async (event, credentials) => {
+exports.isEditionAllowed = async (event, credentials) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
   const user = await User.findOne({ _id: event.auxiliary })
@@ -82,12 +86,18 @@ exports.isCreationAllowed = async (event, credentials) => {
     .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
   if (!await exports.checkContracts(event, user)) return false;
-  if (!(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
   return true;
 };
 
-exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
+exports.isCreationAllowed = async (event, credentials) => {
+  const isConflict = !(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event);
+  if (isConflict) throw Boom.conflict(translate[language].eventsConflict);
+
+  return exports.isEditionAllowed(event, credentials);
+};
+
+exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
@@ -95,20 +105,13 @@ exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
     ? { ...omit(eventFromDB, 'auxiliary'), ...payload }
     : { ...eventFromDB, ...payload };
 
-  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
-  if (!event.auxiliary) return event.type === INTERVENTION;
-
-  const user = await User.findOne({ _id: event.auxiliary })
-    .populate('contracts')
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-    .lean({ autopopulate: true, virtuals: true });
-  if (!await exports.checkContracts(event, user)) return false;
-
   const isSingleIntervention = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
   const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
-  if ((isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) return false;
+  if ((isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) {
+    throw Boom.conflict(translate[language].eventsConflict);
+  }
 
-  return true;
+  return exports.isEditionAllowed(event, credentials);
 };
 
 exports.isDeletionAllowed = event => event.type !== INTERVENTION || !event.isBilled;

@@ -17,6 +17,7 @@ const {
   PLANNING_VIEW_END_HOUR,
   EVERY_WEEK,
 } = require('./constants');
+const translate = require('./translate');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -32,6 +33,8 @@ const EventRepository = require('../repositories/EventRepository');
 const { AUXILIARY, CUSTOMER } = require('../helpers/constants');
 
 momentRange.extendMoment(moment);
+
+const { language } = translate;
 
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
@@ -51,8 +54,7 @@ exports.list = async (query, credentials) => {
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let event = { ...cloneDeep(payload), company: companyId };
-  const isCreationAllowed = await EventsValidationHelper.isCreationAllowed(event, credentials);
-  if (!isCreationAllowed) throw Boom.badData();
+  if (!await EventsValidationHelper.isCreationAllowed(event, credentials)) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
@@ -243,6 +245,11 @@ exports.formatEditionPayload = (event, payload) => {
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
+  if (event.type !== ABSENCE && !moment(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
+    throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
+  }
+  if (!(await EventsValidationHelper.isUpdateAllowed(event, eventPayload, credentials))) throw Boom.badData();
+
   const companyId = get(credentials, 'company._id', null);
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
 

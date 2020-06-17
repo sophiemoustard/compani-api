@@ -156,7 +156,7 @@ describe('formatEditionPayload', () => {
     expect(result).toEqual({ $set: payload, $unset: { sector: '' } });
   });
   it('Case 5: remove cancellation', () => {
-    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
+    const payload = { isCancelled: false, startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
     const event = { isCancelled: true, cancel: { reason: AUXILIARY_INITIATIVE } };
     isMiscOnlyUpdated.returns(true);
 
@@ -184,6 +184,7 @@ describe('updateEvent', () => {
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
   let populateEventSubscription;
+  let isUpdateAllowed;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
@@ -195,6 +196,7 @@ describe('updateEvent', () => {
     );
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
     formatEditionPayload = sinon.stub(EventHelper, 'formatEditionPayload');
+    isUpdateAllowed = sinon.stub(EventsValidationHelper, 'isUpdateAllowed');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
@@ -204,6 +206,7 @@ describe('updateEvent', () => {
     deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
     formatEditionPayload.restore();
+    isUpdateAllowed.restore();
   });
 
   it('should update repetition', async () => {
@@ -214,10 +217,12 @@ describe('updateEvent', () => {
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
       auxiliary: auxiliary.toHexString(),
       shouldUpdateRepetition: true,
     };
 
+    isUpdateAllowed.returns(true);
     EventMock.expects('updateOne').never();
     EventMock.expects('findOne')
       .withExactArgs({ _id: event._id })
@@ -234,6 +239,7 @@ describe('updateEvent', () => {
       .chain('lean')
       .once()
       .returns(event);
+
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.called(updateRepetition);
@@ -248,6 +254,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
+    isUpdateAllowed.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
     EventMock.expects('findOne')
@@ -285,6 +292,7 @@ describe('updateEvent', () => {
     };
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
+    isUpdateAllowed.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
     EventMock.expects('findOne')
@@ -317,6 +325,34 @@ describe('updateEvent', () => {
       credentials
     );
     EventMock.verify();
+  });
+
+  it('should not update as event is scheduled on several days', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-22T10:38:18',
+      auxiliary: auxiliaryId.toHexString(),
+    };
+
+    EventMock.expects('updateOne').never();
+
+    try {
+      await EventHelper.updateEvent(event, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(400);
+      expect(e.output.payload.message).toEqual('Les dates de début et de fin devraient être le même jour.');
+    } finally {
+      sinon.assert.notCalled(isUpdateAllowed);
+      sinon.assert.notCalled(updateRepetition);
+      sinon.assert.notCalled(createEventHistoryOnUpdate);
+      EventMock.verify();
+    }
+
   });
 });
 
