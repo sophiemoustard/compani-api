@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const flat = require('flat');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -62,6 +61,8 @@ describe('list', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'company' })
       .chain('lean')
       .once()
       .returns(coursesList);
