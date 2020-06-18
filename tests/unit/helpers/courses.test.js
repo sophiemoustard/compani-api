@@ -61,6 +61,8 @@ describe('list', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'company' })
       .chain('lean')
       .once()
       .returns(coursesList);
