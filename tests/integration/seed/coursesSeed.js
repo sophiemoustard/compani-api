@@ -101,6 +101,7 @@ const courseSmsHistory = {
   type: 'convocation',
   message: 'Hola ! This is a test',
   course: coursesList[0]._id,
+  sender: courseTrainer._id,
 };
 
 const slots = [

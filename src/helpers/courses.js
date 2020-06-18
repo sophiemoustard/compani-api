@@ -35,7 +35,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
 
-exports.sendSMS = async (courseId, payload) => {
+exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
     .populate({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
     .lean();
@@ -48,11 +48,18 @@ exports.sendSMS = async (courseId, payload) => {
       body: payload.body,
     }));
   }
-  promises.push(CourseSmsHistory.create({ type: payload.type, course: courseId, message: payload.body }));
+  promises.push(CourseSmsHistory.create({
+    type: payload.type,
+    course: courseId,
+    message: payload.body,
+    sender: credentials._id,
+  }));
   await Promise.all(promises);
 };
 
-exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId }).lean();
+exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
+  .populate({ path: 'sender', select: 'identity' })
+  .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
   let coursePayload;
