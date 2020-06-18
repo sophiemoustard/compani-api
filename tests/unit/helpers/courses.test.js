@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const flat = require('flat');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -133,6 +132,7 @@ describe('sendSMS', () => {
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
   ];
   const payload = { body: 'Ceci est un test.' };
+  const credentials = { _id: new ObjectID() };
 
   let CourseMock;
   let CourseSmsHistoryMock;
@@ -162,10 +162,10 @@ describe('sendSMS', () => {
     sendStub.returns();
 
     CourseSmsHistoryMock.expects('create')
-      .withExactArgs({ type: payload.type, course: courseId, message: payload.body })
+      .withExactArgs({ type: payload.type, course: courseId, message: payload.body, sender: credentials._id })
       .returns();
 
-    await CourseHelper.sendSMS(courseId, payload);
+    await CourseHelper.sendSMS(courseId, payload, credentials);
 
     sinon.assert.calledWith(
       sendStub.getCall(0),
@@ -181,7 +181,7 @@ describe('sendSMS', () => {
   });
 });
 
-describe('sendSMS', () => {
+describe('getSMSHistory', () => {
   const courseId = new ObjectID();
   const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
   let CourseSmsHistoryMock;
@@ -192,9 +192,11 @@ describe('sendSMS', () => {
     CourseSmsHistoryMock.restore();
   });
 
-  it('should sens SMS to trainees', async () => {
+  it('should get SMS history', async () => {
     CourseSmsHistoryMock.expects('find')
       .withExactArgs({ course: courseId })
+      .chain('populate')
+      .withExactArgs({ path: 'sender', select: 'identity' })
       .chain('lean')
       .returns(sms);
 

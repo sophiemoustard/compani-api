@@ -58,7 +58,7 @@ exports.sendSMS = async (courseId, payload, credentials) => {
 };
 
 exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
-  .populate('sender')
+  .populate({ path: 'sender', select: 'identity' })
   .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
