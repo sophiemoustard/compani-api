@@ -576,7 +576,27 @@ describe('isCreationAllowed', () => {
       sinon.assert.notCalled(isEditionAllowed);
       sinon.assert.calledWithExactly(hasConflicts, event);
     }
+  });
 
+  it('should return true', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const auxiliaryId = new ObjectID();
+    const event = {
+      auxiliary: auxiliaryId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    hasConflicts.returns(false);
+    isEditionAllowed.returns(true);
+
+    const isValid = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    expect(isValid).toBeTruthy();
+    sinon.assert.calledWithExactly(isEditionAllowed, event, credentials);
+    sinon.assert.calledWithExactly(hasConflicts, event);
   });
 });
 
