@@ -91,7 +91,8 @@ exports.isEditionAllowed = async (event, credentials) => {
 };
 
 exports.isCreationAllowed = async (event, credentials) => {
-  const isConflict = !(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event);
+  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION)
+    && await exports.hasConflicts(event);
   if (isConflict) throw Boom.conflict(translate[language].eventsConflict);
 
   return exports.isEditionAllowed(event, credentials);
@@ -107,7 +108,7 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
 
   const isSingleIntervention = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
   const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
-  if ((isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) {
+  if (event.auxiliary && (isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 

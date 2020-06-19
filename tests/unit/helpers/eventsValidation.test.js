@@ -598,6 +598,26 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(isEditionAllowed, event, credentials);
     sinon.assert.calledWithExactly(hasConflicts, event);
   });
+
+  it('should return true as there is no conflict when no auxiliary assigned', async () => {
+    const companyId = new ObjectID();
+    const sectorId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const event = {
+      sector: sectorId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    isEditionAllowed.returns(true);
+
+    const isValid = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    expect(isValid).toBeTruthy();
+    sinon.assert.calledWithExactly(isEditionAllowed, event, credentials);
+    sinon.assert.notCalled(hasConflicts);
+  });
 });
 
 describe('isUpdateAllowed', () => {
@@ -684,13 +704,12 @@ describe('isUpdateAllowed', () => {
       type: ABSENCE,
     };
 
-    hasConflicts.returns(false);
     isEditionAllowed.returns(false);
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, { type: ABSENCE, ...payload });
+    sinon.assert.notCalled(hasConflicts);
     sinon.assert.calledWithExactly(isEditionAllowed, { type: ABSENCE, ...payload }, credentials);
   });
 
@@ -707,13 +726,12 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
     };
 
-    hasConflicts.returns(false);
     isEditionAllowed.returns(true);
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(hasConflicts, { type: INTERVENTION, ...payload });
+    sinon.assert.notCalled(hasConflicts);
     sinon.assert.calledWithExactly(isEditionAllowed, { type: INTERVENTION, ...payload }, credentials);
   });
 
