@@ -309,8 +309,8 @@ exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query
   const contractEvents = eventsToPay.events.filter((eventsPerDay) => {
     if (!eventsPerDay.length) return false;
     const firstEvent = eventsPerDay[0];
-    const isEventBeforeContractEnd = !contract.endDate || moment(contract.endDate).isSameOrAfter(firstEvent.start);
-    const isEventAfterContractStart = moment(contract.startDate).isSameOrBefore(firstEvent.startDate);
+    const isEventBeforeContractEnd = !contract.endDate || moment(firstEvent.startDate).isBefore(contract.endDate);
+    const isEventAfterContractStart = moment(firstEvent.startDate).isAfter(contract.startDate);
 
     return isEventBeforeContractEnd && isEventAfterContractStart;
   });
