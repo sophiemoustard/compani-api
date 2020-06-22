@@ -1231,7 +1231,7 @@ describe('getPayFromAbsences', () => {
       ];
       const contract = {
         startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00', 
+        endDate: '2019-07-18T22:00:00',
         versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
       };
 
@@ -1244,13 +1244,13 @@ describe('getPayFromAbsences', () => {
     });
   });
 
-  describe('contract begin or end during this month', () => {
+  describe('contract begins or ends during this month', () => {
     it('contract begins in middle of absence', () => {
       const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
       const absences = [
         { absenceNature: 'daily', startDate: '2019-05-02T07:00:00', endDate: '2019-05-06T22:00:00' },
       ];
-      const contract = { startDate: '2019-05-03T07:00:00', endDate: '2019-07-18T22:00:00', versions: [{ weeklyHours: 12 }] };
+      const contract = { startDate: '2019-05-03T07:00:00', versions: [{ weeklyHours: 12 }] };
 
       const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
@@ -1273,7 +1273,7 @@ describe('getPayFromAbsences', () => {
       sinon.assert.notCalled(getMatchingVersion);
     });
 
-    it('contract ends during an entire month af absence', () => {
+    it('contract ends during an entire month of absence', () => {
       const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
       const absences = [
         { absenceNature: 'daily', startDate: '2019-03-02T10:00:00', endDate: '2019-06-18T12:00:00' },

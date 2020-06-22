@@ -275,7 +275,8 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   for (const absence of absences) {
     if (absence.absenceNature === DAILY) {
       const start = moment.max(moment(absence.startDate).startOf('d'), moment(query.startDate), moment(contract.startDate));
-      const end = moment.min(moment(absence.endDate), moment(query.endDate), moment(contract.endDate));
+      const end = contract.endDate ? moment.min(moment(absence.endDate), moment(query.endDate), moment(contract.endDate))
+        : moment.min(moment(absence.endDate), moment(query.endDate));
       const range = Array.from(moment().range(start, end).by('days'));
 
       for (const day of range) {
@@ -303,27 +304,32 @@ exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   return !cont.endDate || moment(cont.endDate).isAfter(endDate);
 });
 
+const filterEvents = (eventsToPay, contract) => eventsToPay.events.filter((eventsPerDay) => {
+  if (!eventsPerDay.length) return false;
+  const firstEvent = eventsPerDay[0];
+
+  return contract.endDate
+    ? moment(firstEvent.startDate).isBetween(contract.startDate, contract.endDate, 'days', '[]')
+    : moment(firstEvent.startDate).isSameOrAfter(contract.startDate);
+});
+
+
+const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((absence) => {
+  const isAbsenceEndInContractRange = (!contract.endDate && moment(absence.endDate).isAfter(contract.startDate)) ||
+    moment(absence.endDate).isBetween(contract.startDate, contract.endDate, 'days', '[]');
+  const isContractStartInAbsenceRange = moment(contract.startDate)
+    .isBetween(absence.startDate, absence.endDate, 'days', '[]');
+
+  return isAbsenceEndInContractRange || isContractStartInAbsenceRange;
+});
+
 exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
-  const contractEvents = eventsToPay.events.filter((eventsPerDay) => {
-    if (!eventsPerDay.length) return false;
-    const firstEvent = eventsPerDay[0];
-    const isEventBeforeContractEnd = !contract.endDate || moment(firstEvent.startDate).isBefore(contract.endDate);
-    const isEventAfterContractStart = moment(firstEvent.startDate).isAfter(contract.startDate);
-
-    return isEventBeforeContractEnd && isEventAfterContractStart;
-  });
+  const contractEvents = filterEvents(eventsToPay, contract);
   const hours = await exports.getPayFromEvents(contractEvents, auxiliary, distanceMatrix, surcharges, query);
 
-  const contractAbsences = eventsToPay.absences.filter((absence) => {
-    const isAbsenceEndsInContractRange = (!contract.endDate && moment(absence.endDate).isAfter(contract.startDate)) ||
-      moment(absence.endDate).isBetween(contract.startDate, contract.endDate, 'days', '[]');
-    const isContractStartsInAbsenceRange = moment(contract.startDate)
-      .isBetween(absence.startDate, absence.endDate, 'days', '[]');
-
-    return isAbsenceEndsInContractRange || isContractStartsInAbsenceRange;
-  });
+  const contractAbsences = filterAbsences(eventsToPay, contract);
   const absencesHours = exports.getPayFromAbsences(contractAbsences, contract, query);
 
   const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
