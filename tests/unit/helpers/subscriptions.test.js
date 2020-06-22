@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
+const Event = require('../../../src/models/Event');
 
 require('sinon-mongoose');
 
@@ -300,23 +301,42 @@ describe('addSubscription', () => {
 
 describe('deleteSubscription', () => {
   let updateOne;
+  let countDocuments;
   beforeEach(() => {
     updateOne = sinon.stub(Customer, 'updateOne');
+    countDocuments = sinon.stub(Event, 'countDocuments');
   });
   afterEach(() => {
     updateOne.restore();
+    countDocuments.restore();
   });
 
   it('should delete subscription', async () => {
     const customerId = new ObjectID();
     const subscriptionId = new ObjectID();
+    countDocuments.returns(0);
 
     await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
+    sinon.assert.calledWithExactly(countDocuments, { subscription: subscriptionId.toHexString() });
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: customerId.toHexString() },
       { $pull: { subscriptions: { _id: subscriptionId.toHexString() } } }
     );
+  });
+
+  it('should not delete subscription', async () => {
+    try {
+      const customerId = new ObjectID();
+      const subscriptionId = new ObjectID();
+      countDocuments.returns(2);
+
+      await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(403);
+    } finally {
+      sinon.assert.notCalled(updateOne);
+    }
   });
 });
 
