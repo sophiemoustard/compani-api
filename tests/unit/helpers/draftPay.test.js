@@ -1356,6 +1356,40 @@ describe('computeBalance', () => {
     sinon.assert.calledWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
     sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
   });
+
+  it('should return balance, contract ends during this month', async () => {
+    const contract = { startDate: '2019-04-13T00:00:00', endDate: '2019-05-15T00:00:00', status: 'contract_with_company' };
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [contract],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = {
+      events: [
+        [{ startDate: '2019-05-08T10:00:00', endDate: '2019-05-08T12:00:00' }],
+        [{ startDate: '2019-05-20T10:00:00', endDate: '2019-05-20T12:00:00' }],
+      ],
+      absences: [
+        { startDate: '2019-05-10T10:00:00', endDate: '2019-05-13T12:00:00' },
+        { startDate: '2019-05-28T10:00:00', endDate: '2019-06-05T12:00:00' },
+        { startDate: '2019-04-03T10:00:00', endDate: '2019-05-05T12:00:00' },
+        { startDate: '2019-05-14T10:00:00', endDate: '2019-05-28T12:00:00' },
+      ],
+    };
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+
+    getPayFromEvents.returns({ workedHours: 0, notSurchargedAndNotExempt: 0, surchargedAndNotExempt: 0 });
+    getPayFromAbsences.returns(16);
+    getContractMonthInfo.returns({ contractHours: 0, workedDaysRatio: 8, holidaysHours: 0 });
+    getTransportRefund.returns(26.54);
+
+    await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, [], []);
+    sinon.assert.calledWithExactly(getPayFromEvents, [events.events[0]], auxiliary, [], [], query);
+    sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[2], events.absences[3]], contract, query);
+  });
 });
 
 describe('computeAuxiliaryDraftPay', () => {

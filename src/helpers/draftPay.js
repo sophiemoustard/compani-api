@@ -315,12 +315,11 @@ const filterEvents = (eventsToPay, contract) => eventsToPay.events.filter((event
 
 
 const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((absence) => {
-  const isAbsenceEndInContractRange = (!contract.endDate && moment(absence.endDate).isAfter(contract.startDate)) ||
-    moment(absence.endDate).isBetween(contract.startDate, contract.endDate, 'days', '[]');
-  const isContractStartInAbsenceRange = moment(contract.startDate)
-    .isBetween(absence.startDate, absence.endDate, 'days', '[]');
+  const isAbsenceStartBeforeContractEnd = !contract.endDate
+    || moment(absence.startDate).isBefore(contract.endDate);
+  const isAbsenceEndAfterContractStart = moment(absence.endDate).isAfter(contract.startDate);
 
-  return isAbsenceEndInContractRange || isContractStartInAbsenceRange;
+  return isAbsenceStartBeforeContractEnd && isAbsenceEndAfterContractStart;
 });
 
 exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
