@@ -352,7 +352,6 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(createEventHistoryOnUpdate);
       EventMock.verify();
     }
-
   });
 });
 
