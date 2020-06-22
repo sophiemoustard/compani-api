@@ -6,6 +6,7 @@ const pick = require('lodash/pick');
 const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
+const Event = require('../models/Event');
 const translate = require('../helpers/translate');
 const UtilsHelper = require('../helpers/utils');
 
@@ -90,10 +91,15 @@ exports.addSubscription = async (customerId, payload) => {
   return exports.populateSubscriptionsServices(updatedCustomer);
 };
 
-exports.deleteSubscription = async (customerId, subscriptionId) => Customer.updateOne(
-  { _id: customerId },
-  { $pull: { subscriptions: { _id: subscriptionId } } }
-);
+exports.deleteSubscription = async (customerId, subscriptionId) => {
+  const eventsCount = await Event.countDocuments({ subscription: subscriptionId });
+  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+
+  await Customer.updateOne(
+    { _id: customerId },
+    { $pull: { subscriptions: { _id: subscriptionId } } }
+  );
+};
 
 exports.createSubscriptionHistory = async (customerId, payload) => Customer.findOneAndUpdate(
   { _id: customerId },
