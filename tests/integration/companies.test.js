@@ -305,7 +305,6 @@ describe('COMPANIES ROUTES', () => {
 
       const missingParams = [
         { path: 'name' },
-        { path: 'tradeName' },
         { path: 'type' },
       ];
       missingParams.forEach((test) => {

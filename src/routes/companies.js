@@ -28,7 +28,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
-            tradeName: Joi.string().allow('', null),
+            tradeName: Joi.string().max(11).allow('', null),
             address: addressValidation,
             subscriptions: Joi.object().keys({
               erp: Joi.boolean(),
@@ -142,7 +142,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            tradeName: Joi.string().max(11).required(),
+            tradeName: Joi.string().max(11),
             type: Joi.string().valid(...COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),

@@ -29,7 +29,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('company')
   .populate('program')
   .populate('slots')
-  .populate({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+  .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
   .populate('trainer')
   .lean();
 
@@ -117,7 +117,7 @@ exports.formatCourseForPdf = (course) => {
   return {
     trainees: course.trainees.map(trainee => ({
       traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: get(trainee, 'company.tradeName') || '',
+      company: get(trainee, 'company.name') || '',
       course: { ...courseData },
     })),
   };
@@ -127,7 +127,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('company')
     .populate('slots')
-    .populate({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+    .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
     .populate('trainer')
     .populate('program')
     .lean();

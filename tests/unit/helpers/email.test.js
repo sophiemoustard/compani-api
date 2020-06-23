@@ -84,7 +84,7 @@ describe('sendWelcome', () => {
     sinon.assert.calledWithExactly(
       baseWelcomeContent,
       helperWelcomeCustomText,
-      { passwordToken, companyName: 'test' }
+      { passwordToken, companyName: 'ok' }
     );
     sinon.assert.calledWithExactly(sendinBlueTransporter);
     sinon.assert.calledOnceWithExactly(
@@ -92,7 +92,7 @@ describe('sendWelcome', () => {
       {
         from: 'Compani <nepasrepondre@compani.fr>',
         to: email,
-        subject: 'test - Bienvenue dans votre espace Compani',
+        subject: 'ok - Bienvenue dans votre espace Compani',
         html: baseWelcomeText,
       }
     );

@@ -9,7 +9,7 @@ exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
   : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions));
 
 exports.billAlertEmail = async (receiver, company) => {
-  const companyName = company.tradeName;
+  const companyName = company.name;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
@@ -63,7 +63,7 @@ exports.sendWelcome = async (type, email, company) => {
 
   switch (type) {
     case HELPER:
-      companyName = company.tradeName || company.name;
+      companyName = company.name;
       subject = `${companyName} - Bienvenue dans votre espace Compani`;
       options.companyName = companyName;
       customContent = EmailOptionsHelper.helperCustomContent();
