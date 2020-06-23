@@ -56,7 +56,7 @@ describe('method', () => {
       .expects('find')
       .chain('lean')
       .once()
-      .returns([{ tradeName: 'Alenvi', _id: companyId }]);
+      .returns([{ name: 'Alenvi', _id: companyId }]);
 
     billAlertEmailStub
       .onFirstCall()
@@ -99,7 +99,7 @@ describe('method', () => {
       .expects('find')
       .chain('lean')
       .once()
-      .returns([{ tradeName: 'Alenvi', _id: companyId }]);
+      .returns([{ name: 'Alenvi', _id: companyId }]);
 
     billAlertEmailStub
       .onFirstCall()

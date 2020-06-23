@@ -93,7 +93,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('lean')
@@ -407,8 +407,8 @@ describe('formatCourseForPdf', () => {
       name: 'Bonjour je suis une formation',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
-        { identity: { lastname: 'trainee 1' }, company: { tradeName: 'Pfiou' } },
-        { identity: { lastname: 'trainee 2' }, company: { tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
       ],
       program: { name: 'programme de formation' },
     };
@@ -429,7 +429,7 @@ describe('formatCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
-          company: 'Pfiou',
+          company: 'alenvi',
           course: {
             name: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
@@ -442,7 +442,7 @@ describe('formatCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
-          company: 'Pfiou',
+          company: 'alenvi',
           course: {
             name: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
@@ -488,7 +488,7 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')
