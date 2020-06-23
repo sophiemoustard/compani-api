@@ -9,7 +9,7 @@ const COMPANY_TYPES = [COMPANY, ASSOCIATION];
 
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },
-  tradeName: { type: String, maxLength: 11, required: true },
+  tradeName: { type: String, maxLength: 11 },
   prefixNumber: { type: Number, required: true, unique: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   subscriptions: { erp: { type: Boolean, default: false } },
