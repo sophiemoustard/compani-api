@@ -1046,7 +1046,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('DELETE /customers/{id}/subscriptions/{subscriptionId}', () => {
     it('should delete customer subscription', async () => {
       const customer = customersList[0];
-      const subscription = customer.subscriptions[0];
+      const subscription = customer.subscriptions[1];
 
       const result = await app.inject({
         method: 'DELETE',
@@ -1068,9 +1068,22 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(403);
     });
 
-    describe('Other roles', () => {
+    it('should not delete customer subscription if events linked', async () => {
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[1];
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
