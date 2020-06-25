@@ -62,7 +62,7 @@ describe('list', () => {
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', select: 'company' })
+      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
       .once()
       .returns(coursesList);
