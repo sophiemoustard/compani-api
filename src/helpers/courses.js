@@ -139,7 +139,6 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocx = course => ({
-  name: course.name,
   duration: exports.getCourseDuration(course.slots),
   learningGoals: get(course, 'program.learningGoals') || '',
   programName: get(course, 'program.name').toUpperCase() || '',
