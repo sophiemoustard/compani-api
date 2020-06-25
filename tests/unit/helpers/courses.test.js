@@ -526,7 +526,6 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      name: 'Bonjour je suis une formation',
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };
     getCourseDuration.returns('7h');
@@ -534,7 +533,6 @@ describe('formatCourseForDocx', () => {
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      name: 'Bonjour je suis une formation',
       duration: '7h',
       learningGoals: course.program.learningGoals,
       startDate: '20/03/2020',
@@ -591,7 +589,7 @@ describe('generateCompletionCertificate', () => {
       ],
       name: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { courseName: 'Bonjour je suis une formation', courseDuration: '8h' };
+    const formattedCourse = { program: { learningGoals: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
