@@ -139,14 +139,14 @@ describe('exportWorkingEventsHistory', () => {
 
 describe('exportAbsencesHistory', () => {
   const header = [
+    'Auxiliaire - Prénom',
+    'Auxiliaire - Nom',
+    'Auxiliaire - Titre',
+    'Équipe',
     'Type',
     'Nature',
     'Début',
     'Fin',
-    'Équipe',
-    'Auxiliaire - Titre',
-    'Auxiliaire - Prénom',
-    'Auxiliaire - Nom',
     'Divers',
   ];
   const events = [
@@ -199,9 +199,8 @@ describe('exportAbsencesHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', '',
-        'Jean-Claude', 'VAN DAMME', ''],
-      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', '', 'Princess', 'CAROLYN', 'brbr'],
+      ['Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', ''],
+      ['Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019', '20/05/2019', 'brbr'],
     ]);
   });
 });
