@@ -291,7 +291,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate' })
+      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -327,7 +327,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate' })
+      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')

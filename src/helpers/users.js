@@ -76,7 +76,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate({ path: 'contracts', select: 'startDate' })
+    .populate({ path: 'contracts', select: 'status startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
