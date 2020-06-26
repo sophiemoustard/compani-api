@@ -3,7 +3,7 @@
 const Joi = require('@hapi/joi');
 const { seedDb } = require('../controllers/endToEndController');
 const { authorizeDatabaseSeed } = require('./preHandlers/endToEnd');
-const { PLANNING, AUTHENTICATION, BILLING } = require('../helpers/constants');
+const { PLANNING, AUTHENTICATION, BILLING, AGENDA } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-e2e',
@@ -15,7 +15,7 @@ exports.plugin = {
         auth: false,
         validate: {
           params: Joi.object({
-            type: Joi.string().required().valid(PLANNING, AUTHENTICATION, BILLING),
+            type: Joi.string().required().valid(PLANNING, AUTHENTICATION, BILLING, AGENDA),
           }),
         },
         pre: [{ method: authorizeDatabaseSeed }],
