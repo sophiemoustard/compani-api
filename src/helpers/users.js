@@ -35,13 +35,16 @@ exports.authenticate = async (payload) => {
 };
 
 exports.refreshToken = async (payload) => {
-  const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
+  const newRefreshToken = uuid.v4();
+  const user = await User
+    .findOneAndUpdate({ refreshToken: payload.refreshToken }, { refreshToken: newRefreshToken })
+    .lean();
   if (!user) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+  return { token, refreshToken: newRefreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
 
 exports.formatQueryForUsersList = async (query) => {
