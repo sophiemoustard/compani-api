@@ -4,7 +4,6 @@ const { ObjectID } = require('mongodb');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
-const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const SectorHistory = require('../../../src/models/SectorHistory');
@@ -110,22 +109,6 @@ const contracts = [
   },
 ];
 
-const referentHistories = [
-  {
-    customer: customer._id,
-    auxiliary: loggedAuxiliary._id,
-    company: customer.company,
-    startDate: '2017-05-13T00:00:00',
-    endDate: '2018-05-13T23:59:59',
-  },
-  {
-    customer: customer._id,
-    auxiliary: auxiliaries[0]._id,
-    company: customer.company,
-    startDate: '2018-05-14T00:00:00',
-  },
-];
-
 const sectors = [{ _id: new ObjectID(), name: 'Test', company: authCompany._id }];
 
 const sectorHistories = [
@@ -186,13 +169,25 @@ const eventList = [
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
+  {
+    _id: new ObjectID(),
+    type: INTERVENTION,
+    status: COMPANY_CONTRACT,
+    customer: customer._id,
+    company: authCompany._id,
+    auxiliary: auxiliaries[0]._id,
+    repetition: { frequency: NEVER },
+    startDate: moment().subtract(1, 'week').set('hours', 11).set('minutes', 15),
+    endDate: moment().subtract(1, 'week').set('hours', 12).set('minutes', 30),
+    address: customer.contact.primaryAddress,
+    subscription: customer.subscriptions[0]._id,
+  },
 ];
 
 const populateAgenda = async () => {
   await Customer.deleteMany({});
   await Service.deleteMany({});
   await Event.deleteMany({});
-  await ReferentHistory.deleteMany({});
   await User.deleteMany({});
   await Contract.deleteMany({});
   await SectorHistory.deleteMany({});
@@ -201,7 +196,6 @@ const populateAgenda = async () => {
   await populateAuthentication();
 
   await Event.insertMany(eventList);
-  await ReferentHistory.insertMany(referentHistories);
   await (new Customer(customer)).save();
   await new Service(service).save();
   for (const aux of auxiliaries) {
