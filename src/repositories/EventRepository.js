@@ -488,11 +488,7 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
             cond: {
               $and: [
                 { $lte: ['$$c.startDate', '$startDate'] },
-                {
-                  $or: [
-                    { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
-                  ],
-                },
+                { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
                 { $eq: ['$$c.status', COMPANY_CONTRACT] },
               ],
             },

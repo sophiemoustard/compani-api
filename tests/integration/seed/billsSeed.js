@@ -177,6 +177,15 @@ const billUserList = [
     company: otherCompany._id,
     contracts: [new ObjectID()],
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Tata', lastname: 'Toto' },
+    local: { email: 'toto2@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    company: authCompany._id,
+    contracts: [new ObjectID()],
+  },
 ];
 
 const contracts = [
@@ -214,7 +223,26 @@ const contracts = [
       },
     ],
   },
-]
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: billUserList[2]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    endDate: '2018-12-03T22:59:59.000Z',
+    endReason: 'mutation',
+    status: 'contract_with_company',
+    _id: billUserList[3].contracts[0],
+    company: otherCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+];
 
 const authBillsList = [
   {
@@ -412,6 +440,26 @@ const eventList = [
     customer: billCustomerList[2]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[2].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // event not billed because auxilairy does not have an active contract
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-16T09:30:19.543Z',
+    endDate: '2019-01-16T11:30:21.653Z',
+    auxiliary: billUserList[3]._id,
+    customer: billCustomerList[0]._id,
+    createdAt: '2019-01-15T11:33:14.343Z',
+    subscription: billCustomerList[0].subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
