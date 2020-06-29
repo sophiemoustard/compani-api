@@ -39,6 +39,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
+    contracts: [new ObjectID()],
   },
   {
     _id: new ObjectID(),
