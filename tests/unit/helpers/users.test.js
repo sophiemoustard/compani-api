@@ -138,16 +138,13 @@ describe('authenticate', () => {
 describe('refreshToken', () => {
   let UserMock;
   let encode;
-  let uuidv4;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     encode = sinon.stub(AuthenticationHelper, 'encode');
-    uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
   });
   afterEach(() => {
     UserMock.restore();
     encode.restore();
-    uuidv4.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
@@ -185,7 +182,7 @@ describe('refreshToken', () => {
 
     expect(result).toEqual({
       token: 'token',
-      refreshToken: '1234567890',
+      refreshToken: 'token',
       expiresIn: TOKEN_EXPIRE_TIME,
       user: { _id: user._id.toHexString() },
     });

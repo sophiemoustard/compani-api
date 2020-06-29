@@ -821,7 +821,7 @@ describe('USERS TEST', () => {
           identity: expect.objectContaining({
             firstname: updatePayload.identity.firstname,
           }),
-          local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
+          local: expect.objectContaining({ email: updatePayload.local.email }),
         });
       });
 
