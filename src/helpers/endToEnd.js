@@ -1,8 +1,7 @@
 const { populateAuthentication } = require('../../tests/end2end/seed/authenticationSeed');
 const { populateBilling } = require('../../tests/end2end/seed/billingSeed');
 const { populatePlanning } = require('../../tests/end2end/seed/planningSeed');
-const { populateAgenda } = require('../../tests/end2end/seed/agendaSeed');
-const { PLANNING, AUTHENTICATION, BILLING, AGENDA } = require('../helpers/constants');
+const { PLANNING, AUTHENTICATION, BILLING } = require('../helpers/constants');
 
 exports.seedDb = async (type) => {
   switch (type) {
@@ -14,9 +13,6 @@ exports.seedDb = async (type) => {
       break;
     case AUTHENTICATION:
       await populateAuthentication();
-      break;
-    case AGENDA:
-      await populateAgenda();
       break;
   }
 };

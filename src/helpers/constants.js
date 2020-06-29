@@ -264,5 +264,4 @@ module.exports = {
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
   BILLING: 'billing',
-  AGENDA: 'agenda',
 };
