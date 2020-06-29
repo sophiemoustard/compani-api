@@ -478,6 +478,25 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
 
   return Event.aggregate([
     { $match: { $and: rules } },
+    { $lookup: { from: 'contracts', as: 'contracts', localField: 'auxiliary', foreignField: 'user' } },
+    {
+      $addFields: {
+        contract: {
+          $filter: {
+            input: '$contracts',
+            as: 'c',
+            cond: {
+              $and: [
+                { $lte: ['$$c.startDate', '$startDate'] },
+                { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
+                { $eq: ['$$c.status', COMPANY_CONTRACT] },
+              ],
+            },
+          },
+        },
+      },
+    },
+    { $unwind: { path: '$contract' } },
     {
       $group: {
         _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
