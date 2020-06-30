@@ -52,33 +52,39 @@ const eventRepetitions = {
   async method(server) {
     const date = get(server, 'query.date') || new Date();
     const errors = [];
-    const companies = await Company.find({}).lean();
+    const companies = await Company.find({ 'subscriptions.erp': true }).lean();
     const newSavedEvents = [];
 
     for (const company of companies) {
+      const companyEvents = [];
       const repetitions = await Repetition
         .find({ company: company._id, startDate: { $lt: moment(date).startOf('d').toDate() } })
         .lean();
       if (!repetitions.length) {
-        server.log(['cron', 'jobs'], 'Event repetitions: No repetitions found.');
+        server.log(['cron', 'jobs'], `Event repetitions: No repetitions found for company ${company._id}.`);
         continue;
       }
 
       const orderedRepetitions = [ // order matters
-        ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
         ...repetitions.filter(rep => rep.type === INTERNAL_HOUR),
+        ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
         ...repetitions.filter(rep => rep.type === INTERVENTION),
       ];
 
       for (const repetition of orderedRepetitions) {
         try {
           const futureEvent = await createEventBasedOnRepetition(repetition, date);
-          if (futureEvent) newSavedEvents.push(futureEvent);
+          if (futureEvent) companyEvents.push(futureEvent);
         } catch (e) {
           server.log(['error', 'cron', 'jobs'], e);
           errors.push(repetition._id);
         }
       }
+      server.log(
+        ['cron', 'jobs'],
+        `Event repetitions: ${companyEvents.length} events created for company ${company._id}.`
+      );
+      newSavedEvents.push(...companyEvents);
     }
 
     return { results: newSavedEvents, errors };
