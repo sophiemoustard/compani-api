@@ -69,10 +69,10 @@ const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécut�
 
 const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
   const nb = eventsWithErrors.length;
-  let message = `<p>Script correctement exécuté. ${nb} evenements avec erreurs.s</p>`;
+  let message = `<p>Script correctement exécuté. ${nb} evenements avec erreurs.</p>`;
   if (!nb) return message;
   for (const event of eventsWithErrors) {
-    message += `${event.issuesWithEvent}\n`;
+    message += `${event.eventId}: ${event.issuesWithEvent}</br>`;
   }
   return message;
 };

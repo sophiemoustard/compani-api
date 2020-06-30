@@ -41,7 +41,7 @@ const eventConsistencyScript = async (req) => {
   try {
     const job = await eventConsistency.method(req);
 
-    return { message: `Update role: ${job.results}.`, data: job };
+    return { message: `event consistency: ${job.results}.`, data: job };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

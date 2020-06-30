@@ -44,8 +44,6 @@ const eventConsistency = {
         const eventsByAuxiliary = await EventRepository.getEventsToCheckEventConsistency(query, company._id);
 
         for (const auxiliaryWithEvents of eventsByAuxiliary) {
-          console.log(auxiliaryWithEvents._id);
-          console.log(auxiliaryWithEvents.events.length);
           const auxiliary = await User.findOne({ _id: auxiliaryWithEvents._id }).populate('contracts').lean();
 
 
@@ -53,10 +51,6 @@ const eventConsistency = {
             const issuesWithEvent = await getIssuesWithEvent(event, auxiliary, company._id);
             if (issuesWithEvent.length) {
               eventsWithErrors.push({
-                eventId: event._id,
-                issuesWithEvent: issuesWithEvent.join(', '),
-              });
-              console.log({
                 eventId: event._id,
                 issuesWithEvent: issuesWithEvent.join(', '),
               });
@@ -68,7 +62,6 @@ const eventConsistency = {
       console.log(e);
       error = e.message;
     }
-    // console.log({ eventsWithErrors, error });
     return { eventsWithErrors, error };
   },
 
