@@ -53,6 +53,17 @@ exports.completeRoleUpdateScriptEmail = async (nb) => {
   return exports.sendEmail(mailOptions);
 };
 
+exports.completeEventConsistencyScriptEmail = async (nb) => {
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: process.env.TECH_EMAILS,
+    subject: 'Script bdd consistency',
+    html: EmailOptionsHelper.completeEventConsistencyScriptEmailBody(nb),
+  };
+
+  return exports.sendEmail(mailOptions);
+};
+
 exports.sendWelcome = async (type, email, company) => {
   const passwordToken = await UserHelper.createPasswordToken(email);
 
