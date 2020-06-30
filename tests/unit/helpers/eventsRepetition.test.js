@@ -642,6 +642,28 @@ describe('createFutureEventBasedOnRepetition', () => {
     }));
     UserMock.verify();
   });
+
+  it('should return null if unavailability in conflict', async () => {
+    const repetition = {
+      type: 'unavailability',
+      auxiliary: new ObjectID(),
+      status: 'contract_with_customer',
+      company: new ObjectID(),
+      frequency: 'every_day',
+      parentId: new ObjectID(),
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
+    };
+
+    hasConflicts.returns(true);
+    UserMock.expects('findOne').never();
+
+    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, new Date());
+
+    expect(event).toBeNull();
+    UserMock.verify();
+  });
+
   it('should format and unassign event based on repetition', async () => {
     const repetition = {
       type: 'intervention',

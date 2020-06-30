@@ -220,7 +220,10 @@ exports.createFutureEventBasedOnRepetition = async (repetition, date) => {
     repetition: { frequency, parentId },
   };
 
-  if (newEvent.type === INTERVENTION && newEvent.auxiliary && await EventsValidationHelper.hasConflicts(newEvent)) {
+  const hasConflicts = await EventsValidationHelper.hasConflicts(newEvent);
+  if ([INTERNAL_HOUR, UNAVAILABILITY].includes(newEvent.type) && hasConflicts) return null;
+
+  if (newEvent.type === INTERVENTION && newEvent.auxiliary && hasConflicts) {
     delete newEvent.auxiliary;
     newEvent.repetition.frequency = NEVER;
     const user = await User.findOne({ _id: repetition.auxiliary })

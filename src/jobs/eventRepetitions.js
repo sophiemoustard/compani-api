@@ -30,23 +30,23 @@ const eventRepetitions = {
               if (moment(startDate).day() === moment(newEventStartDate).day()
                 && (newEventStartDate.diff(moment(startDate), 'week') % 2 === 0)) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
+                if (futureEvent) newEvents.push(futureEvent);
               }
               break;
             case EVERY_WEEK:
               if (moment(startDate).day() === newEventStartDate.day()) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
+                if (futureEvent) newEvents.push(futureEvent);
               }
               break;
             case EVERY_DAY:
               futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-              newEvents.push(futureEvent);
+              if (futureEvent) newEvents.push(futureEvent);
               break;
             case EVERY_WEEK_DAY:
               if (newEventStartDate.day() !== 0 && newEventStartDate.day() !== 6) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
+                if (futureEvent) newEvents.push(futureEvent);
               }
               break;
           }
