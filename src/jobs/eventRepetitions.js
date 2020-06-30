@@ -12,13 +12,13 @@ const eventRepetitions = {
   async method(server) {
     const date = get(server, 'query.date') || new Date();
     const errors = [];
-    const newEvents = [];
     const companies = await Company.find({}).lean();
     for (const company of companies) {
       const repetitions = await Repetition
         .find({ company: company._id, startDate: { $lt: moment(date).startOf('d').toDate() } }).lean();
       if (!repetitions.length) return server.log(['cron', 'jobs'], 'Event repetitions: No repetitions found.');
 
+      const newSavedEvents = [];
       for (const repetition of repetitions) {
         const { startDate, frequency } = repetition;
         const newEventStartDate = moment(date).add(90, 'd')
@@ -30,32 +30,31 @@ const eventRepetitions = {
               if (moment(startDate).day() === moment(newEventStartDate).day()
                 && (newEventStartDate.diff(moment(startDate), 'week') % 2 === 0)) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
               }
               break;
             case EVERY_WEEK:
               if (moment(startDate).day() === newEventStartDate.day()) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
               }
               break;
             case EVERY_DAY:
               futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-              newEvents.push(futureEvent);
               break;
             case EVERY_WEEK_DAY:
               if (newEventStartDate.day() !== 0 && newEventStartDate.day() !== 6) {
                 futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, date);
-                newEvents.push(futureEvent);
               }
               break;
+          }
+          if (futureEvent) {
+            const createdEvent = await Event.create(futureEvent);
+            newSavedEvents.push(createdEvent);
           }
         } catch (e) {
           server.log(['error', 'cron', 'jobs'], e);
           errors.push(repetition._id);
         }
       }
-      const newSavedEvents = await Event.insertMany(newEvents);
 
       return { results: newSavedEvents, errors };
     }
