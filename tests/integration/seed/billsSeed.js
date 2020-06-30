@@ -10,6 +10,7 @@ const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const CreditNote = require('../../../src/models/CreditNote');
+const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -165,6 +166,7 @@ const billUserList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
+    contracts: [new ObjectID()],
   },
   {
     _id: new ObjectID(),
@@ -173,6 +175,72 @@ const billUserList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: otherCompany._id,
+    contracts: [new ObjectID()],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Tata', lastname: 'Toto' },
+    local: { email: 'toto2@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    company: authCompany._id,
+    contracts: [new ObjectID()],
+  },
+];
+
+const contracts = [
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: billUserList[1]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_company',
+    _id: billUserList[1].contracts[0],
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: billUserList[2]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_company',
+    _id: billUserList[2].contracts[0],
+    company: otherCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: billUserList[2]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    endDate: '2018-12-03T22:59:59.000Z',
+    endReason: 'mutation',
+    status: 'contract_with_company',
+    _id: billUserList[3].contracts[0],
+    company: otherCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
   },
 ];
 
@@ -283,7 +351,7 @@ const eventList = [
     type: 'internalHour',
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[1]._id,
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: { _id: new ObjectID(), name: 'Formation' },
@@ -297,7 +365,7 @@ const eventList = [
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[1]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
@@ -308,7 +376,7 @@ const eventList = [
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[1]._id,
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
@@ -328,7 +396,7 @@ const eventList = [
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[1]._id,
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
@@ -348,7 +416,7 @@ const eventList = [
     status: 'contract_with_company',
     startDate: '2019-01-18T14:30:19.543Z',
     endDate: '2019-01-18T16:30:19.543Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[2]._id,
     customer: billCustomerList[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     address: {
@@ -368,10 +436,30 @@ const eventList = [
     status: 'contract_with_company',
     startDate: '2019-01-18T14:30:19.543Z',
     endDate: '2019-01-18T16:30:19.543Z',
-    auxiliary: new ObjectID(),
+    auxiliary: billUserList[2]._id,
     customer: billCustomerList[2]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[2].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // event not billed because auxilairy does not have an active contract
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-16T09:30:19.543Z',
+    endDate: '2019-01-16T11:30:21.653Z',
+    auxiliary: billUserList[3]._id,
+    customer: billCustomerList[0]._id,
+    createdAt: '2019-01-15T11:33:14.343Z',
+    subscription: billCustomerList[0].subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -436,6 +524,7 @@ const populateDB = async () => {
   await User.deleteMany({});
   await FundingHistory.deleteMany({});
   await CreditNote.deleteMany({});
+  await Contract.deleteMany({});
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
@@ -447,6 +536,7 @@ const populateDB = async () => {
   await CreditNote.create(creditNote);
   await FundingHistory.create(fundingHistory);
   await BillNumber.create(billNumber);
+  await Contract.create(contracts);
 };
 
 module.exports = {

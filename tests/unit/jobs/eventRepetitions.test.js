@@ -88,10 +88,10 @@ describe('method', () => {
         },
       });
       CreateFutureEventBasedOnRepetitionStub.returns(futureEvent);
-      EventMock.expects('insertMany')
-        .withArgs([futureEvent])
+      EventMock.expects('create')
+        .withArgs(futureEvent)
         .once()
-        .returns([futureEvent]);
+        .returns(futureEvent);
 
       const result = await eventRepetitions.method(server);
 

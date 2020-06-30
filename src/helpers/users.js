@@ -11,13 +11,12 @@ const flat = require('flat');
 const uuid = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
-const Task = require('../models/Task');
 const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { AUXILIARY, PLANNING_REFERENT, TRAINER, AUXILIARY_ROLES } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -63,7 +62,6 @@ exports.getUsersList = async (query, credentials) => {
   const params = await exports.formatQueryForUsersList(query);
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
     .populate({
@@ -97,7 +95,6 @@ exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
     .populate('customers')
     .populate('contracts')
-    .populate({ path: 'procedure.task', select: 'name _id' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -174,11 +171,6 @@ exports.createUser = async (userPayload, credentials) => {
 
   payload.role = { [role.interface]: role._id };
 
-  if ([AUXILIARY, PLANNING_REFERENT].includes(role.name)) {
-    const tasks = await Task.find({}, { _id: 1 }).lean();
-    const taskIds = tasks.map(task => ({ task: task._id }));
-    payload.procedure = taskIds;
-  }
   if (role.name !== TRAINER) payload.company = companyId;
 
   const user = await User.create({ ...payload, refreshToken: uuid.v4() });

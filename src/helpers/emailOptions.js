@@ -4,12 +4,10 @@ const fs = require('fs');
 
 const fsPromises = fs.promises;
 
-const helperWelcomeEmailContent = (options) => {
+const baseWelcomeContent = (customContent, options) => {
   const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
   return `<p>Bonjour,</p>
-    <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires 
-    d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions 
-    également de finaliser votre souscription en remplissant la page “Abonnement”.<p>
+    ${customContent}
     <p>
       Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${createPasswordLink}">${createPasswordLink}</a>.
     </p>
@@ -23,23 +21,16 @@ const helperWelcomeEmailContent = (options) => {
     <p>L'équipe ${options.companyName}</p>`;
 };
 
-const trainerWelcomeEmailContent = (options) => {
-  const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
-  return `<p>Bonjour,</p>
-    <p>Bienvenue chez Compani, nous venons de vous créer votre espace Formateur. :)<p>
-    <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations que vous animez pour Compani.<p>
-    <p>
-      Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${createPasswordLink}">${createPasswordLink}</a>.
-    </p>
-    <p>Ce lien est valable 24heures.</p>
-    <p>
-      Par la suite, voici le lien pour vous connecter : 
-      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
-    </p>
-    <br />
-    <p>Bien cordialement,</p>
-    <p>L'équipe Compani</p>`;
-};
+const helperCustomContent = () => `<p>
+    Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires
+    d’envie chez votre proche, ainsi que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions
+    également de finaliser votre souscription en remplissant la page “Abonnement”.<p>`;
+
+const trainerCustomContent = () => `<p>Bienvenue chez Compani, nous venons de vous créer votre espace Formateur. :)<p>
+    <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations que vous animez pour Compani.<p>`;
+
+const coachCustomContent = () => `<p>Bienvenue chez Compani.<p>
+    <p>Depuis cet espace, vous pourrez gérer en toute simplicité les formations Compani dans votre structure.<p>`;
 
 const forgotPasswordEmail = (passwordToken) => {
   const resetPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${passwordToken.token}`;
@@ -77,8 +68,10 @@ const completeEventRepScriptEmailBody = (nb, repIds) => {
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
 module.exports = {
-  helperWelcomeEmailContent,
-  trainerWelcomeEmailContent,
+  baseWelcomeContent,
+  helperCustomContent,
+  trainerCustomContent,
+  coachCustomContent,
   forgotPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,

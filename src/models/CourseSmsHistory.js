@@ -8,6 +8,7 @@ const CourseSmsHistorySchema = mongoose.Schema({
   date: { type: Date, default: Date.now },
   message: { type: String, required: true },
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CourseSmsHistory', CourseSmsHistorySchema);

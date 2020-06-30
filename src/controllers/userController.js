@@ -208,49 +208,6 @@ const removeHelper = async (req) => {
   }
 };
 
-const updateTask = async (req) => {
-  try {
-    req.payload.at = Date.now();
-    const tasks = await User
-      .findOneAndUpdate(
-        { _id: req.params._id, 'procedure.task': req.params.task_id },
-        { $set: { 'procedure.$.check': req.payload } },
-        { new: true }
-      )
-      .select('procedure');
-
-    return {
-      message: translate[language].userTaskUpdated,
-      data: { tasks },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const getUserTasks = async (req) => {
-  try {
-    const user = await User.findOne(
-      { _id: req.params._id, procedure: { $exists: true } },
-      { identity: 1, procedure: 1 }
-    ).populate({ path: 'procedure.task', select: 'name _id' }).lean();
-
-    if (!user) return Boom.notFound();
-
-    return {
-      message: translate[language].userTasksFound,
-      data: {
-        user: pick(user, ['_id', 'identity']),
-        tasks: user.procedure,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const forgotPassword = async (req) => {
   try {
     const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
@@ -364,8 +321,6 @@ module.exports = {
   forgotPassword,
   checkResetPasswordToken,
   updateCertificates,
-  updateTask,
-  getUserTasks,
   uploadFile,
   uploadImage,
   createDriveFolder,

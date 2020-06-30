@@ -274,9 +274,11 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   let hours = 0;
   for (const absence of absences) {
     if (absence.absenceNature === DAILY) {
-      const start = moment.max(moment(absence.startDate).startOf('d'), moment(query.startDate));
-      const end = moment.min(moment(absence.endDate), moment(query.endDate));
+      const start = moment.max(moment(absence.startDate).startOf('d'), moment(query.startDate), moment(contract.startDate));
+      const end = contract.endDate ? moment.min(moment(absence.endDate), moment(query.endDate), moment(contract.endDate))
+        : moment.min(moment(absence.endDate), moment(query.endDate));
       const range = Array.from(moment().range(start, end).by('days'));
+
       for (const day of range) {
         if (day.startOf('d').isBusinessDay()) { // startOf('day') is necessery to check fr holidays in business day
           const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
@@ -302,10 +304,33 @@ exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   return !cont.endDate || moment(cont.endDate).isAfter(endDate);
 });
 
+const filterEvents = (eventsToPay, contract) => eventsToPay.events.filter((eventsPerDay) => {
+  if (!eventsPerDay.length) return false;
+  const firstEvent = eventsPerDay[0];
+
+  return contract.endDate
+    ? moment(firstEvent.startDate).isBetween(contract.startDate, contract.endDate, 'days', '[]')
+    : moment(firstEvent.startDate).isSameOrAfter(contract.startDate);
+});
+
+
+const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((absence) => {
+  const isAbsenceStartBeforeContractEnd = !contract.endDate
+    || moment(absence.startDate).isBefore(contract.endDate);
+  const isAbsenceEndAfterContractStart = moment(absence.endDate).isAfter(contract.startDate);
+
+  return isAbsenceStartBeforeContractEnd && isAbsenceEndAfterContractStart;
+});
+
 exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
   const contractInfo = exports.getContractMonthInfo(contract, query);
-  const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
-  const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
+
+  const contractEvents = filterEvents(eventsToPay, contract);
+  const hours = await exports.getPayFromEvents(contractEvents, auxiliary, distanceMatrix, surcharges, query);
+
+  const contractAbsences = filterAbsences(eventsToPay, contract);
+  const absencesHours = exports.getPayFromAbsences(contractAbsences, contract, query);
+
   const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
   const hoursBalance = hours.workedHours - hoursToWork;
 

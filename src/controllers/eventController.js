@@ -1,10 +1,7 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
-const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
-const { ABSENCE } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -53,12 +50,6 @@ const update = async (req) => {
   try {
     const { payload, auth } = req;
     let { event } = req.pre;
-
-    if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
-      throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
-    }
-
-    if (!(await isEditionAllowed(event, payload, auth.credentials))) return Boom.badData();
 
     event = await EventsHelper.updateEvent(event, payload, auth.credentials);
 

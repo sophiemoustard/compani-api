@@ -105,9 +105,9 @@ describe('EXPORTS ROUTES', () => {
         expect(response.result).toBeDefined();
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(3);
-        expect(rows[0]).toEqual('\ufeff"Type";"Nature";"Début";"Fin";"Équipe";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Divers"');
-        expect(rows[1]).toEqual('"Congé";"Journalière";"19/01/2019";"21/01/2019";"Etoile";"M.";"Lulu";"LALA";');
-        expect(rows[2]).toEqual('"Absence injustifiée";"Horaire";"19/01/2019 15:00";"19/01/2019 17:00";"Etoile";"M.";"Lulu";"LALA";"test absence"');
+        expect(rows[0]).toEqual('\ufeff"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Divers"');
+        expect(rows[1]).toEqual('"Lulu";"LALA";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";');
+        expect(rows[2]).toEqual('"Lulu";"LALA";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 15:00";"19/01/2019 17:00";"test absence"');
       });
     });
 

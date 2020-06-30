@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const flat = require('flat');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -62,6 +61,8 @@ describe('list', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
       .once()
       .returns(coursesList);
@@ -92,7 +93,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('lean')
@@ -133,6 +134,7 @@ describe('sendSMS', () => {
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
   ];
   const payload = { body: 'Ceci est un test.' };
+  const credentials = { _id: new ObjectID() };
 
   let CourseMock;
   let CourseSmsHistoryMock;
@@ -162,10 +164,10 @@ describe('sendSMS', () => {
     sendStub.returns();
 
     CourseSmsHistoryMock.expects('create')
-      .withExactArgs({ type: payload.type, course: courseId, message: payload.body })
+      .withExactArgs({ type: payload.type, course: courseId, message: payload.body, sender: credentials._id })
       .returns();
 
-    await CourseHelper.sendSMS(courseId, payload);
+    await CourseHelper.sendSMS(courseId, payload, credentials);
 
     sinon.assert.calledWith(
       sendStub.getCall(0),
@@ -181,7 +183,7 @@ describe('sendSMS', () => {
   });
 });
 
-describe('sendSMS', () => {
+describe('getSMSHistory', () => {
   const courseId = new ObjectID();
   const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
   let CourseSmsHistoryMock;
@@ -192,9 +194,11 @@ describe('sendSMS', () => {
     CourseSmsHistoryMock.restore();
   });
 
-  it('should sens SMS to trainees', async () => {
+  it('should get SMS history', async () => {
     CourseSmsHistoryMock.expects('find')
       .withExactArgs({ course: courseId })
+      .chain('populate')
+      .withExactArgs({ path: 'sender', select: 'identity' })
       .chain('lean')
       .returns(sms);
 
@@ -403,8 +407,8 @@ describe('formatCourseForPdf', () => {
       name: 'Bonjour je suis une formation',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
-        { identity: { lastname: 'trainee 1' }, company: { tradeName: 'Pfiou' } },
-        { identity: { lastname: 'trainee 2' }, company: { tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
+        { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
       ],
       program: { name: 'programme de formation' },
     };
@@ -425,7 +429,7 @@ describe('formatCourseForPdf', () => {
       trainees: [
         {
           traineeName: 'trainee 1',
-          company: 'Pfiou',
+          company: 'alenvi',
           course: {
             name: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
@@ -438,7 +442,7 @@ describe('formatCourseForPdf', () => {
         },
         {
           traineeName: 'trainee 2',
-          company: 'Pfiou',
+          company: 'alenvi',
           course: {
             name: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
@@ -484,7 +488,7 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'tradeName' } })
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')
@@ -522,7 +526,6 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      name: 'Bonjour je suis une formation',
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };
     getCourseDuration.returns('7h');
@@ -530,7 +533,6 @@ describe('formatCourseForDocx', () => {
     const result = CourseHelper.formatCourseForDocx(course);
 
     expect(result).toEqual({
-      name: 'Bonjour je suis une formation',
       duration: '7h',
       learningGoals: course.program.learningGoals,
       startDate: '20/03/2020',
@@ -587,7 +589,7 @@ describe('generateCompletionCertificate', () => {
       ],
       name: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { courseName: 'Bonjour je suis une formation', courseDuration: '8h' };
+    const formattedCourse = { program: { learningGoals: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')

@@ -416,19 +416,16 @@ describe('hasConflicts', () => {
   });
 });
 
-describe('isCreationAllowed', () => {
+describe('isEditionAllowed', () => {
   let UserModel;
   let checkContracts;
-  let hasConflicts;
   beforeEach(() => {
     UserModel = sinon.mock(User);
     checkContracts = sinon.stub(EventsValidationHelper, 'checkContracts');
-    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
   });
   afterEach(() => {
     UserModel.restore();
     checkContracts.restore();
-    hasConflicts.restore();
   });
 
   it('should return false as event is not absence and not on one day', async () => {
@@ -442,12 +439,11 @@ describe('isCreationAllowed', () => {
     };
     UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(checkContracts);
-    sinon.assert.notCalled(hasConflicts);
   });
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
@@ -461,11 +457,10 @@ describe('isCreationAllowed', () => {
     };
     UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(hasConflicts);
     sinon.assert.notCalled(checkContracts);
   });
 
@@ -480,11 +475,10 @@ describe('isCreationAllowed', () => {
     };
     UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.notCalled(hasConflicts);
     sinon.assert.notCalled(checkContracts);
   });
 
@@ -511,42 +505,10 @@ describe('isCreationAllowed', () => {
       .returns(user);
     checkContracts.returns(false);
 
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWithExactly(checkContracts, event, user);
-  });
-
-  it('should return false as event is not absence and has conflicts', async () => {
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
-    const event = {
-      auxiliary: auxiliaryId.toHexString(),
-      type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-    const user = { _id: event.auxiliary, sector: new ObjectID() };
-
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(user);
-    checkContracts.returns(true);
-    hasConflicts.returns(true);
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, event);
     sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 
@@ -564,7 +526,6 @@ describe('isCreationAllowed', () => {
     const user = { _id: auxiliaryId, sector: sectorId };
 
     checkContracts.returns(true);
-    hasConflicts.returns(false);
     UserModel.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
@@ -574,28 +535,101 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(hasConflicts, event);
     sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 });
 
-describe('isEditionAllowed', () => {
-  let UserModel;
-  let checkContracts;
+describe('isCreationAllowed', () => {
+  let hasConflicts;
+  let isEditionAllowed;
+  beforeEach(() => {
+    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    isEditionAllowed = sinon.stub(EventsValidationHelper, 'isEditionAllowed');
+  });
+  afterEach(() => {
+    hasConflicts.restore();
+    isEditionAllowed.restore();
+  });
+
+  it('should return 409 as event is not absence and has conflicts', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const auxiliaryId = new ObjectID();
+    const event = {
+      auxiliary: auxiliaryId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    hasConflicts.returns(true);
+    try {
+      await EventsValidationHelper.isCreationAllowed(event, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+    } finally {
+      sinon.assert.notCalled(isEditionAllowed);
+      sinon.assert.calledWithExactly(hasConflicts, event);
+    }
+  });
+
+  it('should return true', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const auxiliaryId = new ObjectID();
+    const event = {
+      auxiliary: auxiliaryId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    hasConflicts.returns(false);
+    isEditionAllowed.returns(true);
+
+    const isValid = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    expect(isValid).toBeTruthy();
+    sinon.assert.calledWithExactly(isEditionAllowed, event, credentials);
+    sinon.assert.calledWithExactly(hasConflicts, event);
+  });
+
+  it('should return true as there is no conflict when no auxiliary assigned', async () => {
+    const companyId = new ObjectID();
+    const sectorId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const event = {
+      sector: sectorId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    isEditionAllowed.returns(true);
+
+    const isValid = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    expect(isValid).toBeTruthy();
+    sinon.assert.calledWithExactly(isEditionAllowed, event, credentials);
+    sinon.assert.notCalled(hasConflicts);
+  });
+});
+
+describe('isUpdateAllowed', () => {
+  let isEditionAllowed;
   let hasConflicts;
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    checkContracts = sinon.stub(EventsValidationHelper, 'checkContracts');
+    isEditionAllowed = sinon.stub(EventsValidationHelper, 'isEditionAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
   });
   afterEach(() => {
-    UserModel.restore();
-    checkContracts.restore();
+    isEditionAllowed.restore();
     hasConflicts.restore();
   });
 
@@ -611,14 +645,12 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(checkContracts);
     sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
   });
 
   it('should return false as event is absence or availability and auxiliary is updated', async () => {
@@ -631,14 +663,12 @@ describe('isEditionAllowed', () => {
       auxiliary: new ObjectID(),
       type: ABSENCE,
     };
-    UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(checkContracts);
     sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
   });
 
   it('should return false as event is not absence and no on one day', async () => {
@@ -653,14 +683,12 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(checkContracts);
     sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
   });
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
@@ -675,14 +703,14 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: ABSENCE,
     };
-    UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    isEditionAllowed.returns(false);
 
-    UserModel.verify();
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.notCalled(checkContracts);
+    sinon.assert.calledWithExactly(isEditionAllowed, { type: ABSENCE, ...payload }, credentials);
   });
 
   it('should return true as event has no auxiliary and is intervention', async () => {
@@ -697,18 +725,17 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    UserModel.expects('findOne').never();
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    isEditionAllowed.returns(true);
 
-    UserModel.verify();
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
     expect(result).toBeTruthy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.notCalled(checkContracts);
+    sinon.assert.calledWithExactly(isEditionAllowed, { type: INTERVENTION, ...payload }, credentials);
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -719,28 +746,18 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .returns(user);
-    checkContracts.returns(false);
+    hasConflicts.returns(false);
+    isEditionAllowed.returns(false);
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(hasConflicts, { type: INTERVENTION, ...payload });
+    sinon.assert.calledWithExactly(isEditionAllowed, { type: INTERVENTION, ...payload }, credentials);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -751,29 +768,47 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .returns(user);
-    checkContracts.returns(true);
     hasConflicts.returns(true);
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    try {
+      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+    } finally {
+      sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+      sinon.assert.notCalled(isEditionAllowed);
+    }
+  });
 
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
+  it('should return false as event cancellation is undone, but there is conflict', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      isCancelled: true,
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+
+    hasConflicts.returns(true);
+
+    try {
+      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+    } finally {
+      sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+      sinon.assert.notCalled(isEditionAllowed);
+    }
   });
 
   it('should return true as intervention is repeated and repetition should be updated', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -786,28 +821,18 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       repetition: { frequency: 'every_week' },
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .returns(user);
-    checkContracts.returns(true);
+    isEditionAllowed.returns(true);
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.called(checkContracts);
+
     sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWithExactly(isEditionAllowed, { ...eventFromDB, ...payload }, credentials);
   });
 
   it('should return false as internal hour is repeated, repetition should be updated but has conflict', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -820,27 +845,21 @@ describe('isEditionAllowed', () => {
       type: INTERNAL_HOUR,
       repetition: { frequency: 'every_week' },
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .returns(user);
     hasConflicts.returns(true);
-    checkContracts.returns(true);
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
+    try {
+      await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+    } finally {
+      sinon.assert.notCalled(isEditionAllowed);
+      sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+    }
   });
 
   it('should return true', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -851,25 +870,15 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    checkContracts.returns(true);
     hasConflicts.returns(false);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .returns(user);
+    isEditionAllowed.returns(true);
 
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
-    UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(isEditionAllowed, { ...eventFromDB, ...payload }, credentials);
   });
 });
 

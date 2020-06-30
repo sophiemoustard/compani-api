@@ -106,14 +106,14 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
 };
 
 const absenceExportHeader = [
+  'Auxiliaire - Prénom',
+  'Auxiliaire - Nom',
+  'Auxiliaire - Titre',
+  'Équipe',
   'Type',
   'Nature',
   'Début',
   'Fin',
-  'Équipe',
-  'Auxiliaire - Titre',
-  'Auxiliaire - Prénom',
-  'Auxiliaire - Nom',
   'Divers',
 ];
 
@@ -124,14 +124,14 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
   for (const event of events) {
     const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
     const cells = [
+      get(event, 'auxiliary.identity.firstname', ''),
+      get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
+      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
+      get(event, 'auxiliary.sector.name') || '',
       ABSENCE_TYPE_LIST[event.absence],
       ABSENCE_NATURE_LIST[event.absenceNature],
       moment(event.startDate).format(datetimeFormat),
       moment(event.endDate).format(datetimeFormat),
-      get(event, 'auxiliary.sector.name') || '',
-      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
-      get(event, 'auxiliary.identity.firstname', ''),
-      get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
       event.misc || '',
     ];
 

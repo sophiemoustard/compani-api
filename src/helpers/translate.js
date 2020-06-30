@@ -90,9 +90,6 @@ module.exports = {
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
     contractVersionUpdated: 'Contract amendment updated.',
-    /* User tasks */
-    userTasksFound: 'User tasks found',
-    userTaskUpdated: 'User task updated',
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -140,6 +137,7 @@ module.exports = {
     eventDeleted: 'Event deleted.',
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
+    eventsConflict: 'Events in conflict',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -331,9 +329,6 @@ module.exports = {
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
     contractVersionUpdated: 'Avenant au contrat modifié.',
-    /* User tasks */
-    userTasksFound: "Tâches de l'utilisateur trouvés",
-    userTaskUpdated: "Tâche de l'utilisateur mise à jour",
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
@@ -381,6 +376,7 @@ module.exports = {
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
+    eventsConflict: "Evènement en conflit avec les évènements de l'auxiliaire.",
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',

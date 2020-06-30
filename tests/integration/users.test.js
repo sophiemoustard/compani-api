@@ -72,8 +72,6 @@ describe('USERS TEST', () => {
         expect(user.identity.lastname).toBe(userPayload.identity.lastname);
         expect(user.local.email).toBe(userPayload.local.email);
         expect(user).toHaveProperty('picture');
-        expect(user.procedure).toBeDefined();
-        expect(user.procedure.length).toBeGreaterThan(0);
 
         const userSectorHistory = await SectorHistory
           .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
@@ -1455,117 +1453,6 @@ describe('USERS TEST', () => {
             method: 'PUT',
             url: `/users/${usersSeedList[1]._id.toHexString()}/certificates`,
             payload: updatePayload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('PUT /users/:id/tasks/:task_id', () => {
-    let authToken;
-    const taskPayload = { isDone: true };
-    const userId = usersSeedList[0]._id.toHexString();
-    const taskId = usersSeedList[0].procedure[0].task;
-
-    describe('CLIENT_ADMIN', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('client_admin', true, usersSeedList);
-      });
-
-      it('should update a user task', async () => {
-        const res = await app.inject({
-          method: 'PUT',
-          url: `/users/${userId}/tasks/${taskId}`,
-          payload: taskPayload,
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(200);
-        const user = await User.findById(usersSeedList[0]._id, { procedure: 1 }).lean();
-        expect(user.procedure[0].check).toMatchObject({ isDone: true, at: expect.any(Date) });
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/users/${usersSeedList[1]._id.toHexString()}/tasks/${taskId}`,
-            payload: taskPayload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('GET /users/:id/tasks', () => {
-    let authToken;
-    describe('CLIENT_ADMIN', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('client_admin', true, usersSeedList);
-      });
-
-      it('should return user tasks', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/tasks`,
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(200);
-        expect(res.result.data.user).toBeDefined();
-        expect(res.result.data.tasks.length).toBe(usersSeedList[0].procedure.length);
-      });
-
-      it('should return a 404 error if no user found', async () => {
-        const id = new ObjectID().toHexString();
-        const res = await app.inject({
-          method: 'GET',
-          url: `/users/${id}`,
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(404);
-      });
-
-      it('should return a 403 error if user not from same company', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: `/users/${auxiliaryFromOtherCompany._id}`,
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(403);
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: `/users/${usersSeedList[1]._id.toHexString()}/tasks`,
             headers: { 'x-access-token': authToken },
           });
 
