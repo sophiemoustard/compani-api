@@ -18,7 +18,7 @@ const eventRepetitionsScript = async (req) => {
   try {
     const job = await eventRepetitions.method(req);
 
-    return { message: `Event repetitions: ${job.results.length} évènements créés.`, data: job };
+    return { message: `Event repetitions: ${job ? job.results.length : 0} évènements créés.`, data: job };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
