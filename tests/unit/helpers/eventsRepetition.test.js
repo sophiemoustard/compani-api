@@ -593,7 +593,7 @@ describe('deleteRepetition', () => {
   });
 });
 
-describe('createFutureEventBasedOnRepetition', () => {
+describe('formatEventBasedOnRepetition', () => {
   let hasConflicts;
   let UserMock;
   beforeEach(() => {
@@ -629,7 +629,7 @@ describe('createFutureEventBasedOnRepetition', () => {
     hasConflicts.returns(false);
     UserMock.expects('findOne').never();
 
-    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, new Date());
+    const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, new Date());
 
     expect(event.toObject()).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId', 'startDate', 'endDate']),
@@ -658,7 +658,7 @@ describe('createFutureEventBasedOnRepetition', () => {
     hasConflicts.returns(true);
     UserMock.expects('findOne').never();
 
-    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, new Date());
+    const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, new Date());
 
     expect(event).toBeNull();
     UserMock.verify();
@@ -696,7 +696,7 @@ describe('createFutureEventBasedOnRepetition', () => {
       .once()
       .returns({ _id: repetition.auxiliary, sector: sectorId });
 
-    const event = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition, '2020-03-11T00:00:00');
+    const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, '2020-03-11T00:00:00');
 
 
     expect(event.toObject()).toEqual(expect.objectContaining({
