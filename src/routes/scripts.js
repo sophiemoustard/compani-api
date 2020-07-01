@@ -1,7 +1,12 @@
 'use-strict';
 
 const Joi = require('@hapi/joi');
-const { billDispatchScript, eventRepetitionsScript, updateRoleScript } = require('../controllers/scriptController');
+const {
+  billDispatchScript,
+  eventRepetitionsScript,
+  updateRoleScript,
+  eventConsistencyScript,
+} = require('../controllers/scriptController');
 
 exports.plugin = {
   name: 'routes-scripts',
@@ -41,6 +46,15 @@ exports.plugin = {
         auth: { scope: ['scripts:run'] },
       },
       handler: updateRoleScript,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/event-consistency',
+      options: {
+        auth: { scope: ['scripts:run'] },
+      },
+      handler: eventConsistencyScript,
     });
   },
 };
