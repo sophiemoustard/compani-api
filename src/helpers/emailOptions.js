@@ -68,9 +68,7 @@ const completeEventRepScriptEmailBody = (nb, repIds) => {
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
 const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
-  const nb = eventsWithErrors.length;
-  let message = `<p>Script correctement exécuté. ${nb} evenements avec erreurs.</p>`;
-  if (!nb) return message;
+  let message = `<p>Script correctement exécuté. ${eventsWithErrors.length} evenements avec erreurs.</p>`;
   for (const event of eventsWithErrors) {
     message += `${event.eventId}: ${event.issuesWithEvent}</br>`;
   }

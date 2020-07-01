@@ -1,6 +1,5 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
 const Company = require('../models/Company');
 const User = require('../models/User');
 const { INTERVENTION } = require('../helpers/constants');
@@ -45,7 +44,6 @@ const eventConsistency = {
 
         for (const auxiliaryWithEvents of eventsByAuxiliary) {
           const auxiliary = await User.findOne({ _id: auxiliaryWithEvents._id }).populate('contracts').lean();
-
 
           for (const event of auxiliaryWithEvents.events) {
             const issuesWithEvent = await getIssuesWithEvent(event, auxiliary, company._id);
