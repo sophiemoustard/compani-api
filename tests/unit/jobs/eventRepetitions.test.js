@@ -15,7 +15,7 @@ describe('method', () => {
   let EventMock;
   let RepetitionMock;
   let CompanyMock;
-  let CreateFutureEventBasedOnRepetitionStub;
+  let formatEventBasedOnRepetitionStub;
   let EmailHelperStub;
   let date;
   const fakeDate = moment('2019-09-20').startOf('d').toDate();
@@ -23,7 +23,7 @@ describe('method', () => {
     RepetitionMock = sinon.mock(Repetition);
     CompanyMock = sinon.mock(Company);
     EventMock = sinon.mock(Event);
-    CreateFutureEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'createFutureEventBasedOnRepetition');
+    formatEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'formatEventBasedOnRepetition');
     EmailHelperStub = sinon.stub(EmailHelper, 'completeEventRepScriptEmail');
     date = sinon.useFakeTimers(fakeDate);
   });
@@ -31,7 +31,7 @@ describe('method', () => {
     EventMock.restore();
     RepetitionMock.restore();
     CompanyMock.restore();
-    CreateFutureEventBasedOnRepetitionStub.restore();
+    formatEventBasedOnRepetitionStub.restore();
     EmailHelperStub.restore();
     date.restore();
   });
@@ -87,7 +87,7 @@ describe('method', () => {
           parentId: '5d84f869b7e67963c65236a9',
         },
       });
-      CreateFutureEventBasedOnRepetitionStub.returns(futureEvent);
+      formatEventBasedOnRepetitionStub.returns(futureEvent);
       EventMock.expects('create')
         .withArgs(futureEvent)
         .once()
@@ -96,7 +96,7 @@ describe('method', () => {
       const result = await eventRepetitions.method(server);
 
       expect(result).toMatchObject({ results: [futureEvent], errors: [] });
-      sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0], new Date());
+      sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetition[0], new Date());
       RepetitionMock.verify();
       EventMock.verify();
       CompanyMock.verify();
@@ -135,7 +135,7 @@ describe('method', () => {
       .once()
       .returns(repetition);
 
-    CreateFutureEventBasedOnRepetitionStub.returns(Promise.reject(error));
+    formatEventBasedOnRepetitionStub.returns(Promise.reject(error));
 
     const result = await eventRepetitions.method(server);
 
