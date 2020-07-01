@@ -194,7 +194,7 @@ exports.deleteRepetition = async (event, credentials) => {
   return event;
 };
 
-exports.createFutureEventBasedOnRepetition = async (repetition, date) => {
+exports.formatEventBasedOnRepetition = async (repetition, date) => {
   const { frequency, parentId, startDate, endDate } = repetition;
   const startDateObj = moment(startDate).toObject();
   const endDateObj = moment(endDate).toObject();
