@@ -1115,6 +1115,26 @@ describe('USERS TEST', () => {
 
         expect(res.statusCode).toBe(200);
       });
+
+      it('should return 200 if company is in payload and is the same as the user company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}`,
+          payload: { company: authCompany._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should return a 403 error if trying to set user company to an other company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${helperFromOtherCompany._id}`,
+          payload: { company: authCompany._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
