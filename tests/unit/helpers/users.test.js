@@ -44,8 +44,9 @@ describe('authenticate', () => {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
         .chain('lean')
-        .withExactArgs({ autopopulate: true })
         .once()
         .returns(null);
 
@@ -63,8 +64,9 @@ describe('authenticate', () => {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
         .chain('lean')
-        .withExactArgs({ autopopulate: true })
         .once()
         .returns({ _id: new ObjectID() });
 
@@ -82,8 +84,9 @@ describe('authenticate', () => {
     try {
       UserMock.expects('findOne')
         .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
         .chain('lean')
-        .withExactArgs({ autopopulate: true })
         .once()
         .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
       compare.returns(false);
@@ -106,8 +109,9 @@ describe('authenticate', () => {
     };
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
       .once()
       .returns(user);
     compare.returns(true);
@@ -149,7 +153,6 @@ describe('refreshToken', () => {
       UserMock.expects('findOne')
         .withExactArgs({ refreshToken: payload.refreshToken })
         .chain('lean')
-        .withExactArgs({ autopopulate: true })
         .once()
         .returns(null);
 
@@ -171,7 +174,6 @@ describe('refreshToken', () => {
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
       .once()
       .returns(user);
     encode.returns('token');
@@ -180,7 +182,7 @@ describe('refreshToken', () => {
 
     expect(result).toEqual({
       token: 'token',
-      refreshToken: user.refreshToken,
+      refreshToken: 'token',
       expiresIn: TOKEN_EXPIRE_TIME,
       user: { _id: user._id.toHexString() },
     });
@@ -277,7 +279,7 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
       .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -286,7 +288,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -313,7 +315,7 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
       .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -322,7 +324,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -366,7 +368,7 @@ describe('getUsersListWithSectorHistories', () => {
     UserMock.expects('find')
       .withExactArgs(formattedQuery, {}, { autopopulate: false })
       .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sectorHistories',
@@ -375,7 +377,7 @@ describe('getUsersListWithSectorHistories', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -411,9 +413,9 @@ describe('getUser', () => {
     userMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
-      .withExactArgs('customers')
+      .withExactArgs({ path: 'customers', select: 'contracts' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -438,9 +440,9 @@ describe('getUser', () => {
       userMock.expects('findOne')
         .withExactArgs({ _id: userId })
         .chain('populate')
-        .withExactArgs('customers')
+        .withExactArgs({ path: 'customers', select: 'contracts' })
         .chain('populate')
-        .withExactArgs('contracts')
+        .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
         .chain('populate')
         .withExactArgs({
           path: 'sector',
@@ -1131,6 +1133,8 @@ describe('checkResetPasswordToken', () => {
     try {
       UserMock.expects('findOne')
         .withExactArgs(flat(filter, { maxDepth: 2 }))
+        .chain('select')
+        .withExactArgs('local')
         .chain('lean')
         .withExactArgs()
         .once()
@@ -1151,6 +1155,8 @@ describe('checkResetPasswordToken', () => {
 
     UserMock.expects('findOne')
       .withExactArgs(flat(filter, { maxDepth: 2 }))
+      .chain('select')
+      .withExactArgs('local')
       .chain('lean')
       .withExactArgs()
       .once()

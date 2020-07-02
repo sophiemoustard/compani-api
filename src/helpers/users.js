@@ -23,7 +23,10 @@ const EmailHelper = require('./email');
 const { language } = translate;
 
 exports.authenticate = async (payload) => {
-  const user = await User.findOne({ 'local.email': payload.email.toLowerCase() }).lean({ autopopulate: true });
+  const user = await User
+    .findOne({ 'local.email': payload.email.toLowerCase() })
+    .select('local refreshToken')
+    .lean();
   const correctPassword = get(user, 'local.password') || '';
   const isCorrect = await bcrypt.compare(payload.password, correctPassword);
   if (!user || !user.refreshToken || !correctPassword || !isCorrect) throw Boom.unauthorized();
@@ -35,13 +38,13 @@ exports.authenticate = async (payload) => {
 };
 
 exports.refreshToken = async (payload) => {
-  const user = await User.findOne({ refreshToken: payload.refreshToken }).lean({ autopopulate: true });
+  const user = await User.findOne({ refreshToken: payload.refreshToken }).lean();
   if (!user) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+  return { token, refreshToken: payload.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
 };
 
 exports.formatQueryForUsersList = async (query) => {
@@ -63,14 +66,14 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'customers', select: 'identity driveFolder' })
-    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+    .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate('contracts')
+    .populate({ path: 'contracts', select: 'status startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -79,22 +82,22 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
   const params = await exports.formatQueryForUsersList({ ...query, role: AUXILIARY_ROLES });
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'role.client', select: '-rights -__v -createdAt -updatedAt' })
+    .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate('contracts')
+    .populate({ path: 'contracts', select: 'status startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
-    .populate('customers')
-    .populate('contracts')
+    .populate({ path: 'customers', select: 'contracts' })
+    .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -242,7 +245,7 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 
 exports.checkResetPasswordToken = async (token) => {
   const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
-  const user = await User.findOne(flat(filter, { maxDepth: 2 })).lean();
+  const user = await User.findOne(flat(filter, { maxDepth: 2 })).select('local').lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   const payload = { _id: user._id, email: user.local.email };

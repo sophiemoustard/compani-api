@@ -38,7 +38,7 @@ const ContractSchema = mongoose.Schema({
   startDate: { type: Date, required: true },
   endDate: { type: Date },
   endReason: { type: String, enum: END_CONTRACT_REASONS },
-  otherMisc: String,
+  otherMisc: { type: String },
   endNotificationDate: { type: Date },
   status: { type: String, enum: CONTRACT_STATUS, required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
