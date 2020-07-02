@@ -1,5 +1,4 @@
 const cloudinary = require('cloudinary');
-const { AUXILIARY, COACH } = require('../helpers/constants');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,18 +7,8 @@ cloudinary.config({
 });
 
 exports.addImage = async params => new Promise((resolve, reject) => {
-  let folder = '';
-  switch (params.role) {
-    case COACH:
-      folder = 'images/users/coaches';
-      break;
-    case AUXILIARY:
-    default:
-      folder = 'images/users/auxiliaries';
-      break;
-  }
   const options = {
-    folder,
+    folder: 'images/users/profile_pictures',
     public_id: params.public_id,
     eager: params.transform ? [params.transform] : [],
   };

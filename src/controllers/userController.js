@@ -1,5 +1,4 @@
 const flat = require('flat');
-const pick = require('lodash/pick');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const translate = require('../helpers/translate');
@@ -12,7 +11,6 @@ const {
   getUser,
   userExists,
 } = require('../helpers/users');
-const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
 
@@ -244,7 +242,6 @@ const uploadImage = async (req) => {
   try {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
-      role: req.payload.role || AUXILIARY,
       public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
     });
     const payload = {
