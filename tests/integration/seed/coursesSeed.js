@@ -18,7 +18,18 @@ const auxiliary = {
   inactivityDate: null,
 };
 
-const trainee = {
+const traineeFromAuthCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Tata', lastname: 'Tutu' },
+  local: { email: 'trainee@alenvi.io', password: '123456!eR' },
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  inactivityDate: null,
+};
+
+const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Tata', lastname: 'Tutu' },
   local: { email: 'trainee@alenvi.io', password: '123456!eR' },
@@ -76,7 +87,7 @@ const coursesList = [
     company: authCompany._id,
     trainer: courseTrainer._id,
     type: 'intra',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
@@ -85,14 +96,21 @@ const coursesList = [
     company: otherCompany._id,
     trainer: new ObjectID(),
     type: 'intra',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
-    name: 'inter b2b session',
+    name: 'inter b2b session concerning auth company',
     program: programsList[0]._id,
     type: 'inter_b2b',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id, traineeFromOtherCompany._id],
+  },
+  {
+    _id: new ObjectID(),
+    name: 'inter b2b session concerning auth company',
+    program: programsList[0]._id,
+    type: 'inter_b2b',
+    trainees: [traineeFromOtherCompany._id],
   },
 ];
 
@@ -124,7 +142,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, trainee, traineeWithoutCompany, courseTrainer]);
+  await User.create([auxiliary, traineeFromAuthCompany, traineeWithoutCompany, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
@@ -133,7 +151,8 @@ module.exports = {
   coursesList,
   programsList,
   auxiliary,
-  trainee,
+  traineeFromAuthCompany,
+  traineeFromOtherCompany,
   traineeWithoutCompany,
   courseSmsHistory,
   courseTrainer,
