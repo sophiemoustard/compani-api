@@ -8,6 +8,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
+const { findCourseAndPopulate } = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -20,19 +21,12 @@ const { INTRA, INTER_B2B } = require('../helpers/constants');
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
-  const localCourseFind = (localQuery, populateVirtual = false) => Course.find(localQuery)
-    .populate({ path: 'company', select: '_id name' })
-    .populate({ path: 'program', select: '_id name' })
-    .populate({ path: 'slots', select: '_id startDate endDate' })
-    .populate({ path: 'trainer', select: '_id name' })
-    .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-    .lean({ virtuals: populateVirtual });
   let courses = [];
 
-  if (!query.company) courses = await localCourseFind(query);
+  if (!query.company) courses = await findCourseAndPopulate(query);
   else {
-    const intraCourse = await localCourseFind({ ...query, type: INTRA });
-    const interCourse = await localCourseFind({ ...omit(query, ['company']), type: INTER_B2B }, true);
+    const intraCourse = await findCourseAndPopulate({ ...query, type: INTRA });
+    const interCourse = await findCourseAndPopulate({ ...omit(query, ['company']), type: INTER_B2B }, true);
 
     courses = [
       ...intraCourse,
@@ -51,7 +45,7 @@ exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('slots')
   .populate({
     path: 'trainees',
-    select: '_id identity.firstname identity.lastname local company contact ',
+    select: '_id identity.firstname identity.lastname local.email company contact ',
     populate: { path: 'company', select: 'name' },
   })
   .populate({ path: 'trainer', select: '_id identity.firstname identity.lastname' })

@@ -60,7 +60,7 @@ describe('list', () => {
       .chain('populate')
       .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
       .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id name' })
+      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
       .chain('populate')
       .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
@@ -89,7 +89,7 @@ describe('list', () => {
       .chain('populate')
       .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
       .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id name' })
+      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
       .chain('populate')
       .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
@@ -106,7 +106,7 @@ describe('list', () => {
       .chain('populate')
       .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
       .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id name' })
+      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
       .chain('populate')
       .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
@@ -142,7 +142,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
-        select: '_id identity.firstname identity.lastname local company contact ',
+        select: '_id identity.firstname identity.lastname local.email company contact ',
         populate: { path: 'company', select: 'name' },
       })
       .chain('populate')
