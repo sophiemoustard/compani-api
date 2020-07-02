@@ -1,6 +1,7 @@
 const path = require('path');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
@@ -14,24 +15,46 @@ const ZipHelper = require('./zip');
 const TwilioHelper = require('./twilio');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
+const { INTRA, INTER_B2B } = require('../helpers/constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async (query, populateVirtual = false) => Course.find(query)
-  .populate('company')
-  .populate('program')
-  .populate('slots')
-  .populate('trainer')
-  .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-  .lean({ virtuals: populateVirtual });
+exports.list = async (query) => {
+  const localCourseFind = (localQuery, populateVirtual = false) => Course.find(localQuery)
+    .populate({ path: 'company', select: '_id name' })
+    .populate({ path: 'program', select: '_id name' })
+    .populate({ path: 'slots', select: '_id startDate endDate' })
+    .populate({ path: 'trainer', select: '_id name' })
+    .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
+    .lean({ virtuals: populateVirtual });
+  let courses = [];
 
+  if (!query.company) courses = await localCourseFind(query);
+  else {
+    const intraCourse = await localCourseFind({ ...query, type: INTRA });
+    const interCourse = await localCourseFind({ ...omit(query, ['company']), type: INTER_B2B }, true);
+
+    courses = [
+      ...intraCourse,
+      ...interCourse
+        .filter(course => course.companies.includes(query.company))
+        .map(course => omit(course, ['companies'])),
+    ];
+  }
+
+  return courses;
+};
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate('company')
-  .populate('program')
+  .populate({ path: 'company', select: '_id name' })
+  .populate({ path: 'program', select: '_id name' })
   .populate('slots')
-  .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
-  .populate('trainer')
+  .populate({
+    path: 'trainees',
+    select: '_id identity.firstname identity.lastname local company contact ',
+    populate: { path: 'company', select: 'name' },
+  })
+  .populate({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>

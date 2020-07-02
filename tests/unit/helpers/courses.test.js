@@ -48,19 +48,19 @@ describe('list', () => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
+  it('should return courses, called without query.company', async () => {
     const coursesList = [{ name: 'name' }, { name: 'program' }];
 
     CourseMock.expects('find')
-      .withExactArgs({ type: 'toto' })
+      .withExactArgs({ trainer: '1234567890abcdef12345678' })
       .chain('populate')
-      .withExactArgs('company')
+      .withExactArgs({ path: 'company', select: '_id name' })
       .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'program', select: '_id name' })
       .chain('populate')
-      .withExactArgs('slots')
+      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
       .chain('populate')
-      .withExactArgs('trainer')
+      .withExactArgs({ path: 'trainer', select: '_id name' })
       .chain('populate')
       .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
       .chain('lean')
@@ -68,7 +68,53 @@ describe('list', () => {
       .once()
       .returns(coursesList);
 
-    const result = await CourseHelper.list({ type: 'toto' });
+    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
+    expect(result).toMatchObject(coursesList);
+  });
+
+  it('should return courses, called with query.company', async () => {
+    const authCompany = new ObjectID();
+    const coursesList = [{ name: 'name', type: 'intra' }, { name: 'program', type: 'inter_b2b' }];
+    const returnedList = [
+      { name: 'name', type: 'intra' },
+      { name: 'program', type: 'inter_b2b', companies: ['1234567890abcdef12345678', authCompany] },
+    ];
+
+    CourseMock.expects('find')
+      .withExactArgs({ type: 'intra', company: authCompany, trainer: '1234567890abcdef12345678' })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
+      .chain('lean')
+      .withExactArgs({ virtuals: false })
+      .once()
+      .returns([returnedList[0]]);
+
+    CourseMock.expects('find')
+      .withExactArgs({ type: 'inter_b2b', trainer: '1234567890abcdef12345678' })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
+      .chain('lean')
+      .withExactArgs({ virtuals: true })
+      .once()
+      .returns([returnedList[1]]);
+
+    const result = await CourseHelper.list({ company: authCompany, trainer: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
   });
 });
@@ -88,15 +134,19 @@ describe('getCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs('company')
+      .withExactArgs({ path: 'company', select: '_id name' })
       .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'program', select: '_id name' })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
+      .withExactArgs({
+        path: 'trainees',
+        select: '_id identity.firstname identity.lastname local company contact ',
+        populate: { path: 'company', select: 'name' },
+      })
       .chain('populate')
-      .withExactArgs('trainer')
+      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
       .chain('lean')
       .once()
       .returns(course);
