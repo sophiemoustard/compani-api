@@ -1,12 +1,26 @@
 const Boom = require('@hapi/boom');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
+const { INTER_B2B } = require('../helpers/constants');
+const omit = require('lodash/omit');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courses = await CoursesHelper.list(req.query);
+    let courses = [];
+    if (!req.query.company) courses = await CoursesHelper.list(req.query);
+    else {
+      const intraCourse = await CoursesHelper.list(req.query);
+      const interCourse = await CoursesHelper.list({ type: INTER_B2B }, true);
+
+      courses = [
+        ...intraCourse,
+        ...interCourse
+          .filter(course => course.companies.includes(req.query.company))
+          .map(course => omit(course, ['companies'])),
+      ];
+    }
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,

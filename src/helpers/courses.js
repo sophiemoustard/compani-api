@@ -17,13 +17,14 @@ const drive = require('../models/Google/Drive');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async query => Course.find(query)
+exports.list = async (query, populateVirtual = false) => Course.find(query)
   .populate('company')
   .populate('program')
   .populate('slots')
   .populate('trainer')
   .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-  .lean();
+  .lean({ virtuals: populateVirtual });
+
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate('company')
