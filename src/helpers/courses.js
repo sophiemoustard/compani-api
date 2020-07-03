@@ -41,7 +41,7 @@ exports.list = async (query) => {
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'company', select: '_id name' })
-  .populate({ path: 'program', select: '_id name' })
+  .populate({ path: 'program', select: '_id name learningGoals' })
   .populate('slots')
   .populate({
     path: 'trainees',

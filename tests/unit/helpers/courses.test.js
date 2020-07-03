@@ -136,7 +136,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({ path: 'company', select: '_id name' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name' })
+      .withExactArgs({ path: 'program', select: '_id name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')

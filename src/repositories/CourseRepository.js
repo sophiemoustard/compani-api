@@ -1,6 +1,6 @@
 const Course = require('../models/Course');
 
-exports.findCourseAndPopulate = (localQuery, populateVirtual = false) => Course.find(localQuery)
+exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query)
   .populate({ path: 'company', select: '_id name' })
   .populate({ path: 'program', select: '_id name' })
   .populate({ path: 'slots', select: '_id startDate endDate' })
