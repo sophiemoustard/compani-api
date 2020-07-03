@@ -21,7 +21,7 @@ describe('addProgram', () => {
   });
 
   const program = { _id: new ObjectID() };
-  it('should create a program', async () => {
+  it('should create a module', async () => {
     const newModule = { title: 'c\'est un module !' };
     const moduleId = new ObjectID();
     ModuleMock.expects('create').withExactArgs(newModule).returns({ _id: moduleId });
