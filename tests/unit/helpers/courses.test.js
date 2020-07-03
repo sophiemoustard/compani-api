@@ -17,6 +17,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const CourseRepository = require('../../../src/repositories/CourseRepository');
 const moment = require('moment');
 require('sinon-mongoose');
 
@@ -40,36 +41,22 @@ describe('createCourse', () => {
 });
 
 describe('list', () => {
-  let CourseMock;
+  let findCourseAndPopulate;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
   });
   afterEach(() => {
-    CourseMock.restore();
+    findCourseAndPopulate.restore();
   });
 
   it('should return courses, called without query.company', async () => {
     const coursesList = [{ name: 'name' }, { name: 'program' }];
 
-    CourseMock.expects('find')
-      .withExactArgs({ trainer: '1234567890abcdef12345678' })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-      .chain('lean')
-      .withExactArgs({ virtuals: false })
-      .once()
-      .returns(coursesList);
+    findCourseAndPopulate.returns(coursesList);
 
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
   });
 
   it('should return courses, called with query.company', async () => {
@@ -80,42 +67,16 @@ describe('list', () => {
       { name: 'program', type: 'inter_b2b', companies: ['1234567890abcdef12345678', authCompany] },
     ];
 
-    CourseMock.expects('find')
-      .withExactArgs({ type: 'intra', company: authCompany, trainer: '1234567890abcdef12345678' })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-      .chain('lean')
-      .withExactArgs({ virtuals: false })
-      .once()
-      .returns([returnedList[0]]);
-
-    CourseMock.expects('find')
-      .withExactArgs({ type: 'inter_b2b', trainer: '1234567890abcdef12345678' })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true })
-      .once()
+    findCourseAndPopulate
+      .onFirstCall()
+      .returns([returnedList[0]])
+      .onSecondCall()
       .returns([returnedList[1]]);
 
     const result = await CourseHelper.list({ company: authCompany, trainer: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
+    expect(findCourseAndPopulate.getCall(0).calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
+    expect(findCourseAndPopulate.getCall(1).calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
   });
 });
 

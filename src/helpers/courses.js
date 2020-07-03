@@ -8,7 +8,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
-const { findCourseAndPopulate } = require('../repositories/CourseRepository');
+const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -23,10 +23,13 @@ exports.createCourse = payload => (new Course(payload)).save();
 exports.list = async (query) => {
   let courses = [];
 
-  if (!query.company) courses = await findCourseAndPopulate(query);
+  if (!query.company) courses = await CourseRepository.findCourseAndPopulate(query);
   else {
-    const intraCourse = await findCourseAndPopulate({ ...query, type: INTRA });
-    const interCourse = await findCourseAndPopulate({ ...omit(query, ['company']), type: INTER_B2B }, true);
+    const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
+    const interCourse = await CourseRepository.findCourseAndPopulate(
+      { ...omit(query, ['company']), type: INTER_B2B },
+      true
+    );
 
     courses = [
       ...intraCourse,

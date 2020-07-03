@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -18,7 +19,7 @@ const {
   traineeFromAuthCompany,
 }
   = require('./seed/coursesSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
@@ -127,6 +128,24 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(coursesNumber);
+      expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
+        company: pick(otherCompany, ['_id', 'name']),
+        program: pick(programsList[0], ['_id', 'name']),
+        trainer: null,
+        slots: [{
+          startDate: moment('2020-03-20T09:00:00').toDate(),
+          endDate: moment('2020-03-20T11:00:00').toDate(),
+          courseId: coursesList[3]._id,
+          _id: expect.any(ObjectID),
+        }],
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          company: pick(authCompany, ['_id', 'name']),
+        })]),
+      }));
+      expect(response.result.data.courses[3].program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
+      expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
   });
 
