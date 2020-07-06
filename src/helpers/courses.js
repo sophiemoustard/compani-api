@@ -32,7 +32,10 @@ exports.list = async (query) => {
   return [
     ...intraCourse,
     ...interCourse.filter(course => course.companies.includes(query.company))
-      .map(course => omit(course, ['companies'])),
+      .map((course) => ({
+          ...omit(course, ['companies']),
+          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+        })),
   ];
 };
 
