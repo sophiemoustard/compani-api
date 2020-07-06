@@ -142,8 +142,9 @@ describe('updateCourse', () => {
 describe('sendSMS', () => {
   const courseId = new ObjectID();
   const trainees = [
-    { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' } },
-    { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
+    { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' }, _id: 'qwertyuio' },
+    { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
+    { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
   ];
   const payload = { body: 'Ceci est un test.' };
   const credentials = { _id: new ObjectID() };
@@ -165,18 +166,24 @@ describe('sendSMS', () => {
     sendStub.restore();
   });
 
-  it('should sens SMS to trainees', async () => {
+  it('should sens SMS to trainees and save missing phone trainee id', async () => {
     CourseMock.expects('findById')
       .withExactArgs(courseId)
       .chain('populate')
-      .withExactArgs({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+      .withExactArgs({ path: 'trainees', select: '_id contact' })
       .chain('lean')
       .returns({ trainees });
 
     sendStub.returns();
 
     CourseSmsHistoryMock.expects('create')
-      .withExactArgs({ type: payload.type, course: courseId, message: payload.body, sender: credentials._id })
+      .withExactArgs({
+        type: payload.type,
+        course: courseId,
+        message: payload.body,
+        sender: credentials._id,
+        missingPhones: ['poiuytrewq'],
+      })
       .returns();
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
@@ -210,7 +217,9 @@ describe('getSMSHistory', () => {
     CourseSmsHistoryMock.expects('find')
       .withExactArgs({ course: courseId })
       .chain('populate')
-      .withExactArgs({ path: 'sender', select: 'identity' })
+      .withExactArgs({ path: 'sender', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
       .chain('lean')
       .returns(sms);
 

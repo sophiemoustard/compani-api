@@ -21,25 +21,19 @@ const { INTRA, INTER_B2B } = require('../helpers/constants');
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
-  let courses = [];
+  if (!query.company) return CourseRepository.findCourseAndPopulate(query);
 
-  if (!query.company) courses = await CourseRepository.findCourseAndPopulate(query);
-  else {
-    const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-    const interCourse = await CourseRepository.findCourseAndPopulate(
-      { ...omit(query, ['company']), type: INTER_B2B },
-      true
-    );
+  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
+  const interCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), type: INTER_B2B },
+    true
+  );
 
-    courses = [
-      ...intraCourse,
-      ...interCourse
-        .filter(course => course.companies.includes(query.company))
-        .map(course => omit(course, ['companies'])),
-    ];
-  }
-
-  return courses;
+  return [
+    ...intraCourse,
+    ...interCourse.filter(course => course.companies.includes(query.company))
+      .map(course => omit(course, ['companies'])),
+  ];
 };
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
@@ -59,28 +53,36 @@ exports.updateCourse = async (courseId, payload) =>
 
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
-    .populate({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+    .populate({ path: 'trainees', select: '_id contact' })
     .lean();
 
   const promises = [];
+  const missingPhones = [];
   for (const trainee of course.trainees) {
-    promises.push(TwilioHelper.send({
-      to: `+33${trainee.contact.phone.substring(1)}`,
-      from: 'Compani',
-      body: payload.body,
-    }));
+    if (!get(trainee, 'contact.phone')) missingPhones.push(trainee._id);
+    else {
+      promises.push(TwilioHelper.send({
+        to: `+33${trainee.contact.phone.substring(1)}`,
+        from: 'Compani',
+        body: payload.body,
+      }));
+    }
   }
+
   promises.push(CourseSmsHistory.create({
     type: payload.type,
     course: courseId,
     message: payload.body,
     sender: credentials._id,
+    missingPhones,
   }));
+
   await Promise.all(promises);
 };
 
 exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
-  .populate({ path: 'sender', select: 'identity' })
+  .populate({ path: 'sender', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {
