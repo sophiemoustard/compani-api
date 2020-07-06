@@ -1,4 +1,5 @@
 const uuidv4 = require('uuid/v4');
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
@@ -18,7 +19,18 @@ const auxiliary = {
   inactivityDate: null,
 };
 
-const trainee = {
+const traineeFromAuthCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Tata', lastname: 'Tutu' },
+  local: { email: 'trainee@alenvi.io', password: '123456!eR' },
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  inactivityDate: null,
+};
+
+const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Tata', lastname: 'Tutu' },
   local: { email: 'trainee@alenvi.io', password: '123456!eR' },
@@ -48,7 +60,7 @@ const courseTrainer = {
 };
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program' },
+  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là' },
   { _id: new ObjectID(), name: 'training program' },
 ];
 
@@ -76,7 +88,7 @@ const coursesList = [
     company: authCompany._id,
     trainer: courseTrainer._id,
     type: 'intra',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
@@ -85,14 +97,21 @@ const coursesList = [
     company: otherCompany._id,
     trainer: new ObjectID(),
     type: 'intra',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
-    name: 'inter b2b session',
+    name: 'inter b2b session concerning auth company',
     program: programsList[0]._id,
     type: 'inter_b2b',
-    trainees: [trainee._id],
+    trainees: [traineeFromAuthCompany._id, traineeFromOtherCompany._id],
+  },
+  {
+    _id: new ObjectID(),
+    name: 'inter b2b session concerning auth company',
+    program: programsList[0]._id,
+    type: 'inter_b2b',
+    trainees: [traineeFromOtherCompany._id],
   },
 ];
 
@@ -105,11 +124,11 @@ const courseSmsHistory = {
 };
 
 const slots = [
-  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[0] },
-  { startDate: '2020-03-20T14:00:00', endDate: '2020-03-20T18:00:00', courseId: coursesList[0] },
-  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[1] },
-  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[2] },
-  { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', courseId: coursesList[3] },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[0] },
+  { startDate: moment('2020-03-20T14:00:00').toDate(), endDate: moment('2020-03-20T18:00:00').toDate(), courseId: coursesList[0] },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[1] },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[2] },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[3] },
 ];
 
 const populateDB = async () => {
@@ -124,7 +143,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, trainee, traineeWithoutCompany, courseTrainer]);
+  await User.create([auxiliary, traineeFromAuthCompany, traineeWithoutCompany, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
@@ -133,7 +152,8 @@ module.exports = {
   coursesList,
   programsList,
   auxiliary,
-  trainee,
+  traineeFromAuthCompany,
+  traineeFromOtherCompany,
   traineeWithoutCompany,
   courseSmsHistory,
   courseTrainer,
