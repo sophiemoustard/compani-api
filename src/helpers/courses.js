@@ -16,7 +16,7 @@ const ZipHelper = require('./zip');
 const TwilioHelper = require('./twilio');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B } = require('../helpers/constants');
+const { INTRA, INTER_B2B } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -43,15 +43,21 @@ exports.list = async (query) => {
 };
 
 exports.getCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'company', select: '_id name' })
-  .populate({ path: 'program', select: '_id name learningGoals' })
+  .populate({ path: 'company', select: 'name' })
+  .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
   .populate({
     path: 'trainees',
-    select: '_id identity.firstname identity.lastname local.email company contact ',
+    select: 'identity.firstname identity.lastname local.email company contact ',
     populate: { path: 'company', select: 'name' },
   })
-  .populate({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+  .lean();
+
+exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
+  .populate({ path: 'program', select: 'name learningGoals' })
+  .populate('slots')
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>

@@ -95,24 +95,53 @@ describe('getCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs({ path: 'company', select: '_id name' })
+      .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name learningGoals' })
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
-        select: '_id identity.firstname identity.lastname local.email company contact ',
+        select: 'identity.firstname identity.lastname local.email company contact ',
         populate: { path: 'company', select: 'name' },
       })
       .chain('populate')
-      .withExactArgs({ path: 'trainer', select: '_id identity.firstname identity.lastname' })
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
       .chain('lean')
       .once()
       .returns(course);
 
     const result = await CourseHelper.getCourse(course._id);
+    expect(result).toMatchObject(course);
+  });
+});
+
+describe('getCoursePublicInfos', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should return courses', async () => {
+    const course = { _id: new ObjectID() };
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+      .chain('lean')
+      .once()
+      .returns(course);
+
+    const result = await CourseHelper.getCoursePublicInfos(course._id);
     expect(result).toMatchObject(course);
   });
 });
