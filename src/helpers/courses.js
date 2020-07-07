@@ -32,24 +32,32 @@ exports.list = async (query) => {
   return [
     ...intraCourse,
     ...interCourse.filter(course => course.companies.includes(query.company))
-      .map((course) => ({
-          ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-        })),
+      .map(course => ({
+        ...omit(course, ['companies']),
+        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+      })),
   ];
 };
 
-exports.getCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'company', select: 'name' })
-  .populate({ path: 'program', select: 'name learningGoals' })
-  .populate('slots')
-  .populate({
-    path: 'trainees',
-    select: 'identity.firstname identity.lastname local.email company contact ',
-    populate: { path: 'company', select: 'name' },
-  })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-  .lean();
+exports.getCourse = async (courseId, loggedUser) => {
+  const userHasVendorRole = !!get(loggedUser, 'role.vendor');
+  const userCompanyId = get(loggedUser, 'company._id') || null;
+  // A coach/client_admin is not supposed to read infos on trainees from other companies - espacially for INTER_B2B courses.
+  const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
+
+  return Course.findOne({ _id: courseId })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'program', select: 'name learningGoals' })
+    .populate('slots')
+    .populate({
+      path: 'trainees',
+      match: traineesCompanyMatch,
+      select: 'identity.firstname identity.lastname local.email company contact ',
+      populate: { path: 'company', select: 'name' },
+    })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+    .lean();
+};
 
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })

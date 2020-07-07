@@ -178,7 +178,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should not get all courses', async () => {
+    it('should not get any course', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
@@ -186,17 +186,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(403);
-    });
-
-    it('should get courses related to his company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
     });
   });
 
@@ -226,7 +215,8 @@ describe('COURSES ROUTES - GET /courses', () => {
 
 describe('COURSES ROUTES - GET /courses/{_id}', () => {
   let authToken = null;
-  const courseIdFromAuthCompany = coursesList[0]._id;
+  const courseFromAuthCompanyIntra = coursesList[0];
+  const courseFromAuthCompanyInterB2b = coursesList[4];
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -234,15 +224,86 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get course', async () => {
+    it('should get intra course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}`,
+        url: `/courses/${courseFromAuthCompanyIntra._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
+      expect(response.result.data.course).toEqual(expect.objectContaining({
+        _id: courseFromAuthCompanyIntra._id,
+        program: pick(programsList[0], ['_id', 'name', 'learningGoals']),
+        trainer: expect.objectContaining({
+          _id: courseTrainer._id,
+          identity: { firstname: 'trainer', lastname: 'trainer' },
+        }),
+        company: { _id: authCompany._id, name: 'Test SAS' },
+        contact: { name: '' },
+        slots: expect.arrayContaining([
+          expect.objectContaining({
+            startDate: moment('2020-03-20T09:00:00').toDate(),
+            endDate: moment('2020-03-20T11:00:00').toDate(),
+            courseId: courseFromAuthCompanyIntra._id,
+            _id: expect.any(ObjectID),
+          }),
+          expect.objectContaining({
+            startDate: moment('2020-03-20T14:00:00').toDate(),
+            endDate: moment('2020-03-20T18:00:00').toDate(),
+            courseId: courseFromAuthCompanyIntra._id,
+            _id: expect.any(ObjectID),
+          }),
+        ]),
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Tata', lastname: 'Tutu' },
+          company: pick(authCompany, ['_id', 'name']),
+        })]),
+      }));
+    });
+
+    it('should get inter b2b course with all trainees', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Tata', lastname: 'Tutu' },
+          company: pick(authCompany, ['_id', 'name']),
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Fred', lastname: 'Astaire' },
+          company: pick(otherCompany, ['_id', 'name']),
+        }),
+      ]));
+    });
+  });
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should get inter b2b course with trainees from same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([expect.objectContaining({
+        _id: expect.any(ObjectID),
+        identity: { firstname: 'Tata', lastname: 'Tutu' },
+        company: pick(authCompany, ['_id', 'name']),
+      })]));
     });
   });
 
@@ -262,7 +323,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseIdFromAuthCompany.toHexString()}`,
+          url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

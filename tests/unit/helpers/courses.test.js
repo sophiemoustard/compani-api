@@ -98,6 +98,15 @@ describe('list', () => {
 
 describe('getCourse', () => {
   let CourseMock;
+  const authCompanyId = new ObjectID();
+  const course = {
+    _id: new ObjectID(),
+    type: 'inter_b2b',
+    trainees: [
+      { _id: new ObjectID(), company: authCompanyId },
+      { _id: new ObjectID(), company: new ObjectID() },
+    ],
+  };
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
   });
@@ -105,9 +114,7 @@ describe('getCourse', () => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
-
+  it('should return inter b2b course without trainees filtering', async () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
@@ -121,6 +128,7 @@ describe('getCourse', () => {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email company contact ',
         populate: { path: 'company', select: 'name' },
+        match: {},
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
@@ -128,8 +136,41 @@ describe('getCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id);
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { vendor: { name: 'vendor_admin' } }, company: { _id: authCompanyId } }
+    );
     expect(result).toMatchObject(course);
+    expect(result.trainees.length).toEqual(2);
+  });
+
+  it('should return inter b2b course with trainees filtering', async () => {
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({
+        path: 'trainees',
+        select: 'identity.firstname identity.lastname local.email company contact ',
+        populate: { path: 'company', select: 'name' },
+        match: { company: authCompanyId },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+      .chain('lean')
+      .once()
+      .returns({ ...course, trainees: [course.trainees[0]] });
+
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
+    );
+    expect(result.trainees.length).toEqual(1);
   });
 });
 
