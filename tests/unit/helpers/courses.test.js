@@ -128,6 +128,7 @@ describe('getCourse', () => {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email company contact ',
         populate: { path: 'company', select: 'name' },
+        match: {},
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
@@ -157,12 +158,13 @@ describe('getCourse', () => {
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email company contact ',
         populate: { path: 'company', select: 'name' },
+        match: { company: authCompanyId },
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
       .chain('lean')
       .once()
-      .returns(course);
+      .returns({ ...course, trainees: [course.trainees[0]] });
 
     const result = await CourseHelper.getCourse(
       course._id,
