@@ -122,7 +122,17 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programId);
+      expect(response.result.data.program).toMatchObject({
+        _id: programId,
+        name: 'program',
+        modules: [
+          {
+            title: 'c\'est un module',
+            activities: [{ title: 'c\'est une activité' }, { title: 'toujours une activité' }],
+          },
+          { title: 'toujours un module' },
+        ],
+      });
     });
   });
 
@@ -222,7 +232,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - PUT /programs/{_id}/module', () => {
+describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = { title: 'new module' };
@@ -234,8 +244,9 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}/module', () => {
 
     it('should create module', async () => {
       const programId = programsList[0]._id;
+      const modulesLengthBefore = programsList[0].modules.length;
       const response = await app.inject({
-        method: 'PUT',
+        method: 'POST',
         url: `/programs/${programId.toHexString()}/module`,
         payload,
         headers: { 'x-access-token': authToken },
@@ -243,13 +254,13 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}/module', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.program._id).toEqual(programId);
-      expect(response.result.data.program.modules.length).toEqual(1);
+      expect(response.result.data.program.modules.length).toEqual(modulesLengthBefore + 1);
     });
 
     it('should return a 400 if missing title', async () => {
       const programId = programsList[0]._id;
       const response = await app.inject({
-        method: 'PUT',
+        method: 'POST',
         url: `/programs/${programId.toHexString()}/module`,
         payload: { },
         headers: { 'x-access-token': authToken },
@@ -275,9 +286,9 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}/module', () => {
         authToken = await getToken(role.name);
         const programId = programsList[0]._id;
         const response = await app.inject({
-          method: 'PUT',
-          payload: { name: 'new name' },
-          url: `/programs/${programId.toHexString()}`,
+          method: 'POST',
+          payload: { title: 'new name' },
+          url: `/programs/${programId.toHexString()}/module`,
           headers: { 'x-access-token': authToken },
         });
 

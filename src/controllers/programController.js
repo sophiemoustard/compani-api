@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const ProgramHelper = require('../helpers/programs');
 const ModuleHelper = require('../helpers/modules');
-const ActivityHelper = require('../helpers/activities');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -76,25 +75,10 @@ const addModule = async (req) => {
   }
 };
 
-const addActivity = async (req) => {
-  try {
-    const program = await ActivityHelper.addActivity(req.params.moduleId, req.payload);
-
-    return {
-      message: translate[language].programUpdated,
-      data: { program },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   list,
   create,
   getById,
   update,
   addModule,
-  addActivity,
 };

@@ -6,7 +6,7 @@ const Module = require('../../../src/models/Module');
 const ModuleHelper = require('../../../src/helpers/modules');
 require('sinon-mongoose');
 
-describe('addProgram', () => {
+describe('addModule', () => {
   let ProgramMock;
   let ModuleMock;
 

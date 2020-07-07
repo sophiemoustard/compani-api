@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addModule, addActivity } = require('../controllers/programController');
+const { list, create, getById, update, addModule } = require('../controllers/programController');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -69,19 +69,6 @@ exports.plugin = {
         auth: { scope: ['programs:edit'] },
       },
       handler: addModule,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/module/{moduleId}/activity',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId(), moduleId: Joi.objectId() }),
-          payload: Joi.object({ title: Joi.string().required() }),
-        },
-        auth: { scope: ['programs:edit'] },
-      },
-      handler: addActivity,
     });
   },
 };
