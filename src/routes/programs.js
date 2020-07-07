@@ -35,7 +35,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:read'] },
       },
@@ -47,7 +47,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             name: Joi.string(),
             learningGoals: Joi.string(),
@@ -59,11 +59,11 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'PUT',
+      method: 'POST',
       path: '/{_id}/module',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ title: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
