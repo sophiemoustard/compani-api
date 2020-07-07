@@ -51,7 +51,7 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/modules/${wrongId}/activity`,
-        payload: { },
+        payload,
         headers: { 'x-access-token': authToken },
       });
 

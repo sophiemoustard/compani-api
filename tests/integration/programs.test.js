@@ -275,7 +275,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${wrongId}/module`,
-        payload: { },
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
