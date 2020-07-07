@@ -21,9 +21,11 @@ describe('addActivity', () => {
   });
 
   const module = { _id: new ObjectID(), title: 'module' };
+  const newActivity = { title: 'c\'est un module !' };
   it('should create an activity', async () => {
-    const newActivity = { title: 'c\'est un module !' };
     const activityId = new ObjectID();
+    ModuleMock.expects('findById').withExactArgs(module._id).returns(module);
+
     ActivityMock.expects('create').withExactArgs(newActivity).returns({ _id: activityId });
 
     const returnedModule = { ...module, modules: [activityId] };
@@ -37,6 +39,22 @@ describe('addActivity', () => {
     expect(result).toMatchObject(returnedModule);
     ModuleMock.verify();
     ActivityMock.verify();
+  });
+
+  it('should return an error if module does not exist', async () => {
+    try {
+      ModuleMock.expects('findById').withExactArgs(module._id).returns();
+
+      ActivityMock.expects('create').never();
+      ModuleMock.expects('findOneAndUpdate').never();
+
+      const result = await ActivityHelper.addActivity(module._id, newActivity);
+
+      expect(result).toBeUndefined();
+    } catch (e) {
+      ModuleMock.verify();
+      ActivityMock.verify();
+    }
   });
 });
 

@@ -21,9 +21,11 @@ describe('addModule', () => {
   });
 
   const program = { _id: new ObjectID() };
+  const newModule = { title: 'c\'est un module !' };
   it('should create a module', async () => {
-    const newModule = { title: 'c\'est un module !' };
     const moduleId = new ObjectID();
+    ProgramMock.expects('findById').withExactArgs(program._id).returns(program);
+
     ModuleMock.expects('create').withExactArgs(newModule).returns({ _id: moduleId });
 
     const returnedProgram = { ...program, modules: [moduleId] };
@@ -37,6 +39,22 @@ describe('addModule', () => {
     expect(result).toMatchObject(returnedProgram);
     ProgramMock.verify();
     ModuleMock.verify();
+  });
+
+  it('should return an error if program does not exist', async () => {
+    try {
+      ProgramMock.expects('findById').withExactArgs(program._id).returns();
+
+      ModuleMock.expects('create').never();
+      ProgramMock.expects('findOneAndUpdate').never();
+
+      const result = await ModuleHelper.addModule(program._id, newModule);
+
+      expect(result).toBeUndefined();
+    } catch (e) {
+      ProgramMock.verify();
+      ModuleMock.verify();
+    }
   });
 });
 

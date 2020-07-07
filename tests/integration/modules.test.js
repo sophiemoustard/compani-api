@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, modulesList } = require('./seed/modulesSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -38,6 +39,18 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/modules/${moduleId.toHexString()}/activity`,
+        payload: { },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if module does not exist', async () => {
+      const wrongId = new ObjectID();
+      const response = await app.inject({
+        method: 'POST',
+        url: `/modules/${wrongId}/activity`,
         payload: { },
         headers: { 'x-access-token': authToken },
       });
