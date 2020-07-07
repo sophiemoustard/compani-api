@@ -36,15 +36,10 @@ const create = async (req) => {
 const getById = async (req) => {
   try {
     const userHasVendorRole = !!get(req, 'auth.credentials.role.vendor');
+    const userCompanyId = get(req, 'auth.credentials.company')
+      ? get(req, 'auth.credentials.company._id').toHexString() : null;
 
-    let course;
-    if (userHasVendorRole) {
-      course = await CoursesHelper.getCourse(req.params._id);
-    } else {
-      const userCompanyId = req.auth.credentials.company._id.toHexString();
-      course = await CoursesHelper.getCourse(req.params._id, userCompanyId);
-    }
-
+    const course = await CoursesHelper.getCourse(req.params._id, userHasVendorRole, userCompanyId);
 
     return {
       message: translate[language].courseFound,

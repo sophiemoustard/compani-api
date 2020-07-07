@@ -135,7 +135,7 @@ describe('getCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id);
+    const result = await CourseHelper.getCourse(course._id, true, authCompanyId);
     expect(result).toMatchObject(course);
     expect(result.trainees.length).toEqual(2);
   });
@@ -161,7 +161,7 @@ describe('getCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id, authCompanyId.toHexString());
+    const result = await CourseHelper.getCourse(course._id, false, authCompanyId.toHexString());
     console.log(result);
     expect(result.trainees.length).toEqual(1);
   });

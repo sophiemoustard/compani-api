@@ -22,7 +22,7 @@ const auxiliary = {
 const traineeFromAuthCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Tata', lastname: 'Tutu' },
-  local: { email: 'trainee@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
@@ -32,12 +32,12 @@ const traineeFromAuthCompany = {
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'Tata', lastname: 'Tutu' },
-  local: { email: 'trainee@alenvi.io', password: '123456!eR' },
+  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  local: { email: 'traineeAuthCompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
-  company: authCompany._id,
+  company: otherCompany._id,
   inactivityDate: null,
 };
 
@@ -108,7 +108,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'inter b2b session concerning auth company',
+    name: 'inter b2b session NOT concerning auth company',
     program: programsList[0]._id,
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
@@ -143,7 +143,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([auxiliary, traineeFromAuthCompany, traineeWithoutCompany, courseTrainer]);
+  await User.create([auxiliary, traineeFromAuthCompany, traineeFromOtherCompany, traineeWithoutCompany, courseTrainer]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 

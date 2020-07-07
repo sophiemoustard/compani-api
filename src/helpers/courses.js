@@ -39,8 +39,8 @@ exports.list = async (query) => {
   ];
 };
 
-exports.getCourse = async (courseId, companyId = null) => {
-  const course = Course.findOne({ _id: courseId })
+exports.getCourse = async (courseId, userHasVendorRole = false, userCompanyId = null) => {
+  const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'program', select: 'name learningGoals' })
     .populate('slots')
@@ -52,12 +52,13 @@ exports.getCourse = async (courseId, companyId = null) => {
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .lean();
 
-  if (course.type === INTER_B2B && companyId) {
-    course.trainees = course.trainees.filter(t => t.company._id.toHexString() === companyId);
+  if (course.type === INTER_B2B && !userHasVendorRole) {
+    course.trainees = course.trainees.filter(t => t.company._id.toHexString() === userCompanyId);
   }
 
   return course;
 };
+
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
