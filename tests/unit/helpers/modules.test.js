@@ -24,7 +24,7 @@ describe('addModule', () => {
   const newModule = { title: 'c\'est un module !' };
   it('should create a module', async () => {
     const moduleId = new ObjectID();
-    ProgramMock.expects('findById').withExactArgs(program._id).returns(program);
+    ProgramMock.expects('countDocuments').withExactArgs(program._id).returns(1);
 
     ModuleMock.expects('create').withExactArgs(newModule).returns({ _id: moduleId });
 
@@ -43,7 +43,7 @@ describe('addModule', () => {
 
   it('should return an error if program does not exist', async () => {
     try {
-      ProgramMock.expects('findById').withExactArgs(program._id).returns();
+      ProgramMock.expects('countDocuments').withExactArgs(program._id).returns(0);
 
       ModuleMock.expects('create').never();
       ProgramMock.expects('findOneAndUpdate').never();

@@ -3,7 +3,7 @@ const Module = require('../models/Module');
 const Program = require('../models/Program');
 
 exports.addModule = async (programId, payload) => {
-  const program = await Program.findById(programId);
+  const program = await Program.countDocuments(programId);
   if (!program) throw Boom.badRequest();
 
   const module = await Module.create(payload);

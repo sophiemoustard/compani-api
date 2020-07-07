@@ -24,7 +24,7 @@ describe('addActivity', () => {
   const newActivity = { title: 'c\'est un module !' };
   it('should create an activity', async () => {
     const activityId = new ObjectID();
-    ModuleMock.expects('findById').withExactArgs(module._id).returns(module);
+    ModuleMock.expects('countDocuments').withExactArgs(module._id).returns(1);
 
     ActivityMock.expects('create').withExactArgs(newActivity).returns({ _id: activityId });
 
@@ -43,7 +43,7 @@ describe('addActivity', () => {
 
   it('should return an error if module does not exist', async () => {
     try {
-      ModuleMock.expects('findById').withExactArgs(module._id).returns();
+      ModuleMock.expects('countDocuments').withExactArgs(module._id).returns(0);
 
       ActivityMock.expects('create').never();
       ModuleMock.expects('findOneAndUpdate').never();

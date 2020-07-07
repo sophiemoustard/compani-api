@@ -3,7 +3,7 @@ const Activity = require('../models/Activity');
 const Module = require('../models/Module');
 
 exports.addActivity = async (moduleId, payload) => {
-  const module = await Module.findById(moduleId);
+  const module = await Module.countDocuments(moduleId);
   if (!module) throw Boom.badRequest();
 
   const activity = await Activity.create(payload);
