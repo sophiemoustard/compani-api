@@ -135,7 +135,10 @@ describe('getCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id, true, authCompanyId);
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { vendor: { name: 'vendor_admin' } }, company: { _id: authCompanyId } }
+    );
     expect(result).toMatchObject(course);
     expect(result.trainees.length).toEqual(2);
   });
@@ -161,8 +164,10 @@ describe('getCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id, false, authCompanyId.toHexString());
-    console.log(result);
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
+    );
     expect(result.trainees.length).toEqual(1);
   });
 });

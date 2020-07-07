@@ -71,6 +71,7 @@ const coursesList = [
     program: programsList[0]._id,
     company: authCompany._id,
     trainer: courseTrainer._id,
+    trainees: [traineeFromAuthCompany._id],
     type: 'intra',
   },
   {

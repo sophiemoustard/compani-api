@@ -39,7 +39,7 @@ exports.list = async (query) => {
   ];
 };
 
-exports.getCourse = async (courseId, userHasVendorRole = false, userCompanyId = null) => {
+exports.getCourse = async (courseId, loggedUser) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'program', select: 'name learningGoals' })
@@ -52,7 +52,10 @@ exports.getCourse = async (courseId, userHasVendorRole = false, userCompanyId = 
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .lean();
 
-  if (course.type === INTER_B2B && !userHasVendorRole) {
+  const userHasNoVendorRole = !get(loggedUser, 'role.vendor');
+
+  if (course.type === INTER_B2B && userHasNoVendorRole) {
+    const userCompanyId = loggedUser.company ? get(loggedUser, 'company._id').toHexString() : null;
     course.trainees = course.trainees.filter(t => t.company._id.toHexString() === userCompanyId);
   }
 

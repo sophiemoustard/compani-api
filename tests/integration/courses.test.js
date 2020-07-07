@@ -21,7 +21,6 @@ const {
   = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
-const { objectContaining } = require('expect');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -243,20 +242,24 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         company: { _id: authCompany._id, name: 'Test SAS' },
         contact: { name: '' },
         slots: expect.arrayContaining([
-          objectContaining({
+          expect.objectContaining({
             startDate: moment('2020-03-20T09:00:00').toDate(),
             endDate: moment('2020-03-20T11:00:00').toDate(),
             courseId: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
-          objectContaining({
+          expect.objectContaining({
             startDate: moment('2020-03-20T14:00:00').toDate(),
             endDate: moment('2020-03-20T18:00:00').toDate(),
             courseId: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
         ]),
-        trainees: [],
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Tata', lastname: 'Tutu' },
+          company: pick(authCompany, ['_id', 'name']),
+        })]),
       }));
     });
 
