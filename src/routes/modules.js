@@ -12,7 +12,7 @@ exports.plugin = {
       path: '/{_id}/activity',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ title: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },

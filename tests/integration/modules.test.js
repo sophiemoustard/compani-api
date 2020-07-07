@@ -9,7 +9,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - PUT /modules/{_id}/activity', () => {
+describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = { title: 'new activity' };
