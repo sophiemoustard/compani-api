@@ -32,25 +32,32 @@ exports.list = async (query) => {
   return [
     ...intraCourse,
     ...interCourse.filter(course => course.companies.includes(query.company))
-      .map((course) => ({
-          ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-        })),
+      .map(course => ({
+        ...omit(course, ['companies']),
+        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+      })),
   ];
 };
 
-exports.getCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'company', select: 'name' })
-  .populate({ path: 'program', select: 'name learningGoals' })
-  .populate('slots')
-  .populate({
-    path: 'trainees',
-    select: 'identity.firstname identity.lastname local.email company contact ',
-    populate: { path: 'company', select: 'name' },
-  })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-  .lean();
+exports.getCourse = async (courseId, companyId = null) => {
+  const course = Course.findOne({ _id: courseId })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'program', select: 'name learningGoals' })
+    .populate('slots')
+    .populate({
+      path: 'trainees',
+      select: 'identity.firstname identity.lastname local.email company contact ',
+      populate: { path: 'company', select: 'name' },
+    })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+    .lean();
 
+  if (course.type === INTER_B2B && companyId) {
+    course.trainees = course.trainees.filter(t => t.company._id.toHexString() === companyId);
+  }
+
+  return course;
+};
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
