@@ -6,6 +6,35 @@ const Module = require('../../../src/models/Module');
 const ModuleHelper = require('../../../src/helpers/modules');
 require('sinon-mongoose');
 
+describe('updateModule', () => {
+  let ModuleMock;
+
+  beforeEach(() => {
+    ModuleMock = sinon.mock(Module);
+  });
+
+  afterEach(() => {
+    ModuleMock.restore();
+  });
+
+  it("should update a module's title", async () => {
+    const module = { _id: new ObjectID(), title: 'jour' };
+    const payload = { title: 'nuit' };
+    const updatedModule = { ...module, ...payload };
+
+    ModuleMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: module._id }, { $set: payload }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(updatedModule);
+
+    const result = await ModuleHelper.updateModule(module._id, payload);
+
+    expect(result).toMatchObject(updatedModule);
+    ModuleMock.verify();
+  });
+});
+
 describe('addModule', () => {
   let ProgramMock;
   let ModuleMock;
