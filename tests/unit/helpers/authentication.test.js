@@ -233,7 +233,7 @@ describe('validate', () => {
     });
   });
 
-  it('should authenticate trainer', async () => {
+  it('should authenticate a user with coach and trainer role', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
     const user = {
@@ -291,7 +291,6 @@ describe('validate', () => {
           'exports:read',
           'pay:read',
           'paydocuments:edit',
-          'payments:edit',
           'roles:read',
           'sms:send',
           'taxcertificates:edit',
