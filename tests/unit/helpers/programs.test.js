@@ -79,7 +79,7 @@ describe('update', () => {
     ProgramMock.restore();
   });
 
-  it('should return programs', async () => {
+  it('should update name', async () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
@@ -91,5 +91,19 @@ describe('update', () => {
 
     const result = await ProgramHelper.updateProgram(programId, payload);
     expect(result).toMatchObject({ _id: programId, name: 'toto' });
+  });
+
+  it('should update image', async () => {
+    const programId = new ObjectID();
+    const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
+
+    ProgramMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
+      .chain('lean')
+      .once()
+      .returns({ _id: programId, ...payload });
+
+    const result = await ProgramHelper.updateProgram(programId, payload);
+    expect(result).toMatchObject({ _id: programId, ...payload });
   });
 });
