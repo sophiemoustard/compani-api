@@ -12,7 +12,7 @@ const {
   userExists,
 } = require('../helpers/users');
 const User = require('../models/User');
-const cloudinary = require('../models/Cloudinary');
+const cloudinary = require('../helpers/cloudinary');
 
 const { language } = translate;
 

@@ -4,7 +4,7 @@ const ProgramHelper = require('../helpers/programs');
 const ModuleHelper = require('../helpers/modules');
 const Program = require('../models/Program');
 const translate = require('../helpers/translate');
-const cloudinary = require('../models/Cloudinary');
+const cloudinary = require('../helpers/cloudinary');
 const moment = require('moment');
 
 const { language } = translate;

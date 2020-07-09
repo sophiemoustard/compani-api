@@ -86,6 +86,16 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        validate: {
+          payload: Joi.object({
+            fileName: Joi.string().required(),
+            type: Joi.string().required().valid('programImage'),
+            file: Joi.any().required(),
+          }),
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+          }),
+        },
         auth: { scope: ['programs:edit'] },
       },
     });

@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
-const cloudinary = require('../models/Cloudinary');
+const cloudinary = require('../helpers/cloudinary');
 
 const { language } = translate;
 
