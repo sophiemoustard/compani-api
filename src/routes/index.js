@@ -140,6 +140,10 @@ exports.routes = [
     routes: { prefix: '/modules' },
   },
   {
+    plugin: require('./activities'),
+    routes: { prefix: '/activities' },
+  },
+  {
     plugin: require('./endToEnd'),
     routes: { prefix: '/end-to-end' },
   },
