@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addModule } = require('../controllers/programController');
+const { list, create, getById, update, addModule, uploadImage } = require('../controllers/programController');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -51,6 +51,10 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             learningGoals: Joi.string(),
+            image: Joi.object().keys({
+              link: Joi.string().allow(null),
+              publicId: Joi.string().allow(null),
+            }),
           }),
         },
         auth: { scope: ['programs:edit'] },
@@ -69,6 +73,21 @@ exports.plugin = {
         auth: { scope: ['programs:edit'] },
       },
       handler: addModule,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/cloudinary/upload',
+      handler: uploadImage,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880,
+        },
+        auth: { scope: ['programs:edit'] },
+      },
     });
   },
 };

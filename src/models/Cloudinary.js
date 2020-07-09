@@ -8,7 +8,7 @@ cloudinary.config({
 
 exports.addImage = async params => new Promise((resolve, reject) => {
   const options = {
-    folder: 'images/users/profile_pictures',
+    folder: params.folder,
     public_id: params.public_id,
     eager: params.transform ? [params.transform] : [],
   };
