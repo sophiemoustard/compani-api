@@ -38,7 +38,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create intra course', async () => {
-      const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -50,7 +50,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create inter_b2b course', async () => {
-      const payload = { name: 'course', type: 'inter_b2b', program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'inter_b2b', program: programsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -62,12 +62,11 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     const missingParams = [
-      { path: 'name' },
       { path: 'company' },
       { path: 'program' },
       { path: 'type' },
     ];
-    const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+    const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
         const response = await app.inject({
@@ -94,7 +93,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { name: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+        const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
@@ -379,7 +378,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     it('should update course', async () => {
       const payload = {
-        name: 'new name',
+        misc: 'new name',
         trainer: new ObjectID(),
         contact: { name: 'name new contact', email: 'test@toto.aa', phone: '0777228811' },
       };
@@ -394,7 +393,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
       const course = await Course.findOne({ _id: courseIdFromAuthCompany }).lean();
 
-      expect(course.name).toEqual(payload.name);
+      expect(course.misc).toEqual(payload.misc);
       expect(course.trainer).toEqual(payload.trainer);
       expect(course.contact).toEqual(payload.contact);
     });
@@ -426,7 +425,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-        const payload = { name: 'new name' };
+        const payload = { misc: 'new name' };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
@@ -441,7 +440,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     ['coach', 'client_admin'].forEach((role) => {
       it(`should return 403 as user is ${role} requesting on an other company`, async () => {
-        const payload = { name: 'new name' };
+        const payload = { misc: 'new name' };
         token = await getToken(role);
         const response = await app.inject({
           method: 'PUT',
@@ -455,7 +454,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 200 as user is the course trainer', async () => {
-      const payload = { name: 'new name' };
+      const payload = { misc: 'new name' };
       token = await getTokenByCredentials(courseTrainer.local);
       const response = await app.inject({
         method: 'PUT',
