@@ -6,7 +6,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const Program = require('../../src/models/Program');
-const cloudinary = require('../../src/helpers/cloudinary');
+const CloudinaryHelper = require('../../src/helpers/cloudinary');
 const { populateDB, programsList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -329,9 +329,9 @@ describe('POST /programs/:id/cloudinary/upload', () => {
   let addImageStub;
   const program = programsList[0];
   beforeEach(() => {
-    docPayload = { fileName: 'program_image_test', type: 'programImage', file: 'true' };
+    docPayload = { fileName: 'program_image_test', file: 'true' };
     form = generateFormData(docPayload);
-    addImageStub = sinon.stub(cloudinary, 'addImage')
+    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
       .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
   });
   afterEach(() => {
@@ -353,14 +353,14 @@ describe('POST /programs/:id/cloudinary/upload', () => {
       });
 
       const programWithImage = { ...program, image: { publicId: 'abcdefgh', link: 'https://alenvi.io' } };
-      const { programUpdated } = response.result.data;
+      const programUpdated = await Program.findById(program._id, { name: 1, image: 1 }).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(pick(programUpdated, ['_id', 'name', 'image'])).toMatchObject(pick(programWithImage, ['_id', 'name', 'image']));
+      expect(programUpdated).toMatchObject(pick(programWithImage, ['_id', 'name', 'image']));
       sinon.assert.calledOnce(addImageStub);
     });
 
-    const wrongParams = ['type', 'file', 'fileName'];
+    const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         form = generateFormData(omit(docPayload, param));
