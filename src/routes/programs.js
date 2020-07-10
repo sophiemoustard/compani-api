@@ -89,7 +89,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid('programImage'),
             file: Joi.any().required(),
           }),
           params: Joi.object({

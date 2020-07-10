@@ -1,11 +1,7 @@
 const Boom = require('@hapi/boom');
-const flat = require('flat');
 const ProgramHelper = require('../helpers/programs');
 const ModuleHelper = require('../helpers/modules');
-const Program = require('../models/Program');
 const translate = require('../helpers/translate');
-const cloudinary = require('../helpers/cloudinary');
-const moment = require('moment');
 
 const { language } = translate;
 
@@ -78,27 +74,10 @@ const addModule = async (req) => {
 
 const uploadImage = async (req) => {
   try {
-    const imageUploaded = await cloudinary.addImage({
-      file: req.payload.file,
-      folder: 'images/business/Compani/programs',
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
-    });
-    const payload = {
-      image: {
-        publicId: imageUploaded.public_id,
-        link: imageUploaded.secure_url,
-      },
-    };
-
-    const programUpdated = await Program.findOneAndUpdate(
-      { _id: req.params._id },
-      { $set: flat(payload) },
-      { new: true }
-    );
+    await ProgramHelper.uploadImage(req.params._id, req.payload);
 
     return {
       message: translate[language].fileCreated,
-      data: { image: payload.image, programUpdated },
     };
   } catch (e) {
     req.log('error', e);
