@@ -226,6 +226,8 @@ module.exports = {
     programUpdated: 'Program updated.',
     /* Modules */
     moduleUpdated: 'Module updated.',
+    /* Activities */
+    activityUpdated: 'Activity updated.',
     /* Courses */
     coursesFound: 'Courses found.',
     coursesNotFound: 'Courses not found.',
@@ -467,6 +469,8 @@ module.exports = {
     programUpdated: 'Programme mis à jour.',
     /* Modules */
     moduleUpdated: 'Module mis à jour.',
+    /* Activities */
+    activityUpdated: 'Activité mise à jour.',
     /* Courses */
     coursesFound: 'Liste des formations trouvée.',
     coursesNotFound: 'Liste des formations non trouvée.',
