@@ -23,17 +23,17 @@ const programsList = [
 const coursesList = [
   {
     _id: new ObjectID(),
-    name: 'first session',
     program: programsList[0]._id,
     company: authCompany._id,
+    misc: 'first session',
     type: 'intra',
     trainer: new ObjectID(),
   },
   {
     _id: new ObjectID(),
-    name: 'team formation',
     program: programsList[0]._id,
     company: otherCompany._id,
+    misc: 'team formation',
     type: 'intra',
     trainer: trainer._id,
   },

@@ -31,10 +31,10 @@ describe('createCourse', () => {
   });
 
   it('should create an intra course', async () => {
-    const newCourse = { name: 'name', company: new ObjectID(), program: new ObjectID(), type: 'intra' };
+    const newCourse = { misc: 'name', company: new ObjectID(), program: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
-    expect(result.name).toEqual(newCourse.name);
+    expect(result.misc).toEqual(newCourse.misc);
     expect(result.program).toEqual(newCourse.program);
     expect(result.company).toEqual(newCourse.company);
   });
@@ -50,7 +50,7 @@ describe('list', () => {
   });
 
   it('should return courses, called without query.company', async () => {
-    const coursesList = [{ name: 'name' }, { name: 'program' }];
+    const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
 
@@ -62,17 +62,17 @@ describe('list', () => {
   it('should return courses, called with query.company', async () => {
     const authCompany = new ObjectID();
     const coursesList = [
-      { name: 'name', type: 'intra' },
+      { misc: 'name', type: 'intra' },
       {
-        name: 'program',
+        misc: 'program',
         type: 'inter_b2b',
         trainees: [{ identity: { firstname: 'Bonjour' }, company: { _id: authCompany } }],
       },
     ];
     const returnedList = [
-      { name: 'name', type: 'intra' },
+      { misc: 'name', type: 'intra' },
       {
-        name: 'program',
+        misc: 'program',
         type: 'inter_b2b',
         companies: ['1234567890abcdef12345678', authCompany.toHexString()],
         trainees: [
@@ -214,14 +214,14 @@ describe('updateCourse', () => {
 
   it('should update an intra course', async () => {
     const courseId = new ObjectID();
-    const payload = { name: 'name' };
+    const payload = { misc: 'groupe 4' };
     CourseMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: courseId }, { $set: payload })
       .chain('lean')
       .returns(payload);
 
     const result = await CourseHelper.updateCourse(courseId, payload);
-    expect(result.name).toEqual(payload.name);
+    expect(result.misc).toEqual(payload.misc);
   });
 });
 
@@ -336,7 +336,7 @@ describe('addCourseTrainee', () => {
 
   it('should add a course trainee using existing user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID() };
-    const course = { _id: new ObjectID(), name: 'Test' };
+    const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
     CourseMock.expects('findOneAndUpdate')
@@ -353,7 +353,7 @@ describe('addCourseTrainee', () => {
 
   it('should add a course trainee creating new user without role', async () => {
     const user = { _id: new ObjectID() };
-    const course = { _id: new ObjectID(), name: 'Test' };
+    const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
     createUserStub.returns(user);
@@ -373,7 +373,7 @@ describe('addCourseTrainee', () => {
 
   it('should add a course trainee, and update it by adding his company', async () => {
     const user = { _id: new ObjectID() };
-    const course = { _id: new ObjectID(), name: 'Test' };
+    const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' }, company: new ObjectID() };
 
     CourseMock.expects('findOneAndUpdate')
@@ -511,7 +511,7 @@ describe('formatCourseForPdf', () => {
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
       ],
-      name: 'Bonjour je suis une formation',
+      misc: 'Bonjour je suis une formation',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
         { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
@@ -538,7 +538,7 @@ describe('formatCourseForPdf', () => {
           traineeName: 'trainee 1',
           company: 'alenvi',
           course: {
-            name: 'Bonjour je suis une formation',
+            misc: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -551,7 +551,7 @@ describe('formatCourseForPdf', () => {
           traineeName: 'trainee 2',
           company: 'alenvi',
           course: {
-            name: 'Bonjour je suis une formation',
+            misc: 'Bonjour je suis une formation',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
@@ -587,7 +587,7 @@ describe('generateAttendanceSheets', () => {
 
   it('should download attendance sheet', async () => {
     const courseId = new ObjectID();
-    const course = { name: 'Bonjour je suis une formation' };
+    const course = { misc: 'Bonjour je suis une formation' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -603,7 +603,7 @@ describe('generateAttendanceSheets', () => {
       .chain('lean')
       .once()
       .returns(course);
-    formatCourseForPdf.returns({ name: 'Bonjour je suis une formation' });
+    formatCourseForPdf.returns({ misc: 'Bonjour je suis une formation' });
     generatePdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
@@ -611,7 +611,7 @@ describe('generateAttendanceSheets', () => {
     sinon.assert.calledOnceWithExactly(formatCourseForPdf, course);
     sinon.assert.calledOnceWithExactly(
       generatePdf,
-      { name: 'Bonjour je suis une formation' },
+      { misc: 'Bonjour je suis une formation' },
       './src/data/attendanceSheet.html'
     );
   });
@@ -694,7 +694,7 @@ describe('generateCompletionCertificate', () => {
         { identity: { lastname: 'trainee 2' } },
         { identity: { lastname: 'trainee 3' } },
       ],
-      name: 'Bonjour je suis une formation',
+      misc: 'Bonjour je suis une formation',
     };
     const formattedCourse = { program: { learningGoals: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')

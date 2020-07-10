@@ -145,7 +145,7 @@ exports.formatCourseForPdf = (course) => {
   const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
 
   const courseData = {
-    name: course.name,
+    misc: course.misc,
     slots: slots.map(exports.formatCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
