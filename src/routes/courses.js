@@ -6,6 +6,7 @@ const {
   list,
   create,
   getById,
+  getPublicInfosById,
   update,
   addTrainee,
   removeTrainee,
@@ -57,9 +58,21 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
         },
-        auth: { mode: 'optional' },
+        auth: { scope: ['courses:read'] },
       },
       handler: getById,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/public-infos',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
+        auth: { mode: 'optional' },
+      },
+      handler: getPublicInfosById,
     });
 
     server.route({

@@ -1,13 +1,16 @@
 const Boom = require('@hapi/boom');
+const ActivityHelper = require('../helpers/activities');
 const translate = require('../helpers/translate');
-const cloudinary = require('../helpers/cloudinary');
 
 const { language } = translate;
 
-const deleteImage = async (req) => {
+const update = async (req) => {
   try {
-    await cloudinary.deleteImage({ publicId: req.params.id });
-    return { message: translate[language].fileDeleted };
+    await ActivityHelper.updateActivity(req.params._id, req.payload);
+
+    return {
+      message: translate[language].activityUpdated,
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -15,5 +18,5 @@ const deleteImage = async (req) => {
 };
 
 module.exports = {
-  deleteImage,
+  update,
 };

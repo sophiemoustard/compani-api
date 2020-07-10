@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
@@ -34,7 +35,21 @@ const create = async (req) => {
 
 const getById = async (req) => {
   try {
-    const course = await CoursesHelper.getCourse(req.params._id);
+    const course = await CoursesHelper.getCourse(req.params._id, req.auth.credentials);
+
+    return {
+      message: translate[language].courseFound,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const getPublicInfosById = async (req) => {
+  try {
+    const course = await CoursesHelper.getCoursePublicInfos(req.params._id);
 
     return {
       message: translate[language].courseFound,
@@ -140,6 +155,7 @@ module.exports = {
   list,
   create,
   getById,
+  getPublicInfosById,
   update,
   addTrainee,
   removeTrainee,

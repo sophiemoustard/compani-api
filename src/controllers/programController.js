@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const ProgramHelper = require('../helpers/programs');
+const ModuleHelper = require('../helpers/modules');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -20,11 +21,10 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const program = await ProgramHelper.createProgram(req.payload);
+    await ProgramHelper.createProgram(req.payload);
 
     return {
       message: translate[language].programCreated,
-      data: { program },
     };
   } catch (e) {
     req.log('error', e);
@@ -48,11 +48,36 @@ const getById = async (req) => {
 
 const update = async (req) => {
   try {
-    const program = await ProgramHelper.updateProgram(req.params._id, req.payload);
+    await ProgramHelper.updateProgram(req.params._id, req.payload);
 
     return {
       message: translate[language].programUpdated,
-      data: { program },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const addModule = async (req) => {
+  try {
+    await ModuleHelper.addModule(req.params._id, req.payload);
+
+    return {
+      message: translate[language].programUpdated,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const uploadImage = async (req) => {
+  try {
+    await ProgramHelper.uploadImage(req.params._id, req.payload);
+
+    return {
+      message: translate[language].fileCreated,
     };
   } catch (e) {
     req.log('error', e);
@@ -65,4 +90,6 @@ module.exports = {
   create,
   getById,
   update,
+  addModule,
+  uploadImage,
 };

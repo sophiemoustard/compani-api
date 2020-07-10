@@ -67,6 +67,14 @@ const completeEventRepScriptEmailBody = (nb, repIds) => {
 
 const completeRoleUpdateScriptEmailBody = nb => `<p>Script correctement exécuté. ${nb} role(s) mis à jour.</p>`;
 
+const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
+  let message = `<p>Script correctement exécuté. ${eventsWithErrors.length} evenements avec erreurs.</p>`;
+  for (const event of eventsWithErrors) {
+    message += `${event.eventId}: ${event.issuesWithEvent}</br>`;
+  }
+  return message;
+};
+
 module.exports = {
   baseWelcomeContent,
   helperCustomContent,
@@ -77,4 +85,5 @@ module.exports = {
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,
   completeRoleUpdateScriptEmailBody,
+  completeEventConsistencyScriptEmailBody,
 };

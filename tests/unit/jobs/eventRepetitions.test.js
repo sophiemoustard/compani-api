@@ -19,6 +19,8 @@ describe('method', () => {
   let EmailHelperStub;
   let date;
   const fakeDate = moment('2019-09-20').startOf('d').toDate();
+  const server = { log: (tags, text) => `${tags}, ${text}` };
+  let serverLogStub;
   beforeEach(() => {
     RepetitionMock = sinon.mock(Repetition);
     CompanyMock = sinon.mock(Company);
@@ -26,6 +28,7 @@ describe('method', () => {
     formatEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'formatEventBasedOnRepetition');
     EmailHelperStub = sinon.stub(EmailHelper, 'completeEventRepScriptEmail');
     date = sinon.useFakeTimers(fakeDate);
+    serverLogStub = sinon.stub(server, 'log');
   });
   afterEach(() => {
     EventMock.restore();
@@ -34,6 +37,7 @@ describe('method', () => {
     formatEventBasedOnRepetitionStub.restore();
     EmailHelperStub.restore();
     date.restore();
+    serverLogStub.restore();
   });
 
   const frequencies = [
@@ -58,11 +62,10 @@ describe('method', () => {
     }];
 
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
-      const server = 'server';
       const companyId = new ObjectID();
 
       CompanyMock.expects('find')
-        .withExactArgs({})
+        .withExactArgs({ 'subscriptions.erp': true })
         .chain('lean')
         .once()
         .returns([{ _id: companyId }]);
@@ -104,8 +107,6 @@ describe('method', () => {
   });
 
   it('should log repetitions ids which failed to create J+90 event', async () => {
-    const server = { log: (tags, text) => `${tags}, ${text}` };
-    const serverLogStub = sinon.stub(server, 'log');
     const error = new Error('Test error.');
     const repetition = [{
       _id: '5d84f869b7e67963c6523704',
@@ -123,7 +124,7 @@ describe('method', () => {
 
     const companyId = new ObjectID();
     CompanyMock.expects('find')
-      .withExactArgs({})
+      .withExactArgs({ 'subscriptions.erp': true })
       .chain('lean')
       .once()
       .returns([{ _id: companyId }]);

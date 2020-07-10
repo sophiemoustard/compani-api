@@ -1,12 +1,14 @@
 const path = require('path');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
+const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -14,23 +16,53 @@ const ZipHelper = require('./zip');
 const TwilioHelper = require('./twilio');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
+const { INTRA, INTER_B2B } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async query => Course.find(query)
-  .populate('company')
-  .populate('program')
-  .populate('slots')
-  .populate('trainer')
-  .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
-  .lean();
+exports.list = async (query) => {
+  if (!query.company) return CourseRepository.findCourseAndPopulate(query);
 
-exports.getCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate('company')
-  .populate('program')
+  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
+  const interCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), type: INTER_B2B },
+    true
+  );
+
+  return [
+    ...intraCourse,
+    ...interCourse.filter(course => course.companies.includes(query.company))
+      .map(course => ({
+        ...omit(course, ['companies']),
+        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+      })),
+  ];
+};
+
+exports.getCourse = async (courseId, loggedUser) => {
+  const userHasVendorRole = !!get(loggedUser, 'role.vendor');
+  const userCompanyId = get(loggedUser, 'company._id') || null;
+  // A coach/client_admin is not supposed to read infos on trainees from other companies - espacially for INTER_B2B courses.
+  const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
+
+  return Course.findOne({ _id: courseId })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'program', select: 'name learningGoals' })
+    .populate('slots')
+    .populate({
+      path: 'trainees',
+      match: traineesCompanyMatch,
+      select: 'identity.firstname identity.lastname local.email company contact ',
+      populate: { path: 'company', select: 'name' },
+    })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+    .lean();
+};
+
+exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
+  .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
-  .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
-  .populate('trainer')
+  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>
@@ -38,28 +70,36 @@ exports.updateCourse = async (courseId, payload) =>
 
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
-    .populate({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+    .populate({ path: 'trainees', select: '_id contact' })
     .lean();
 
   const promises = [];
+  const missingPhones = [];
   for (const trainee of course.trainees) {
-    promises.push(TwilioHelper.send({
-      to: `+33${trainee.contact.phone.substring(1)}`,
-      from: 'Compani',
-      body: payload.body,
-    }));
+    if (!get(trainee, 'contact.phone')) missingPhones.push(trainee._id);
+    else {
+      promises.push(TwilioHelper.send({
+        to: `+33${trainee.contact.phone.substring(1)}`,
+        from: 'Compani',
+        body: payload.body,
+      }));
+    }
   }
+
   promises.push(CourseSmsHistory.create({
     type: payload.type,
     course: courseId,
     message: payload.body,
     sender: credentials._id,
+    missingPhones,
   }));
+
   await Promise.all(promises);
 };
 
 exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
-  .populate({ path: 'sender', select: 'identity' })
+  .populate({ path: 'sender', select: 'identity.firstname identity.lastname' })
+  .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee) => {

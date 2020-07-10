@@ -23,10 +23,13 @@ const roleSchemaDefinition = {
 
 // User schema
 const UserSchema = mongoose.Schema({
-  refreshToken: String,
+  refreshToken: { type: String, select: false },
   passwordToken: {
-    token: { type: String },
-    expiresIn: { type: Date },
+    type: mongoose.Schema({
+      token: { type: String },
+      expiresIn: { type: Date },
+    }),
+    select: false,
   },
   local: {
     email: {
@@ -37,7 +40,7 @@ const UserSchema = mongoose.Schema({
       required: true,
       dropDups: true,
     },
-    password: { type: String, minLength: 6 },
+    password: { type: String, minLength: 6, select: false },
   },
   role: {
     client: roleSchemaDefinition,

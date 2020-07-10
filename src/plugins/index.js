@@ -5,6 +5,7 @@ const cron = require('./cron');
 const billDispatch = require('../jobs/billDispatch');
 const eventRepetitions = require('../jobs/eventRepetitions');
 const updateRole = require('../jobs/updateRole');
+const eventConsistency = require('../jobs/eventConsistency');
 
 const plugins = [
   {
@@ -47,6 +48,16 @@ const plugins = [
             auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
           },
           onComplete: updateRole.onComplete,
+        },
+        {
+          name: 'eventConsistency',
+          time: '0 0 3 1 * *',
+          request: {
+            method: 'GET',
+            url: '/scripts/event-consistency',
+            auth: { credentials: { scope: ['scripts:run'] }, strategy: 'jwt' },
+          },
+          onComplete: eventConsistency.onComplete,
         },
       ],
     },

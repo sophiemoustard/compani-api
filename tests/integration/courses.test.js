@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -13,12 +14,12 @@ const {
   coursesList,
   programsList,
   auxiliary,
-  trainee,
   traineeWithoutCompany,
   courseTrainer,
+  traineeFromAuthCompany,
 }
   = require('./seed/coursesSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
@@ -127,6 +128,24 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(coursesNumber);
+      expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
+        company: pick(otherCompany, ['_id', 'name']),
+        program: pick(programsList[0], ['_id', 'name']),
+        trainer: null,
+        slots: [{
+          startDate: moment('2020-03-20T09:00:00').toDate(),
+          endDate: moment('2020-03-20T11:00:00').toDate(),
+          courseId: coursesList[3]._id,
+          _id: expect.any(ObjectID),
+        }],
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          company: pick(authCompany, ['_id', 'name']),
+        })]),
+      }));
+      expect(response.result.data.courses[3].program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
+      expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
   });
 
@@ -151,7 +170,23 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toEqual(2);
+    expect(response.result.data.courses.length).toEqual(3);
+  });
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should not get any course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -160,7 +195,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -181,6 +215,126 @@ describe('COURSES ROUTES - GET /courses', () => {
 
 describe('COURSES ROUTES - GET /courses/{_id}', () => {
   let authToken = null;
+  const courseFromAuthCompanyIntra = coursesList[0];
+  const courseFromAuthCompanyInterB2b = coursesList[4];
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyIntra._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course).toEqual(expect.objectContaining({
+        _id: courseFromAuthCompanyIntra._id,
+        program: pick(programsList[0], ['_id', 'name', 'learningGoals']),
+        trainer: expect.objectContaining({
+          _id: courseTrainer._id,
+          identity: { firstname: 'trainer', lastname: 'trainer' },
+        }),
+        company: { _id: authCompany._id, name: 'Test SAS' },
+        contact: { name: '' },
+        slots: expect.arrayContaining([
+          expect.objectContaining({
+            startDate: moment('2020-03-20T09:00:00').toDate(),
+            endDate: moment('2020-03-20T11:00:00').toDate(),
+            courseId: courseFromAuthCompanyIntra._id,
+            _id: expect.any(ObjectID),
+          }),
+          expect.objectContaining({
+            startDate: moment('2020-03-20T14:00:00').toDate(),
+            endDate: moment('2020-03-20T18:00:00').toDate(),
+            courseId: courseFromAuthCompanyIntra._id,
+            _id: expect.any(ObjectID),
+          }),
+        ]),
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Tata', lastname: 'Tutu' },
+          company: pick(authCompany, ['_id', 'name']),
+        })]),
+      }));
+    });
+
+    it('should get inter b2b course with all trainees', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Tata', lastname: 'Tutu' },
+          company: pick(authCompany, ['_id', 'name']),
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          identity: { firstname: 'Fred', lastname: 'Astaire' },
+          company: pick(otherCompany, ['_id', 'name']),
+        }),
+      ]));
+    });
+  });
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should get inter b2b course with trainees from same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([expect.objectContaining({
+        _id: expect.any(ObjectID),
+        identity: { firstname: 'Tata', lastname: 'Tutu' },
+        company: pick(authCompany, ['_id', 'name']),
+      })]));
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
+  let authToken = null;
   const courseIdFromAuthCompany = coursesList[0]._id;
   beforeEach(populateDB);
 
@@ -192,7 +346,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should get course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}`,
+        url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -204,7 +358,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   it('should get course even if not authenticate', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: `/courses/${courseIdFromAuthCompany.toHexString()}`,
+      url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
     });
 
     expect(response.statusCode).toBe(200);
@@ -348,7 +502,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
       TwilioHelperStub,
-      { to: `+33${trainee.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      { to: `+33${traineeFromAuthCompany.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
     );
   });
 
@@ -585,7 +739,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           method: 'POST',
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
           headers: { 'x-access-token': token },
-          payload: { ...pick(trainee, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+          payload: { ...pick(traineeFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
         });
 
         expect(response.statusCode).toBe(409);
@@ -707,7 +861,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  const traineeId = trainee._id;
+  const traineeId = traineeFromAuthCompany._id;
 
   beforeEach(populateDB);
 

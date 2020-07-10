@@ -142,7 +142,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       { name: 'helper', expectedCode: 403, erp: true },
       { name: 'auxiliary', expectedCode: 403, erp: true },
       { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'coach', expectedCode: 200, erp: true },
+      { name: 'coach', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
@@ -430,7 +430,7 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'coach', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

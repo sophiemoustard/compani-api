@@ -17,6 +17,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const CourseRepository = require('../../../src/repositories/CourseRepository');
 const moment = require('moment');
 require('sinon-mongoose');
 
@@ -40,7 +41,72 @@ describe('createCourse', () => {
 });
 
 describe('list', () => {
+  let findCourseAndPopulate;
+  beforeEach(() => {
+    findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+  });
+  afterEach(() => {
+    findCourseAndPopulate.restore();
+  });
+
+  it('should return courses, called without query.company', async () => {
+    const coursesList = [{ name: 'name' }, { name: 'program' }];
+
+    findCourseAndPopulate.returns(coursesList);
+
+    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
+    expect(result).toMatchObject(coursesList);
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
+  });
+
+  it('should return courses, called with query.company', async () => {
+    const authCompany = new ObjectID();
+    const coursesList = [
+      { name: 'name', type: 'intra' },
+      {
+        name: 'program',
+        type: 'inter_b2b',
+        trainees: [{ identity: { firstname: 'Bonjour' }, company: { _id: authCompany } }],
+      },
+    ];
+    const returnedList = [
+      { name: 'name', type: 'intra' },
+      {
+        name: 'program',
+        type: 'inter_b2b',
+        companies: ['1234567890abcdef12345678', authCompany.toHexString()],
+        trainees: [
+          { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
+          { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectID() } },
+        ],
+      },
+    ];
+
+    findCourseAndPopulate.onFirstCall()
+      .returns([returnedList[0]])
+      .onSecondCall()
+      .returns([returnedList[1]]);
+
+    const result = await CourseHelper.list({ company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' });
+    expect(result).toMatchObject(coursesList);
+    expect(findCourseAndPopulate.getCall(0)
+      .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
+    expect(findCourseAndPopulate.getCall(1)
+      .calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
+  });
+});
+
+describe('getCourse', () => {
   let CourseMock;
+  const authCompanyId = new ObjectID();
+  const course = {
+    _id: new ObjectID(),
+    type: 'inter_b2b',
+    trainees: [
+      { _id: new ObjectID(), company: authCompanyId },
+      { _id: new ObjectID(), company: new ObjectID() },
+    ],
+  };
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
   });
@@ -48,31 +114,67 @@ describe('list', () => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
-    const coursesList = [{ name: 'name' }, { name: 'program' }];
-
-    CourseMock.expects('find')
-      .withExactArgs({ type: 'toto' })
+  it('should return inter b2b course without trainees filtering', async () => {
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs('company')
+      .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('trainer')
+      .withExactArgs({
+        path: 'trainees',
+        select: 'identity.firstname identity.lastname local.email company contact ',
+        populate: { path: 'company', select: 'name' },
+        match: {},
+      })
       .chain('populate')
-      .withExactArgs({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
       .chain('lean')
       .once()
-      .returns(coursesList);
+      .returns(course);
 
-    const result = await CourseHelper.list({ type: 'toto' });
-    expect(result).toMatchObject(coursesList);
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { vendor: { name: 'vendor_admin' } }, company: { _id: authCompanyId } }
+    );
+    expect(result).toMatchObject(course);
+    expect(result.trainees.length).toEqual(2);
+  });
+
+  it('should return inter b2b course with trainees filtering', async () => {
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({
+        path: 'trainees',
+        select: 'identity.firstname identity.lastname local.email company contact ',
+        populate: { path: 'company', select: 'name' },
+        match: { company: authCompanyId },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+      .chain('lean')
+      .once()
+      .returns({ ...course, trainees: [course.trainees[0]] });
+
+    const result = await CourseHelper.getCourse(
+      course._id,
+      { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
+    );
+    expect(result.trainees.length).toEqual(1);
   });
 });
 
-describe('getCourse', () => {
+describe('getCoursePublicInfos', () => {
   let CourseMock;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
@@ -87,20 +189,16 @@ describe('getCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs('company')
-      .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'program', select: 'name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
-      .chain('populate')
-      .withExactArgs('trainer')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
       .chain('lean')
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCourse(course._id);
+    const result = await CourseHelper.getCoursePublicInfos(course._id);
     expect(result).toMatchObject(course);
   });
 });
@@ -130,8 +228,9 @@ describe('updateCourse', () => {
 describe('sendSMS', () => {
   const courseId = new ObjectID();
   const trainees = [
-    { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' } },
-    { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' } },
+    { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' }, _id: 'qwertyuio' },
+    { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
+    { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
   ];
   const payload = { body: 'Ceci est un test.' };
   const credentials = { _id: new ObjectID() };
@@ -153,18 +252,24 @@ describe('sendSMS', () => {
     sendStub.restore();
   });
 
-  it('should sens SMS to trainees', async () => {
+  it('should sens SMS to trainees and save missing phone trainee id', async () => {
     CourseMock.expects('findById')
       .withExactArgs(courseId)
       .chain('populate')
-      .withExactArgs({ path: 'trainees', match: { 'contact.phone': { $exists: true } } })
+      .withExactArgs({ path: 'trainees', select: '_id contact' })
       .chain('lean')
       .returns({ trainees });
 
     sendStub.returns();
 
     CourseSmsHistoryMock.expects('create')
-      .withExactArgs({ type: payload.type, course: courseId, message: payload.body, sender: credentials._id })
+      .withExactArgs({
+        type: payload.type,
+        course: courseId,
+        message: payload.body,
+        sender: credentials._id,
+        missingPhones: ['poiuytrewq'],
+      })
       .returns();
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
@@ -198,7 +303,9 @@ describe('getSMSHistory', () => {
     CourseSmsHistoryMock.expects('find')
       .withExactArgs({ course: courseId })
       .chain('populate')
-      .withExactArgs({ path: 'sender', select: 'identity' })
+      .withExactArgs({ path: 'sender', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
       .chain('lean')
       .returns(sms);
 

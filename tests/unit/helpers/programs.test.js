@@ -1,8 +1,10 @@
 const sinon = require('sinon');
+const flat = require('flat');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
 const ProgramHelper = require('../../../src/helpers/programs');
+const CloudinaryHelper = require('../../../src/helpers/cloudinary');
 require('sinon-mongoose');
 
 describe('createProgram', () => {
@@ -59,6 +61,8 @@ describe('getProgram', () => {
 
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
+      .chain('populate')
+      .withExactArgs({ path: 'modules', populate: 'activities' })
       .chain('lean')
       .once()
       .returns(program);
@@ -77,7 +81,7 @@ describe('update', () => {
     ProgramMock.restore();
   });
 
-  it('should return programs', async () => {
+  it('should update name', async () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
@@ -89,5 +93,51 @@ describe('update', () => {
 
     const result = await ProgramHelper.updateProgram(programId, payload);
     expect(result).toMatchObject({ _id: programId, name: 'toto' });
+  });
+
+  it('should update image', async () => {
+    const programId = new ObjectID();
+    const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
+
+    ProgramMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
+      .chain('lean')
+      .once()
+      .returns({ _id: programId, ...payload });
+
+    const result = await ProgramHelper.updateProgram(programId, payload);
+    expect(result).toMatchObject({ _id: programId, ...payload });
+  });
+});
+
+describe('update', () => {
+  let ProgramMock;
+  let addImageStub;
+  beforeEach(() => {
+    ProgramMock = sinon.mock(Program);
+    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
+      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+  });
+  afterEach(() => {
+    ProgramMock.restore();
+    addImageStub.restore();
+  });
+
+  it('should upload image', async () => {
+    const programId = new ObjectID();
+    const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
+    const programUpdatePayload = {
+      image: {
+        publicId: 'azertyuiop',
+        link: 'https://compani.io',
+      },
+    };
+
+    ProgramMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) }, { new: true })
+      .once();
+
+    await ProgramHelper.uploadImage(programId, payload);
+    sinon.assert.calledOnce(addImageStub);
   });
 });
