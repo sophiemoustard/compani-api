@@ -7,11 +7,10 @@ const { language } = translate;
 
 const update = async (req) => {
   try {
-    const module = await ModuleHelper.updateModule(req.params._id, req.payload);
+    await ModuleHelper.updateModule(req.params._id, req.payload);
 
     return {
       message: translate[language].moduleUpdated,
-      data: { module },
     };
   } catch (e) {
     req.log('error', e);
@@ -21,11 +20,10 @@ const update = async (req) => {
 
 const addActivity = async (req) => {
   try {
-    const module = await ActivityHelper.addActivity(req.params._id, req.payload);
+    await ActivityHelper.addActivity(req.params._id, req.payload);
 
     return {
       message: translate[language].moduleUpdated,
-      data: { module },
     };
   } catch (e) {
     req.log('error', e);
