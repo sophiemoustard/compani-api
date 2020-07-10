@@ -1,6 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const Module = require('../../src/models/Module');
 const { populateDB, modulesList } = require('./seed/modulesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -29,8 +30,10 @@ describe('MODULES ROUTES - PUT /modules/{_id}', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const moduleUpdated = await Module.findById(moduleId);
+
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.module).toEqual(expect.objectContaining({ _id: moduleId, title: payload.title }));
+      expect(moduleUpdated).toEqual(expect.objectContaining({ _id: moduleId, title: payload.title }));
     });
 
     it("should return a 400 if title is equal to '' ", async () => {
@@ -91,9 +94,11 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const moduleUpdated = await Module.findById(moduleId);
+
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.module._id).toEqual(moduleId);
-      expect(response.result.data.module.activities.length).toEqual(1);
+      expect(moduleUpdated._id).toEqual(moduleId);
+      expect(moduleUpdated.activities.length).toEqual(1);
     });
 
     it('should return a 400 if missing title', async () => {

@@ -1,5 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const Program = require('../../src/models/Program');
 const app = require('../../server');
 const { populateDB, programsList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -183,10 +184,12 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const programUpdated = await Program.findById(programId);
+
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programId);
-      expect(response.result.data.program.name).toEqual('new name');
-      expect(response.result.data.program.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
+      expect(programUpdated._id).toEqual(programId);
+      expect(programUpdated.name).toEqual('new name');
+      expect(programUpdated.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
     });
 
     const falsyParams = ['name', 'learningGoals'];
@@ -253,9 +256,11 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const programUpdated = await Program.findById(programId);
+
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programId);
-      expect(response.result.data.program.modules.length).toEqual(modulesLengthBefore + 1);
+      expect(programUpdated._id).toEqual(programId);
+      expect(programUpdated.modules.length).toEqual(modulesLengthBefore + 1);
     });
 
     it('should return a 400 if missing title', async () => {

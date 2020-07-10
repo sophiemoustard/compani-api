@@ -1,5 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
+const Activity = require('../../src/models/Activity');
 const { populateDB, activitiesList } = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -28,8 +29,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const activityUpdated = await Activity.findById(activityId);
+
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.activity).toEqual(expect.objectContaining({ _id: activityId, title: 'rigoler' }));
+      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, title: 'rigoler' }));
     });
 
     it("should return a 400 if title is equal to '' ", async () => {
