@@ -12,7 +12,7 @@ const {
   userExists,
 } = require('../helpers/users');
 const User = require('../models/User');
-const cloudinary = require('../models/Cloudinary');
+const cloudinary = require('../helpers/cloudinary');
 
 const { language } = translate;
 
@@ -242,6 +242,7 @@ const uploadImage = async (req) => {
   try {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
+      folder: 'images/users/profile_pictures',
       public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
     });
     const payload = {

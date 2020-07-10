@@ -72,10 +72,24 @@ const addModule = async (req) => {
   }
 };
 
+const uploadImage = async (req) => {
+  try {
+    await ProgramHelper.uploadImage(req.params._id, req.payload);
+
+    return {
+      message: translate[language].fileCreated,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   getById,
   update,
   addModule,
+  uploadImage,
 };
