@@ -20,17 +20,13 @@ describe('updateActivity', () => {
   it("should update an activity's title", async () => {
     const activity = { _id: new ObjectID(), title: 'faire du pedalo' };
     const payload = { title: 'faire dodo' };
-    const updatedActivity = { ...activity, ...payload };
 
-    ActivityMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: activity._id }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(updatedActivity);
+    ActivityMock.expects('updateOne')
+      .withExactArgs({ _id: activity._id }, { $set: payload })
+      .once();
 
-    const result = await ActivityHelper.updateActivity(activity._id, payload);
+    await ActivityHelper.updateActivity(activity._id, payload);
 
-    expect(result).toMatchObject(updatedActivity);
     ActivityMock.verify();
   });
 });
