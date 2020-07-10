@@ -324,12 +324,11 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
 
 describe('POST /programs/:id/cloudinary/upload', () => {
   let authToken;
-  let docPayload;
   let form;
   let addImageStub;
   const program = programsList[0];
+  const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
-    docPayload = { fileName: 'program_image_test', file: 'true' };
     form = generateFormData(docPayload);
     addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
       .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
@@ -363,12 +362,12 @@ describe('POST /programs/:id/cloudinary/upload', () => {
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        form = generateFormData(omit(docPayload, param));
+        const invalidForm = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/cloudinary/upload`,
-          payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          payload: await GetStream(invalidForm),
+          headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(400);

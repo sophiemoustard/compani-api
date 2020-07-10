@@ -120,6 +120,7 @@ describe('update', () => {
   });
   afterEach(() => {
     ProgramMock.restore();
+    addImageStub.restore();
   });
 
   it('should upload image', async () => {
