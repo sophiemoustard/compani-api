@@ -9,7 +9,6 @@ const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
-const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
@@ -17,7 +16,7 @@ const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, AUXILIARY } = require('./constants');
+const { AUXILIARY } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
@@ -36,7 +35,6 @@ exports.getContractList = async (query, credentials) => {
       ],
     });
   }
-  if (query.customer) rules.push({ customer: query.customer });
   if (query.status) rules.push({ status: query.status });
   if (query.user) rules.push({ user: query.user });
 
@@ -48,11 +46,9 @@ exports.getContractList = async (query, credentials) => {
       select: 'identity administrative.driveFolder sector contact local',
       populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
-    .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean({ autopopulate: true, virtuals: true });
 };
 
-// exports.allCompanyContractEnded = async (contract, companyId) => {
 exports.allCompanyContractEnded = async (contract, companyId) => {
   const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
   const notEndedContract = userContracts.filter(con => !con.endDate);
@@ -65,12 +61,9 @@ exports.allCompanyContractEnded = async (contract, companyId) => {
 };
 
 exports.isCreationAllowed = async (contract, user, companyId) => {
-  if (contract.status === COMPANY_CONTRACT) {
-    const allCompanyContractEnded = await exports.allCompanyContractEnded(contract, companyId);
-    if (!allCompanyContractEnded) return false;
-  }
+  const allCompanyContractEnded = await exports.allCompanyContractEnded(contract, companyId);
 
-  return user.contractCreationMissingInfo.length === 0;
+  return allCompanyContractEnded && user.contractCreationMissingInfo.length === 0;
 };
 
 exports.createContract = async (contractPayload, credentials) => {
@@ -102,7 +95,6 @@ exports.createContract = async (contractPayload, credentials) => {
     }
   );
   if (user.sector) await SectorHistoryHelper.createHistoryOnContractCreation(user, contract, companyId);
-  if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
   return contract;
 };
@@ -195,10 +187,6 @@ exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionInde
   }
 
   const push = {};
-  if (oldVersion.customerDoc) {
-    push[`versions.${versionIndex}.customerArchives`] = oldVersion.customerDoc;
-    versionUnset.customerDoc = '';
-  }
   if (oldVersion.auxiliaryDoc) {
     push[`versions.${versionIndex}.auxiliaryArchives`] = oldVersion.auxiliaryDoc;
     versionUnset.auxiliaryDoc = '';
@@ -254,30 +242,22 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     contract.versions.pop();
     contract.save();
   } else {
-    const { user, startDate, status, customer } = contract;
+    const { user, startDate, status } = contract;
     const query = { auxiliary: user, startDate, status, company: companyId };
-    if (customer) query.customer = customer;
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();
 
     await Contract.deleteOne({ _id: contractId });
     await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
-    if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $pull: { contracts: contract._id } });
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
   }
 
   const auxiliaryDriveId = get(deletedVersion, 'auxiliaryDoc.driveId');
   if (auxiliaryDriveId) GDriveStorageHelper.deleteFile(auxiliaryDriveId);
-  const customerDriveId = get(deletedVersion, 'customerDoc.driveId');
-  if (customerDriveId) GDriveStorageHelper.deleteFile(customerDriveId);
 };
 
 exports.createAndSaveFile = async (version, fileInfo) => {
-  if (version.status === CUSTOMER_CONTRACT) {
-    const customer = await Customer.findOne({ _id: version.customer }).lean();
-    fileInfo.customerDriveId = customer.driveFolder.driveId;
-  }
-  const payload = await exports.addFile(fileInfo, version.status);
+  const payload = await exports.addFile(fileInfo);
 
   return Contract.findOneAndUpdate(
     { _id: version.contractId },
@@ -289,30 +269,11 @@ exports.createAndSaveFile = async (version, fileInfo) => {
   );
 };
 
-exports.addFile = async (fileInfo, status) => {
-  if (status === COMPANY_CONTRACT) {
-    const uploadedFile = await GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId });
-    const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
+exports.addFile = async (fileInfo) => {
+  const uploadedFile = await GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId });
+  const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
 
-    return { auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
-  }
-
-  const addFilePromises = [
-    GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId }),
-    GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.customerDriveId }),
-  ];
-  const [auxiliaryFileUploaded, customerFileUploaded] = await Promise.all(addFilePromises);
-
-  const fileInfoPromises = [
-    Drive.getFileById({ fileId: auxiliaryFileUploaded.id }),
-    Drive.getFileById({ fileId: customerFileUploaded.id }),
-  ];
-  const [auxiliaryDriveFile, customerDriveFile] = await Promise.all(fileInfoPromises);
-
-  return {
-    auxiliaryDoc: { driveId: auxiliaryFileUploaded.id, link: auxiliaryDriveFile.webViewLink },
-    customerDoc: { driveId: customerFileUploaded.id, link: customerDriveFile.webViewLink },
-  };
+  return { auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
 };
 
 exports.saveCompletedContract = async (everSignDoc) => {
@@ -320,23 +281,12 @@ exports.saveCompletedContract = async (everSignDoc) => {
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
   const file = await createAndReadFile(finalPDF.data, tmpPath);
 
-  let payload = {};
-  if (everSignDoc.data.meta.type === CUSTOMER_CONTRACT) {
-    payload = await exports.addFile({
-      auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,
-      customerDriveId: everSignDoc.data.meta.customerDriveId,
-      name: everSignDoc.data.title,
-      type: 'application/pdf',
-      body: file,
-    }, CUSTOMER_CONTRACT);
-  } else {
-    payload = await exports.addFile({
-      auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,
-      name: everSignDoc.data.title,
-      type: 'application/pdf',
-      body: file,
-    }, COMPANY_CONTRACT);
-  }
+  const payload = await exports.addFile({
+    auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,
+    name: everSignDoc.data.title,
+    type: 'application/pdf',
+    body: file,
+  });
 
   await Contract.findOneAndUpdate(
     { 'versions.signature.eversignId': everSignDoc.data.document_hash },
@@ -382,16 +332,11 @@ exports.uploadFile = async (params, payload) => {
     type: payload['Content-Type'],
     body: payload.file,
   };
-  const version = {
-    customer: payload.customer,
-    contractId: params._id,
-    _id: payload.versionId,
-    status: payload.status,
-  };
+  const version = { contractId: params._id, _id: payload.versionId };
+
   return exports.createAndSaveFile(version, fileInfo);
 };
 
 exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
-  contract.status === COMPANY_CONTRACT &&
-    moment(contract.startDate).isSameOrBefore(day, 'd') &&
-    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
+  moment(contract.startDate).isSameOrBefore(day, 'd') &&
+  (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));

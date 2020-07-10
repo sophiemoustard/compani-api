@@ -18,7 +18,6 @@ const {
   PRIVATE_TRANSPORT,
   INTERVENTION,
   DAILY,
-  COMPANY_CONTRACT,
   INTERNAL_HOUR,
   WEEKS_PER_MONTH,
 } = require('./constants');
@@ -295,9 +294,6 @@ exports.getPayFromAbsences = (absences, contract, query) => {
 };
 
 exports.getContract = (contracts, endDate) => contracts.find((cont) => {
-  const isCompanyContract = cont.status === COMPANY_CONTRACT;
-  if (!isCompanyContract) return false;
-
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
   if (!contractStarted) return false;
 
@@ -414,8 +410,7 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
   const shouldComputeDiff = moment(query.endDate).isBefore(moment().startOf('month'));
   if (!shouldComputeDiff) return { auxiliary: auxiliary._id, diff: {}, hoursCounter: 0 };
 
-  const contract = auxiliary.contracts.find(cont => cont.status === COMPANY_CONTRACT &&
-    (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
+  const contract = auxiliary.contracts.find(cont => !cont.endDate || moment(cont.endDate).isAfter(query.endDate));
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
   const absenceDiff = Math.round((prevPay && prevPay.absencesHours ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
@@ -487,7 +482,6 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
 
 exports.getAuxiliariesToPay = async (end, credentials) => {
   const contractRules = {
-    status: COMPANY_CONTRACT,
     startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };

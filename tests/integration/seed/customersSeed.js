@@ -16,9 +16,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const {
   FIXED,
   ONCE,
-  COMPANY_CONTRACT,
   HOURLY,
-  CUSTOMER_CONTRACT,
   AUXILIARY,
 } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
@@ -51,7 +49,6 @@ const referentList = [
 const customerServiceList = [
   {
     _id: new ObjectID(),
-    type: COMPANY_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -64,7 +61,6 @@ const customerServiceList = [
   },
   {
     _id: new ObjectID(),
-    type: CUSTOMER_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -382,19 +378,6 @@ const customersList = [
   },
 ];
 
-const contractCustomer = {
-  _id: contractCustomerId,
-  company: customersList[4].company,
-  startDate: '2019-01-01',
-  status: 'contract_with_customer',
-  user: referentList[0]._id,
-  customer: customersList[4]._id,
-  versions: [{
-    startDate: '2019-01-01',
-    grossHourlyRate: '12',
-  }],
-};
-
 const bill = {
   _id: new ObjectID(),
   company: customersList[5].company,
@@ -638,7 +621,6 @@ const eventList = [
     bills: {},
     sector: new ObjectID(),
     subscription: subId,
-    status: COMPANY_CONTRACT,
     startDate: '2019-01-16T14:30:19.543Z',
     endDate: '2019-01-16T15:30:21.653Z',
     address: {
@@ -658,7 +640,6 @@ const eventList = [
     bills: {},
     sector: new ObjectID(),
     subscription: subId,
-    status: COMPANY_CONTRACT,
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T15:30:21.653Z',
     address: {
@@ -674,7 +655,6 @@ const eventList = [
     sector: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     customer: customersList[0]._id,
@@ -717,7 +697,6 @@ const eventList = [
     },
     sector: new ObjectID(),
     subscription: new ObjectID(),
-    status: COMPANY_CONTRACT,
     startDate: '2019-01-16T14:30:19.543Z',
     endDate: '2019-01-16T15:30:21.653Z',
     address: {
@@ -756,7 +735,6 @@ const populateDB = async () => {
   for (const user of referentList) {
     await (new User(user).save());
   }
-  await (new Contract(contractCustomer).save());
   await (new Bill(bill).save());
   await (new Payment(payment).save());
   await (new CreditNote(creditNote).save());

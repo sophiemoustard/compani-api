@@ -10,7 +10,6 @@ const {
   INTERVENTION,
   ABSENCE,
   INVOICED_AND_PAID,
-  COMPANY_CONTRACT,
   NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
@@ -374,11 +373,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     { endDate: { $gt: start } },
     {
       $or: [
-        {
-          status: COMPANY_CONTRACT,
-          type: INTERVENTION,
-          $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
-        },
+        { type: INTERVENTION, $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }] },
         { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
       ],
     },
@@ -470,7 +465,6 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
     { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
     { auxiliary: { $exists: true, $ne: '' } },
     { type: INTERVENTION },
-    { status: COMPANY_CONTRACT },
     { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } },
   ];
   if (dates.startDate) rules.push({ startDate: { $gte: dates.startDate } });
@@ -489,7 +483,6 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
               $and: [
                 { $lte: ['$$c.startDate', '$startDate'] },
                 { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
-                { $eq: ['$$c.status', COMPANY_CONTRACT] },
               ],
             },
           },

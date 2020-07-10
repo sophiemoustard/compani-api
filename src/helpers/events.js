@@ -11,7 +11,6 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
   NEVER,
-  COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
@@ -294,15 +293,10 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const { sector, _id: auxiliaryId } = contract.user;
 
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
-
   if (customerSubscriptionsFromEvents.length === 0) return;
-  let correspondingSubs;
-  correspondingSubs = contract.status === COMPANY_CONTRACT
-    ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
-    : (correspondingSubs = customerSubscriptionsFromEvents
-      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
-
-  const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
+  const correspondingSubsIds = customerSubscriptionsFromEvents
+    .filter(ev => ev.sub.service.type === contract.status)
+    .map(sub => sub.sub._id);
 
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(
     contract.endDate,
@@ -428,9 +422,6 @@ exports.getContractWeekInfo = (contract, query) => {
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
-  const isCompanyContract = cont.status === COMPANY_CONTRACT;
-  if (!isCompanyContract) return false;
-
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
   if (!contractStarted) return false;
 

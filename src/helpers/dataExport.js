@@ -5,12 +5,10 @@ const {
   CIVILITY_LIST,
   HELPER,
   AUXILIARY_ROLES,
-  COMPANY_CONTRACT,
   DAYS_INDEX,
   FUNDING_FREQUENCIES,
   CUSTOMER_SITUATIONS,
   FUNDING_NATURES,
-  CONTRACT_STATUS_LIST,
   SERVICE_NATURES,
 } = require('./constants');
 const UtilsHelper = require('./utils');
@@ -173,7 +171,7 @@ exports.exportAuxiliaries = async (credentials) => {
   const auxiliaries = await User
     .find({ 'role.client': { $in: roleIds }, company: companyId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+    .populate({ path: 'contracts', select: '_id' })
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
   const data = [auxiliaryExportHeader];
@@ -347,7 +345,6 @@ exports.exportReferents = async (credentials) => {
 
 const serviceHeader = [
   'Nature',
-  'Type',
   'Entreprise',
   'Nom',
   'Montant unitaire par défaut',
@@ -369,7 +366,6 @@ exports.exportServices = async (credentials) => {
     const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
     data.push([
       SERVICE_NATURES.find(nat => nat.value === service.nature).label,
-      CONTRACT_STATUS_LIST[service.type],
       service.company.name,
       lastVersion.name,
       UtilsHelper.formatFloatForExport(lastVersion.defaultUnitAmount),

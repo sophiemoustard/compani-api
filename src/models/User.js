@@ -9,7 +9,7 @@ const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
@@ -172,7 +172,7 @@ const isActive = (auxiliary) => {
   const auxiliaryRoleName = get(auxiliary, 'role.client.name');
   if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
     const { contracts, inactivityDate, createdAt } = auxiliary;
-    const hasCompanyContract = contracts && contracts.some(c => c.status === COMPANY_CONTRACT);
+    const hasCompanyContract = contracts && contracts.length;
     const isNew = (!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(createdAt, 'd') < 45;
     const isInactive = inactivityDate && moment().isAfter(inactivityDate);
 

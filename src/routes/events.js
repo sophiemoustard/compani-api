@@ -24,7 +24,6 @@ const {
   OTHER,
   WORK_ACCIDENT,
 } = require('../helpers/constants');
-const { CONTRACT_STATUS } = require('../models/Contract');
 const {
   EVENT_TYPES,
   ABSENCE_NATURES,
@@ -76,8 +75,6 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required().valid(...REPETITION_FREQUENCIES),
             }),
-            status: Joi.string().valid(...CONTRACT_STATUS)
-              .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeEventCreation }],
@@ -206,7 +203,6 @@ exports.plugin = {
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),
-            status: Joi.string().valid(...CONTRACT_STATUS),
             bills: Joi.object(),
           })
             .and('startDate', 'endDate')

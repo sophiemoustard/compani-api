@@ -22,7 +22,6 @@ const {
   FIXED,
   ONCE,
   HOURLY,
-  COMPANY_CONTRACT,
   MONTHLY,
 } = require('../../../src/helpers/constants');
 
@@ -30,7 +29,6 @@ const subscriptions = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
 
 const services = [{
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -42,7 +40,6 @@ const services = [{
   nature: HOURLY,
 }, {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 12,

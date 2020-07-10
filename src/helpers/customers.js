@@ -12,7 +12,7 @@ const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
-const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
+const { INTERVENTION } = require('./constants');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('../helpers/referentHistories');
 const FundingsHelper = require('./fundings');
@@ -55,23 +55,6 @@ exports.getCustomersFirstIntervention = async (query, credentials) => {
     .lean();
 
   return keyBy(customers, '_id');
-};
-
-exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT, company: companyId }).lean();
-  if (customerContractServices.length === 0) return [];
-
-  const ids = customerContractServices.map(service => service._id);
-  const query = { 'subscriptions.service': { $in: ids } };
-  const customers = await CustomerRepository.getCustomersWithSubscriptions(query, companyId);
-  if (customers.length === 0) return [];
-
-  for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
-  }
-
-  return customers;
 };
 
 exports.getCustomersWithIntervention = async (credentials) => {

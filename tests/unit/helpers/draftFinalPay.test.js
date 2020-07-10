@@ -167,7 +167,6 @@ describe('getDraftPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
@@ -221,7 +220,6 @@ describe('getDraftPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),

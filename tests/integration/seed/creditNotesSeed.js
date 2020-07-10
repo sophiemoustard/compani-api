@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
-const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
+const { HOURLY } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
@@ -20,7 +20,6 @@ const creditNoteThirdPartyPayer = {
 
 const creditNoteService = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -226,7 +225,6 @@ const otherCompanyThirdPartyPayer = {
 
 const otherCompanyService = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 24,

@@ -24,7 +24,7 @@ const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const User = require('../../src/models/User');
-const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
+const { MONTHLY, FIXED, HOURLY } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
 const DocxHelper = require('../../src/helpers/docx');
@@ -358,60 +358,6 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
-  describe('GET /customer/customer-contract-subscriptions', () => {
-    it('should get all customers with customer contract subscriptions', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/customer-contract-subscriptions',
-        headers: { 'x-access-token': clientAdminToken },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toBeDefined();
-      const customer = res.result.data.customers.find(cus =>
-        cus._id.toHexString() === customersList[0]._id.toHexString());
-      expect(customer.subscriptions).toBeDefined();
-      expect(customer.subscriptions
-        .some(sub => sub.service.type === 'contract_with_customer')).toBeTruthy();
-      expect(customer.referentHistories.length).toEqual(2);
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 200 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: '/customers/customer-contract-subscriptions',
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-
-    it('should get only customers from the company with customer contract subscriptions', async () => {
-      const authToken = await getTokenByCredentials(userList[4].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/customer-contract-subscriptions',
-        headers: { 'x-access-token': authToken },
-      });
-
-      const areAllCustomersFromCompany = res.result.data.customers
-        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
-      expect(areAllCustomersFromCompany).toBe(true);
-    });
-  });
-
   describe('GET /customer/with-intervention', () => {
     it('should get all customers with at least one intervention', async () => {
       const res = await app.inject({
@@ -463,21 +409,9 @@ describe('CUSTOMERS ROUTES', () => {
           {
             ...customersList[0].subscriptions[0],
             service: {
-              type: COMPANY_CONTRACT,
               defaultUnitAmount: 12,
               name: 'Service 1',
               startDate: new Date('2019-01-16 17:58:15'),
-              vat: 12,
-              nature: HOURLY,
-            },
-          },
-          {
-            ...customersList[0].subscriptions[1],
-            service: {
-              type: CUSTOMER_CONTRACT,
-              defaultUnitAmount: 24,
-              name: 'Service 2',
-              startDate: new Date('2019-01-18 19:58:15'),
               vat: 12,
               nature: HOURLY,
             },

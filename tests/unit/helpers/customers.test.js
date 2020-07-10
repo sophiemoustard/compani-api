@@ -18,7 +18,6 @@ const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 const moment = require('moment');
-const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -143,92 +142,6 @@ describe('getCustomersFirstIntervention', () => {
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     });
     CustomerMock.verify();
-  });
-});
-
-describe('getCustomersWithCustomerContractSubscriptions', () => {
-  let ServiceMock;
-  let subscriptionsAccepted;
-  let getCustomersWithSubscriptions;
-  beforeEach(() => {
-    ServiceMock = sinon.mock(Service);
-    subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
-    getCustomersWithSubscriptions = sinon.stub(CustomerRepository, 'getCustomersWithSubscriptions');
-  });
-  afterEach(() => {
-    ServiceMock.restore();
-    getCustomersWithSubscriptions.restore();
-    subscriptionsAccepted.restore();
-  });
-
-  it('should return empty array if no service', async () => {
-    const companyId = new ObjectID();
-    ServiceMock
-      .expects('find')
-      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
-      .chain('lean')
-      .once()
-      .returns([]);
-    const credentials = { company: { _id: companyId } };
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
-
-    expect(result).toEqual([]);
-    ServiceMock.verify();
-  });
-
-  it('should return empty array if no customer', async () => {
-    const companyId = new ObjectID();
-    const services = [{ _id: '1234567890', nature: 'fixed', company: companyId }];
-    const credentials = { company: { _id: companyId } };
-    ServiceMock
-      .expects('find')
-      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
-      .chain('lean')
-      .once()
-      .returns(services);
-    getCustomersWithSubscriptions.returns([]);
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
-
-    expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(
-      getCustomersWithSubscriptions,
-      { 'subscriptions.service': { $in: ['1234567890'] } },
-      companyId
-    );
-    sinon.assert.notCalled(subscriptionsAccepted);
-    ServiceMock.verify();
-  });
-
-  it('should return customers', async () => {
-    const companyId = new ObjectID();
-    const customers = [
-      { identity: { firstname: 'Emmanuel' }, company: companyId },
-      { identity: { firstname: 'Brigitte' }, company: companyId },
-    ];
-    const services = [{ _id: '1234567890', nature: 'fixed' }];
-    ServiceMock
-      .expects('find')
-      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
-      .chain('lean')
-      .once()
-      .returns(services);
-    getCustomersWithSubscriptions.returns(customers);
-    subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
-    const credentials = { company: { _id: companyId } };
-
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
-
-    expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
-      { identity: { firstname: 'Brigitte' }, subscriptionsAccepted: true, company: companyId },
-    ]);
-    sinon.assert.calledWithExactly(
-      getCustomersWithSubscriptions,
-      { 'subscriptions.service': { $in: ['1234567890'] } },
-      companyId
-    );
-    sinon.assert.calledTwice(subscriptionsAccepted);
-    ServiceMock.verify();
   });
 });
 

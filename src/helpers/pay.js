@@ -13,7 +13,6 @@ const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
-const { COMPANY_CONTRACT } = require('./constants');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
@@ -50,9 +49,6 @@ exports.createPayList = async (payToCreate, credentials) => {
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
-  const isCompanyContract = cont.status === COMPANY_CONTRACT;
-  if (!isCompanyContract) return false;
-
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
   if (!contractStarted) return false;
 

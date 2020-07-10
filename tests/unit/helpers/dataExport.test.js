@@ -10,7 +10,7 @@ const Role = require('../../../src/models/Role');
 const Service = require('../../../src/models/Service');
 const ExportHelper = require('../../../src/helpers/dataExport');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, FIXED, HOURLY } = require('../../../src/helpers/constants');
+const { FIXED, HOURLY } = require('../../../src/helpers/constants');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 
@@ -192,7 +192,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -234,7 +234,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -286,7 +286,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -333,7 +333,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -383,9 +383,8 @@ describe('exportAuxiliaries', () => {
       {
         _id: new ObjectID(),
         contracts: [
-          { _id: 1, startDate: '2019-11-10', status: COMPANY_CONTRACT, endDate: '2019-12-01' },
-          { _id: 1, startDate: '2019-12-02', status: COMPANY_CONTRACT },
-          { _id: 1, startDate: '2019-12-04', status: CUSTOMER_CONTRACT },
+          { _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' },
+          { _id: 1, startDate: '2019-12-02' },
         ],
       },
     ];
@@ -394,7 +393,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -408,10 +407,10 @@ describe('exportAuxiliaries', () => {
     expect(result[1]).toBeDefined();
     expect(result[2]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '10/11/2019', '01/12/2019', '', '',
+      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '10/11/2019', '01/12/2019', '', '',
     ]);
     expect(result[2]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '', '02/12/2019', '', '', '',
+      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
     ]);
     UserModel.verify();
     RoleModel.verify();
@@ -433,7 +432,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -468,7 +467,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', match: { status: COMPANY_CONTRACT } })
+      .withExactArgs({ path: 'contracts' })
       .chain('populate')
       .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
       .chain('lean')
@@ -567,7 +566,9 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', '+33123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
+    expect(result[1]).toMatchObject(
+      ['aide@sos.io', '+33123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']
+    );
   });
 
   it('should return customer helper info', async () => {
@@ -918,7 +919,6 @@ describe('exportServices', () => {
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
       'Nature',
-      'Type',
       'Entreprise',
       'Nom',
       'Montant unitaire par défaut',
@@ -933,7 +933,6 @@ describe('exportServices', () => {
   it('should list services', async () => {
     const services = [
       {
-        type: COMPANY_CONTRACT,
         nature: HOURLY,
         company: { name: 'Alenvi' },
         versions: [
@@ -944,7 +943,6 @@ describe('exportServices', () => {
         createdAt: '2019-01-21T09:38:18.653Z',
       },
       {
-        type: CUSTOMER_CONTRACT,
         nature: FIXED,
         company: { name: 'Compani' },
         versions: [{
@@ -973,10 +971,10 @@ describe('exportServices', () => {
     expect(result).toBeDefined();
     expect(result.length).toEqual(services.length + 1);
     expect(result[1]).toMatchObject([
-      'Horaire', 'Prestataire', 'Alenvi', 'lifté', 'F-12', 'F-10', '', '08/02/2019', '21/01/2019', '14/02/2019',
+      'Horaire', 'Alenvi', 'lifté', 'F-12', 'F-10', '', '08/02/2019', '21/01/2019', '14/02/2019',
     ]);
     expect(result[2]).toMatchObject([
-      'Forfaitaire', 'Mandataire', 'Compani', 'kické', 'F-13', 'F-5.5', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019',
+      'Forfaitaire', 'Compani', 'kické', 'F-13', 'F-5.5', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019',
     ]);
   });
 });

@@ -107,14 +107,6 @@ module.exports = {
       [this.EVERY_TWO_WEEKS]: 'Toutes les deux semaines',
     };
   },
-  CUSTOMER_CONTRACT: 'contract_with_customer',
-  COMPANY_CONTRACT: 'contract_with_company',
-  get CONTRACT_STATUS_LIST() {
-    return {
-      [this.COMPANY_CONTRACT]: 'Prestataire',
-      [this.CUSTOMER_CONTRACT]: 'Mandataire',
-    };
-  },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
   // PAYMENT

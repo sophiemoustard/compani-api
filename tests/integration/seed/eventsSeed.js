@@ -14,7 +14,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
-const { EVERY_WEEK, NEVER, COMPANY_CONTRACT, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const { EVERY_WEEK, NEVER, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -129,7 +129,6 @@ const thirdPartyPayerFromOtherCompany = {
 const service = {
   _id: new ObjectID(),
   company: authCompany._id,
-  type: COMPANY_CONTRACT,
   nature: 'hourly',
   versions: [{
     defaultUnitAmount: 12,
@@ -142,7 +141,6 @@ const service = {
 
 const serviceFromOtherCompany = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   nature: 'hourly',
   company: otherCompany._id,
   versions: [{

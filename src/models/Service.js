@@ -2,14 +2,12 @@ const mongoose = require('mongoose');
 
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 const { FIXED, HOURLY } = require('../helpers/constants');
-const { CONTRACT_STATUS } = require('./Contract');
 const Customer = require('./Customer');
 
 const SERVICE_NATURES = [FIXED, HOURLY];
 
 const ServiceSchema = mongoose.Schema({
   nature: { type: String, enum: SERVICE_NATURES, required: true },
-  type: { type: String, enum: CONTRACT_STATUS, required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   versions: [{
     name: { type: String, required: true },

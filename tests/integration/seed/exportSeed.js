@@ -23,9 +23,7 @@ const {
   PAYMENT,
   REFUND,
   FIXED,
-  COMPANY_CONTRACT,
   HOURLY,
-  CUSTOMER_CONTRACT,
   PAID_LEAVE,
   INVOICED_AND_PAID,
   DAILY,
@@ -55,7 +53,6 @@ const surcharge = {
 const serviceList = [
   {
     _id: new ObjectID(),
-    type: COMPANY_CONTRACT,
     company: authCompany._id,
     versions: [{
       name: 'Service 1',
@@ -68,7 +65,6 @@ const serviceList = [
   },
   {
     _id: new ObjectID(),
-    type: CUSTOMER_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -175,7 +171,6 @@ const auxiliaryList = [{
 const contractList = [{
   _id: contract1Id,
   user: auxiliaryList[0]._id,
-  status: COMPANY_CONTRACT,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01', endDate: '2020-01-01' }],
   startDate: '2018-01-01',
   endDate: '2020-01-01',
@@ -183,14 +178,12 @@ const contractList = [{
 }, {
   _id: contract2Id,
   user: auxiliaryList[0]._id,
-  status: COMPANY_CONTRACT,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
   startDate: '2020-02-01',
   company: authCompany._id,
 }, {
   _id: contract3Id,
   user: auxiliaryList[1]._id,
-  status: COMPANY_CONTRACT,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
   startDate: '2020-02-01',
   company: authCompany._id,

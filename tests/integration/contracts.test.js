@@ -10,7 +10,6 @@ const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const Contract = require('../../src/models/Contract');
-const Customer = require('../../src/models/Customer');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
 const SectorHistory = require('../../src/models/SectorHistory');
@@ -28,8 +27,6 @@ const {
   userForContractCustomer,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
-const EsignHelper = require('../../src/helpers/eSign');
 const { getToken, getUser, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -177,7 +174,6 @@ describe('CONTRACTS ROUTES', () => {
   describe('POST /contracts', () => {
     it('should create contract (company contract)', async () => {
       const payload = {
-        status: COMPANY_CONTRACT,
         startDate: '2019-09-01T00:00:00',
         versions: [{
           weeklyHours: 24,
@@ -217,7 +213,6 @@ describe('CONTRACTS ROUTES', () => {
 
     it('should create new sectorhistory if auxiliary does not have sectorhistory without a startDate', async () => {
       const payload = {
-        status: COMPANY_CONTRACT,
         startDate: '2019-09-01T00:00:00',
         versions: [{
           weeklyHours: 24,
@@ -243,102 +238,8 @@ describe('CONTRACTS ROUTES', () => {
       expect(sectorHistories[2].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
     });
 
-    it('should create contract (customer contract)', async () => {
-      const payload = {
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{
-          grossHourlyRate: 10.43,
-          startDate: '2019-01-18T15:46:30.636Z',
-        }],
-        user: contractUsers[0]._id,
-        status: CUSTOMER_CONTRACT,
-        customer: contractCustomer._id,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.contract).toBeDefined();
-
-      const contracts = await Contract.find({ company: get(response, 'result.data.contract.company') });
-      expect(contracts.length).toEqual(contractsList.length + 1);
-
-      const customer = await Customer.findOne({ _id: contractCustomer._id });
-      expect(customer).toBeDefined();
-      expect(customer.contracts).toContainEqual(response.result.data.contract._id);
-    });
-
-    it('should create contract (customer contract) with signature request', async () => {
-      const payloadWithSignature = {
-        startDate: '2019-01-19T15:46:30.636Z',
-        versions: [{
-          grossHourlyRate: 10.43,
-          startDate: '2019-01-19T15:46:30.636Z',
-          signature: {
-            templateId: '0987654321',
-            title: 'mrs',
-            signers: [{
-              id: new ObjectID(),
-              name: 'Toto',
-              email: 'test@test.com',
-            }, {
-              id: new ObjectID(),
-              name: 'Tata',
-              email: 'tt@tt.com',
-            }],
-            meta: { auxiliaryDriveId: '1234567890' },
-          },
-        }],
-        user: contractUsers[0]._id,
-        status: CUSTOMER_CONTRACT,
-        customer: contractCustomer._id,
-      };
-
-      const generateSignatureRequestStub = sinon.stub(EsignHelper, 'generateSignatureRequest');
-      generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        headers: { 'x-access-token': authToken },
-        payload: payloadWithSignature,
-      });
-
-      expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnce(generateSignatureRequestStub);
-      generateSignatureRequestStub.restore();
-      expect(response.result.data.contract).toBeDefined();
-      expect(response.result.data.contract.versions[0]).toMatchObject({
-        signature: { signedBy: { auxiliary: false, other: false }, eversignId: '1234567890' },
-      });
-    });
-
-    it('should not create a contract if customer is not from the same company', async () => {
-      const customerContractPayload = {
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
-        user: contractUsers[0]._id,
-        customer: customerFromOtherCompany._id,
-        status: 'contract_with_customer',
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        payload: customerContractPayload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should not create a contract if user is not from the same company', async () => {
       const payload = {
-        status: COMPANY_CONTRACT,
         startDate: '2019-09-01T00:00:00',
         versions: [{
           weeklyHours: 24,
@@ -368,7 +269,6 @@ describe('CONTRACTS ROUTES', () => {
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
         const payload = {
-          status: COMPANY_CONTRACT,
           startDate: '2019-09-01T00:00:00',
           versions: [{
             weeklyHours: 24,
@@ -387,26 +287,6 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
 
-    it('should return a 400 error if missing customer parameter for customer contract', async () => {
-      const payload = {
-        status: CUSTOMER_CONTRACT,
-        startDate: '2019-09-01T00:00:00',
-        versions: [{
-          weeklyHours: 24,
-          grossHourlyRate: 10.43,
-          startDate: '2019-09-01T00:00:00',
-        }],
-        user: contractUsers[1]._id,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
     const roles = [
       { name: 'client_admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -418,7 +298,6 @@ describe('CONTRACTS ROUTES', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
         const payload = {
-          status: COMPANY_CONTRACT,
           startDate: '2019-09-01T00:00:00',
           versions: [{
             weeklyHours: 24,
@@ -759,7 +638,6 @@ describe('CONTRACTS ROUTES', () => {
         fileName: 'contrat_signe',
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedContract',
-        status: COMPANY_CONTRACT,
         contractId: contractsList[0]._id.toHexString(),
         versionId: contractsList[0].versions[0]._id.toHexString(),
       };
@@ -774,54 +652,6 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.statusCode).toEqual(200);
       sinon.assert.calledOnce(addStub);
       sinon.assert.calledOnce(getFileByIdStub);
-    });
-
-    it('should upload a customer contract', async () => {
-      addStub.returns({ id: 'fakeFileDriveId' });
-      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-      const payload = {
-        fileName: 'contrat_signe',
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
-        type: 'signedContract',
-        status: CUSTOMER_CONTRACT,
-        contractId: contractsList[0]._id.toHexString(),
-        versionId: contractsList[0].versions[0]._id.toHexString(),
-        customer: contractCustomer._id.toHexString(),
-      };
-      const form = generateFormData(payload);
-      const response = await app.inject({
-        method: 'POST',
-        url: `/contracts/${contractsList[1]._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      sinon.assert.calledTwice(addStub);
-      sinon.assert.calledTwice(getFileByIdStub);
-    });
-
-    it('should not upload a customer contract if customer is not from the same company', async () => {
-      addStub.returns({ id: 'fakeFileDriveId' });
-      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-      const payload = {
-        fileName: 'contrat_signe',
-        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
-        type: 'signedContract',
-        status: CUSTOMER_CONTRACT,
-        contractId: contractsList[0]._id.toHexString(),
-        versionId: contractsList[0].versions[0]._id.toHexString(),
-        customer: customerFromOtherCompany._id.toHexString(),
-      };
-      const form = generateFormData(payload);
-      const response = await app.inject({
-        method: 'POST',
-        url: `/contracts/${contractsList[2]._id}/gdrive/${fakeDriveId}/upload`,
-        payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toEqual(403);
     });
 
     const roles = [
@@ -840,7 +670,6 @@ describe('CONTRACTS ROUTES', () => {
           fileName: 'contrat_signe',
           file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
           type: 'signedContract',
-          status: COMPANY_CONTRACT,
           contractId: contractsList[0]._id.toHexString(),
           versionId: contractsList[0].versions[0]._id.toHexString(),
         };

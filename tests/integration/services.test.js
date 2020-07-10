@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const { servicesList, serviceFromOtherCompany, populateDB } = require('./seed/servicesSeed');
 const Service = require('../../src/models/Service');
 const app = require('../../server');
-const { CUSTOMER_CONTRACT, HOURLY } = require('../../src/helpers/constants');
+const { HOURLY } = require('../../src/helpers/constants');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -21,7 +21,6 @@ describe('SERVICES ROUTES', () => {
 
   describe('POST /services', () => {
     const payload = {
-      type: CUSTOMER_CONTRACT,
       versions: [{
         name: 'Service',
         defaultUnitAmount: 12,
@@ -33,7 +32,7 @@ describe('SERVICES ROUTES', () => {
     };
 
     it('should create a new service', async () => {
-      const serviceBefore = await Service.countDocuments({ company: authCompany._id }).lean()
+      const serviceBefore = await Service.countDocuments({ company: authCompany._id }).lean();
       const response = await app.inject({
         method: 'POST',
         url: '/services',

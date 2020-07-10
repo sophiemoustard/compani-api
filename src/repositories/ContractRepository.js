@@ -1,6 +1,5 @@
 const moment = require('moment');
 const Contract = require('../models/Contract');
-const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 const payLookupPipeline = (payCollection, end) => {
   const payLookup = [
@@ -95,11 +94,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
 ]).option({ company: companyId });
 
 exports.getUserCompanyContracts = async (contractUserId, companyId) => Contract.find(
-  {
-    company: companyId,
-    user: contractUserId,
-    status: COMPANY_CONTRACT,
-  },
+  { company: companyId, user: contractUserId },
   { endDate: 1 },
   { sort: { endDate: -1 } }
 ).lean();

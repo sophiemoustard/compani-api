@@ -8,7 +8,6 @@ const {
   ABSENCE,
   UNAVAILABILITY,
   NEVER,
-  CUSTOMER_CONTRACT,
   INTERNAL_HOUR,
 } = require('./constants');
 const User = require('../models/User');
@@ -40,14 +39,6 @@ exports.checkContracts = async (event, user) => {
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
-
-    if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
-      const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
-      if (!contractBetweenAuxAndCus) return false;
-      return contractBetweenAuxAndCus.endDate
-        ? moment(event.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
-        : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
-    }
 
     return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }

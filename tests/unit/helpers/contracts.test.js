@@ -11,7 +11,7 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const ReferentHistoryHelper = require('../../../src/helpers/referentHistories');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
-const { RESIGNATION, COMPANY_CONTRACT, CUSTOMER_CONTRACT, AUXILIARY } = require('../../../src/helpers/constants');
+const { RESIGNATION, AUXILIARY } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
@@ -149,25 +149,7 @@ describe('isCreationAllowed', () => {
     allCompanyContractEnded.restore();
   });
 
-  it('CUSTOMER_CONTRACT - should return true if user has mandatoy info', async () => {
-    const contract = { status: 'contract_with_customer' };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
-
-    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
-
-    expect(result).toBeTruthy();
-    sinon.assert.notCalled(allCompanyContractEnded);
-  });
-  it('CUSTOMER_CONTRACT - should return false if user does not have mandatoy info', async () => {
-    const contract = { status: 'contract_with_customer' };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
-
-    const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
-
-    expect(result).toBeFalsy();
-    sinon.assert.notCalled(allCompanyContractEnded);
-  });
-  it('COMPANY_CONTRACT - should return false if not ended contract', async () => {
+  it('should return false if not ended contract', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
     allCompanyContractEnded.returns(false);
@@ -177,7 +159,7 @@ describe('isCreationAllowed', () => {
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
-  it('COMPANY_CONTRACT - should return false if user does not have mandatoy info', async () => {
+  it('should return false if user does not have mandatoy info', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
     allCompanyContractEnded.returns(true);
@@ -187,7 +169,7 @@ describe('isCreationAllowed', () => {
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
-  it('COMPANY_CONTRACT - should return true if all contract ended and user has mandatoy info', async () => {
+  it('should return true if all contract ended and user has mandatoy info', async () => {
     const contract = { status: 'contract_with_company' };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
     allCompanyContractEnded.returns(true);
@@ -798,17 +780,6 @@ describe('formatVersionEditionPayload', () => {
     expect(result.$unset['versions.1.signature']).toEqual('');
   });
 
-  it('should update customerArchives', async () => {
-    const oldVersion = { startDate: '2019-09-12T00:00:00', customerDoc: '1234567890' };
-    const newVersion = { grossHourlyRate: 15 };
-    const versionIndex = 1;
-
-    const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
-
-    expect(result.$unset['versions.1.customerDoc']).toEqual('');
-    expect(result.$push['versions.1.customerArchives']).toEqual('1234567890');
-  });
-
   it('should update auxiliaryDoc', async () => {
     const oldVersion = { startDate: '2019-09-12T00:00:00', auxiliaryDoc: '1234567890' };
     const newVersion = { grossHourlyRate: 15 };
@@ -921,14 +892,14 @@ describe('updateVersion', () => {
       ],
     };
     canUpdateVersion.returns(true);
-    formatVersionEditionPayload.returns({ $set: {}, $push: {}, $unset: { customerDoc: '' } });
+    formatVersionEditionPayload.returns({ $set: {}, $push: {} });
     ContractMock.expects('findOne')
       .withExactArgs({ _id: contractId.toHexString() })
       .chain('lean')
       .once()
       .returns(contract);
     ContractMock.expects('updateOne')
-      .withExactArgs({ _id: contractId.toHexString() }, { $unset: { customerDoc: '' } })
+      .withExactArgs({ _id: contractId.toHexString() })
       .once();
     ContractMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: contractId.toHexString() }, { $set: {}, $push: {} })
@@ -1077,7 +1048,7 @@ describe('deleteVersion', () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
-      versions: [{ _id: new ObjectID() }, { _id: versionId, customerDoc: { driveId: '123456789' } }],
+      versions: [{ _id: new ObjectID() }, { _id: versionId }],
     });
     findOneContract.returns(contract);
 
@@ -1215,7 +1186,6 @@ describe('uploadFile', () => {
       customer: payload.customer,
       contractId: params._id,
       _id: payload.versionId,
-      status: payload.status,
     };
     const fileInfo = {
       auxiliaryDriveId: params.driveId,
@@ -1231,19 +1201,8 @@ describe('uploadFile', () => {
 });
 
 describe('auxiliaryHasActiveCompanyContractOnDay', () => {
-  it('should return false as no company contract', () => {
-    const contracts = [{ status: CUSTOMER_CONTRACT }];
-    const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
-
-    expect(result).toBeFalsy();
-  });
-
   it('should return false as no company contract on day (startDate after day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-03-11T08:38:18' },
-    ];
+    const contracts = [{ startDate: '2019-03-11T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
 
@@ -1251,10 +1210,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   });
 
   it('should return false as no company contract on day (end date before day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
-    ];
+    const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
 
@@ -1262,10 +1218,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   });
 
   it('should return true as company contract on day (end date after day)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' },
-    ];
+    const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
 
@@ -1273,10 +1226,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   });
 
   it('should return true as company contract on day (no endDate)', () => {
-    const contracts = [
-      { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18' },
-    ];
+    const contracts = [{ startDate: '2019-01-01T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
 
