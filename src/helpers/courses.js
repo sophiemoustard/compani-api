@@ -20,24 +20,7 @@ const { INTRA, INTER_B2B } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async (query) => {
-  if (!query.company) return CourseRepository.findCourseAndPopulate(query);
-
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-  const interCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), type: INTER_B2B },
-    true
-  );
-
-  return [
-    ...intraCourse,
-    ...interCourse.filter(course => course.companies.includes(query.company))
-      .map(course => ({
-        ...omit(course, ['companies']),
-        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-      })),
-  ];
-};
+exports.list = async query => CourseRepository.findCourses(query);
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
@@ -56,14 +39,13 @@ exports.getCourse = async (courseId, loggedUser) => {
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-    .lean();
+    .lean({ virtuals: true });
 };
 
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
-  .populate('slots')
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-  .lean();
+  .lean({ vituals: true });
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
@@ -72,6 +54,7 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
     .populate({ path: 'trainees', select: '_id contact' })
     .lean();
+
 
   const promises = [];
   const missingPhones = [];
@@ -166,11 +149,10 @@ exports.formatCourseForPdf = (course) => {
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('company')
-    .populate('slots')
     .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
     .populate('trainer')
     .populate('program')
-    .lean();
+    .lean({ vituals: true });
 
   return {
     fileName: 'emargement.pdf',
@@ -188,10 +170,9 @@ exports.formatCourseForDocx = course => ({
 
 exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
-    .populate('slots')
     .populate('trainees')
     .populate('program')
-    .lean();
+    .lean({ vituals: true });
 
   const courseData = exports.formatCourseForDocx(course);
   const certificateTemplatePath = path.join(os.tmpdir(), 'certificate_template.docx');

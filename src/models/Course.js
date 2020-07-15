@@ -19,9 +19,10 @@ const CourseSchema = mongoose.Schema({
   },
 }, { timestamps: true });
 
-function getCompanies() {
-  const redundantCompanies = this.trainees.map(t => t.company._id.toHexString());
-  return [...new Set(redundantCompanies)];
+function getName() {
+  const possiblyCompanyName = this.company ? `${this.company.name} - ` : '';
+  const possiblyMisc = this.misc ? ` - ${this.misc}` : '';
+  return possiblyCompanyName + this.program.name + possiblyMisc;
 }
 
 CourseSchema.virtual('slots', {
@@ -32,8 +33,8 @@ CourseSchema.virtual('slots', {
 });
 
 CourseSchema
-  .virtual('companies')
-  .get(getCompanies);
+  .virtual('name')
+  .get(getName);
 
 CourseSchema.plugin(mongooseLeanVirtuals);
 

@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const get = require('lodash/get');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
