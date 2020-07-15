@@ -2,10 +2,10 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, addActivity } = require('../controllers/moduleController');
+const { update, addActivity } = require('../controllers/stepController');
 
 exports.plugin = {
-  name: 'routes-modules',
+  name: 'routes-steps',
   register: async (server) => {
     server.route({
       method: 'PUT',

@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const ProgramHelper = require('../helpers/programs');
-const ModuleHelper = require('../helpers/modules');
+const StepHelper = require('../helpers/steps');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -59,9 +59,9 @@ const update = async (req) => {
   }
 };
 
-const addModule = async (req) => {
+const addStep = async (req) => {
   try {
-    await ModuleHelper.addModule(req.params._id, req.payload);
+    await StepHelper.addStep(req.params._id, req.payload);
 
     return {
       message: translate[language].programUpdated,
@@ -90,6 +90,6 @@ module.exports = {
   create,
   getById,
   update,
-  addModule,
+  addStep,
   uploadImage,
 };

@@ -62,7 +62,7 @@ describe('getProgram', () => {
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
       .chain('populate')
-      .withExactArgs({ path: 'modules', populate: 'activities' })
+      .withExactArgs({ path: 'steps', populate: 'activities' })
       .chain('lean')
       .once()
       .returns(program);
