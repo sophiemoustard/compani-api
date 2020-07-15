@@ -4,6 +4,20 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
+const getById = async (req) => {
+  try {
+    const activity = await ActivityHelper.getActivity(req.params._id);
+
+    return {
+      message: translate[language].activityFound,
+      data: { activity },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const update = async (req) => {
   try {
     await ActivityHelper.updateActivity(req.params._id, req.payload);
@@ -18,5 +32,6 @@ const update = async (req) => {
 };
 
 module.exports = {
+  getById,
   update,
 };
