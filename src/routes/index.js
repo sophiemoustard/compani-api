@@ -136,8 +136,8 @@ exports.routes = [
     routes: { prefix: '/programs' },
   },
   {
-    plugin: require('./modules'),
-    routes: { prefix: '/modules' },
+    plugin: require('./steps'),
+    routes: { prefix: '/steps' },
   },
   {
     plugin: require('./activities'),

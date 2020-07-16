@@ -1,14 +1,14 @@
 const Boom = require('@hapi/boom');
 const Activity = require('../models/Activity');
-const Module = require('../models/Module');
+const Step = require('../models/Step');
 
 exports.updateActivity = async (activityId, payload) =>
   Activity.updateOne({ _id: activityId }, { $set: payload });
 
-exports.addActivity = async (moduleId, payload) => {
-  const module = await Module.countDocuments({ _id: moduleId });
-  if (!module) throw Boom.badRequest();
+exports.addActivity = async (stepId, payload) => {
+  const step = await Step.countDocuments({ _id: stepId });
+  if (!step) throw Boom.badRequest();
 
   const activity = await Activity.create(payload);
-  return Module.findOneAndUpdate({ _id: moduleId }, { $push: { activities: activity._id } }, { new: true }).lean();
+  return Step.findOneAndUpdate({ _id: stepId }, { $push: { activities: activity._id } }, { new: true }).lean();
 };
