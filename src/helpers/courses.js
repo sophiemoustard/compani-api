@@ -142,9 +142,11 @@ exports.getCourseDuration = (slots) => {
 };
 
 exports.formatCourseForPdf = (course) => {
-  const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
   const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.program.name + possiblyMisc;
+  const slots = course.slots
+    ? [...course.slots.filter(slot => !!slot.startDate)].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    : [];
 
   const courseData = {
     name,
@@ -179,13 +181,17 @@ exports.generateAttendanceSheets = async (courseId) => {
   };
 };
 
-exports.formatCourseForDocx = course => ({
-  duration: exports.getCourseDuration(course.slots),
-  learningGoals: get(course, 'program.learningGoals') || '',
-  programName: get(course, 'program.name').toUpperCase() || '',
-  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
-  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
-});
+exports.formatCourseForDocx = (course) => {
+  const slots = course.slots.filter(slot => !!slot.startDate);
+
+  return {
+    duration: exports.getCourseDuration(slots),
+    learningGoals: get(course, 'program.learningGoals') || '',
+    programName: get(course, 'program.name').toUpperCase() || '',
+    startDate: moment(slots[0].startDate).format('DD/MM/YYYY'),
+    endDate: moment(slots[slots.length - 1].endDate).format('DD/MM/YYYY'),
+  };
+};
 
 exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })

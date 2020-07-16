@@ -510,6 +510,7 @@ describe('formatCourseForPdf', () => {
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { info: 'to plan' },
       ],
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
@@ -630,6 +631,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+        { info: 'To plan' },
       ],
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };
@@ -644,7 +646,14 @@ describe('formatCourseForDocx', () => {
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
     });
-    sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
+    sinon.assert.calledOnceWithExactly(
+      getCourseDuration,
+      [
+        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+      ]
+    );
   });
 });
 
