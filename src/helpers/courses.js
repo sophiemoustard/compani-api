@@ -144,10 +144,10 @@ exports.getCourseDuration = (slots) => {
 exports.formatCourseForPdf = (course) => {
   const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
   const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
-  const programNameAndMisc = course.program.name + possiblyMisc;
+  const name = course.program.name + possiblyMisc;
 
   const courseData = {
-    programNameAndMisc,
+    name,
     slots: slots.map(exports.formatCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
