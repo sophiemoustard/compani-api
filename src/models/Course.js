@@ -31,9 +31,7 @@ CourseSchema.virtual('slots', {
   options: { sort: { startDate: 1 } },
 });
 
-CourseSchema
-  .virtual('companies')
-  .get(getCompanies);
+CourseSchema.virtual('companies').get(getCompanies);
 
 CourseSchema.plugin(mongooseLeanVirtuals);
 
