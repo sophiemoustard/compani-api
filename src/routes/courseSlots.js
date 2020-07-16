@@ -15,8 +15,8 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
+            startDate: Joi.date(),
+            endDate: Joi.date().when('startDate', { is: Joi.exist(), then: Joi.required() }),
             address: Joi.alternatives().try(addressValidation, {}),
             courseId: Joi.objectId().required(),
           }),
