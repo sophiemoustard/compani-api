@@ -33,6 +33,9 @@ exports.authorizeCreate = async (req) => {
     const courseId = get(req, 'payload.courseId') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
 
+    const { startDate, endDate } = req.payload;
+    if ((startDate && !endDate) || (!startDate && endDate)) throw Boom.badRequest();
+
     return null;
   } catch (e) {
     req.log('error', e);
