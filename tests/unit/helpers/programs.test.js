@@ -56,7 +56,7 @@ describe('getProgram', () => {
     ProgramMock.restore();
   });
 
-  it('should return programs', async () => {
+  it('should return the requested program', async () => {
     const program = { _id: new ObjectID() };
 
     ProgramMock.expects('findOne')
