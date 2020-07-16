@@ -66,8 +66,8 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     it('should return 409 if slots conflict', async () => {
       const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
+        startDate: courseSlotsList[0].startDate,
+        endDate: courseSlotsList[0].endDate,
         courseId: coursesList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -84,7 +84,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return 400 if slots endDate without startDate', async () => {
