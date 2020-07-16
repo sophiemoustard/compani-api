@@ -511,7 +511,7 @@ describe('formatCourseForPdf', () => {
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
       ],
-      misc: 'Bonjour je suis une formation',
+      misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
       trainees: [
         { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
@@ -538,26 +538,24 @@ describe('formatCourseForPdf', () => {
           traineeName: 'trainee 1',
           company: 'alenvi',
           course: {
-            misc: 'Bonjour je suis une formation',
+            name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
-            programName: 'programme de formation',
           },
         },
         {
           traineeName: 'trainee 2',
           company: 'alenvi',
           course: {
-            misc: 'Bonjour je suis une formation',
+            name: 'programme de formation - des infos en plus',
             slots: ['slot', 'slot', 'slot'],
             trainer: 'Pere Castor',
             firstDate: '20/03/2020',
             lastDate: '21/04/2020',
             duration: '7h',
-            programName: 'programme de formation',
           },
         },
       ],
@@ -587,7 +585,7 @@ describe('generateAttendanceSheets', () => {
 
   it('should download attendance sheet', async () => {
     const courseId = new ObjectID();
-    const course = { misc: 'Bonjour je suis une formation' };
+    const course = { misc: 'des infos en plus' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -603,7 +601,7 @@ describe('generateAttendanceSheets', () => {
       .chain('lean')
       .once()
       .returns(course);
-    formatCourseForPdf.returns({ misc: 'Bonjour je suis une formation' });
+    formatCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
@@ -611,7 +609,7 @@ describe('generateAttendanceSheets', () => {
     sinon.assert.calledOnceWithExactly(formatCourseForPdf, course);
     sinon.assert.calledOnceWithExactly(
       generatePdf,
-      { misc: 'Bonjour je suis une formation' },
+      { name: 'la formation - des infos en plus' },
       './src/data/attendanceSheet.html'
     );
   });
