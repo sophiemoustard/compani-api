@@ -227,6 +227,7 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Step updated.',
     /* Activities */
+    activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
     /* Courses */
     coursesFound: 'Courses found.',
@@ -470,6 +471,7 @@ module.exports = {
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
     /* Activities */
+    activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
     /* Courses */
     coursesFound: 'Liste des formations trouvée.',

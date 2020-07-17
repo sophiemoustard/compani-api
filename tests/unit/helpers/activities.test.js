@@ -6,6 +6,31 @@ const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
 require('sinon-mongoose');
 
+describe('getActivity', () => {
+  let ActivityMock;
+
+  beforeEach(() => {
+    ActivityMock = sinon.mock(Activity);
+  });
+
+  afterEach(() => {
+    ActivityMock.restore();
+  });
+
+  it('should return the requested activity', async () => {
+    const activity = { _id: new ObjectID() };
+
+    ActivityMock.expects('findOne')
+      .withExactArgs({ _id: activity._id })
+      .chain('lean')
+      .once()
+      .returns(activity);
+
+    const result = await ActivityHelper.getActivity(activity._id);
+    expect(result).toMatchObject(activity);
+  });
+});
+
 describe('updateActivity', () => {
   let ActivityMock;
 

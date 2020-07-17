@@ -2,6 +2,8 @@ const Boom = require('@hapi/boom');
 const Activity = require('../models/Activity');
 const Step = require('../models/Step');
 
+exports.getActivity = async activityId => Activity.findOne({ _id: activityId }).lean();
+
 exports.updateActivity = async (activityId, payload) =>
   Activity.updateOne({ _id: activityId }, { $set: payload });
 

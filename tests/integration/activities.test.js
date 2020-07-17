@@ -10,6 +10,54 @@ describe('NODE ENV', () => {
   });
 });
 
+describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const activityId = activitiesList[0]._id;
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get activity', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/activities/${activityId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.activity).toEqual(expect.objectContaining({ _id: activityId, title: 'manger' }));
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/activities/${activityId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
