@@ -10,8 +10,8 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), title: 'rouge', activities: [activitiesList[0]._id, activitiesList[1]._id] },
-  { _id: new ObjectID(), title: 'bleu', activities: [activitiesList[2]._id] },
+  { _id: new ObjectID(), type: 'e_learning', title: 'rouge', activities: [activitiesList[0]._id, activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'on_site', title: 'bleu', activities: [activitiesList[2]._id] },
 ];
 
 const populateDB = async () => {

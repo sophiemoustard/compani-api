@@ -10,9 +10,9 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), title: 'c\'est une étape', activities: [activitiesList[0]._id, activitiesList[1]._id] },
-  { _id: new ObjectID(), title: 'toujours une étape' },
-  { _id: new ObjectID(), title: 'encore une étape' },
+  { _id: new ObjectID(), type: 'e_learning', title: 'c\'est une étape', activities: [activitiesList[0]._id, activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'e_learning', title: 'toujours une étape' },
+  { _id: new ObjectID(), type: 'on_site', title: 'encore une étape' },
 ];
 
 const programsList = [

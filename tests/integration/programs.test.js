@@ -245,7 +245,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
 describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { title: 'new step' };
+  const payload = { title: 'new step', type: 'e_learning' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -269,16 +269,19 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
       expect(programUpdated.steps.length).toEqual(stepsLengthBefore + 1);
     });
 
-    it('should return a 400 if missing title', async () => {
-      const programId = programsList[0]._id;
-      const response = await app.inject({
-        method: 'POST',
-        url: `/programs/${programId.toHexString()}/step`,
-        payload: { },
-        headers: { 'x-access-token': authToken },
-      });
+    const missingParams = ['title', 'type'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 if missing ${param}`, async () => {
+        const programId = programsList[0]._id;
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${programId.toHexString()}/step`,
+          payload: omit(payload, param),
+          headers: { 'x-access-token': authToken },
+        });
 
-      expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     it('should return a 400 if program does not exist', async () => {
@@ -311,7 +314,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { title: 'new name' },
+          payload,
           url: `/programs/${programId.toHexString()}/step`,
           headers: { 'x-access-token': authToken },
         });

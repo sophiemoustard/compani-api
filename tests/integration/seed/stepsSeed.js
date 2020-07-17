@@ -4,9 +4,9 @@ const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const stepsList = [
-  { _id: new ObjectID(), title: 'c\'est une étape' },
-  { _id: new ObjectID(), title: 'toujours une étape' },
-  { _id: new ObjectID(), title: 'encore une étape' },
+  { _id: new ObjectID(), type: 'on_site', title: 'c\'est une étape' },
+  { _id: new ObjectID(), type: 'e_learning', title: 'toujours une étape' },
+  { _id: new ObjectID(), type: 'e_learning', title: 'encore une étape' },
 ];
 
 const programsList = [
