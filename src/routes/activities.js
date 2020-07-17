@@ -2,7 +2,8 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { getById, update } = require('../controllers/activityController');
+const { getById, update, addCard } = require('../controllers/activityController');
+const { CARD_TEMPLATES } = require('../models/Card');
 
 exports.plugin = {
   name: 'routes-activities',
@@ -30,6 +31,19 @@ exports.plugin = {
         auth: { scope: ['programs:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/card',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ type: Joi.string().required().valid(...CARD_TEMPLATES) }),
+        },
+        auth: { scope: ['programs:edit'] },
+      },
+      handler: addCard,
     });
   },
 };

@@ -262,6 +262,8 @@ module.exports = {
   REMINDER: 'reminder',
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
+  // E-LEARNING CARDS
+  TRANSITION: 'transition',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
