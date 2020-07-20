@@ -127,7 +127,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
   let authToken = null;
   const activityId = activitiesList[0]._id;
   beforeEach(populateDB);
-  const payload = { type: 'transition' };
+  const payload = { template: 'transition' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -149,18 +149,18 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       expect(activityUpdated.cards.length).toEqual(2);
     });
 
-    it('should return a 400 if wrong type', async () => {
+    it('should return a 400 if invalid template', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/card`,
-        payload: { type: 'no valid type' },
+        payload: { template: 'invalid template' },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if missing type', async () => {
+    it('should return a 400 if missing template', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/card`,
@@ -200,7 +200,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          payload: { type: 'transition' },
+          payload: { template: 'transition' },
           url: `/activities/${activityId.toHexString()}/card`,
           headers: { 'x-access-token': authToken },
         });

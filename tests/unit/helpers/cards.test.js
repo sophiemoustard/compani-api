@@ -10,7 +10,7 @@ describe('addCard', () => {
   let CardMock;
   let ActivityMock;
   const activity = { _id: new ObjectID(), title: 'faire du jetski' };
-  const newCard = { type: 'transition' };
+  const newCard = { template: 'transition' };
 
   beforeEach(() => {
     CardMock = sinon.mock(Card);

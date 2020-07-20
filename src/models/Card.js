@@ -4,7 +4,7 @@ const { TRANSITION } = require('../helpers/constants');
 const CARD_TEMPLATES = [TRANSITION];
 
 const CardSchema = mongoose.Schema({
-  type: { type: String, enum: CARD_TEMPLATES, immutable: true, required: true },
+  template: { type: String, enum: CARD_TEMPLATES, immutable: true, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Card', CardSchema);
