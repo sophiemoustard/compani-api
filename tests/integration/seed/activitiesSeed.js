@@ -5,7 +5,7 @@ const { populateDBForAuthentication } = require('./authenticationSeed');
 const { TRANSITION } = require('../../../src/helpers/constants');
 
 const cardsList = [
-  { _id: new ObjectID(), type: TRANSITION },
+  { _id: new ObjectID(), template: TRANSITION },
 ];
 
 const activitiesList = [

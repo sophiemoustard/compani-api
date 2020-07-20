@@ -28,15 +28,10 @@ describe('addCard', () => {
 
     CardMock.expects('create').withExactArgs(newCard).returns({ _id: cardId });
 
-    const returnedActivity = { ...activity, steps: [cardId] };
-    ActivityMock.expects('updateOne')
-      .withExactArgs({ _id: activity._id }, { $push: { cards: cardId } })
-      .chain('lean')
-      .returns(returnedActivity);
+    ActivityMock.expects('updateOne').withExactArgs({ _id: activity._id }, { $push: { cards: cardId } });
 
-    const result = await CardHelper.addCard(activity._id, newCard);
+    await CardHelper.addCard(activity._id, newCard);
 
-    expect(result).toMatchObject(returnedActivity);
     CardMock.verify();
     ActivityMock.verify();
   });
@@ -48,9 +43,7 @@ describe('addCard', () => {
       CardMock.expects('create').never();
       ActivityMock.expects('updateOne').never();
 
-      const result = await CardHelper.addCard(activity._id, newCard);
-
-      expect(result).toBeUndefined();
+      await CardHelper.addCard(activity._id, newCard);
     } catch (e) {
       CardMock.verify();
       ActivityMock.verify();

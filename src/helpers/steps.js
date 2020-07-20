@@ -10,5 +10,5 @@ exports.addStep = async (programId, payload) => {
   if (!program) throw Boom.badRequest();
 
   const step = await Step.create(payload);
-  return Program.findOneAndUpdate({ _id: programId }, { $push: { steps: step._id } }, { new: true }).lean();
+  return Program.updateOne({ _id: programId }, { $push: { steps: step._id } });
 };

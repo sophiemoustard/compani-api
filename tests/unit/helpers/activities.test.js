@@ -78,15 +78,10 @@ describe('addActivity', () => {
 
     ActivityMock.expects('create').withExactArgs(newActivity).returns({ _id: activityId });
 
-    const returnedStep = { ...step, steps: [activityId] };
-    StepMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: step._id }, { $push: { activities: activityId } }, { new: true })
-      .chain('lean')
-      .returns(returnedStep);
+    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: { activities: activityId } });
 
-    const result = await ActivityHelper.addActivity(step._id, newActivity);
+    await ActivityHelper.addActivity(step._id, newActivity);
 
-    expect(result).toMatchObject(returnedStep);
     StepMock.verify();
     ActivityMock.verify();
   });
@@ -96,11 +91,9 @@ describe('addActivity', () => {
       StepMock.expects('countDocuments').withExactArgs({ _id: step._id }).returns(0);
 
       ActivityMock.expects('create').never();
-      StepMock.expects('findOneAndUpdate').never();
+      StepMock.expects('updateOne').never();
 
-      const result = await ActivityHelper.addActivity(step._id, newActivity);
-
-      expect(result).toBeUndefined();
+      await ActivityHelper.addActivity(step._id, newActivity);
     } catch (e) {
       StepMock.verify();
       ActivityMock.verify();
