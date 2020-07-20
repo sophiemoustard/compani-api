@@ -28,7 +28,14 @@ CourseSchema.virtual('slots', {
   ref: 'CourseSlot',
   localField: '_id',
   foreignField: 'courseId',
-  options: { sort: { startDate: 1 } },
+  options: { match: { startDate: { $exists: true } }, sort: { startDate: 1 } },
+});
+
+CourseSchema.virtual('slotsToPlan', {
+  ref: 'CourseSlot',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { match: { startDate: { $exists: false } } },
 });
 
 CourseSchema.virtual('companies').get(getCompanies);

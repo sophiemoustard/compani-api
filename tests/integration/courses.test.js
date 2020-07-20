@@ -142,6 +142,7 @@ describe('COURSES ROUTES - GET /courses', () => {
           company: pick(authCompany, ['_id', 'name']),
         })]),
       }));
+      expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
       expect(response.result.data.courses[3].program.learningGoals).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
