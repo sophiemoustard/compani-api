@@ -5,7 +5,9 @@ const moment = require('moment');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
-exports.list = async query => Program.find(query).lean();
+exports.list = async query => Program.find(query)
+  .populate({ path: 'steps', select: 'type' })
+  .lean();
 
 exports.getProgram = async programId => Program.findOne({ _id: programId })
   .populate({ path: 'steps', populate: 'activities' })
