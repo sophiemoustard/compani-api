@@ -7,5 +7,5 @@ exports.addCard = async (activityId, payload) => {
   if (!activity) throw Boom.badRequest();
 
   const card = await Card.create(payload);
-  return Activity.findOneAndUpdate({ _id: activityId }, { $push: { cards: card._id } }, { new: true }).lean();
+  await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };

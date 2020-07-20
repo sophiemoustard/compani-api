@@ -2,9 +2,10 @@ const { ObjectID } = require('mongodb');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const { populateDBForAuthentication } = require('./authenticationSeed');
+const { TRANSITION } = require('../../../src/helpers/constants');
 
 const cardsList = [
-  { _id: new ObjectID(), type: 'transition' },
+  { _id: new ObjectID(), type: TRANSITION },
 ];
 
 const activitiesList = [

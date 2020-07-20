@@ -29,8 +29,8 @@ describe('addCard', () => {
     CardMock.expects('create').withExactArgs(newCard).returns({ _id: cardId });
 
     const returnedActivity = { ...activity, steps: [cardId] };
-    ActivityMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: activity._id }, { $push: { cards: cardId } }, { new: true })
+    ActivityMock.expects('updateOne')
+      .withExactArgs({ _id: activity._id }, { $push: { cards: cardId } })
       .chain('lean')
       .returns(returnedActivity);
 
@@ -46,7 +46,7 @@ describe('addCard', () => {
       ActivityMock.expects('countDocuments').withExactArgs({ _id: activity._id }).returns(0);
 
       CardMock.expects('create').never();
-      ActivityMock.expects('findOneAndUpdate').never();
+      ActivityMock.expects('updateOne').never();
 
       const result = await CardHelper.addCard(activity._id, newCard);
 
