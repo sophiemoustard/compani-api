@@ -20,22 +20,28 @@ const { INTRA, INTER_B2B } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async (query) => {
+exports.list = async (query, loggedUser) => {
   if (!query.company) return CourseRepository.findCourseAndPopulate(query);
 
   const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-  const interCourse = await CourseRepository.findCourseAndPopulate(
+
+  let interCourse = await CourseRepository.findCourseAndPopulate(
     { ...omit(query, ['company']), type: INTER_B2B },
     true
   );
 
-  return [
-    ...intraCourse,
-    ...interCourse.filter(course => course.companies.includes(query.company))
+  if (query.company || query.trainee) {
+    const company = query.company || loggedUser.company._id;
+    interCourse = interCourse.filter(course => course.companies.includes(company))
       .map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-      })),
+      }));
+  }
+
+  return [
+    ...intraCourse,
+    ...interCourse,
   ];
 };
 

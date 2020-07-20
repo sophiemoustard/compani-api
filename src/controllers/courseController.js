@@ -7,7 +7,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courses = await CoursesHelper.list(req.query);
+    const courses = await CoursesHelper.list(req.query, req.auth.credentials);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,

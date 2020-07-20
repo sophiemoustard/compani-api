@@ -53,7 +53,9 @@ exports.authorizeGetCourseList = async (req) => {
 
   const courseTrainerId = get(req, 'query.trainer');
   const courseCompanyId = get(req, 'query.company');
-  this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+  const traineeId = get(req, 'query.trainees');
+  if (traineeId && traineeId !== credentials._id) throw Boom.forbidden();
+  if (!traineeId) this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
 
   return null;
 };

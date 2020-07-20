@@ -28,7 +28,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['courses:read'] },
-        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId() }) },
+        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId(), trainees: Joi.objectId() }) },
         pre: [{ method: authorizeGetCourseList }],
       },
       handler: list,
