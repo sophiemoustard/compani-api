@@ -22,6 +22,8 @@ describe('getActivity', () => {
 
     ActivityMock.expects('findOne')
       .withExactArgs({ _id: activity._id })
+      .chain('populate')
+      .withExactArgs({ path: 'cards', select: 'template' })
       .chain('lean')
       .once()
       .returns(activity);

@@ -29,7 +29,14 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.activity).toEqual(expect.objectContaining({ _id: activityId, title: 'manger' }));
+      expect(response.result.data.activity).toEqual(expect.objectContaining({
+        _id: activityId,
+        title: 'manger',
+        cards: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          template: 'transition',
+        })]),
+      }));
     });
   });
 
