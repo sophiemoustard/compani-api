@@ -49,7 +49,7 @@ exports.getCourse = async (courseId, loggedUser) => {
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'program', select: 'name learningGoals' })
     .populate('slots')
-    .populate('slotsToPlan')
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
@@ -63,7 +63,7 @@ exports.getCourse = async (courseId, loggedUser) => {
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
-  .populate('slotsToPlan')
+  .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 

@@ -124,7 +124,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('slotsToPlan')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
@@ -156,7 +156,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('slotsToPlan')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
@@ -197,7 +197,7 @@ describe('getCoursePublicInfos', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
-      .withExactArgs('slotsToPlan')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
       .chain('lean')
