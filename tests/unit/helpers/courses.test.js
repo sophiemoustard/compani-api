@@ -124,6 +124,8 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
+      .chain('populate')
       .withExactArgs({
         path: 'trainees',
         select: 'identity.firstname identity.lastname local.email company contact ',
@@ -153,6 +155,8 @@ describe('getCourse', () => {
       .withExactArgs({ path: 'program', select: 'name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
@@ -192,6 +196,8 @@ describe('getCoursePublicInfos', () => {
       .withExactArgs({ path: 'program', select: 'name learningGoals' })
       .chain('populate')
       .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
       .chain('lean')
@@ -510,7 +516,6 @@ describe('formatCourseForPdf', () => {
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
-        { info: 'to plan' },
       ],
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
@@ -631,7 +636,6 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
-        { info: 'To plan' },
       ],
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
     };

@@ -49,6 +49,7 @@ exports.getCourse = async (courseId, loggedUser) => {
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'program', select: 'name learningGoals' })
     .populate('slots')
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
@@ -62,6 +63,7 @@ exports.getCourse = async (courseId, loggedUser) => {
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
+  .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
@@ -145,7 +147,7 @@ exports.formatCourseForPdf = (course) => {
   const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.program.name + possiblyMisc;
   const slots = course.slots
-    ? [...course.slots.filter(slot => !!slot.startDate)].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     : [];
 
   const courseData = {
@@ -182,14 +184,12 @@ exports.generateAttendanceSheets = async (courseId) => {
 };
 
 exports.formatCourseForDocx = (course) => {
-  const slots = course.slots.filter(slot => !!slot.startDate);
-
   return {
-    duration: exports.getCourseDuration(slots),
+    duration: exports.getCourseDuration(course.slots),
     learningGoals: get(course, 'program.learningGoals') || '',
     programName: get(course, 'program.name').toUpperCase() || '',
-    startDate: moment(slots[0].startDate).format('DD/MM/YYYY'),
-    endDate: moment(slots[slots.length - 1].endDate).format('DD/MM/YYYY'),
+    startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
+    endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
   };
 };
 
