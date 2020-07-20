@@ -12,5 +12,5 @@ exports.addActivity = async (stepId, payload) => {
   if (!step) throw Boom.badRequest();
 
   const activity = await Activity.create(payload);
-  return Step.findOneAndUpdate({ _id: stepId }, { $push: { activities: activity._id } }, { new: true }).lean();
+  await Step.updateOne({ _id: stepId }, { $push: { activities: activity._id } });
 };
