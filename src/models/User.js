@@ -192,8 +192,8 @@ const serialNumber = (auxiliary) => {
 };
 
 function setContractCreationMissingInfo() {
-  const auxiliaryRoleName = get(this, 'role.client.name');
-  if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
+  const clientRole = get(this, 'role.client.name');
+  if (clientRole && [AUXILIARY, PLANNING_REFERENT].includes(clientRole)) {
     const mandatoryInfo = [
       'identity.lastname',
       'identity.firstname',
