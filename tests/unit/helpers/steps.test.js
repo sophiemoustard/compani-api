@@ -17,9 +17,9 @@ describe('updateStep', () => {
     StepMock.restore();
   });
 
-  it("should update a step's title", async () => {
-    const step = { _id: new ObjectID(), title: 'jour' };
-    const payload = { title: 'nuit' };
+  it("should update a step's name", async () => {
+    const step = { _id: new ObjectID(), name: 'jour' };
+    const payload = { name: 'nuit' };
     const updatedStep = { ...step, ...payload };
 
     StepMock.expects('findOneAndUpdate')
@@ -50,7 +50,7 @@ describe('addStep', () => {
   });
 
   const program = { _id: new ObjectID() };
-  const newStep = { title: 'c\'est une étape !' };
+  const newStep = { name: 'c\'est une étape !' };
   it('should create a step', async () => {
     const stepId = new ObjectID();
     ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(1);

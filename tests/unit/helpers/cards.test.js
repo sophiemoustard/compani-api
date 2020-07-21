@@ -9,7 +9,7 @@ require('sinon-mongoose');
 describe('addCard', () => {
   let CardMock;
   let ActivityMock;
-  const activity = { _id: new ObjectID(), title: 'faire du jetski' };
+  const activity = { _id: new ObjectID(), name: 'faire du jetski' };
   const newCard = { template: 'transition' };
 
   beforeEach(() => {

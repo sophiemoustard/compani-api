@@ -15,7 +15,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
-  const payload = { title: 'une nouvelle étape super innovant' };
+  const payload = { name: 'une nouvelle étape super innovant' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -33,14 +33,14 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const stepUpdated = await Step.findById(stepId);
 
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, title: payload.title }));
+      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
-    it("should return a 400 if title is equal to '' ", async () => {
+    it("should return a 400 if name is equal to '' ", async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
-        payload: { title: '' },
+        payload: { name: '' },
         headers: { 'x-access-token': authToken },
       });
 
@@ -78,7 +78,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { title: 'new activity' };
+  const payload = { name: 'new activity' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -101,7 +101,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(stepUpdated.activities.length).toEqual(1);
     });
 
-    it('should return a 400 if missing title', async () => {
+    it('should return a 400 if missing name', async () => {
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
@@ -143,7 +143,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const stepId = stepsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { title: 'new name' },
+          payload: { name: 'new name' },
           url: `/steps/${stepId.toHexString()}/activity`,
           headers: { 'x-access-token': authToken },
         });

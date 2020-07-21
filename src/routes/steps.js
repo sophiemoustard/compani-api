@@ -13,7 +13,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ title: Joi.string().required() }),
+          payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
       },
@@ -26,7 +26,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ title: Joi.string().required() }),
+          payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
       },

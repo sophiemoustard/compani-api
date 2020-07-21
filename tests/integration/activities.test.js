@@ -31,7 +31,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.activity).toEqual(expect.objectContaining({
         _id: activityId,
-        title: 'manger',
+        name: 'manger',
         cards: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
           template: 'transition',
@@ -70,14 +70,14 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
-  const payload = { title: 'rigoler' };
+  const payload = { name: 'rigoler' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it("should update activity's title", async () => {
+    it("should update activity's name", async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
@@ -88,14 +88,14 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       const activityUpdated = await Activity.findById(activityId);
 
       expect(response.statusCode).toBe(200);
-      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, title: 'rigoler' }));
+      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
-    it("should return a 400 if title is equal to '' ", async () => {
+    it("should return a 400 if name is equal to '' ", async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
-        payload: { title: '' },
+        payload: { name: '' },
         headers: { 'x-access-token': authToken },
       });
 

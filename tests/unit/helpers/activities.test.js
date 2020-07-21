@@ -44,9 +44,9 @@ describe('updateActivity', () => {
     ActivityMock.restore();
   });
 
-  it("should update an activity's title", async () => {
-    const activity = { _id: new ObjectID(), title: 'faire du pedalo' };
-    const payload = { title: 'faire dodo' };
+  it("should update an activity's name", async () => {
+    const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
+    const payload = { name: 'faire dodo' };
 
     ActivityMock.expects('updateOne')
       .withExactArgs({ _id: activity._id }, { $set: payload })
@@ -72,8 +72,8 @@ describe('addActivity', () => {
     ActivityMock.restore();
   });
 
-  const step = { _id: new ObjectID(), title: 'step' };
-  const newActivity = { title: 'c\'est une étape !' };
+  const step = { _id: new ObjectID(), name: 'step' };
+  const newActivity = { name: 'c\'est une étape !' };
   it('should create an activity', async () => {
     const activityId = new ObjectID();
     StepMock.expects('countDocuments').withExactArgs({ _id: step._id }).returns(1);
