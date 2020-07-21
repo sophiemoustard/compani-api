@@ -48,7 +48,7 @@ exports.getCourse = async (courseId, loggedUser) => {
   return Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'program', select: 'name learningGoals steps', populate: { path: 'steps', select: 'name type' } })
-    .populate('slots')
+    .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
       path: 'trainees',
