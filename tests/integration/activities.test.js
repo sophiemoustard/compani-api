@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const Activity = require('../../src/models/Activity');
 const { populateDB, activitiesList } = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');
+const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -134,7 +135,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
   let authToken = null;
   const activityId = activitiesList[0]._id;
   beforeEach(populateDB);
-  const payload = { template: 'transition' };
+  const payload = { template: TITLE_TEXT_MEDIA };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
