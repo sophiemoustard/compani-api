@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const get = require('lodash/get');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
@@ -7,7 +6,21 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courses = await CoursesHelper.list(req.query, req.auth.credentials);
+    const courses = await CoursesHelper.list(req.query);
+
+    return {
+      message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
+      data: { courses },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listMyCourses = async (req) => {
+  try {
+    const courses = await CoursesHelper.listMyCourses(req.auth.credentials);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
@@ -153,6 +166,7 @@ const downloadCompletionCertificates = async (req, h) => {
 
 module.exports = {
   list,
+  listMyCourses,
   create,
   getById,
   getPublicInfosById,

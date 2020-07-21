@@ -227,7 +227,7 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'auxiliary_without_company', 'courses:read'],
+        scope: [`user:read-${userId}`, 'auxiliary_without_company'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });

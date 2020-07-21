@@ -20,30 +20,26 @@ const { INTRA, INTER_B2B } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-exports.list = async (query, loggedUser) => {
+exports.list = async (query) => {
   if (!query.company) return CourseRepository.findCourseAndPopulate(query);
 
   const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-
-  let interCourse = await CourseRepository.findCourseAndPopulate(
+  const interCourse = await CourseRepository.findCourseAndPopulate(
     { ...omit(query, ['company']), type: INTER_B2B },
     true
   );
-  if (query.company || query.trainees) {
-    const company = query.company || loggedUser.company._id;
-
-    interCourse = interCourse.filter(course => course.companies.includes(company))
-      .map(course => ({
-        ...omit(course, ['companies']),
-        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-      }));
-  }
 
   return [
     ...intraCourse,
-    ...interCourse,
+    ...interCourse.filter(course => course.companies.includes(query.company))
+      .map(course => ({
+        ...omit(course, ['companies']),
+        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+      })),
   ];
 };
+
+exports.listMyCourses = credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');

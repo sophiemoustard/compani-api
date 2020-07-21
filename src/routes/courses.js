@@ -4,6 +4,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
+  listMyCourses,
   create,
   getById,
   getPublicInfosById,
@@ -17,12 +18,7 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const {
-  getCourseTrainee,
-  authorizeCourseEdit,
-  authorizeGetCourseList,
-  authorizeGetCourse,
-} = require('./preHandlers/courses');
+const { getCourseTrainee, authorizeCourseEdit, authorizeGetCourseList } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -33,10 +29,19 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['courses:read'] },
-        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId(), trainees: Joi.objectId() }) },
+        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId() }) },
         pre: [{ method: authorizeGetCourseList }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/mine',
+      options: {
+        auth: { mode: 'required' },
+      },
+      handler: listMyCourses,
     });
 
     server.route({
@@ -64,7 +69,6 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
     });

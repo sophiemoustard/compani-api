@@ -16,7 +16,11 @@ const {
   auxiliary,
   traineeWithoutCompany,
   courseTrainer,
-  traineeFromAuthCompany,
+  coachFromAuthCompany,
+  helper,
+  auxiliaryWithoutCompany,
+  clientAdmin,
+  trainerOrganisationManager,
 }
   = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
@@ -172,18 +176,6 @@ describe('COURSES ROUTES - GET /courses', () => {
     expect(response.result.data.courses.length).toEqual(3);
   });
 
-  it('should get courses for a specific trainee', async () => {
-    authToken = await getTokenByCredentials(traineeFromAuthCompany.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses?trainees=${traineeFromAuthCompany._id}`,
-      headers: { 'x-access-token': authToken },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toEqual(4);
-  });
-
   describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
@@ -318,18 +310,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
   });
 
-  it('should get courses if I am a trainee', async () => {
-    authToken = await getTokenByCredentials(traineeFromAuthCompany.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${coursesList[0]._id}`,
-      headers: { 'x-access-token': authToken },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.course).toBeDefined();
-  });
-
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -351,6 +331,37 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/mine', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', credentials: helper.local, expectedCode: 200, numberOfCourse: 2 },
+      { name: 'auxiliary', credentials: auxiliary.local, expectedCode: 200, numberOfCourse: 1 },
+      { name: 'auxiliary_without_company', credentials: auxiliaryWithoutCompany.local, expectedCode: 200, numberOfCourse: 0 },
+      { name: 'coach', credentials: coachFromAuthCompany.local, expectedCode: 200, numberOfCourse: 4 },
+      { name: 'client_admin', credentials: clientAdmin.local, expectedCode: 200, numberOfCourse: 3 },
+      { name: 'training_organisation_manager', credentials: trainerOrganisationManager.local, expectedCode: 200, numberOfCourse: 1 },
+      { name: 'trainer', credentials: courseTrainer.local, expectedCode: 200, numberOfCourse: 1 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getTokenByCredentials(role.credentials);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: '/courses/mine',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.result.data.courses.length).toBe(role.numberOfCourse);
       });
     });
   });
@@ -525,7 +536,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
       TwilioHelperStub,
-      { to: `+33${traineeFromAuthCompany.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      { to: `+33${coachFromAuthCompany.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
     );
   });
 
@@ -762,7 +773,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           method: 'POST',
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
           headers: { 'x-access-token': token },
-          payload: { ...pick(traineeFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+          payload: { ...pick(coachFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
         });
 
         expect(response.statusCode).toBe(409);
@@ -884,7 +895,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  const traineeId = traineeFromAuthCompany._id;
+  const traineeId = coachFromAuthCompany._id;
 
   beforeEach(populateDB);
 
@@ -902,7 +913,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
 
       expect(response.statusCode).toBe(200);
       const course = await Course.findById(courseIdFromAuthCompany).lean();
-      expect(course.trainees).toHaveLength(0);
+      expect(course.trainees).toHaveLength(coursesList[2].trainees.length - 1);
     });
   });
 
