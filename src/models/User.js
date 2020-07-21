@@ -192,24 +192,27 @@ const serialNumber = (auxiliary) => {
 };
 
 function setContractCreationMissingInfo() {
-  const mandatoryInfo = [
-    'identity.lastname',
-    'identity.firstname',
-    'identity.birthDate',
-    'identity.birthCity',
-    'identity.birthState',
-    'identity.nationality',
-    'identity.socialSecurityNumber',
-    'contact.address.fullAddress',
-    'establishment',
-  ];
+  const auxiliaryRoleName = get(this, 'role.client.name');
+  if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
+    const mandatoryInfo = [
+      'identity.lastname',
+      'identity.firstname',
+      'identity.birthDate',
+      'identity.birthCity',
+      'identity.birthState',
+      'identity.nationality',
+      'identity.socialSecurityNumber',
+      'contact.address.fullAddress',
+      'establishment',
+    ];
 
-  const contractCreationMissingInfo = [];
-  for (const info of mandatoryInfo) {
-    if (!get(this, info)) contractCreationMissingInfo.push(info);
+    const contractCreationMissingInfo = [];
+    for (const info of mandatoryInfo) {
+      if (!get(this, info)) contractCreationMissingInfo.push(info);
+    }
+
+    return contractCreationMissingInfo;
   }
-
-  return contractCreationMissingInfo;
 }
 
 function populateSector(doc, next) {
