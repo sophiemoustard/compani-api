@@ -42,6 +42,9 @@ describe('createCourse', () => {
 
 describe('list', () => {
   let findCourseAndPopulate;
+  const authCompany = new ObjectID();
+  const credentials = { company: { _id: authCompany } };
+
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
   });
@@ -49,18 +52,17 @@ describe('list', () => {
     findCourseAndPopulate.restore();
   });
 
-  it('should return courses, called without query.company', async () => {
+  it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' }, credentials);
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
   });
 
   it('should return courses, called with query.company', async () => {
-    const authCompany = new ObjectID();
     const coursesList = [
       { misc: 'name', type: 'intra' },
       {
@@ -87,8 +89,52 @@ describe('list', () => {
       .onSecondCall()
       .returns([returnedList[1]]);
 
-    const result = await CourseHelper.list({ company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list(
+      { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' },
+      credentials
+    );
     expect(result).toMatchObject(coursesList);
+    expect(findCourseAndPopulate.getCall(0)
+      .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
+    expect(findCourseAndPopulate.getCall(1)
+      .calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
+  });
+
+  it('should return courses, called with query.trainees', async () => {
+    const trainee = {
+      _id: new ObjectID(),
+    };
+    const coursesList = [
+      { misc: 'name', type: 'intra' },
+      {
+        misc: 'program',
+        type: 'inter_b2b',
+        trainees: [
+          { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
+        ],
+      },
+    ];
+    const returnedList = [
+      { misc: 'name', type: 'intra' },
+      {
+        misc: 'program',
+        type: 'inter_b2b',
+        companies: ['1234567890abcdef12345678', authCompany.toHexString()],
+        trainees: [
+          { _id: trainee._id, identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
+          { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectID() } },
+        ],
+      },
+    ];
+
+    findCourseAndPopulate.onFirstCall()
+      .returns([returnedList[0]])
+      .onSecondCall()
+      .returns([returnedList[1]]);
+
+    const result = await CourseHelper.list({ company: authCompany.toHexString(), trainees: trainee._id.toHexString() }, credentials);
+    expect(result).toMatchObject(coursesList);
+    expect(result.find(course => course._id === '1234')).toBeUndefined();
     expect(findCourseAndPopulate.getCall(0)
       .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
     expect(findCourseAndPopulate.getCall(1)

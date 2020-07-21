@@ -172,6 +172,18 @@ describe('COURSES ROUTES - GET /courses', () => {
     expect(response.result.data.courses.length).toEqual(3);
   });
 
+  it('should get courses for a specific trainee', async () => {
+    authToken = await getTokenByCredentials(traineeFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses?trainees=${traineeFromAuthCompany._id}`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toEqual(4);
+  });
+
   describe('CLIENT_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
@@ -304,6 +316,18 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         company: pick(authCompany, ['_id', 'name']),
       })]));
     });
+  });
+
+  it('should get courses if I am a trainee', async () => {
+    authToken = await getTokenByCredentials(traineeFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${coursesList[0]._id}`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.course).toBeDefined();
   });
 
   describe('Other roles', () => {

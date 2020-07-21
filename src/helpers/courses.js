@@ -29,9 +29,9 @@ exports.list = async (query, loggedUser) => {
     { ...omit(query, ['company']), type: INTER_B2B },
     true
   );
-
-  if (query.company || query.trainee) {
+  if (query.company || query.trainees) {
     const company = query.company || loggedUser.company._id;
+
     interCourse = interCourse.filter(course => course.companies.includes(company))
       .map(course => ({
         ...omit(course, ['companies']),
