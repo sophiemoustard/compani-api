@@ -17,7 +17,12 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee, authorizeCourseEdit, authorizeGetCourseList } = require('./preHandlers/courses');
+const {
+  getCourseTrainee,
+  authorizeCourseEdit,
+  authorizeGetCourseList,
+  authorizeGetCourse,
+} = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -59,6 +64,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
+        pre: [{ method: authorizeGetCourse }],
       },
       handler: getById,
     });

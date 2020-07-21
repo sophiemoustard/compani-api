@@ -11,6 +11,7 @@ const {
   CLIENT_ADMIN,
   COACH,
   TRAINING_ORGANISATION_MANAGER,
+  AUXILIARY_ROLES,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
@@ -54,8 +55,23 @@ exports.authorizeGetCourseList = async (req) => {
   const courseTrainerId = get(req, 'query.trainer');
   const courseCompanyId = get(req, 'query.company');
   const traineeId = get(req, 'query.trainees');
+
   if (traineeId && traineeId !== credentials._id) throw Boom.forbidden();
   if (!traineeId) this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+
+  return null;
+};
+
+exports.authorizeGetCourse = async (req) => {
+  const { credentials } = req.auth;
+  const course = await Course.findById(req.params._id).lean();
+  if (!course) throw Boom.notFound();
+
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const userClientRole = get(credentials, 'role.client.name');
+
+  if (!userVendorRole && AUXILIARY_ROLES.includes(userClientRole)
+    && !course.trainees.map(traineeId => traineeId.toHexString()).includes(credentials._id)) throw Boom.forbidden();
 
   return null;
 };
