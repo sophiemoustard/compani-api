@@ -135,10 +135,10 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
         name: 'program',
         steps: [
           {
-            title: 'c\'est une étape',
-            activities: [{ title: 'c\'est une activité' }, { title: 'toujours une activité' }],
+            name: 'c\'est une étape',
+            activities: [{ name: 'c\'est une activité' }, { name: 'toujours une activité' }],
           },
-          { title: 'toujours une étape' },
+          { name: 'toujours une étape' },
         ],
       });
     });
@@ -245,7 +245,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
 describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { title: 'new step', type: 'e_learning' };
+  const payload = { name: 'new step', type: 'e_learning' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -269,7 +269,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
       expect(programUpdated.steps.length).toEqual(stepsLengthBefore + 1);
     });
 
-    const missingParams = ['title', 'type'];
+    const missingParams = ['name', 'type'];
     missingParams.forEach((param) => {
       it(`should return a 400 if missing ${param}`, async () => {
         const programId = programsList[0]._id;

@@ -10,14 +10,14 @@ const cardsList = [
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), title: 'manger', cards: [cardsList[0]._id] },
-  { _id: new ObjectID(), title: 'bouger' },
-  { _id: new ObjectID(), title: 'fumer' },
+  { _id: new ObjectID(), name: 'manger', cards: [cardsList[0]._id] },
+  { _id: new ObjectID(), name: 'bouger' },
+  { _id: new ObjectID(), name: 'fumer' },
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), type: 'e_learning', title: 'rouge', activities: [activitiesList[0]._id, activitiesList[1]._id] },
-  { _id: new ObjectID(), type: 'on_site', title: 'bleu', activities: [activitiesList[2]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'rouge', activities: [activitiesList[0]._id, activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
 ];
 
 
