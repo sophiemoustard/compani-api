@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const CardHelper = require('../../../src/helpers/cards');
@@ -48,6 +47,25 @@ describe('addCard', () => {
       CardMock.verify();
       ActivityMock.verify();
     }
+  });
+});
+
+describe('updateCard', () => {
+  let updateOne;
+  const cardId = new ObjectID();
+  const payload = { title: 'transition' };
+
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update card', async () => {
+    await CardHelper.updateCard(cardId, payload);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $set: payload });
   });
 });
 
