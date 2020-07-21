@@ -67,3 +67,15 @@ exports.authorizeUpdate = async (req) => {
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
+
+exports.authorizeDeletion = async (req) => {
+  try {
+    const courseId = get(req, 'pre.courseSlot.courseId') || '';
+    await formatAndCheckAuthorization(courseId, req.auth.credentials);
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
