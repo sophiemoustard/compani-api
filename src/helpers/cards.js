@@ -9,3 +9,5 @@ exports.addCard = async (activityId, payload) => {
   const card = await Card.create(payload);
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
+
+exports.updateCard = async (cardId, payload) => Card.updateOne({ _id: cardId }, { $set: payload });
