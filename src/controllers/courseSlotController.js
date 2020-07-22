@@ -20,11 +20,10 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const courseSlot = await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload);
+    await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload);
 
     return {
       message: translate[language].courseSlotUpdated,
-      data: { courseSlot },
     };
   } catch (e) {
     req.log('error', e);

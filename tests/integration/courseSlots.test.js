@@ -2,6 +2,7 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const CourseSlot = require('../../src/models/CourseSlot');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
@@ -316,6 +317,25 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should remove step if receive null in payload', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        step: null,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      console.log(response);
+      expect(response.statusCode).toBe(200);
+      const slot = await CourseSlot.findById(courseSlotsList[0]._id).lean();
+      expect(slot.step).toBeUndefined();
     });
 
     it('should return 404 if slot not found', async () => {

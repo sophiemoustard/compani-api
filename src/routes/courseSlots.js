@@ -38,7 +38,7 @@ exports.plugin = {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             address: Joi.alternatives().try(addressValidation, {}),
-            step: Joi.objectId(),
+            step: Joi.objectId().allow(null),
           }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],

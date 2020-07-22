@@ -37,8 +37,9 @@ const checkPayload = async (courseId, payload) => {
   if (stepId) {
     const course = await Course.findById(courseId).populate({ path: 'program', select: 'steps' }).lean();
     const step = await Step.findById(stepId).lean();
+
     if (step.type === E_LEARNING) throw Boom.badRequest();
-    if (!course.program.steps.includes(stepId)) throw Boom.badRequest();
+    if (!course.program.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
   }
 };
 

@@ -119,22 +119,34 @@ describe('updateCourseSlot', () => {
 
   it('should update a course slot', async () => {
     const slot = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00' };
-    CourseSlotMock.expects('findOneAndUpdate')
+    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
+    CourseSlotMock.expects('updateOne')
       .withExactArgs({ _id: slot._id }, { $set: payload })
       .chain('lean')
       .returns(payload);
     hasConflicts.returns(false);
 
-    const result = await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    await CourseSlotsHelper.updateCourseSlot(slot, payload);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
-    expect(result.startDate).toEqual(payload.startDate);
+  });
+
+  it('should remove step from course slot', async () => {
+    const slot = { _id: new ObjectID() };
+    const payload = { startDate: '2020-03-03T22:00:00', step: null };
+    CourseSlotMock.expects('updateOne')
+      .withExactArgs({ _id: slot._id }, { $set: { startDate: '2020-03-03T22:00:00' }, $unset: { step: '' } })
+      .chain('lean')
+      .returns(payload);
+    hasConflicts.returns(false);
+
+    await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
   });
 
   it('should throw an error if conflicts', async () => {
     const slot = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00' };
-    CourseSlotMock.expects('findOneAndUpdate').chain('lean').never();
+    CourseSlotMock.expects('updateOne').chain('lean').never();
     hasConflicts.returns(true);
 
     try {
