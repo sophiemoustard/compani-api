@@ -234,7 +234,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course).toEqual(expect.objectContaining({
         _id: courseFromAuthCompanyIntra._id,
-        program: pick(programsList[0], ['_id', 'name', 'learningGoals']),
+        program: expect.objectContaining(pick(programsList[0], ['_id', 'name', 'learningGoals'])),
         trainer: expect.objectContaining({
           _id: courseTrainer._id,
           identity: { firstname: 'trainer', lastname: 'trainer' },
