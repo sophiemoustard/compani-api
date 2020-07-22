@@ -18,6 +18,20 @@ const list = async (req) => {
   }
 };
 
+const listUserCourses = async (req) => {
+  try {
+    const courses = await CoursesHelper.listUserCourses(req.auth.credentials);
+
+    return {
+      message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
+      data: { courses },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const create = async (req) => {
   try {
     const course = await CoursesHelper.createCourse(req.payload);
@@ -152,6 +166,7 @@ const downloadCompletionCertificates = async (req, h) => {
 
 module.exports = {
   list,
+  listUserCourses,
   create,
   getById,
   getPublicInfosById,

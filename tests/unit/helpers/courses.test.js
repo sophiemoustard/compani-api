@@ -42,6 +42,8 @@ describe('createCourse', () => {
 
 describe('list', () => {
   let findCourseAndPopulate;
+  const authCompany = new ObjectID();
+
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
   });
@@ -49,7 +51,7 @@ describe('list', () => {
     findCourseAndPopulate.restore();
   });
 
-  it('should return courses, called without query.company', async () => {
+  it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
@@ -60,7 +62,6 @@ describe('list', () => {
   });
 
   it('should return courses, called with query.company', async () => {
-    const authCompany = new ObjectID();
     const coursesList = [
       { misc: 'name', type: 'intra' },
       {
@@ -93,6 +94,27 @@ describe('list', () => {
       .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
     expect(findCourseAndPopulate.getCall(1)
       .calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
+  });
+});
+
+describe('listUserCourses', () => {
+  let findCourseAndPopulate;
+
+  beforeEach(() => {
+    findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+  });
+  afterEach(() => {
+    findCourseAndPopulate.restore();
+  });
+
+  it('should return courses', async () => {
+    const coursesList = [{ misc: 'name' }, { misc: 'program' }];
+
+    findCourseAndPopulate.returns(coursesList);
+
+    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
+    expect(result).toMatchObject(coursesList);
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainees: '1234567890abcdef12345678' });
   });
 });
 

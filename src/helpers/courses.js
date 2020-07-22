@@ -39,6 +39,8 @@ exports.list = async (query) => {
   ];
 };
 
+exports.listUserCourses = credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
+
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
