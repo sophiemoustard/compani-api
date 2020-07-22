@@ -6,73 +6,23 @@ const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
 
-const auxiliary = {
-  _id: new ObjectID(),
-  identity: { firstname: 'test', lastname: 'toto' },
-  local: { email: 'auxiliarycourse@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contact: { phone: '0632896751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id);
 
-const helper = {
-  _id: new ObjectID(),
-  identity: { firstname: 'helper', lastname: 'course' },
-  local: { email: 'helpercourse@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
-  contact: { phone: '0632896751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === 'helper')._id);
 
-const auxiliaryWithoutCompany = {
-  _id: new ObjectID(),
-  identity: { firstname: 'auxiliarywithoutcompany', lastname: 'course' },
-  local: { email: 'auxiliarywithoutcompanycourse@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
-  contact: { phone: '0632896751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const auxiliaryWithoutCompany = userList.find(user =>
+  user.role.client === rolesList.find(role => role.name === 'auxiliary_without_company')._id);
 
-const clientAdmin = {
-  _id: new ObjectID(),
-  identity: { firstname: 'clientAdmin', lastname: 'course' },
-  local: { email: 'clientAdmincourse@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
-  contact: { phone: '0632896751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const clientAdmin = userList.find(user =>
+  user.role.client === rolesList.find(role => role.name === 'client_admin')._id);
 
-const trainerOrganisationManager = {
-  _id: new ObjectID(),
-  identity: { firstname: 'trainingorganisationmanager', lastname: 'course' },
-  local: { email: 'trainingorganisationmanagercourse@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'training_organisation_manager')._id },
-  contact: { phone: '0632896751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const trainerOrganisationManager = userList.find(user =>
+  user.role.vendor === rolesList.find(role => role.name === 'training_organisation_manager')._id);
 
-const coachFromAuthCompany = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Tata', lastname: 'Tutu' },
-  local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'coach')._id },
-  contact: { phone: '0734856751' },
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  inactivityDate: null,
-};
+const coachFromAuthCompany = userList.find(user =>
+  user.role.client === rolesList.find(role => role.name === 'coach')._id);
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -94,14 +44,7 @@ const traineeWithoutCompany = {
   inactivityDate: null,
 };
 
-const courseTrainer = {
-  _id: new ObjectID(),
-  identity: { firstname: 'trainer', lastname: 'trainer' },
-  refreshToken: uuidv4(),
-  local: { email: 'coursetrainer@alenvi.io', password: '123456!eR' },
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
-  company: authCompany._id,
-};
+const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
 const programsList = [
   { _id: new ObjectID(), name: 'program', learningGoals: 'on est là' },
@@ -124,6 +67,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
+    trainees: [traineeFromOtherCompany._id],
     type: 'intra',
   },
   {
@@ -188,17 +132,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([
-    auxiliary,
-    coachFromAuthCompany,
-    traineeFromOtherCompany,
-    traineeWithoutCompany,
-    courseTrainer,
-    helper,
-    auxiliaryWithoutCompany,
-    clientAdmin,
-    trainerOrganisationManager,
-  ]);
+  await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
   await CourseSmsHistory.create(courseSmsHistory);
 };
 
