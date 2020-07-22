@@ -4,7 +4,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
-  listMyCourses,
+  listUserCourses,
   create,
   getById,
   getPublicInfosById,
@@ -37,11 +37,11 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/mine',
+      path: '/user',
       options: {
         auth: { mode: 'required' },
       },
-      handler: listMyCourses,
+      handler: listUserCourses,
     });
 
     server.route({

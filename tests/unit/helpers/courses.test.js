@@ -97,7 +97,7 @@ describe('list', () => {
   });
 });
 
-describe('listMyCourses', () => {
+describe('listUserCourses', () => {
   let findCourseAndPopulate;
 
   beforeEach(() => {
@@ -112,7 +112,7 @@ describe('listMyCourses', () => {
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.listMyCourses({ _id: '1234567890abcdef12345678' });
+    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainees: '1234567890abcdef12345678' });
   });

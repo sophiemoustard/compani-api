@@ -18,9 +18,9 @@ const list = async (req) => {
   }
 };
 
-const listMyCourses = async (req) => {
+const listUserCourses = async (req) => {
   try {
-    const courses = await CoursesHelper.listMyCourses(req.auth.credentials);
+    const courses = await CoursesHelper.listUserCourses(req.auth.credentials);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
@@ -166,7 +166,7 @@ const downloadCompletionCertificates = async (req, h) => {
 
 module.exports = {
   list,
-  listMyCourses,
+  listUserCourses,
   create,
   getById,
   getPublicInfosById,

@@ -336,11 +336,11 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/mine', () => {
+describe('COURSES ROUTES - GET /courses/user', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Other roles', () => {
+  describe('Get user own courses for each role', () => {
     const roles = [
       { name: 'helper', credentials: helper.local, expectedCode: 200, numberOfCourse: 2 },
       { name: 'auxiliary', credentials: auxiliary.local, expectedCode: 200, numberOfCourse: 1 },
@@ -356,7 +356,7 @@ describe('COURSES ROUTES - GET /courses/mine', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: '/courses/mine',
+          url: '/courses/user',
           headers: { 'x-access-token': authToken },
         });
 
