@@ -383,6 +383,15 @@ describe('COURSES ROUTES - GET /courses/user', () => {
       });
     });
   });
+
+  it('should return 401 if user is not login', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/courses/user',
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
