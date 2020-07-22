@@ -21,7 +21,7 @@ describe('ACTIVITY ROUTES - PUT /cards/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it("should update card's name", async () => {
+    it("should update card's title", async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${cardId.toHexString()}`,
@@ -35,7 +35,7 @@ describe('ACTIVITY ROUTES - PUT /cards/{_id}', () => {
       expect(cardUpdated).toEqual(expect.objectContaining({ _id: cardId, title: 'rigoler' }));
     });
 
-    it("should return a 400 if name is equal to '' ", async () => {
+    it("should return a 400 if title is equal to '' ", async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${cardId.toHexString()}`,
