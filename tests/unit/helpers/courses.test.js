@@ -120,9 +120,13 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .withExactArgs({
+        path: 'program',
+        select: 'name learningGoals steps',
+        populate: { path: 'steps', select: 'name type' },
+      })
       .chain('populate')
-      .withExactArgs('slots')
+      .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
       .chain('populate')
       .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
@@ -152,9 +156,13 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .withExactArgs({
+        path: 'program',
+        select: 'name learningGoals steps',
+        populate: { path: 'steps', select: 'name type' },
+      })
       .chain('populate')
-      .withExactArgs('slots')
+      .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
       .chain('populate')
       .withExactArgs({ path: 'slotsToPlan', select: '_id' })
       .chain('populate')
