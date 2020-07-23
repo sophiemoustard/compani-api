@@ -29,9 +29,5 @@ exports.uploadImage = async (programId, payload) => {
       link: imageUploaded.secure_url,
     },
   };
-  await Program.findOneAndUpdate(
-    { _id: programId },
-    { $set: flat(updatePayload) },
-    { new: true }
-  );
+  await Program.updateOne({ _id: programId }, { $set: flat(updatePayload) }, { new: true });
 };

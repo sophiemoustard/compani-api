@@ -17,6 +17,20 @@ const update = async (req) => {
   }
 };
 
+const uploadImage = async (req) => {
+  try {
+    await CardHelper.uploadImage(req.params._id, req.payload);
+
+    return {
+      message: translate[language].cardUpdated,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
+  uploadImage,
 };
