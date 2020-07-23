@@ -31,7 +31,7 @@ exports.updateCourseSlot = async (slotFromDb, payload) => {
 
   if (!payload.step) updatePayload.$unset = { step: '' };
 
-  await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload).lean();
+  await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload);
 };
 
 exports.removeCourseSlot = async courseSlotId => CourseSlot.deleteOne({ _id: courseSlotId });
