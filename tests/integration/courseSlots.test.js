@@ -332,7 +332,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
         payload,
       });
 
-      console.log(response);
       expect(response.statusCode).toBe(200);
       const slot = await CourseSlot.findById(courseSlotsList[0]._id).lean();
       expect(slot.step).toBeUndefined();

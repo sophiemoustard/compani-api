@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const omit = require('lodash/omit');
+const pickBy = require('lodash/pickBy');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
 
@@ -27,12 +27,11 @@ exports.updateCourseSlot = async (slotFromDb, payload) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  const updatePayload = { $set: omit(payload, ['step']) };
+  const updatePayload = { $set: pickBy(payload) };
 
   if (!payload.step) updatePayload.$unset = { step: '' };
-  else updatePayload.$set.step = payload.step;
 
-  return CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload).lean();
+  await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload).lean();
 };
 
 exports.removeCourseSlot = async courseSlotId => CourseSlot.deleteOne({ _id: courseSlotId });
