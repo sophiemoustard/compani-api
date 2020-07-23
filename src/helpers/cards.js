@@ -15,7 +15,7 @@ exports.addCard = async (activityId, payload) => {
 
 exports.updateCard = async (cardId, payload) => Card.updateOne({ _id: cardId }, { $set: payload });
 
-exports.uploadImage = async (cardId, payload) => {
+exports.uploadMedia = async (cardId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({
     file: payload.file,
     folder: 'images/business/Compani/cards',

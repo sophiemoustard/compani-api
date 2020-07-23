@@ -17,9 +17,9 @@ const update = async (req) => {
   }
 };
 
-const uploadImage = async (req) => {
+const uploadMedia = async (req) => {
   try {
-    await CardHelper.uploadImage(req.params._id, req.payload);
+    await CardHelper.uploadMedia(req.params._id, req.payload);
 
     return {
       message: translate[language].cardUpdated,
@@ -32,5 +32,5 @@ const uploadImage = async (req) => {
 
 module.exports = {
   update,
-  uploadImage,
+  uploadMedia,
 };

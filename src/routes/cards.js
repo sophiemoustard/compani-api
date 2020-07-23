@@ -2,7 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, uploadImage } = require('../controllers/cardController');
+const { update, uploadMedia } = require('../controllers/cardController');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -30,7 +30,7 @@ exports.plugin = {
     server.route({
       method: 'POST',
       path: '/{_id}/cloudinary/upload',
-      handler: uploadImage,
+      handler: uploadMedia,
       options: {
         payload: {
           output: 'stream',
