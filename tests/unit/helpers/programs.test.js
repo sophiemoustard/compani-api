@@ -136,7 +136,7 @@ describe('uploadImage', () => {
     };
 
     ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) }, { new: true })
+      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) })
       .once();
 
     await ProgramHelper.uploadImage(programId, payload);

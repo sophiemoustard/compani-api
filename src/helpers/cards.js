@@ -29,5 +29,5 @@ exports.uploadMedia = async (cardId, payload) => {
     },
   };
 
-  await Card.updateOne({ _id: cardId }, { $set: flat(updatePayload) }, { new: true });
+  await Card.updateOne({ _id: cardId }, { $set: flat(updatePayload) });
 };

@@ -96,7 +96,7 @@ describe('uploadMedia', () => {
     };
 
     CardMock.expects('updateOne')
-      .withExactArgs({ _id: cardId }, { $set: flat(cardUpdatePayload) }, { new: true })
+      .withExactArgs({ _id: cardId }, { $set: flat(cardUpdatePayload) })
       .once();
 
     await CardHelper.uploadMedia(cardId, payload);

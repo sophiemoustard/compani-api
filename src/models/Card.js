@@ -8,7 +8,7 @@ const CardSchema = mongoose.Schema({
   title: { type: String },
   text: { type: String },
   media: {
-    publicId: String,
+    publicId: { type: String },
     link: { type: String, trim: true },
   },
 }, { timestamps: true });
