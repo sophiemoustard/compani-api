@@ -73,15 +73,15 @@ describe('updateCard', () => {
 
 
 describe('uploadMedia', () => {
-  let CardMock;
+  let updateOneStub;
   let addImageStub;
   beforeEach(() => {
-    CardMock = sinon.mock(Card);
+    updateOneStub = sinon.stub(Card, 'updateOne');
     addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
       .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
   });
   afterEach(() => {
-    CardMock.restore();
+    updateOneStub.restore();
     addImageStub.restore();
   });
 
@@ -95,11 +95,8 @@ describe('uploadMedia', () => {
       },
     };
 
-    CardMock.expects('updateOne')
-      .withExactArgs({ _id: cardId }, { $set: flat(cardUpdatePayload) })
-      .once();
-
     await CardHelper.uploadMedia(cardId, payload);
     sinon.assert.calledOnce(addImageStub);
+    sinon.assert.calledWithExactly(updateOneStub, { _id: cardId }, { $set: flat(cardUpdatePayload) });
   });
 });
