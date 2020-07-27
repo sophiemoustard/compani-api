@@ -47,8 +47,8 @@ const traineeWithoutCompany = {
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là' },
-  { _id: new ObjectID(), name: 'training program' },
+  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là', image: { link: 'belle/url', publicId: '12345' } },
+  { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
 
 const coursesList = [

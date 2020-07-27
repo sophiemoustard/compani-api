@@ -134,7 +134,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesNumber);
       expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
-        program: pick(programsList[0], ['_id', 'name']),
+        program: pick(programsList[0], ['_id', 'name', 'image']),
         trainer: null,
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),

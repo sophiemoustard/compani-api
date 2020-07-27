@@ -185,15 +185,13 @@ exports.generateAttendanceSheets = async (courseId) => {
   };
 };
 
-exports.formatCourseForDocx = (course) => {
-  return {
-    duration: exports.getCourseDuration(course.slots),
-    learningGoals: get(course, 'program.learningGoals') || '',
-    programName: get(course, 'program.name').toUpperCase() || '',
-    startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
-    endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
-  };
-};
+exports.formatCourseForDocx = course => ({
+  duration: exports.getCourseDuration(course.slots),
+  learningGoals: get(course, 'program.learningGoals') || '',
+  programName: get(course, 'program.name').toUpperCase() || '',
+  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
+  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
+});
 
 exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
