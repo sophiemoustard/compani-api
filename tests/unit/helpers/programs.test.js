@@ -112,7 +112,7 @@ describe('update', () => {
   });
 });
 
-describe('update', () => {
+describe('uploadImage', () => {
   let ProgramMock;
   let addImageStub;
   beforeEach(() => {
@@ -135,8 +135,8 @@ describe('update', () => {
       },
     };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) }, { new: true })
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) })
       .once();
 
     await ProgramHelper.uploadImage(programId, payload);

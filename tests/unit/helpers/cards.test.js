@@ -1,8 +1,10 @@
 const sinon = require('sinon');
+const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
-const CardHelper = require('../../../src/helpers/cards');
 const Activity = require('../../../src/models/Activity');
+const CardHelper = require('../../../src/helpers/cards');
+const CloudinaryHelper = require('../../../src/helpers/cloudinary');
 require('sinon-mongoose');
 
 describe('addCard', () => {
@@ -69,3 +71,32 @@ describe('updateCard', () => {
   });
 });
 
+
+describe('uploadMedia', () => {
+  let updateOneStub;
+  let addImageStub;
+  beforeEach(() => {
+    updateOneStub = sinon.stub(Card, 'updateOne');
+    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
+      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+  });
+  afterEach(() => {
+    updateOneStub.restore();
+    addImageStub.restore();
+  });
+
+  it('should upload image', async () => {
+    const cardId = new ObjectID();
+    const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
+    const cardUpdatePayload = {
+      media: {
+        publicId: 'azertyuiop',
+        link: 'https://compani.io',
+      },
+    };
+
+    await CardHelper.uploadMedia(cardId, payload);
+    sinon.assert.calledOnce(addImageStub);
+    sinon.assert.calledWithExactly(updateOneStub, { _id: cardId }, { $set: flat(cardUpdatePayload) });
+  });
+});
