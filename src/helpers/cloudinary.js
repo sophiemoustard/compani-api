@@ -6,18 +6,18 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+exports.formatPublicId = publicId => publicId.replace(/[<>?&#\\%]/g, '').replace(/^[\/\s]/, '').replace(/[\/\s]$/, '');
+
 exports.addImage = async params => new Promise((resolve, reject) => {
   const options = {
     folder: params.folder,
-    public_id: params.public_id,
+    public_id: exports.formatPublicId(params.public_id),
     eager: params.transform ? [params.transform] : [],
   };
+
   const stream = cloudinary.v2.uploader.upload_stream(options, (err, res) => {
-    if (err) {
-      err.cloudinary = true;
-      reject(err);
-    }
-    resolve(res);
+    if (err) reject(new Error(err.message));
+    else resolve(res);
   });
   params.file.pipe(stream);
 });
@@ -27,7 +27,6 @@ exports.deleteImage = async params => new Promise((resolve, reject) => {
     if (err) {
       err.cloudinary = true;
       reject(err);
-    }
-    resolve(res);
+    } else resolve(res);
   });
 });
