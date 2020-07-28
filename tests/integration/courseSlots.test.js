@@ -2,7 +2,8 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, coursesList, courseSlotsList, trainer } = require('./seed/courseSlotsSeed');
+const CourseSlot = require('../../src/models/CourseSlot');
+const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -22,9 +23,10 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     it('should create course slot', async () => {
       const payload = {
-        startDate: courseSlotsList[0].startDate,
-        endDate: courseSlotsList[0].endDate,
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
         courseId: courseSlotsList[0].courseId,
+        step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -40,13 +42,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(200);
     });
 
-    it('should return 409 if slots conflict', async () => {
+    it('should create slot to plan', async () => {
       const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
         courseId: coursesList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -66,9 +66,122 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 409 if slots conflict', async () => {
+      const payload = {
+        startDate: courseSlotsList[0].startDate,
+        endDate: courseSlotsList[0].endDate,
+        courseId: coursesList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 if slots endDate without startDate', async () => {
+      const payload = {
+        endDate: '2020-03-04T17:00:00',
+        courseId: coursesList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if slots startDate without endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        courseId: coursesList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is eLearning', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        endDate: '2020-03-04T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[1]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is not from program', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        endDate: '2020-03-04T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[3]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const missingParams = [
-      { path: 'startDate' },
-      { path: 'endDate' },
       { path: 'courseId' },
       { path: 'address.fullAddress' },
     ];
@@ -194,6 +307,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
+        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -203,6 +317,24 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should remove step if receive null in payload', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        step: null,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const slot = await CourseSlot.findById(courseSlotsList[0]._id).lean();
+      expect(slot.step).toBeUndefined();
     });
 
     it('should return 404 if slot not found', async () => {
@@ -218,6 +350,53 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if step is eLearning', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        endDate: '2020-03-04T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[1]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is not from program', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        endDate: '2020-03-04T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[1]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     const missingParams = [

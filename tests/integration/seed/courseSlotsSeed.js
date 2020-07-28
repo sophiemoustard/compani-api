@@ -4,6 +4,7 @@ const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
+const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 
 const trainer = {
@@ -15,25 +16,32 @@ const trainer = {
   company: authCompany._id,
 };
 
+const stepsList = [
+  { _id: new ObjectID(), type: 'on_site', name: 'c\'est une étape' },
+  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape' },
+  { _id: new ObjectID(), type: 'e_learning', name: 'encore une étape' },
+  { _id: new ObjectID(), type: 'on_site', name: 'encore une étape' },
+];
+
 const programsList = [
-  { _id: new ObjectID(), name: 'program' },
-  { _id: new ObjectID(), name: 'training program' },
+  { _id: new ObjectID(), name: 'program', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectID(), name: 'training program', steps: [stepsList[2]._id, stepsList[3]._id] },
 ];
 
 const coursesList = [
   {
     _id: new ObjectID(),
-    name: 'first session',
     program: programsList[0]._id,
     company: authCompany._id,
+    misc: 'first session',
     type: 'intra',
     trainer: new ObjectID(),
   },
   {
     _id: new ObjectID(),
-    name: 'team formation',
     program: programsList[0]._id,
     company: otherCompany._id,
+    misc: 'team formation',
     type: 'intra',
     trainer: trainer._id,
   },
@@ -71,6 +79,7 @@ const populateDB = async () => {
   await CourseSlot.deleteMany({});
   await Program.deleteMany({});
   await User.deleteMany({});
+  await Step.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -78,6 +87,7 @@ const populateDB = async () => {
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(courseSlotsList);
   await User.create(trainer);
+  await Step.create(stepsList);
 };
 
 module.exports = {
@@ -86,4 +96,5 @@ module.exports = {
   programsList,
   courseSlotsList,
   trainer,
+  stepsList,
 };

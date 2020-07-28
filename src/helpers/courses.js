@@ -39,6 +39,8 @@ exports.list = async (query) => {
   ];
 };
 
+exports.listUserCourses = credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
+
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
@@ -47,8 +49,9 @@ exports.getCourse = async (courseId, loggedUser) => {
 
   return Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'program', select: 'name learningGoals' })
-    .populate('slots')
+    .populate({ path: 'program', select: 'name learningGoals steps', populate: { path: 'steps', select: 'name type' } })
+    .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
@@ -62,6 +65,7 @@ exports.getCourse = async (courseId, loggedUser) => {
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
+  .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
@@ -142,16 +146,19 @@ exports.getCourseDuration = (slots) => {
 };
 
 exports.formatCourseForPdf = (course) => {
-  const slots = course.slots ? [...course.slots].sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
+  const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
+  const name = course.program.name + possiblyMisc;
+  const slots = course.slots
+    ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    : [];
 
   const courseData = {
-    name: course.name,
+    name,
     slots: slots.map(exports.formatCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
     lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
     duration: exports.getCourseDuration(slots),
-    programName: get(course, 'program.name'),
   };
 
   return {

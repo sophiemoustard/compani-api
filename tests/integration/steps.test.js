@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const Module = require('../../src/models/Module');
-const { populateDB, modulesList } = require('./seed/modulesSeed');
+const Step = require('../../src/models/Step');
+const { populateDB, stepsList } = require('./seed/stepsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -11,36 +11,36 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('MODULES ROUTES - PUT /modules/{_id}', () => {
+describe('STEPS ROUTES - PUT /steps/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const moduleId = modulesList[0]._id;
-  const payload = { title: 'un nouveau module super innovant' };
+  const stepId = stepsList[0]._id;
+  const payload = { name: 'une nouvelle étape super innovant' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update module', async () => {
+    it('should update step', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/modules/${moduleId.toHexString()}`,
+        url: `/steps/${stepId.toHexString()}`,
         payload,
         headers: { 'x-access-token': authToken },
       });
 
-      const moduleUpdated = await Module.findById(moduleId);
+      const stepUpdated = await Step.findById(stepId);
 
       expect(response.statusCode).toBe(200);
-      expect(moduleUpdated).toEqual(expect.objectContaining({ _id: moduleId, title: payload.title }));
+      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
-    it("should return a 400 if title is equal to '' ", async () => {
+    it("should return a 400 if name is equal to '' ", async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/modules/${moduleId.toHexString()}`,
-        payload: { title: '' },
+        url: `/steps/${stepId.toHexString()}`,
+        payload: { name: '' },
         headers: { 'x-access-token': authToken },
       });
 
@@ -65,7 +65,7 @@ describe('MODULES ROUTES - PUT /modules/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/modules/${moduleId.toHexString()}`,
+          url: `/steps/${stepId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -75,10 +75,10 @@ describe('MODULES ROUTES - PUT /modules/{_id}', () => {
   });
 });
 
-describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
+describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { title: 'new activity' };
+  const payload = { name: 'new activity' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -86,26 +86,26 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
     });
 
     it('should create activity', async () => {
-      const moduleId = modulesList[0]._id;
+      const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/modules/${moduleId.toHexString()}/activity`,
+        url: `/steps/${stepId.toHexString()}/activity`,
         payload,
         headers: { 'x-access-token': authToken },
       });
 
-      const moduleUpdated = await Module.findById(moduleId);
+      const stepUpdated = await Step.findById(stepId);
 
       expect(response.statusCode).toBe(200);
-      expect(moduleUpdated._id).toEqual(moduleId);
-      expect(moduleUpdated.activities.length).toEqual(1);
+      expect(stepUpdated._id).toEqual(stepId);
+      expect(stepUpdated.activities.length).toEqual(1);
     });
 
-    it('should return a 400 if missing title', async () => {
-      const moduleId = modulesList[0]._id;
+    it('should return a 400 if missing name', async () => {
+      const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/modules/${moduleId.toHexString()}/activity`,
+        url: `/steps/${stepId.toHexString()}/activity`,
         payload: { },
         headers: { 'x-access-token': authToken },
       });
@@ -113,11 +113,11 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if module does not exist', async () => {
+    it('should return a 400 if step does not exist', async () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/modules/${wrongId}/activity`,
+        url: `/steps/${wrongId}/activity`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -140,11 +140,11 @@ describe('MODULES ROUTES - POST /modules/{_id}/activity', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const moduleId = modulesList[0]._id;
+        const stepId = stepsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { title: 'new name' },
-          url: `/modules/${moduleId.toHexString()}/activity`,
+          payload: { name: 'new name' },
+          url: `/steps/${stepId.toHexString()}/activity`,
           headers: { 'x-access-token': authToken },
         });
 
