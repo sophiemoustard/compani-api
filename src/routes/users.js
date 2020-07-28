@@ -152,6 +152,9 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId() }),
+        },
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
