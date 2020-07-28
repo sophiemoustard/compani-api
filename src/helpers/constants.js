@@ -265,6 +265,7 @@ module.exports = {
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
+  TITLE_TEXT: 'title_text',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
