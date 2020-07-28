@@ -27,6 +27,33 @@ const authCompany = {
   billingAssistance: 'assistance@billing.eu',
 };
 
+const otherCompany = {
+  _id: new ObjectID(),
+  name: 'Un autre SAS',
+  tradeName: 'Pas la meme',
+  prefixNumber: 106,
+  iban: '4321',
+  bic: '8765',
+  ics: '0674',
+  folderId: '2345678901',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'zxcvbnm',
+  auxiliariesFolderId: 'ijnuhb',
+  customersConfig: {
+    templates: { debitMandate: { driveId: process.env.ESIGN_TEST_DOC_DRIVEID } },
+    billingPeriod: 'two_weeks',
+  },
+  address: {
+    fullAddress: '12 rue de Ponthieu 75008 Paris',
+    city: 'Paris',
+    street: '12 rue de Ponthieu',
+    zipCode: '75008',
+    location: { type: 'Point', coordinates: [0, 0] },
+  },
+  subscriptions: { erp: true },
+  billingAssistance: 'paslameme@billing.eu',
+};
+
 const companyWithoutSubscription = {
   _id: new ObjectID(),
   name: 'Test SAS withtout subscription',
@@ -43,4 +70,4 @@ const companyWithoutSubscription = {
   subscriptions: { erp: false },
 };
 
-module.exports = { authCompany, companyWithoutSubscription };
+module.exports = { authCompany, companyWithoutSubscription, otherCompany };

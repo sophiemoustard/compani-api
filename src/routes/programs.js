@@ -2,7 +2,8 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addModule, uploadImage } = require('../controllers/programController');
+const { list, create, getById, update, addStep, uploadImage } = require('../controllers/programController');
+const { STEP_TYPES } = require('../models/Step');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -64,15 +65,15 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/module',
+      path: '/{_id}/step',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ title: Joi.string().required() }),
+          payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
         },
         auth: { scope: ['programs:edit'] },
       },
-      handler: addModule,
+      handler: addStep,
     });
 
     server.route({

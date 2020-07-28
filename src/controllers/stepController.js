@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const ModuleHelper = require('../helpers/modules');
+const StepHelper = require('../helpers/steps');
 const ActivityHelper = require('../helpers/activities');
 const translate = require('../helpers/translate');
 
@@ -7,10 +7,10 @@ const { language } = translate;
 
 const update = async (req) => {
   try {
-    await ModuleHelper.updateModule(req.params._id, req.payload);
+    await StepHelper.updateStep(req.params._id, req.payload);
 
     return {
-      message: translate[language].moduleUpdated,
+      message: translate[language].stepUpdated,
     };
   } catch (e) {
     req.log('error', e);
@@ -23,7 +23,7 @@ const addActivity = async (req) => {
     await ActivityHelper.addActivity(req.params._id, req.payload);
 
     return {
-      message: translate[language].moduleUpdated,
+      message: translate[language].stepUpdated,
     };
   } catch (e) {
     req.log('error', e);

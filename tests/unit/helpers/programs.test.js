@@ -38,6 +38,8 @@ describe('list', () => {
 
     ProgramMock.expects('find')
       .withExactArgs({ type: 'toto' })
+      .chain('populate')
+      .withExactArgs({ path: 'steps', select: 'type' })
       .chain('lean')
       .once()
       .returns(programsList);
@@ -56,13 +58,13 @@ describe('getProgram', () => {
     ProgramMock.restore();
   });
 
-  it('should return programs', async () => {
+  it('should return the requested program', async () => {
     const program = { _id: new ObjectID() };
 
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
       .chain('populate')
-      .withExactArgs({ path: 'modules', populate: 'activities' })
+      .withExactArgs({ path: 'steps', populate: 'activities' })
       .chain('lean')
       .once()
       .returns(program);
@@ -110,7 +112,7 @@ describe('update', () => {
   });
 });
 
-describe('update', () => {
+describe('uploadImage', () => {
   let ProgramMock;
   let addImageStub;
   beforeEach(() => {
@@ -133,8 +135,8 @@ describe('update', () => {
       },
     };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) }, { new: true })
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) })
       .once();
 
     await ProgramHelper.uploadImage(programId, payload);

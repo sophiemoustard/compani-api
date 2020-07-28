@@ -133,12 +133,12 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        modules: [
+        steps: [
           {
-            title: 'c\'est un module',
-            activities: [{ title: 'c\'est une activité' }, { title: 'toujours une activité' }],
+            name: 'c\'est une étape',
+            activities: [{ name: 'c\'est une activité' }, { name: 'toujours une activité' }],
           },
-          { title: 'toujours un module' },
+          { name: 'toujours une étape' },
         ],
       });
     });
@@ -242,22 +242,22 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
+describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { title: 'new module' };
+  const payload = { name: 'new step', type: 'e_learning' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should create module', async () => {
+    it('should create step', async () => {
       const programId = programsList[0]._id;
-      const modulesLengthBefore = programsList[0].modules.length;
+      const stepsLengthBefore = programsList[0].steps.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/module`,
+        url: `/programs/${programId.toHexString()}/step`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -266,26 +266,29 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
-      expect(programUpdated.modules.length).toEqual(modulesLengthBefore + 1);
+      expect(programUpdated.steps.length).toEqual(stepsLengthBefore + 1);
     });
 
-    it('should return a 400 if missing title', async () => {
-      const programId = programsList[0]._id;
-      const response = await app.inject({
-        method: 'POST',
-        url: `/programs/${programId.toHexString()}/module`,
-        payload: { },
-        headers: { 'x-access-token': authToken },
-      });
+    const missingParams = ['name', 'type'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 if missing ${param}`, async () => {
+        const programId = programsList[0]._id;
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${programId.toHexString()}/step`,
+          payload: omit(payload, param),
+          headers: { 'x-access-token': authToken },
+        });
 
-      expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     it('should return a 400 if program does not exist', async () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${wrongId}/module`,
+        url: `/programs/${wrongId}/step`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -311,8 +314,8 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/module', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { title: 'new name' },
-          url: `/programs/${programId.toHexString()}/module`,
+          payload,
+          url: `/programs/${programId.toHexString()}/step`,
           headers: { 'x-access-token': authToken },
         });
 

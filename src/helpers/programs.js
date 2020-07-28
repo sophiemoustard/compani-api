@@ -5,10 +5,12 @@ const moment = require('moment');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
-exports.list = async query => Program.find(query).lean();
+exports.list = async query => Program.find(query)
+  .populate({ path: 'steps', select: 'type' })
+  .lean();
 
 exports.getProgram = async programId => Program.findOne({ _id: programId })
-  .populate({ path: 'modules', populate: 'activities' })
+  .populate({ path: 'steps', populate: 'activities' })
   .lean();
 
 exports.updateProgram = async (programId, payload) =>
@@ -27,9 +29,5 @@ exports.uploadImage = async (programId, payload) => {
       link: imageUploaded.secure_url,
     },
   };
-  await Program.findOneAndUpdate(
-    { _id: programId },
-    { $set: flat(updatePayload) },
-    { new: true }
-  );
+  await Program.updateOne({ _id: programId }, { $set: flat(updatePayload) });
 };

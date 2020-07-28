@@ -4,6 +4,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
+  listUserCourses,
   create,
   getById,
   getPublicInfosById,
@@ -35,14 +36,23 @@ exports.plugin = {
     });
 
     server.route({
+      method: 'GET',
+      path: '/user',
+      options: {
+        auth: { mode: 'required' },
+      },
+      handler: listUserCourses,
+    });
+
+    server.route({
       method: 'POST',
       path: '/',
       options: {
         validate: {
           payload: Joi.object({
-            name: Joi.string().required(),
             type: Joi.string().required(),
             program: Joi.objectId().required(),
+            misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
@@ -82,7 +92,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId() }),
           payload: Joi.object({
-            name: Joi.string(),
+            misc: Joi.string().allow('', null),
             trainer: Joi.objectId(),
             contact: Joi.object({
               name: Joi.string(),

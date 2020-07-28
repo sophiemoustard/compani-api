@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ProgramSchema = mongoose.Schema({
   name: { type: String, required: true },
   learningGoals: { type: String },
-  modules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }],
+  steps: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Step' }],
   image: {
     publicId: String,
     link: { type: String, trim: true },

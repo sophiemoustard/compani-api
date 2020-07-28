@@ -260,6 +260,11 @@ module.exports = {
   INTER_B2B: 'inter_b2b',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
+  E_LEARNING: 'e_learning',
+  ON_SITE: 'on_site',
+  // E-LEARNING CARDS
+  TRANSITION: 'transition',
+  TITLE_TEXT_MEDIA: 'title_text_media',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

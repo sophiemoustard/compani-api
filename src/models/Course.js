@@ -6,7 +6,7 @@ const { PHONE_VALIDATION } = require('./utils');
 const COURSE_TYPES = [INTRA, INTER_B2B];
 
 const CourseSchema = mongoose.Schema({
-  name: { type: String, required: true },
+  misc: { type: String },
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
   type: { type: String, required: true, enum: COURSE_TYPES },
@@ -28,12 +28,17 @@ CourseSchema.virtual('slots', {
   ref: 'CourseSlot',
   localField: '_id',
   foreignField: 'courseId',
-  options: { sort: { startDate: 1 } },
+  options: { match: { startDate: { $exists: true } }, sort: { startDate: 1 } },
 });
 
-CourseSchema
-  .virtual('companies')
-  .get(getCompanies);
+CourseSchema.virtual('slotsToPlan', {
+  ref: 'CourseSlot',
+  localField: '_id',
+  foreignField: 'courseId',
+  options: { match: { startDate: { $exists: false } } },
+});
+
+CourseSchema.virtual('companies').get(getCompanies);
 
 CourseSchema.plugin(mongooseLeanVirtuals);
 

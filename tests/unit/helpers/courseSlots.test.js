@@ -106,35 +106,44 @@ describe('createCourseSlot', () => {
 });
 
 describe('updateCourseSlot', () => {
-  let CourseSlotMock;
+  let updateOne;
   let hasConflicts;
   beforeEach(() => {
-    CourseSlotMock = sinon.mock(CourseSlot);
+    updateOne = sinon.stub(CourseSlot, 'updateOne');
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
   });
   afterEach(() => {
-    CourseSlotMock.restore();
+    updateOne.restore();
     hasConflicts.restore();
   });
 
   it('should update a course slot', async () => {
     const slot = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00' };
-    CourseSlotMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: slot._id }, { $set: payload })
-      .chain('lean')
-      .returns(payload);
+    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
     hasConflicts.returns(false);
 
-    const result = await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    await CourseSlotsHelper.updateCourseSlot(slot, payload);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
-    expect(result.startDate).toEqual(payload.startDate);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: slot._id }, { $set: payload });
+  });
+
+  it('should remove step from course slot', async () => {
+    const slot = { _id: new ObjectID() };
+    const payload = { startDate: '2020-03-03T22:00:00', step: null };
+    hasConflicts.returns(false);
+
+    await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: slot._id },
+      { $set: { startDate: '2020-03-03T22:00:00' }, $unset: { step: '' } }
+    );
   });
 
   it('should throw an error if conflicts', async () => {
     const slot = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00' };
-    CourseSlotMock.expects('findOneAndUpdate').chain('lean').never();
     hasConflicts.returns(true);
 
     try {
@@ -143,6 +152,7 @@ describe('updateCourseSlot', () => {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
+      sinon.assert.notCalled(updateOne);
     }
   });
 });
