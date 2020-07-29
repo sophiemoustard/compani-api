@@ -7,6 +7,7 @@ const UsersHelper = require('../helpers/users');
 const {
   getUsersList,
   getUsersListWithSectorHistories,
+  getLearnerList,
   createAndSaveFile,
   getUser,
   userExists,
@@ -114,6 +115,20 @@ const activeList = async (req) => {
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
       data: { users: activeUsers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const learnerList = async (req) => {
+  try {
+    const learners = await getLearnerList(req.auth.credentials);
+
+    return {
+      message: learners.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
+      data: { learners },
     };
   } catch (e) {
     req.log('error', e);
@@ -311,6 +326,7 @@ module.exports = {
   list,
   listWithSectorHistories,
   activeList,
+  learnerList,
   show,
   exists,
   update,

@@ -175,3 +175,13 @@ exports.authorizeUserGet = async (req) => {
 
   return null;
 };
+
+exports.authorizeLearnersGet = async (req) => {
+  const { credentials } = req.auth;
+  const vendorRole = get(credentials, 'role.vendor.name');
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};

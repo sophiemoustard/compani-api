@@ -10,6 +10,7 @@ const {
   list,
   listWithSectorHistories,
   activeList,
+  learnerList,
   show,
   exists,
   update,
@@ -32,6 +33,7 @@ const {
   authorizeUserCreation,
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
+  authorizeLearnersGet,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 
@@ -171,6 +173,16 @@ exports.plugin = {
         },
       },
       handler: exists,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/learners',
+      options: {
+        auth: { scope: ['users:list'] },
+        pre: [{ method: authorizeLearnersGet }],
+      },
+      handler: learnerList,
     });
 
     server.route({
