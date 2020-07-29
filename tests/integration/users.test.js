@@ -546,6 +546,79 @@ describe('USERS TEST', () => {
     });
   });
 
+  describe('GET /users/learners', () => {
+    let authToken;
+    describe('VENDOR_ADMIN', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin');
+      });
+
+      it('should return true and all learners', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/learners',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.learners.length).toEqual(20);
+        expect(res.result.data.learners).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            identity: expect.objectContaining({
+              firstname: expect.any(String),
+              lastname: expect.any(String),
+            }),
+            company: expect.objectContaining({
+              _id: expect.any(ObjectID),
+              name: expect.any(String),
+            }),
+            picture: expect.objectContaining({
+              publicId: expect.any(String),
+              link: expect.any(String),
+            }),
+            followingCourses: expect.any(Number),
+          }),
+          expect.objectContaining({
+            _id: coachFromOtherCompany._id,
+            followingCourses: 0,
+          }),
+          expect.objectContaining({
+            _id: helperFromOtherCompany._id,
+            followingCourses: 1,
+          }),
+          expect.objectContaining({
+            _id: usersSeedList[0]._id,
+            followingCourses: 2,
+          }),
+        ]));
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/users/learners',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('GET /users/sector-histories', () => {
     let authToken;
     describe('CLIENT_ADMIN', () => {

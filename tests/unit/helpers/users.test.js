@@ -397,6 +397,37 @@ describe('getUsersListWithSectorHistories', () => {
   });
 });
 
+describe('getLearnerList', () => {
+  let UserMock;
+  const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  const credentials = { role: { vendor: new ObjectID() } };
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+  });
+
+  afterEach(() => {
+    UserMock.restore();
+  });
+
+  it('should get learners', async () => {
+    UserMock.expects('find')
+      .withExactArgs({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs('followingCourses')
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: true })
+      .chain('lean')
+      .returns(users);
+
+    const result = await UsersHelper.getLearnerList(credentials);
+    expect(result).toEqual(users);
+    UserMock.verify();
+  });
+});
+
 describe('getUser', () => {
   let userMock;
   beforeEach(() => {

@@ -9,6 +9,7 @@ const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
 const { authCustomer } = require('../../seed/customerSeed');
+const Course = require('../../../src/models/Course');
 
 const establishmentList = [
   {
@@ -111,6 +112,10 @@ const usersSeedList = [
     inactivityDate: null,
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,
+    picture: {
+      publicId: 'images/users/profile_pictures/photo_TOTO',
+      link: 'https://res.cloudinary.com/alenvi/image/upload/v1596007355/images/users/profile_pictures/photo_toto',
+    },
   },
   {
     _id: new ObjectID(),
@@ -226,6 +231,22 @@ const sectorHistories = usersSeedList
     startDate: '2018-12-10',
   }));
 
+const followingCourses = [
+  {
+    _id: new ObjectID(),
+    program: new ObjectID(),
+    type: 'inter_b2b',
+    trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
+  },
+  {
+    _id: new ObjectID(),
+    program: new ObjectID(),
+    type: 'intra',
+    company: new ObjectID(),
+    trainees: [usersSeedList[0]._id],
+  },
+];
+
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;
 
@@ -236,6 +257,7 @@ const populateDB = async () => {
   await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
   await Establishment.deleteMany({});
+  await Course.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat([helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany]));
@@ -245,6 +267,7 @@ const populateDB = async () => {
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
   await Establishment.insertMany(establishmentList);
+  await Course.insertMany(followingCourses);
 };
 
 module.exports = {
