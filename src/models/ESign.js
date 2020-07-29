@@ -6,9 +6,7 @@ const EVERSIGN_PARAMS = {
   business_id: process.env.EVERSIGN_BUSINESS_ID,
 };
 
-exports.createDocument = async data => axios.post(`${EVERSIGN_API_URL}document`, data, {
-  params: EVERSIGN_PARAMS,
-});
+exports.createDocument = async data => axios.post(`${EVERSIGN_API_URL}document`, data, { params: EVERSIGN_PARAMS });
 
 exports.downloadFinalDocument = async (docId) => {
   EVERSIGN_PARAMS.document_hash = docId;

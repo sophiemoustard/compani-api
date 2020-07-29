@@ -32,9 +32,7 @@ exports.plugin = {
         auth: { scope: ['contracts:edit', 'user:read-{query.user}', 'customer-{query.customer}'] },
         validate: {
           query: Joi.object().keys({
-            status: Joi.string(),
             user: Joi.objectId(),
-            customer: Joi.objectId(),
             startDate: Joi.date(),
             endDate: Joi.date(),
           }),
@@ -52,6 +50,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
+            user: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
               weeklyHours: Joi.number().required(),
@@ -67,13 +66,11 @@ exports.plugin = {
                 })).required(),
                 meta: Joi.object({
                   auxiliaryDriveId: Joi.string().required(),
-                  status: Joi.string(),
                 }),
                 redirect: Joi.string().uri(),
                 redirectDecline: Joi.string().uri(),
               }),
             }).required()),
-            user: Joi.objectId().required(),
           }),
         },
         pre: [{ method: authorizeContractCreation }],
@@ -126,7 +123,6 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
@@ -163,7 +159,6 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
