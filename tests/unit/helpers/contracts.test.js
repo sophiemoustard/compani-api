@@ -42,8 +42,6 @@ describe('getContractList', () => {
         select: 'identity administrative.driveFolder sector contact local',
         populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
       })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity driveFolder' })
       .chain('lean')
       .returns(contracts);
 
@@ -73,8 +71,6 @@ describe('getContractList', () => {
         select: 'identity administrative.driveFolder sector contact local',
         populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
       })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity driveFolder' })
       .chain('lean')
       .returns(contracts);
 
@@ -186,7 +182,6 @@ describe('createContract', () => {
   let ContractMock;
   let generateSignatureRequestStub;
   let UserMock;
-  let CustomerMock;
   let RoleMock;
   let createHistoryOnContractCreation;
 
@@ -197,7 +192,6 @@ describe('createContract', () => {
     ContractMock = sinon.mock(Contract);
     UserMock = sinon.mock(User);
     RoleMock = sinon.mock(Role);
-    CustomerMock = sinon.mock(Customer);
   });
 
   afterEach(() => {
@@ -207,7 +201,6 @@ describe('createContract', () => {
     ContractMock.restore();
     UserMock.restore();
     RoleMock.restore();
-    CustomerMock.restore();
   });
 
   it('should create a new company contract', async () => {
@@ -246,7 +239,6 @@ describe('createContract', () => {
         { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
-    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -255,7 +247,6 @@ describe('createContract', () => {
     sinon.assert.notCalled(createHistoryOnContractCreation);
     ContractMock.verify();
     UserMock.verify();
-    CustomerMock.verify();
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
@@ -306,7 +297,6 @@ describe('createContract', () => {
         { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
-    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -315,7 +305,6 @@ describe('createContract', () => {
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     ContractMock.verify();
     UserMock.verify();
-    CustomerMock.verify();
     expect(result).toEqual(expect.objectContaining(contractWithDoc));
   });
 
@@ -327,7 +316,6 @@ describe('createContract', () => {
       startDate: moment('2018-12-03T23:00:00').toDate(),
       status: 'contract_with_company',
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
-      customer: new ObjectID(),
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
@@ -357,9 +345,6 @@ describe('createContract', () => {
         { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
-    CustomerMock.expects('updateOne')
-      .withExactArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
-      .once();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -369,7 +354,6 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contract));
     ContractMock.verify();
     UserMock.verify();
-    CustomerMock.verify();
   });
 
   it('should create a new company contract and create sector history', async () => {
@@ -408,7 +392,6 @@ describe('createContract', () => {
         { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
       )
       .once();
-    CustomerMock.expects('updateOne').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -417,7 +400,6 @@ describe('createContract', () => {
     sinon.assert.calledWithExactly(createHistoryOnContractCreation, user, contract, credentials.company._id);
     ContractMock.verify();
     UserMock.verify();
-    CustomerMock.verify();
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
@@ -444,7 +426,6 @@ describe('createContract', () => {
         .returns(user)
         .once();
       UserMock.expects('updateOne').never();
-      CustomerMock.expects('updateOne').never();
       ContractMock.expects('create').never();
       await ContractHelper.createContract(payload, credentials);
     } catch (e) {
@@ -455,7 +436,6 @@ describe('createContract', () => {
       sinon.assert.notCalled(createHistoryOnContractCreation);
       ContractMock.verify();
       UserMock.verify();
-      CustomerMock.verify();
     }
   });
 });
@@ -892,14 +872,14 @@ describe('updateVersion', () => {
       ],
     };
     canUpdateVersion.returns(true);
-    formatVersionEditionPayload.returns({ $set: {}, $push: {} });
+    formatVersionEditionPayload.returns({ $set: {}, $push: {}, $unset: { auxiliaryDoc: '' } });
     ContractMock.expects('findOne')
       .withExactArgs({ _id: contractId.toHexString() })
       .chain('lean')
       .once()
       .returns(contract);
     ContractMock.expects('updateOne')
-      .withExactArgs({ _id: contractId.toHexString() })
+      .withExactArgs({ _id: contractId.toHexString(), $unset: { auxiliaryDoc: '' } })
       .once();
     ContractMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: contractId.toHexString() }, { $set: {}, $push: {} })
@@ -1061,26 +1041,6 @@ describe('deleteVersion', () => {
     sinon.assert.calledWithExactly(deleteFile, '123456789');
     sinon.assert.notCalled(updateHistoryOnContractDeletionStub);
   });
-
-  it('should delete customer contract', async () => {
-    const contract = {
-      _id: contractId,
-      user: 'toot',
-      customer: 'qwer',
-      versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
-    };
-    findOneContract.returns(contract);
-    updateHistoryOnContractDeletionStub.returns();
-
-    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
-    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
-    sinon.assert.notCalled(saveContract);
-    sinon.assert.calledWithExactly(deleteOne, { _id: contractId.toHexString() });
-    sinon.assert.calledWithExactly(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
-    sinon.assert.calledWithExactly(updateOneCustomer, { _id: 'qwer' }, { $pull: { contracts: contractId } });
-    sinon.assert.calledWithExactly(deleteFile, '123456789');
-    sinon.assert.calledWithExactly(updateHistoryOnContractDeletionStub, contract, credentials.company._id);
-  });
 });
 
 describe('getContractInfo', () => {
@@ -1177,13 +1137,11 @@ describe('uploadFile', () => {
       file: 'test',
       type: 'signedContract',
       fileName: 'test',
-      customer: '12345',
       status: 'test',
       versionId: '12345',
     };
     createAndSaveFileStub.returns({ name: 'test' });
     const version = {
-      customer: payload.customer,
       contractId: params._id,
       _id: payload.versionId,
     };
