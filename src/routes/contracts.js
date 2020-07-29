@@ -109,9 +109,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             startDate: Joi.date().required(),
-            endDate: Joi.date(),
-            weeklyHours: Joi.number(),
-            grossHourlyRate: Joi.number(),
+            weeklyHours: Joi.number().required(),
+            grossHourlyRate: Joi.number().required(),
             signature: Joi.object().keys({
               templateId: Joi.string().required(),
               fields: Joi.object(),
