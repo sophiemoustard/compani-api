@@ -879,7 +879,7 @@ describe('updateVersion', () => {
       .once()
       .returns(contract);
     ContractMock.expects('updateOne')
-      .withExactArgs({ _id: contractId.toHexString(), $unset: { auxiliaryDoc: '' } })
+      .withExactArgs({ _id: contractId.toHexString() }, { $unset: { auxiliaryDoc: '' } })
       .once();
     ContractMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: contractId.toHexString() }, { $set: {}, $push: {} })
@@ -1028,7 +1028,7 @@ describe('deleteVersion', () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
-      versions: [{ _id: new ObjectID() }, { _id: versionId }],
+      versions: [{ _id: new ObjectID() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     });
     findOneContract.returns(contract);
 

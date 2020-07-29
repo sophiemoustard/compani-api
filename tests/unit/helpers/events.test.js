@@ -599,20 +599,14 @@ describe('removeRepetitionsOnContractEnd', () => {
 });
 
 describe('unassignInterventionsOnContractEnd', () => {
-  let getCustomerSubscriptions;
   let getUnassignedInterventions;
   let createEventHistoryOnUpdate;
   let updateManyEvent;
 
-  const customerId = new ObjectID();
   const userId = new ObjectID();
   const sectorId = new ObjectID();
   const companyId = new ObjectID();
   const credentials = { _id: userId, company: { _id: companyId } };
-  const aggregation = [
-    { customer: { _id: customerId }, sub: { _id: 'qwerty' } },
-    { customer: { _id: customerId }, sub: { _id: 'asdfgh' } }
-  ];
 
   const interventions = [
     {
@@ -639,13 +633,11 @@ describe('unassignInterventionsOnContractEnd', () => {
   ];
 
   beforeEach(() => {
-    getCustomerSubscriptions = sinon.stub(EventRepository, 'getCustomerSubscriptions');
     getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     updateManyEvent = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
-    getCustomerSubscriptions.restore();
     getUnassignedInterventions.restore();
     createEventHistoryOnUpdate.restore();
     updateManyEvent.restore();
@@ -653,16 +645,13 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   it('should unassign future events linked to company contract', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns(interventions);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWithExactly(
       getUnassignedInterventions,
       contract.endDate,
       contract.user._id,
-      ['qwerty', 'asdfgh'],
       companyId
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
@@ -675,7 +664,6 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   it('should create event history for repetition', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns([interventions[1]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
@@ -699,7 +687,6 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   it('should create event history for non repeated event', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns([interventions[0]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
@@ -986,7 +973,6 @@ describe('updateAbsencesOnContractEnd', () => {
   let createEventHistoryOnUpdate = null;
   let updateMany = null;
 
-  const customerId = new ObjectID();
   const userId = new ObjectID();
   const companyId = new ObjectID();
   const credentials = { _id: userId, company: { _id: companyId } };

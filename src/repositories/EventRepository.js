@@ -280,83 +280,31 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
-  {
-    $match: {
-      $and: [
-        { startDate: { $gt: new Date(contract.endDate) } },
-        { auxiliary: new ObjectID(contract.user._id) },
-        { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      ],
-    },
-  },
-  {
-    $group: {
-      _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-    },
-  },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: '_id.CUSTOMER',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer' } },
-  {
-    $addFields: {
-      sub: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-      },
-    },
-  },
-  { $unwind: { path: '$sub' } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'sub.service',
-      foreignField: '_id',
-      as: 'sub.service',
-    },
-  },
-  { $unwind: { path: '$sub.service' } },
-  {
-    $project: {
-      _id: 0,
-      customer: { _id: 1 },
-      sub: 1,
-    },
-  },
-]).option({ company: companyId });
-
 exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate([
   { $match: rules },
   {
     $group: {
       _id: { $ifNull: ['$repetition.parentId', null] },
-      events: { $addToSet: '$$ROOT' },
+      events: { $push: '$$ROOT' },
     },
   },
   { $unwind: { path: '$events' } },
   { $sort: { 'events.startDate': 1 } },
-  {
-    $group: { _id: '$_id', events: { $push: '$events' } },
-  },
+  { $group: { _id: '$_id', events: { $push: '$events' } } },
 ]).option({ company: companyId });
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) =>
+exports.getUnassignedInterventions = async (maxDate, auxiliary, companyId) =>
   exports.getEventsGroupedByParentId({
     startDate: { $gt: maxDate },
     auxiliary,
-    subscription: { $in: subIds },
     $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+    type: INTERVENTION,
   }, companyId);
 
 exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
-  subscription: { $exists: false },
+  type: { $ne: INTERVENTION },
 }, companyId);
 
 exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({

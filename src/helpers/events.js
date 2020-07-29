@@ -292,16 +292,9 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { sector, _id: auxiliaryId } = contract.user;
 
-  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
-  if (customerSubscriptionsFromEvents.length === 0) return;
-  const correspondingSubsIds = customerSubscriptionsFromEvents
-    .filter(ev => ev.sub.service.type === contract.status)
-    .map(sub => sub.sub._id);
-
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(
     contract.endDate,
     auxiliaryId,
-    correspondingSubsIds,
     companyId
   );
   const promises = [];
