@@ -3,13 +3,13 @@ const CloudinaryHelper = require('../../../src/helpers/cloudinary');
 
 describe('formatPublicId', () => {
   const invalidCharacters = [
-    { character: '?', publicId: '?bonjour?' },
-    { character: '<', publicId: '<bonjour<' },
-    { character: '>', publicId: '>bonjour>' },
-    { character: '#', publicId: '#bonjour#' },
-    { character: '&', publicId: '&bonjour&' },
-    { character: '%', publicId: '%bonjour%' },
-    { character: '\\', publicId: '\\bonjour\\' },
+    { character: '?', publicId: '?bonj?our?' },
+    { character: '<', publicId: '<bonj<our<' },
+    { character: '>', publicId: '>bonj>our>' },
+    { character: '#', publicId: '#bonj#our#' },
+    { character: '&', publicId: '&bonj&our&' },
+    { character: '%', publicId: '%bonj%our%' },
+    { character: '\\', publicId: '\\bonj\\our\\' },
   ];
   invalidCharacters.forEach((invalid) => {
     it(`should remove ${invalid.character}`, () => {
