@@ -213,11 +213,13 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate, credentia
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const companyId = get(credentials, 'company._id', null);
   const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
+
+  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index, companyId);
+  if (!canUpdate) throw Boom.badData();
+
   if (index === 0 && versionToUpdate.startDate) {
     await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, versionToUpdate, companyId);
   }
-  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index, companyId);
-  if (!canUpdate) throw Boom.badData();
 
   const payload = await exports.formatVersionEditionPayload(contract.versions[index], versionToUpdate, index);
 
