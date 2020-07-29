@@ -152,6 +152,9 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         auth: { scope: ['users:edit', 'user:read-{params._id}'] },
         pre: [
           { method: getUser, assign: 'user' },
@@ -179,6 +182,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
@@ -293,6 +297,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
           }),
@@ -311,7 +316,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['user:edit-{params._id}'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             local: Joi.object().keys({ password: Joi.string().min(6).required() }),
             isConfirmed: Joi.boolean(),
@@ -327,7 +332,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             certificates: Joi.object().keys({ driveId: Joi.string() }),
           }),
@@ -346,7 +351,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -431,7 +436,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             parentFolderId: Joi.string().required(),
           }),
@@ -450,6 +455,9 @@ exports.plugin = {
       handler: uploadImage,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         payload: {
           output: 'stream',
           parse: true,

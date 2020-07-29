@@ -328,7 +328,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerGet }],
       },

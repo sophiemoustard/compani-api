@@ -165,7 +165,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             startDate: Joi.date(),
             endDate: Joi.date().greater(Joi.ref('startDate')),
@@ -227,7 +227,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getEvent, assign: 'event' },
@@ -243,7 +243,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getEvent, assign: 'event' },

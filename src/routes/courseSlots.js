@@ -33,7 +33,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
@@ -52,7 +52,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeDeletion }],
         auth: { scope: ['courses:edit'] },
