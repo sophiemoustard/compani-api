@@ -94,6 +94,13 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
+exports.getLearnerList = async credentials =>
+  User.find({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
+    .populate({ path: 'company', select: 'name' })
+    .populate('followingCourses')
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+    .lean();
+
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'customers', select: 'contracts' })
