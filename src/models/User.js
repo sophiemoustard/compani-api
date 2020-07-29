@@ -172,7 +172,7 @@ const isActive = (auxiliary) => {
   const auxiliaryRoleName = get(auxiliary, 'role.client.name');
   if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
     const { contracts, inactivityDate, createdAt } = auxiliary;
-    const hasCompanyContract = contracts && contracts.length;
+    const hasCompanyContract = !!contracts && !!contracts.length;
     const isNew = (!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(createdAt, 'd') < 45;
     const isInactive = inactivityDate && moment().isAfter(inactivityDate);
 

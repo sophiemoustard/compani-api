@@ -18,16 +18,13 @@ const {
   populateDB,
   contractsList,
   contractUsers,
-  contractCustomer,
   contractEvents,
   otherCompanyContract,
-  customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
-  userForContractCustomer,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
-const { getToken, getUser, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -96,57 +93,6 @@ describe('CONTRACTS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should not return the contracts if customer is not from the company', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/contracts?user=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return customer contracts if I am its helper', async () => {
-      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/contracts?customer=${userForContractCustomer.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should not return customer contracts if it I am not its helper', async () => {
-      const helperToken = await getToken('helper');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/contracts?customer=${contractCustomer._id}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should not return customer contracts if customer does not exists and I am a helper', async () => {
-      const helperToken = await getTokenByCredentials(userForContractCustomer.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/contracts?customer=${new ObjectID()}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should not return customer contracts if customer does not exists and I am a coach', async () => {
-      const helperToken = await getToken('coach');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/contracts?customer=${new ObjectID()}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(404);
     });
 
     const roles = [
@@ -260,7 +206,6 @@ describe('CONTRACTS ROUTES', () => {
 
     const missingParams = [
       { path: 'startDate' },
-      { path: 'status' },
       { path: 'versions.0.grossHourlyRate' },
       { path: 'versions.0.weeklyHours' },
       { path: 'versions.0.startDate' },
@@ -339,6 +284,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
         .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+
       const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
       const absence = events.find(event =>
@@ -428,13 +374,13 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { grossHourlyRate: 8 };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+        url: `/contracts/${contractsList[5]._id}/versions/${contractsList[5].versions[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
-      const contract = await Contract.findById(contractsList[6]._id).lean();
+      const contract = await Contract.findById(contractsList[5]._id).lean();
       expect(contract.versions[0].grossHourlyRate).toEqual(8);
     });
 
@@ -459,13 +405,13 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+        url: `/contracts/${contractsList[5]._id}/versions/${contractsList[5].versions[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
-      const contract = await Contract.findById(contractsList[6]._id).lean();
+      const contract = await Contract.findById(contractsList[5]._id).lean();
       expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
 
       const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
@@ -489,7 +435,7 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[4]._id}/versions/${contractsList[4].versions[0]._id}`,
+        url: `/contracts/${contractsList[3]._id}/versions/${contractsList[3].versions[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -524,7 +470,7 @@ describe('CONTRACTS ROUTES', () => {
     it('should delete a contract version by id', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+        url: `/contracts/${contractsList[5]._id}/versions/${contractsList[5].versions[0]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -532,7 +478,7 @@ describe('CONTRACTS ROUTES', () => {
       const sectorHistories = await SectorHistory
         .find({
           company: authCompany._id,
-          auxiliary: contractsList[6].user,
+          auxiliary: contractsList[5].user,
         })
         .lean();
 
@@ -574,7 +520,7 @@ describe('CONTRACTS ROUTES', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/contracts/${contractsList[6]._id}/versions/${contractsList[6].versions[0]._id}`,
+          url: `/contracts/${contractsList[5]._id}/versions/${contractsList[5].versions[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 

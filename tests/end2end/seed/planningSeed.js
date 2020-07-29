@@ -74,7 +74,6 @@ const contracts = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: loggedAuxiliary._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_company',
     _id: loggedAuxiliary.contracts[0],
     company: authCompany._id,
     versions: [

@@ -1316,7 +1316,7 @@ describe('computeBalance', () => {
   });
 
   it('should return balance, contract begins during this month', async () => {
-    const contract = { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-05-13T00:00:00' };
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -1362,7 +1362,7 @@ describe('computeBalance', () => {
   });
 
   it('should return balance, contract ends during this month', async () => {
-    const contract = { startDate: '2019-04-13T00:00:00', endDate: '2019-05-15T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-04-13T00:00:00', endDate: '2019-05-15T00:00:00' };
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -1411,11 +1411,11 @@ describe('computeAuxiliaryDraftPay', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
+        { startDate: '2019-05-13T00:00:00' },
       ],
       administrative: { mutualFund: { has: true } },
     };
-    const contract = { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-05-13T00:00:00' };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
@@ -1451,7 +1451,7 @@ describe('computeAuxiliaryDraftPay', () => {
     sinon.assert.calledWithExactly(
       computeBalance,
       auxiliary,
-      { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
+      { startDate: '2019-05-13T00:00:00' },
       events,
       company,
       query,
@@ -1569,7 +1569,7 @@ describe('computePrevPayDiff', () => {
 
   it('should return diff without prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
 
     getContractMonthInfo.returns({ contractHours: 34 });
@@ -1610,7 +1610,7 @@ describe('computePrevPayDiff', () => {
 
   it('should return diff with prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
     const prevPay = {
       contractHours: 34,
@@ -1665,7 +1665,7 @@ describe('computePrevPayDiff', () => {
 
   it('should not compute diff on future month', async () => {
     const query = { startDate: moment().startOf('M').toISOString(), endDate: moment().endOf('M').toISOString() };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
 
     const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, null, query, [], []);

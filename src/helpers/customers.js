@@ -7,7 +7,6 @@ const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
-const Service = require('../models/Service');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
 const EventRepository = require('../repositories/EventRepository');

@@ -416,6 +416,16 @@ describe('CUSTOMERS ROUTES', () => {
               nature: HOURLY,
             },
           },
+          {
+            ...customersList[0].subscriptions[1],
+            service: {
+              defaultUnitAmount: 24,
+              name: 'Service 2',
+              startDate: new Date('2019-01-18 19:58:15'),
+              vat: 12,
+              nature: HOURLY,
+            },
+          },
         ],
         subscriptionsAccepted: true,
         referent: {
@@ -653,22 +663,30 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('DELETE /customers/{id}', () => {
+    let deleteFileStub;
+    beforeEach(() => {
+      deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
+    });
+    afterEach(() => {
+      deleteFileStub.restore();
+    });
     it('should delete a customer without interventions', async () => {
-      const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
       const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
+
       expect(res.statusCode).toBe(200);
       sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
-      deleteFileStub.restore();
+
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers.length).toBe(customersBefore - 1);
       const helper = await User.findById(userList[2]._id).lean();
       expect(helper).toBeNull();
     });
+  
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'DELETE',
@@ -691,16 +709,6 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should return a 403 error if customer has contracts', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[4]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 
@@ -748,9 +756,6 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      let deleteFileStub;
-      before(() => { deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' }); });
-      after(() => { deleteFileStub.restore(); });
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },

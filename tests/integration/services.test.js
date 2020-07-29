@@ -48,13 +48,6 @@ describe('SERVICES ROUTES', () => {
 
     const missingParams = [
       {
-        paramName: 'type',
-        payload: { ...payload },
-        remove() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
         paramName: 'defaultUnitAmount',
         payload: { ...payload },
         remove() {

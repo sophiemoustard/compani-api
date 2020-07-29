@@ -70,7 +70,6 @@ describe('getDraftFinalPayByAuxiliary', () => {
       sector: { name: 'La ruche' },
       contracts: [{
         startDate: '2019-03-02T00:00:00',
-        status: 'contract_with_company',
         endDate: '2019-05-17T23:59:59',
         endReason: 'plus envie',
         endNotificationDate: '2019-05-12T23:59:59',

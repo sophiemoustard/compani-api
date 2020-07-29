@@ -146,8 +146,9 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if not ended contract', async () => {
-    const contract = { status: 'contract_with_company' };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+    const userId = new ObjectID();
+    const contract = { user: userId };
+    const user = { _id: userId, contractCreationMissingInfo: [] };
     allCompanyContractEnded.returns(false);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
@@ -156,7 +157,8 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
   it('should return false if user does not have mandatoy info', async () => {
-    const contract = { status: 'contract_with_company' };
+    const userId = new ObjectID();
+    const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
     allCompanyContractEnded.returns(true);
 
@@ -166,7 +168,8 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
   });
   it('should return true if all contract ended and user has mandatoy info', async () => {
-    const contract = { status: 'contract_with_company' };
+    const userId = new ObjectID();
+    const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
     allCompanyContractEnded.returns(true);
 
@@ -209,7 +212,6 @@ describe('createContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -256,7 +258,6 @@ describe('createContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
       versions: [
         {
           weeklyHours: 18,
@@ -314,7 +315,6 @@ describe('createContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -362,7 +362,6 @@ describe('createContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -409,7 +408,6 @@ describe('createContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -485,7 +483,6 @@ describe('endContract', () => {
       endDate: null,
       user: new ObjectID(),
       startDate: '2018-12-03T23:00:00',
-      status: 'contract_with_company',
       versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
     };
     const updatedContract = {
@@ -543,7 +540,6 @@ describe('endContract', () => {
         endDate: null,
         user: new ObjectID(),
         startDate: '2018-12-05T23:00:00',
-        status: 'contract_with_company',
         versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
       };
       const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };

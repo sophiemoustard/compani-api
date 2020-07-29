@@ -37,7 +37,6 @@ const bills = [
               nature: 'hourly',
               createdAt: '2019-01-09 09:36:06.169',
               company: companyId,
-              type: 'contract_with_company',
               versions: [
                 {
                   exemptFromCharges: true,
@@ -116,7 +115,6 @@ const bills = [
                 nature: 'hourly',
                 createdAt: '2019-01-09 09:36:06.169',
                 company: new ObjectID(),
-                type: 'contract_with_company',
                 versions: [
                   {
                     exemptFromCharges: true,

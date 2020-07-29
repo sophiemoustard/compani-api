@@ -549,7 +549,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contract = { type: 'contract_with_company' };
+    const contract = { _id: 'poiuytre' };
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
@@ -592,10 +592,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryIds = [new ObjectID(), new ObjectID()];
     const usersFromSectorHistories = [{ auxiliaryId: auxiliaryIds[0] }, { auxiliaryId: auxiliaryIds[1] }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contracts = [
-      { type: 'contract_with_company', _id: auxiliaryIds[0] },
-      { type: 'contract_with_company', _id: auxiliaryIds[1] },
-    ];
+    const contracts = [{ _id: auxiliaryIds[0] }, { _id: auxiliaryIds[1] }];
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: auxiliaryIds } })
@@ -686,7 +683,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contract = { type: 'contract_with_company' };
+    const contract = { _id: 'poiuytr' };
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })

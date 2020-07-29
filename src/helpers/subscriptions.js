@@ -19,12 +19,7 @@ exports.populateService = (service) => {
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-  return {
-    ...currentVersion,
-    _id: service._id,
-    nature: service.nature,
-    type: service.type,
-  };
+  return { ...currentVersion, _id: service._id, nature: service.nature };
 };
 
 exports.populateSubscriptionsServices = (customer) => {

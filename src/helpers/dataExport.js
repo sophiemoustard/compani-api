@@ -171,7 +171,7 @@ exports.exportAuxiliaries = async (credentials) => {
   const auxiliaries = await User
     .find({ 'role.client': { $in: roleIds }, company: companyId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'contracts', select: '_id' })
+    .populate({ path: 'contracts', select: '_id startDate endDate' })
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
   const data = [auxiliaryExportHeader];
