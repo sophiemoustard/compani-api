@@ -250,7 +250,7 @@ UserSchema.virtual('sectorHistories', {
   options: { sort: { startDate: -1 } },
 });
 
-UserSchema.virtual('followingCourses', {
+UserSchema.virtual('coursesCount', {
   ref: 'Course',
   localField: '_id',
   foreignField: 'trainees',

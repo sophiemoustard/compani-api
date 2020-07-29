@@ -113,8 +113,8 @@ const usersSeedList = [
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,
     picture: {
-      publicId: 'images/users/profile_pictures/photo_TOTO',
-      link: 'https://res.cloudinary.com/alenvi/image/upload/v1596007355/images/users/profile_pictures/photo_toto',
+      publicId: 'a/public/id',
+      link: 'https://the.complete.com/link/to/the/picture/storage/location',
     },
   },
   {

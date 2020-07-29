@@ -97,7 +97,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 exports.getLearnerList = async credentials =>
   User.find({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
     .populate({ path: 'company', select: 'name' })
-    .populate('followingCourses')
+    .populate({ path: 'coursesCount' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 

@@ -562,8 +562,8 @@ describe('USERS TEST', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.learners.length).toEqual(20);
-        expect(res.result.data.learners).toEqual(expect.arrayContaining([
+        expect(res.result.data.users.length).toEqual(20);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({
             identity: expect.objectContaining({
               firstname: expect.any(String),
@@ -577,19 +577,19 @@ describe('USERS TEST', () => {
               publicId: expect.any(String),
               link: expect.any(String),
             }),
-            followingCourses: expect.any(Number),
+            coursesCount: expect.any(Number),
           }),
           expect.objectContaining({
             _id: coachFromOtherCompany._id,
-            followingCourses: 0,
+            coursesCount: 0,
           }),
           expect.objectContaining({
             _id: helperFromOtherCompany._id,
-            followingCourses: 1,
+            coursesCount: 1,
           }),
           expect.objectContaining({
             _id: usersSeedList[0]._id,
-            followingCourses: 2,
+            coursesCount: 2,
           }),
         ]));
       });

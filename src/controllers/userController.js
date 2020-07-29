@@ -124,11 +124,11 @@ const activeList = async (req) => {
 
 const learnerList = async (req) => {
   try {
-    const learners = await getLearnerList(req.auth.credentials);
+    const users = await getLearnerList(req.auth.credentials);
 
     return {
-      message: learners.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
-      data: { learners },
+      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
+      data: { users },
     };
   } catch (e) {
     req.log('error', e);

@@ -416,7 +416,7 @@ describe('getLearnerList', () => {
       .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs('followingCourses')
+      .withExactArgs({ path: 'coursesCount' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: true })
       .chain('lean')
