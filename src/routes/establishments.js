@@ -39,6 +39,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['establishments:edit'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string().regex(new RegExp(ESTABLISHMENT_NAME_VALIDATION)),
             siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)),
@@ -70,6 +71,9 @@ exports.plugin = {
       handler: remove,
       options: {
         auth: { scope: ['establishments:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         pre: [
           { method: getEstablishment, assign: 'establishment' },
           { method: authorizeEstablishmentUpdate },

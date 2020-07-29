@@ -116,6 +116,7 @@ exports.plugin = {
           maxBytes: 5242880,
         },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
             type: Joi.string().required().valid(
@@ -196,6 +197,9 @@ exports.plugin = {
       path: '/{_id}',
       handler: show,
       options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         auth: { scope: ['companies:read'] },
       },
     });

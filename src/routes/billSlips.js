@@ -22,7 +22,7 @@ exports.plugin = {
       path: '/{_id}/docx',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['bills:edit'] },
         pre: [{ method: authorizeGetBillSlipDocx }],

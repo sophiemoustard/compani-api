@@ -66,7 +66,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
       },
@@ -78,7 +78,7 @@ exports.plugin = {
       path: '/{_id}/public-infos',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { mode: 'optional' },
       },
@@ -90,7 +90,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             misc: Joi.string().allow('', null),
             trainer: Joi.objectId(),
@@ -113,7 +113,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['courses:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             body: Joi.string().required(),
             type: Joi.string().required().valid(...MESSAGE_TYPE),
@@ -130,7 +130,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['courses:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCourseEdit }],
       },
@@ -142,6 +142,7 @@ exports.plugin = {
       path: '/{_id}/trainees',
       options: {
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             identity: Joi.object().keys({
               firstname: Joi.string(),
@@ -163,6 +164,9 @@ exports.plugin = {
       path: '/{_id}/trainees/{traineeId}',
       options: {
         auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
+        },
         pre: [{ method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
@@ -173,6 +177,9 @@ exports.plugin = {
       path: '/{_id}/attendance-sheets',
       options: {
         auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadAttendanceSheets,
@@ -183,6 +190,9 @@ exports.plugin = {
       path: '/{_id}/completion-certificates',
       options: {
         auth: { scope: ['courses:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
