@@ -250,6 +250,13 @@ UserSchema.virtual('sectorHistories', {
   options: { sort: { startDate: -1 } },
 });
 
+UserSchema.virtual('coursesCount', {
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'trainees',
+  count: true,
+});
+
 UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
 
