@@ -6,9 +6,9 @@ const get = require('lodash/get');
 const fs = require('fs');
 const GetStream = require('get-stream');
 const path = require('path');
-const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
+const app = require('../../server');
 const Contract = require('../../src/models/Contract');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
@@ -25,6 +25,7 @@ const {
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
 const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
+const EsignHelper = require('../../src/helpers/eSign');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -118,6 +119,15 @@ describe('CONTRACTS ROUTES', () => {
   });
 
   describe('POST /contracts', () => {
+    let generateSignatureRequestStub;
+    before(() => {
+      generateSignatureRequestStub = sinon.stub(EsignHelper, 'generateSignatureRequest')
+        .returns({ data: { document_hash: '1234567890' } });
+    });
+    afterEach(() => {
+      generateSignatureRequestStub.restore();
+    });
+
     it('should create contract (company contract)', async () => {
       const payload = {
         startDate: '2019-09-01T00:00:00',

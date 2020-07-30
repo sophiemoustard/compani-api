@@ -35,12 +35,9 @@ exports.getContractList = async (query, credentials) => {
       ],
     });
   }
-  if (query.status) rules.push({ status: query.status });
   if (query.user) rules.push({ user: query.user });
 
-  const params = rules.length > 0 ? { $and: rules } : {};
-
-  return Contract.find(params)
+  return Contract.find({ $and: rules })
     .populate({
       path: 'user',
       select: 'identity administrative.driveFolder sector contact local',
