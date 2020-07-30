@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const { TRANSITION, TITLE_TEXT_MEDIA, TITLE_TEXT } = require('../helpers/constants');
+const { TRANSITION, TITLE_TEXT_MEDIA, TITLE_TEXT, TEXT_MEDIA } = require('../helpers/constants');
 
-const CARD_TEMPLATES = [TRANSITION, TITLE_TEXT_MEDIA, TITLE_TEXT];
+const CARD_TEMPLATES = [TRANSITION, TITLE_TEXT_MEDIA, TITLE_TEXT, TEXT_MEDIA];
 
 const CardSchema = mongoose.Schema({
   template: { type: String, enum: CARD_TEMPLATES, immutable: true, required: true },
