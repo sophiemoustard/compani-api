@@ -686,7 +686,7 @@ describe('canUpdateVersion', () => {
     sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
   });
   it('should return true if first version and no event', async () => {
-    const contract = { _id: new ObjectID(), status: 'status', user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID() };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
     countAuxiliaryEventsBetweenDates.returns(0);
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
@@ -694,11 +694,11 @@ describe('canUpdateVersion', () => {
     expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(
       countAuxiliaryEventsBetweenDates,
-      { status: contract.status, auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
+      { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
   });
   it('should return false if first version and existing events', async () => {
-    const contract = { _id: new ObjectID(), status: 'status', user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID() };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
     countAuxiliaryEventsBetweenDates.returns(5);
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
@@ -706,7 +706,7 @@ describe('canUpdateVersion', () => {
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(
       countAuxiliaryEventsBetweenDates,
-      { status: contract.status, auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
+      { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
   });
 });
@@ -969,7 +969,6 @@ describe('deleteVersion', () => {
     const contract = {
       _id: contractId,
       startDate: '2019-09-09',
-      status: 'ok',
       user: 'toot',
       versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     };
@@ -981,7 +980,6 @@ describe('deleteVersion', () => {
     sinon.assert.calledWithExactly(countAuxiliaryEventsBetweenDates, {
       auxiliary: 'toot',
       startDate: '2019-09-09',
-      status: 'ok',
       company: credentials.company._id,
     });
     sinon.assert.notCalled(saveContract);
@@ -1133,7 +1131,6 @@ describe('uploadFile', () => {
       file: 'test',
       type: 'signedContract',
       fileName: 'test',
-      status: 'test',
       versionId: '12345',
     };
     createAndSaveFileStub.returns({ name: 'test' });

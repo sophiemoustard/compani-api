@@ -160,10 +160,9 @@ exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, compa
   if (contract.endDate) return false;
   if (versionIndex !== 0) return true;
 
-  const { status, user } = contract;
+  const { user } = contract;
   const { startDate } = versionToUpdate;
   const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({
-    status,
     auxiliary: user,
     endDate: startDate,
     company: companyId,
@@ -241,8 +240,8 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     contract.versions.pop();
     contract.save();
   } else {
-    const { user, startDate, status } = contract;
-    const query = { auxiliary: user, startDate, status, company: companyId };
+    const { user, startDate } = contract;
+    const query = { auxiliary: user, startDate, company: companyId };
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();
 
