@@ -133,7 +133,6 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
 
 exports.createVersion = async (contractId, versionPayload) => {
   const contract = await Contract.findOne({ _id: contractId }).lean();
-  if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
 
   const versionToAdd = { ...versionPayload };
   if (versionPayload.signature) {

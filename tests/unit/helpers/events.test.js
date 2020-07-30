@@ -1292,7 +1292,7 @@ describe('deleteEvents', () => {
 describe('isMiscOnlyUpdated', () => {
   it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
     const event = {
-      status: INTERVENTION,
+      type: INTERVENTION,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
       subscription: new ObjectID(),
@@ -1313,7 +1313,7 @@ describe('isMiscOnlyUpdated', () => {
 
   it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
     const event = {
-      status: INTERVENTION,
+      type: INTERVENTION,
       sector: new ObjectID(),
       subscription: new ObjectID(),
       startDate: '2019-01-21T09:30:00',
@@ -1333,7 +1333,7 @@ describe('isMiscOnlyUpdated', () => {
 
   it('should return true if event misc field is the only one being updated (unavailability)', () => {
     const event = {
-      status: UNAVAILABILITY,
+      type: UNAVAILABILITY,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:30:00',
@@ -1353,7 +1353,7 @@ describe('isMiscOnlyUpdated', () => {
 
   it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
     const event = {
-      status: INTERVENTION,
+      type: INTERVENTION,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
       subscription: new ObjectID(),
@@ -1374,7 +1374,7 @@ describe('isMiscOnlyUpdated', () => {
 
   it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
     const event = {
-      status: INTERVENTION,
+      type: INTERVENTION,
       sector: new ObjectID(),
       subscription: new ObjectID(),
       startDate: '2019-01-21T09:30:00',
@@ -1394,7 +1394,7 @@ describe('isMiscOnlyUpdated', () => {
 
   it('should return false if event misc field is not the only one being updated (unavailability)', () => {
     const event = {
-      status: UNAVAILABILITY,
+      type: UNAVAILABILITY,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:30:00',

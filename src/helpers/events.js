@@ -116,10 +116,8 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 exports.getListQuery = (query, credentials) => {
   const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
-
+  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
   if (type) rules.push({ type });
-  if (status) rules.push({ status });
 
   const sectorOrAuxiliary = [];
   if (auxiliary) {
@@ -199,7 +197,7 @@ exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(
     event,
-    ['isCancelled', 'startDate', 'endDate', 'status', 'internalHour.name', 'address.fullAddress']
+    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress']
   );
   if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
   if (event.sector) mainEventInfo.sector = event.sector.toHexString();
@@ -207,7 +205,7 @@ exports.isMiscOnlyUpdated = (event, payload) => {
 
   const mainPayloadInfo = pick(
     payload,
-    ['isCancelled', 'startDate', 'endDate', 'status', 'sector', 'auxiliary',
+    ['isCancelled', 'startDate', 'endDate', 'sector', 'auxiliary',
       'subscription', 'internalHour.name', 'address.fullAddress']
   );
   if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;

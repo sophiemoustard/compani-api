@@ -96,7 +96,6 @@ exports.plugin = {
             customer: objectIdOrArray,
             type: Joi.string(),
             groupBy: Joi.string(),
-            status: Joi.string(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
