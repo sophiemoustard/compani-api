@@ -175,6 +175,40 @@ describe('checkContracts', () => {
 
     expect(result).toBeFalsy();
   });
+
+  it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
+    const sectorId = new ObjectID();
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      type: INTERNAL_HOUR,
+      startDate: '2019-10-03T00:00:00.000Z',
+      sector: sectorId.toHexString(),
+    };
+
+    const customer = {
+      _id: event.customer,
+      subscriptions: [{
+        _id: event.subscription,
+        service: {
+          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
+        },
+      }],
+    };
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    findOneContract.returns(null);
+
+    const user = { _id: event.auxiliary, contracts: [], sector: sectorId };
+
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+
+    expect(result).toBeFalsy();
+  });
 });
 
 describe('hasConflicts', () => {

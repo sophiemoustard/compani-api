@@ -7,7 +7,6 @@ const Event = require('../../../src/models/Event');
 const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
-const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Bill = require('../../../src/models/Bill');
 const Payment = require('../../../src/models/Payment');
@@ -78,8 +77,6 @@ const customerThirdPartyPayer = {
   company: authCompany._id,
   isApa: true,
 };
-
-const contractCustomerId = new ObjectID();
 
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
@@ -203,24 +200,6 @@ const customersList = [
         zipCode: '8600',
         city: 'Silkeborg',
         street: 'Lyngsøvej 26',
-        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-      },
-      phone: '0612345678',
-    },
-  },
-  // customer with contract
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    identity: { title: 'mr', firstname: 'withContract', lastname: 'customer' },
-    driveFolder: { driveId: '1234567890' },
-    contracts: [contractCustomerId],
-    contact: {
-      primaryAddress: {
-        fullAddress: '37 rue de ponthieu',
-        zipCode: '75008',
-        city: 'Paris',
-        street: '37 rue de ponthieu',
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
@@ -380,10 +359,10 @@ const customersList = [
 
 const bill = {
   _id: new ObjectID(),
-  company: customersList[5].company,
+  company: customersList[4].company,
   number: 'FACT-1901001',
   date: '2019-05-29',
-  customer: customersList[5]._id,
+  customer: customersList[4]._id,
   netInclTaxes: 75.96,
   subscriptions: [{
     startDate: '2019-05-29',
@@ -414,10 +393,10 @@ const bill = {
 
 const payment = {
   _id: new ObjectID(),
-  company: customersList[6].company,
+  company: customersList[5].company,
   number: 'REG-101031900201',
   date: '2019-05-26T15:47:42',
-  customer: customersList[6]._id,
+  customer: customersList[5]._id,
   netInclTaxes: 190,
   nature: 'payment',
   type: 'direct_debit',
@@ -428,7 +407,7 @@ const creditNote = {
   date: '2020-01-01',
   startDate: '2020-01-01',
   endDate: '2020-01-12',
-  customer: customersList[7]._id,
+  customer: customersList[6]._id,
   exclTaxesCustomer: 100,
   inclTaxesCustomer: 112,
   isEditable: true,
@@ -438,7 +417,7 @@ const creditNote = {
 const taxCertificate = {
   _id: new ObjectID(),
   company: authCompany._id,
-  customer: customersList[8]._id,
+  customer: customersList[7]._id,
   year: '2019',
 };
 
@@ -717,7 +696,6 @@ const populateDB = async () => {
   await QuoteNumber.deleteMany({});
   await User.deleteMany({});
   await ReferentHistory.deleteMany({});
-  await Contract.deleteMany({});
   await Bill.deleteMany({});
   await Payment.deleteMany({});
   await CreditNote.deleteMany({});

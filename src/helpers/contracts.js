@@ -290,10 +290,9 @@ exports.saveCompletedContract = async (everSignDoc) => {
     body: file,
   });
 
-  await Contract.findOneAndUpdate(
+  await Contract.updateOne(
     { 'versions.signature.eversignId': everSignDoc.data.document_hash },
-    { $set: flat({ 'versions.$': payload }) },
-    { new: true }
+    { $set: flat({ 'versions.$': payload }) }
   );
 };
 

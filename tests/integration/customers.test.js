@@ -718,7 +718,7 @@ describe('CUSTOMERS ROUTES', () => {
     it('should return a 403 error if customer has bills', async () => {
       const res = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[5]._id.toHexString()}`,
+        url: `/customers/${customersList[4]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 
@@ -728,7 +728,7 @@ describe('CUSTOMERS ROUTES', () => {
     it('should return a 403 error if customer has payments', async () => {
       const res = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[6]._id.toHexString()}`,
+        url: `/customers/${customersList[5]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 
@@ -738,7 +738,7 @@ describe('CUSTOMERS ROUTES', () => {
     it('should return a 403 error if customer has creditnotes', async () => {
       const res = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[7]._id.toHexString()}`,
+        url: `/customers/${customersList[6]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 
@@ -748,7 +748,7 @@ describe('CUSTOMERS ROUTES', () => {
     it('should return a 403 error if customer has taxcertificates', async () => {
       const res = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[8]._id.toHexString()}`,
+        url: `/customers/${customersList[7]._id.toHexString()}`,
         headers: { 'x-access-token': clientAdminToken },
       });
 

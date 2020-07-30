@@ -1155,6 +1155,14 @@ describe('uploadFile', () => {
 });
 
 describe('auxiliaryHasActiveCompanyContractOnDay', () => {
+  it('should return false as no company contract', () => {
+    const contracts = [];
+    const date = '2019-01-11T08:38:18';
+    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
   it('should return false as no company contract on day (startDate after day)', () => {
     const contracts = [{ startDate: '2019-03-11T08:38:18' }];
     const date = '2019-01-11T08:38:18';

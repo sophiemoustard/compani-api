@@ -259,7 +259,6 @@ const contractsList = [
     endDate: '2019-02-03T23:00:00.000Z',
     _id: new ObjectID(),
     company: authCompany._id,
-    customer: contractCustomer._id,
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
