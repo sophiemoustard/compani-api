@@ -46,7 +46,7 @@ const contractCustomer = {
   driveFolder: { driveId: '1234567890' },
 };
 
-const otherCompanyContractUser = {
+const otherContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
   local: { email: 'other-company-contract-user@alenvi.io', password: '123456!eR' },
@@ -204,12 +204,12 @@ const sectorHistories = [
   },
 ];
 
-const otherCompanyContract = {
+const otherContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
   endDate: null,
-  user: otherCompanyContractUser._id,
+  user: otherContractUser._id,
   startDate: '2018-12-03T23:00:00.000Z',
-  _id: otherCompanyContractUser.contracts[0],
+  _id: otherContractUser.contracts[0],
   company: otherCompany._id,
   versions: [
     {
@@ -442,10 +442,10 @@ const populateDB = async () => {
   await SectorHistory.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
+  await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
   await new Sector(sector).save();
   await new Customer(contractCustomer).save();
-  await Contract.insertMany([...contractsList, otherCompanyContract]);
+  await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
 };
@@ -456,7 +456,7 @@ module.exports = {
   contractUsers,
   contractCustomer,
   contractEvents,
-  otherCompanyContract,
-  otherCompanyContractUser,
+  otherContract,
+  otherContractUser,
   userFromOtherCompany,
 };
