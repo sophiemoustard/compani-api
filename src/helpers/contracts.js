@@ -46,7 +46,7 @@ exports.getContractList = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.allContractEnded = async (contract, companyId) => {
+exports.allContractsEnded = async (contract, companyId) => {
   const userContracts = await ContractRepository.getUserContracts(contract.user, companyId);
   const notEndedContract = userContracts.filter(con => !con.endDate);
   if (notEndedContract.length) return false;
@@ -58,9 +58,9 @@ exports.allContractEnded = async (contract, companyId) => {
 };
 
 exports.isCreationAllowed = async (contract, user, companyId) => {
-  const allContractEnded = await exports.allContractEnded(contract, companyId);
+  const allContractsEnded = await exports.allContractsEnded(contract, companyId);
 
-  return allContractEnded && user.contractCreationMissingInfo.length === 0;
+  return allContractsEnded && user.contractCreationMissingInfo.length === 0;
 };
 
 exports.createContract = async (contractPayload, credentials) => {

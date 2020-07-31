@@ -80,7 +80,7 @@ describe('getContractList', () => {
   });
 });
 
-describe('allContractEnded', () => {
+describe('allContractsEnded', () => {
   let getUserContracts;
   beforeEach(() => {
     getUserContracts = sinon.stub(ContractRepository, 'getUserContracts');
@@ -96,7 +96,7 @@ describe('allContractEnded', () => {
       { _id: new ObjectID() },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
@@ -108,7 +108,7 @@ describe('allContractEnded', () => {
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
@@ -117,7 +117,7 @@ describe('allContractEnded', () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID() };
     getUserContracts.returns([]);
-    const result = await ContractHelper.allContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
@@ -129,7 +129,7 @@ describe('allContractEnded', () => {
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
@@ -137,46 +137,46 @@ describe('allContractEnded', () => {
 });
 
 describe('isCreationAllowed', () => {
-  let allContractEnded;
+  let allContractsEnded;
   beforeEach(() => {
-    allContractEnded = sinon.stub(ContractHelper, 'allContractEnded');
+    allContractsEnded = sinon.stub(ContractHelper, 'allContractsEnded');
   });
   afterEach(() => {
-    allContractEnded.restore();
+    allContractsEnded.restore();
   });
 
   it('should return false if not ended contract', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: userId, contractCreationMissingInfo: [] };
-    allContractEnded.returns(false);
+    allContractsEnded.returns(false);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(allContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return false if user does not have mandatoy info', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
-    allContractEnded.returns(true);
+    allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(allContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return true if all contract ended and user has mandatoy info', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
-    allContractEnded.returns(true);
+    allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(allContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
 });
 
