@@ -69,6 +69,11 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
+exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
+  .populate({ path: 'program', select: 'name image' })
+  .select('_id')
+  .lean();
+
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
 

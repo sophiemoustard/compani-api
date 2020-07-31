@@ -8,6 +8,7 @@ const {
   create,
   getById,
   getPublicInfosById,
+  getTraineeCourse,
   update,
   addTrainee,
   removeTrainee,
@@ -18,7 +19,12 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { phoneNumberValidation } = require('./validations/utils');
-const { getCourseTrainee, authorizeCourseEdit, authorizeGetCourseList } = require('./preHandlers/courses');
+const {
+  getCourseTrainee,
+  authorizeCourseEdit,
+  authorizeGetCourseList,
+  authorizeCourseGetByTrainee,
+} = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
 exports.plugin = {
@@ -83,6 +89,19 @@ exports.plugin = {
         auth: { mode: 'optional' },
       },
       handler: getPublicInfosById,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/user',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeCourseGetByTrainee }],
+      },
+      handler: getTraineeCourse,
     });
 
     server.route({

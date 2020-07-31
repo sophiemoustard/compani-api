@@ -427,6 +427,32 @@ describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
   });
 });
 
+describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
+  let authToken = null;
+  const courseId = coursesList[0]._id;
+  beforeEach(populateDB);
+
+  describe('Course trainee', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    });
+
+    it('should get course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseId.toHexString()}/user`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.course).toEqual(expect.objectContaining({
+        _id: courseId,
+        program: pick(programsList[0], ['_id', 'name', 'image']),
+      }));
+    });
+  });
+});
+
 describe('COURSES ROUTES - PUT /courses/{_id}', () => {
   let token;
   const courseIdFromAuthCompany = coursesList[0]._id;
