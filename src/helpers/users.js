@@ -73,7 +73,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate({ path: 'contracts', select: 'status startDate endDate' })
+    .populate({ path: 'contracts', select: 'startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -89,7 +89,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate({ path: 'contracts', select: 'status startDate endDate' })
+    .populate({ path: 'contracts', select: 'startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };

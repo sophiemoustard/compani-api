@@ -56,7 +56,6 @@ describe('method', () => {
       sector: '5d1a40b7ecb0da251cfa4ff2',
       startDate: freq.dates.startDate,
       endDate: freq.dates.endDate,
-      status: 'contract_with_company',
       frequency: freq.type,
       parentId: '5d84f869b7e67963c65236a9',
     }];
@@ -84,7 +83,6 @@ describe('method', () => {
         sector: '5d1a40b7ecb0da251cfa4ff2',
         startDate: moment().add(90, 'd').set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
         endDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
-        status: 'contract_with_company',
         repetition: {
           frequency: freq,
           parentId: '5d84f869b7e67963c65236a9',
@@ -117,7 +115,6 @@ describe('method', () => {
       sector: '5d1a40b7ecb0da251cfa4ff2',
       startDate: '2019-09-16T06:00:00.000Z',
       endDate: '2019-09-16T06:00:00.000Z',
-      status: 'contract_with_company',
       frequency: 'every_day',
       parentId: '5d84f869b7e67963c65236a9',
     }];

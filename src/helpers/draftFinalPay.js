@@ -1,6 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const { COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
+const { WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -24,7 +24,7 @@ exports.getContractMonthInfo = (contract, query) => {
 
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, prevPay, company, query, dm, surcharges) => {
   const { contracts } = auxiliary;
-  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
+  const contract = contracts.find(cont => cont.endDate);
 
   const monthBalance = await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, dm, surcharges);
   const hoursCounter = prevPay
@@ -51,7 +51,6 @@ exports.getDraftFinalPay = async (query, credentials) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const companyId = get(credentials, 'company._id', null);
   const contractRules = {
-    status: COMPANY_CONTRACT,
     endDate: {
       $exists: true,
       $lte: moment(query.endDate).endOf('d').toDate(),

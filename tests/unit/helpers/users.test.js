@@ -288,7 +288,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -324,7 +324,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -377,7 +377,7 @@ describe('getUsersListWithSectorHistories', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')

@@ -46,18 +46,6 @@ const contractCustomer = {
   driveFolder: { driveId: '1234567890' },
 };
 
-const userForContractCustomer = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Helper1', lastname: 'Carolyn' },
-  local: { email: 'helperForContractCustomer@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  refreshToken: uuidv4(),
-  company: authCompany._id,
-  customers: [contractCustomer._id],
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
-  passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
-};
-
 const otherCompanyContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
@@ -221,7 +209,6 @@ const otherCompanyContract = {
   endDate: null,
   user: otherCompanyContractUser._id,
   startDate: '2018-12-03T23:00:00.000Z',
-  status: 'contract_with_company',
   _id: otherCompanyContractUser.contracts[0],
   company: otherCompany._id,
   versions: [
@@ -248,28 +235,11 @@ const userFromOtherCompany = {
   company: otherCompany._id,
 };
 
-const customerFromOtherCompany = {
-  _id: new ObjectID(),
-  company: otherCompanyContract._id,
-  identity: { firstname: 'customer', lastname: 'toto' },
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0612345678',
-  },
-};
-
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
     user: contractUsers[0]._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_company',
     _id: contractUsers[0].contracts[0],
     company: authCompany._id,
     versions: [
@@ -287,28 +257,8 @@ const contractsList = [
     user: contractUsers[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     endDate: '2019-02-03T23:00:00.000Z',
-    status: 'contract_with_customer',
     _id: new ObjectID(),
     company: authCompany._id,
-    customer: contractCustomer._id,
-    versions: [
-      {
-        createdAt: '2018-12-04T16:34:04.144Z',
-        grossHourlyRate: 10.28,
-        startDate: '2018-12-03T23:00:00.000Z',
-        weeklyHours: 9,
-        _id: new ObjectID(),
-      },
-    ],
-  },
-  {
-    createdAt: '2018-12-04T16:34:04.144Z',
-    user: contractUsers[1]._id,
-    startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_customer',
-    _id: new ObjectID(),
-    company: authCompany._id,
-    customer: customerFromOtherCompany._id,
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
@@ -325,7 +275,6 @@ const contractsList = [
     company: authCompany._id,
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
-    status: 'contract_with_company',
     _id: new ObjectID(),
     versions: [
       {
@@ -343,7 +292,6 @@ const contractsList = [
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     endDate: '2018-09-02T17:12:55.144Z',
-    status: 'contract_with_company',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -362,7 +310,6 @@ const contractsList = [
     user: contractUsers[2]._id,
     startDate: '2017-08-02T17:12:55.144Z',
     endDate: '2017-09-02T17:12:55.144Z',
-    status: 'contract_with_company',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -380,7 +327,6 @@ const contractsList = [
     createdAt: '2018-08-02T17:12:55.144Z',
     user: contractUsers[3]._id,
     startDate: '2018-08-02T17:12:55.144Z',
-    status: 'contract_with_company',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -397,7 +343,6 @@ const contractsList = [
     createdAt: '2018-08-02T17:12:55.144Z',
     user: getUser('auxiliary_without_company')._id,
     startDate: '2018-08-02T17:12:55.144Z',
-    status: 'contract_with_company',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -421,7 +366,6 @@ const contractEvents = [
     startDate: '2019-08-08T14:00:18.653Z',
     endDate: '2019-08-08T16:00:18.653Z',
     auxiliary: contractUsers[0]._id,
-    customer: contractCustomer._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: { _id: new ObjectID(), name: 'Formation' },
   },
@@ -454,7 +398,6 @@ const contractEvents = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: contractUsers[0]._id,
@@ -474,7 +417,6 @@ const contractEvents = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: contractUsers[0]._id,
@@ -501,10 +443,8 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
-  await (new User(userForContractCustomer)).save();
   await new Sector(sector).save();
   await new Customer(contractCustomer).save();
-  await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
@@ -517,8 +457,6 @@ module.exports = {
   contractCustomer,
   contractEvents,
   otherCompanyContract,
-  customerFromOtherCompany,
   otherCompanyContractUser,
   userFromOtherCompany,
-  userForContractCustomer,
 };

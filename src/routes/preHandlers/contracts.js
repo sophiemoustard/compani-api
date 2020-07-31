@@ -24,11 +24,6 @@ exports.authorizeContractCreation = async (req) => {
   const { credentials } = req.auth;
   const companyId = credentials.company._id.toHexString();
 
-  if (payload.customer) {
-    const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
-    if (customer.company.toHexString() !== companyId) throw Boom.forbidden();
-  }
-
   const user = await User.findOne({ _id: payload.user }, { company: 1 }).lean();
   if (!user) throw Boom.forbidden();
   if (user.company.toHexString() !== companyId) throw Boom.forbidden();
@@ -48,11 +43,6 @@ exports.authorizeContractUpdate = async (req) => {
 
 exports.authorizeGetContract = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-
-  if (req.query.customer) {
-    const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
-    if (!customer) throw Boom.notFound();
-  }
 
   if (req.query.user) {
     const user = await User.findOne({ _id: req.query.user, company: companyId }).lean();

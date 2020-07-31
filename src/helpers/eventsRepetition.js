@@ -207,7 +207,6 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
     'subscription',
     'auxiliary',
     'sector',
-    'status',
     'misc',
     'internalHour',
     'address',

@@ -2,9 +2,7 @@
 
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
-
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
-const { CONTRACT_STATUS, END_CONTRACT_REASONS } = require('../models/Contract');
+const { END_CONTRACT_REASONS } = require('../models/Contract');
 const {
   list,
   create,
@@ -34,9 +32,7 @@ exports.plugin = {
         auth: { scope: ['contracts:edit', 'user:read-{query.user}', 'customer-{query.customer}'] },
         validate: {
           query: Joi.object().keys({
-            status: Joi.string(),
             user: Joi.objectId(),
-            customer: Joi.objectId(),
             startDate: Joi.date(),
             endDate: Joi.date(),
           }),
@@ -54,16 +50,10 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            status: Joi.string()
-              .required()
-              .valid(...CONTRACT_STATUS),
+            user: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
-              weeklyHours: Joi.number().when(Joi.ref('/status'), {
-                is: COMPANY_CONTRACT,
-                then: Joi.required(),
-                otherwise: Joi.forbidden(),
-              }),
+              weeklyHours: Joi.number().required(),
               startDate: Joi.date().required(),
               signature: Joi.object().keys({
                 templateId: Joi.string().required(),
@@ -76,21 +66,11 @@ exports.plugin = {
                 })).required(),
                 meta: Joi.object({
                   auxiliaryDriveId: Joi.string().required(),
-                  customerDriveId: Joi.string().when('status', {
-                    is: CUSTOMER_CONTRACT,
-                    then: Joi.required(),
-                    otherwise: Joi.forbidden(),
-                  }),
-                  status: Joi.string(),
                 }),
                 redirect: Joi.string().uri(),
                 redirectDecline: Joi.string().uri(),
               }),
             }).required()),
-            user: Joi.objectId().required(),
-            customer: Joi.objectId()
-              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })
-              .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
           }),
         },
         pre: [{ method: authorizeContractCreation }],
@@ -129,9 +109,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             startDate: Joi.date().required(),
-            endDate: Joi.date(),
-            weeklyHours: Joi.number(),
-            grossHourlyRate: Joi.number(),
+            weeklyHours: Joi.number().required(),
+            grossHourlyRate: Joi.number().required(),
             signature: Joi.object().keys({
               templateId: Joi.string().required(),
               fields: Joi.object(),
@@ -143,12 +122,6 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                customerDriveId: Joi.string().when('status', {
-                  is: CUSTOMER_CONTRACT,
-                  then: Joi.required(),
-                  otherwise: Joi.forbidden(),
-                }),
-                status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
@@ -185,12 +158,6 @@ exports.plugin = {
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
-                customerDriveId: Joi.string().when('status', {
-                  is: CUSTOMER_CONTRACT,
-                  then: Joi.required(),
-                  otherwise: Joi.forbidden(),
-                }),
-                status: Joi.string(),
               }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
@@ -242,12 +209,6 @@ exports.plugin = {
             fileName: Joi.string().required(),
             contractId: Joi.objectId().required(),
             versionId: Joi.objectId().required(),
-            customer: Joi.objectId().when('/status', {
-              is: CUSTOMER_CONTRACT,
-              then: Joi.required(),
-              otherwise: Joi.forbidden(),
-            }),
-            status: Joi.string().required().valid(...CONTRACT_STATUS),
             file: Joi.any().required(),
             type: Joi.string().required().valid('signedContract'),
           }),

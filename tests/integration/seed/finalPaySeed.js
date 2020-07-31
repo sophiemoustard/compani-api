@@ -60,7 +60,6 @@ const contract = {
   endReason: 'mutation',
   user: auxiliaryId,
   startDate: moment('2018-12-03T00:00:00').toDate(),
-  status: 'contract_with_company',
   _id: contractId,
   company: authCompany._id,
   versions: [
@@ -79,7 +78,6 @@ const event = {
   _id: new ObjectID(),
   company: authCompany._id,
   type: 'intervention',
-  status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
   endDate: '2019-05-12T11:00:00',
   auxiliary: auxiliaryId,
@@ -131,7 +129,6 @@ const customer = {
 
 const service = {
   _id: serviceId,
-  type: 'contract_with_company',
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,

@@ -210,7 +210,6 @@ const contracts = [
     startDate: moment('2018-10-10').toDate(),
     createdAt: moment('2018-10-10').toDate(),
     company: authCompany._id,
-    status: 'contract_with_company',
   },
   {
     _id: contractNotStartedId,
@@ -218,7 +217,6 @@ const contracts = [
     startDate: moment().add(1, 'month').toDate(),
     createdAt: moment('2018-10-10').toDate(),
     company: authCompany._id,
-    status: 'contract_with_company',
   },
 ];
 

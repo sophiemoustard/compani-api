@@ -604,7 +604,6 @@ describe('EVENTS ROUTES', () => {
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -633,7 +632,6 @@ describe('EVENTS ROUTES', () => {
           sector: sectors[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -704,7 +702,6 @@ describe('EVENTS ROUTES', () => {
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -740,7 +737,6 @@ describe('EVENTS ROUTES', () => {
         auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-        status: 'contract_with_company',
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -766,7 +762,6 @@ describe('EVENTS ROUTES', () => {
         },
         { payload: { ...omit(baseInterventionPayload, 'customer') }, reason: 'missing customer' },
         { payload: { ...omit(baseInterventionPayload, 'subscription') }, reason: 'missing subscription' },
-        { payload: { ...omit(baseInterventionPayload, 'status') }, reason: 'missing status' },
         { payload: { ...omit(baseInterventionPayload, 'type') }, reason: 'missing type' },
         { payload: { ...omit(baseInterventionPayload, 'startDate') }, reason: 'missing startDate' },
         { payload: { ...omit(baseInterventionPayload, 'endDate') }, reason: 'missing endDate' },
@@ -895,7 +890,6 @@ describe('EVENTS ROUTES', () => {
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -923,7 +917,6 @@ describe('EVENTS ROUTES', () => {
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -951,7 +944,6 @@ describe('EVENTS ROUTES', () => {
           auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -979,7 +971,6 @@ describe('EVENTS ROUTES', () => {
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-          status: 'contract_with_company',
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -1010,7 +1001,6 @@ describe('EVENTS ROUTES', () => {
         auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
-        status: 'contract_with_company',
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',

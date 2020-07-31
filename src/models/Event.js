@@ -27,7 +27,6 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
@@ -103,7 +102,6 @@ const EventSchema = mongoose.Schema(
       careHours: Number,
       surcharges: billEventSurchargesSchemaDefinition,
     },
-    status: { type: String, enum: CONTRACT_STATUS, required() { return this.type === INTERVENTION; } },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   },
   { timestamps: true }

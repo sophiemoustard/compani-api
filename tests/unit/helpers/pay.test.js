@@ -13,7 +13,6 @@ const DraftPayHelper = require('../../../src/helpers/draftPay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -127,33 +126,33 @@ describe('getContract', () => {
   const endDate = '2019-12-25';
 
   it('should return a contract if it has no endDate', async () => {
-    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10' }];
+    const contracts = [{ startDate: '2019-10-10' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeDefined();
-    expect(result).toEqual({ status: COMPANY_CONTRACT, startDate: '2019-10-10' });
+    expect(result).toEqual({ startDate: '2019-10-10' });
   });
 
   it('should return a contract if it has a endDate which is after our query startDate', async () => {
-    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-12-15' }];
+    const contracts = [{ startDate: '2019-10-10', endDate: '2019-12-15' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeDefined();
-    expect(result).toEqual({ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-12-15' });
+    expect(result).toEqual({ startDate: '2019-10-10', endDate: '2019-12-15' });
   });
 
   it('should return no contract if not a company contract', async () => {
-    const contracts = [{ status: CUSTOMER_CONTRACT, startDate: '2019-10-10' }];
+    const contracts = [];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
   });
 
   it('should return no contract if the contract has not yet started', async () => {
-    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2020-01-10' }];
+    const contracts = [{ startDate: '2020-01-10' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
   });
 
   it('should return no contract if the contract has a endDate which is before our query start date', async () => {
-    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-10-12' }];
+    const contracts = [{ startDate: '2019-10-10', endDate: '2019-10-12' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
   });
@@ -305,7 +304,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const draft = { name: 'brouillon' };
     computeAuxiliaryDraftPayStub.returns(draft);
 
-    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
+    const result =
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toEqual(draft);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -351,7 +351,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const events = [{ _id: new ObjectID() }];
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
 
-    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
+    const result =
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toEqual(pay);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -458,7 +459,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     getContractStub.returns(contract);
     getPreviousMonthPayStub.returns(prevPayList);
 
-    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
+    const result =
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toBe(null);
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
@@ -547,7 +549,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contract = { type: 'contract_with_company' };
+    const contract = { _id: 'poiuytre' };
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
@@ -590,10 +592,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryIds = [new ObjectID(), new ObjectID()];
     const usersFromSectorHistories = [{ auxiliaryId: auxiliaryIds[0] }, { auxiliaryId: auxiliaryIds[1] }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contracts = [
-      { type: 'contract_with_company', _id: auxiliaryIds[0] },
-      { type: 'contract_with_company', _id: auxiliaryIds[1] },
-    ];
+    const contracts = [{ _id: auxiliaryIds[0] }, { _id: auxiliaryIds[1] }];
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: auxiliaryIds } })
@@ -684,7 +683,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    const contract = { type: 'contract_with_company' };
+    const contract = { _id: 'poiuytr' };
     UserMock
       .expects('find')
       .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })

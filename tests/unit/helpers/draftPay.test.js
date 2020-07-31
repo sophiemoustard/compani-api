@@ -121,7 +121,9 @@ describe('getSurchargeDetails', () => {
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ '5d021ac76740b60f42af845b': { planName: 'Super Mario', Noel: { hours: 5, percentage: 35 } } });
+    expect(result).toEqual({
+      '5d021ac76740b60f42af845b': { planName: 'Super Mario', Noel: { hours: 5, percentage: 35 } },
+    });
   });
 
   it('Case 2. surcharge plan included in details but not surcharge type', () => {
@@ -130,7 +132,9 @@ describe('getSurchargeDetails', () => {
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ '5d021ac76740b60f42af845b': { planName: 'Super Mario', 10: { hours: 3 }, Noel: { hours: 2, percentage: 35 } } });
+    expect(result).toEqual({
+      '5d021ac76740b60f42af845b': { planName: 'Super Mario', 10: { hours: 3 }, Noel: { hours: 2, percentage: 35 } },
+    });
   });
 
   it('Case 3. surcharge plan and type not included in details', () => {
@@ -1190,7 +1194,7 @@ describe('getPayFromAbsences', () => {
         { absenceNature: 'daily', startDate: '2019-05-18T07:00:00', endDate: '2019-05-18T22:00:00' },
         { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
       ];
-      const contract = { 
+      const contract = {
         startDate: '2019-02-18T07:00:00',
         endDate: '2019-07-18T22:00:00',
         versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
@@ -1312,7 +1316,7 @@ describe('computeBalance', () => {
   });
 
   it('should return balance, contract begins during this month', async () => {
-    const contract = { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-05-13T00:00:00' };
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -1358,7 +1362,7 @@ describe('computeBalance', () => {
   });
 
   it('should return balance, contract ends during this month', async () => {
-    const contract = { startDate: '2019-04-13T00:00:00', endDate: '2019-05-15T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-04-13T00:00:00', endDate: '2019-05-15T00:00:00' };
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -1407,11 +1411,11 @@ describe('computeAuxiliaryDraftPay', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
+        { startDate: '2019-05-13T00:00:00' },
       ],
       administrative: { mutualFund: { has: true } },
     };
-    const contract = { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' };
+    const contract = { startDate: '2019-05-13T00:00:00' };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
@@ -1447,7 +1451,7 @@ describe('computeAuxiliaryDraftPay', () => {
     sinon.assert.calledWithExactly(
       computeBalance,
       auxiliary,
-      { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
+      { startDate: '2019-05-13T00:00:00' },
       events,
       company,
       query,
@@ -1565,7 +1569,7 @@ describe('computePrevPayDiff', () => {
 
   it('should return diff without prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
 
     getContractMonthInfo.returns({ contractHours: 34 });
@@ -1606,7 +1610,7 @@ describe('computePrevPayDiff', () => {
 
   it('should return diff with prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
     const prevPay = {
       contractHours: 34,
@@ -1661,7 +1665,7 @@ describe('computePrevPayDiff', () => {
 
   it('should not compute diff on future month', async () => {
     const query = { startDate: moment().startOf('M').toISOString(), endDate: moment().endOf('M').toISOString() };
-    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
 
     const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, null, query, [], []);
@@ -1771,12 +1775,10 @@ describe('computeDraftPayByAuxiliary', () => {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
-      contracts: [
-        { startDate: '2019-02-23T00:00:00', status: 'contract_with_customer' },
-      ],
+      contracts: [{ startDate: '2019-02-23T00:00:00' }],
       administrative: { mutualFund: { has: true } },
     };
-    const contract = { startDate: '2019-02-23T00:00:00', status: 'contract_with_customer' };
+    const contract = { startDate: '2019-02-23T00:00:00' };
     const events = { events: [[]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
@@ -1868,7 +1870,6 @@ describe('getAuxiliariesToPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        status: 'contract_with_company',
         startDate: { $lte: end },
         $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
       },

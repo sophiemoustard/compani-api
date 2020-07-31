@@ -12,8 +12,6 @@ const {
   INTERVENTION,
   ABSENCE,
   INTERNAL_HOUR,
-  CUSTOMER_CONTRACT,
-  COMPANY_CONTRACT,
 } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
@@ -50,99 +48,6 @@ describe('checkContracts', () => {
     expect(result).toBeFalsy();
   });
 
-  it(
-    'should return false if service event is customer contract and auxiliary doesn\'t have contract with customer',
-    async () => {
-      const subscriptionId = new ObjectID();
-      const sectorId = new ObjectID();
-      const event = {
-        auxiliary: (new ObjectID()).toHexString(),
-        customer: (new ObjectID()).toHexString(),
-        type: INTERVENTION,
-        subscription: subscriptionId.toHexString(),
-        startDate: '2019-10-02T08:00:00.000Z',
-        endDate: '2019-10-02T10:00:00.000Z',
-        sector: sectorId.toHexString(),
-      };
-      const customer = {
-        _id: event.customer,
-        subscriptions: [{
-          _id: subscriptionId,
-          service: {
-            type: CUSTOMER_CONTRACT,
-            versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-          },
-          versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
-        }],
-      };
-      CustomerModel.expects('findOne')
-        .chain('populate')
-        .chain('lean')
-        .once()
-        .returns(customer);
-
-      const contract = new Contract({
-        user: event.auxiliary,
-        customer: event.customer,
-        versions: [{}],
-        startDate: moment(event.startDate).add(1, 'd'),
-      });
-      findOneContract.returns(contract);
-
-      const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
-
-      const credentials = {};
-      const result = await EventsValidationHelper.checkContracts(event, user, credentials);
-      expect(result).toBeFalsy();
-    }
-  );
-
-  it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
-    const subscriptionId = new ObjectID();
-    const sectorId = new ObjectID();
-    const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      customer: (new ObjectID()).toHexString(),
-      type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-03T08:00:00.000Z',
-      endDate: '2019-10-03T10:00:00.000Z',
-      sector: sectorId.toHexString(),
-    };
-
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: subscriptionId,
-        service: {
-          type: CUSTOMER_CONTRACT,
-          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-        },
-        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
-      }],
-    };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
-
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{ weeklyHours: 12 }],
-      startDate: moment(event.startDate).subtract(1, 'd'),
-    };
-    findOneContract.returns(contract);
-
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
-
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
-
-    expect(result).toBeTruthy();
-  });
-
   it('should return false if company contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
@@ -160,10 +65,7 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: {
-          type: COMPANY_CONTRACT,
-          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-        },
+        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
@@ -177,7 +79,6 @@ describe('checkContracts', () => {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{}],
-      status: COMPANY_CONTRACT,
       startDate: moment(event.startDate).add(1, 'd'),
     };
     findOneContract.returns(contract);
@@ -207,10 +108,7 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: {
-          type: COMPANY_CONTRACT,
-          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-        },
+        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
@@ -224,7 +122,6 @@ describe('checkContracts', () => {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{ weeklyHours: 12 }],
-      status: COMPANY_CONTRACT,
       startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
@@ -253,10 +150,7 @@ describe('checkContracts', () => {
       _id: event.customer,
       subscriptions: [{
         _id: new ObjectID(),
-        service: {
-          type: COMPANY_CONTRACT,
-          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-        },
+        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
       }],
     };
@@ -270,7 +164,6 @@ describe('checkContracts', () => {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{ weeklyHours: 12 }],
-      status: COMPANY_CONTRACT,
       startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
@@ -297,7 +190,6 @@ describe('checkContracts', () => {
       subscriptions: [{
         _id: event.subscription,
         service: {
-          type: '',
           versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
         },
       }],
@@ -308,15 +200,9 @@ describe('checkContracts', () => {
       .once()
       .returns(customer);
 
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{}],
-      status: CUSTOMER_CONTRACT,
-    };
-    findOneContract.returns(contract);
+    findOneContract.returns(null);
 
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+    const user = { _id: event.auxiliary, contracts: [], sector: sectorId };
 
     const credentials = {};
     const result = await EventsValidationHelper.checkContracts(event, user, credentials);

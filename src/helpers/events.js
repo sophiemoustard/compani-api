@@ -11,7 +11,6 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
   NEVER,
-  COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
@@ -117,10 +116,8 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 exports.getListQuery = (query, credentials) => {
   const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
-
+  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
   if (type) rules.push({ type });
-  if (status) rules.push({ status });
 
   const sectorOrAuxiliary = [];
   if (auxiliary) {
@@ -200,7 +197,7 @@ exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(
     event,
-    ['isCancelled', 'startDate', 'endDate', 'status', 'internalHour.name', 'address.fullAddress']
+    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress']
   );
   if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
   if (event.sector) mainEventInfo.sector = event.sector.toHexString();
@@ -208,7 +205,7 @@ exports.isMiscOnlyUpdated = (event, payload) => {
 
   const mainPayloadInfo = pick(
     payload,
-    ['isCancelled', 'startDate', 'endDate', 'status', 'sector', 'auxiliary',
+    ['isCancelled', 'startDate', 'endDate', 'sector', 'auxiliary',
       'subscription', 'internalHour.name', 'address.fullAddress']
   );
   if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
@@ -293,21 +290,9 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { sector, _id: auxiliaryId } = contract.user;
 
-  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
-
-  if (customerSubscriptionsFromEvents.length === 0) return;
-  let correspondingSubs;
-  correspondingSubs = contract.status === COMPANY_CONTRACT
-    ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
-    : (correspondingSubs = customerSubscriptionsFromEvents
-      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
-
-  const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
-
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(
     contract.endDate,
     auxiliaryId,
-    correspondingSubsIds,
     companyId
   );
   const promises = [];
@@ -428,9 +413,6 @@ exports.getContractWeekInfo = (contract, query) => {
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
-  const isCompanyContract = cont.status === COMPANY_CONTRACT;
-  if (!isCompanyContract) return false;
-
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
   if (!contractStarted) return false;
 
