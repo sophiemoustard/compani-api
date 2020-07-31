@@ -39,7 +39,7 @@ exports.list = async (query) => {
   ];
 };
 
-exports.listUserCourses = credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
+exports.listUserCourses = async credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
@@ -67,6 +67,11 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate('slots')
   .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+  .lean();
+
+exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
+  .populate({ path: 'program', select: 'name image' })
+  .select('_id')
   .lean();
 
 exports.updateCourse = async (courseId, payload) =>

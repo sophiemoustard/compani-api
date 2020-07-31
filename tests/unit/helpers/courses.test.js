@@ -239,6 +239,33 @@ describe('getCoursePublicInfos', () => {
   });
 });
 
+describe('getTraineeCourse', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should return courses', async () => {
+    const course = { _id: new ObjectID() };
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name image' })
+      .chain('select')
+      .withExactArgs('_id')
+      .chain('lean')
+      .once()
+      .returns(course);
+
+    const result = await CourseHelper.getTraineeCourse(course._id);
+    expect(result).toMatchObject(course);
+  });
+});
+
 describe('updateCourse', () => {
   let CourseMock;
   beforeEach(() => {
