@@ -32,7 +32,7 @@ const CompanySchema = mongoose.Schema({
   customersFolderId: { type: String, required: true },
   auxiliariesFolderId: { type: String, required: true },
   rhConfig: {
-    contractWithCompany: { grossHourlyRate: { type: Number, default: 0 } },
+    grossHourlyRate: { type: Number, default: 0 },
     feeAmount: Number,
     amountPerKm: Number,
     transportSubs: [{
@@ -40,8 +40,8 @@ const CompanySchema = mongoose.Schema({
       price: Number,
     }],
     templates: {
-      contractWithCompany: driveResourceSchemaDefinition,
-      contractWithCompanyVersion: driveResourceSchemaDefinition,
+      contract: driveResourceSchemaDefinition,
+      contractVersion: driveResourceSchemaDefinition,
     },
   },
   customersConfig: {
