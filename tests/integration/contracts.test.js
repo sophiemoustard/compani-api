@@ -128,7 +128,7 @@ describe('CONTRACTS ROUTES', () => {
       generateSignatureRequestStub.restore();
     });
 
-    it('should create contract (company contract)', async () => {
+    it('should create contract', async () => {
       const payload = {
         startDate: '2019-09-01T00:00:00',
         versions: [{
@@ -587,7 +587,7 @@ describe('CONTRACTS ROUTES', () => {
       getFileByIdStub.restore();
     });
 
-    it('should upload a company contract', async () => {
+    it('should upload a contract', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
       const payload = {

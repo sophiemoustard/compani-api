@@ -643,7 +643,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     updateManyEvent.restore();
   });
 
-  it('should unassign future events linked to company contract', async () => {
+  it('should unassign future events linked to contract', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
     getUnassignedInterventions.returns(interventions);
 
@@ -746,7 +746,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     deleteMany.restore();
   });
 
-  it('should remove future non-intervention events linked to company contract', async () => {
+  it('should remove future non-intervention events linked to contract', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
     getEventsExceptInterventions.returns(events);
 
@@ -1005,7 +1005,7 @@ describe('updateAbsencesOnContractEnd', () => {
     updateMany.restore();
   });
 
-  it('should update future absences events linked to company contract', async () => {
+  it('should update future absences events linked to contract', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: userId };
     const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
     getAbsences.returns(absences);

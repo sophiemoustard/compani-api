@@ -206,7 +206,7 @@ describe('createContract', () => {
     RoleMock.restore();
   });
 
-  it('should create a new company contract', async () => {
+  it('should create a new contract', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -252,7 +252,7 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
-  it('should create a new company contract and generate a signature request', async () => {
+  it('should create a new contract and generate a signature request', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -356,7 +356,7 @@ describe('createContract', () => {
     UserMock.verify();
   });
 
-  it('should create a new company contract and create sector history', async () => {
+  it('should create a new contract and create sector history', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -402,7 +402,7 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
-  it('should throw a 400 error if new company contract startDate is before last ended company contract', async () => {
+  it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -1018,7 +1018,7 @@ describe('deleteVersion', () => {
     }
   });
 
-  it('should delete version and update previous version for company contract', async () => {
+  it('should delete version and update previous version', async () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
@@ -1152,7 +1152,7 @@ describe('uploadFile', () => {
 });
 
 describe('auxiliaryHasActiveContractOnDay', () => {
-  it('should return false as no company contract', () => {
+  it('should return false as no contract', () => {
     const contracts = [];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
@@ -1160,7 +1160,7 @@ describe('auxiliaryHasActiveContractOnDay', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return false as no company contract on day (startDate after day)', () => {
+  it('should return false as no contract on day (startDate after day)', () => {
     const contracts = [{ startDate: '2019-03-11T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
@@ -1168,7 +1168,7 @@ describe('auxiliaryHasActiveContractOnDay', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return false as no company contract on day (end date before day)', () => {
+  it('should return false as no contract on day (end date before day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
@@ -1176,7 +1176,7 @@ describe('auxiliaryHasActiveContractOnDay', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return true as company contract on day (end date after day)', () => {
+  it('should return true as contract on day (end date after day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
@@ -1184,7 +1184,7 @@ describe('auxiliaryHasActiveContractOnDay', () => {
     expect(result).toBeTruthy();
   });
 
-  it('should return true as company contract on day (no endDate)', () => {
+  it('should return true as contract on day (no endDate)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18' }];
     const date = '2019-01-11T08:38:18';
     const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
