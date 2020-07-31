@@ -93,7 +93,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
   },
 ]).option({ company: companyId });
 
-exports.getUserCompanyContracts = async (contractUserId, companyId) => Contract.find(
+exports.getUserContracts = async (contractUserId, companyId) => Contract.find(
   { company: companyId, user: contractUserId },
   { endDate: 1 },
   { sort: { endDate: -1 } }

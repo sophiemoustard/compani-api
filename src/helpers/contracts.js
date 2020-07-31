@@ -47,7 +47,7 @@ exports.getContractList = async (query, credentials) => {
 };
 
 exports.allContractEnded = async (contract, companyId) => {
-  const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
+  const userContracts = await ContractRepository.getUserContracts(contract.user, companyId);
   const notEndedContract = userContracts.filter(con => !con.endDate);
   if (notEndedContract.length) return false;
 
