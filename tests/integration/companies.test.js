@@ -237,7 +237,6 @@ describe('COMPANIES ROUTES', () => {
       billingAssistance: 'test@alenvi.io',
       rhConfig: {
         contractWithCompany: { grossHourlyRate: 10 },
-        contractWithCustomer: { grossHourlyRate: 5 },
         feeAmount: 2,
         amountPerKm: 10,
       },

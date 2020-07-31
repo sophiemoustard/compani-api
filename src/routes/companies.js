@@ -49,9 +49,6 @@ exports.plugin = {
               contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
               }),
-              contractWithCustomer: Joi.object().keys({
-                grossHourlyRate: Joi.number(),
-              }),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
@@ -67,14 +64,6 @@ exports.plugin = {
                   link: Joi.string().allow(null),
                 }),
                 contractWithCompanyVersion: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
-                contractWithCustomer: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
-                contractWithCustomerVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
                 }),
@@ -122,8 +111,6 @@ exports.plugin = {
             type: Joi.string().required().valid(
               'contractWithCompany',
               'contractWithCompanyVersion',
-              'contractWithCustomer',
-              'contractWithCustomerVersion',
               'debitMandate',
               'quote'
             ),
@@ -154,9 +141,6 @@ exports.plugin = {
             apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
-                grossHourlyRate: Joi.number(),
-              }).min(1),
-              contractWithCustomer: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
               }).min(1),
               feeAmount: Joi.number(),
