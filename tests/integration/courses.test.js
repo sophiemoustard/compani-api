@@ -134,14 +134,13 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesNumber);
       expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
-        program: pick(programsList[0], ['_id', 'name', 'image', 'steps']),
+        program: pick(programsList[0], ['_id', 'name', 'image']),
         trainer: null,
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
           endDate: moment('2020-03-20T11:00:00').toDate(),
           courseId: coursesList[3]._id,
           _id: expect.any(ObjectID),
-          step: expect.objectContaining({ name: 'etape' }),
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
@@ -381,6 +380,22 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
         expect(response.result.data.courses.length).toBe(role.numberOfCourse);
+        if (response.result.data.courses.length) {
+          expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
+            program: expect.objectContaining({
+              name: expect.any(String),
+              image: { link: expect.any(String), publicId: expect.any(String) },
+              steps: expect.arrayContaining([expect.any(ObjectID)]),
+            }),
+            slots: expect.arrayContaining([expect.objectContaining({
+              startDate: expect.any(Date),
+              endDate: expect.any(Date),
+              step: expect.objectContaining({
+                name: expect.any(String),
+              }),
+            })]),
+          }));
+        }
       });
     });
   });
