@@ -40,12 +40,12 @@ exports.checkContracts = async (event, user) => {
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
 
-    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
-    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
 
   return true;

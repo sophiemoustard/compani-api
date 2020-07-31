@@ -1151,11 +1151,11 @@ describe('uploadFile', () => {
   });
 });
 
-describe('auxiliaryHasActiveCompanyContractOnDay', () => {
+describe('auxiliaryHasActiveContractOnDay', () => {
   it('should return false as no company contract', () => {
     const contracts = [];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
@@ -1163,7 +1163,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return false as no company contract on day (startDate after day)', () => {
     const contracts = [{ startDate: '2019-03-11T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
@@ -1171,7 +1171,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return false as no company contract on day (end date before day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
@@ -1179,7 +1179,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return true as company contract on day (end date after day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeTruthy();
   });
@@ -1187,7 +1187,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return true as company contract on day (no endDate)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeTruthy();
   });
