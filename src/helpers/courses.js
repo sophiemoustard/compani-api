@@ -21,22 +21,30 @@ const { INTRA, INTER_B2B } = require('./constants');
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
-  if (!query.company) return CourseRepository.findCourseAndPopulate(query);
+  if (query.trainees) {
+    return Course.find(query, { misc: 1 })
+      .populate({ path: 'program', select: 'name' })
+      .populate({ path: 'slots', select: 'startDate endDate' })
+      .populate({ path: 'slotsToPlan', select: '_id' })
+      .lean();
+  }
+  if (query.company) {
+    const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
+    const interCourse = await CourseRepository.findCourseAndPopulate(
+      { ...omit(query, ['company']), type: INTER_B2B },
+      true
+    );
 
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-  const interCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), type: INTER_B2B },
-    true
-  );
-
-  return [
-    ...intraCourse,
-    ...interCourse.filter(course => course.companies.includes(query.company))
-      .map(course => ({
-        ...omit(course, ['companies']),
-        trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
-      })),
-  ];
+    return [
+      ...intraCourse,
+      ...interCourse.filter(course => course.companies.includes(query.company))
+        .map(course => ({
+          ...omit(course, ['companies']),
+          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+        })),
+    ];
+  }
+  return CourseRepository.findCourseAndPopulate(query);
 };
 
 exports.listUserCourses = async credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
