@@ -19,8 +19,8 @@ const {
   contractsList,
   contractUsers,
   contractEvents,
-  otherCompanyContract,
-  otherCompanyContractUser,
+  otherContract,
+  otherContractUser,
   userFromOtherCompany,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
@@ -128,7 +128,7 @@ describe('CONTRACTS ROUTES', () => {
       generateSignatureRequestStub.restore();
     });
 
-    it('should create contract (company contract)', async () => {
+    it('should create contract', async () => {
       const payload = {
         startDate: '2019-09-01T00:00:00',
         versions: [{
@@ -202,12 +202,12 @@ describe('CONTRACTS ROUTES', () => {
           grossHourlyRate: 10.43,
           startDate: '2019-09-01T00:00:00',
         }],
-        user: otherCompanyContractUser._id,
+        user: otherContractUser._id,
       };
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
-        payload: { ...payload, user: otherCompanyContractUser._id },
+        payload: { ...payload, user: otherContractUser._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -309,7 +309,7 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { endDate: moment().toDate() };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${otherCompanyContract._id}`,
+        url: `/contracts/${otherContract._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -433,7 +433,7 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${otherCompanyContract._id}/versions/${otherCompanyContract.versions[0]._id}`,
+        url: `/contracts/${otherContract._id}/versions/${otherContract.versions[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -587,7 +587,7 @@ describe('CONTRACTS ROUTES', () => {
       getFileByIdStub.restore();
     });
 
-    it('should upload a company contract', async () => {
+    it('should upload a contract', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
       const payload = {

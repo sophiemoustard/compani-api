@@ -12,7 +12,6 @@ const {
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
-const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const ContractsHelper = require('../helpers/contracts');
 const EventRepository = require('../repositories/EventRepository');
@@ -25,11 +24,8 @@ momentRange.extendMoment(moment);
 exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
 
-  // If the event is an intervention :
-  // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer
-  // on the day of the intervention
-  // - else (company contract subscription) the auxiliary should have an active contract on the day of the
-  // intervention and this customer should have an active subscription
+  // If the event is an intervention : the auxiliary should have an active contract on the day of the intervention
+  // and this customer should have an active subscription
   if (event.type === INTERVENTION) {
     let customer = await Customer
       .findOne({ _id: event.customer })
@@ -40,12 +36,12 @@ exports.checkContracts = async (event, user) => {
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
 
-    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
-    return ContractsHelper.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
 
   return true;

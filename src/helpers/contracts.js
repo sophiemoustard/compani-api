@@ -46,8 +46,8 @@ exports.getContractList = async (query, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.allCompanyContractEnded = async (contract, companyId) => {
-  const userContracts = await ContractRepository.getUserCompanyContracts(contract.user, companyId);
+exports.allContractsEnded = async (contract, companyId) => {
+  const userContracts = await ContractRepository.getUserContracts(contract.user, companyId);
   const notEndedContract = userContracts.filter(con => !con.endDate);
   if (notEndedContract.length) return false;
 
@@ -58,9 +58,9 @@ exports.allCompanyContractEnded = async (contract, companyId) => {
 };
 
 exports.isCreationAllowed = async (contract, user, companyId) => {
-  const allCompanyContractEnded = await exports.allCompanyContractEnded(contract, companyId);
+  const allContractsEnded = await exports.allContractsEnded(contract, companyId);
 
-  return allCompanyContractEnded && user.contractCreationMissingInfo.length === 0;
+  return allContractsEnded && user.contractCreationMissingInfo.length === 0;
 };
 
 exports.createContract = async (contractPayload, credentials) => {
@@ -333,6 +333,6 @@ exports.uploadFile = async (params, payload) => {
   return exports.createAndSaveFile(version, fileInfo);
 };
 
-exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
+exports.auxiliaryHasActiveContractOnDay = (contracts, day) => contracts.some(contract =>
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));

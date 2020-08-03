@@ -80,103 +80,103 @@ describe('getContractList', () => {
   });
 });
 
-describe('allCompanyContractEnded', () => {
-  let getUserCompanyContracts;
+describe('allContractsEnded', () => {
+  let getUserContracts;
   beforeEach(() => {
-    getUserCompanyContracts = sinon.stub(ContractRepository, 'getUserCompanyContracts');
+    getUserContracts = sinon.stub(ContractRepository, 'getUserContracts');
   });
   afterEach(() => {
-    getUserCompanyContracts.restore();
+    getUserContracts.restore();
   });
 
   it('should return true if contract not ended', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
-    getUserCompanyContracts.returns([
+    getUserContracts.returns([
       { _id: new ObjectID() },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return true if contract startDate before existing contracts end date', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
-    getUserCompanyContracts.returns([
+    getUserContracts.returns([
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if no contract', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID() };
-    getUserCompanyContracts.returns([]);
-    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+    getUserContracts.returns([]);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if startDate after existing contracts end date', async () => {
     const companyId = new ObjectID();
     const contract = { user: new ObjectID(), startDate: '2020-04-15T00:00:00' };
-    getUserCompanyContracts.returns([
+    getUserContracts.returns([
       { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
       { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
     ]);
-    const result = await ContractHelper.allCompanyContractEnded(contract, companyId);
+    const result = await ContractHelper.allContractsEnded(contract, companyId);
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(getUserCompanyContracts, contract.user, companyId);
+    sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
 });
 
 describe('isCreationAllowed', () => {
-  let allCompanyContractEnded;
+  let allContractsEnded;
   beforeEach(() => {
-    allCompanyContractEnded = sinon.stub(ContractHelper, 'allCompanyContractEnded');
+    allContractsEnded = sinon.stub(ContractHelper, 'allContractsEnded');
   });
   afterEach(() => {
-    allCompanyContractEnded.restore();
+    allContractsEnded.restore();
   });
 
   it('should return false if not ended contract', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: userId, contractCreationMissingInfo: [] };
-    allCompanyContractEnded.returns(false);
+    allContractsEnded.returns(false);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return false if user does not have mandatoy info', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
-    allCompanyContractEnded.returns(true);
+    allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return true if all contract ended and user has mandatoy info', async () => {
     const userId = new ObjectID();
     const contract = { user: userId };
     const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
-    allCompanyContractEnded.returns(true);
+    allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(allCompanyContractEnded, contract, '1234567890');
+    sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
 });
 
@@ -206,7 +206,7 @@ describe('createContract', () => {
     RoleMock.restore();
   });
 
-  it('should create a new company contract', async () => {
+  it('should create a new contract', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -252,7 +252,7 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
-  it('should create a new company contract and generate a signature request', async () => {
+  it('should create a new contract and generate a signature request', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -356,7 +356,7 @@ describe('createContract', () => {
     UserMock.verify();
   });
 
-  it('should create a new company contract and create sector history', async () => {
+  it('should create a new contract and create sector history', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -402,7 +402,7 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
-  it('should throw a 400 error if new company contract startDate is before last ended company contract', async () => {
+  it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
     const payload = {
       _id: new ObjectID(),
       endDate: null,
@@ -1018,7 +1018,7 @@ describe('deleteVersion', () => {
     }
   });
 
-  it('should delete version and update previous version for company contract', async () => {
+  it('should delete version and update previous version', async () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
@@ -1151,43 +1151,43 @@ describe('uploadFile', () => {
   });
 });
 
-describe('auxiliaryHasActiveCompanyContractOnDay', () => {
-  it('should return false as no company contract', () => {
+describe('auxiliaryHasActiveContractOnDay', () => {
+  it('should return false as no contract', () => {
     const contracts = [];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
 
-  it('should return false as no company contract on day (startDate after day)', () => {
+  it('should return false as no contract on day (startDate after day)', () => {
     const contracts = [{ startDate: '2019-03-11T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
 
-  it('should return false as no company contract on day (end date before day)', () => {
+  it('should return false as no contract on day (end date before day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeFalsy();
   });
 
-  it('should return true as company contract on day (end date after day)', () => {
+  it('should return true as contract on day (end date after day)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18', endDate: '2019-01-31T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeTruthy();
   });
 
-  it('should return true as company contract on day (no endDate)', () => {
+  it('should return true as contract on day (no endDate)', () => {
     const contracts = [{ startDate: '2019-01-01T08:38:18' }];
     const date = '2019-01-11T08:38:18';
-    const result = ContractHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+    const result = ContractHelper.auxiliaryHasActiveContractOnDay(contracts, date);
 
     expect(result).toBeTruthy();
   });

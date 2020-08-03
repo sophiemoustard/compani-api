@@ -48,7 +48,7 @@ describe('checkContracts', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return false if company contract and no active contract on day', async () => {
+  it('should return false if contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
@@ -91,7 +91,7 @@ describe('checkContracts', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return true if company contract and active contract on day', async () => {
+  it('should return true if contract and active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
@@ -134,7 +134,7 @@ describe('checkContracts', () => {
     expect(result).toBeTruthy();
   });
 
-  it('should return false if company contract and customer has no subscription', async () => {
+  it('should return false if customer has no subscription', async () => {
     const sectorId = new ObjectID();
     const event = {
       auxiliary: (new ObjectID()).toHexString(),

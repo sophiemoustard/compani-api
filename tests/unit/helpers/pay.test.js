@@ -139,7 +139,7 @@ describe('getContract', () => {
     expect(result).toEqual({ startDate: '2019-10-10', endDate: '2019-12-15' });
   });
 
-  it('should return no contract if not a company contract', async () => {
+  it('should return undefined if no contract', async () => {
     const contracts = [];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
