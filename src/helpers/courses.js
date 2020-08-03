@@ -39,7 +39,10 @@ exports.list = async (query) => {
   ];
 };
 
-exports.listUserCourses = async credentials => CourseRepository.findCourseAndPopulate({ trainees: credentials._id });
+exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
+  .populate({ path: 'program', select: 'name image steps' })
+  .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+  .lean();
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');

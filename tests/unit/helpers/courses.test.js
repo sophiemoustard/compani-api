@@ -98,23 +98,29 @@ describe('list', () => {
 });
 
 describe('listUserCourses', () => {
-  let findCourseAndPopulate;
+  let CourseMock;
 
   beforeEach(() => {
-    findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
-    findCourseAndPopulate.restore();
+    CourseMock.restore();
   });
 
   it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
-    findCourseAndPopulate.returns(coursesList);
+    CourseMock.expects('find')
+      .withExactArgs({ trainees: '1234567890abcdef12345678' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name image steps' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+      .chain('lean')
+      .returns(coursesList);
 
     const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
-    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainees: '1234567890abcdef12345678' });
   });
 });
 

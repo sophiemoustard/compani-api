@@ -380,6 +380,22 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
         expect(response.result.data.courses.length).toBe(role.numberOfCourse);
+        if (response.result.data.courses.length) {
+          expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
+            program: expect.objectContaining({
+              name: expect.any(String),
+              image: { link: expect.any(String), publicId: expect.any(String) },
+              steps: expect.arrayContaining([expect.any(ObjectID)]),
+            }),
+            slots: expect.arrayContaining([expect.objectContaining({
+              startDate: expect.any(Date),
+              endDate: expect.any(Date),
+              step: expect.objectContaining({
+                type: expect.any(String),
+              }),
+            })]),
+          }));
+        }
       });
     });
   });
