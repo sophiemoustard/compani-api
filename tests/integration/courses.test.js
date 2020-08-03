@@ -391,7 +391,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
               startDate: expect.any(Date),
               endDate: expect.any(Date),
               step: expect.objectContaining({
-                name: expect.any(String),
+                type: expect.any(String),
               }),
             })]),
           }));

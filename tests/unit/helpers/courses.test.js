@@ -115,7 +115,7 @@ describe('listUserCourses', () => {
       .chain('populate')
       .withExactArgs({ path: 'program', select: 'name image steps' })
       .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'name' } })
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
       .chain('lean')
       .returns(coursesList);
 
