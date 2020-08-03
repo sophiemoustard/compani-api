@@ -259,6 +259,7 @@ module.exports = {
   TITLE_TEXT_MEDIA: 'title_text_media',
   TITLE_TEXT: 'title_text',
   TEXT_MEDIA: 'text_media',
+  FLASHCARD: 'flashcard',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
