@@ -60,9 +60,9 @@ exports.plugin = {
                 fields: Joi.object(),
                 title: Joi.string().required(),
                 signers: Joi.array().items(Joi.object().keys({
-                  id: Joi.string(),
-                  name: Joi.string(),
-                  email: Joi.string(),
+                  id: Joi.string().required(),
+                  name: Joi.string().required(),
+                  email: Joi.string().required(),
                 })).required(),
                 meta: Joi.object({
                   auxiliaryDriveId: Joi.string().required(),
@@ -116,9 +116,9 @@ exports.plugin = {
               fields: Joi.object(),
               title: Joi.string().required(),
               signers: Joi.array().items(Joi.object().keys({
-                id: Joi.string(),
-                name: Joi.string(),
-                email: Joi.string(),
+                id: Joi.string().required(),
+                name: Joi.string().required(),
+                email: Joi.string().required(),
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
@@ -152,9 +152,9 @@ exports.plugin = {
               fields: Joi.object(),
               title: Joi.string().required(),
               signers: Joi.array().items(Joi.object().keys({
-                id: Joi.string(),
-                name: Joi.string(),
-                email: Joi.string(),
+                id: Joi.string().required(),
+                name: Joi.string().required(),
+                email: Joi.string().required(),
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
