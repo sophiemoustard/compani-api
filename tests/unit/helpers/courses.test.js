@@ -87,9 +87,7 @@ describe('list', () => {
       .once()
       .returns(coursesList);
 
-    console.log('before');
     const result = await CourseHelper.list(query);
-    console.log('after');
     expect(result).toMatchObject(coursesList);
     sinon.assert.notCalled(findCourseAndPopulate);
   });

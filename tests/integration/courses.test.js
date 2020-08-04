@@ -204,8 +204,20 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should get course if trainee from same company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainees=${helper._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
+
     it('should not get course if trainee from different company', async () => {
-      authToken = await getToken('coach');
+      authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
         url: `/courses?trainees=${traineeFromOtherCompany._id}`,
