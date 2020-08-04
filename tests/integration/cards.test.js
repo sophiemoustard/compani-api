@@ -16,11 +16,16 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ACTIVITY ROUTES - PUT /cards/{_id}', () => {
+describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const cardId = cardsList[0]._id;
-  const payload = { title: 'rigoler', text: 'c\'est bien', media: { publicId: '12345', link: '0987654' } };
+  const payload = {
+    title: 'rigoler',
+    text: 'c\'est bien',
+    media: { publicId: '12345', link: '0987654' },
+    backText: 'text verso',
+  };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {

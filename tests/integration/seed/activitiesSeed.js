@@ -3,14 +3,15 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
-const { TRANSITION } = require('../../../src/helpers/constants');
+const { TRANSITION, FLASHCARD } = require('../../../src/helpers/constants');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION },
+  { _id: new ObjectID(), template: FLASHCARD, backText: 'ceci est un backText' },
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'manger', cards: [cardsList[0]._id] },
+  { _id: new ObjectID(), name: 'manger', cards: [cardsList[0]._id, cardsList[1]._id] },
   { _id: new ObjectID(), name: 'bouger' },
   { _id: new ObjectID(), name: 'fumer' },
 ];

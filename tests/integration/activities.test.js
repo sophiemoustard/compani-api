@@ -36,6 +36,11 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
         cards: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
           template: 'transition',
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          template: 'flashcard',
+          backText: 'ceci est un backText',
         })]),
       }));
     });
