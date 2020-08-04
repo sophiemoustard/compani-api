@@ -90,6 +90,7 @@ describe('list', () => {
     const result = await CourseHelper.list(query);
     expect(result).toMatchObject(coursesList);
     sinon.assert.notCalled(findCourseAndPopulate);
+    CourseMock.verify();
   });
 
   it('should return courses, called with query.company', async () => {

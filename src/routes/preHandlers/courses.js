@@ -26,7 +26,7 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && userId === courseTrainerId;
   const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
-    && userCompanyId !== null
+    && userCompanyId
     && (userCompanyId === courseCompanyId || userCompanyId === traineeCompanyId);
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
