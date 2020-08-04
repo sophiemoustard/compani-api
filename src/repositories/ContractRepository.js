@@ -38,14 +38,7 @@ const payLookupPipeline = (payCollection, end) => {
 exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyId) => Contract.aggregate([
   { $match: { ...contractRules } },
   { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
+  { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'auxiliary' } },
   { $unwind: { path: '$auxiliary' } },
   {
     $lookup: {
@@ -66,9 +59,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
         },
         { $sort: { startDate: -1 } },
         { $limit: 1 },
-        {
-          $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-        },
+        { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
         { $unwind: { path: '$lastSector' } },
         { $replaceRoot: { newRoot: '$lastSector' } },
       ],
