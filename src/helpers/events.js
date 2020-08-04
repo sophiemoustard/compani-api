@@ -290,7 +290,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { sector, _id: auxiliaryId } = contract.user;
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(
+  const unassignedInterventions = await EventRepository.getInterventionsToUnassign(
     contract.endDate,
     auxiliaryId,
     companyId
