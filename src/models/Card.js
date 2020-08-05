@@ -7,6 +7,7 @@ const CardSchema = mongoose.Schema({
   template: { type: String, enum: CARD_TEMPLATES, immutable: true, required: true },
   title: { type: String },
   text: { type: String },
+  backText: { type: String },
   media: {
     publicId: { type: String },
     link: { type: String, trim: true },
