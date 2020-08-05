@@ -32,18 +32,39 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it("should update card's title", async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/cards/${cardId.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
+    const cards = [
+      { template: 'transition', payload: { title: 'transition' }, id: cardsList[0]._id },
+      {
+        template: 'title_text_media',
+        payload: { title: 'TTM', text: 'test', media: { link: 'lien', publicId: 'id' } },
+        id: cardsList[1]._id,
+      },
+      { template: 'title_text', payload: { title: 'titre', text: 'this is a text' }, id: cardsList[2]._id },
+      {
+        template: 'text_media',
+        payload: { text: 'still a text', media: { link: '123', publicId: '456' } },
+        id: cardsList[3]._id,
+      },
+      { template: 'flashcard', payload: { backText: 'verso', text: 'this is a text' }, id: cardsList[4]._id },
+    ];
+
+    cards.forEach((card) => {
+      it(`should update a ${card.template} card`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/cards/${card.id.toHexString()}`,
+          payload: card.payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        const cardUpdated = await Card.findById(card.id).lean();
+
+        expect(response.statusCode).toBe(200);
+
+        const expectedObject = omit(card.payload, ['media']);
+        if (card.payload.media) expectedObject.media = expect.objectContaining(card.payload.media);
+        expect(cardUpdated).toEqual(expect.objectContaining(expectedObject));
       });
-
-      const cardUpdated = await Card.findById(cardId);
-
-      expect(response.statusCode).toBe(200);
-      expect(cardUpdated).toEqual(expect.objectContaining({ _id: cardId, title: 'rigoler' }));
     });
 
     it("should return a 400 if title is equal to '' ", async () => {
