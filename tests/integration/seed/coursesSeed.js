@@ -156,4 +156,5 @@ module.exports = {
   auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
+  slots,
 };

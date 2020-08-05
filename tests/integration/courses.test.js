@@ -22,6 +22,7 @@ const {
   clientAdmin,
   trainerOrganisationManager,
   traineeFromOtherCompany,
+  slots,
 }
   = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
@@ -493,7 +494,15 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data.course).toEqual(expect.objectContaining({
       _id: courseId,
-      program: pick(programsList[0], ['_id', 'name', 'image']),
+      program: {
+        ...pick(programsList[0], ['_id', 'name', 'image']),
+        steps: expect.arrayContaining([expect.objectContaining({ name: 'etape', type: 'on_site' })]),
+      },
+      slots: expect.arrayContaining([
+        expect.objectContaining({
+          ...pick(slots[0], ['startDate, endDate, step']),
+        }),
+      ]),
     }));
   });
 
