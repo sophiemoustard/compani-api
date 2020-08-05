@@ -309,53 +309,6 @@ describe('createContract', () => {
     expect(result).toEqual(expect.objectContaining(contractWithDoc));
   });
 
-  it('should create a new customer contract', async () => {
-    const payload = {
-      _id: new ObjectID(),
-      endDate: null,
-      user: new ObjectID(),
-      startDate: moment('2018-12-03T23:00:00').toDate(),
-      versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
-    };
-    const credentials = { company: { _id: '1234567890' } };
-    const contract = { ...payload, company: '1234567890' };
-    const role = { _id: new ObjectID(), interface: 'client' };
-    const user = { name: 'Toto' };
-
-    isCreationAllowed.returns(true);
-
-    ContractMock.expects('create')
-      .withExactArgs(contract)
-      .returns(contract);
-    RoleMock.expects('findOne')
-      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(role);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: payload.user })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(user)
-      .once();
-    UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
-      )
-      .once();
-
-    const result = await ContractHelper.createContract(payload, credentials);
-
-    sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
-    sinon.assert.notCalled(createHistoryOnContractCreation);
-    expect(result).toEqual(expect.objectContaining(contract));
-    ContractMock.verify();
-    UserMock.verify();
-  });
-
   it('should create a new contract and create sector history', async () => {
     const payload = {
       _id: new ObjectID(),
