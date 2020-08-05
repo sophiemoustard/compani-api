@@ -30,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['contracts:edit', 'user:read-{query.user}', 'customer-{query.customer}'] },
+        auth: { scope: ['contracts:edit', 'user:read-{query.user}'] },
         validate: {
           query: Joi.object().keys({
             user: Joi.objectId(),
