@@ -16,7 +16,7 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.checkAuthorization = (courseTrainerId, courseCompanyId, credentials) => {
+exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, traineeCompanyId = null) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
@@ -26,7 +26,8 @@ exports.checkAuthorization = (courseTrainerId, courseCompanyId, credentials) => 
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && userId === courseTrainerId;
   const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
-    && userCompanyId === courseCompanyId;
+    && userCompanyId
+    && (userCompanyId === courseCompanyId || userCompanyId === traineeCompanyId);
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
@@ -39,7 +40,7 @@ exports.authorizeCourseEdit = async (req) => {
 
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
-    this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+    this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
     return null;
   } catch (e) {
@@ -53,7 +54,15 @@ exports.authorizeGetCourseList = async (req) => {
 
   const courseTrainerId = get(req, 'query.trainer');
   const courseCompanyId = get(req, 'query.company');
-  this.checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+  const traineeId = get(req, 'query.trainees');
+
+  let traineeCompanyId = null;
+  if (traineeId) {
+    const trainee = await User.findOne({ _id: traineeId }).lean();
+    traineeCompanyId = trainee.company._id.toHexString();
+  }
+
+  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, traineeCompanyId);
 
   return null;
 };

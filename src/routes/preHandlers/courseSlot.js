@@ -27,7 +27,7 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
   const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
   const courseCompanyId = course.company ? course.company.toHexString() : null;
 
-  checkAuthorization(courseTrainerId, courseCompanyId, credentials);
+  checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 };
 
 const checkPayload = async (courseId, payload) => {
