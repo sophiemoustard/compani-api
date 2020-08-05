@@ -599,7 +599,7 @@ describe('removeRepetitionsOnContractEnd', () => {
 });
 
 describe('unassignInterventionsOnContractEnd', () => {
-  let getUnassignedInterventions;
+  let getInterventionsToUnassign;
   let createEventHistoryOnUpdate;
   let updateManyEvent;
 
@@ -633,23 +633,23 @@ describe('unassignInterventionsOnContractEnd', () => {
   ];
 
   beforeEach(() => {
-    getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
+    getInterventionsToUnassign = sinon.stub(EventRepository, 'getInterventionsToUnassign');
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     updateManyEvent = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
-    getUnassignedInterventions.restore();
+    getInterventionsToUnassign.restore();
     createEventHistoryOnUpdate.restore();
     updateManyEvent.restore();
   });
 
   it('should unassign future events linked to contract', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getUnassignedInterventions.returns(interventions);
+    getInterventionsToUnassign.returns(interventions);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.calledWithExactly(
-      getUnassignedInterventions,
+      getInterventionsToUnassign,
       contract.endDate,
       contract.user._id,
       companyId
@@ -664,7 +664,7 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   it('should create event history for repetition', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getUnassignedInterventions.returns([interventions[1]]);
+    getInterventionsToUnassign.returns([interventions[1]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.calledWithExactly(
@@ -687,7 +687,7 @@ describe('unassignInterventionsOnContractEnd', () => {
 
   it('should create event history for non repeated event', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
-    getUnassignedInterventions.returns([interventions[0]]);
+    getInterventionsToUnassign.returns([interventions[0]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.calledWithExactly(

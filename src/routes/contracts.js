@@ -3,6 +3,7 @@
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { END_CONTRACT_REASONS } = require('../models/Contract');
+const { OTHER } = require('../helpers/constants');
 const {
   list,
   create,
@@ -60,15 +61,15 @@ exports.plugin = {
                 fields: Joi.object(),
                 title: Joi.string().required(),
                 signers: Joi.array().items(Joi.object().keys({
-                  id: Joi.string(),
-                  name: Joi.string(),
-                  email: Joi.string(),
+                  id: Joi.string().required(),
+                  name: Joi.string().required(),
+                  email: Joi.string().required(),
                 })).required(),
                 meta: Joi.object({
                   auxiliaryDriveId: Joi.string().required(),
                 }),
-                redirect: Joi.string().uri(),
-                redirectDecline: Joi.string().uri(),
+                redirect: Joi.string().uri().required(),
+                redirectDecline: Joi.string().uri().required(),
               }),
             }).required()),
           }),
@@ -86,10 +87,10 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            endDate: Joi.date(),
-            endReason: Joi.string().valid(...END_CONTRACT_REASONS),
-            otherMisc: Joi.string(),
-            endNotificationDate: Joi.date(),
+            endDate: Joi.date().required(),
+            endReason: Joi.string().valid(...END_CONTRACT_REASONS).required(),
+            otherMisc: Joi.string().when('endReason', { is: OTHER, then: Joi.required(), otherwise: Joi.forbidden() }),
+            endNotificationDate: Joi.date().required(),
           }),
         },
         pre: [
@@ -116,15 +117,15 @@ exports.plugin = {
               fields: Joi.object(),
               title: Joi.string().required(),
               signers: Joi.array().items(Joi.object().keys({
-                id: Joi.string(),
-                name: Joi.string(),
-                email: Joi.string(),
+                id: Joi.string().required(),
+                name: Joi.string().required(),
+                email: Joi.string().required(),
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
               }),
-              redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri(),
+              redirect: Joi.string().uri().required(),
+              redirectDecline: Joi.string().uri().required(),
             }),
           }),
         },
@@ -152,15 +153,15 @@ exports.plugin = {
               fields: Joi.object(),
               title: Joi.string().required(),
               signers: Joi.array().items(Joi.object().keys({
-                id: Joi.string(),
-                name: Joi.string(),
-                email: Joi.string(),
+                id: Joi.string().required(),
+                name: Joi.string().required(),
+                email: Joi.string().required(),
               })).required(),
               meta: Joi.object({
                 auxiliaryDriveId: Joi.string().required(),
               }),
-              redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri(),
+              redirect: Joi.string().uri().required(),
+              redirectDecline: Joi.string().uri().required(),
             }),
           }),
         },

@@ -290,14 +290,14 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { sector, _id: auxiliaryId } = contract.user;
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(
+  const interventionsToUnassign = await EventRepository.getInterventionsToUnassign(
     contract.endDate,
     auxiliaryId,
     companyId
   );
   const promises = [];
   const ids = [];
-  for (const group of unassignedInterventions) {
+  for (const group of interventionsToUnassign) {
     if (group._id) {
       const { startDate, endDate, misc } = group.events[0];
       const payload = { startDate, endDate, misc, shouldUpdateRepetition: true };

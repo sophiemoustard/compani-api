@@ -292,7 +292,7 @@ exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate
   { $group: { _id: '$_id', events: { $push: '$events' } } },
 ]).option({ company: companyId });
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, companyId) =>
+exports.getInterventionsToUnassign = async (maxDate, auxiliary, companyId) =>
   exports.getEventsGroupedByParentId({
     startDate: { $gt: maxDate },
     auxiliary,

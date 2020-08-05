@@ -1848,25 +1848,26 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 });
 
-describe('getAuxiliariesToPay', () => {
+describe('getDraftPay', () => {
   let getAuxiliariesToPay;
+  let computeDraftPayByAuxiliary;
   beforeEach(() => {
     getAuxiliariesToPay = sinon.stub(ContractRepository, 'getAuxiliariesToPay');
+    computeDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'computeDraftPayByAuxiliary');
   });
   afterEach(() => {
     getAuxiliariesToPay.restore();
+    computeDraftPayByAuxiliary.restore();
   });
 
-  it('should return auxiliaries', async () => {
-    const end = '2019-05-31T23:59:59';
+  it('should return an empty array if no auxiliary', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const end = moment(query.endDate).endOf('d').toDate();
     const credentials = { company: { _id: '1234567890' } };
-    const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
+    getAuxiliariesToPay.returns([]);
+    const result = await DraftPayHelper.getDraftPay(query, credentials);
 
-    getAuxiliariesToPay.returns(auxiliaries);
-    const result = await DraftPayHelper.getAuxiliariesToPay(end, credentials);
-
-    expect(result).toBeDefined();
-    expect(result).toEqual(auxiliaries);
+    expect(result).toEqual([]);
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
@@ -1877,40 +1878,27 @@ describe('getAuxiliariesToPay', () => {
       'pays',
       credentials.company._id
     );
-  });
-});
-
-describe('getDraftPay', () => {
-  let getAuxiliariesToPay;
-  let computeDraftPayByAuxiliary;
-  beforeEach(() => {
-    getAuxiliariesToPay = sinon.stub(DraftPayHelper, 'getAuxiliariesToPay');
-    computeDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'computeDraftPayByAuxiliary');
-  });
-  afterEach(() => {
-    getAuxiliariesToPay.restore();
-    computeDraftPayByAuxiliary.restore();
-  });
-
-  it('should return an empty array if no auxiliary', async () => {
-    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const credentials = { company: { _id: '1234567890' } };
-    getAuxiliariesToPay.returns([]);
-    const result = await DraftPayHelper.getDraftPay(query, credentials);
-
-    expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
     sinon.assert.notCalled(computeDraftPayByAuxiliary);
   });
 
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const end = moment(query.endDate).endOf('d').toDate();
     const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
     const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);
 
-    sinon.assert.calledWithExactly(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
+    sinon.assert.calledWithExactly(
+      getAuxiliariesToPay,
+      {
+        startDate: { $lte: end },
+        $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
+      },
+      end,
+      'pays',
+      credentials.company._id
+    );
     sinon.assert.calledWithExactly(
       computeDraftPayByAuxiliary,
       auxiliaries,
