@@ -10,7 +10,7 @@ const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
-const contractCustomer = {
+const customer = {
   _id: new ObjectID(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
@@ -401,9 +401,9 @@ const contractEvents = [
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: contractUsers[0]._id,
-    customer: contractCustomer._id,
+    customer: customer._id,
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: contractCustomer.subscriptions[0]._id,
+    subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -420,9 +420,9 @@ const contractEvents = [
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: contractUsers[0]._id,
-    customer: contractCustomer._id,
+    customer: customer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: contractCustomer.subscriptions[0]._id,
+    subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -444,7 +444,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
   await new Sector(sector).save();
-  await new Customer(contractCustomer).save();
+  await new Customer(customer).save();
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
@@ -454,7 +454,7 @@ module.exports = {
   contractsList,
   populateDB,
   contractUsers,
-  contractCustomer,
+  customer,
   contractEvents,
   otherContract,
   otherContractUser,
