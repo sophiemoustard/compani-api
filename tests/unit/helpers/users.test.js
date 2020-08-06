@@ -444,10 +444,6 @@ describe('getUser', () => {
     userMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'contracts' })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
       .withExactArgs({
         path: 'sector',
         select: '_id sector',
@@ -470,10 +466,6 @@ describe('getUser', () => {
       const credentials = { company: { _id: new ObjectID() }, role: { vendor: { _id: new ObjectID() } } };
       userMock.expects('findOne')
         .withExactArgs({ _id: userId })
-        .chain('populate')
-        .withExactArgs({ path: 'customers', select: 'contracts' })
-        .chain('populate')
-        .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
         .chain('populate')
         .withExactArgs({
           path: 'sector',

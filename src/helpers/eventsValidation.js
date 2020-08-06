@@ -39,7 +39,6 @@ exports.checkContracts = async (event, user) => {
     return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
 
-  // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
     return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
   }
