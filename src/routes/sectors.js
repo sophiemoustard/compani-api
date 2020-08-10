@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeSectorUpdate, authorizeSectorDeletion, getSector } = require('./preHandlers/sectors');
 const {

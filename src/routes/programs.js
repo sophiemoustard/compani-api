@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, getById, update, addStep, uploadImage } = require('../controllers/programController');
 const { STEP_TYPES } = require('../models/Step');

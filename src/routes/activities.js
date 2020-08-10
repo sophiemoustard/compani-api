@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { getById, update, addCard } = require('../controllers/activityController');
 const { CARD_TEMPLATES } = require('../models/Card');

@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { END_CONTRACT_REASONS } = require('../models/Contract');
 const { OTHER } = require('../helpers/constants');

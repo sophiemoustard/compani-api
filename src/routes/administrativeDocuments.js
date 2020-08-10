@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeAdministrativeDocumentDeletion } = require('./preHandlers/administrativeDocuments');
 const { create, list, remove } = require('../controllers/administrativeDocumentController');

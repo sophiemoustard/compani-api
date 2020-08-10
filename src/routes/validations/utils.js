@@ -1,4 +1,4 @@
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const { MONTH_VALIDATION, PHONE_VALIDATION } = require('../../models/utils');
 
 const monthValidation = Joi.string().regex(new RegExp(MONTH_VALIDATION));

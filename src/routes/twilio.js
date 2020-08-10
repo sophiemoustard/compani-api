@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const { send } = require('../controllers/twilioController');
 const { authorizeSendSms } = require('./preHandlers/twilio');
 
