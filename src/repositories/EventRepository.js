@@ -10,7 +10,6 @@ const {
   INTERVENTION,
   ABSENCE,
   INVOICED_AND_PAID,
-  COMPANY_CONTRACT,
   NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
@@ -132,7 +131,6 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
       cancel: 1,
       isBilled: 1,
       bills: 1,
-      status: 1,
       sector: 1,
     },
   },
@@ -281,83 +279,31 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 };
 
-exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
-  {
-    $match: {
-      $and: [
-        { startDate: { $gt: new Date(contract.endDate) } },
-        { auxiliary: new ObjectID(contract.user._id) },
-        { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      ],
-    },
-  },
-  {
-    $group: {
-      _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-    },
-  },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: '_id.CUSTOMER',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer' } },
-  {
-    $addFields: {
-      sub: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-      },
-    },
-  },
-  { $unwind: { path: '$sub' } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'sub.service',
-      foreignField: '_id',
-      as: 'sub.service',
-    },
-  },
-  { $unwind: { path: '$sub.service' } },
-  {
-    $project: {
-      _id: 0,
-      customer: { _id: 1 },
-      sub: 1,
-    },
-  },
-]).option({ company: companyId });
-
 exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate([
   { $match: rules },
   {
     $group: {
       _id: { $ifNull: ['$repetition.parentId', null] },
-      events: { $addToSet: '$$ROOT' },
+      events: { $push: '$$ROOT' },
     },
   },
   { $unwind: { path: '$events' } },
   { $sort: { 'events.startDate': 1 } },
-  {
-    $group: { _id: '$_id', events: { $push: '$events' } },
-  },
+  { $group: { _id: '$_id', events: { $push: '$events' } } },
 ]).option({ company: companyId });
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) =>
+exports.getInterventionsToUnassign = async (maxDate, auxiliary, companyId) =>
   exports.getEventsGroupedByParentId({
     startDate: { $gt: maxDate },
     auxiliary,
-    subscription: { $in: subIds },
     $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+    type: INTERVENTION,
   }, companyId);
 
 exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
-  subscription: { $exists: false },
+  type: { $ne: INTERVENTION },
 }, companyId);
 
 exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
@@ -374,11 +320,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     { endDate: { $gt: start } },
     {
       $or: [
-        {
-          status: COMPANY_CONTRACT,
-          type: INTERVENTION,
-          $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
-        },
+        { type: INTERVENTION, $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }] },
         { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
       ],
     },
@@ -470,7 +412,6 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
     { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
     { auxiliary: { $exists: true, $ne: '' } },
     { type: INTERVENTION },
-    { status: COMPANY_CONTRACT },
     { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } },
   ];
   if (dates.startDate) rules.push({ startDate: { $gte: dates.startDate } });
@@ -489,7 +430,6 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
               $and: [
                 { $lte: ['$$c.startDate', '$startDate'] },
                 { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
-                { $eq: ['$$c.status', COMPANY_CONTRACT] },
               ],
             },
           },
@@ -884,7 +824,6 @@ exports.getEventsToCheckEventConsistency = async (rules, companyId) => Event.agg
       endDate: 1,
       subscription: 1,
       isCancelled: 1,
-      status: 1,
     },
   },
   { $group: { _id: { $ifNull: ['$auxiliary', '$sector'] }, events: { $push: '$$ROOT' } } },

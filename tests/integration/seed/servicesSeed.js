@@ -1,12 +1,11 @@
 const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
+const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const servicesList = [
   {
     _id: new ObjectID(),
-    type: COMPANY_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -19,7 +18,6 @@ const servicesList = [
   },
   {
     _id: new ObjectID(),
-    type: CUSTOMER_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -32,7 +30,6 @@ const servicesList = [
   },
   {
     _id: new ObjectID(),
-    type: COMPANY_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 150,
@@ -47,7 +44,6 @@ const servicesList = [
 
 const serviceFromOtherCompany = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 150,

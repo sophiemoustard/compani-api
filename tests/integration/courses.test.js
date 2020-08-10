@@ -22,6 +22,7 @@ const {
   clientAdmin,
   trainerOrganisationManager,
   traineeFromOtherCompany,
+  slots,
 }
   = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
@@ -152,6 +153,17 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
+
+    it('should get courses for a specific trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(3);
+    });
   });
 
   it('should get courses with a specific trainer', async () => {
@@ -187,6 +199,29 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should get course if trainee from same company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainees=${helper._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
+
+    it('should not get course if trainee from different company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -380,6 +415,22 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
         expect(response.result.data.courses.length).toBe(role.numberOfCourse);
+        if (response.result.data.courses.length) {
+          expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
+            program: expect.objectContaining({
+              name: expect.any(String),
+              image: { link: expect.any(String), publicId: expect.any(String) },
+              steps: expect.arrayContaining([expect.any(ObjectID)]),
+            }),
+            slots: expect.arrayContaining([expect.objectContaining({
+              startDate: expect.any(Date),
+              endDate: expect.any(Date),
+              step: expect.objectContaining({
+                type: expect.any(String),
+              }),
+            })]),
+          }));
+        }
       });
     });
   });
@@ -424,6 +475,46 @@ describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
+  });
+});
+
+describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
+  let authToken = null;
+  const courseId = coursesList[0]._id;
+  beforeEach(populateDB);
+
+  it('should get course if trainee', async () => {
+    authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${courseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.course).toEqual(expect.objectContaining({
+      _id: courseId,
+      program: {
+        ...pick(programsList[0], ['_id', 'name', 'image']),
+        steps: expect.arrayContaining([expect.objectContaining({ name: 'etape', type: 'on_site' })]),
+      },
+      slots: expect.arrayContaining([
+        expect.objectContaining({
+          ...pick(slots[0], ['startDate, endDate, step']),
+        }),
+      ]),
+    }));
+  });
+
+  it('should not get course if not trainee', async () => {
+    authToken = await getToken('vendor_admin');
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${courseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
   });
 });
 

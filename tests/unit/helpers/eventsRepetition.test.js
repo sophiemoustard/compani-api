@@ -611,7 +611,6 @@ describe('formatEventBasedOnRepetition', () => {
       customer: new ObjectID(),
       subscription: new ObjectID(),
       auxiliary: new ObjectID(),
-      status: 'contract_with_customer',
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
@@ -647,7 +646,6 @@ describe('formatEventBasedOnRepetition', () => {
     const repetition = {
       type: 'unavailability',
       auxiliary: new ObjectID(),
-      status: 'contract_with_customer',
       company: new ObjectID(),
       frequency: 'every_day',
       parentId: new ObjectID(),
@@ -670,7 +668,6 @@ describe('formatEventBasedOnRepetition', () => {
       customer: new ObjectID(),
       subscription: new ObjectID(),
       auxiliary: new ObjectID(),
-      status: 'contract_with_customer',
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',

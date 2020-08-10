@@ -73,7 +73,7 @@ exports.getUsersList = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate({ path: 'contracts', select: 'status startDate endDate' })
+    .populate({ path: 'contracts', select: 'startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
@@ -89,15 +89,20 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
       match: { company: get(credentials, 'company._id', null) },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
-    .populate({ path: 'contracts', select: 'status startDate endDate' })
+    .populate({ path: 'contracts', select: 'startDate endDate' })
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean({ virtuals: true, autopopulate: true });
 };
 
+exports.getLearnerList = async credentials =>
+  User.find({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'coursesCount' })
+    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+    .lean();
+
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
-    .populate({ path: 'customers', select: 'contracts' })
-    .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',

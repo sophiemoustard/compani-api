@@ -13,7 +13,7 @@ const getIssuesWithEvent = async (event, auxiliary, companyId) => {
 
   const eventStartDate = event.startDate;
   if (auxiliary) {
-    if (!ContractHelper.auxiliaryHasActiveCompanyContractOnDay(auxiliary.contracts, eventStartDate)) {
+    if (!ContractHelper.auxiliaryHasActiveContractOnDay(auxiliary.contracts, eventStartDate)) {
       issuesWithEvent.push('l\'auxiliaire n\'a pas de contrat le jour de l\'évènement');
     }
 

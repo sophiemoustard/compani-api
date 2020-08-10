@@ -66,7 +66,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['payments:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             date: Joi.date().required(),
             netInclTaxes: Joi.number().required(),

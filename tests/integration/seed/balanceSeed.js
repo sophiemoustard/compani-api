@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const uuidv4 = require('uuid/v4');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
+const { HOURLY } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
@@ -19,7 +19,6 @@ const balanceThirdPartyPayer = {
 const customerServiceList = [
   {
     _id: new ObjectID(),
-    type: COMPANY_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -32,7 +31,6 @@ const customerServiceList = [
   },
   {
     _id: new ObjectID(),
-    type: CUSTOMER_CONTRACT,
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,

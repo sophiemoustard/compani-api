@@ -16,6 +16,7 @@ exports.plugin = {
           payload: Joi.object({
             title: Joi.string(),
             text: Joi.string(),
+            backText: Joi.string(),
             media: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),

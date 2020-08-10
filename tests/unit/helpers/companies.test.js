@@ -123,7 +123,7 @@ describe('uploadFile', () => {
   });
 
   it('should upload a file', async () => {
-    const payload = { fileName: 'mandat_signe', file: 'true', type: 'contractWithCompany' };
+    const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
     const params = { _id: new ObjectID(), driveId: new ObjectID() };
     const uploadedFile = { id: new ObjectID() };
     const driveFileInfo = { webViewLink: 'test' };
@@ -132,7 +132,7 @@ describe('uploadFile', () => {
     const companyPayload = {
       rhConfig: {
         templates: {
-          contractWithCompany: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+          contract: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
         },
       },
     };

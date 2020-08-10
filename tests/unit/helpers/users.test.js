@@ -288,7 +288,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -324,7 +324,7 @@ describe('getUsersList', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -377,7 +377,7 @@ describe('getUsersListWithSectorHistories', () => {
         options: { isVendorUser: false },
       })
       .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'status startDate endDate' })
+      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: false })
       .chain('lean')
@@ -397,6 +397,37 @@ describe('getUsersListWithSectorHistories', () => {
   });
 });
 
+describe('getLearnerList', () => {
+  let UserMock;
+  const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  const credentials = { role: { vendor: new ObjectID() } };
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+  });
+
+  afterEach(() => {
+    UserMock.restore();
+  });
+
+  it('should get learners', async () => {
+    UserMock.expects('find')
+      .withExactArgs({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'coursesCount' })
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: true })
+      .chain('lean')
+      .returns(users);
+
+    const result = await UsersHelper.getLearnerList(credentials);
+    expect(result).toEqual(users);
+    UserMock.verify();
+  });
+});
+
 describe('getUser', () => {
   let userMock;
   beforeEach(() => {
@@ -412,10 +443,6 @@ describe('getUser', () => {
     const credentials = { company: { _id: new ObjectID() } };
     userMock.expects('findOne')
       .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'contracts' })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
       .chain('populate')
       .withExactArgs({
         path: 'sector',
@@ -439,10 +466,6 @@ describe('getUser', () => {
       const credentials = { company: { _id: new ObjectID() }, role: { vendor: { _id: new ObjectID() } } };
       userMock.expects('findOne')
         .withExactArgs({ _id: userId })
-        .chain('populate')
-        .withExactArgs({ path: 'customers', select: 'contracts' })
-        .chain('populate')
-        .withExactArgs({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
         .chain('populate')
         .withExactArgs({
           path: 'sector',

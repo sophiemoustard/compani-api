@@ -36,7 +36,6 @@ const CustomerSchema = mongoose.Schema({
     type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
     required: true,
   },
-  contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
     primaryAddress: {
       type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }),
