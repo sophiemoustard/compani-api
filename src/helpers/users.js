@@ -103,6 +103,7 @@ exports.getLearnerList = async credentials =>
 
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
+    .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
