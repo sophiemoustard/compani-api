@@ -788,6 +788,15 @@ describe('GET /users/:id', () => {
         role: expect.objectContaining({ client: expect.objectContaining({ name: 'auxiliary' }) }),
         isActive: expect.any(Boolean),
         sector: userSectors[0]._id,
+        contracts: expect.arrayContaining([
+          expect.objectContaining({
+            _id: expect.any(ObjectID),
+            company: expect.any(ObjectID),
+            startDate: expect.any(Object),
+            user: expect.any(Object),
+            versions: expect.any(Array),
+          }),
+        ]),
       }));
     });
 
