@@ -41,7 +41,7 @@
     "flat": "^4.1.0",
     "googleapis": "^42.0.0",
     "handlebars": "^4.7.5",
-    "hapi-auth-jwt2": "^8.8.1",
+    "hapi-auth-jwt2": "^9.0.1",
     "hapi-sentry": "^3.0.0",
     "intl": "^1.2.5",
     "joi": "^17.2.0",
@@ -67,7 +67,6 @@
     "twilio": "^3.48.2",
     "util": "^0.11.1",
     "uuid": "^3.4.0",
-    "validator": "^10.11.0",
     "xmlbuilder": "^12.0.1"
   },
   "devDependencies": {
