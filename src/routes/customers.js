@@ -11,7 +11,6 @@ const {
   listWithSubscriptions,
   listBySector,
   listWithBilledEvents,
-  listWithCustomerContractSubscriptions,
   listWithIntervention,
   show,
   remove,
@@ -158,15 +157,6 @@ exports.plugin = {
         auth: { scope: ['customers:administrative:edit'] },
       },
       handler: listWithBilledEvents,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/customer-contract-subscriptions',
-      options: {
-        auth: { scope: ['customers:read'] },
-      },
-      handler: listWithCustomerContractSubscriptions,
     });
 
     server.route({
@@ -328,7 +318,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerGet }],
       },

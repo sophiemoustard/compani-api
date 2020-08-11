@@ -4,7 +4,6 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { SERVICE_NATURES } = require('../models/Service');
-const { CONTRACT_STATUS } = require('../models/Contract');
 
 const {
   list,
@@ -26,7 +25,6 @@ exports.plugin = {
         auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(...CONTRACT_STATUS),
             versions: Joi.array().items({
               startDate: Joi.date().required(),
               defaultUnitAmount: Joi.number().required(),

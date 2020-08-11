@@ -1,7 +1,6 @@
 const moment = require('moment');
 const SectorHistory = require('../models/SectorHistory');
 const Contract = require('../models/Contract');
-const { COMPANY_CONTRACT } = require('./constants');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
   const lastSectorHistory = await SectorHistory
@@ -16,7 +15,6 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
   const contracts = await Contract
     .find({
       user: auxiliaryId,
-      status: COMPANY_CONTRACT,
       company: companyId,
       $or: [{ endDate: { $exists: false } }, { endDate: null }],
     })

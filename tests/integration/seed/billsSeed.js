@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
-const { COMPANY_CONTRACT, HOURLY, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const { HOURLY, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
@@ -20,7 +20,6 @@ const otherCompanyBillThirdPartyPayer = { _id: new ObjectID(), name: 'Titi', com
 
 const billServices = [{
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -32,7 +31,6 @@ const billServices = [{
   nature: HOURLY,
 }, {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -193,7 +191,6 @@ const contracts = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: billUserList[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_company',
     _id: billUserList[1].contracts[0],
     company: authCompany._id,
     versions: [
@@ -210,7 +207,6 @@ const contracts = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: billUserList[2]._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_company',
     _id: billUserList[2].contracts[0],
     company: otherCompany._id,
     versions: [
@@ -229,7 +225,6 @@ const contracts = [
     startDate: '2018-12-03T23:00:00.000Z',
     endDate: '2018-12-03T22:59:59.000Z',
     endReason: 'mutation',
-    status: 'contract_with_company',
     _id: billUserList[3].contracts[0],
     company: otherCompany._id,
     versions: [
@@ -373,7 +368,6 @@ const eventList = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: billUserList[1]._id,
@@ -393,7 +387,6 @@ const eventList = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: billUserList[1]._id,
@@ -413,7 +406,6 @@ const eventList = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-18T14:30:19.543Z',
     endDate: '2019-01-18T16:30:19.543Z',
     auxiliary: billUserList[2]._id,
@@ -433,7 +425,6 @@ const eventList = [
     company: otherCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-18T14:30:19.543Z',
     endDate: '2019-01-18T16:30:19.543Z',
     auxiliary: billUserList[2]._id,
@@ -453,7 +444,6 @@ const eventList = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
-    status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: billUserList[3]._id,

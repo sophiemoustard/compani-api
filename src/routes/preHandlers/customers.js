@@ -97,7 +97,6 @@ exports.authorizeCustomerDelete = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (customer.firstIntervention) throw Boom.forbidden();
-  if (customer.contracts.length) throw Boom.forbidden();
 
   const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId }).lean();
   if (billsCount > 0) throw Boom.forbidden();

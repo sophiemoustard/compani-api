@@ -191,7 +191,7 @@ describe('COMPANIES ROUTES', () => {
         const payload = {
           fileName: 'mandat_signe',
           file: 'true',
-          type: 'contractWithCompany',
+          type: 'contract',
         };
         const form = generateFormData(payload);
         const response = await app.inject({
@@ -209,7 +209,7 @@ describe('COMPANIES ROUTES', () => {
         const payload = {
           fileName: 'mandat_signe',
           file: 'true',
-          type: 'contractWithCompany',
+          type: 'contract',
         };
         const form = generateFormData(payload);
 
@@ -235,12 +235,7 @@ describe('COMPANIES ROUTES', () => {
       iban: '0987654321234567890987654',
       bic: 'BR12345678',
       billingAssistance: 'test@alenvi.io',
-      rhConfig: {
-        contractWithCompany: { grossHourlyRate: 10 },
-        contractWithCustomer: { grossHourlyRate: 5 },
-        feeAmount: 2,
-        amountPerKm: 10,
-      },
+      rhConfig: { grossHourlyRate: 10, feeAmount: 2, amountPerKm: 10 },
       customersConfig: { billingPeriod: MONTH },
     };
 

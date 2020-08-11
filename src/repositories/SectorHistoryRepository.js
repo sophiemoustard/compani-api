@@ -1,6 +1,6 @@
 const moment = require('moment');
 const SectorHistory = require('../models/SectorHistory');
-const { ABSENCE, COMPANY_CONTRACT, INTERVENTION, INVOICED_AND_PAID } = require('../helpers/constants');
+const { ABSENCE, INTERVENTION, INVOICED_AND_PAID } = require('../helpers/constants');
 
 exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   const minDate = moment(month, 'MMYYYY').startOf('month').toDate();
@@ -38,7 +38,6 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
         pipeline: [
           {
             $match: {
-              status: COMPANY_CONTRACT,
               startDate: { $lte: maxDate },
               $or: [
                 {
@@ -46,10 +45,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
                     { endDate: { $exists: false } },
                     {
                       $expr: {
-                        $and: [
-                          { $eq: ['$user', '$$auxiliaryId'] },
-                          { $lte: ['$startDate', '$$sectorEndDate'] },
-                        ],
+                        $and: [{ $eq: ['$user', '$$auxiliaryId'] }, { $lte: ['$startDate', '$$sectorEndDate'] }],
                       },
                     },
                   ],

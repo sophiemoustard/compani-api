@@ -14,14 +14,13 @@ const { authCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
-const { NEVER, INTERVENTION, COMPANY_CONTRACT, HOURLY, AUXILIARY } = require('../../../src/helpers/constants');
+const { NEVER, INTERVENTION, HOURLY, AUXILIARY } = require('../../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();
 const loggedAuxiliary = userList[2];
 
 const service = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -75,7 +74,6 @@ const contracts = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: loggedAuxiliary._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_company',
     _id: loggedAuxiliary.contracts[0],
     company: authCompany._id,
     versions: [
@@ -92,7 +90,6 @@ const contracts = [
     createdAt: '2018-12-04T16:34:04.144Z',
     user: secondAuxiliary._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'contract_with_customer',
     _id: secondAuxiliary.contracts[0],
     company: authCompany._id,
     versions: [
@@ -147,7 +144,6 @@ const eventList = [
   {
     _id: '1234567890abcdef12345678',
     type: INTERVENTION,
-    status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
@@ -160,7 +156,6 @@ const eventList = [
   {
     _id: '123456789012345678abcdef',
     type: INTERVENTION,
-    status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
@@ -173,7 +168,6 @@ const eventList = [
   {
     _id: 'abcdef123456789012345678',
     type: INTERVENTION,
-    status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
@@ -186,7 +180,6 @@ const eventList = [
   {
     _id: new ObjectID(),
     type: INTERVENTION,
-    status: COMPANY_CONTRACT,
     customer: customer._id,
     company: authCompany._id,
     auxiliary: secondAuxiliary._id,

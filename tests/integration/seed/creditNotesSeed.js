@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
-const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
+const { HOURLY } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
@@ -20,7 +20,6 @@ const creditNoteThirdPartyPayer = {
 
 const creditNoteService = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -92,7 +91,6 @@ const creditNoteEvent = {
   company: authCompany._id,
   sector: new ObjectID(),
   type: 'intervention',
-  status: 'contract_with_company',
   startDate: '2019-01-16T09:30:19.543Z',
   endDate: '2019-01-16T11:30:21.653Z',
   auxiliary: creditNoteUserList[1]._id,
@@ -226,7 +224,6 @@ const otherCompanyThirdPartyPayer = {
 
 const otherCompanyService = {
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 24,
@@ -293,7 +290,6 @@ const otherCompanyEvent = {
   company: otherCompany._id,
   sector: new ObjectID(),
   type: 'intervention',
-  status: 'contract_with_company',
   startDate: '2019-01-16T09:30:19.543Z',
   endDate: '2019-01-16T11:30:21.653Z',
   auxiliary: new ObjectID(),

@@ -51,7 +51,7 @@ const plugins = [
         },
         {
           name: 'eventConsistency',
-          time: '0 0 3 1 * *',
+          time: '0 0 3 * * 1',
           request: {
             method: 'GET',
             url: '/scripts/event-consistency',

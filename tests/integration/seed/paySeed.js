@@ -71,7 +71,6 @@ const contracts = [{
   createdAt: '2018-12-04T16:34:04',
   user: auxiliaryId1,
   startDate: '2018-12-03T23:00:00.000Z',
-  status: 'contract_with_company',
   _id: contractId1,
   company: authCompany._id,
   versions: [
@@ -89,7 +88,6 @@ const contracts = [{
   user: auxiliaryId2,
   company: authCompany._id,
   startDate: '2018-12-03T23:00:00.000Z',
-  status: 'contract_with_company',
   _id: contractId2,
   endDate: '2019-10-03T23:00:00.000Z',
   endNotificationDate: '2019-03-03T23:00:00.000Z',
@@ -110,7 +108,6 @@ const event = {
   _id: new ObjectID(),
   company: authCompany._id,
   type: 'intervention',
-  status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
   endDate: '2019-05-12T11:00:00',
   auxiliary: auxiliaries[0],
@@ -162,7 +159,6 @@ const customer = {
 
 const service = {
   _id: serviceId,
-  type: 'contract_with_company',
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,

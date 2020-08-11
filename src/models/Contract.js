@@ -2,8 +2,6 @@ const mongoose = require('mongoose');
 const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const {
-  CUSTOMER_CONTRACT,
-  COMPANY_CONTRACT,
   EMPLOYER_TRIAL_PERIOD_TERMINATION,
   EMPLOYEE_TRIAL_PERIOD_TERMINATION,
   RESIGNATION,
@@ -18,7 +16,6 @@ const {
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
-const CONTRACT_STATUS = [CUSTOMER_CONTRACT, COMPANY_CONTRACT];
 const END_CONTRACT_REASONS = [
   EMPLOYER_TRIAL_PERIOD_TERMINATION,
   EMPLOYEE_TRIAL_PERIOD_TERMINATION,
@@ -40,8 +37,6 @@ const ContractSchema = mongoose.Schema({
   endReason: { type: String, enum: END_CONTRACT_REASONS },
   otherMisc: { type: String },
   endNotificationDate: { type: Date },
-  status: { type: String, enum: CONTRACT_STATUS, required: true },
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   versions: [{
     signature: {
@@ -56,9 +51,7 @@ const ContractSchema = mongoose.Schema({
     endDate: { type: Date },
     weeklyHours: { type: Number },
     grossHourlyRate: { type: Number, required: true },
-    customerDoc: driveResourceSchemaDefinition,
     auxiliaryDoc: driveResourceSchemaDefinition,
-    customerArchives: [driveResourceSchemaDefinition],
     auxiliaryArchives: [driveResourceSchemaDefinition],
   }],
 }, {
@@ -70,5 +63,4 @@ ContractSchema.pre('find', validateQuery);
 ContractSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Contract', ContractSchema);
-module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
 module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;

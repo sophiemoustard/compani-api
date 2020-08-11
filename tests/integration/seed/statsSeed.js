@@ -13,7 +13,6 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const {
-  COMPANY_CONTRACT,
   HOURLY,
   MONTHLY,
   ONCE,
@@ -50,7 +49,6 @@ const contractList = [{
   _id: new ObjectID(),
   user: new ObjectID(),
   company: authCompany._id,
-  status: COMPANY_CONTRACT,
   startDate: '2010-09-03T00:00:00',
   versions: [{
     startDate: '2010-09-03T00:00:00',
@@ -112,7 +110,6 @@ const sectorHistoryList = [{
 
 const serviceList = [{
   _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
   nature: 'hourly',
   company: authCompany._id,
   versions: [{
@@ -271,7 +268,6 @@ const eventListForFollowUp = [
     company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
-    status: COMPANY_CONTRACT,
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
@@ -290,7 +286,6 @@ const eventListForFollowUp = [
     company: authCompany._id,
     type: 'intervention',
     customer: customerList[1]._id,
-    status: COMPANY_CONTRACT,
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
@@ -308,7 +303,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -327,7 +321,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -346,7 +339,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -365,7 +357,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: customerList[1].subscriptions[0]._id,
@@ -384,7 +375,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[1].subscriptions[0]._id,
@@ -403,7 +393,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[0].subscriptions[0]._id,
@@ -422,7 +411,6 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[0].subscriptions[0]._id,
@@ -494,7 +482,6 @@ const eventListForFundingsMonitoring = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -512,7 +499,6 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -531,7 +517,6 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -550,7 +535,6 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -572,7 +556,6 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),

@@ -107,14 +107,6 @@ module.exports = {
       [this.EVERY_TWO_WEEKS]: 'Toutes les deux semaines',
     };
   },
-  CUSTOMER_CONTRACT: 'contract_with_customer',
-  COMPANY_CONTRACT: 'contract_with_company',
-  get CONTRACT_STATUS_LIST() {
-    return {
-      [this.COMPANY_CONTRACT]: 'Prestataire',
-      [this.CUSTOMER_CONTRACT]: 'Mandataire',
-    };
-  },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
   // PAYMENT
@@ -265,6 +257,9 @@ module.exports = {
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
+  TITLE_TEXT: 'title_text',
+  TEXT_MEDIA: 'text_media',
+  FLASHCARD: 'flashcard',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

@@ -5,7 +5,7 @@ const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const { rolesList } = require('../../seed/roleSeed');
-const { INTERVENTION, COMPANY_CONTRACT, CLIENT_ADMIN } = require('../../../src/helpers/constants');
+const { INTERVENTION, CLIENT_ADMIN } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -37,7 +37,6 @@ const event = {
   subscription: new ObjectID(),
   type: INTERVENTION,
   company: authCompany._id,
-  status: COMPANY_CONTRACT,
   address: {
     fullAddress: '37 rue de ponthieu 75008 Paris',
     zipCode: '75008',

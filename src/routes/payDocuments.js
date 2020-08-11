@@ -60,7 +60,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['paydocuments:edit'] },
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: authorizePayDocumentDeletion }],
       },

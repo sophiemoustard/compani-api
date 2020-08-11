@@ -42,23 +42,55 @@ describe('createCourse', () => {
 
 describe('list', () => {
   let findCourseAndPopulate;
+  let CourseMock;
   const authCompany = new ObjectID();
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
     findCourseAndPopulate.restore();
+    CourseMock.restore();
   });
 
   it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
+    CourseMock.expects('findOne').never();
 
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
+    CourseMock.verify();
+  });
+
+  it('should return courses, called with query.trainees', async () => {
+    const query = { trainees: '1234567890abcdef12345612' };
+    const coursesList = [
+      {
+        misc: 'Groupe 2',
+        trainees: [{ identity: { firstname: 'Shalom' }, company: { _id: authCompany } }],
+      },
+    ];
+
+    CourseMock.expects('find')
+      .withExactArgs(query, { misc: 1 })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: 'startDate endDate' })
+      .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
+      .chain('lean')
+      .once()
+      .returns(coursesList);
+
+    const result = await CourseHelper.list(query);
+    expect(result).toMatchObject(coursesList);
+    sinon.assert.notCalled(findCourseAndPopulate);
+    CourseMock.verify();
   });
 
   it('should return courses, called with query.company', async () => {
@@ -88,33 +120,42 @@ describe('list', () => {
       .onSecondCall()
       .returns([returnedList[1]]);
 
+    CourseMock.expects('findOne').never();
+
     const result = await CourseHelper.list({ company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
     expect(findCourseAndPopulate.getCall(0)
       .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
     expect(findCourseAndPopulate.getCall(1)
       .calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
+    CourseMock.verify();
   });
 });
 
 describe('listUserCourses', () => {
-  let findCourseAndPopulate;
+  let CourseMock;
 
   beforeEach(() => {
-    findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
-    findCourseAndPopulate.restore();
+    CourseMock.restore();
   });
 
   it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
-    findCourseAndPopulate.returns(coursesList);
+    CourseMock.expects('find')
+      .withExactArgs({ trainees: '1234567890abcdef12345678' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name image steps' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+      .chain('lean')
+      .returns(coursesList);
 
     const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
     expect(result).toMatchObject(coursesList);
-    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainees: '1234567890abcdef12345678' });
   });
 });
 
@@ -235,6 +276,35 @@ describe('getCoursePublicInfos', () => {
       .returns(course);
 
     const result = await CourseHelper.getCoursePublicInfos(course._id);
+    expect(result).toMatchObject(course);
+  });
+});
+
+describe('getTraineeCourse', () => {
+  let CourseMock;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    CourseMock.restore();
+  });
+
+  it('should return courses', async () => {
+    const course = { _id: new ObjectID() };
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: course._id })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step' })
+      .chain('select')
+      .withExactArgs('_id')
+      .chain('lean')
+      .once()
+      .returns(course);
+
+    const result = await CourseHelper.getTraineeCourse(course._id);
     expect(result).toMatchObject(course);
   });
 });

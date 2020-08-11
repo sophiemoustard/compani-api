@@ -78,20 +78,6 @@ const listWithBilledEvents = async (req) => {
   }
 };
 
-const listWithCustomerContractSubscriptions = async (req) => {
-  try {
-    const customers = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(req.auth.credentials);
-
-    return {
-      message: translate[language].customersFound,
-      data: { customers },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const listWithIntervention = async (req) => {
   try {
     const customers = await CustomerHelper.getCustomersWithIntervention(req.auth.credentials);
@@ -377,7 +363,6 @@ module.exports = {
   listWithFirstIntervention,
   listWithSubscriptions,
   listBySector,
-  listWithCustomerContractSubscriptions,
   listWithBilledEvents,
   listWithIntervention,
   show,

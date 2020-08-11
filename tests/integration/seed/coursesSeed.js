@@ -6,6 +6,7 @@ const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
+const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id);
@@ -46,8 +47,10 @@ const traineeWithoutCompany = {
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
+const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
+
 const programsList = [
-  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là', image: { link: 'belle/url', publicId: '12345' } },
+  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là', image: { link: 'belle/url', publicId: '12345' }, steps: [step._id] },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
 
@@ -113,11 +116,11 @@ const courseSmsHistory = {
 };
 
 const slots = [
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[0] },
-  { startDate: moment('2020-03-20T14:00:00').toDate(), endDate: moment('2020-03-20T18:00:00').toDate(), courseId: coursesList[0] },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[1] },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[2] },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[3] },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[0], step: step._id },
+  { startDate: moment('2020-03-20T14:00:00').toDate(), endDate: moment('2020-03-20T18:00:00').toDate(), courseId: coursesList[0], step: step._id },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[1], step: step._id },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[2], step: step._id },
+  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[3], step: step._id },
   { courseId: coursesList[3] },
 ];
 
@@ -127,6 +130,7 @@ const populateDB = async () => {
   await User.deleteMany({});
   await CourseSlot.deleteMany({});
   await CourseSmsHistory.deleteMany({});
+  await Step.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -135,6 +139,7 @@ const populateDB = async () => {
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
   await CourseSmsHistory.create(courseSmsHistory);
+  await Step.create(step);
 };
 
 module.exports = {
@@ -151,4 +156,5 @@ module.exports = {
   auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
+  slots,
 };

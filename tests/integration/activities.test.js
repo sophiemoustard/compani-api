@@ -35,8 +35,29 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
         name: 'manger',
         cards: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
+          title: 'ceci est un titre',
           template: 'transition',
-        })]),
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          template: 'title_text',
+          title: 'ceci est un titre',
+          text: 'test',
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          template: 'title_text_media',
+          title: 'ceci est un titre',
+          text: 'text',
+          media: { link: 'lien', publicId: 'id' },
+        }),
+        expect.objectContaining({
+          _id: expect.any(ObjectID),
+          template: 'flashcard',
+          text: 'ceci est un text',
+          backText: 'ceci est un backText',
+        }),
+        ]),
       }));
     });
   });
@@ -154,7 +175,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated._id).toEqual(activityId);
-      expect(activityUpdated.cards.length).toEqual(2);
+      expect(activityUpdated.cards.length).toEqual(5);
     });
 
     it('should return a 400 if invalid template', async () => {

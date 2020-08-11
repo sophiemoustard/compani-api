@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const { REPETITION_FREQUENCIES, INTERVENTION } = require('../helpers/constants');
 const { EVENT_TYPES } = require('./Event');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
@@ -24,7 +23,6 @@ const RepetitionSchema = mongoose.Schema({
   attachment: driveResourceSchemaDefinition,
   frequency: { type: String, enum: REPETITION_FREQUENCIES },
   parentId: { type: mongoose.Schema.Types.ObjectId },
-  status: { type: String, enum: CONTRACT_STATUS },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 

@@ -168,7 +168,7 @@ exports.plugin = {
       path: '/{_id}/pdfs',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },

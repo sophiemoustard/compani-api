@@ -5,7 +5,6 @@ const moment = require('moment');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
-const { COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -78,7 +77,6 @@ describe('updateHistoryOnSectorUpdate', () => {
     ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
-        status: COMPANY_CONTRACT,
         company: companyId,
         $or: [{ endDate: { $exists: false } }, { endDate: null }],
       })
@@ -113,7 +111,6 @@ describe('updateHistoryOnSectorUpdate', () => {
     ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
-        status: COMPANY_CONTRACT,
         company: companyId,
         $or: [{ endDate: { $exists: false } }, { endDate: null }],
       })
@@ -148,7 +145,6 @@ describe('updateHistoryOnSectorUpdate', () => {
     ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
-        status: COMPANY_CONTRACT,
         company: companyId,
         $or: [{ endDate: { $exists: false } }, { endDate: null }],
       })
@@ -183,7 +179,6 @@ describe('updateHistoryOnSectorUpdate', () => {
     ContractMock.expects('find')
       .withExactArgs({
         user: auxiliaryId,
-        status: COMPANY_CONTRACT,
         company: companyId,
         $or: [{ endDate: { $exists: false } }, { endDate: null }],
       })
