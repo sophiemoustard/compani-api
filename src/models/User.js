@@ -156,7 +156,6 @@ async function save(next) {
 
 async function findOneAndUpdate(next) {
   try {
-    console.log('je passe ici', this.getUpdate());
     const password = this.getUpdate().$set['local.password'];
     const email = this.getUpdate().$set['local.email'];
     if (!password && !email) return next();

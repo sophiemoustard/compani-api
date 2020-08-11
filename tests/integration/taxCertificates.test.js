@@ -19,137 +19,137 @@ describe('NODE ENV', () => {
   });
 });
 
-// describe('TAX CERTIFICATES ROUTES - GET /', () => {
-//   let authToken;
-//   describe('CLIENT_ADMIN', () => {
-//     beforeEach(populateDB);
-//     beforeEach(async () => {
-//       authToken = await getToken('client_admin');
-//     });
+describe('TAX CERTIFICATES ROUTES - GET /', () => {
+  let authToken;
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
 
-//     it('should get tax certificates list', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates?customer=${customersList[0]._id}`,
-//         headers: { 'x-access-token': authToken },
-//       });
+    it('should get tax certificates list', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates?customer=${customersList[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       const customerCertificates = taxCertificatesList
-//         .filter(tc => tc.customer.toHexString() === customersList[0]._id.toHexString());
-//       expect(response.result.data.taxCertificates.length).toEqual(customerCertificates.length);
-//     });
-//     it('should return 403 if customer from another organisation', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates?customer=${customersList[1]._id}`,
-//         headers: { 'x-access-token': authToken },
-//       });
+      expect(response.statusCode).toBe(200);
+      const customerCertificates = taxCertificatesList
+        .filter(tc => tc.customer.toHexString() === customersList[0]._id.toHexString());
+      expect(response.result.data.taxCertificates.length).toEqual(customerCertificates.length);
+    });
+    it('should return 403 if customer from another organisation', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates?customer=${customersList[1]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(403);
-//     });
-//   });
+      expect(response.statusCode).toBe(403);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     it('should return customer tax certificates pdf if I am its helper', async () => {
-//       const helperToken = await getTokenByCredentials(helper.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates?customer=${customersList[0]._id}`,
-//         headers: { 'x-access-token': helperToken },
-//       });
-//       expect(response.statusCode).toBe(200);
-//     });
+  describe('Other roles', () => {
+    it('should return customer tax certificates pdf if I am its helper', async () => {
+      const helperToken = await getTokenByCredentials(helper.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates?customer=${customersList[0]._id}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'auxiliary', expectedCode: 403 },
-//       { name: 'auxiliary_without_company', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/taxcertificates?customer=${customersList[0]._id}`,
-//           headers: { 'x-access-token': authToken },
-//         });
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/taxcertificates?customer=${customersList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
-// describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
-//   let authToken;
-//   describe('CLIENT_ADMIN', () => {
-//     beforeEach(populateDB);
-//     beforeEach(async () => {
-//       authToken = await getToken('client_admin');
-//     });
+describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
+  let authToken;
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
 
-//     it('should get tax certificates pdf', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-//         headers: { 'x-access-token': authToken },
-//       });
+    it('should get tax certificates pdf', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//     });
-//     it('should should return 404 if tax certificate from another organisation', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates/${taxCertificatesList[2]._id}/pdfs`,
-//         headers: { 'x-access-token': authToken },
-//       });
+      expect(response.statusCode).toBe(200);
+    });
+    it('should should return 404 if tax certificate from another organisation', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates/${taxCertificatesList[2]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//     it('should should return 404 if tax certificate does not exists', async () => {
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates/${(new ObjectID()).toHexString()}/pdfs`,
-//         headers: { 'x-access-token': authToken },
-//       });
+      expect(response.statusCode).toBe(404);
+    });
+    it('should should return 404 if tax certificate does not exists', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates/${(new ObjectID()).toHexString()}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     it('should return tax certificates pdf if I am its helper', async () => {
-//       const helperToken = await getTokenByCredentials(helper.local);
-//       const response = await app.inject({
-//         method: 'GET',
-//         url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-//         headers: { 'x-access-token': helperToken },
-//       });
-//       expect(response.statusCode).toBe(200);
-//     });
+  describe('Other roles', () => {
+    it('should return tax certificates pdf if I am its helper', async () => {
+      const helperToken = await getTokenByCredentials(helper.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
 
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'auxiliary', expectedCode: 403 },
-//       { name: 'auxiliary_without_company', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
-//         const response = await app.inject({
-//           method: 'GET',
-//           url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-//           headers: { 'x-access-token': authToken },
-//         });
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
+          headers: { 'x-access-token': authToken },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
 
 describe('TAX CERTIFICATES - POST /', () => {
   let authToken = null;
@@ -214,184 +214,184 @@ describe('TAX CERTIFICATES - POST /', () => {
       );
     });
 
-    // const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year', 'date'];
-    // wrongParams.forEach((param) => {
-    //   it(`should return a 400 error if missing '${param}' parameter`, async () => {
-    //     const docPayload = {
-    //       taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-    //       driveFolderId: '09876543211',
-    //       fileName: 'tax-certificate',
-    //       date: new Date('2019-01-23').toISOString(),
-    //       year: '2019',
-    //       customer: customersList[0]._id.toHexString(),
-    //       mimeType: 'application/pdf',
-    //     };
-    //     const form = generateFormData(omit(docPayload, param));
-    //     const response = await app.inject({
-    //       method: 'POST',
-    //       url: '/taxcertificates',
-    //       payload: await GetStream(form),
-    //       headers: { ...form.getHeaders(), 'x-access-token': authToken },
-    //     });
+    const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year', 'date'];
+    wrongParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const docPayload = {
+          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'tax-certificate',
+          date: new Date('2019-01-23').toISOString(),
+          year: '2019',
+          customer: customersList[0]._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
+        const form = generateFormData(omit(docPayload, param));
+        const response = await app.inject({
+          method: 'POST',
+          url: '/taxcertificates',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
 
-    //     expect(response.statusCode).toBe(400);
-    //   });
-    // });
+        expect(response.statusCode).toBe(400);
+      });
+    });
 
-    // it('should not create a new tax certificate if customer is not from the same company', async () => {
-    //   const docPayload = {
-    //     taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-    //     driveFolderId: '09876543211',
-    //     fileName: 'tax-certificate',
-    //     date: new Date('2019-01-23').toISOString(),
-    //     year: '2019',
-    //     customer: customersList[1]._id.toHexString(),
-    //     mimeType: 'application/pdf',
-    //   };
+    it('should not create a new tax certificate if customer is not from the same company', async () => {
+      const docPayload = {
+        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        driveFolderId: '09876543211',
+        fileName: 'tax-certificate',
+        date: new Date('2019-01-23').toISOString(),
+        year: '2019',
+        customer: customersList[1]._id.toHexString(),
+        mimeType: 'application/pdf',
+      };
 
-    //   const form = generateFormData(docPayload);
+      const form = generateFormData(docPayload);
 
-    //   const response = await app.inject({
-    //     method: 'POST',
-    //     url: '/taxcertificates',
-    //     payload: await GetStream(form),
-    //     headers: { ...form.getHeaders(), 'x-access-token': authToken },
-    //   });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/taxcertificates',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
 
-    //   expect(response.statusCode).toBe(403);
-    // });
+      expect(response.statusCode).toBe(403);
+    });
 
-    // it('should not create a new tax certificate if year is invalid', async () => {
-    //   const docPayload = {
-    //     taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-    //     driveFolderId: '09876543211',
-    //     fileName: 'tax-certificate',
-    //     date: new Date('2019-01-23').toISOString(),
-    //     year: '1988',
-    //     customer: customersList[1]._id.toHexString(),
-    //     mimeType: 'application/pdf',
-    //   };
+    it('should not create a new tax certificate if year is invalid', async () => {
+      const docPayload = {
+        taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        driveFolderId: '09876543211',
+        fileName: 'tax-certificate',
+        date: new Date('2019-01-23').toISOString(),
+        year: '1988',
+        customer: customersList[1]._id.toHexString(),
+        mimeType: 'application/pdf',
+      };
 
-    //   const form = generateFormData(docPayload);
+      const form = generateFormData(docPayload);
 
-    //   const response = await app.inject({
-    //     method: 'POST',
-    //     url: '/taxcertificates',
-    //     payload: await GetStream(form),
-    //     headers: { ...form.getHeaders(), 'x-access-token': authToken },
-    //   });
+      const response = await app.inject({
+        method: 'POST',
+        url: '/taxcertificates',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
 
-    //   expect(response.statusCode).toBe(400);
-    // });
+      expect(response.statusCode).toBe(400);
+    });
   });
 
-  // describe('Other roles', () => {
-  //   let gDriveAdd;
-  //   let gDriveStorageAddFile;
-  //   beforeEach(() => {
-  //     gDriveAdd = sinon.stub(Gdrive, 'add');
-  //     gDriveStorageAddFile = sinon.stub(GdriveStorage, 'addFile').returns({
-  //       id: '1234567890',
-  //       webViewLink: 'http://test.com/file.pdf',
-  //     });
-  //   });
-  //   afterEach(() => {
-  //     gDriveAdd.restore();
-  //     gDriveStorageAddFile.restore();
-  //   });
+  describe('Other roles', () => {
+    let gDriveAdd;
+    let gDriveStorageAddFile;
+    beforeEach(() => {
+      gDriveAdd = sinon.stub(Gdrive, 'add');
+      gDriveStorageAddFile = sinon.stub(GdriveStorage, 'addFile').returns({
+        id: '1234567890',
+        webViewLink: 'http://test.com/file.pdf',
+      });
+    });
+    afterEach(() => {
+      gDriveAdd.restore();
+      gDriveStorageAddFile.restore();
+    });
 
-  //   const roles = [
-  //     { name: 'helper', expectedCode: 403, erp: true },
-  //     { name: 'auxiliary', expectedCode: 403, erp: true },
-  //     { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-  //     { name: 'coach', expectedCode: 200, erp: true },
-  //     { name: 'client_admin', expectedCode: 403, erp: false },
-  //   ];
+    const roles = [
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'auxiliary', expectedCode: 403, erp: true },
+      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 200, erp: true },
+      { name: 'client_admin', expectedCode: 403, erp: false },
+    ];
 
-  //   roles.forEach((role) => {
-  //     it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
-  //       authToken = await getToken(role.name, role.erp);
-  //       const docPayload = {
-  //         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-  //         driveFolderId: '09876543211',
-  //         fileName: 'tax-certificates',
-  //         date: new Date('2019-01-23').toISOString(),
-  //         year: '2019',
-  //         customer: customersList[0]._id.toHexString(),
-  //         mimeType: 'application/pdf',
-  //       };
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+        const docPayload = {
+          taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'tax-certificates',
+          date: new Date('2019-01-23').toISOString(),
+          year: '2019',
+          customer: customersList[0]._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
 
-  //       const form = generateFormData(docPayload);
+        const form = generateFormData(docPayload);
 
-  //       const response = await app.inject({
-  //         method: 'POST',
-  //         url: '/taxcertificates',
-  //         payload: await GetStream(form),
-  //         headers: { ...form.getHeaders(), 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'POST',
+          url: '/taxcertificates',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(role.expectedCode);
-  //     });
-  //   });
-  // });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
 });
 
-// describe('TAX CERTIFICATES - DELETE /', () => {
-//   let authToken = null;
-//   describe('CLIENT_ADMIN', () => {
-//     beforeEach(populateDB);
-//     beforeEach(async () => {
-//       authToken = await getToken('client_admin');
-//     });
+describe('TAX CERTIFICATES - DELETE /', () => {
+  let authToken = null;
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
 
-//     it('should delete new tax certificate', async () => {
-//       const taxCertificateId = taxCertificatesList[0]._id;
-//       const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
+    it('should delete new tax certificate', async () => {
+      const taxCertificateId = taxCertificatesList[0]._id;
+      const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
 
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/taxcertificates/${taxCertificateId}`,
-//         headers: { 'x-access-token': authToken },
-//       });
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/taxcertificates/${taxCertificateId}`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(200);
-//       const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
-//       expect(taxCertificatesCount).toBe(taxCertificateCountBefore - 1);
-//     });
+      expect(response.statusCode).toBe(200);
+      const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
+      expect(taxCertificatesCount).toBe(taxCertificateCountBefore - 1);
+    });
 
-//     it('should throw an error if tax certificate does not exist', async () => {
-//       const taxCertificateId = new ObjectID();
-//       const response = await app.inject({
-//         method: 'DELETE',
-//         url: `/taxcertificates/${taxCertificateId}`,
-//         headers: { 'x-access-token': authToken },
-//       });
+    it('should throw an error if tax certificate does not exist', async () => {
+      const taxCertificateId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/taxcertificates/${taxCertificateId}`,
+        headers: { 'x-access-token': authToken },
+      });
 
-//       expect(response.statusCode).toBe(404);
-//     });
-//   });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 
-//   describe('Other roles', () => {
-//     const roles = [
-//       { name: 'helper', expectedCode: 403 },
-//       { name: 'auxiliary', expectedCode: 403 },
-//       { name: 'auxiliary_without_company', expectedCode: 403 },
-//       { name: 'coach', expectedCode: 200 },
-//     ];
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
 
-//     roles.forEach((role) => {
-//       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-//         authToken = await getToken(role.name);
-//         const taxCertificateId = taxCertificatesList[0]._id;
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const taxCertificateId = taxCertificatesList[0]._id;
 
-//         const response = await app.inject({
-//           method: 'DELETE',
-//           url: `/taxcertificates/${taxCertificateId}`,
-//           headers: { 'x-access-token': authToken },
-//         });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/taxcertificates/${taxCertificateId}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-//         expect(response.statusCode).toBe(role.expectedCode);
-//       });
-//     });
-//   });
-// });
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
