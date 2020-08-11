@@ -17,9 +17,18 @@ const addressValidation = Joi.object().keys({
 
 const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId()));
 
+const formDataPayload = {
+  output: 'stream',
+  parse: true,
+  multipart: true,
+  allow: 'multipart/form-data',
+  maxBytes: 5242880,
+};
+
 module.exports = {
   monthValidation,
   phoneNumberValidation,
   addressValidation,
   objectIdOrArray,
+  formDataPayload,
 };

@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update, uploadMedia } = require('../controllers/cardController');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -33,12 +34,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadMedia,
       options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),

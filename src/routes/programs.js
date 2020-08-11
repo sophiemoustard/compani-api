@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, getById, update, addStep, uploadImage } = require('../controllers/programController');
 const { STEP_TYPES } = require('../models/Step');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -81,12 +82,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadImage,
       options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),

@@ -22,6 +22,7 @@ const {
   authorizeGetContract,
   authorizeUpload,
 } = require('./preHandlers/contracts');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -195,12 +196,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['contracts:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           params: Joi.object({
             _id: Joi.objectId().required(),

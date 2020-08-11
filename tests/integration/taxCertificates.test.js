@@ -192,7 +192,6 @@ describe('TAX CERTIFICATES - POST /', () => {
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
-      console.log(response, form.getHeaders());
       expect(response.statusCode).toBe(200);
       expect(response.result.data.taxCertificate).toMatchObject({
         date: new Date(docPayload.date),
