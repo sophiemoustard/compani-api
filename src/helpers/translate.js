@@ -224,6 +224,8 @@ module.exports = {
     programCreated: 'Program created.',
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
+    /* SubPrograms */
+    subProgramUpdated: 'Sub-program updated.',
     /* Steps */
     stepUpdated: 'Step updated.',
     /* Activities */
@@ -468,6 +470,8 @@ module.exports = {
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
+    /* SubPrograms */
+    subProgramUpdated: 'Sous-Programme mis à jour.',
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
     /* Activities */

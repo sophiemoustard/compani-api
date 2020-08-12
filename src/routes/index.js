@@ -136,6 +136,10 @@ exports.routes = [
     routes: { prefix: '/programs' },
   },
   {
+    plugin: require('./subPrograms'),
+    routes: { prefix: '/subprograms' },
+  },
+  {
     plugin: require('./steps'),
     routes: { prefix: '/steps' },
   },
