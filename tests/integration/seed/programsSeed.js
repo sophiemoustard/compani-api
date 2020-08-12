@@ -5,12 +5,17 @@ const Activity = require('../../../src/models/Activity');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'c\'est une activité' },
-  { _id: new ObjectID(), name: 'toujours une activité' },
+  { _id: new ObjectID(), name: 'c\'est une activité', type: 'sharing_experience' },
+  { _id: new ObjectID(), name: 'toujours une activité', type: 'quiz' },
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), type: 'e_learning', name: 'c\'est une étape', activities: [activitiesList[0]._id, activitiesList[1]._id] },
+  {
+    _id: new ObjectID(),
+    type: 'e_learning',
+    name: 'c\'est une étape',
+    activities: [activitiesList[0]._id, activitiesList[1]._id],
+  },
   { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape' },
   { _id: new ObjectID(), type: 'on_site', name: 'encore une étape' },
 ];

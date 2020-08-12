@@ -50,7 +50,7 @@ describe('addStep', () => {
   });
 
   const program = { _id: new ObjectID() };
-  const newStep = { name: 'c\'est une étape !' };
+  const newStep = { name: 'c\'est une étape !', type: 'lesson' };
   it('should create a step', async () => {
     const stepId = new ObjectID();
     ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(1);

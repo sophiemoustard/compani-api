@@ -1,4 +1,5 @@
 const expect = require('expect');
+const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
@@ -78,7 +79,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new activity' };
+  const payload = { name: 'new activity', type: 'video' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -101,12 +102,27 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(stepUpdated.activities.length).toEqual(1);
     });
 
-    it('should return a 400 if missing name', async () => {
+    ['name', 'type'].forEach((missingParam) => {
+      it('should return a 400 if missing requiered param', async () => {
+        const stepId = stepsList[0]._id;
+        const response = await app.inject({
+          method: 'POST',
+          url: `/steps/${stepId.toHexString()}/activity`,
+          payload: omit(payload, missingParam),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return a 400 if invalid type', async () => {
+      const wrongPayload = { ...payload, type: 'something_wrong' };
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
         url: `/steps/${stepId.toHexString()}/activity`,
-        payload: { },
+        payload: wrongPayload,
         headers: { 'x-access-token': authToken },
       });
 
@@ -143,7 +159,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const stepId = stepsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { name: 'new name' },
+          payload,
           url: `/steps/${stepId.toHexString()}/activity`,
           headers: { 'x-access-token': authToken },
         });
