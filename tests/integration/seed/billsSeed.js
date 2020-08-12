@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const { HOURLY, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');

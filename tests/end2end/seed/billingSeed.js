@@ -1,5 +1,5 @@
 const moment = require('moment');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Payment = require('../../../src/models/Payment');

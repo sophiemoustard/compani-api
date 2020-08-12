@@ -8,7 +8,7 @@ const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
-const uuid = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const { TOKEN_EXPIRE_TIME } = require('../models/User');
@@ -173,7 +173,7 @@ exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  if (!roleId) return User.create({ ...payload, refreshToken: uuid.v4() });
+  if (!roleId) return User.create({ ...payload, refreshToken: uuidv4() });
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
@@ -182,7 +182,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (role.name !== TRAINER) payload.company = companyId;
 
-  const user = await User.create({ ...payload, refreshToken: uuid.v4() });
+  const user = await User.create({ ...payload, refreshToken: uuidv4() });
 
   if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
 
@@ -270,7 +270,7 @@ exports.forgotPassword = async (email) => {
 };
 
 exports.generatePasswordToken = async (email, time) => {
-  const payload = { passwordToken: { token: uuid.v4(), expiresIn: Date.now() + time } };
+  const payload = { passwordToken: { token: uuidv4(), expiresIn: Date.now() + time } };
   const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
