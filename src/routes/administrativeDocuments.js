@@ -1,9 +1,10 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeAdministrativeDocumentDeletion } = require('./preHandlers/administrativeDocuments');
 const { create, list, remove } = require('../controllers/administrativeDocumentController');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-administrative-documents',
@@ -13,12 +14,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),

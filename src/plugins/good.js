@@ -2,7 +2,7 @@ let reporters = {};
 if (process.env.NODE_ENV !== 'test') {
   reporters = {
     console: [{
-      module: 'good-squeeze',
+      module: '@hapi/good-squeeze',
       name: 'Squeeze',
       args: [{
         log: '*',
@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== 'test') {
       }],
     },
     {
-      module: 'good-console',
+      module: '@hapi/good-console',
     },
     'stdout',
     ],
@@ -19,15 +19,13 @@ if (process.env.NODE_ENV !== 'test') {
 } else {
   reporters = {
     console: [{
-      module: 'good-squeeze',
+      module: '@hapi/good-squeeze',
       name: 'Squeeze',
       args: [{ log: '*', request: { include: ['request', 'error'], exclude: ['db'] } }],
     },
     {
-      module: 'good-console',
-      args: [{
-        format: 'DDMMYYYY-HH:MM:ss',
-      }],
+      module: '@hapi/good-console',
+      args: [{ format: 'DDMMYYYY-HH:MM:ss' }],
     },
     'stdout',
     ],

@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
+const Boom = require('@hapi/boom');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
-const validator = require('validator');
+const Joi = require('joi');
 const moment = require('moment');
 const get = require('lodash/get');
 const { PHONE_VALIDATION } = require('./utils');
@@ -128,23 +129,24 @@ const UserSchema = mongoose.Schema({
   id: false,
 });
 
+const validateEmail = (email) => {
+  const emailSchema = Joi.object().keys({ email: Joi.string().email() })
+  return emailSchema.validate({ email });
+};
+
 async function save(next) {
   try {
     const user = this;
 
     if (user.isModified('local.email')) {
-      if (!validator.isEmail(user.local.email)) {
-        const error = new Error();
-        error.name = 'InvalidEmail';
-        return next(error);
-      }
+      const validation = validateEmail(user.local.email);
+      if (validation.error) return next(Boom.badRequest(validation.error));
     }
 
     if (!get(user, 'local.password') || !user.isModified('local.password')) return next();
     const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
     const hash = await bcrypt.hash(user.local.password, salt);
     user.local.password = hash;
-
 
     return next();
   } catch (e) {
@@ -155,12 +157,19 @@ async function save(next) {
 async function findOneAndUpdate(next) {
   try {
     const password = this.getUpdate().$set['local.password'];
-    if (!password) {
-      return next();
+    const email = this.getUpdate().$set['local.email'];
+    if (!password && !email) return next();
+
+    if (email) {
+      const validation = validateEmail(email);
+      if (validation.error) return next(Boom.badRequest(validation.error));
     }
-    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
-    const hash = await bcrypt.hash(password, salt);
-    this.getUpdate().$set['local.password'] = hash;
+
+    if (password) {
+      const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+      const hash = await bcrypt.hash(password, salt);
+      this.getUpdate().$set['local.password'] = hash;
+    }
 
     return next();
   } catch (e) {
@@ -265,6 +274,7 @@ UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissing
 
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
+UserSchema.pre('updateOne', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);

@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { END_CONTRACT_REASONS } = require('../models/Contract');
 const { OTHER } = require('../helpers/constants');
@@ -22,6 +22,7 @@ const {
   authorizeGetContract,
   authorizeUpload,
 } = require('./preHandlers/contracts');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -195,12 +196,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['contracts:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           params: Joi.object({
             _id: Joi.objectId().required(),

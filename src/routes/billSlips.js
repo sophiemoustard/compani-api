@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, generateBillSlipDocx } = require('../controllers/billSlipController');
 const { authorizeGetBillSlipDocx } = require('./preHandlers/billSlips');

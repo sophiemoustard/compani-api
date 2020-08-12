@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -14,7 +14,7 @@ const {
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
-const { addressValidation } = require('./validations/utils');
+const { addressValidation, formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -96,12 +96,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['company-{params._id}'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({

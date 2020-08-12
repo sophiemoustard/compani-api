@@ -9,7 +9,7 @@ const eventConsistency = require('../jobs/eventConsistency');
 
 const plugins = [
   {
-    plugin: require('good'),
+    plugin: require('@hapi/good'),
     options: { reporters: good.reporters },
   },
   { plugin: hapiAuthJwt2 },
