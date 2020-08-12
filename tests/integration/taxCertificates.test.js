@@ -165,7 +165,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         webViewLink: 'http://test.com/file.pdf',
       });
     });
-    afterEach(async () => {
+    afterEach(() => {
       addStub.restore();
       addFileStub.restore();
     });
