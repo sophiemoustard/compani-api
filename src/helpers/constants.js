@@ -266,6 +266,10 @@ module.exports = {
   TITLE_TEXT: 'title_text',
   TEXT_MEDIA: 'text_media',
   FLASHCARD: 'flashcard',
+  FILL_THE_GAPS: 'fill_the_gaps',
+  MULTIPLE_CHOICE_QUESTION: 'multiple_choice_question',
+  SINGLE_CHOICE_QUESTION: 'single_choice_question',
+  ORDER_THE_SEQUENCE: 'order_the_sequence',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
