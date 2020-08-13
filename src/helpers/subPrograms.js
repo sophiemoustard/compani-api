@@ -11,4 +11,4 @@ exports.addSubProgram = async (programId, payload) => {
 };
 
 exports.updateSubProgram = async (subProgramId, payload) =>
-  SubProgram.findOneAndUpdate({ _id: subProgramId }, { $set: payload }, { new: true }).lean();
+  SubProgram.updateOne({ _id: subProgramId }, { $set: payload });

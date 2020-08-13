@@ -85,10 +85,8 @@ describe('update', () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: payload })
       .returns({ _id: programId, name: 'toto' });
 
     const result = await ProgramHelper.updateProgram(programId, payload);
@@ -99,10 +97,8 @@ describe('update', () => {
     const programId = new ObjectID();
     const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: payload })
       .returns({ _id: programId, ...payload });
 
     const result = await ProgramHelper.updateProgram(programId, payload);

@@ -1,6 +1,6 @@
 const expect = require('expect');
 const GetStream = require('get-stream');
-const { ObjectID, ObjectId } = require('mongodb');
+const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -133,7 +133,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        steps: expect.arrayContaining([expect.any(ObjectId)]),
+        steps: expect.arrayContaining([expect.any(ObjectID)]),
         subPrograms: [
           {
             name: 'c\'est un sous-programme',

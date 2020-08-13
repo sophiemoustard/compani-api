@@ -67,10 +67,8 @@ describe('updatedSubProgram', () => {
     const payload = { name: 'si' };
     const updatedSubProgram = { ...subProgram, ...payload };
 
-    SubProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: subProgram._id }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    SubProgramMock.expects('updateOne')
+      .withExactArgs({ _id: subProgram._id }, { $set: payload })
       .returns(updatedSubProgram);
 
     const result = await SubProgramHelper.updateSubProgram(subProgram._id, payload);

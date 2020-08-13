@@ -8,9 +8,7 @@ const update = async (req) => {
   try {
     await SubProgramHelper.updateSubProgram(req.params._id, req.payload);
 
-    return {
-      message: translate[language].subProgramUpdated,
-    };
+    return { message: translate[language].subProgramUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

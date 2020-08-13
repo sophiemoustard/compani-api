@@ -2,8 +2,7 @@ const Boom = require('@hapi/boom');
 const Step = require('../models/Step');
 const Program = require('../models/Program');
 
-exports.updateStep = async (stepId, payload) =>
-  Step.findOneAndUpdate({ _id: stepId }, { $set: payload }, { new: true }).lean();
+exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 
 exports.addStep = async (programId, payload) => {
   const program = await Program.countDocuments({ _id: programId });

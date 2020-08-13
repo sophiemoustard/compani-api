@@ -22,10 +22,8 @@ describe('updateStep', () => {
     const payload = { name: 'nuit' };
     const updatedStep = { ...step, ...payload };
 
-    StepMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: step._id }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    StepMock.expects('updateOne')
+      .withExactArgs({ _id: step._id }, { $set: payload })
       .returns(updatedStep);
 
     const result = await StepHelper.updateStep(step._id, payload);
