@@ -23,7 +23,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/activity',
+      path: '/{_id}/activities',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),

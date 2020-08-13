@@ -5,16 +5,13 @@ const moment = require('moment');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
-exports.list = async query => Program.find(query)
-  .populate({ path: 'steps', select: 'type' })
-  .lean();
+exports.list = async query => Program.find(query).lean();
 
 exports.getProgram = async programId => Program.findOne({ _id: programId })
-  .populate({ path: 'steps', populate: 'activities' })
+  .populate({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
   .lean();
 
-exports.updateProgram = async (programId, payload) =>
-  Program.findOneAndUpdate({ _id: programId }, { $set: payload }, { new: true }).lean();
+exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 
 exports.uploadImage = async (programId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({

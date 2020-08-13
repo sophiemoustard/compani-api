@@ -2,7 +2,15 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addStep, uploadImage } = require('../controllers/programController');
+const {
+  list,
+  create,
+  getById,
+  update,
+  addStep,
+  uploadImage,
+  addSubProgram,
+} = require('../controllers/programController');
 const { STEP_TYPES } = require('../models/Step');
 const { formDataPayload } = require('./validations/utils');
 
@@ -66,7 +74,20 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/step',
+      path: '/{_id}/subprograms',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ name: Joi.string().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+      },
+      handler: addSubProgram,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/steps',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
