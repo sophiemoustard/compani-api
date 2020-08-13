@@ -946,8 +946,20 @@ describe('getDraftBillsList', () => {
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
     sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' });
     sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' });
-    sinon.assert.calledWithExactly(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00', null, companyId);
-    sinon.assert.calledWithExactly(populateFundings.secondCall, [{ nature: 'fixed' }], '2019-12-25T07:00:00', null, companyId);
+    sinon.assert.calledWithExactly(
+      populateFundings.firstCall,
+      [{ nature: 'hourly' }],
+      '2019-12-25T07:00:00',
+      null,
+      companyId
+    );
+    sinon.assert.calledWithExactly(
+      populateFundings.secondCall,
+      [{ nature: 'fixed' }],
+      '2019-12-25T07:00:00',
+      null,
+      companyId
+    );
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,
       [{ type: 'intervention', _id: '1234' }],

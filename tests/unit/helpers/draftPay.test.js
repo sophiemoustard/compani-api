@@ -1159,7 +1159,11 @@ describe('getPayFromAbsences', () => {
         { absenceNature: 'daily', startDate: '2019-05-18T07:00:00', endDate: '2019-05-18T22:00:00' },
         { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
       ];
-      const contract = { startDate: '2019-02-18T07:00:00', endDate: '2019-07-18T22:00:00', versions: [{ weeklyHours: 12 }] };
+      const contract = {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      };
 
       const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
@@ -1171,7 +1175,12 @@ describe('getPayFromAbsences', () => {
     it('should return paid hours from work accident and illness absences ', () => {
       const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
       const absences = [
-        { absenceNature: 'daily', absence: 'illness', startDate: '2019-05-18T12:00:00', endDate: '2019-05-18T22:00:00' },
+        {
+          absenceNature: 'daily',
+          absence: 'illness',
+          startDate: '2019-05-18T12:00:00',
+          endDate: '2019-05-18T22:00:00',
+        },
         {
           absenceNature: 'daily',
           absence: 'work_accident',
@@ -1179,7 +1188,11 @@ describe('getPayFromAbsences', () => {
           endDate: '2019-05-03T22:00:00',
         },
       ];
-      const contract = { startDate: '2019-02-18T07:00:00', endDate: '2019-07-18T22:00:00', versions: [{ weeklyHours: 12 }] };
+      const contract = {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      };
 
       const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
@@ -1244,7 +1257,11 @@ describe('getPayFromAbsences', () => {
       const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
       expect(result).toBeDefined();
-      sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), moment(query.startDate).startOf('d'), contract, 'startDate');
+      sinon.assert.calledWithExactly(
+        getMatchingVersion.getCall(0),
+        moment(query.startDate).startOf('d'), contract,
+        'startDate'
+      );
     });
   });
 
@@ -1268,7 +1285,11 @@ describe('getPayFromAbsences', () => {
       const absences = [
         { absenceNature: 'daily', startDate: '2019-05-02T07:00:00', endDate: '2019-05-06T22:00:00' },
       ];
-      const contract = { startDate: '2019-04-03T07:00:00', endDate: '2019-05-04T22:00:00', versions: [{ weeklyHours: 12 }] };
+      const contract = {
+        startDate: '2019-04-03T07:00:00',
+        endDate: '2019-05-04T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      };
 
       const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
@@ -1392,7 +1413,12 @@ describe('computeBalance', () => {
 
     await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, [], []);
     sinon.assert.calledWithExactly(getPayFromEvents, [events.events[0]], auxiliary, [], [], query);
-    sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[2], events.absences[3]], contract, query);
+    sinon.assert.calledWithExactly(
+      getPayFromAbsences,
+      [events.absences[0], events.absences[2], events.absences[3]],
+      contract,
+      query
+    );
   });
 });
 
@@ -1406,7 +1432,7 @@ describe('computeAuxiliaryDraftPay', () => {
   });
 
   it('should return draft pay for one auxiliary', async () => {
-    const auxiliary = {
+    const aux = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
@@ -1432,14 +1458,19 @@ describe('computeAuxiliaryDraftPay', () => {
       bonus: 0,
     };
     computeBalance.returns(computedPay);
-    const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, events, prevPay, company, query, [], []);
+    const result =
+      await DraftPayHelper.computeAuxiliaryDraftPay(aux, contract, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
       diff: { hoursBalance: 2 },
       previousMonthHoursCounter: 10,
       auxiliaryId: '1234567890',
-      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
+      auxiliary: {
+        _id: '1234567890',
+        identity: { firstname: 'Hugo', lastname: 'Lloris' },
+        sector: { name: 'La ruche' },
+      },
       startDate: '2019-05-13T00:00:00',
       endDate: '2019-05-31T23:59:59',
       month: '05-2019',
@@ -1450,7 +1481,7 @@ describe('computeAuxiliaryDraftPay', () => {
     });
     sinon.assert.calledWithExactly(
       computeBalance,
-      auxiliary,
+      aux,
       { startDate: '2019-05-13T00:00:00' },
       events,
       company,
@@ -1771,7 +1802,7 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should not return draft pay as auxiliary does not matching contracts', async () => {
-    const auxiliary = {
+    const aux = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
@@ -1786,7 +1817,8 @@ describe('computeDraftPayByAuxiliary', () => {
 
     getContract.returns(null);
 
-    const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, events, prevPay, company, query, [], []);
+    const result =
+      await DraftPayHelper.computeAuxiliaryDraftPay(aux, contract, events, prevPay, company, query, [], []);
     expect(result).toBeUndefined();
   });
 

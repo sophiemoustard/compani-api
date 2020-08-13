@@ -36,7 +36,7 @@ module.exports = {
       },
     ],
     'object-curly-newline': ['error', { consistent: true }],
-    'operator-linebreak': ['error', 'before', { overrides: { '&&': 'after', '||': 'after' } }],
+    'operator-linebreak': ['error', 'before', { overrides: { '&&': 'after', '||': 'after', '=': 'after' } }],
     'arrow-parens': [2, 'as-needed', { requireForBlockBody: true }],
   },
 };

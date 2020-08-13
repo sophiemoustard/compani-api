@@ -799,7 +799,7 @@ describe('formatPDF', () => {
             service: 'Toto',
           },
         ],
-        recipient: { name: 'tpp', address: { fullAddress: "j'habite ici" } },
+        recipient: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
         company,
       },
     };

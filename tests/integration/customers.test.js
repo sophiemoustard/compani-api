@@ -30,7 +30,7 @@ const FileHelper = require('../../src/helpers/file');
 const DocxHelper = require('../../src/helpers/docx');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -686,7 +686,7 @@ describe('CUSTOMERS ROUTES', () => {
       const helper = await User.findById(userList[2]._id).lean();
       expect(helper).toBeNull();
     });
-  
+
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'DELETE',
@@ -1410,7 +1410,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       ]));
     });
 
-    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
@@ -1516,7 +1516,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.result.data.customer.subscriptionsHistory[1].approvalDate).toEqual(expect.any(Date));
     });
 
-    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
       const payload = { helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' } };
       const res = await app.inject({
         method: 'POST',
@@ -1528,7 +1528,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it("should return a 400 error if 'helper' object is missing from payload", async () => {
+    it('should return a 400 error if \'helper\' object is missing from payload', async () => {
       const payload = {
         subscriptions: [
           { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
@@ -1683,7 +1683,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(409);
     });
 
-    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayer._id,
@@ -1708,7 +1708,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
+    it('should return a 400 error if \'thirdPartyPayer\' object is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         subscription: customersList[0].subscriptions[0]._id,

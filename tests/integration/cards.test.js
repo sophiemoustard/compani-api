@@ -11,7 +11,7 @@ const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -67,7 +67,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    it("should return a 400 if title is equal to '' ", async () => {
+    it('should return a 400 if title is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${cardId.toHexString()}`,

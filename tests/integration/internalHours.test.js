@@ -13,7 +13,7 @@ const {
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -59,7 +59,7 @@ describe('INTERNAL HOURS ROUTES', () => {
         expect(response.statusCode).toBe(403);
       });
 
-      it("should return a 400 error if 'name' params is missing", async () => {
+      it('should return a 400 error if \'name\' params is missing', async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/internalhours',

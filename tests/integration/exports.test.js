@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
@@ -33,7 +34,7 @@ const {
 const { formatPrice } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

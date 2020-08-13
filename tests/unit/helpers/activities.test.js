@@ -44,7 +44,7 @@ describe('updateActivity', () => {
     ActivityMock.restore();
   });
 
-  it("should update an activity's name", async () => {
+  it('should update an activity\'s name', async () => {
     const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
     const payload = { name: 'faire dodo' };
 

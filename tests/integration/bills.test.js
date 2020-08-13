@@ -28,7 +28,7 @@ const FundingHistory = require('../../src/models/FundingHistory');
 const Event = require('../../src/models/Event');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
