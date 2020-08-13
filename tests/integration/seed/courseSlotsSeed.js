@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');

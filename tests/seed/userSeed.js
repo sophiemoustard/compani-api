@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const { rolesList } = require('./roleSeed');
 const { authCompany, companyWithoutSubscription } = require('./companySeed');
 const { authCustomer } = require('./customerSeed');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const {
   VENDOR_ADMIN,
   CLIENT_ADMIN,

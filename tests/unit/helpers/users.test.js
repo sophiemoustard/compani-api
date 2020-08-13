@@ -8,7 +8,6 @@ const Boom = require('@hapi/boom');
 const flat = require('flat');
 const bcrypt = require('bcrypt');
 const omit = require('lodash/omit');
-const uuid = require('uuid');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
@@ -1252,27 +1251,22 @@ describe('forgotPassword', () => {
 describe('generatePasswordToken', () => {
   let UserMock;
   let fakeDate;
-  let uuidv4;
-  const token = '1234567890';
   const email = 'toto@toto.com';
   const date = new Date('2020-01-13');
-  const payload = { passwordToken: { token, expiresIn: date.getTime() + 3600000 } };
+  const payload = { passwordToken: { token: expect.any(String), expiresIn: date.getTime() + 3600000 } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
     fakeDate = sinon.useFakeTimers(date);
-    uuidv4 = sinon.stub(uuid, 'v4').returns('1234567890');
   });
   afterEach(() => {
     UserMock.restore();
     fakeDate.restore();
-    uuidv4.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
     try {
       UserMock.expects('findOneAndUpdate')
-        .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
         .chain('lean')
         .withExactArgs()
         .once()
@@ -1290,7 +1284,6 @@ describe('generatePasswordToken', () => {
     const user = { _id: new ObjectID(), local: { email: 'toto@toto.com', ...payload } };
 
     UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ 'local.email': email }, { $set: payload }, { new: true })
       .chain('lean')
       .withExactArgs()
       .once()
