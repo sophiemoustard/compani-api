@@ -166,7 +166,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should create card', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -181,7 +181,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if invalid template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload: { template: 'invalid template' },
         headers: { 'x-access-token': authToken },
       });
@@ -192,7 +192,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if missing template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload: {},
         headers: { 'x-access-token': authToken },
       });
@@ -204,7 +204,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${wrongId}/card`,
+        url: `/activities/${wrongId}/cards`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -230,7 +230,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         const response = await app.inject({
           method: 'POST',
           payload: { template: 'transition' },
-          url: `/activities/${activityId.toHexString()}/card`,
+          url: `/activities/${activityId.toHexString()}/cards`,
           headers: { 'x-access-token': authToken },
         });
 

@@ -265,7 +265,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       const subProgramLengthBefore = programsList[0].subPrograms.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/subprogram`,
+        url: `/programs/${programId.toHexString()}/subprograms`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -281,7 +281,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/subprogram`,
+        url: `/programs/${programId.toHexString()}/subprograms`,
         payload: omit(payload, 'name'),
         headers: { 'x-access-token': authToken },
       });
@@ -293,7 +293,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${wrongId}/subprogram`,
+        url: `/programs/${wrongId}/subprograms`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -320,7 +320,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/programs/${programId.toHexString()}/subprogram`,
+          url: `/programs/${programId.toHexString()}/subprograms`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -345,7 +345,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
       const stepsLengthBefore = programsList[0].steps.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/step`,
+        url: `/programs/${programId.toHexString()}/steps`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -363,7 +363,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${programId.toHexString()}/step`,
+          url: `/programs/${programId.toHexString()}/steps`,
           payload: omit(payload, param),
           headers: { 'x-access-token': authToken },
         });
@@ -376,7 +376,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${wrongId}/step`,
+        url: `/programs/${wrongId}/steps`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -403,7 +403,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/programs/${programId.toHexString()}/step`,
+          url: `/programs/${programId.toHexString()}/steps`,
           headers: { 'x-access-token': authToken },
         });
 

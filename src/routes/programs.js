@@ -74,7 +74,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/subprogram',
+      path: '/{_id}/subprograms',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
@@ -87,7 +87,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/step',
+      path: '/{_id}/steps',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),

@@ -35,7 +35,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/card',
+      path: '/{_id}/cards',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),

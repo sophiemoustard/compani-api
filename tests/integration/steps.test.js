@@ -90,7 +90,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepId.toHexString()}/activity`,
+        url: `/steps/${stepId.toHexString()}/activities`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -107,7 +107,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const stepId = stepsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          url: `/steps/${stepId.toHexString()}/activity`,
+          url: `/steps/${stepId.toHexString()}/activities`,
           payload: omit(payload, missingParam),
           headers: { 'x-access-token': authToken },
         });
@@ -121,7 +121,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepId.toHexString()}/activity`,
+        url: `/steps/${stepId.toHexString()}/activities`,
         payload: wrongPayload,
         headers: { 'x-access-token': authToken },
       });
@@ -133,7 +133,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const wrongId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${wrongId}/activity`,
+        url: `/steps/${wrongId}/activities`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -160,7 +160,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/steps/${stepId.toHexString()}/activity`,
+          url: `/steps/${stepId.toHexString()}/activities`,
           headers: { 'x-access-token': authToken },
         });
 
