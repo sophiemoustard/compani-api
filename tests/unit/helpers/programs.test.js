@@ -38,8 +38,6 @@ describe('list', () => {
 
     ProgramMock.expects('find')
       .withExactArgs({ type: 'toto' })
-      .chain('populate')
-      .withExactArgs({ path: 'steps', select: 'type' })
       .chain('lean')
       .once()
       .returns(programsList);
@@ -64,7 +62,7 @@ describe('getProgram', () => {
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
       .chain('populate')
-      .withExactArgs({ path: 'steps', populate: 'activities' })
+      .withExactArgs({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
       .chain('lean')
       .once()
       .returns(program);
