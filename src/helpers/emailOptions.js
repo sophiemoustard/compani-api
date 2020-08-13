@@ -5,11 +5,11 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 
 const baseWelcomeContent = (customContent, options) => {
-  const createPasswordLink = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
+  const link = `${process.env.WEBSITE_HOSTNAME}/reset-password/${options.passwordToken.token}`;
   return `<p>Bonjour,</p>
     ${customContent}
     <p>
-      Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${createPasswordLink}">${createPasswordLink}</a>.
+      Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${link}">${link}</a>.
     </p>
     <p>Ce lien est valable 24heures.</p>
     <p>

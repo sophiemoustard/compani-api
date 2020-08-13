@@ -197,5 +197,5 @@ exports.nationalities = {
   VN: 'Vietnamienne',
   YE: 'Yémenite',
   ZM: 'Zambienne',
-  ZW: 'Zimbabwéenne'
-}
+  ZW: 'Zimbabwéenne',
+};

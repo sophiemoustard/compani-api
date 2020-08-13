@@ -36,7 +36,7 @@ exports.countries = {
   BG: 'Bulgarie',
   BF: 'Burkina Faso',
   BI: 'Burundi',
-  CI: "Côte d'Ivoire",
+  CI: 'Côte d\'Ivoire',
   KH: 'Cambodge',
   CM: 'Cameroun',
   CA: 'Canada',
@@ -219,7 +219,7 @@ exports.countries = {
   TZ: 'Tanzanie',
   TD: 'Tchad',
   TF: 'Terres australes françaises',
-  IO: "Territoire britannique de l'Océan Indien",
+  IO: 'Territoire britannique de l\'Océan Indien',
   TH: 'Thaîlande',
   TL: 'Timor Oriental',
   TG: 'Togo',
@@ -239,5 +239,5 @@ exports.countries = {
   WF: 'Wallis-et-Futuna',
   YE: 'Yémen',
   ZM: 'Zambie',
-  ZW: 'Zimbabwe'
+  ZW: 'Zimbabwe',
 };

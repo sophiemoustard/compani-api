@@ -58,12 +58,12 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
   const correspondingCreditNote = !bill._id.tpp
     ? customerAggregation.find(cn => cn._id.customer.toHexString() === bill._id.customer.toHexString() && !cn._id.tpp)
-    : tppAggregation.find(cn => cn._id.tpp && cn._id.tpp.toHexString() === bill._id.tpp.toHexString()
-      && cn._id.customer.toHexString() === bill._id.customer.toHexString());
+    : tppAggregation.find(cn => cn._id.tpp && cn._id.tpp.toHexString() === bill._id.tpp.toHexString() &&
+      cn._id.customer.toHexString() === bill._id.customer.toHexString());
   const correspondingPayment = !bill._id.tpp
     ? payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString() && !pay._id.tpp)
-    : payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString()
-      && pay._id.tpp && pay._id.tpp.toHexString() === bill._id.tpp.toHexString());
+    : payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString() &&
+      pay._id.tpp && pay._id.tpp.toHexString() === bill._id.tpp.toHexString());
 
   const paid = correspondingPayment && correspondingPayment.payments
     ? exports.computePayments(correspondingPayment.payments)
@@ -84,8 +84,8 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
   const correspondingPayment = !creditNote._id.tpp
     ? payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString() && !pay._id.tpp)
-    : payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString()
-      && pay._id.tpp && pay._id.tpp.toHexString() === creditNote._id.tpp.toHexString());
+    : payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString() &&
+      pay._id.tpp && pay._id.tpp.toHexString() === creditNote._id.tpp.toHexString());
 
   const bill = {
     customer: creditNote.customer,

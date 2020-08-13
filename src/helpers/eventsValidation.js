@@ -77,8 +77,8 @@ exports.isEditionAllowed = async (event, credentials) => {
 };
 
 exports.isCreationAllowed = async (event, credentials) => {
-  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION)
-    && await exports.hasConflicts(event);
+  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION) &&
+    await exports.hasConflicts(event);
   if (isConflict) throw Boom.conflict(translate[language].eventsConflict);
 
   return exports.isEditionAllowed(event, credentials);

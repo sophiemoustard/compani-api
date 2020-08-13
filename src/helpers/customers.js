@@ -132,9 +132,9 @@ exports.updateCustomerEvents = async (customerId, payload) => {
     const isSecondaryAddressDeleted = has(payload, 'contact.secondaryAddress') &&
       get(payload, 'contact.secondaryAddress.fullAddress') === '';
 
-    const setAddressToEventPayload = isSecondaryAddressDeleted ?
-      { $set: { address: customer.contact.primaryAddress } } :
-      { $set: { address: payload.contact[addressField] } };
+    const setAddressToEventPayload = isSecondaryAddressDeleted
+      ? { $set: { address: customer.contact.primaryAddress } }
+      : { $set: { address: payload.contact[addressField] } };
 
     await Event.updateMany(
       {

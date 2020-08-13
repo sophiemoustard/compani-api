@@ -1,4 +1,3 @@
-/* eslint-disable no-loop-func */
 const moment = require('moment');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
@@ -24,8 +23,8 @@ const createEventBasedOnRepetition = async (repetition, date) => {
   let futureEvent;
   switch (frequency) {
     case EVERY_TWO_WEEKS:
-      if (moment(startDate).day() === moment(newEventStartDate).day()
-          && (newEventStartDate.diff(moment(startDate), 'week') % 2 === 0)) {
+      if (moment(startDate).day() === moment(newEventStartDate).day() &&
+        (newEventStartDate.diff(moment(startDate), 'week') % 2 === 0)) {
         futureEvent = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, date);
       }
       break;

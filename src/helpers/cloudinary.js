@@ -6,6 +6,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+/* eslint-disable-next-line no-useless-escape */
 exports.formatPublicId = publicId => publicId.replace(/[<>?&#\\%]/g, '').replace(/^[\/\s]/, '').replace(/[\/\s]$/, '');
 
 exports.addImage = async params => new Promise((resolve, reject) => {

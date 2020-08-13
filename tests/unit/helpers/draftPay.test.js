@@ -54,7 +54,7 @@ describe('getContractMonthInfo', () => {
   });
 });
 
-describe('computeCustomSurcharge', () => {
+describe('applyCustomSurcharge', () => {
   const start = '09:00';
   const end = '12:00';
   const paidTransport = 30;
@@ -64,7 +64,7 @@ describe('computeCustomSurcharge', () => {
       endDate: '2019-03-12T11:00:00',
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    const result = DraftPayHelper.applyCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(2.5);
   });
@@ -75,7 +75,7 @@ describe('computeCustomSurcharge', () => {
       endDate: '2019-03-12T13:00:00',
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    const result = DraftPayHelper.applyCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(2.5);
   });
@@ -86,7 +86,7 @@ describe('computeCustomSurcharge', () => {
       endDate: '2019-03-12T10:00:00',
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    const result = DraftPayHelper.applyCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(1);
   });
@@ -97,7 +97,7 @@ describe('computeCustomSurcharge', () => {
       endDate: '2019-03-12T13:00:00',
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    const result = DraftPayHelper.applyCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(3);
   });
@@ -108,7 +108,7 @@ describe('computeCustomSurcharge', () => {
       endDate: '2019-03-12T07:00:00',
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    const result = DraftPayHelper.applyCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(0);
   });
@@ -313,15 +313,15 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply evening surcharge', () => {
-    const computeCustomSurcharge = sinon.stub(DraftPayHelper, 'computeCustomSurcharge');
+    const applyCustomSurcharge = sinon.stub(DraftPayHelper, 'applyCustomSurcharge');
     const getSurchargeDetails = sinon.stub(DraftPayHelper, 'getSurchargeDetails');
     event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
-    computeCustomSurcharge.returns(2);
+    applyCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
-    sinon.assert.called(computeCustomSurcharge);
+    sinon.assert.called(applyCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
     expect(result).toEqual({
       surcharged: 2,
@@ -330,20 +330,20 @@ describe('getSurchargeSplit', () => {
       paidKm: 10,
       paidTransportHours: 0.5,
     });
-    computeCustomSurcharge.restore();
+    applyCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
 
   it('should apply custom surcharge', () => {
-    const computeCustomSurcharge = sinon.stub(DraftPayHelper, 'computeCustomSurcharge');
+    const applyCustomSurcharge = sinon.stub(DraftPayHelper, 'applyCustomSurcharge');
     const getSurchargeDetails = sinon.stub(DraftPayHelper, 'getSurchargeDetails');
     event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
-    computeCustomSurcharge.returns(2);
+    applyCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
-    sinon.assert.called(computeCustomSurcharge);
+    sinon.assert.called(applyCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
     expect(result).toEqual({
       surcharged: 2,
@@ -352,7 +352,7 @@ describe('getSurchargeSplit', () => {
       paidKm: 10,
       paidTransportHours: 0.5,
     });
-    computeCustomSurcharge.restore();
+    applyCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
 

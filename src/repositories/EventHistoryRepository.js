@@ -1,4 +1,3 @@
-const get = require('lodash/get');
 const EventHistory = require('../models/EventHistory');
 
 exports.paginate = async (query, createdAt = null) => {
