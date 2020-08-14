@@ -4,7 +4,6 @@ const expect = require('expect');
 const flat = require('flat');
 const crypto = require('crypto');
 const Customer = require('../../../src/models/Customer');
-const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Company = require('../../../src/models/Company');
 const Rum = require('../../../src/models/Rum');

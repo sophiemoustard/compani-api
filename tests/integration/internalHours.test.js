@@ -13,7 +13,7 @@ const {
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -59,7 +59,7 @@ describe('INTERNAL HOURS ROUTES', () => {
         expect(response.statusCode).toBe(403);
       });
 
-      it("should return a 400 error if 'name' params is missing", async () => {
+      it('should return a 400 error if \'name\' params is missing', async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/internalhours',
@@ -168,7 +168,9 @@ describe('INTERNAL HOURS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.internalHour).toMatchObject(payload);
+
+        const updatedInternalHour = await InternalHour.findOne({ _id: internalHour._id.toHexString() }).lean();
+        expect(updatedInternalHour).toMatchObject(payload);
       });
 
       it('should return a 404 error if internalHour does not exist', async () => {

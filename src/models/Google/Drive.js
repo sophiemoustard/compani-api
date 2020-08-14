@@ -85,15 +85,21 @@ exports.list = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
 
-  return new Promise((resolve, reject) => drive.files.list({
-    auth,
-    ...(params.folderId && { q: `'${params.folderId}' in parents and mimeType != 'application/vnd.google-apps.folder'` }),
-    fields: 'nextPageToken, files(name, webViewLink, createdTime)',
-    pageToken: params.nextPageToken || '',
-  }, (err, response) => {
-    if (err) reject(new Error(`Google Drive API ${err}`));
-    else resolve(response.data);
-  }));
+  return new Promise((resolve, reject) => {
+    const query = {
+      auth,
+      fields: 'nextPageToken, files(name, webViewLink, createdTime)',
+      pageToken: params.nextPageToken || '',
+    };
+    if (params.folderId) {
+      query.q = `'${params.folderId}' in parents and mimeType != 'application/vnd.google-apps.folder'`;
+    }
+
+    return drive.files.list(query, (err, response) => {
+      if (err) reject(new Error(`Google Drive API ${err}`));
+      else resolve(response.data);
+    });
+  });
 };
 
 exports.createPermission = async (params) => {

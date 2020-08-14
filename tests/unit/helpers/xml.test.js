@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');

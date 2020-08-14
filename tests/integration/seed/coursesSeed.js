@@ -50,7 +50,13 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là', image: { link: 'belle/url', publicId: '12345' }, steps: [step._id] },
+  {
+    _id: new ObjectID(),
+    name: 'program',
+    learningGoals: 'on est là',
+    image: { link: 'belle/url', publicId: '12345' },
+    steps: [step._id],
+  },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
 
@@ -116,11 +122,36 @@ const courseSmsHistory = {
 };
 
 const slots = [
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[0], step: step._id },
-  { startDate: moment('2020-03-20T14:00:00').toDate(), endDate: moment('2020-03-20T18:00:00').toDate(), courseId: coursesList[0], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[1], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[2], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[3], step: step._id },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[0],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T14:00:00').toDate(),
+    endDate: moment('2020-03-20T18:00:00').toDate(),
+    courseId: coursesList[0],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[1],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[2],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[3],
+    step: step._id,
+  },
   { courseId: coursesList[3] },
 ];
 

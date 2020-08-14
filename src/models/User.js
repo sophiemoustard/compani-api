@@ -130,7 +130,7 @@ const UserSchema = mongoose.Schema({
 });
 
 const validateEmail = (email) => {
-  const emailSchema = Joi.object().keys({ email: Joi.string().email() })
+  const emailSchema = Joi.object().keys({ email: Joi.string().email() });
   return emailSchema.validate({ email });
 };
 

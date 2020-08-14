@@ -23,13 +23,12 @@ const {
   trainerOrganisationManager,
   traineeFromOtherCompany,
   slots,
-}
-  = require('./seed/coursesSeed');
+} = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -397,11 +396,26 @@ describe('COURSES ROUTES - GET /courses/user', () => {
     const roles = [
       { name: 'helper', credentials: helper.local, expectedCode: 200, numberOfCourse: 2 },
       { name: 'auxiliary', credentials: auxiliary.local, expectedCode: 200, numberOfCourse: 1 },
-      { name: 'auxiliary_without_company', credentials: auxiliaryWithoutCompany.local, expectedCode: 200, numberOfCourse: 0 },
+      {
+        name: 'auxiliary_without_company',
+        credentials: auxiliaryWithoutCompany.local,
+        expectedCode: 200,
+        numberOfCourse: 0,
+      },
       { name: 'coach', credentials: coachFromAuthCompany.local, expectedCode: 200, numberOfCourse: 4 },
       { name: 'client_admin', credentials: clientAdmin.local, expectedCode: 200, numberOfCourse: 3 },
-      { name: 'training_organisation_manager', credentials: trainerOrganisationManager.local, expectedCode: 200, numberOfCourse: 1 },
-      { name: 'trainer', credentials: courseTrainer.local, expectedCode: 200, numberOfCourse: 1 },
+      {
+        name: 'training_organisation_manager',
+        credentials: trainerOrganisationManager.local,
+        expectedCode: 200,
+        numberOfCourse: 1,
+      },
+      {
+        name: 'trainer',
+        credentials: courseTrainer.local,
+        expectedCode: 200,
+        numberOfCourse: 1,
+      },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -925,7 +939,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           method: 'POST',
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
           headers: { 'x-access-token': token },
-          payload: { ...pick(coachFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+          payload: {
+            ...pick(coachFromAuthCompany, ['local.email', 'company']),
+            identity: { lastname: 'same_trainee' },
+          },
         });
 
         expect(response.statusCode).toBe(409);

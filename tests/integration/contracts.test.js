@@ -28,7 +28,7 @@ const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
 const EsignHelper = require('../../src/helpers/eSign');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

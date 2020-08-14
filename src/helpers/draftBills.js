@@ -340,7 +340,9 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId) : null;
+      fundings = fundings
+        ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId)
+        : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(
         eventsBySubscriptions[k].events,

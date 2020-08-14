@@ -6,7 +6,7 @@ const { getToken } = require('./seed/authenticationSeed');
 
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -36,7 +36,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, name: payload.name }));
     });
 
-    it("should return a 400 if name is equal to '' ", async () => {
+    it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${subProgramId.toHexString()}`,

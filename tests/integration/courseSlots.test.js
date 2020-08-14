@@ -7,7 +7,7 @@ const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

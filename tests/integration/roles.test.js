@@ -4,7 +4,7 @@ const { populateDB, rolesList } = require('./seed/rolesSeed');
 const { getToken, rolesList: authRolesList } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

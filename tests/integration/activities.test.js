@@ -7,7 +7,7 @@ const { getToken } = require('./seed/authenticationSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -99,7 +99,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it("should update activity's name", async () => {
+    it('should update activity\'s name', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
@@ -113,7 +113,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
-    it("should return a 400 if name is equal to '' ", async () => {
+    it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,

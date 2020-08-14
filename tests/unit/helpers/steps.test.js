@@ -17,7 +17,7 @@ describe('updateStep', () => {
     StepMock.restore();
   });
 
-  it("should update a step's name", async () => {
+  it('should update a step\'s name', async () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
     const updatedStep = { ...step, ...payload };

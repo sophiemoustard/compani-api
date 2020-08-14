@@ -55,7 +55,8 @@ exports.listUserCourses = async credentials => Course.find({ trainees: credentia
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
-  // A coach/client_admin is not supposed to read infos on trainees from other companies - espacially for INTER_B2B courses.
+  // A coach/client_admin is not supposed to read infos on trainees from other companies
+  // espacially for INTER_B2B courses.
   const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
 
   return Course.findOne({ _id: courseId })

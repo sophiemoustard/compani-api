@@ -8,8 +8,8 @@ const SectorHistoryRepository = require('../repositories/SectorHistoryRepository
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
 
-const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day))
-  || (careDays.includes(7) && isHoliday(day));
+const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day)) ||
+  (careDays.includes(7) && isHoliday(day));
 
 const isNotStarted = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
 
@@ -18,8 +18,8 @@ const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fun
 const getMonthCareHours = (events, funding) => {
   let monthCareHours = 0;
   for (const event of events) {
-    if (!isInCareDays(funding.careDays, event.startDate) || isNotStarted(event.startDate, funding.startDate)
-      || isEnded(event.startDate, funding.endDate)) continue;
+    if (!isInCareDays(funding.careDays, event.startDate) || isNotStarted(event.startDate, funding.startDate) ||
+      isEnded(event.startDate, funding.endDate)) continue;
     monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
   }
   return monthCareHours;

@@ -45,8 +45,8 @@ const workingEventExportHeader = [
   'Divers',
   'Facturé',
   'Annulé',
-  "Statut de l'annulation",
-  "Raison de l'annulation",
+  'Statut de l\'annulation',
+  'Raison de l\'annulation',
 ];
 
 const getServiceName = (service) => {
@@ -359,7 +359,8 @@ const formatLines = (surchargedPlanDetails, planName) => {
 
   const lines = [planName];
   for (const [surchageKey, surcharge] of surcharges) {
-    lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+    lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, `
+     + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
   }
 
   return lines.join('\r\n');
