@@ -57,6 +57,7 @@ const eventConsistency = {
         }
       }
     } catch (e) {
+      console.error(e);
       error = e.message;
     }
     return { eventsWithErrors, error };

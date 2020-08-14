@@ -43,8 +43,7 @@ const init = async () => {
 module.exports = server;
 
 process.on('unhandledRejection', (err) => {
-  // eslint-disable-next-line no-console
-  console.log(err);
+  console.error(err);
   process.exit(1);
 });
 
