@@ -23,8 +23,7 @@ const {
   trainerOrganisationManager,
   traineeFromOtherCompany,
   slots,
-} =
-  require('./seed/coursesSeed');
+} = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
@@ -941,7 +940,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
           headers: { 'x-access-token': token },
           payload: {
-            ...pick(coachFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' },
+            ...pick(coachFromAuthCompany, ['local.email', 'company']),
+            identity: { lastname: 'same_trainee' },
           },
         });
 
