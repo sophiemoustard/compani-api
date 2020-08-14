@@ -44,7 +44,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await Service.updateOne( req.params._id, { $push: { versions: req.payload } });
+    await Service.updateOne({ _id: req.params._id }, { $push: { versions: req.payload } });
 
     return { message: translate[language].serviceUpdated };
   } catch (e) {

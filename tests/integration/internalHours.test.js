@@ -168,7 +168,9 @@ describe('INTERNAL HOURS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.internalHour).toMatchObject(payload);
+
+        const updatedInternalHour = await InternalHour.findOne({ _id: internalHour._id.toHexString() }).lean();
+        expect(updatedInternalHour).toMatchObject(payload);
       });
 
       it('should return a 404 error if internalHour does not exist', async () => {
