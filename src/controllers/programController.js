@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const ProgramHelper = require('../helpers/programs');
 const SubProgramHelper = require('../helpers/subPrograms');
-const StepHelper = require('../helpers/steps');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -73,19 +72,6 @@ const addSubProgram = async (req) => {
   }
 };
 
-const addStep = async (req) => {
-  try {
-    await StepHelper.addStep(req.params._id, req.payload);
-
-    return {
-      message: translate[language].programUpdated,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const uploadImage = async (req) => {
   try {
     await ProgramHelper.uploadImage(req.params._id, req.payload);
@@ -105,6 +91,5 @@ module.exports = {
   getById,
   update,
   addSubProgram,
-  addStep,
   uploadImage,
 };
