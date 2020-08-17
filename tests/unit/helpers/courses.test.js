@@ -297,7 +297,7 @@ describe('getTraineeCourse', () => {
       .chain('populate')
       .withExactArgs({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
       .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate step' })
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
       .chain('select')
       .withExactArgs('_id')
       .chain('lean')
