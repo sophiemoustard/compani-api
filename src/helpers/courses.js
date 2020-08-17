@@ -23,7 +23,7 @@ exports.createCourse = payload => (new Course(payload)).save();
 exports.list = async (query) => {
   if (query.trainees) {
     return Course.find(query, { misc: 1 })
-      .populate({ path: 'program', select: 'name' })
+      .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
       .lean();
@@ -48,7 +48,7 @@ exports.list = async (query) => {
 };
 
 exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
-  .populate({ path: 'program', select: 'name image steps' })
+  .populate({ path: 'subProgram',  select: 'program steps', populate: { path: 'program', select: 'name image' } })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
   .lean();
 
@@ -61,7 +61,8 @@ exports.getCourse = async (courseId, loggedUser) => {
 
   return Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'program', select: 'name learningGoals steps', populate: { path: 'steps', select: 'name type' } })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate({ path: 'subProgram', select: 'steps', populate: { path: 'steps', select: 'name type' } })
     .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
@@ -75,6 +76,11 @@ exports.getCourse = async (courseId, loggedUser) => {
 };
 
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
+  .populate({
+    path: 'subProgram',
+    select: 'program',
+    populate: { path: 'program', select: 'name learningGoals' },
+  })
   .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
   .populate({ path: 'slotsToPlan', select: '_id' })
@@ -82,7 +88,8 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .lean();
 
 exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
+  .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name image' } })
+  .populate({ path: 'subProgram', select: 'steps', populate: { path: 'steps', select: 'name type' } })
   .populate({ path: 'slots', select: 'startDate endDate step address' })
   .select('_id')
   .lean();
@@ -165,7 +172,7 @@ exports.getCourseDuration = (slots) => {
 
 exports.formatCourseForPdf = (course) => {
   const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
-  const name = course.program.name + possiblyMisc;
+  const name = course.subProgram.program.name + possiblyMisc;
   const slots = course.slots
     ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     : [];
@@ -194,7 +201,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('slots')
     .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
     .populate('trainer')
-    .populate('program')
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' }})
     .lean();
 
   return {
@@ -205,8 +212,8 @@ exports.generateAttendanceSheets = async (courseId) => {
 
 exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
-  learningGoals: get(course, 'program.learningGoals') || '',
-  programName: get(course, 'program.name').toUpperCase() || '',
+  learningGoals: get(course, 'subProgram.program.learningGoals') || '',
+  programName: get(course, 'subProgram.program.name').toUpperCase() || '',
   startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
   endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
 });
@@ -215,7 +222,7 @@ exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
-    .populate('program')
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' }})
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);
