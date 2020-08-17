@@ -63,7 +63,7 @@ describe('addStep', () => {
     StepMock.verify();
   });
 
-  it('should return an error if program does not exist', async () => {
+  it('should return an error if sub-program does not exist', async () => {
     try {
       SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(0);
 
@@ -77,4 +77,3 @@ describe('addStep', () => {
     }
   });
 });
-

@@ -290,10 +290,10 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
     });
 
     it('should return a 400 if program does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${wrongId}/subprograms`,
+        url: `/programs/${invalidId}/subprograms`,
         payload,
         headers: { 'x-access-token': authToken },
       });

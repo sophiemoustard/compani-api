@@ -97,20 +97,20 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      const programUpdated = await SubProgram.findById(subProgramId);
+      const subProgramUpdated = await SubProgram.findById(subProgramId);
 
       expect(response.statusCode).toBe(200);
-      expect(programUpdated._id).toEqual(subProgramId);
-      expect(programUpdated.steps.length).toEqual(stepsLengthBefore + 1);
+      expect(subProgramUpdated._id).toEqual(subProgramId);
+      expect(subProgramUpdated.steps.length).toEqual(stepsLengthBefore + 1);
     });
 
     const missingParams = ['name', 'type'];
     missingParams.forEach((param) => {
       it(`should return a 400 if missing ${param}`, async () => {
-        const programId = subProgramsList[0]._id;
+        const subProgramId = subProgramsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          url: `/subprograms/${programId.toHexString()}/steps`,
+          url: `/subprograms/${subProgramId.toHexString()}/steps`,
           payload: omit(payload, param),
           headers: { 'x-access-token': authToken },
         });
@@ -120,10 +120,10 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
     });
 
     it('should return a 400 if program does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/subprograms/${wrongId}/steps`,
+        url: `/subprograms/${invalidId}/steps`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -146,11 +146,11 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const programId = subProgramsList[0]._id;
+        const subProgramId = subProgramsList[0]._id;
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/subprograms/${programId.toHexString()}/steps`,
+          url: `/subprograms/${subProgramId.toHexString()}/steps`,
           headers: { 'x-access-token': authToken },
         });
 
