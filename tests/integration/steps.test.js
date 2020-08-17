@@ -130,10 +130,10 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     });
 
     it('should return a 400 if step does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${wrongId}/activities`,
+        url: `/steps/${invalidId}/activities`,
         payload,
         headers: { 'x-access-token': authToken },
       });

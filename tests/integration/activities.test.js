@@ -201,10 +201,10 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     });
 
     it('should return a 400 if activity does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${wrongId}/cards`,
+        url: `/activities/${invalidId}/cards`,
         payload,
         headers: { 'x-access-token': authToken },
       });
