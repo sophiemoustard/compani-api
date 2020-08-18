@@ -8,7 +8,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
-const { CONVOCATION } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -652,7 +652,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   let SmsHelperStub;
-  const payload = { body: 'Ceci est un test', type: CONVOCATION };
+  const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
   beforeEach(populateDB);
 
@@ -680,7 +680,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
       SmsHelperStub,
-      { to: `+33${coachFromAuthCompany.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      {
+        recipient: `+33${coachFromAuthCompany.contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
   });
 
@@ -696,7 +701,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     sinon.assert.notCalled(SmsHelperStub);
   });
 
-  const missingParams = ['body', 'type'];
+  const missingParams = ['content', 'type'];
   missingParams.forEach((param) => {
     it(`should return a 400 error if missing ${param} parameter`, async () => {
       SmsHelperStub.returns('SMS SENT !');

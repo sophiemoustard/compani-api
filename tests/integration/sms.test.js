@@ -5,6 +5,7 @@ const app = require('../../server');
 const { getToken, populateDBForAuthentication, authCompany } = require('./seed/authenticationSeed');
 const { smsUser, smsUserFromOtherCompany, populateDB } = require('./seed/smsSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const { COURSE_SMS, HR_SMS } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -21,14 +22,18 @@ describe('SMS ROUTES', () => {
   describe('POST /sms', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
-      SmsHelperStub = sinon.stub(SmsHelper, 'sendMessage').returns('SMS SENT !');
+      SmsHelperStub = sinon.stub(SmsHelper, 'sendFromCompany').returns('SMS SENT !');
     });
     afterEach(() => {
       SmsHelperStub.restore();
     });
 
     it('should send a SMS to user from company', async () => {
-      const payload = { to: `+33${smsUser.contact.phone.substring(1)}`, body: 'Ceci est un test' };
+      const payload = {
+        recipient: `+33${smsUser.contact.phone.substring(1)}`,
+        content: 'Ceci est un test',
+        tag: HR_SMS,
+      };
       const credentials = { company: { _id: authCompany._id } };
       const response = await app.inject({
         method: 'POST',
@@ -39,16 +44,15 @@ describe('SMS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sms).toBe('SMS SENT !');
-      sinon.assert.calledWithExactly(
-        SmsHelperStub,
-        payload.to,
-        payload.body,
-        sinon.match(credentials)
-      );
+      sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match(credentials) );
     });
 
     it('should throw error if phone is not in the same company', async () => {
-      const payload = { to: `+33${smsUserFromOtherCompany.contact.phone.substring(1)}`, body: 'Ceci est un test' };
+      const payload = {
+        recipient: `+33${smsUserFromOtherCompany.contact.phone.substring(1)}`,
+        content: 'Ceci est un test',
+        tag: COURSE_SMS,
+      };
       const response = await app.inject({
         method: 'POST',
         url: '/sms',
@@ -61,7 +65,7 @@ describe('SMS ROUTES', () => {
     });
 
     it('should throw error if phone does not exist', async () => {
-      const payload = { to: '+33676543243', body: 'Ceci est un test' };
+      const payload = { recipient: '+33676543243', content: 'Ceci est un test', tag: HR_SMS };
       const response = await app.inject({
         method: 'POST',
         url: '/sms',
@@ -73,14 +77,14 @@ describe('SMS ROUTES', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    const missingParams = [{ path: 'to' }, { path: 'body' }];
-    missingParams.forEach((test) => {
-      const payload = { to: `+33${smsUser.contact.phone}`, body: 'Ceci est un test' };
-      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+    const missingParams = ['recipient', 'content', 'tag'];
+    missingParams.forEach((path) => {
+      const payload = { recipient: `+33${smsUser.contact.phone}`, content: 'Ceci est un test', tag: COURSE_SMS };
+      it(`should return a 400 error if missing '${path}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/sms',
-          payload: omit({ ...payload }, test.path),
+          payload: omit({ ...payload }, path),
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);
@@ -96,7 +100,11 @@ describe('SMS ROUTES', () => {
     ];
 
     roles.forEach((role) => {
-      const payload = { to: `+33${smsUser.contact.phone.substring(1)}`, body: 'Ceci est un test' };
+      const payload = {
+        recipient: `+33${smsUser.contact.phone.substring(1)}`,
+        content: 'Ceci est un test',
+        tag: COURSE_SMS,
+      };
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({

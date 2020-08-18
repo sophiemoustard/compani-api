@@ -3,16 +3,13 @@ const axios = require('axios');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 
-exports.sendMessage = async (to, body, credentials) => {
+exports.sendFromCompany = async (data, credentials) => {
   const company = await Company.findOne({ _id: credentials.company._id }).lean();
-  await exports.toto({ recipient: to, sender: company.tradeName, content: body });
+
+  await exports.send({ ...data, sender: company.tradeName });
 };
 
-exports.send = async ({ to, from, body }) => {
-  await exports.toto({ recipient: to, sender: from, content: body });
-};
-
-exports.toto = async (data) => {
+exports.send = async (data) => {
   try {
     await axios({
       method: 'POST',

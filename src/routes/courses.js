@@ -141,7 +141,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            body: Joi.string().required(),
+            content: Joi.string().required(),
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },

@@ -3,6 +3,7 @@
 const Joi = require('joi');
 const { send } = require('../controllers/smsController');
 const { authorizeSendSms } = require('./preHandlers/sms');
+const { SMS_TAGS } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-sms',
@@ -14,8 +15,9 @@ exports.plugin = {
         auth: { scope: ['sms:send'] },
         validate: {
           payload: Joi.object().keys({
-            to: Joi.string().required(),
-            body: Joi.string().required(),
+            recipient: Joi.string().required(),
+            content: Joi.string().required(),
+            tag: Joi.string().required().valid(...SMS_TAGS),
           }).required(),
         },
         pre: [

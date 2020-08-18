@@ -6,7 +6,7 @@ const { language } = translate;
 
 const send = async (req) => {
   try {
-    const sms = await SmsHelper.sendMessage(req.payload.to, req.payload.body, req.auth.credentials);
+    const sms = await SmsHelper.sendFromCompany(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].smsSent,
