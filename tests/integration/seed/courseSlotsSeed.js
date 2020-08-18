@@ -6,6 +6,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const SubProgram = require('../../../src/models/SubProgram');
 
 const trainer = {
   _id: new ObjectID(),
@@ -23,15 +24,20 @@ const stepsList = [
   { _id: new ObjectID(), type: 'on_site', name: 'encore une étape' },
 ];
 
+const subProgramList = [
+  { _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectID(), name: 'sous-programme B', steps: [stepsList[2]._id, stepsList[3]._id] },
+];
+
 const programsList = [
-  { _id: new ObjectID(), name: 'program', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectID(), name: 'training program', steps: [stepsList[2]._id, stepsList[3]._id] },
+  { _id: new ObjectID(), name: 'program', subPrograms: [subProgramList[0]] },
+  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramList[1]] },
 ];
 
 const coursesList = [
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: authCompany._id,
     misc: 'first session',
     type: 'intra',
@@ -39,7 +45,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
     type: 'intra',
@@ -76,6 +82,7 @@ const courseSlotsList = [
 
 const populateDB = async () => {
   await Course.deleteMany({});
+  await SubProgram.deleteMany({});
   await CourseSlot.deleteMany({});
   await Program.deleteMany({});
   await User.deleteMany({});
@@ -83,6 +90,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
+  await SubProgram.insertMany(subProgramList);
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(courseSlotsList);

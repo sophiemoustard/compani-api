@@ -61,8 +61,11 @@ exports.getCourse = async (courseId, loggedUser) => {
 
   return Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
-    .populate({ path: 'subProgram', select: 'steps', populate: { path: 'steps', select: 'name type' } })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+    })
     .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
@@ -81,15 +84,17 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
     select: 'program',
     populate: { path: 'program', select: 'name learningGoals' },
   })
-  .populate({ path: 'program', select: 'name learningGoals' })
   .populate('slots')
   .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
 exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name image' } })
-  .populate({ path: 'subProgram', select: 'steps', populate: { path: 'steps', select: 'name type' } })
+  .populate({
+    path: 'subProgram',
+    select: 'program steps',
+    populate: [{ path: 'program', select: 'name image' }, { path: 'steps', select: 'name type' }],
+  })
   .populate({ path: 'slots', select: 'startDate endDate step address' })
   .select('_id')
   .lean();

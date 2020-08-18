@@ -31,11 +31,11 @@ describe('createCourse', () => {
   });
 
   it('should create an intra course', async () => {
-    const newCourse = { misc: 'name', company: new ObjectID(), program: new ObjectID(), type: 'intra' };
+    const newCourse = { misc: 'name', company: new ObjectID(), subProgram: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
     expect(result.misc).toEqual(newCourse.misc);
-    expect(result.program).toEqual(newCourse.program);
+    expect(result.subProgram).toEqual(newCourse.subProgram);
     expect(result.company).toEqual(newCourse.company);
   });
 });
@@ -78,7 +78,7 @@ describe('list', () => {
     CourseMock.expects('find')
       .withExactArgs(query, { misc: 1 })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name' })
+      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate' })
       .chain('populate')
@@ -148,7 +148,11 @@ describe('listUserCourses', () => {
     CourseMock.expects('find')
       .withExactArgs({ trainees: '1234567890abcdef12345678' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name image steps' })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: { path: 'program', select: 'name image' },
+      })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
       .chain('lean')
@@ -184,9 +188,9 @@ describe('getCourse', () => {
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
       .withExactArgs({
-        path: 'program',
-        select: 'name learningGoals steps',
-        populate: { path: 'steps', select: 'name type' },
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -220,9 +224,9 @@ describe('getCourse', () => {
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
       .withExactArgs({
-        path: 'program',
-        select: 'name learningGoals steps',
-        populate: { path: 'steps', select: 'name type' },
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -264,7 +268,11 @@ describe('getCoursePublicInfos', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name learningGoals' },
+      })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
@@ -295,7 +303,11 @@ describe('getTraineeCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [{ path: 'program', select: 'name image' }, { path: 'steps', select: 'name type' }],
+      })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
       .chain('select')
@@ -623,7 +635,7 @@ describe('formatCourseForPdf', () => {
         { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
         { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
       ],
-      program: { name: 'programme de formation' },
+      subProgram: { program : { name: 'programme de formation' } },
     };
     const sortedSlots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -703,7 +715,7 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .chain('lean')
       .once()
       .returns(course);
@@ -737,7 +749,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+      subProgram: { program : { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -745,7 +757,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      learningGoals: course.program.learningGoals,
+      learningGoals: course.subProgram.program.learningGoals,
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -814,6 +826,12 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainees')
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name learningGoals' },
+      })
       .chain('lean')
       .once()
       .returns(course);

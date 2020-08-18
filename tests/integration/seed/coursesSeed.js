@@ -3,6 +3,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
@@ -49,13 +50,21 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 
 const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
 
+const subProgramList = [
+  {
+    _id: new ObjectID(),
+    name: 'sous-program',
+    steps: [step._id],
+  },
+];
+
 const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
     learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
-    steps: [step._id],
+    subPrograms: [subProgramList[0]._id],
   },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
@@ -63,7 +72,7 @@ const programsList = [
 const coursesList = [
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: authCompany._id,
     misc: 'first session',
     trainer: courseTrainer._id,
@@ -72,7 +81,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -81,7 +90,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: authCompany._id,
     misc: 'second session',
     trainer: courseTrainer._id,
@@ -90,7 +99,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     company: otherCompany._id,
     misc: 'second team formation',
     trainer: new ObjectID(),
@@ -99,14 +108,14 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
@@ -157,6 +166,7 @@ const slots = [
 
 const populateDB = async () => {
   await Course.deleteMany({});
+  await SubProgram.deleteMany({});
   await Program.deleteMany({});
   await User.deleteMany({});
   await CourseSlot.deleteMany({});
@@ -165,6 +175,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
+  await SubProgram.insertMany(subProgramList);
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
@@ -175,7 +186,9 @@ const populateDB = async () => {
 
 module.exports = {
   populateDB,
+  step,
   coursesList,
+  subProgramList,
   programsList,
   auxiliary,
   coachFromAuthCompany,
