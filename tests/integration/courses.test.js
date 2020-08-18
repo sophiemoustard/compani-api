@@ -13,7 +13,7 @@ const {
   populateDB,
   coursesList,
   step,
-  subProgramList,
+  subProgramsList,
   programsList,
   auxiliary,
   traineeWithoutCompany,
@@ -28,7 +28,6 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
-const { arrayContaining } = require('expect');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -46,7 +45,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create intra course', async () => {
-      const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramList[0]._id };
+      const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -58,7 +57,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create inter_b2b course', async () => {
-      const payload = { misc: 'course', type: 'inter_b2b', subProgram: subProgramList[0]._id };
+      const payload = { misc: 'course', type: 'inter_b2b', subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -74,7 +73,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       { path: 'subProgram' },
       { path: 'type' },
     ];
-    const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramList[0]._id };
+    const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
         const response = await app.inject({
@@ -101,7 +100,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramList[0]._id };
+        const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',

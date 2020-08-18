@@ -18,7 +18,7 @@ module.exports = {
     'arrow-parens': [2, 'as-needed', { requireForBlockBody: true }],
     // Un-used AirBnb rules
     'import/no-extraneous-dependencies': 0,
-    'import/extensions': 0,
+    'import/extensions': ['error', 'never'],
     'import/prefer-default-export': 0,
     'import/no-unresolved': 0,
     'no-underscore-dangle': 0,

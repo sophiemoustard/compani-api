@@ -4,7 +4,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const Step = require('../../models/Step');
 const translate = require('../../helpers/translate');
-const { checkAuthorization } = require('./courses.js');
+const { checkAuthorization } = require('./courses');
 const { E_LEARNING } = require('../../helpers/constants');
 
 const { language } = translate;

@@ -50,10 +50,10 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 
 const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
 
-const subProgramList = [
+const subProgramsList = [
   {
     _id: new ObjectID(),
-    name: 'sous-program',
+    name: 'sous-programme',
     steps: [step._id],
   },
 ];
@@ -64,7 +64,7 @@ const programsList = [
     name: 'program',
     learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
-    subPrograms: [subProgramList[0]._id],
+    subPrograms: [subProgramsList[0]._id],
   },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
@@ -72,7 +72,7 @@ const programsList = [
 const coursesList = [
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
     trainer: courseTrainer._id,
@@ -81,7 +81,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -90,7 +90,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'second session',
     trainer: courseTrainer._id,
@@ -99,7 +99,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'second team formation',
     trainer: new ObjectID(),
@@ -108,14 +108,14 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
-    subProgram: subProgramList[0]._id,
+    subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
@@ -175,7 +175,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
-  await SubProgram.insertMany(subProgramList);
+  await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
@@ -188,7 +188,7 @@ module.exports = {
   populateDB,
   step,
   coursesList,
-  subProgramList,
+  subProgramsList,
   programsList,
   auxiliary,
   coachFromAuthCompany,
