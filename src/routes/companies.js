@@ -12,9 +12,11 @@ const {
   show,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
-const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
+const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
+
+const tradeNameValidation = Joi.string().regex(TRADE_NAME_REGEX);
 
 exports.plugin = {
   name: 'routes-companies',
@@ -28,7 +30,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             name: Joi.string(),
-            tradeName: Joi.string().max(11).allow('', null),
+            tradeName: tradeNameValidation.allow('', null),
             address: addressValidation,
             subscriptions: Joi.object().keys({
               erp: Joi.boolean(),
@@ -44,7 +46,7 @@ exports.plugin = {
               firstname: Joi.string(),
               position: Joi.string(),
             }),
-            apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
+            apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
               feeAmount: Joi.number(),
@@ -123,7 +125,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            tradeName: Joi.string().max(11),
+            tradeName: tradeNameValidation,
             type: Joi.string().valid(...COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
@@ -131,7 +133,7 @@ exports.plugin = {
             iban: Joi.string(),
             bic: Joi.string(),
             billingAssistance: Joi.string().email(),
-            apeCode: Joi.string().regex(/^\d{3,4}[A-Z]$/),
+            apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
               feeAmount: Joi.number(),
