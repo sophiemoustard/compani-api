@@ -83,7 +83,7 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
 
 exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
   .populate({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
-  .populate({ path: 'slots', select: 'startDate endDate step' })
+  .populate({ path: 'slots', select: 'startDate endDate step address' })
   .select('_id')
   .lean();
 
