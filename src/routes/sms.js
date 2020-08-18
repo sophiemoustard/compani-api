@@ -1,11 +1,11 @@
 'use strict';
 
 const Joi = require('joi');
-const { send } = require('../controllers/twilioController');
-const { authorizeSendSms } = require('./preHandlers/twilio');
+const { send } = require('../controllers/smsController');
+const { authorizeSendSms } = require('./preHandlers/sms');
 
 exports.plugin = {
-  name: 'routes-twilio',
+  name: 'routes-sms',
   register: async (server) => {
     server.route({
       method: 'POST',

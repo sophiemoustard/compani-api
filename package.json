@@ -65,7 +65,6 @@
     "randomatic": "^3.1.1",
     "shelljs": "^0.8.4",
     "sinon": "^7.5.0",
-    "twilio": "^3.48.2",
     "util": "^0.11.1",
     "uuid": "^8.3.0",
     "xmlbuilder": "^12.0.1"

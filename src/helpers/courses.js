@@ -13,7 +13,7 @@ const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
-const TwilioHelper = require('./twilio');
+const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B } = require('./constants');
@@ -100,7 +100,7 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   for (const trainee of course.trainees) {
     if (!get(trainee, 'contact.phone')) missingPhones.push(trainee._id);
     else {
-      promises.push(TwilioHelper.send({
+      promises.push(SmsHelper.send({
         to: `+33${trainee.contact.phone.substring(1)}`,
         from: 'Compani',
         body: payload.body,

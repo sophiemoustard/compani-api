@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, otherCompany, authCompany } = require('./authenticationSeed');
 
-const twilioUser = {
+const smsUser = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user@alenvi.io', password: '123456!eR' },
@@ -13,7 +13,7 @@ const twilioUser = {
   company: authCompany._id,
 };
 
-const twilioUserFromOtherCompany = {
+const smsUserFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
@@ -26,8 +26,8 @@ const twilioUserFromOtherCompany = {
 const populateDB = async () => {
   await User.deleteMany({});
   await populateDBForAuthentication();
-  await new User(twilioUser).save();
-  await new User(twilioUserFromOtherCompany).save();
+  await new User(smsUser).save();
+  await new User(smsUserFromOtherCompany).save();
 };
 
-module.exports = { populateDB, twilioUser, twilioUserFromOtherCompany };
+module.exports = { populateDB, smsUser, smsUserFromOtherCompany };

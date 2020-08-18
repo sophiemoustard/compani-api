@@ -11,7 +11,7 @@ const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
-const TwilioHelper = require('../../../src/helpers/twilio');
+const SmsHelper = require('../../../src/helpers/sms');
 const UsersHelper = require('../../../src/helpers/users');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
@@ -349,7 +349,7 @@ describe('sendSMS', () => {
     CourseMock = sinon.mock(Course);
     CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
     UserMock = sinon.mock(User);
-    sendStub = sinon.stub(TwilioHelper, 'send');
+    sendStub = sinon.stub(SmsHelper, 'send');
   });
   afterEach(() => {
     CourseMock.restore();
