@@ -64,7 +64,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             type: Joi.string().required().valid(...COURSE_TYPES),
-            program: Joi.objectId().required(),
+            subProgram: Joi.objectId().required(),
             misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),

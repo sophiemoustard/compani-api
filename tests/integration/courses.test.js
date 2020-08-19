@@ -12,6 +12,8 @@ const { CONVOCATION } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
+  step,
+  subProgramsList,
   programsList,
   auxiliary,
   traineeWithoutCompany,
@@ -43,7 +45,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create intra course', async () => {
-      const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -55,7 +57,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create inter_b2b course', async () => {
-      const payload = { misc: 'course', type: 'inter_b2b', program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'inter_b2b', subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -68,10 +70,10 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     const missingParams = [
       { path: 'company' },
-      { path: 'program' },
+      { path: 'subProgram' },
       { path: 'type' },
     ];
-    const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+    const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
         const response = await app.inject({
@@ -98,7 +100,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+        const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
@@ -134,7 +136,15 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesNumber);
       expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
-        program: pick(programsList[0], ['_id', 'name', 'image']),
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectID),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            image: programsList[0].image,
+            subPrograms: [expect.any(ObjectID)],
+          },
+        }),
         trainer: null,
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
@@ -148,7 +158,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         })]),
       }));
       expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
-      expect(response.result.data.courses[3].program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].subProgram.program.learningGoals).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
@@ -273,7 +283,20 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course).toEqual(expect.objectContaining({
         _id: courseFromAuthCompanyIntra._id,
-        program: expect.objectContaining(pick(programsList[0], ['_id', 'name', 'learningGoals'])),
+        subProgram: {
+          _id: expect.any(ObjectID),
+          program: {
+            _id: expect.any(ObjectID),
+            name: programsList[0].name,
+            learningGoals: programsList[0].learningGoals,
+            subPrograms: [expect.any(ObjectID)],
+          },
+          steps: [{
+            _id: expect.any(ObjectID),
+            name: step.name,
+            type: step.type,
+          }],
+        },
         trainer: expect.objectContaining({
           _id: courseTrainer._id,
           identity: { firstname: 'trainer', lastname: 'trainer' },
@@ -431,10 +454,15 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expect(response.result.data.courses.length).toBe(role.numberOfCourse);
         if (response.result.data.courses.length) {
           expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
-            program: expect.objectContaining({
-              name: expect.any(String),
-              image: { link: expect.any(String), publicId: expect.any(String) },
-              steps: expect.arrayContaining([expect.any(ObjectID)]),
+            subProgram: expect.objectContaining({
+              _id: expect.any(ObjectID),
+              program: {
+                _id: expect.any(ObjectID),
+                name: programsList[0].name,
+                image: programsList[0].image,
+                subPrograms: [expect.any(ObjectID)],
+              },
+              steps: [expect.any(ObjectID)],
             }),
             slots: expect.arrayContaining([expect.objectContaining({
               startDate: expect.any(Date),
@@ -508,10 +536,20 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data.course).toEqual(expect.objectContaining({
       _id: courseId,
-      program: {
-        ...pick(programsList[0], ['_id', 'name', 'image']),
-        steps: expect.arrayContaining([expect.objectContaining({ name: 'etape', type: 'on_site' })]),
-      },
+      subProgram: expect.objectContaining({
+        _id: expect.any(ObjectID),
+        program: {
+          _id: expect.any(ObjectID),
+          name: programsList[0].name,
+          image: programsList[0].image,
+          subPrograms: [expect.any(ObjectID)],
+        },
+        steps: [{
+          _id: expect.any(ObjectID),
+          name: step.name,
+          type: step.type,
+        }],
+      }),
       slots: expect.arrayContaining([
         expect.objectContaining({
           ...pick(slots[0], ['startDate, endDate, step']),

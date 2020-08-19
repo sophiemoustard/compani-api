@@ -20,7 +20,7 @@ const ReferentHistory = require('../models/ReferentHistory');
 const Service = require('../models/Service');
 const ContractRepository = require('../repositories/ContractRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const { nationalities } = require('../data/nationalities.js');
+const { nationalities } = require('../data/nationalities');
 const { countries } = require('../data/countries');
 
 const getServicesNameList = (subscriptions) => {
