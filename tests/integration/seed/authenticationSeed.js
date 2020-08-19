@@ -66,8 +66,8 @@ const populateDBForAuthentication = async () => {
   await Role.insertMany(rolesList);
   await ThirdPartyPayer.insertMany(thirdPartyPayerList);
   await Service.insertMany(serviceList);
-  for (let i = 0; i < userList.length; i++) {
-    await (new User(userList[i])).save();
+  for (const user of userList) {
+    await (new User(user)).save();
   }
 };
 

@@ -1,6 +1,6 @@
+/* eslint-disable no-plusplus */
 const mongoose = require('mongoose');
 const get = require('lodash/get');
-const cloneDeep = require('lodash/cloneDeep');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');
@@ -10,21 +10,20 @@ const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const utils = require('./utils');
 const SurchargesHelper = require('./surcharges');
 
-exports.populateSurcharge = async (subscription) => {
-  const service = cloneDeep(subscription.service);
-  for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
-    if (subscription.service.versions[i].surcharge) {
-      const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
-      service.versions[i] = { ...subscription.service.versions[i], surcharge };
-    }
-  }
+exports.populateSurcharge = async (subscription, companyId) => {
+  const surcharges = await Surcharge.find({ company: companyId }).lean();
 
   return {
     ...subscription,
     versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
     service: {
-      ...service,
-      versions: [...service.versions].sort((a, b) => b.startDate - a.startDate),
+      ...subscription.service,
+      versions: subscription.service.versions
+        .map(v => (v.surcharge
+          ? { ...v, surcharge: surcharges.find(s => s._id.toHexString() === v.surcharge.toHexString()) }
+          : v
+        ))
+        .sort((a, b) => b.startDate - a.startDate),
     },
   };
 };
@@ -341,7 +340,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     const thirdPartyPayerBills = {};
     const { customer, eventsBySubscriptions } = eventsToBill[i];
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
-      const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
+      const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription, companyId);
       let { fundings } = eventsBySubscriptions[k];
       fundings = fundings
         ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId)

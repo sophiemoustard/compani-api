@@ -12,7 +12,6 @@ const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
-const UtilsHelper = require('../../../src/helpers/utils');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
@@ -61,16 +60,13 @@ describe('getCustomersWithBilledEvents', () => {
 describe('getCustomers', () => {
   let getCustomersList;
   let subscriptionsAccepted;
-  let formatIdentity;
   beforeEach(() => {
     getCustomersList = sinon.stub(CustomerRepository, 'getCustomersList');
     subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
-    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
   });
   afterEach(() => {
     getCustomersList.restore();
     subscriptionsAccepted.restore();
-    formatIdentity.restore();
   });
 
   it('should return empty array if no customer', async () => {
@@ -82,7 +78,6 @@ describe('getCustomers', () => {
     expect(result).toEqual([]);
     sinon.assert.calledWithExactly(getCustomersList, companyId);
     sinon.assert.notCalled(subscriptionsAccepted);
-    sinon.assert.notCalled(formatIdentity);
   });
 
   it('should return customers', async () => {
@@ -93,18 +88,16 @@ describe('getCustomers', () => {
       { company: companyId },
     ];
     getCustomersList.returns(customers);
-    formatIdentity.callsFake(id => id.firstname);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
     const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel', fullName: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
+      { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
     sinon.assert.calledWithExactly(getCustomersList, companyId);
     sinon.assert.calledTwice(subscriptionsAccepted);
-    sinon.assert.calledOnce(formatIdentity);
   });
 });
 

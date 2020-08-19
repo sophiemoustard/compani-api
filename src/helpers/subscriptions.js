@@ -24,14 +24,11 @@ exports.populateService = (service) => {
 
 exports.populateSubscriptionsServices = (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
-  const subscriptions = [];
-  for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
-    subscriptions.push({
-      ...customer.subscriptions[i],
-      service: exports.populateService(customer.subscriptions[i].service),
-    });
-  }
-  return { ...customer, subscriptions };
+
+  return {
+    ...customer,
+    subscriptions: customer.subscriptions.map(sub => ({ ...sub, service: exports.populateService(sub.service) })),
+  };
 };
 
 exports.subscriptionsAccepted = (customer) => {

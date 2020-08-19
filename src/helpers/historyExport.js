@@ -294,6 +294,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
   const rows = [contractExportHeader];
   for (const contract of contracts) {
     const identity = get(contract, 'user.identity') || {};
+    // eslint-disable-next-line no-plusplus
     for (let i = 0, l = contract.versions.length; i < l; i++) {
       const version = contract.versions[i];
       if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {

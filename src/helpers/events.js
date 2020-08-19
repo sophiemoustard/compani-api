@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pick = require('lodash/pick');

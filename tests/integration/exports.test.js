@@ -392,6 +392,7 @@ describe('EXPORTS ROUTES', () => {
           const rows = response.result.split('\r\n');
           expect(rows.length).toBe(expectedRows.length);
 
+          // eslint-disable-next-line no-plusplus
           for (let i = 0; i < rows.length; i++) {
             expect(rows[i]).toEqual(expectedRows[i]);
           }

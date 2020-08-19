@@ -32,11 +32,10 @@ exports.getCreditNotes = async (query, credentials) => {
     .populate({ path: 'thirdPartyPayer', select: '_id name' })
     .lean();
 
-  for (let i = 0, l = creditNotes.length; i < l; i++) {
-    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
-  }
-
-  return creditNotes;
+  return creditNotes.map(cn => ({
+    ...cn,
+    customer: SubscriptionsHelper.populateSubscriptionsServices({ ...cn.customer }),
+  }));
 };
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
@@ -102,7 +101,7 @@ exports.createCreditNotes = async (payload, credentials) => {
   if (payload.inclTaxesTpp) {
     const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: company._id };
     tppCN = await exports.formatCreditNote(tppPayload, company.prefixNumber, number.prefix, number.seq);
-    number.seq++;
+    number.seq += 1;
   }
   if (payload.inclTaxesCustomer) {
     const customerPayload = {
@@ -112,7 +111,7 @@ exports.createCreditNotes = async (payload, credentials) => {
       company: company._id,
     };
     customerCN = await exports.formatCreditNote(customerPayload, company.prefixNumber, number.prefix, number.seq);
-    number.seq++;
+    number.seq += 1;
   }
 
   let creditNotes = [];

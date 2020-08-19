@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');

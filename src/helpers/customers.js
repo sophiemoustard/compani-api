@@ -15,7 +15,6 @@ const { INTERVENTION } = require('./constants');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
-const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
 const Rum = require('../models/Rum');
 
@@ -38,12 +37,7 @@ exports.getCustomers = async (credentials) => {
   const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
-  for (let i = 0, l = customers.length; i < l; i++) {
-    if (customers[i].identity) customers[i].identity.fullName = UtilsHelper.formatIdentity(customers[i].identity, 'FL');
-    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
-  }
-
-  return customers;
+  return customers.map(cus => SubscriptionsHelper.subscriptionsAccepted(cus));
 };
 
 exports.getCustomersFirstIntervention = async (query, credentials) => {

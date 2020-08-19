@@ -25,9 +25,10 @@ exports.formatEventSurchargesForPdf = (eventSurcharges) => {
 exports.formatTable = (items, options) => {
   let out = '';
   if (items) {
-    for (let i = 0, l = items.length; i < l; i++) {
-      out += options.fn(items[i]);
-    }
+    out = items.reduce(
+      (acc, item) => `${acc}${options.fn(item)}`,
+      ''
+    );
   }
 
   return out;
