@@ -50,6 +50,7 @@ exports.list = async (query) => {
 exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
   .populate({ path: 'subProgram', select: 'program steps', populate: { path: 'program', select: 'name image' } })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+  .select('_id')
   .lean();
 
 exports.getCourse = async (courseId, loggedUser) => {
