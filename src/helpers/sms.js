@@ -1,7 +1,7 @@
-const Company = require('../models/Company');
 const axios = require('axios');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const Company = require('../models/Company');
 
 exports.sendFromCompany = async (data, credentials) => {
   const company = await Company.findOne({ _id: credentials.company._id }).lean();
@@ -19,7 +19,11 @@ exports.send = async (data) => {
         'content-type': 'application/json',
         'api-key': process.env.SENDINBLUE_API_KEY,
       },
-      data: { type: 'transactional', ...data },
+      data: {
+        type: 'transactional',
+        ...data,
+        tag: process.env.NODE_ENV !== 'production' ? `Test - ${data.tag}` : data.tag,
+      },
       json: true,
     });
   } catch (e) {
