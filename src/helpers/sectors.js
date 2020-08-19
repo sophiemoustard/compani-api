@@ -5,12 +5,7 @@ const translate = require('./translate');
 
 const { language } = translate;
 
-exports.list = async (query, credentials) => {
-  const formattedQuery = { ...query, company: get(credentials, 'company._id') };
-  if (query.name) formattedQuery.name = { $regex: new RegExp(`^${query.name}$`), $options: 'i' };
-
-  return Sector.find(formattedQuery).lean();
-};
+exports.list = async (credentials) => Sector.find({ company: get(credentials, 'company._id') }).lean();
 
 exports.create = async (payload, credentials) => {
   const existingSector = await Sector.countDocuments({ name: payload.name });
