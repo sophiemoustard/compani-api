@@ -22,6 +22,8 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
+            answers: Joi.array().items(Joi.string()).min(2).max(6),
+            explanation: Joi.string(),
           }),
         },
         auth: { scope: ['programs:edit'] },

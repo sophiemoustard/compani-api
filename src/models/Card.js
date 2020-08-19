@@ -32,6 +32,8 @@ const CardSchema = mongoose.Schema({
     publicId: { type: String },
     link: { type: String, trim: true },
   },
+  answers: { type: [{ type: String }] }, // penser a ne pas creer ce tableau pour tout les templates
+  explanation: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Card', CardSchema);
