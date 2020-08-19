@@ -139,7 +139,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectID),
           program: {
-            _id: expect.any(ObjectID),
+            _id: programsList[0]._id,
             name: programsList[0].name,
             image: programsList[0].image,
             subPrograms: [expect.any(ObjectID)],

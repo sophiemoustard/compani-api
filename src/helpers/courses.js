@@ -48,7 +48,7 @@ exports.list = async (query) => {
 };
 
 exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
-  .populate({ path: 'subProgram',  select: 'program steps', populate: { path: 'program', select: 'name image' } })
+  .populate({ path: 'subProgram', select: 'program steps', populate: { path: 'program', select: 'name image' } })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
   .lean();
 
@@ -176,8 +176,8 @@ exports.getCourseDuration = (slots) => {
 };
 
 exports.formatCourseForPdf = (course) => {
-  const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
-  const name = course.subProgram.program.name + possiblyMisc;
+  const possibleMisc = course.misc ? ` - ${course.misc}` : '';
+  const name = course.subProgram.program.name + possibleMisc;
   const slots = course.slots
     ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     : [];

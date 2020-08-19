@@ -635,7 +635,7 @@ describe('formatCourseForPdf', () => {
         { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
         { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
       ],
-      subProgram: { program : { name: 'programme de formation' } },
+      subProgram: { program: { name: 'programme de formation' } },
     };
     const sortedSlots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -749,7 +749,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      subProgram: { program : { learningGoals: 'Apprendre', name: 'nom du programme' } },
+      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
