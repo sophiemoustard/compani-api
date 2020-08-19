@@ -72,8 +72,8 @@
   "devDependencies": {
     "@hapi/eslint-plugin-hapi": "^4.3.5",
     "code": "^5.2.0",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint": "^7.7.0",
+    "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-mocha": "^6.3.0",
     "expect": "^24.9.0",

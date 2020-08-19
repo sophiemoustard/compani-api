@@ -7,8 +7,8 @@ const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
-const translate = require('../helpers/translate');
-const UtilsHelper = require('../helpers/utils');
+const translate = require('./translate');
+const UtilsHelper = require('./utils');
 
 const { language } = translate;
 
@@ -47,10 +47,11 @@ exports.subscriptionsAccepted = (customer) => {
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
         .map(sub => pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
-      customer.subscriptionsAccepted = isEqual(subscriptions, lastSubscriptions);
-    } else {
-      customer.subscriptionsAccepted = false;
+
+      return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }
+
+    return { ...customer, subscriptionsAccepted: false };
   }
   return customer;
 };

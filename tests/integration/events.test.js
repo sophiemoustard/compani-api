@@ -386,12 +386,12 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(200);
-        const resultForFirstSector = response.result.data.paidTransportStatsBySector.find(res =>
-          res.sector.toHexString() === sectors[0]._id.toHexString());
+        const resultForFirstSector = response.result.data.paidTransportStatsBySector
+          .find(res => res.sector.toHexString() === sectors[0]._id.toHexString());
         expect(resultForFirstSector.duration).toEqual(1);
 
-        const resultForSecondSector = response.result.data.paidTransportStatsBySector.find(res =>
-          res.sector.toHexString() === sectors[1]._id.toHexString());
+        const resultForSecondSector = response.result.data.paidTransportStatsBySector
+          .find(res => res.sector.toHexString() === sectors[1]._id.toHexString());
         expect(resultForSecondSector.duration).toEqual(0.75);
       });
 
@@ -488,12 +488,12 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toEqual(200);
-        const firstSectorResult = response.result.data.unassignedHoursBySector.find(el =>
-          el.sector.toHexString() === sectors[0]._id.toHexString());
+        const firstSectorResult = response.result.data.unassignedHoursBySector
+          .find(el => el.sector.toHexString() === sectors[0]._id.toHexString());
         expect(firstSectorResult.duration).toEqual(5);
 
-        const secondSectorResult = response.result.data.unassignedHoursBySector.find(el =>
-          el.sector.toHexString() === sectors[1]._id.toHexString());
+        const secondSectorResult = response.result.data.unassignedHoursBySector
+          .find(el => el.sector.toHexString() === sectors[1]._id.toHexString());
         expect(secondSectorResult.duration).toEqual(1.5);
       });
 

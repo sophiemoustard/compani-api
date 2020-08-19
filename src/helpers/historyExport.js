@@ -161,8 +161,8 @@ const billAndCreditNoteExportHeader = [
 const exportBillSubscriptions = (bill) => {
   if (!bill.subscriptions) return '';
 
-  const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service.name} - ${UtilsHelper.formatHour(sub.hours)} - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
+  const subscriptions = bill.subscriptions.map(sub => `${sub.service.name} - ${UtilsHelper.formatHour(sub.hours)} `
+    + `- ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
 
   return subscriptions.join('\r\n');
 };

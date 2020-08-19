@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
-const UtilsHelper = require('../helpers/utils');
+const UtilsHelper = require('./utils');
 const StatRepository = require('../repositories/StatRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 

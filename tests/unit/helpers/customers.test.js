@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
 const crypto = require('crypto');
+const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const Company = require('../../../src/models/Company');
@@ -16,7 +17,6 @@ const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
-const moment = require('moment');
 
 require('sinon-mongoose');
 

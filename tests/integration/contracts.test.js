@@ -305,8 +305,7 @@ describe('PUT contract/:id', () => {
 
     const events = await Event.find({ company: authCompany._id }).lean();
     expect(events.length).toBe(contractEvents.length - 1);
-    const absence = events.find(event =>
-      event.type === 'absence' && moment(event.startDate).isSame('2019-07-06', 'day'));
+    const absence = events.find(e => e.type === 'absence' && moment(e.startDate).isSame('2019-07-06', 'day'));
     expect(moment(absence.endDate).isSame('2019-07-08', 'day')).toBeTruthy();
 
     const sectorHistories = await SectorHistory.find({ company: authCompany._id, auxiliary: user._id }).lean();

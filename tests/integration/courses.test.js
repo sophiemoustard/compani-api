@@ -1019,7 +1019,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
     });
 
-
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },

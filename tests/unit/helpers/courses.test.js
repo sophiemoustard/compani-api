@@ -5,6 +5,7 @@ const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
+const moment = require('moment');
 const Course = require('../../../src/models/Course');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
@@ -19,7 +20,6 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
-const moment = require('moment');
 require('sinon-mongoose');
 
 describe('createCourse', () => {

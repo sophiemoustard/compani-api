@@ -1,7 +1,7 @@
 const flat = require('flat');
-const Program = require('../models/Program');
-const CloudinaryHelper = require('../helpers/cloudinary');
 const moment = require('moment');
+const Program = require('../models/Program');
+const CloudinaryHelper = require('./cloudinary');
 
 exports.createProgram = payload => (new Program(payload)).save();
 

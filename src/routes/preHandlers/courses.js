@@ -1,4 +1,3 @@
-
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');

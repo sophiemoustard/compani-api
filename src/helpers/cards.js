@@ -3,7 +3,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
-const CloudinaryHelper = require('../helpers/cloudinary');
+const CloudinaryHelper = require('./cloudinary');
 
 exports.addCard = async (activityId, payload) => {
   const activity = await Activity.countDocuments({ _id: activityId });

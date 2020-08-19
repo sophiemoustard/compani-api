@@ -1,13 +1,13 @@
 const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const Sector = require('../models/Sector');
-const translate = require('../helpers/translate');
+const translate = require('./translate');
 
 const { language } = translate;
 
 exports.list = async (query, credentials) => {
   const formattedQuery = { ...query, company: get(credentials, 'company._id') };
-  if (query.name) query.name = { $regex: new RegExp(`^${query.name}$`), $options: 'i' };
+  if (query.name) formattedQuery.name = { $regex: new RegExp(`^${query.name}$`), $options: 'i' };
 
   return Sector.find(formattedQuery).lean();
 };

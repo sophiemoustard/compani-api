@@ -100,8 +100,7 @@ exports.createHistory = async (user, companyId, startDate = null) => {
   return (await SectorHistory.create(payload)).toObject();
 };
 
-exports.updateEndDate = async (auxiliaryId, endDate) =>
-  SectorHistory.updateOne(
-    { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-    { $set: { endDate: moment(endDate).endOf('day').toDate() } }
-  );
+exports.updateEndDate = async (auxiliaryId, endDate) => SectorHistory.updateOne(
+  { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+  { $set: { endDate: moment(endDate).endOf('day').toDate() } }
+);

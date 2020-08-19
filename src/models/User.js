@@ -225,6 +225,7 @@ function setContractCreationMissingInfo() {
 }
 
 function populateSector(doc, next) {
+  // eslint-disable-next-line no-param-reassign
   if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
 
   return next();

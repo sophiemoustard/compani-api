@@ -10,10 +10,10 @@ const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
 const EventRepository = require('../repositories/EventRepository');
-const translate = require('../helpers/translate');
+const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
 const SubscriptionsHelper = require('./subscriptions');
-const ReferentHistoriesHelper = require('../helpers/referentHistories');
+const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
@@ -154,7 +154,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
 
     return Customer.findOne({ _id: customerId }).lean();
-  } else if (has(customerPayload, 'payment.iban')) {
+  } if (has(customerPayload, 'payment.iban')) {
     payload = await exports.formatPaymentPayload(customerId, customerPayload, company);
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
     await exports.updateCustomerEvents(customerId, customerPayload);

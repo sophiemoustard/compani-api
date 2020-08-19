@@ -2,7 +2,8 @@ const moment = require('moment');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const translate = require('../helpers/translate');
+const omit = require('lodash/omit');
+const translate = require('./translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
@@ -13,7 +14,7 @@ const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
-const { COMPANI } = require('../helpers/constants');
+const { COMPANI } = require('./constants');
 
 const { language } = translate;
 
@@ -104,8 +105,12 @@ exports.createCreditNotes = async (payload, credentials) => {
     number.seq++;
   }
   if (payload.inclTaxesCustomer) {
-    delete payload.thirdPartyPayer;
-    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: company._id };
+    const customerPayload = {
+      ...omit(payload, ['thirdPartyPayer']),
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+      company: company._id,
+    };
     customerCN = await exports.formatCreditNote(customerPayload, company.prefixNumber, number.prefix, number.seq);
     number.seq++;
   }

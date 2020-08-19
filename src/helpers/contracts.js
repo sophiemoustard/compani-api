@@ -1,12 +1,12 @@
 const flat = require('flat');
 const Boom = require('@hapi/boom');
 const mongoose = require('mongoose');
-const moment = require('../extensions/moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
+const moment = require('../extensions/moment');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Role = require('../models/Role');
@@ -22,7 +22,7 @@ const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
-const SectorHistoryHelper = require('../helpers/sectorHistories');
+const SectorHistoryHelper = require('./sectorHistories');
 
 exports.getContractList = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -333,6 +333,6 @@ exports.uploadFile = async (params, payload) => {
   return exports.createAndSaveFile(version, fileInfo);
 };
 
-exports.auxiliaryHasActiveContractOnDay = (contracts, day) => contracts.some(contract =>
-  moment(contract.startDate).isSameOrBefore(day, 'd') &&
-  (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
+exports.auxiliaryHasActiveContractOnDay = (contracts, day) =>
+  contracts.some(contract => moment(contract.startDate).isSameOrBefore(day, 'd') &&
+    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));

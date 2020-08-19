@@ -47,10 +47,11 @@ exports.populateFunding = (funding, subscriptions) => {
   if (!funding) return false;
 
   const sub = subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
-  if (has(sub, 'service.versions')) funding.subscription = { ...sub, service: populateService(sub.service) };
-  else funding.subscription = { ...sub };
+  if (has(sub, 'service.versions')) {
+    return { ...funding, subscription: { ...sub, service: populateService(sub.service) } };
+  }
 
-  return funding;
+  return { ...funding, subscription: { ...sub } };
 };
 
 exports.createFunding = async (customerId, payload) => {

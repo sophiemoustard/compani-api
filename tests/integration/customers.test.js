@@ -7,9 +7,9 @@ const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
-const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
 const fs = require('fs');
+const { generateFormData } = require('./utils');
 
 const app = require('../../server');
 const {
@@ -311,8 +311,8 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
       expect(res.result.data.customers.length).toEqual(6);
       expect(res.result.data.customers[0].contact).toBeDefined();
-      const customer = res.result.data.customers.find(cus =>
-        cus._id.toHexString() === customersList[0]._id.toHexString());
+      const customer = res.result.data.customers
+        .find(cus => cus._id.toHexString() === customersList[0]._id.toHexString());
       expect(customer.subscriptions.length).toEqual(2);
       expect(customer.referentHistories.length).toEqual(2);
     });

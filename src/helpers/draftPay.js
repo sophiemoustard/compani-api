@@ -1,4 +1,3 @@
-const moment = require('../extensions/moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
@@ -6,6 +5,7 @@ const mapKeys = require('lodash/mapKeys');
 const omit = require('lodash/omit');
 const setWith = require('lodash/setWith');
 const clone = require('lodash/clone');
+const moment = require('../extensions/moment');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
@@ -69,11 +69,11 @@ exports.getSurchargeDetails = (surchargedHours, surcharge, surchargeKey, details
   const surchargedHoursPath = [surchargePlanId, surchargeKey, 'hours'];
   const currentSurchargedHours = get(details, surchargedHoursPath, 0);
 
-  details = setWith(clone(details), surchargedHoursPath, surchargedHours + currentSurchargedHours, clone);
-  details[surchargePlanId][surchargeKey].percentage = surcharge[surchargeKey];
-  details[surchargePlanId].planName = surcharge.name;
+  const newDetails = setWith(clone(details), surchargedHoursPath, surchargedHours + currentSurchargedHours, clone);
+  newDetails[surchargePlanId][surchargeKey].percentage = surcharge[surchargeKey];
+  newDetails[surchargePlanId].planName = surcharge.name;
 
-  return details;
+  return newDetails;
 };
 
 exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidTransport) => ({
@@ -93,13 +93,13 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
   const paidHours = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
     return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails, paidTransport);
-  } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
+  } if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
     return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails, paidTransport);
-  } else if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
+  } if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
     return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails, paidTransport);
-  } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
+  } if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
     return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails, paidTransport);
-  } else if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
+  } if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
     return exports.applySurcharge(paidHours, surcharge, 'sunday', surchargeDetails, paidTransport);
   }
 
@@ -320,7 +320,6 @@ const filterEvents = (eventsToPay, contract) => eventsToPay.events.filter((event
     ? moment(firstEvent.startDate).isBetween(contract.startDate, contract.endDate, 'days', '[]')
     : moment(firstEvent.startDate).isSameOrAfter(contract.startDate);
 });
-
 
 const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((absence) => {
   const isAbsenceStartBeforeContractEnd = !contract.endDate ||

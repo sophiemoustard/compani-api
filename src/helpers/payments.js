@@ -11,7 +11,7 @@ const {
   PAYMENT,
   DIRECT_DEBIT,
 } = require('./constants');
-const XmlHelper = require('../helpers/xml');
+const XmlHelper = require('./xml');
 const UtilsHelper = require('./utils');
 
 exports.getPayments = async (payload, credentials) => {

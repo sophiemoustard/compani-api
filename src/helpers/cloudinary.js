@@ -25,6 +25,7 @@ exports.addImage = async params => new Promise((resolve, reject) => {
 exports.deleteImage = async params => new Promise((resolve, reject) => {
   cloudinary.v2.uploader.destroy(params.publicId, (err, res) => {
     if (err) {
+      // eslint-disable-next-line no-param-reassign
       err.cloudinary = true;
       reject(err);
     } else resolve(res);

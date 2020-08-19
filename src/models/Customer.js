@@ -157,10 +157,12 @@ function validateAddress(next) {
 function populateReferent(doc, next) {
   const referentEndDate = get(doc, 'referent.endDate');
   if (referentEndDate && moment().isAfter(referentEndDate)) {
+    // eslint-disable-next-line no-param-reassign
     delete doc.referent;
     return next();
   }
 
+  // eslint-disable-next-line no-param-reassign
   if (get(doc, 'referent.auxiliary')) doc.referent = doc.referent.auxiliary;
 
   return next();

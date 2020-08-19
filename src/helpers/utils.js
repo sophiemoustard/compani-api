@@ -1,8 +1,8 @@
-const moment = require('../extensions/moment');
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
 const { ObjectID } = require('mongodb');
 const Intl = require('intl');
+const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
 
 exports.getLastVersion = (versions, dateKey) => {
@@ -151,8 +151,7 @@ exports.formatIdentity = (identity, format) => {
   return values.join(' ');
 };
 
-exports.formatObjectIdsArray = ids =>
-  (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
+exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
 
 exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
 

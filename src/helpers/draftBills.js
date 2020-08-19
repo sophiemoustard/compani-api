@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const moment = require('../extensions/moment');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
+const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
@@ -10,10 +11,11 @@ const utils = require('./utils');
 const SurchargesHelper = require('./surcharges');
 
 exports.populateSurcharge = async (subscription) => {
+  const service = cloneDeep(subscription.service);
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
     if (subscription.service.versions[i].surcharge) {
       const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
-      subscription.service.versions[i] = { ...subscription.service.versions[i], surcharge };
+      service.versions[i] = { ...subscription.service.versions[i], surcharge };
     }
   }
 
@@ -21,7 +23,7 @@ exports.populateSurcharge = async (subscription) => {
     ...subscription,
     versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
     service: {
-      ...subscription.service,
+      ...service,
       versions: [...subscription.service.versions].sort((a, b) => b.startDate - a.startDate),
     },
   };
@@ -239,9 +241,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
 };
 
 exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
-  if (!tppPrices[tpp._id]) {
-    tppPrices[tpp._id] = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
-  }
+  const currentTppPrices = tppPrices[tpp._id] || { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
 
   const inclTaxesTpp = exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
   const prices = {
@@ -262,10 +262,10 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
   return {
     ...tppPrices,
     [tpp._id]: {
-      exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
-      inclTaxes: tppPrices[tpp._id].inclTaxes + exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
-      hours: tppPrices[tpp._id].hours + (eventPrice.chargedTime / 60),
-      eventsList: [...tppPrices[tpp._id].eventsList, { ...prices }],
+      exclTaxes: currentTppPrices.exclTaxes + eventPrice.thirdPartyPayerPrice,
+      inclTaxes: currentTppPrices.inclTaxes + exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
+      hours: currentTppPrices.hours + (eventPrice.chargedTime / 60),
+      eventsList: [...currentTppPrices.eventsList, { ...prices }],
     },
   };
 };
@@ -313,16 +313,19 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
   const result = {};
   if (customerPrices.exclTaxes !== 0) result.customer = { ...draftBillInfo, ...customerPrices };
   if (fundings && Object.keys(thirdPartyPayerPrices).length !== 0) {
-    Object.keys(thirdPartyPayerPrices).map((key) => {
-      thirdPartyPayerPrices[key] = {
-        ...draftBillInfo,
-        ...thirdPartyPayerPrices[key],
-        _id: mongoose.Types.ObjectId(),
-        externalBilling: false,
-        thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
-      };
-    });
-    result.thirdPartyPayer = thirdPartyPayerPrices;
+    result.thirdPartyPayer = Object.keys(thirdPartyPayerPrices).reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: {
+          ...draftBillInfo,
+          ...thirdPartyPayerPrices[key],
+          _id: mongoose.Types.ObjectId(),
+          externalBilling: false,
+          thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
+        },
+      }),
+      {}
+    );
   }
 
   return result;

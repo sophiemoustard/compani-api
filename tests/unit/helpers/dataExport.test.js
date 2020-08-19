@@ -991,7 +991,7 @@ describe('exportFundings', () => {
       'F-12',
       'F-14',
       'F-3',
-      'Mardi Vendredi Samedi ',
+      'Mardi Vendredi Samedi',
       'F-90',
     ]);
   });
