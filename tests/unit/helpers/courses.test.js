@@ -11,12 +11,13 @@ const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
-const TwilioHelper = require('../../../src/helpers/twilio');
+const SmsHelper = require('../../../src/helpers/sms');
 const UsersHelper = require('../../../src/helpers/users');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const moment = require('moment');
 require('sinon-mongoose');
@@ -350,7 +351,7 @@ describe('sendSMS', () => {
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
     { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
   ];
-  const payload = { body: 'Ceci est un test.' };
+  const payload = { content: 'Ceci est un test.' };
   const credentials = { _id: new ObjectID() };
 
   let CourseMock;
@@ -361,7 +362,7 @@ describe('sendSMS', () => {
     CourseMock = sinon.mock(Course);
     CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
     UserMock = sinon.mock(User);
-    sendStub = sinon.stub(TwilioHelper, 'send');
+    sendStub = sinon.stub(SmsHelper, 'send');
   });
   afterEach(() => {
     CourseMock.restore();
@@ -384,7 +385,7 @@ describe('sendSMS', () => {
       .withExactArgs({
         type: payload.type,
         course: courseId,
-        message: payload.body,
+        message: payload.content,
         sender: credentials._id,
         missingPhones: ['poiuytrewq'],
       })
@@ -394,11 +395,21 @@ describe('sendSMS', () => {
 
     sinon.assert.calledWith(
       sendStub.getCall(0),
-      { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      {
+        recipient: `+33${trainees[0].contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
     sinon.assert.calledWithExactly(
       sendStub.getCall(1),
-      { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      {
+        recipient: `+33${trainees[1].contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
     CourseMock.verify();
     CourseSmsHistoryMock.verify();

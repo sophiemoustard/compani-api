@@ -13,10 +13,10 @@ const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
-const TwilioHelper = require('./twilio');
+const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -112,10 +112,11 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   for (const trainee of course.trainees) {
     if (!get(trainee, 'contact.phone')) missingPhones.push(trainee._id);
     else {
-      promises.push(TwilioHelper.send({
-        to: `+33${trainee.contact.phone.substring(1)}`,
-        from: 'Compani',
-        body: payload.body,
+      promises.push(SmsHelper.send({
+        recipient: `+33${trainee.contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
       }));
     }
   }
@@ -123,7 +124,7 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   promises.push(CourseSmsHistory.create({
     type: payload.type,
     course: courseId,
-    message: payload.body,
+    message: payload.content,
     sender: credentials._id,
     missingPhones,
   }));

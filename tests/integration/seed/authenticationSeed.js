@@ -19,7 +19,7 @@ const otherCompany = {
   _id: new ObjectID(),
   prefixNumber: 102,
   name: 'Other test SAS',
-  tradeName: 'Other test',
+  tradeName: 'Othertest',
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersFolderId: 'mnbvcxz',
