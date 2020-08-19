@@ -50,6 +50,10 @@ describe('populateSurcharge', () => {
     expect(result.versions[0]._id).toEqual(4);
     expect(result.service.versions.length).toEqual(3);
     expect(result.service.versions[0]._id).toEqual(2);
+    expect(result.service.versions[0]).toEqual(expect.objectContaining({
+      ...subscription.service.versions[1],
+      surcharge: returnedSurcharge,
+    }));
     sinon.assert.callCount(findOne, 2);
   });
 });

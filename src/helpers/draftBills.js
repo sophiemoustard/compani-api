@@ -24,7 +24,7 @@ exports.populateSurcharge = async (subscription) => {
     versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
     service: {
       ...service,
-      versions: [...subscription.service.versions].sort((a, b) => b.startDate - a.startDate),
+      versions: [...service.versions].sort((a, b) => b.startDate - a.startDate),
     },
   };
 };
