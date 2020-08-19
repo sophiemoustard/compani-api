@@ -13,7 +13,7 @@ const UtilsHelper = require('./utils');
 const { language } = translate;
 
 exports.populateService = (service) => {
-  if (!service || service.version) return;
+  if (!service || service.version) return null;
 
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))

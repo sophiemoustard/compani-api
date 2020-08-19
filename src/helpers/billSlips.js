@@ -74,10 +74,10 @@ exports.createBillSlips = async (billList, endDate, company) => {
 exports.formatFundingInfo = (info, billingDoc) => {
   const matchingFunding = info.customer.fundings
     .find(f => f._id.toHexString() === billingDoc.fundingId.toHexString());
-  if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return;
+  if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return null;
 
   const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
-  if (!matchingVersion) return;
+  if (!matchingVersion) return null;
 
   return {
     number: info.number || '',

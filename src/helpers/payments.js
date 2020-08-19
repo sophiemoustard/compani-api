@@ -39,6 +39,8 @@ exports.formatPaymentNumber = (companyPrefixNumber, prefix, seq, paymentNature) 
       return `REMB-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
     case PAYMENT:
       return `REG-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+    default:
+      return null;
   }
 };
 

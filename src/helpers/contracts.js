@@ -227,7 +227,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate, credentia
 
 exports.deleteVersion = async (contractId, versionId, credentials) => {
   const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
-  if (!contract) return null;
+  if (!contract) return;
 
   const companyId = get(credentials, 'company._id', null);
   const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
@@ -250,7 +250,7 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
   }
 
   const auxiliaryDriveId = get(deletedVersion, 'auxiliaryDoc.driveId');
-  if (auxiliaryDriveId) GDriveStorageHelper.deleteFile(auxiliaryDriveId);
+  if (auxiliaryDriveId) await GDriveStorageHelper.deleteFile(auxiliaryDriveId);
 };
 
 exports.createAndSaveFile = async (version, fileInfo) => {

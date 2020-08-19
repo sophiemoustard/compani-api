@@ -27,7 +27,6 @@ module.exports = {
         functions: 'never',
       },
     ],
-    'consistent-return': 0,
     'default-case': 0,
     'func-names': 0,
     'guard-for-in': 0,

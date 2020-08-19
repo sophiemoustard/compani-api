@@ -177,6 +177,7 @@ async function findOneAndUpdate(next) {
   }
 }
 
+// eslint-disable-next-line consistent-return
 const isActive = (auxiliary) => {
   const auxiliaryRoleName = get(auxiliary, 'role.client.name');
   if (auxiliaryRoleName && [AUXILIARY, PLANNING_REFERENT].includes(auxiliaryRoleName)) {
@@ -200,6 +201,7 @@ const serialNumber = (auxiliary) => {
   return `${initials.toUpperCase()}${createdAt}`;
 };
 
+// eslint-disable-next-line consistent-return
 function setContractCreationMissingInfo() {
   const clientRole = get(this, 'role.client.name');
   if (clientRole && [AUXILIARY, PLANNING_REFERENT].includes(clientRole)) {

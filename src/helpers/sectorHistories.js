@@ -10,7 +10,7 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     return exports.createHistory({ _id: auxiliaryId, sector }, companyId, moment().startOf('day').toDate());
   }
 
-  if (lastSectorHistory.sector.toHexString() === sector) return;
+  if (lastSectorHistory.sector.toHexString() === sector) return null;
 
   const contracts = await Contract
     .find({

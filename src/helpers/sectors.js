@@ -5,7 +5,7 @@ const translate = require('./translate');
 
 const { language } = translate;
 
-exports.list = async (credentials) => Sector.find({ company: get(credentials, 'company._id') }).lean();
+exports.list = async credentials => Sector.find({ company: get(credentials, 'company._id') }).lean();
 
 exports.create = async (payload, credentials) => {
   const existingSector = await Sector.countDocuments({ name: payload.name });

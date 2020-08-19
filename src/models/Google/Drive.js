@@ -67,6 +67,7 @@ exports.downloadFileById = async (params) => {
   return new Promise((resolve, reject) => drive.files.get(
     { auth, fileId: `${params.fileId}`, alt: 'media' },
     { responseType: 'stream' },
+    // eslint-disable-next-line consistent-return
     (err, res) => {
       if (err || !res || !res.data) {
         return reject(new Error(`Error during Google drive doc download ${err}`));
