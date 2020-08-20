@@ -23,6 +23,9 @@ exports.send = async (data) => {
         type: 'transactional',
         ...data,
         tag: process.env.NODE_ENV !== 'production' ? `Test - ${data.tag}` : data.tag,
+        content: process.env.NODE_ENV !== 'production'
+          ? `Sms de Test - ${data.content.substring(0, 100)}`
+          : data.content,
       },
       json: true,
     });
