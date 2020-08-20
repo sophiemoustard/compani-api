@@ -48,9 +48,11 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       { template: 'flashcard', payload: { backText: 'verso', text: 'this is a text' }, id: cardsList[4]._id },
       {
         template: 'fill_the_gaps',
-        payload: { text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.' },
-        answers: ['le papa', 'la maman'],
-        explanation: 'c\'est evidement la mami qui remplit le texte',
+        payload: {
+          text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
+          answers: [{ label: 'le papa' }, { label: 'la maman' }],
+          explanation: 'c\'est evidement la mami qui remplit le texte',
+        },
         id: cardsList[4]._id,
       },
     ];

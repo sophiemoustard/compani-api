@@ -23,7 +23,7 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
-            answers: Joi.array().items(Joi.string()).min(2).max(6),
+            answers: Joi.array().items(Joi.object({ label: Joi.string().required() })).min(2).max(6),
             explanation: Joi.string(),
           }),
         },
