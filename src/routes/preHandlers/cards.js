@@ -30,13 +30,11 @@ exports.validFillTheGapsText = async (req) => {
   if (card.template === FILL_THE_GAPS && text) {
     const { outerAcc, innerAcc } = parseTagCode(text);
 
-    console.log('me revoilou')
-  
     const validTagging = !containLonelyTag(outerAcc) && !innerAcc.some(v => containLonelyTag(v));
     const validCaractersInner = innerAcc.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü '-]*$/.test(v));
     const validLengthInner = innerAcc.every(v => v.length > 0 && v.length < 16);
     const validNumberOfTags = innerAcc.length > 0 && innerAcc.length < 3;
-  
+
     if (!validTagging || !validCaractersInner || !validLengthInner || !validNumberOfTags) return Boom.badRequest();
   }
 
