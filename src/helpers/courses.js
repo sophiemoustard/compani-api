@@ -207,7 +207,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('slots')
     .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
     .populate('trainer')
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' }})
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
   return {
@@ -228,7 +228,7 @@ exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' }})
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);
