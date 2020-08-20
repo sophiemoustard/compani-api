@@ -38,6 +38,7 @@ module.exports = {
     'import/no-unresolved': 0,
     'no-await-in-loop': 0,
     'no-continue': 0,
+    'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'no-restricted-syntax': 0,
     'no-underscore-dangle': 0,
     'no-use-before-define': 0,

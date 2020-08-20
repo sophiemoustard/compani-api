@@ -1,4 +1,3 @@
-/* eslint-disable no-plusplus */
 const mongoose = require('mongoose');
 const get = require('lodash/get');
 const moment = require('../extensions/moment');

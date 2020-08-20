@@ -136,8 +136,7 @@ exports.formatIdentity = (identity, format) => {
   const formatLower = format.toLowerCase();
   const values = [];
 
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < format.length; ++i) {
+  for (let i = 0; i < format.length; i++) {
     let value;
     if (formatLower[i] === 'f') value = (identity.firstname || '').trim();
     else if (formatLower[i] === 'l') value = (identity.lastname || '').trim().toUpperCase();

@@ -240,7 +240,6 @@ exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
   let paidHours = exports.initializePaidHours();
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-    // eslint-disable-next-line no-plusplus
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const paidEvent = {
         ...sortedEvents[i],
