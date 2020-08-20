@@ -449,7 +449,7 @@ exports.exportFundings = async (credentials) => {
     const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
     let careDays = '';
     if (funding.careDays) {
-      funding.careDays.map((dayIndex) => { careDays = careDays.concat(`${DAYS_INDEX[dayIndex]} `); });
+      careDays = funding.careDays.map(dayIndex => DAYS_INDEX[dayIndex]).join(' ');
     }
 
     data.push([

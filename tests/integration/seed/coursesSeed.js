@@ -9,22 +9,25 @@ const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
+const {
+  AUXILIARY,
+  HELPER,
+  AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  COACH,
+} = require('../../../src/helpers/constants.js');
 
-const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id);
-
-const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === 'helper')._id);
-
-const auxiliaryWithoutCompany = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'auxiliary_without_company')._id);
-
-const clientAdmin = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'client_admin')._id);
-
-const trainerOrganisationManager = userList.find(user =>
-  user.role.vendor === rolesList.find(role => role.name === 'training_organisation_manager')._id);
-
-const coachFromAuthCompany = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'coach')._id);
+const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
+const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === HELPER)._id);
+const auxiliaryWithoutCompany = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id);
+const clientAdmin = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === CLIENT_ADMIN)._id);
+const trainerOrganisationManager = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
+const coachFromAuthCompany = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),

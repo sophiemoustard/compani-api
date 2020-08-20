@@ -50,7 +50,7 @@ const workingEventExportHeader = [
 ];
 
 const getServiceName = (service) => {
-  if (!service) return;
+  if (!service) return null;
 
   const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
 
@@ -161,8 +161,8 @@ const billAndCreditNoteExportHeader = [
 const exportBillSubscriptions = (bill) => {
   if (!bill.subscriptions) return '';
 
-  const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service.name} - ${UtilsHelper.formatHour(sub.hours)} - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
+  const subscriptions = bill.subscriptions.map(sub => `${sub.service.name} - ${UtilsHelper.formatHour(sub.hours)} `
+    + `- ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
 
   return subscriptions.join('\r\n');
 };
@@ -347,7 +347,7 @@ const payExportHeader = [
 ];
 
 const getHiringDate = (contracts) => {
-  if (!contracts || contracts.length === 0) return;
+  if (!contracts || contracts.length === 0) return null;
   if (contracts.length === 1) return contracts[0].startDate;
 
   return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
@@ -355,7 +355,7 @@ const getHiringDate = (contracts) => {
 
 const formatLines = (surchargedPlanDetails, planName) => {
   const surcharges = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
-  if (surcharges.length === 0) return;
+  if (surcharges.length === 0) return null;
 
   const lines = [planName];
   for (const [surchageKey, surcharge] of surcharges) {

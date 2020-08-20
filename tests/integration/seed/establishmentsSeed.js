@@ -9,7 +9,6 @@ const {
   rolesList,
 } = require('./authenticationSeed');
 
-
 const establishmentsList = [
   {
     _id: new ObjectID(),

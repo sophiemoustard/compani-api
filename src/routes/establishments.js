@@ -8,7 +8,7 @@ const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandler
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 const { addressValidation, phoneNumberValidation } = require('./validations/utils');
-const { SIRET_VALIDATION, ESTABLISHMENT_NAME_VALIDATION } = require('../models/utils');
+const { SIRET_VALIDATION, ESTABLISHMENT_NAME_VALIDATION } = require('../models/Establishment');
 
 exports.plugin = {
   name: 'routes-establishments',

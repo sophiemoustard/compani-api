@@ -71,7 +71,6 @@ describe('updateCard', () => {
   });
 });
 
-
 describe('uploadMedia', () => {
   let updateOneStub;
   let addImageStub;

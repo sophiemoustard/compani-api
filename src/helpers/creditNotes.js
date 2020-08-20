@@ -2,7 +2,8 @@ const moment = require('moment');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const translate = require('../helpers/translate');
+const omit = require('lodash/omit');
+const translate = require('./translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
@@ -13,7 +14,7 @@ const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
-const { COMPANI } = require('../helpers/constants');
+const { COMPANI } = require('./constants');
 
 const { language } = translate;
 
@@ -31,11 +32,10 @@ exports.getCreditNotes = async (query, credentials) => {
     .populate({ path: 'thirdPartyPayer', select: '_id name' })
     .lean();
 
-  for (let i = 0, l = creditNotes.length; i < l; i++) {
-    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
-  }
-
-  return creditNotes;
+  return creditNotes.map(cn => ({
+    ...cn,
+    customer: SubscriptionsHelper.populateSubscriptionsServices({ ...cn.customer }),
+  }));
 };
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
@@ -101,13 +101,17 @@ exports.createCreditNotes = async (payload, credentials) => {
   if (payload.inclTaxesTpp) {
     const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: company._id };
     tppCN = await exports.formatCreditNote(tppPayload, company.prefixNumber, number.prefix, number.seq);
-    number.seq++;
+    number.seq += 1;
   }
   if (payload.inclTaxesCustomer) {
-    delete payload.thirdPartyPayer;
-    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: company._id };
+    const customerPayload = {
+      ...omit(payload, ['thirdPartyPayer']),
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+      company: company._id,
+    };
     customerCN = await exports.formatCreditNote(customerPayload, company.prefixNumber, number.prefix, number.seq);
-    number.seq++;
+    number.seq += 1;
   }
 
   let creditNotes = [];

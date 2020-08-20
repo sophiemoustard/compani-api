@@ -1,7 +1,7 @@
 const expect = require('expect');
-const app = require('../../server');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
+const app = require('../../server');
 const {
   populateDB,
   establishmentsList,

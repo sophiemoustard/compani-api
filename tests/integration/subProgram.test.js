@@ -1,11 +1,10 @@
 const expect = require('expect');
-const app = require('../../server');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
+const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
 const { populateDB, subProgramsList } = require('./seed/subProgramsSeed');
 const { getToken } = require('./seed/authenticationSeed');
-
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

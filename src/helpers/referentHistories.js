@@ -12,14 +12,14 @@ exports.updateCustomerReferent = async (customerId, referent, company) => {
   const lastHistoryEndsBeforeYesterday = get(lastHistory, 'endDate') &&
     moment(lastHistory.endDate).isBefore(moment().subtract(1, 'd').endOf('d'));
   if (!lastHistory || lastHistoryEndsBeforeYesterday) {
-    if (!referent) return;
+    if (!referent) return null;
     return exports.createReferentHistory(customerId, referent, company);
   }
 
   const lastHistoryEndsYesterday = lastHistory.endDate &&
     moment().subtract(1, 'd').endOf('d').isSame(lastHistory.endDate);
   if (lastHistoryEndsYesterday) {
-    if (!referent) return;
+    if (!referent) return null;
 
     const isSameReferent = referent === lastHistory.auxiliary._id.toHexString();
     if (isSameReferent) return exports.updateLastHistory(lastHistory, { $unset: { endDate: '' } });
@@ -40,7 +40,7 @@ exports.updateCustomerReferent = async (customerId, referent, company) => {
     return exports.updateLastHistory(lastHistory, { endDate: moment().subtract(1, 'd').endOf('d').toDate() });
   }
 
-  if (referent === lastHistory.auxiliary._id.toHexString()) return;
+  if (referent === lastHistory.auxiliary._id.toHexString()) return null;
 
   if (!customer.firstIntervention) {
     return exports.updateLastHistory(lastHistory, { startDate: moment().startOf('d').toDate(), auxiliary: referent });

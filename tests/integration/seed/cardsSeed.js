@@ -25,7 +25,6 @@ const cardsList = [
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE },
 ];
 
-
 const populateDB = async () => {
   await Card.deleteMany({});
 

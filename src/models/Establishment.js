@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
-const { PHONE_VALIDATION, ESTABLISHMENT_NAME_VALIDATION, SIRET_VALIDATION } = require('./utils');
+const { PHONE_VALIDATION } = require('./utils');
 const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
+
+// eslint-disable-next-line no-misleading-character-class
+const ESTABLISHMENT_NAME_VALIDATION = /^[a-zA-Z0-9éèêëâàäöôûüîïç°2!#$%&'()*+,\-./:;<=>?@ ]{1,32}$/u;
+const SIRET_VALIDATION = /^\d{14}$/;
 
 const EstablishmentSchema = mongoose.Schema({
   name: { type: String, required: true, validate: ESTABLISHMENT_NAME_VALIDATION },
@@ -32,3 +36,5 @@ EstablishmentSchema.pre('find', validateQuery);
 EstablishmentSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Establishment', EstablishmentSchema);
+module.exports.ESTABLISHMENT_NAME_VALIDATION = ESTABLISHMENT_NAME_VALIDATION;
+module.exports.SIRET_VALIDATION = SIRET_VALIDATION;

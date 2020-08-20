@@ -94,12 +94,12 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getLearnerList = async credentials =>
-  User.find({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
-    .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'coursesCount' })
-    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
-    .lean();
+exports.getLearnerList = async credentials => User
+  .find({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
+  .populate({ path: 'company', select: 'name' })
+  .populate({ path: 'coursesCount' })
+  .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+  .lean();
 
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
@@ -261,8 +261,7 @@ exports.checkResetPasswordToken = async (token) => {
   return { token: AuthenticationHelper.encode(userPayload, expireTime), user: userPayload };
 };
 
-exports.createPasswordToken = async email =>
-  exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
+exports.createPasswordToken = async email => exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
 
 exports.forgotPassword = async (email) => {
   const passwordToken = await exports.generatePasswordToken(email, 3600000);

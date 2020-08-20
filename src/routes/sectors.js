@@ -47,9 +47,6 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:read'] },
-        validate: {
-          query: Joi.object().keys({ name: Joi.string() }),
-        },
       },
       handler: list,
     });

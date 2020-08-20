@@ -44,7 +44,7 @@ describe('SMS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sms).toBe('SMS SENT !');
-      sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match(credentials) );
+      sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match(credentials));
     });
 
     it('should throw error if phone is not in the same company', async () => {

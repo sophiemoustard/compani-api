@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
-const moment = require('../../../src/extensions/moment');
 const cloneDeep = require('lodash/cloneDeep');
 const { v4: uuidv4 } = require('uuid');
+const moment = require('../../../src/extensions/moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');

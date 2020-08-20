@@ -18,4 +18,3 @@ BillSlipNumberSchema.pre('aggregate', validateAggregation);
 BillSlipNumberSchema.pre('updateOne', validateUpdateOne);
 
 module.exports = mongoose.model('BillSlipNumber', BillSlipNumberSchema);
-

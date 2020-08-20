@@ -39,7 +39,6 @@ const stepsList = [
   { _id: new ObjectID(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
 ];
 
-
 const populateDB = async () => {
   await Step.deleteMany({});
   await Activity.deleteMany({});

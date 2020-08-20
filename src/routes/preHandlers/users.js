@@ -34,7 +34,6 @@ exports.getUser = async (req) => {
   }
 };
 
-
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;

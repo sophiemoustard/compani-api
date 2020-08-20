@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
+const moment = require('moment');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
@@ -14,7 +15,6 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
 const { COMPANI, OGUST } = require('../../../src/helpers/constants');
-const moment = require('moment');
 
 const { language } = translate;
 

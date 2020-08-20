@@ -12,7 +12,6 @@ const {
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
 
-
 exports.plugin = {
   name: 'routes-pay',
   register: async (server) => {

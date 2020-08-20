@@ -33,7 +33,6 @@ const historyList = [
   },
 ];
 
-
 const populateDB = async () => {
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});

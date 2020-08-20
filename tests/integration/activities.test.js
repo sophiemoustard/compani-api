@@ -1,6 +1,6 @@
 const expect = require('expect');
-const app = require('../../server');
 const { ObjectID } = require('mongodb');
+const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const { populateDB, activitiesList } = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');

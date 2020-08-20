@@ -139,7 +139,6 @@ const sectorHistories = [
   },
 ];
 
-
 const eventList = [
   {
     _id: '1234567890abcdef12345678',

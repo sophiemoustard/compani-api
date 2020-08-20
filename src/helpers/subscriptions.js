@@ -7,13 +7,13 @@ const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
-const translate = require('../helpers/translate');
-const UtilsHelper = require('../helpers/utils');
+const translate = require('./translate');
+const UtilsHelper = require('./utils');
 
 const { language } = translate;
 
 exports.populateService = (service) => {
-  if (!service || service.version) return;
+  if (!service || service.version) return null;
 
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
@@ -24,14 +24,11 @@ exports.populateService = (service) => {
 
 exports.populateSubscriptionsServices = (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
-  const subscriptions = [];
-  for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
-    subscriptions.push({
-      ...customer.subscriptions[i],
-      service: exports.populateService(customer.subscriptions[i].service),
-    });
-  }
-  return { ...customer, subscriptions };
+
+  return {
+    ...customer,
+    subscriptions: customer.subscriptions.map(sub => ({ ...sub, service: exports.populateService(sub.service) })),
+  };
 };
 
 exports.subscriptionsAccepted = (customer) => {
@@ -47,10 +44,11 @@ exports.subscriptionsAccepted = (customer) => {
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
         .map(sub => pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
-      customer.subscriptionsAccepted = isEqual(subscriptions, lastSubscriptions);
-    } else {
-      customer.subscriptionsAccepted = false;
+
+      return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }
+
+    return { ...customer, subscriptionsAccepted: false };
   }
   return customer;
 };

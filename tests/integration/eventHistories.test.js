@@ -79,8 +79,7 @@ describe('EVENT HISTORY ROUTES', () => {
       response.result.data.eventHistories.forEach((history) => {
         expect(
           history.auxiliaries.every(aux => aux._id.toHexString() === eventHistoryAuxiliaries[0]._id.toHexString() ||
-            aux._id.toHexString() === eventHistoryAuxiliaries[1]._id.toHexString()
-          )
+            aux._id.toHexString() === eventHistoryAuxiliaries[1]._id.toHexString())
         ).toBeTruthy();
       });
     });

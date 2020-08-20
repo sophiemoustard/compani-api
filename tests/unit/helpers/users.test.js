@@ -760,7 +760,6 @@ describe('createUser', () => {
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns({ ...newUser });
 
-
     const result = await UsersHelper.createUser(payload, credentials);
 
     expect(result).toMatchObject(newUser);
@@ -795,7 +794,6 @@ describe('createUser', () => {
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns({ ...newUser });
-
 
     const result = await UsersHelper.createUser(payload, credentials);
 
@@ -1062,7 +1060,6 @@ describe('updatePassword', () => {
       )
       .chain('lean')
       .returns({ ...user, ...payload });
-
 
     const result = await UsersHelper.updatePassword(userId, payload);
 
