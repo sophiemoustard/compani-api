@@ -6,7 +6,7 @@ const CourseSlotSchema = mongoose.Schema({
   startDate: { type: Date, required() { return this.endDate; } },
   endDate: { type: Date, required() { return this.startDate; } },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
-  step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step' },
+  step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required() { return this.startDate; } },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CourseSlot', CourseSlotSchema);
