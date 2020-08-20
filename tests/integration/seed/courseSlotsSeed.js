@@ -59,24 +59,28 @@ const courseSlotsList = [
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     courseId: coursesList[0]._id,
+    step: stepsList[0]._id,
   },
   {
     _id: new ObjectID(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     courseId: coursesList[0]._id,
+    step: stepsList[0]._id,
   },
   {
     _id: new ObjectID(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     courseId: coursesList[1]._id,
+    step: stepsList[0]._id,
   },
   {
     _id: new ObjectID(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     courseId: coursesList[1]._id,
+    step: stepsList[0]._id,
   },
 ];
 
