@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update, uploadMedia } = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
+const { validFillTheGapsText } = require('./preHandlers/cards');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -27,6 +28,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: validFillTheGapsText }],
       },
       handler: update,
     });
