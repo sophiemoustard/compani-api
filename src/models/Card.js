@@ -32,9 +32,24 @@ const CardSchema = mongoose.Schema({
     publicId: { type: String },
     link: { type: String, trim: true },
   },
-  answers: { type: [{ type: String }] }, // penser a ne pas creer ce tableau pour tout les templates
+  answers: {
+    type: [mongoose.Schema({ label: { type: String } }, { _id: false })],
+    default: undefined,
+  },
   explanation: { type: String },
 }, { timestamps: true });
+
+async function save(next) {
+  try {
+    if (this.isNew && this.template === FILL_THE_GAPS) this.answers = [];
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
+CardSchema.pre('save', save);
 
 module.exports = mongoose.model('Card', CardSchema);
 module.exports.CARD_TEMPLATES = CARD_TEMPLATES;
