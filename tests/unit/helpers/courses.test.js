@@ -156,6 +156,8 @@ describe('listUserCourses', () => {
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+      .chain('select')
+      .withExactArgs('_id')
       .chain('lean')
       .returns(coursesList);
 
