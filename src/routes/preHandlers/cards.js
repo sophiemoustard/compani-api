@@ -10,12 +10,12 @@ exports.authorizeCardUpdate = async (req) => {
     const { text, answers } = req.payload;
 
     if (text) {
-      const { outerAcc, answersAcc } = parseTagCode(text);
+      const { outerAcc, gapAcc } = parseTagCode(text);
 
-      const validTagging = isValidTagging(outerAcc, answersAcc);
-      const validAnswersCaracters = isValidAnswersCaracters(answersAcc);
-      const validAnswersLength = isValidAnswersLength(answersAcc);
-      const validTagsCount = isValidTagsCount(answersAcc);
+      const validTagging = isValidTagging(outerAcc, gapAcc);
+      const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
+      const validAnswersLength = isValidAnswersLength(gapAcc);
+      const validTagsCount = isValidTagsCount(gapAcc);
 
       if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount) return Boom.badRequest();
     } else if (answers) {
@@ -35,13 +35,13 @@ exports.authorizeCardUpdate = async (req) => {
 // fill the gap validation
 const parseTagCode = str => parseTagCodeRecursively('', [], str);
 
-const parseTagCodeRecursively = (outerAcc, answersAcc, str) => {
+const parseTagCodeRecursively = (outerAcc, gapAcc, str) => {
   const splitedStr = str.match(/(.*?)<trou>(.*?)<\/trou>(.*)/s);
 
-  if (!splitedStr) return { outerAcc: outerAcc.concat(' ', str), answersAcc };
+  if (!splitedStr) return { outerAcc: outerAcc.concat(' ', str), gapAcc };
 
-  answersAcc.push(splitedStr[2]);
-  return parseTagCodeRecursively(outerAcc.concat(' ', splitedStr[1]), answersAcc, splitedStr[3]);
+  gapAcc.push(splitedStr[2]);
+  return parseTagCodeRecursively(outerAcc.concat(' ', splitedStr[1]), gapAcc, splitedStr[3]);
 };
 
 const containLonelyTag = value => /<trou>|<\/trou>/g.test(value);
