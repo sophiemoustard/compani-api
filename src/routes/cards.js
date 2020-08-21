@@ -23,9 +23,12 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
-            answers: Joi.array().items(Joi.object({ label: Joi.string().required() })).min(1).max(6),
             question: Joi.string(),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
+            answers: Joi.array().items(Joi.object({
+              label: Joi.string().required(),
+              correct: Joi.boolean().required(),
+            })).min(1).max(6),
             explanation: Joi.string(),
           }),
         },
