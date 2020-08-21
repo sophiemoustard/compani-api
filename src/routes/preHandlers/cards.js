@@ -13,20 +13,19 @@ exports.authorizeCardUpdate = async (req) => {
       const { outerAcc, answersAcc } = parseTagCode(text);
 
       const validTagging = isValidTagging(outerAcc, answersAcc);
-      const validCaracters = isValidCaracters(answersAcc);
-      const validLength = isValidLength(answersAcc);
+      const validAnswersCaracters = isValidAnswersCaracters(answersAcc);
+      const validAnswersLength = isValidAnswersLength(answersAcc);
       const validTagsCount = isValidTagsCount(answersAcc);
 
-      if (!validTagging || !validCaracters || !validLength || !validTagsCount) return Boom.badRequest();
+      if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount) return Boom.badRequest();
     } else if (answers) {
       if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
 
       const answersLabel = answers.map(a => a.label);
+      const validAnswersCaracters = isValidAnswersCaracters(answersLabel);
+      const validAnswersLength = isValidAnswersLength(answersLabel);
 
-      const validCaracters = isValidCaracters(answersLabel);
-      const validLength = isValidLength(answersLabel);
-
-      if (!validCaracters || !validLength) return Boom.badRequest();
+      if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
     }
   }
 
@@ -34,7 +33,7 @@ exports.authorizeCardUpdate = async (req) => {
 };
 
 // fill the gap validation
-const parseTagCode = str => parseTagCodeRecursively('', [], str)
+const parseTagCode = str => parseTagCodeRecursively('', [], str);
 
 const parseTagCodeRecursively = (outerAcc, answersAcc, str) => {
   const splitedStr = str.match(/(.*?)<trou>(.*?)<\/trou>(.*)/s);
@@ -49,8 +48,8 @@ const containLonelyTag = value => /<trou>|<\/trou>/g.test(value);
 
 const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !answers.some(v => containLonelyTag(v));
 
-const isValidCaracters = (answers) => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\s'-]*$/.test(v));
+const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\s'-]*$/.test(v));
 
-const isValidLength = (answers) => answers.every(v => v.length > 0 && v.length < 16);
+const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
 
-const isValidTagsCount = (answers) => answers.length > 0 && answers.length < 3;
+const isValidTagsCount = answers => answers.length > 0 && answers.length < 3;
