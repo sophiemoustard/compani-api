@@ -53,10 +53,14 @@ const traineeWithoutCompany = {
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO};
+const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO };
 
-const step = { _id: new ObjectID(), name: 'etape', type: 'on_site',
-  activities: [{ _id: activity._id, name: activity.name, type: activity.type}] };
+const step = {
+  _id: new ObjectID(),
+  name: 'etape',
+  type: 'on_site',
+  activities: [{ _id: activity._id, name: activity.name, type: activity.type }],
+};
 
 const subProgramsList = [
   {
