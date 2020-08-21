@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update, uploadMedia } = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
+const { authorizeCardUpdate } = require('./preHandlers/cards');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -22,9 +23,12 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
+            answers: Joi.array().items(Joi.object({ label: Joi.string().required() })).min(1).max(6),
+            explanation: Joi.string(),
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardUpdate }],
       },
       handler: update,
     });
