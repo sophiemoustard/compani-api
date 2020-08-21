@@ -309,7 +309,10 @@ describe('getTraineeCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name image' }, { path: 'steps', select: 'name type' }],
+        populate: [
+          { path: 'program', select: 'name image' },
+          { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type' } },
+        ],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
