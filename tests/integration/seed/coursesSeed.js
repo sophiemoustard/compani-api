@@ -8,6 +8,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
+const Activity = require('../../../src/models/Activity');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
 const {
   AUXILIARY,
@@ -16,6 +17,7 @@ const {
   CLIENT_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   COACH,
+  VIDEO,
 } = require('../../../src/helpers/constants.js');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
@@ -51,7 +53,10 @@ const traineeWithoutCompany = {
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
+const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO};
+
+const step = { _id: new ObjectID(), name: 'etape', type: 'on_site',
+  activities: [{ _id: activity._id, name: activity.name, type: activity.type}] };
 
 const subProgramsList = [
   {
@@ -175,6 +180,7 @@ const populateDB = async () => {
   await CourseSlot.deleteMany({});
   await CourseSmsHistory.deleteMany({});
   await Step.deleteMany({});
+  await Activity.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -185,10 +191,12 @@ const populateDB = async () => {
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
+  await Activity.create(activity);
 };
 
 module.exports = {
   populateDB,
+  activity,
   step,
   coursesList,
   subProgramsList,

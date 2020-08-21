@@ -12,6 +12,7 @@ const { CONVOCATION, COURSE_SMS } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
+  activity,
   step,
   subProgramsList,
   programsList,
@@ -548,6 +549,11 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           _id: expect.any(ObjectID),
           name: step.name,
           type: step.type,
+          activities: [{
+            _id: expect.any(ObjectID),
+            name: activity.name,
+            type: activity.type,
+          }],
         }],
       }),
       slots: expect.arrayContaining([
