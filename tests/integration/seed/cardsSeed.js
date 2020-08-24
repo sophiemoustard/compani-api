@@ -22,7 +22,7 @@ const cardsList = [
   { _id: new ObjectID(), template: FILL_THE_GAPS, answers: [{ label: 'le papa' }, { label: 'la maman' }] },
   { _id: new ObjectID(), template: MULTIPLE_CHOICE_QUESTION },
   { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION },
-  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE },
+  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
 ];
 
 const populateDB = async () => {

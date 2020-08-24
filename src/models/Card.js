@@ -37,11 +37,25 @@ const CardSchema = mongoose.Schema({
     default: undefined,
   },
   explanation: { type: String },
+  question: { type: String },
+  orderedAnswers: {
+    type: [String],
+    default: undefined,
+  },
 }, { timestamps: true });
 
 async function save(next) {
   try {
-    if (this.isNew && this.template === FILL_THE_GAPS) this.answers = [];
+    if (this.isNew) {
+      switch (this.template) {
+        case FILL_THE_GAPS:
+          this.answers = [];
+          break;
+        case ORDER_THE_SEQUENCE:
+          this.orderedAnswers = [];
+          break;
+      }
+    }
 
     return next();
   } catch (e) {
