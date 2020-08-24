@@ -27,7 +27,7 @@ exports.plugin = {
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
             answers: Joi.array().items(Joi.object({
               label: Joi.string().required(),
-              correct: Joi.boolean().required(),
+              correct: Joi.boolean(),
             })).min(1).max(6),
             explanation: Joi.string(),
           }),

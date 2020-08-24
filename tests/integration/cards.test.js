@@ -22,6 +22,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const transitionId = cardsList[0]._id;
   const fillTheGapId = cardsList[5]._id;
   const orderTheSequenceId = cardsList[8]._id;
+  const singleChoiceQuestionId = cardsList[7]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -65,6 +66,19 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           explanation: 'en fait on doit faire ça',
         },
         id: orderTheSequenceId,
+      },
+      {
+        template: 'single_choice_question',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          answers: [
+            { correct: false, label: 'rien' },
+            { correct: true, label: 'des trucs' },
+            { correct: false, label: 'ou pas' },
+          ],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: singleChoiceQuestionId,
       },
     ];
 
@@ -144,6 +158,32 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           });
 
           expect(response.statusCode).toBe(request.passing ? 200 : 400);
+        });
+      });
+    });
+
+    describe('single choice question', () => {
+      const requests = [
+        { msg: 'valid answers', payload: { answers: [{ label: 'toto', correct: true }] }, code: 200 },
+        { msg: 'missing label', payload: { answers: [{ correct: true }] }, code: 400 },
+        { msg: 'missing correct', payload: { answers: [{ label: 'toto' }] }, code: 400 },
+        {
+          msg: 'missing correct answer',
+          payload: { answers: [{ label: 'toto', correct: false }, { label: 'tata', correct: false }] },
+          code: 400,
+        },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${singleChoiceQuestionId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
         });
       });
     });
