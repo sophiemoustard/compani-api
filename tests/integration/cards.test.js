@@ -21,6 +21,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   beforeEach(populateDB);
   const transitionId = cardsList[0]._id;
   const fillTheGapId = cardsList[5]._id;
+  const orderTheSequenceId = cardsList[8]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -54,7 +55,16 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           answers: [{ label: 'le papa' }, { label: 'la maman' }, { label: 'le papi' }],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
-        id: cardsList[4]._id,
+        id: fillTheGapId,
+      },
+      {
+        template: 'order_the_sequence',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          orderedAnswers: ['rien', 'des trucs', 'ou pas'],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: orderTheSequenceId,
       },
     ];
 
@@ -108,6 +118,26 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${fillTheGapId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.passing ? 200 : 400);
+        });
+      });
+    });
+
+    describe('Order the sequence', () => {
+      const requests = [
+        { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
+        { msg: 'remove one of the 2 existing ordered answers', payload: { answers: ['en fait si'] } },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.passing ? '200' : '400'} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${orderTheSequenceId.toHexString()}`,
             payload: request.payload,
             headers: { 'x-access-token': authToken },
           });

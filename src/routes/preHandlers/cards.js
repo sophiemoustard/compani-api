@@ -25,7 +25,7 @@ const checkFillTheGap = (payload, card) => {
   }
 
   return null;
-}
+};
 
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
@@ -34,13 +34,14 @@ exports.authorizeCardUpdate = async (req) => {
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
-    case ORDER_THE_SEQUENCE:
+    case ORDER_THE_SEQUENCE: {
       const { orderedAnswers } = req.payload;
       if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
-      break;
+      return null;
+    }
+    default:
+      return null;
   }
-
-  return null;
 };
 
 // fill the gap validation
