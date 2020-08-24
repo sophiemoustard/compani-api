@@ -27,6 +27,13 @@ const checkFillTheGap = (payload, card) => {
   return null;
 };
 
+const checkOrderTheSequence = (payload, card) => {
+  const { orderedAnswers } = payload;
+  if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
+
+  return null;
+};
+
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
@@ -34,11 +41,8 @@ exports.authorizeCardUpdate = async (req) => {
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
-    case ORDER_THE_SEQUENCE: {
-      const { orderedAnswers } = req.payload;
-      if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
-      return null;
-    }
+    case ORDER_THE_SEQUENCE:
+      return checkOrderTheSequence(req.payload, card);
     default:
       return null;
   }
