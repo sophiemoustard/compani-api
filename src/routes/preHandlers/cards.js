@@ -1,32 +1,43 @@
 const Boom = require('@hapi/boom');
 const Card = require('../../models/Card');
-const { FILL_THE_GAPS } = require('../../helpers/constants');
+const { FILL_THE_GAPS, ORDER_THE_SEQUENCE } = require('../../helpers/constants');
+
+const checkFillTheGap = (payload, card) => {
+  const { text, answers } = payload;
+
+  if (text) {
+    const { outerAcc, gapAcc } = parseTagCode(text);
+
+    const validTagging = isValidTagging(outerAcc, gapAcc);
+    const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
+    const validAnswersLength = isValidAnswersLength(gapAcc);
+    const validTagsCount = isValidTagsCount(gapAcc);
+
+    if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount) return Boom.badRequest();
+  } else if (answers) {
+    if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
+
+    const answersLabel = answers.map(a => a.label);
+    const validAnswersCaracters = isValidAnswersCaracters(answersLabel);
+    const validAnswersLength = isValidAnswersLength(answersLabel);
+
+    if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
+  }
+
+  return null;
+}
 
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
 
-  if (card.template === FILL_THE_GAPS) {
-    const { text, answers } = req.payload;
-
-    if (text) {
-      const { outerAcc, gapAcc } = parseTagCode(text);
-
-      const validTagging = isValidTagging(outerAcc, gapAcc);
-      const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
-      const validAnswersLength = isValidAnswersLength(gapAcc);
-      const validTagsCount = isValidTagsCount(gapAcc);
-
-      if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount) return Boom.badRequest();
-    } else if (answers) {
-      if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
-
-      const answersLabel = answers.map(a => a.label);
-      const validAnswersCaracters = isValidAnswersCaracters(answersLabel);
-      const validAnswersLength = isValidAnswersLength(answersLabel);
-
-      if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
-    }
+  switch (card.template) {
+    case FILL_THE_GAPS:
+      return checkFillTheGap(req.payload, card);
+    case ORDER_THE_SEQUENCE:
+      const { orderedAnswers } = req.payload;
+      if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
+      break;
   }
 
   return null;
