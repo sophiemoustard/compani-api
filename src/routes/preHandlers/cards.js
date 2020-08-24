@@ -9,11 +9,13 @@ const checkFillTheGap = (payload, card) => {
     const { outerAcc, gapAcc } = parseTagCode(text);
 
     const validTagging = isValidTagging(outerAcc, gapAcc);
+    const validAnswerInTag = isValidAnswerInTag(gapAcc);
     const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
     const validAnswersLength = isValidAnswersLength(gapAcc);
     const validTagsCount = isValidTagsCount(gapAcc);
 
-    if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount) return Boom.badRequest();
+    if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
+      !validAnswerInTag) return Boom.badRequest();
   } else if (answers) {
     if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
 
@@ -63,6 +65,8 @@ const parseTagCodeRecursively = (outerAcc, gapAcc, str) => {
 const containLonelyTag = value => /<trou>|<\/trou>/g.test(value);
 
 const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !answers.some(v => containLonelyTag(v));
+
+const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
 
 const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\s'-]*$/.test(v));
 
