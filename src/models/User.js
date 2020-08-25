@@ -10,7 +10,7 @@ const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
@@ -204,7 +204,7 @@ const serialNumber = (auxiliary) => {
 // eslint-disable-next-line consistent-return
 function setContractCreationMissingInfo() {
   const clientRole = get(this, 'role.client.name');
-  if (clientRole && [AUXILIARY, PLANNING_REFERENT].includes(clientRole)) {
+  if (clientRole && [AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY].includes(clientRole)) {
     const mandatoryInfo = [
       'identity.lastname',
       'identity.firstname',
