@@ -111,7 +111,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'remove one of the 2 existing answers', payload: { answers: [{ label: 'la maman' }] } },
         { msg: 'long answer', payload: { answers: [{ label: 'la maman' }, { label: 'more then 15 caracteres' }] } },
         { msg: 'wrong caractere in answer', payload: { answers: [{ label: 'la maman' }, { label: 'c\'est tout.' }] } },
-        { msg: 'space in text', payload: { text: 'on truc <trou> test</trou>propre' } },
+        { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
       ];
 
       requests.forEach((request) => {
