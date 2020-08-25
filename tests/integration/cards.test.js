@@ -53,7 +53,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'fill_the_gaps',
         payload: {
           text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          answers: [{ label: 'le papa' }, { label: 'la maman' }, { label: 'le papi' }],
+          falsyAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -71,11 +71,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'single_choice_question',
         payload: {
           question: 'Que faire dans cette situation ?',
-          answers: [
-            { correct: false, label: 'rien' },
-            { correct: true, label: 'des trucs' },
-            { correct: false, label: 'ou pas' },
-          ],
+          qcuGoodAnswer: 'plein de trucs',
+          falsyAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -121,10 +118,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
         { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong caractere in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { answers: [{ label: 'la maman' }, { label: 'le tonton' }] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { answers: [{ label: 'la maman' }] } },
-        { msg: 'long answer', payload: { answers: [{ label: 'la maman' }, { label: 'more then 15 caracteres' }] } },
-        { msg: 'wrong caractere in answer', payload: { answers: [{ label: 'la maman' }, { label: 'c\'est tout.' }] } },
+        { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
+        { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
+        { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 caracteres'] } },
+        { msg: 'wrong caractere in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
       ];
 
@@ -145,7 +142,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     describe('Order the sequence', () => {
       const requests = [
         { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
-        { msg: 'remove one of the 2 existing ordered answers', payload: { answers: ['en fait si'] } },
+        { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
       ];
 
       requests.forEach((request) => {
@@ -164,14 +161,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('single choice question', () => {
       const requests = [
-        { msg: 'valid answers', payload: { answers: [{ label: 'toto', correct: true }] }, code: 200 },
-        { msg: 'missing label', payload: { answers: [{ correct: true }] }, code: 400 },
-        { msg: 'missing correct', payload: { answers: [{ label: 'toto' }] }, code: 400 },
-        {
-          msg: 'missing correct answer',
-          payload: { answers: [{ label: 'toto', correct: false }, { label: 'tata', correct: false }] },
-          code: 400,
-        },
+        { msg: 'valid answers', payload: { falsyAnswers: ['toto'] }, code: 200 },
+        { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
+        { msg: 'too many answer', payload: { falsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
       ];
 
       requests.forEach((request) => {

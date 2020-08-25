@@ -24,11 +24,9 @@ exports.plugin = {
               publicId: Joi.string().allow(null),
             }),
             question: Joi.string(),
+            qcuGoodAnswer: Joi.string(),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
-            answers: Joi.array().items(Joi.object({
-              label: Joi.string().required(),
-              correct: Joi.boolean(),
-            })).min(1).max(6),
+            falsyAnswers: Joi.array().items(Joi.string()).min(1),
             explanation: Joi.string(),
           }),
         },
