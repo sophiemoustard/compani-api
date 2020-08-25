@@ -100,17 +100,18 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Fill the gaps', () => {
       const requests = [
-        { msg: 'valid text', payload: { text: 'on truc <trou> b\'ien -èï</trou>propre' }, passing: true },
+        { msg: 'valid text', payload: { text: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
         { msg: 'no tagging', payload: { text: 'du text sans balise' } },
-        { msg: 'single open tag', payload: { text: 'lalalalal <trou> lili </trou> djsfbjdsfbdjsf<trou>' } },
-        { msg: 'single closing tag', payload: { text: 'lalalalal <trou> lili </trou> djsfbjdsfbdjsf</trou>' } },
-        { msg: 'conflicting tags', payload: { text: 'lalaal <trou> l<trou>ili </trou> djsfbjdsfbd </trou>' } },
-        { msg: 'long content', payload: { text: 'lalalalal <trou>  rgtrgtghtgtrgtrgtrgtili </trou> djsfbjdsfbd' } },
-        { msg: 'wrong caractere in content', payload: { text: 'lalalalal <trou> ? </trou> djsfbjdsfbd' } },
+        { msg: 'single open tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
+        { msg: 'single closing tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
+        { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
+        { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
+        { msg: 'wrong caractere in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
         { msg: 'valid answers', payload: { answers: [{ label: 'la maman' }, { label: 'le tonton' }] }, passing: true },
         { msg: 'remove one of the 2 existing answers', payload: { answers: [{ label: 'la maman' }] } },
         { msg: 'long answer', payload: { answers: [{ label: 'la maman' }, { label: 'more then 15 caracteres' }] } },
         { msg: 'wrong caractere in answer', payload: { answers: [{ label: 'la maman' }, { label: 'c\'est tout.' }] } },
+        { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
       ];
 
       requests.forEach((request) => {
