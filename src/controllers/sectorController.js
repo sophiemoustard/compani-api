@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const sectors = await SectorHelper.list(req.query, req.auth.credentials);
+    const sectors = await SectorHelper.list(req.auth.credentials);
 
     return {
       message: translate[language].sectorsFound,

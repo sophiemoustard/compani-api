@@ -1,4 +1,3 @@
-
 const expect = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
@@ -24,10 +23,21 @@ describe('NODE ENV', () => {
 describe('PAY DOCUMENT ROUTES', () => {
   describe('POST /paydocuments', () => {
     let authToken = null;
+    let addStub;
+    let addFileStub;
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('client_admin');
+        addStub = sinon.stub(Gdrive, 'add');
+        addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
+          id: '1234567890',
+          webViewLink: 'http://test.com/file.pdf',
+        });
+      });
+      afterEach(() => {
+        addFileStub.restore();
+        addStub.restore();
       });
 
       it('should create a new pay document', async () => {
@@ -40,12 +50,6 @@ describe('PAY DOCUMENT ROUTES', () => {
           user: payDocumentUser._id.toHexString(),
           mimeType: 'application/pdf',
         };
-
-        const addStub = sinon.stub(Gdrive, 'add');
-        const addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
-          id: '1234567890',
-          webViewLink: 'http://test.com/file.pdf',
-        });
 
         const form = generateFormData(docPayload);
         const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id }).lean();
@@ -66,8 +70,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id }).lean();
         expect(payDocumentsLength).toBe(payDocumentsLengthBefore + 1);
         sinon.assert.calledOnce(addFileStub);
-        addFileStub.restore();
-        addStub.restore();
       });
 
       const wrongParams = ['payDoc', 'fileName', 'nature', 'mimeType', 'driveFolderId'];

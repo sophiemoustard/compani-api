@@ -14,7 +14,7 @@ const { getToken, getTokenByCredentials, authCompany } = require('./seed/authent
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -154,9 +154,20 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 describe('TAX CERTIFICATES - POST /', () => {
   let authToken = null;
   describe('CLIENT_ADMIN', () => {
+    let addStub;
+    let addFileStub;
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
+      addStub = sinon.stub(Gdrive, 'add');
+      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
+        id: '1234567890',
+        webViewLink: 'http://test.com/file.pdf',
+      });
+    });
+    afterEach(() => {
+      addStub.restore();
+      addFileStub.restore();
     });
 
     it('should create a new tax certificate', async () => {
@@ -170,19 +181,14 @@ describe('TAX CERTIFICATES - POST /', () => {
         mimeType: 'application/pdf',
       };
 
-      const addStub = sinon.stub(Gdrive, 'add');
-      const addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
-        id: '1234567890',
-        webViewLink: 'http://test.com/file.pdf',
-      });
-
       const form = generateFormData(docPayload);
       const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
+      const payload = await GetStream(form);
 
       const response = await app.inject({
         method: 'POST',
         url: '/taxcertificates',
-        payload: await GetStream(form),
+        payload,
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
@@ -206,8 +212,6 @@ describe('TAX CERTIFICATES - POST /', () => {
 
         }
       );
-      addFileStub.restore();
-      addStub.restore();
     });
 
     const wrongParams = ['taxCertificate', 'fileName', 'mimeType', 'driveFolderId', 'year', 'date'];

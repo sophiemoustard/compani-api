@@ -12,8 +12,8 @@ const {
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const ContractsHelper = require('../helpers/contracts');
+const { populateSubscriptionsServices } = require('./subscriptions');
+const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('./translate');
 
@@ -33,7 +33,7 @@ exports.checkContracts = async (event, user) => {
       .lean();
     customer = populateSubscriptionsServices(customer);
 
-    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
+    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription);
     if (!eventSubscription) return false;
 
     return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
@@ -77,8 +77,8 @@ exports.isEditionAllowed = async (event, credentials) => {
 };
 
 exports.isCreationAllowed = async (event, credentials) => {
-  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION)
-    && await exports.hasConflicts(event);
+  const isConflict = event.auxiliary && !(isRepetition(event) && event.type === INTERVENTION) &&
+    await exports.hasConflicts(event);
   if (isConflict) throw Boom.conflict(translate[language].eventsConflict);
 
   return exports.isEditionAllowed(event, credentials);

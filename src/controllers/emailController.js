@@ -18,4 +18,3 @@ const sendWelcome = async (req) => {
 module.exports = {
   sendWelcome,
 };
-

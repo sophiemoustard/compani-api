@@ -357,7 +357,6 @@ const deleteFunding = async (req) => {
   }
 };
 
-
 module.exports = {
   list,
   listWithFirstIntervention,

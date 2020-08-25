@@ -252,16 +252,30 @@ module.exports = {
   INTER_B2B: 'inter_b2b',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
+  // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
+  // ACTIVITY
+  LESSON: 'lesson',
+  QUIZ: 'quiz',
+  SHARING_EXPERIENCE: 'sharing_experience',
+  VIDEO: 'video',
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
   TITLE_TEXT: 'title_text',
   TEXT_MEDIA: 'text_media',
   FLASHCARD: 'flashcard',
+  FILL_THE_GAPS: 'fill_the_gaps',
+  MULTIPLE_CHOICE_QUESTION: 'multiple_choice_question',
+  SINGLE_CHOICE_QUESTION: 'single_choice_question',
+  ORDER_THE_SEQUENCE: 'order_the_sequence',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
   BILLING: 'billing',
+  // Sms
+  COURSE_SMS: 'Formation',
+  HR_SMS: 'RH',
+  get SMS_TAGS() { return [this.COURSE_SMS, this.HR_SMS]; },
 };

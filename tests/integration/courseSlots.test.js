@@ -2,12 +2,11 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const CourseSlot = require('../../src/models/CourseSlot');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -71,6 +70,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         startDate: courseSlotsList[0].startDate,
         endDate: courseSlotsList[0].endDate,
         courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -93,6 +93,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         endDate: '2020-03-04T17:00:00',
         courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -115,6 +116,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -183,6 +185,8 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     const missingParams = [
       { path: 'courseId' },
+      { path: 'step' },
+      { path: 'endDate' },
       { path: 'address.fullAddress' },
     ];
     missingParams.forEach((test) => {
@@ -190,6 +194,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
+          step: stepsList[0]._id,
           courseId: coursesList[0]._id,
           address: {
             street: '37 rue de Ponthieu',
@@ -212,21 +217,12 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
     it('should return 200 as user is course trainer', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
         courseId: coursesList[1]._id,
+        step: stepsList[0]._id,
       };
       token = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
@@ -244,6 +240,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
         courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
       };
       token = await getToken('client_admin');
       const response = await app.inject({
@@ -261,6 +258,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
         courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
       };
       token = await getToken('coach');
       const response = await app.inject({
@@ -273,12 +271,22 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
           courseId: coursesList[1]._id,
+          step: stepsList[0]._id,
         };
         token = await getToken(role.name);
         const response = await app.inject({
@@ -319,28 +327,11 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should remove step if receive null in payload', async () => {
-      const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
-        step: null,
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const slot = await CourseSlot.findById(courseSlotsList[0]._id).lean();
-      expect(slot.step).toBeUndefined();
-    });
-
     it('should return 404 if slot not found', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
+        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -401,6 +392,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     const missingParams = [
       { path: 'startDate' },
+      { path: 'step' },
       { path: 'endDate' },
     ];
     missingParams.forEach((test) => {
@@ -408,6 +400,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
+          step: stepsList[0]._id,
         };
         const response = await app.inject({
           method: 'PUT',
@@ -434,7 +427,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     it('should a 200 as user is course trainer', async () => {
       token = await getTokenByCredentials(trainer.local);
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[2]._id}`,
@@ -447,7 +440,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     it('should return 200 as user is client admin from course company', async () => {
       token = await getToken('client_admin');
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
@@ -460,7 +453,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
+        const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',

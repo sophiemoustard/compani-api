@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, list, remove } = require('../controllers/payDocumentController');
@@ -10,6 +10,7 @@ const {
   authorizePayDocumentDeletion,
   authorizeGetPayDocuments,
 } = require('./preHandlers/payDocuments');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-pay-documents',
@@ -19,12 +20,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['paydocuments:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             date: Joi.date(),

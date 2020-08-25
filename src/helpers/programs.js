@@ -1,20 +1,19 @@
 const flat = require('flat');
-const Program = require('../models/Program');
-const CloudinaryHelper = require('../helpers/cloudinary');
 const moment = require('moment');
+const Program = require('../models/Program');
+const CloudinaryHelper = require('./cloudinary');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
 exports.list = async query => Program.find(query)
-  .populate({ path: 'steps', select: 'type' })
+  .populate({ path: 'subPrograms', select: 'name' })
   .lean();
 
 exports.getProgram = async programId => Program.findOne({ _id: programId })
-  .populate({ path: 'steps', populate: 'activities' })
+  .populate({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
   .lean();
 
-exports.updateProgram = async (programId, payload) =>
-  Program.findOneAndUpdate({ _id: programId }, { $set: payload }, { new: true }).lean();
+exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 
 exports.uploadImage = async (programId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({

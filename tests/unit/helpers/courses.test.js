@@ -5,20 +5,21 @@ const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
+const moment = require('moment');
 const Course = require('../../../src/models/Course');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
-const TwilioHelper = require('../../../src/helpers/twilio');
+const SmsHelper = require('../../../src/helpers/sms');
 const UsersHelper = require('../../../src/helpers/users');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
-const moment = require('moment');
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -31,11 +32,11 @@ describe('createCourse', () => {
   });
 
   it('should create an intra course', async () => {
-    const newCourse = { misc: 'name', company: new ObjectID(), program: new ObjectID(), type: 'intra' };
+    const newCourse = { misc: 'name', company: new ObjectID(), subProgram: new ObjectID(), type: 'intra' };
 
     const result = await CourseHelper.createCourse(newCourse);
     expect(result.misc).toEqual(newCourse.misc);
-    expect(result.program).toEqual(newCourse.program);
+    expect(result.subProgram).toEqual(newCourse.subProgram);
     expect(result.company).toEqual(newCourse.company);
   });
 });
@@ -78,7 +79,7 @@ describe('list', () => {
     CourseMock.expects('find')
       .withExactArgs(query, { misc: 1 })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name' })
+      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate' })
       .chain('populate')
@@ -148,9 +149,15 @@ describe('listUserCourses', () => {
     CourseMock.expects('find')
       .withExactArgs({ trainees: '1234567890abcdef12345678' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name image steps' })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: { path: 'program', select: 'name image' },
+      })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+      .chain('select')
+      .withExactArgs('_id')
       .chain('lean')
       .returns(coursesList);
 
@@ -184,9 +191,9 @@ describe('getCourse', () => {
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
       .withExactArgs({
-        path: 'program',
-        select: 'name learningGoals steps',
-        populate: { path: 'steps', select: 'name type' },
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -220,9 +227,9 @@ describe('getCourse', () => {
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
       .withExactArgs({
-        path: 'program',
-        select: 'name learningGoals steps',
-        populate: { path: 'steps', select: 'name type' },
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -264,7 +271,11 @@ describe('getCoursePublicInfos', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name learningGoals' })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name learningGoals' },
+      })
       .chain('populate')
       .withExactArgs('slots')
       .chain('populate')
@@ -295,9 +306,16 @@ describe('getTraineeCourse', () => {
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program steps',
+        populate: [
+          { path: 'program', select: 'name image' },
+          { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type' } },
+        ],
+      })
       .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate step' })
+      .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
       .chain('select')
       .withExactArgs('_id')
       .chain('lean')
@@ -338,7 +356,7 @@ describe('sendSMS', () => {
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
     { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
   ];
-  const payload = { body: 'Ceci est un test.' };
+  const payload = { content: 'Ceci est un test.' };
   const credentials = { _id: new ObjectID() };
 
   let CourseMock;
@@ -349,7 +367,7 @@ describe('sendSMS', () => {
     CourseMock = sinon.mock(Course);
     CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
     UserMock = sinon.mock(User);
-    sendStub = sinon.stub(TwilioHelper, 'send');
+    sendStub = sinon.stub(SmsHelper, 'send');
   });
   afterEach(() => {
     CourseMock.restore();
@@ -372,7 +390,7 @@ describe('sendSMS', () => {
       .withExactArgs({
         type: payload.type,
         course: courseId,
-        message: payload.body,
+        message: payload.content,
         sender: credentials._id,
         missingPhones: ['poiuytrewq'],
       })
@@ -382,11 +400,21 @@ describe('sendSMS', () => {
 
     sinon.assert.calledWith(
       sendStub.getCall(0),
-      { to: `+33${trainees[0].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      {
+        recipient: `+33${trainees[0].contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
     sinon.assert.calledWithExactly(
       sendStub.getCall(1),
-      { to: `+33${trainees[1].contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      {
+        recipient: `+33${trainees[1].contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
     CourseMock.verify();
     CourseSmsHistoryMock.verify();
@@ -623,7 +651,7 @@ describe('formatCourseForPdf', () => {
         { identity: { lastname: 'trainee 1' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
         { identity: { lastname: 'trainee 2' }, company: { name: 'alenvi', tradeName: 'Pfiou' } },
       ],
-      program: { name: 'programme de formation' },
+      subProgram: { program: { name: 'programme de formation' } },
     };
     const sortedSlots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
@@ -703,7 +731,7 @@ describe('generateAttendanceSheets', () => {
       .chain('populate')
       .withExactArgs('trainer')
       .chain('populate')
-      .withExactArgs('program')
+      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .chain('lean')
       .once()
       .returns(course);
@@ -737,7 +765,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -745,7 +773,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      learningGoals: course.program.learningGoals,
+      learningGoals: course.subProgram.program.learningGoals,
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -814,6 +842,12 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs('slots')
       .chain('populate')
       .withExactArgs('trainees')
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name learningGoals' },
+      })
       .chain('lean')
       .once()
       .returns(course);

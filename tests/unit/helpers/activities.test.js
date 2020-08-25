@@ -23,7 +23,7 @@ describe('getActivity', () => {
     ActivityMock.expects('findOne')
       .withExactArgs({ _id: activity._id })
       .chain('populate')
-      .withExactArgs({ path: 'cards', select: 'template title text media backText' })
+      .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
       .chain('lean')
       .once()
       .returns(activity);
@@ -44,7 +44,7 @@ describe('updateActivity', () => {
     ActivityMock.restore();
   });
 
-  it("should update an activity's name", async () => {
+  it('should update an activity\'s name', async () => {
     const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
     const payload = { name: 'faire dodo' };
 
@@ -102,4 +102,3 @@ describe('addActivity', () => {
     }
   });
 });
-

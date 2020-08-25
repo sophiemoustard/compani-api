@@ -10,7 +10,7 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     return exports.createHistory({ _id: auxiliaryId, sector }, companyId, moment().startOf('day').toDate());
   }
 
-  if (lastSectorHistory.sector.toHexString() === sector) return;
+  if (lastSectorHistory.sector.toHexString() === sector) return null;
 
   const contracts = await Contract
     .find({
@@ -100,8 +100,7 @@ exports.createHistory = async (user, companyId, startDate = null) => {
   return (await SectorHistory.create(payload)).toObject();
 };
 
-exports.updateEndDate = async (auxiliaryId, endDate) =>
-  SectorHistory.updateOne(
-    { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-    { $set: { endDate: moment(endDate).endOf('day').toDate() } }
-  );
+exports.updateEndDate = async (auxiliaryId, endDate) => SectorHistory.updateOne(
+  { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+  { $set: { endDate: moment(endDate).endOf('day').toDate() } }
+);

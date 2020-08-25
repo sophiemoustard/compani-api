@@ -1,4 +1,3 @@
-
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
@@ -25,9 +24,8 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && userId === courseTrainerId;
-  const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH)
-    && userCompanyId
-    && (userCompanyId === courseCompanyId || userCompanyId === traineeCompanyId);
+  const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH) &&
+    userCompanyId && (userCompanyId === courseCompanyId || userCompanyId === traineeCompanyId);
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };

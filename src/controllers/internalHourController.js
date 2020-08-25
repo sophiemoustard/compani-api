@@ -32,14 +32,9 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedInternalHour = await InternalHour.findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true });
+    await InternalHour.updateOne({ _id: req.params._id }, { $set: req.payload });
 
-    if (!updatedInternalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
-
-    return {
-      message: translate[language].companyInternalHourUpdated,
-      data: { internalHour: updatedInternalHour },
-    };
+    return { message: translate[language].companyInternalHourUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

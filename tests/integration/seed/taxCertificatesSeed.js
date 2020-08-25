@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const { authCompany, otherCompany, populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');

@@ -2,16 +2,16 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const GetStream = require('get-stream');
 const AdministrativeDocument = require('../../src/models/AdministrativeDocument');
 const app = require('../../server');
 const Drive = require('../../src/models/Google/Drive');
 const { populateDB, administrativeDocumentsList } = require('./seed/administrativeDocumentSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
-const GetStream = require('get-stream');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

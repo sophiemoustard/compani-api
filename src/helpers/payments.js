@@ -11,7 +11,7 @@ const {
   PAYMENT,
   DIRECT_DEBIT,
 } = require('./constants');
-const XmlHelper = require('../helpers/xml');
+const XmlHelper = require('./xml');
 const UtilsHelper = require('./utils');
 
 exports.getPayments = async (payload, credentials) => {
@@ -39,6 +39,8 @@ exports.formatPaymentNumber = (companyPrefixNumber, prefix, seq, paymentNature) 
       return `REMB-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
     case PAYMENT:
       return `REG-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+    default:
+      return null;
   }
 };
 

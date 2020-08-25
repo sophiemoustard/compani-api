@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const expect = require('expect');
@@ -673,13 +674,13 @@ describe('formatSurchargedDetailsForExport', () => {
     expect(result).toBe('');
   });
 
-  it("should returns a plan's details if one is provided", () => {
+  it('should returns a plan\'s details if one is provided', () => {
     const result = ExportHelper.formatSurchargedDetailsForExport(onePlan, 'plan');
     sinon.assert.callCount(formatFloatForExportStub, 3);
     expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h');
   });
 
-  it("should returns a plan's detailswithDiff", () => {
+  it('should returns a plan\'s detailswithDiff', () => {
     const result = ExportHelper.formatSurchargedDetailsForExport(onePlanWithDiff, 'plan');
     sinon.assert.callCount(formatFloatForExportStub, 7);
     expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan (M-1)\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h');
@@ -698,7 +699,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Prénom',
     'Nom',
     'Equipe',
-    "Date d'embauche",
+    'Date d\'embauche',
     'Début',
     'Date de notif',
     'Motif',

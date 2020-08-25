@@ -12,8 +12,8 @@ const populateAuthentication = async () => {
 
   await new Company(authCompany).save();
   await Role.insertMany(rolesList);
-  for (let i = 0; i < userList.length; i++) {
-    await (new User(userList[i])).save();
+  for (const user of userList) {
+    await (new User(user)).save();
   }
 };
 

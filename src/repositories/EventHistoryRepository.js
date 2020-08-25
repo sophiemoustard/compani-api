@@ -1,10 +1,10 @@
-const get = require('lodash/get');
 const EventHistory = require('../models/EventHistory');
 
 exports.paginate = async (query, createdAt = null) => {
-  if (createdAt) query.createdAt = { $lt: createdAt };
+  const params = { ...query };
+  if (createdAt) params.createdAt = { $lt: createdAt };
   return EventHistory
-    .find(query)
+    .find(params)
     .populate({ path: 'auxiliaries', select: '_id identity' })
     .populate({ path: 'createdBy', select: '_id identity picture' })
     .populate({ path: 'event.customer', select: '_id identity' })

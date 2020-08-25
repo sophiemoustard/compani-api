@@ -39,7 +39,7 @@ describe('list', () => {
     ProgramMock.expects('find')
       .withExactArgs({ type: 'toto' })
       .chain('populate')
-      .withExactArgs({ path: 'steps', select: 'type' })
+      .withExactArgs({ path: 'subPrograms', select: 'name' })
       .chain('lean')
       .once()
       .returns(programsList);
@@ -64,7 +64,7 @@ describe('getProgram', () => {
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
       .chain('populate')
-      .withExactArgs({ path: 'steps', populate: 'activities' })
+      .withExactArgs({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
       .chain('lean')
       .once()
       .returns(program);
@@ -87,10 +87,8 @@ describe('update', () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: payload })
       .returns({ _id: programId, name: 'toto' });
 
     const result = await ProgramHelper.updateProgram(programId, payload);
@@ -101,10 +99,8 @@ describe('update', () => {
     const programId = new ObjectID();
     const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
 
-    ProgramMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: programId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    ProgramMock.expects('updateOne')
+      .withExactArgs({ _id: programId }, { $set: payload })
       .returns({ _id: programId, ...payload });
 
     const result = await ProgramHelper.updateProgram(programId, payload);

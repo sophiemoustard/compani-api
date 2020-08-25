@@ -1,4 +1,4 @@
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
@@ -232,13 +232,13 @@ const sectorHistories = usersSeedList
 const followingCourses = [
   {
     _id: new ObjectID(),
-    program: new ObjectID(),
+    subProgram: new ObjectID(),
     type: 'inter_b2b',
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
   },
   {
     _id: new ObjectID(),
-    program: new ObjectID(),
+    subProgram: new ObjectID(),
     type: 'intra',
     company: new ObjectID(),
     trainees: [usersSeedList[0]._id],

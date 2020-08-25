@@ -11,7 +11,7 @@ const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -19,7 +19,9 @@ describe('NODE ENV', () => {
 describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const cardId = cardsList[0]._id;
+  const transitionId = cardsList[0]._id;
+  const fillTheGapId = cardsList[5]._id;
+  const orderTheSequenceId = cardsList[8]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -46,6 +48,24 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         id: cardsList[3]._id,
       },
       { template: 'flashcard', payload: { backText: 'verso', text: 'this is a text' }, id: cardsList[4]._id },
+      {
+        template: 'fill_the_gaps',
+        payload: {
+          text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
+          answers: [{ label: 'le papa' }, { label: 'la maman' }, { label: 'le papi' }],
+          explanation: 'c\'est evidement la mamie qui remplit le texte',
+        },
+        id: fillTheGapId,
+      },
+      {
+        template: 'order_the_sequence',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          orderedAnswers: ['rien', 'des trucs', 'ou pas'],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: orderTheSequenceId,
+      },
     ];
 
     cards.forEach((card) => {
@@ -67,15 +87,65 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    it("should return a 400 if title is equal to '' ", async () => {
+    it('should return a 400 if title is equal to \'\' on transition card', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${cardId.toHexString()}`,
+        url: `/cards/${transitionId.toHexString()}`,
         payload: { name: '' },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    describe('Fill the gaps', () => {
+      const requests = [
+        { msg: 'valid text', payload: { text: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
+        { msg: 'no tagging', payload: { text: 'du text sans balise' } },
+        { msg: 'single open tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
+        { msg: 'single closing tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
+        { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
+        { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
+        { msg: 'wrong caractere in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
+        { msg: 'valid answers', payload: { answers: [{ label: 'la maman' }, { label: 'le tonton' }] }, passing: true },
+        { msg: 'remove one of the 2 existing answers', payload: { answers: [{ label: 'la maman' }] } },
+        { msg: 'long answer', payload: { answers: [{ label: 'la maman' }, { label: 'more then 15 caracteres' }] } },
+        { msg: 'wrong caractere in answer', payload: { answers: [{ label: 'la maman' }, { label: 'c\'est tout.' }] } },
+        { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.passing ? '200' : '400'} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${fillTheGapId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.passing ? 200 : 400);
+        });
+      });
+    });
+
+    describe('Order the sequence', () => {
+      const requests = [
+        { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
+        { msg: 'remove one of the 2 existing ordered answers', payload: { answers: ['en fait si'] } },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.passing ? '200' : '400'} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${orderTheSequenceId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.passing ? 200 : 400);
+        });
+      });
     });
   });
 
@@ -96,7 +166,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/cards/${cardId.toHexString()}`,
+          url: `/cards/${transitionId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

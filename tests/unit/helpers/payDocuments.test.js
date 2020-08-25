@@ -7,7 +7,6 @@ const PayDocument = require('../../../src/models/PayDocument');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 
-
 describe('create', () => {
   let addFileStub;
   let saveStub;

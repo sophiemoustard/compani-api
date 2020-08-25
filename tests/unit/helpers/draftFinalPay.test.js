@@ -47,7 +47,12 @@ describe('getContractMonthInfo', () => {
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );
-    sinon.assert.calledWithExactly(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
+    sinon.assert.calledWithExactly(
+      getContractInfo,
+      [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }],
+      query,
+      4
+    );
   });
 });
 
@@ -64,7 +69,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
   });
 
   it('should return draft pay for one auxiliary', async () => {
-    const auxiliary = {
+    const aux = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
@@ -101,7 +106,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       month: '05-2019',
     });
 
-    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
+    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(aux, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
@@ -166,7 +171,11 @@ describe('getDraftPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
+        endDate: {
+          $exists: true,
+          $lte: moment(query.endDate).endOf('d').toDate(),
+          $gte: moment(query.startDate).startOf('d').toDate(),
+        },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
       'finalpays',
@@ -219,7 +228,11 @@ describe('getDraftPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
+        endDate: {
+          $exists: true,
+          $lte: moment(query.endDate).endOf('d').toDate(),
+          $gte: moment(query.startDate).startOf('d').toDate(),
+        },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
       'finalpays',

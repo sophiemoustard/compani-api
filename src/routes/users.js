@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -36,6 +36,7 @@ const {
   authorizeLearnersGet,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { formDataPayload } = require('./validations/utils');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -417,12 +418,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             date: Joi.date(),
@@ -470,12 +466,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
       },
     });
   },

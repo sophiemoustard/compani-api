@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -39,7 +39,7 @@ const {
   authorizeCustomerGetBySector,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { addressValidation, objectIdOrArray, phoneNumberValidation, formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -353,12 +353,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           params: Joi.object({
             _id: Joi.objectId().required(),

@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const { seedDb } = require('../controllers/endToEndController');
 const { authorizeDatabaseSeed } = require('./preHandlers/endToEnd');
 const { PLANNING, AUTHENTICATION, BILLING } = require('../helpers/constants');

@@ -1,29 +1,35 @@
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
+const Activity = require('../../../src/models/Activity');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
+const {
+  AUXILIARY,
+  HELPER,
+  AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  COACH,
+  VIDEO,
+} = require('../../../src/helpers/constants.js');
 
-const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id);
-
-const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === 'helper')._id);
-
-const auxiliaryWithoutCompany = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'auxiliary_without_company')._id);
-
-const clientAdmin = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'client_admin')._id);
-
-const trainerOrganisationManager = userList.find(user =>
-  user.role.vendor === rolesList.find(role => role.name === 'training_organisation_manager')._id);
-
-const coachFromAuthCompany = userList.find(user =>
-  user.role.client === rolesList.find(role => role.name === 'coach')._id);
+const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
+const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === HELPER)._id);
+const auxiliaryWithoutCompany = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id);
+const clientAdmin = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === CLIENT_ADMIN)._id);
+const trainerOrganisationManager = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
+const coachFromAuthCompany = userList
+  .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -47,17 +53,38 @@ const traineeWithoutCompany = {
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const step = { _id: new ObjectID(), name: 'etape', type: 'on_site' };
+const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO };
+
+const step = {
+  _id: new ObjectID(),
+  name: 'etape',
+  type: 'on_site',
+  activities: [{ _id: activity._id, name: activity.name, type: activity.type }],
+};
+
+const subProgramsList = [
+  {
+    _id: new ObjectID(),
+    name: 'sous-programme',
+    steps: [step._id],
+  },
+];
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program', learningGoals: 'on est là', image: { link: 'belle/url', publicId: '12345' }, steps: [step._id] },
+  {
+    _id: new ObjectID(),
+    name: 'program',
+    learningGoals: 'on est là',
+    image: { link: 'belle/url', publicId: '12345' },
+    subPrograms: [subProgramsList[0]._id],
+  },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
 
 const coursesList = [
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
     trainer: courseTrainer._id,
@@ -66,7 +93,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -75,7 +102,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'second session',
     trainer: courseTrainer._id,
@@ -84,7 +111,7 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'second team formation',
     trainer: new ObjectID(),
@@ -93,14 +120,14 @@ const coursesList = [
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
-    program: programsList[0]._id,
+    subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
@@ -116,35 +143,67 @@ const courseSmsHistory = {
 };
 
 const slots = [
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[0], step: step._id },
-  { startDate: moment('2020-03-20T14:00:00').toDate(), endDate: moment('2020-03-20T18:00:00').toDate(), courseId: coursesList[0], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[1], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[2], step: step._id },
-  { startDate: moment('2020-03-20T09:00:00').toDate(), endDate: moment('2020-03-20T11:00:00').toDate(), courseId: coursesList[3], step: step._id },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[0],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T14:00:00').toDate(),
+    endDate: moment('2020-03-20T18:00:00').toDate(),
+    courseId: coursesList[0],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[1],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[2],
+    step: step._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[3],
+    step: step._id,
+  },
   { courseId: coursesList[3] },
 ];
 
 const populateDB = async () => {
   await Course.deleteMany({});
+  await SubProgram.deleteMany({});
   await Program.deleteMany({});
   await User.deleteMany({});
   await CourseSlot.deleteMany({});
   await CourseSmsHistory.deleteMany({});
   await Step.deleteMany({});
+  await Activity.deleteMany({});
 
   await populateDBForAuthentication();
 
+  await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
+  await Activity.create(activity);
 };
 
 module.exports = {
   populateDB,
+  activity,
+  step,
   coursesList,
+  subProgramsList,
   programsList,
   auxiliary,
   coachFromAuthCompany,

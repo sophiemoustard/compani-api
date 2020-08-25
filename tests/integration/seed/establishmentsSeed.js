@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const Establishment = require('../../../src/models/Establishment');
 const User = require('../../../src/models/User');
 const {
@@ -8,7 +8,6 @@ const {
   otherCompany,
   rolesList,
 } = require('./authenticationSeed');
-
 
 const establishmentsList = [
   {

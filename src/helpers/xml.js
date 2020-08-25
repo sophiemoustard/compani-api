@@ -42,28 +42,18 @@ const generatePaymentInfo = data => ({
   NbOfTxs: data.txNumber,
   CtrlSum: getFixedNumber(data.sum, 2),
   PmtTpInf: {
-    SvcLvl: {
-      Cd: 'SEPA',
-    },
-    LclInstrm: {
-      Cd: 'CORE',
-    },
+    SvcLvl: { Cd: 'SEPA' },
+    LclInstrm: { Cd: 'CORE' },
     SeqTp: data.sequenceType,
   },
   ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
-  Cdtr: {
-    Nm: data.creditor.name,
-  },
+  Cdtr: { Nm: data.creditor.name },
   CdtrAcct: {
-    Id: {
-      IBAN: removeSpaces(data.creditor.iban),
-    },
+    Id: { IBAN: removeSpaces(data.creditor.iban) },
     Ccy: 'EUR',
   },
   CdtrAgt: {
-    FinInstnId: {
-      BIC: removeSpaces(data.creditor.bic),
-    },
+    FinInstnId: { BIC: removeSpaces(data.creditor.bic) },
   },
   ChrgBr: 'SLEV',
   CdtrSchmeId: {
@@ -71,9 +61,7 @@ const generatePaymentInfo = data => ({
       PrvtId: {
         Othr: {
           Id: removeSpaces(data.creditor.ics),
-          SchmeNm: {
-            Prtry: 'SEPA',
-          },
+          SchmeNm: { Prtry: 'SEPA' },
         },
       },
     },
@@ -114,28 +102,28 @@ const addTransactionInfo = (paymentInfoObj, data) => {
   return paymentInfoObj;
 };
 
-const generateSEPAXml = async (docObj, header, companyDirectDebitsFolderId, ...paymentsInfo) =>
-  new Promise((resolve, reject) => {
-    docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
-    for (const info of paymentsInfo) {
-      if (info) docObj.Document.CstmrDrctDbtInitn.PmtInf.push(info);
-    }
-    const finalDoc = builder.create(docObj, { encoding: 'utf-8' });
-    const outputPath = path.join(os.tmpdir(), `${docObj.Document.CstmrDrctDbtInitn.GrpHdr.MsgId}.xml`);
-    const file = fs.createWriteStream(outputPath);
-    file.write(finalDoc.end({ pretty: true }));
-    file.end();
-    file.on('finish', async () => {
-      await gdriveStorage.addFile({
-        driveFolderId: companyDirectDebitsFolderId,
-        name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
-        type: 'text/xml',
-        body: fs.createReadStream(outputPath),
-      });
-      resolve(outputPath);
+const generateSEPAXml = async (docObj, header, folderId, ...paymentsInfo) => new Promise((resolve, reject) => {
+  const newObj = { ...docObj };
+  newObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
+  for (const info of paymentsInfo) {
+    if (info) newObj.Document.CstmrDrctDbtInitn.PmtInf.push(info);
+  }
+  const finalDoc = builder.create(newObj, { encoding: 'utf-8' });
+  const outputPath = path.join(os.tmpdir(), `${newObj.Document.CstmrDrctDbtInitn.GrpHdr.MsgId}.xml`);
+  const file = fs.createWriteStream(outputPath);
+  file.write(finalDoc.end({ pretty: true }));
+  file.end();
+  file.on('finish', async () => {
+    await gdriveStorage.addFile({
+      driveFolderId: folderId,
+      name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
+      type: 'text/xml',
+      body: fs.createReadStream(outputPath),
     });
-    file.on('error', err => reject(err));
+    resolve(outputPath);
   });
+  file.on('error', err => reject(err));
+});
 
 module.exports = {
   createDocument,
