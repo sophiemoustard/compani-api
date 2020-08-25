@@ -2,7 +2,7 @@ const Boom = require('@hapi/boom');
 const Card = require('../../models/Card');
 const { FILL_THE_GAPS, ORDER_THE_SEQUENCE, SINGLE_CHOICE_QUESTION } = require('../../helpers/constants');
 
-exports.checkFillTheGap = (payload, card) => {
+const checkFillTheGap = (payload, card) => {
   const { text, answers } = payload;
 
   if (text) {
@@ -29,17 +29,18 @@ exports.checkFillTheGap = (payload, card) => {
   return null;
 };
 
-exports.checkSingleChoiceQuestion = (card) => {
-  const { answers } = card;
+const checkSingleChoiceQuestion = (payload, card) => {
+  const { answers } = payload;
 
   if (answers) {
+    if (answers && answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
     if (answers.filter(a => a.correct).length !== 1) return Boom.badRequest();
   }
 
   return null;
 };
 
-exports.checkOrderTheSequence = (payload, card) => {
+const checkOrderTheSequence = (payload, card) => {
   const { orderedAnswers } = payload;
   if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
 
@@ -52,11 +53,11 @@ exports.authorizeCardUpdate = async (req) => {
 
   switch (card.template) {
     case FILL_THE_GAPS:
-      return exports.checkFillTheGap(req.payload, card);
+      return checkFillTheGap(req.payload, card);
     case SINGLE_CHOICE_QUESTION:
-      return exports.checkSingleChoiceQuestion(req.payload);
+      return checkSingleChoiceQuestion(req.payload, card);
     case ORDER_THE_SEQUENCE:
-      return exports.checkOrderTheSequence(req.payload, card);
+      return checkOrderTheSequence(req.payload, card);
     default:
       return null;
   }
