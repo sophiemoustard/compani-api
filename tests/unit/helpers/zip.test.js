@@ -3,8 +3,8 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const JSZip = require('jszip');
-const ZipHelper = require('../../../src/helpers/zip');
 const { PassThrough } = require('stream');
+const ZipHelper = require('../../../src/helpers/zip');
 
 describe('generateZip', () => {
   let file;

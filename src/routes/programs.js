@@ -1,9 +1,16 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, getById, update, addStep, uploadImage } = require('../controllers/programController');
-const { STEP_TYPES } = require('../models/Step');
+const {
+  list,
+  create,
+  getById,
+  update,
+  uploadImage,
+  addSubProgram,
+} = require('../controllers/programController');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -65,15 +72,15 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/step',
+      path: '/{_id}/subprograms',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
+          payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
       },
-      handler: addStep,
+      handler: addSubProgram,
     });
 
     server.route({
@@ -81,12 +88,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadImage,
       options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),

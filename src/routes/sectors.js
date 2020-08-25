@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeSectorUpdate, authorizeSectorDeletion, getSector } = require('./preHandlers/sectors');
 const {
@@ -47,9 +47,6 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:read'] },
-        validate: {
-          query: Joi.object().keys({ name: Joi.string() }),
-        },
       },
       handler: list,
     });

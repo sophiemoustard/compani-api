@@ -3,12 +3,14 @@ const moment = require('../extensions/moment');
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
   if (!percentage || percentage <= 0) return null;
 
-  surchargeStart = moment(eventStart).hour(surchargeStart.substring(0, 2)).minute(surchargeStart.substring(3));
-  surchargeEnd = moment(eventStart).hour(surchargeEnd.substring(0, 2)).minute(surchargeEnd.substring(3));
-  if (surchargeStart.isAfter(surchargeEnd)) surchargeEnd = surchargeEnd.add(1, 'd');
+  const formattedSurchargeStart = moment(eventStart)
+    .hour(surchargeStart.substring(0, 2))
+    .minute(surchargeStart.substring(3));
+  let formattedSurchargeEnd = moment(eventStart).hour(surchargeEnd.substring(0, 2)).minute(surchargeEnd.substring(3));
+  if (formattedSurchargeStart.isAfter(surchargeEnd)) formattedSurchargeEnd = formattedSurchargeEnd.add(1, 'd');
 
   const eventRange = moment.range(eventStart, eventEnd);
-  const surchargeRange = moment.range(surchargeStart, surchargeEnd);
+  const surchargeRange = moment.range(formattedSurchargeStart, formattedSurchargeEnd);
 
   const intersection = eventRange.intersect(surchargeRange);
   if (!intersection) return null;

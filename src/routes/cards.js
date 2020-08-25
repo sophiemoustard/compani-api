@@ -1,8 +1,10 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update, uploadMedia } = require('../controllers/cardController');
+const { formDataPayload } = require('./validations/utils');
+const { authorizeCardUpdate } = require('./preHandlers/cards');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -21,9 +23,14 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
+            answers: Joi.array().items(Joi.object({ label: Joi.string().required() })).min(1).max(6),
+            question: Joi.string(),
+            orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
+            explanation: Joi.string(),
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardUpdate }],
       },
       handler: update,
     });
@@ -33,12 +40,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadMedia,
       options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),

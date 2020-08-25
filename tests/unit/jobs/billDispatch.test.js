@@ -9,7 +9,6 @@ const BillRepository = require('../../../src/repositories/BillRepository');
 const EmailHelper = require('../../../src/helpers/email');
 const billDispatch = require('../../../src/jobs/billDispatch');
 
-
 describe('method', () => {
   let BillMock;
   let CompanyMock;

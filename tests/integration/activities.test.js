@@ -1,13 +1,13 @@
 const expect = require('expect');
-const app = require('../../server');
 const { ObjectID } = require('mongodb');
+const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const { populateDB, activitiesList } = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -99,7 +99,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it("should update activity's name", async () => {
+    it('should update activity\'s name', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
@@ -113,7 +113,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
-    it("should return a 400 if name is equal to '' ", async () => {
+    it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
@@ -166,7 +166,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should create card', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -181,7 +181,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if invalid template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload: { template: 'invalid template' },
         headers: { 'x-access-token': authToken },
       });
@@ -192,7 +192,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if missing template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/card`,
+        url: `/activities/${activityId.toHexString()}/cards`,
         payload: {},
         headers: { 'x-access-token': authToken },
       });
@@ -201,10 +201,10 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     });
 
     it('should return a 400 if activity does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${wrongId}/card`,
+        url: `/activities/${invalidId}/cards`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -230,7 +230,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         const response = await app.inject({
           method: 'POST',
           payload: { template: 'transition' },
-          url: `/activities/${activityId.toHexString()}/card`,
+          url: `/activities/${activityId.toHexString()}/cards`,
           headers: { 'x-access-token': authToken },
         });
 

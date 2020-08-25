@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 const { payValidation } = require('./validations/pay');
 const { draftFinalPayList, createList } = require('../controllers/finalPayController');
 const { authorizeFinalPayCreation } = require('./preHandlers/finalPay');

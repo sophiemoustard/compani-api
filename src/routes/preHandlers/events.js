@@ -64,10 +64,7 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
 
 const checkAuxiliaryPermission = (credentials, event) => {
   const isOwnEvent = event.auxiliary && event.auxiliary === credentials._id;
-  const eventIsUnassignedAndFromSameSector =
-    !event.auxiliary &&
-    event.sector &&
-    event.sector === credentials.sector;
+  const eventIsUnassignedAndFromSameSector = !event.auxiliary && event.sector && event.sector === credentials.sector;
 
   if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
   return null;

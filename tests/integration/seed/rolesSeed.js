@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const Role = require('../../../src/models/Role');
 
-
 const rolesList = [
   {
     _id: new ObjectID(),

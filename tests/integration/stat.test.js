@@ -195,13 +195,13 @@ describe('GET /stats/paid-intervention-stats', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
-      const auxiliaryResult1 = res.result.data.paidInterventionStats.find(stats =>
-        stats._id.toHexString() === userList[0]._id.toHexString());
+      const auxiliaryResult1 = res.result.data.paidInterventionStats
+        .find(stats => stats._id.toHexString() === userList[0]._id.toHexString());
       expect(auxiliaryResult1.customerCount).toEqual(2);
       expect(auxiliaryResult1.duration).toEqual(3.5);
 
-      const auxiliaryResult2 = res.result.data.paidInterventionStats.find(stats =>
-        stats._id.toHexString() === userList[1]._id.toHexString());
+      const auxiliaryResult2 = res.result.data.paidInterventionStats
+        .find(stats => stats._id.toHexString() === userList[1]._id.toHexString());
       expect(auxiliaryResult2.customerCount).toEqual(1);
       expect(auxiliaryResult2.duration).toEqual(1.5);
     });
@@ -324,10 +324,10 @@ describe('GET /stats/customer-duration/sector', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const oldSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-        cad.sector.toHexString() === sectorList[0]._id.toHexString());
-      const newSectorCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-        cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      const oldSectorCustomersAndDuration = res.result.data.customersAndDuration
+        .find(cad => cad.sector.toHexString() === sectorList[0]._id.toHexString());
+      const newSectorCustomersAndDuration = res.result.data.customersAndDuration
+        .find(cad => cad.sector.toHexString() === sectorList[1]._id.toHexString());
 
       expect(oldSectorCustomersAndDuration).toBeDefined();
       expect(oldSectorCustomersAndDuration.customerCount).toEqual(1);
@@ -348,10 +348,10 @@ describe('GET /stats/customer-duration/sector', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-        cad.sector.toHexString() === sectorList[1]._id.toHexString());
-      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration.find(cad =>
-        cad.sector.toHexString() === sectorList[0]._id.toHexString());
+      const oldSectosrCustomersAndDuration = res.result.data.customersAndDuration
+        .find(cad => cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      const newSectosrCustomersAndDuration = res.result.data.customersAndDuration
+        .find(cad => cad.sector.toHexString() === sectorList[0]._id.toHexString());
 
       expect(oldSectosrCustomersAndDuration).toBeDefined();
       expect(oldSectosrCustomersAndDuration.customerCount).toEqual(1);
@@ -459,10 +459,10 @@ describe('GET /stats/internal-billed-hours', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const oldSectosrInternalAndBilledHours = res.result.data.internalAndBilledHours.find(cad =>
-        cad.sector.toHexString() === sectorList[0]._id.toHexString());
-      const newSectosrInternalAndBilledHours = res.result.data.internalAndBilledHours.find(cad =>
-        cad.sector.toHexString() === sectorList[1]._id.toHexString());
+      const oldSectosrInternalAndBilledHours = res.result.data.internalAndBilledHours
+        .find(cad => cad.sector.toHexString() === sectorList[0]._id.toHexString());
+      const newSectosrInternalAndBilledHours = res.result.data.internalAndBilledHours
+        .find(cad => cad.sector.toHexString() === sectorList[1]._id.toHexString());
 
       expect(oldSectosrInternalAndBilledHours).toBeDefined();
       expect(oldSectosrInternalAndBilledHours.interventions).toEqual(4);

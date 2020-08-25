@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
-const uuidv4 = require('uuid/v4');
 const { HOURLY } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');

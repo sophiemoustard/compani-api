@@ -28,7 +28,8 @@ describe('getLastVersion', () => {
   });
 
   it('should throw an error if version is not an array', () => {
-    expect(() => UtilsHelper.getLastVersion({ toto: 'lala' }, 'createdAt')).toThrow(new Error('versions must be an array !'));
+    expect(() => UtilsHelper.getLastVersion({ toto: 'lala' }, 'createdAt'))
+      .toThrow(new Error('versions must be an array !'));
   });
 
   it('should throw an error if the key is not a string', () => {
@@ -63,14 +64,16 @@ describe('mergeLastVersionWithBaseObject', () => {
   it('should throw an error if last version cannot be found', () => {
     const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: moment().toISOString() }] };
     const getLastVersionStub = sinon.stub(UtilsHelper, 'getLastVersion').returns(null);
-    expect(() => UtilsHelper.mergeLastVersionWithBaseObject(baseObj, 'createdAt')).toThrowError('Unable to find last version from base object !');
+    expect(() => UtilsHelper.mergeLastVersionWithBaseObject(baseObj, 'createdAt'))
+      .toThrowError('Unable to find last version from base object !');
     getLastVersionStub.restore();
   });
 });
 
 describe('getMatchingVersion', () => {
   it('should throw an error if version is not an array', () => {
-    expect(() => UtilsHelper.getMatchingVersion(moment().toISOString(), { versions: 'lala' }, 'startDate')).toThrow(new Error('versions must be an array !'));
+    expect(() => UtilsHelper.getMatchingVersion(moment().toISOString(), { versions: 'lala' }, 'startDate'))
+      .toThrow(new Error('versions must be an array !'));
   });
 
   it('should return null if versions is empty', () => {

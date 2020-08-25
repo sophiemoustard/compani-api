@@ -21,6 +21,7 @@ describe('hasConflicts', () => {
       courseId: new ObjectID(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
+      step: new ObjectID(),
     };
     countDocuments.returns(2);
     const result = await CourseSlotsHelper.hasConflicts(slot);
@@ -42,6 +43,7 @@ describe('hasConflicts', () => {
       courseId: new ObjectID(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
+      step: new ObjectID(),
     };
     countDocuments.returns(0);
     const result = await CourseSlotsHelper.hasConflicts(slot);
@@ -76,6 +78,7 @@ describe('createCourseSlot', () => {
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
       courseId: new ObjectID(),
+      step: new ObjectID(),
     };
     hasConflicts.returns(false);
 
@@ -92,6 +95,7 @@ describe('createCourseSlot', () => {
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
       courseId: new ObjectID(),
+      step: new ObjectID(),
     };
     hasConflicts.returns(true);
 
@@ -125,20 +129,6 @@ describe('updateCourseSlot', () => {
     await CourseSlotsHelper.updateCourseSlot(slot, payload);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(updateOne, { _id: slot._id }, { $set: payload });
-  });
-
-  it('should remove step from course slot', async () => {
-    const slot = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00', step: null };
-    hasConflicts.returns(false);
-
-    await CourseSlotsHelper.updateCourseSlot(slot, payload);
-    sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { _id: slot._id },
-      { $set: { startDate: '2020-03-03T22:00:00' }, $unset: { step: '' } }
-    );
   });
 
   it('should throw an error if conflicts', async () => {

@@ -1191,7 +1191,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${trainer._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
-        payload: { identity: { firstname: 'trainerUpdate' }, biography: "It's my life" },
+        payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
       });
 
       expect(res.statusCode).toBe(200);

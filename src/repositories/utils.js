@@ -13,7 +13,7 @@ const populateReferentHistories = [
   {
     $addFields: {
       'customer.referentHistories': {
-        $filter: { input: '$histories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } }
+        $filter: { input: '$histories', as: 'rh', cond: { $not: { $eq: [{}, '$$rh'] } } },
       },
     },
   },

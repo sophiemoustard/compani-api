@@ -8,7 +8,7 @@ const app = require('../../server');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

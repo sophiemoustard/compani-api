@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { payValidation } = require('./validations/pay');
 const {
@@ -11,7 +11,6 @@ const {
 } = require('../controllers/payController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
-
 
 exports.plugin = {
   name: 'routes-pay',

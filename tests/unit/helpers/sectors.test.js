@@ -53,14 +53,11 @@ describe('create', () => {
 describe('list', () => {
   it('should list sectors', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const query = { name: 'Toto' };
     const SectorMock = sinon.mock(Sector);
 
-    SectorMock.expects('find')
-      .withExactArgs({ name: 'Toto', company: credentials.company._id })
-      .chain('lean');
+    SectorMock.expects('find').withExactArgs({ company: credentials.company._id }).chain('lean');
 
-    await SectorsHelper.list(query, credentials);
+    await SectorsHelper.list(credentials);
 
     SectorMock.verify();
   });

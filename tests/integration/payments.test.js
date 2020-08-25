@@ -22,7 +22,7 @@ const { getToken, getTokenByCredentials, authCompany } = require('./seed/authent
 const { language } = translate;
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -188,13 +188,17 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
   describe('Admin with company', () => {
     beforeEach(populateDB);
+    let addStub;
     beforeEach(async () => {
       authToken = await getToken('client_admin');
+      addStub = sinon.stub(Drive, 'add');
+    });
+    afterEach(() => {
+      addStub.restore();
     });
 
     it('should create multiple payments', async () => {
       const payload = [...originalPayload];
-      const addStub = sinon.stub(Drive, 'add');
 
       const response = await app.inject({
         method: 'POST',
@@ -217,7 +221,6 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       });
       expect(newPaymentsCount).toBe(payload.length);
       sinon.assert.called(addStub);
-      addStub.restore();
     });
 
     it('should not create new payment with existing number', async () => {

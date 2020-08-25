@@ -7,10 +7,8 @@ const puppeteer = require('puppeteer');
 
 const ReadFile = util.promisify(fs.readFile);
 
-exports.formatSurchargeHourForPdf = (date) => {
-  date = moment(date);
-  return date.minutes() > 0 ? date.format('HH[h]mm') : date.format('HH[h]');
-};
+exports.formatSurchargeHourForPdf = date =>
+  (moment(date).minutes() > 0 ? moment(date).format('HH[h]mm') : moment(date).format('HH[h]'));
 
 exports.formatEventSurchargesForPdf = (eventSurcharges) => {
   const formattedSurcharges = eventSurcharges.map((surcharge) => {
@@ -27,9 +25,10 @@ exports.formatEventSurchargesForPdf = (eventSurcharges) => {
 exports.formatTable = (items, options) => {
   let out = '';
   if (items) {
-    for (let i = 0, l = items.length; i < l; i++) {
-      out += options.fn(items[i]);
-    }
+    out = items.reduce(
+      (acc, item) => `${acc}${options.fn(item)}`,
+      ''
+    );
   }
 
   return out;

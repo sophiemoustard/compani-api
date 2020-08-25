@@ -32,4 +32,3 @@ exports.authorizeGetPayDocuments = async (req) => {
 
   return null;
 };
-

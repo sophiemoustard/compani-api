@@ -6,7 +6,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-exports.formatPublicId = publicId => publicId.replace(/[<>?&#\\%]/g, '').replace(/^[\/\s]/, '').replace(/[\/\s]$/, '');
+exports.formatPublicId = publicId => publicId.replace(/[<>?&#\\%]/g, '').replace(/^[/\s]/, '').replace(/[/\s]$/, '');
 
 exports.addImage = async params => new Promise((resolve, reject) => {
   const options = {
@@ -25,6 +25,7 @@ exports.addImage = async params => new Promise((resolve, reject) => {
 exports.deleteImage = async params => new Promise((resolve, reject) => {
   cloudinary.v2.uploader.destroy(params.publicId, (err, res) => {
     if (err) {
+      // eslint-disable-next-line no-param-reassign
       err.cloudinary = true;
       reject(err);
     } else resolve(res);

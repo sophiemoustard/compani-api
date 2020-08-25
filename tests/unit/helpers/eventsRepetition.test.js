@@ -695,7 +695,6 @@ describe('formatEventBasedOnRepetition', () => {
 
     const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, '2020-03-11T00:00:00');
 
-
     expect(event.toObject()).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId', 'auxiliary', 'startDate', 'endDate']),
       sector: sectorId,

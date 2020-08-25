@@ -6,10 +6,12 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 
 const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
 const COMPANY_TYPES = [COMPANY, ASSOCIATION];
+const TRADE_NAME_REGEX = /^[0-9a-zA-Z]{0,11}$/;
+const APE_CODE_REGEX = /^\d{3,4}[A-Z]$/;
 
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },
-  tradeName: { type: String, maxLength: 11 },
+  tradeName: { type: String, maxLength: 11, validate: TRADE_NAME_REGEX },
   prefixNumber: { type: Number, required: true, unique: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   subscriptions: { erp: { type: Boolean, default: false } },
@@ -20,7 +22,7 @@ const CompanySchema = mongoose.Schema({
   bic: { type: String },
   billingAssistance: { type: String, lowercase: true, trim: true },
   logo: { type: String },
-  apeCode: { type: String, validate: /^\d{3,4}[A-Z]$/ },
+  apeCode: { type: String, validate: APE_CODE_REGEX },
   legalRepresentative: {
     lastname: { type: String },
     firstname: { type: String },
@@ -58,3 +60,5 @@ const CompanySchema = mongoose.Schema({
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;
 module.exports.COMPANY_TYPES = COMPANY_TYPES;
+module.exports.TRADE_NAME_REGEX = TRADE_NAME_REGEX;
+module.exports.APE_CODE_REGEX = APE_CODE_REGEX;

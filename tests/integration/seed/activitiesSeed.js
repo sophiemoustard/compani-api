@@ -22,10 +22,11 @@ const activitiesList = [
   {
     _id: new ObjectID(),
     name: 'manger',
+    type: 'quiz',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id, cardsList[3]._id],
   },
-  { _id: new ObjectID(), name: 'bouger' },
-  { _id: new ObjectID(), name: 'fumer' },
+  { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
+  { _id: new ObjectID(), name: 'fumer', type: 'video' },
 ];
 
 const stepsList = [
@@ -37,7 +38,6 @@ const stepsList = [
   },
   { _id: new ObjectID(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
 ];
-
 
 const populateDB = async () => {
   await Step.deleteMany({});

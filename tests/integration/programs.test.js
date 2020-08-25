@@ -12,7 +12,7 @@ const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -133,12 +133,20 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        steps: [
+        steps: expect.arrayContaining([expect.any(ObjectID)]),
+        subPrograms: [
           {
-            name: 'c\'est une étape',
-            activities: [{ name: 'c\'est une activité' }, { name: 'toujours une activité' }],
+            name: 'c\'est un sous-programme',
+            steps: [
+              {
+                type: 'on_site',
+                name: 'encore une étape',
+                activities: [
+                  { name: 'c\'est une activité', type: 'sharing_experience' },
+                ],
+              },
+            ],
           },
-          { name: 'toujours une étape' },
         ],
       });
     });
@@ -242,22 +250,22 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
+describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new step', type: 'e_learning' };
+  const payload = { name: 'new subProgram' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should create step', async () => {
+    it('should create subProgram', async () => {
       const programId = programsList[0]._id;
-      const stepsLengthBefore = programsList[0].steps.length;
+      const subProgramLengthBefore = programsList[0].subPrograms.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/step`,
+        url: `/programs/${programId.toHexString()}/subprograms`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -266,29 +274,26 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
-      expect(programUpdated.steps.length).toEqual(stepsLengthBefore + 1);
+      expect(programUpdated.subPrograms.length).toEqual(subProgramLengthBefore + 1);
     });
 
-    const missingParams = ['name', 'type'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 if missing ${param}`, async () => {
-        const programId = programsList[0]._id;
-        const response = await app.inject({
-          method: 'POST',
-          url: `/programs/${programId.toHexString()}/step`,
-          payload: omit(payload, param),
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(400);
+    it('should return a 400 if missing name', async () => {
+      const programId = programsList[0]._id;
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/subprograms`,
+        payload: omit(payload, 'name'),
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 400 if program does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${wrongId}/step`,
+        url: `/programs/${invalidId}/subprograms`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -315,7 +320,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/step', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/programs/${programId.toHexString()}/step`,
+          url: `/programs/${programId.toHexString()}/subprograms`,
           headers: { 'x-access-token': authToken },
         });
 

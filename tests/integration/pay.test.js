@@ -12,7 +12,7 @@ const Pay = require('../../src/models/Pay');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -337,10 +337,10 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.hoursToWork).toBeDefined();
-      const oldSectorResult = response.result.data.hoursToWork.find(res =>
-        res.sector.toHexString() === sectors[0]._id.toHexString());
-      const newSectorResult = response.result.data.hoursToWork.find(res =>
-        res.sector.toHexString() === sectors[1]._id.toHexString());
+      const oldSectorResult = response.result.data.hoursToWork
+        .find(res => res.sector.toHexString() === sectors[0]._id.toHexString());
+      const newSectorResult = response.result.data.hoursToWork
+        .find(res => res.sector.toHexString() === sectors[1]._id.toHexString());
 
       expect(oldSectorResult.hoursToWork).toEqual(13.5);
       expect(newSectorResult.hoursToWork).toEqual(24);

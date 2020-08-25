@@ -1,4 +1,5 @@
 const expect = require('expect');
+const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
@@ -6,7 +7,7 @@ const { populateDB, stepsList } = require('./seed/stepsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -36,7 +37,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
-    it("should return a 400 if name is equal to '' ", async () => {
+    it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
@@ -78,7 +79,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new activity' };
+  const payload = { name: 'new activity', type: 'video' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -89,7 +90,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepId.toHexString()}/activity`,
+        url: `/steps/${stepId.toHexString()}/activities`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -101,12 +102,27 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(stepUpdated.activities.length).toEqual(1);
     });
 
-    it('should return a 400 if missing name', async () => {
+    ['name', 'type'].forEach((missingParam) => {
+      it('should return a 400 if missing requiered param', async () => {
+        const stepId = stepsList[0]._id;
+        const response = await app.inject({
+          method: 'POST',
+          url: `/steps/${stepId.toHexString()}/activities`,
+          payload: omit(payload, missingParam),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return a 400 if invalid type', async () => {
+      const wrongPayload = { ...payload, type: 'something_wrong' };
       const stepId = stepsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepId.toHexString()}/activity`,
-        payload: { },
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload: wrongPayload,
         headers: { 'x-access-token': authToken },
       });
 
@@ -114,10 +130,10 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     });
 
     it('should return a 400 if step does not exist', async () => {
-      const wrongId = new ObjectID();
+      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${wrongId}/activity`,
+        url: `/steps/${invalidId}/activities`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -143,8 +159,8 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const stepId = stepsList[0]._id;
         const response = await app.inject({
           method: 'POST',
-          payload: { name: 'new name' },
-          url: `/steps/${stepId.toHexString()}/activity`,
+          payload,
+          url: `/steps/${stepId.toHexString()}/activities`,
           headers: { 'x-access-token': authToken },
         });
 

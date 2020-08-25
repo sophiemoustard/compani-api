@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-exports.generateZip = (zipName, fileList = []) => new Promise(async (resolve, reject) => {
+exports.generateZip = (zipName, fileList = []) => new Promise((resolve, reject) => {
   const zip = new JSZip();
   for (const file of fileList) {
     zip.file(file.name, file.file);

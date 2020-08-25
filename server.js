@@ -43,9 +43,8 @@ const init = async () => {
 module.exports = server;
 
 process.on('unhandledRejection', (err) => {
-  console.log(err);
+  console.error(err);
   process.exit(1);
 });
 
 init();
-
