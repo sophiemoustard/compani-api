@@ -221,7 +221,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
 
   let getEventsGroupedByFundingsforAllCustomersStub;
   beforeEach(() => {
-    getEventsGroupedByFundingsforAllCustomersStub = sinon.stub(StatRepository, 'getEventsGroupedByFundingsforAllCustomers');
+    getEventsGroupedByFundingsforAllCustomersStub =
+      sinon.stub(StatRepository, 'getEventsGroupedByFundingsforAllCustomers');
   });
 
   afterEach(() => {

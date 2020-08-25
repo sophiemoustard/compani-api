@@ -44,13 +44,9 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedService = await Service.findByIdAndUpdate(req.params._id, { $push: { versions: req.payload } }, { new: true });
-    if (!updatedService) return Boom.notFound(translate[language].serviceNotFound);
+    await Service.updateOne({ _id: req.params._id }, { $push: { versions: req.payload } });
 
-    return {
-      message: translate[language].serviceUpdated,
-      data: { service: updatedService },
-    };
+    return { message: translate[language].serviceUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

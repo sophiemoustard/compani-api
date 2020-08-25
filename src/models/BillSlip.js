@@ -13,4 +13,3 @@ BillSlipSchema.pre('find', validateQuery);
 BillSlipSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('BillSlip', BillSlipSchema);
-

@@ -60,7 +60,7 @@ describe('updateHistoryOnSectorUpdate', () => {
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
-    expect(result).toBeUndefined();
+    expect(result).toEqual(null);
     sinon.assert.notCalled(createHistoryStub);
     SectorHistoryMock.verify();
     ContractMock.verify();

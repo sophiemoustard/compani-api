@@ -15,16 +15,17 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
 
 describe('populateSurcharge', () => {
-  let findOne;
+  let SurchargeMock;
   beforeEach(() => {
-    findOne = sinon.stub(Surcharge, 'findOne');
+    SurchargeMock = sinon.mock(Surcharge);
   });
   afterEach(() => {
-    findOne.restore();
+    SurchargeMock.restore();
   });
 
   it('should populate surcharge and order versions', async () => {
     const surchargeId = new ObjectID();
+    const companyId = new ObjectID();
     const returnedSurcharge = { _id: surchargeId, sundaySurcharge: 10 };
     const subscription = {
       _id: 'abc',
@@ -40,9 +41,9 @@ describe('populateSurcharge', () => {
         ],
       },
     };
-    findOne.returns(returnedSurcharge);
+    SurchargeMock.expects('find').withExactArgs({ company: companyId }).chain('lean').returns([returnedSurcharge]);
 
-    const result = await DraftBillsHelper.populateSurcharge(subscription);
+    const result = await DraftBillsHelper.populateSurcharge(subscription, companyId);
 
     expect(result).toBeDefined();
     expect(result._id).toEqual('abc');
@@ -50,7 +51,10 @@ describe('populateSurcharge', () => {
     expect(result.versions[0]._id).toEqual(4);
     expect(result.service.versions.length).toEqual(3);
     expect(result.service.versions[0]._id).toEqual(2);
-    sinon.assert.callCount(findOne, 2);
+    expect(result.service.versions[0]).toEqual(expect.objectContaining({
+      ...subscription.service.versions[1],
+      surcharge: returnedSurcharge,
+    }));
   });
 });
 
@@ -944,10 +948,22 @@ describe('getDraftBillsList', () => {
       },
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' });
-    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' });
-    sinon.assert.calledWithExactly(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00', null, companyId);
-    sinon.assert.calledWithExactly(populateFundings.secondCall, [{ nature: 'fixed' }], '2019-12-25T07:00:00', null, companyId);
+    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' }, companyId);
+    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' }, companyId);
+    sinon.assert.calledWithExactly(
+      populateFundings.firstCall,
+      [{ nature: 'hourly' }],
+      '2019-12-25T07:00:00',
+      null,
+      companyId
+    );
+    sinon.assert.calledWithExactly(
+      populateFundings.secondCall,
+      [{ nature: 'fixed' }],
+      '2019-12-25T07:00:00',
+      null,
+      companyId
+    );
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,
       [{ type: 'intervention', _id: '1234' }],
@@ -1021,9 +1037,9 @@ describe('getDraftBillsList', () => {
       },
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' });
-    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' });
-    sinon.assert.calledWithExactly(populateSurcharge.thirdCall, { _id: 'qwertyuiop' });
+    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' }, companyId);
+    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' }, companyId);
+    sinon.assert.calledWithExactly(populateSurcharge.thirdCall, { _id: 'qwertyuiop' }, companyId);
     sinon.assert.notCalled(populateFundings);
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,

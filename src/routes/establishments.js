@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, update, list, remove } = require('../controllers/establishmentController');
@@ -8,7 +8,7 @@ const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandler
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 const { addressValidation, phoneNumberValidation } = require('./validations/utils');
-const { SIRET_VALIDATION, ESTABLISHMENT_NAME_VALIDATION } = require('../models/utils');
+const { SIRET_VALIDATION, ESTABLISHMENT_NAME_VALIDATION } = require('../models/Establishment');
 
 exports.plugin = {
   name: 'routes-establishments',
@@ -21,8 +21,8 @@ exports.plugin = {
         auth: { scope: ['establishments:edit'] },
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().regex(new RegExp(ESTABLISHMENT_NAME_VALIDATION)).required(),
-            siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)).required(),
+            name: Joi.string().regex(ESTABLISHMENT_NAME_VALIDATION).required(),
+            siret: Joi.string().regex(SIRET_VALIDATION).required(),
             phone: phoneNumberValidation.required(),
             workHealthService: Joi.string().valid(...workHealthServices).required(),
             urssafCode: Joi.string().valid(...urssafCodes).required(),
@@ -41,8 +41,8 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            name: Joi.string().regex(new RegExp(ESTABLISHMENT_NAME_VALIDATION)),
-            siret: Joi.string().regex(new RegExp(SIRET_VALIDATION)),
+            name: Joi.string().regex(ESTABLISHMENT_NAME_VALIDATION),
+            siret: Joi.string().regex(SIRET_VALIDATION),
             phone: phoneNumberValidation,
             workHealthService: Joi.string().valid(...workHealthServices),
             urssafCode: Joi.string().valid(...urssafCodes),

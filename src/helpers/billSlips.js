@@ -62,7 +62,7 @@ exports.createBillSlips = async (billList, endDate, company) => {
     if (!tpp || billSlipList.some(bs => bs.thirdPartyPayer.toHexString() === tpp)) continue;
     const number = exports.formatBillSlipNumber(company.prefixNumber, slipNumber.prefix, seq);
     list.push({ company: company._id, month, thirdPartyPayer: tpp, number });
-    seq++;
+    seq += 1;
   }
 
   await Promise.all([
@@ -74,10 +74,10 @@ exports.createBillSlips = async (billList, endDate, company) => {
 exports.formatFundingInfo = (info, billingDoc) => {
   const matchingFunding = info.customer.fundings
     .find(f => f._id.toHexString() === billingDoc.fundingId.toHexString());
-  if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return;
+  if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return null;
 
   const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
-  if (!matchingVersion) return;
+  if (!matchingVersion) return null;
 
   return {
     number: info.number || '',

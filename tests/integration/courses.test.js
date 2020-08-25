@@ -8,10 +8,13 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
-const { CONVOCATION } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
+  activity,
+  step,
+  subProgramsList,
   programsList,
   auxiliary,
   traineeWithoutCompany,
@@ -23,13 +26,12 @@ const {
   trainerOrganisationManager,
   traineeFromOtherCompany,
   slots,
-}
-  = require('./seed/coursesSeed');
+} = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
-const TwilioHelper = require('../../src/helpers/twilio');
+const SmsHelper = require('../../src/helpers/sms');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -44,7 +46,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create intra course', async () => {
-      const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -56,7 +58,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create inter_b2b course', async () => {
-      const payload = { misc: 'course', type: 'inter_b2b', program: programsList[0]._id };
+      const payload = { misc: 'course', type: 'inter_b2b', subProgram: subProgramsList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -69,10 +71,10 @@ describe('COURSES ROUTES - POST /courses', () => {
 
     const missingParams = [
       { path: 'company' },
-      { path: 'program' },
+      { path: 'subProgram' },
       { path: 'type' },
     ];
-    const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+    const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
         const response = await app.inject({
@@ -99,7 +101,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { misc: 'course', type: 'intra', company: authCompany._id, program: programsList[0]._id };
+        const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
@@ -135,7 +137,15 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesNumber);
       expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
-        program: pick(programsList[0], ['_id', 'name', 'image']),
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectID),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            image: programsList[0].image,
+            subPrograms: [expect.any(ObjectID)],
+          },
+        }),
         trainer: null,
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
@@ -149,7 +159,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         })]),
       }));
       expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
-      expect(response.result.data.courses[3].program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].subProgram.program.learningGoals).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
@@ -274,7 +284,20 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.course).toEqual(expect.objectContaining({
         _id: courseFromAuthCompanyIntra._id,
-        program: expect.objectContaining(pick(programsList[0], ['_id', 'name', 'learningGoals'])),
+        subProgram: {
+          _id: expect.any(ObjectID),
+          program: {
+            _id: expect.any(ObjectID),
+            name: programsList[0].name,
+            learningGoals: programsList[0].learningGoals,
+            subPrograms: [expect.any(ObjectID)],
+          },
+          steps: [{
+            _id: expect.any(ObjectID),
+            name: step.name,
+            type: step.type,
+          }],
+        },
         trainer: expect.objectContaining({
           _id: courseTrainer._id,
           identity: { firstname: 'trainer', lastname: 'trainer' },
@@ -397,11 +420,26 @@ describe('COURSES ROUTES - GET /courses/user', () => {
     const roles = [
       { name: 'helper', credentials: helper.local, expectedCode: 200, numberOfCourse: 2 },
       { name: 'auxiliary', credentials: auxiliary.local, expectedCode: 200, numberOfCourse: 1 },
-      { name: 'auxiliary_without_company', credentials: auxiliaryWithoutCompany.local, expectedCode: 200, numberOfCourse: 0 },
+      {
+        name: 'auxiliary_without_company',
+        credentials: auxiliaryWithoutCompany.local,
+        expectedCode: 200,
+        numberOfCourse: 0,
+      },
       { name: 'coach', credentials: coachFromAuthCompany.local, expectedCode: 200, numberOfCourse: 4 },
       { name: 'client_admin', credentials: clientAdmin.local, expectedCode: 200, numberOfCourse: 3 },
-      { name: 'training_organisation_manager', credentials: trainerOrganisationManager.local, expectedCode: 200, numberOfCourse: 1 },
-      { name: 'trainer', credentials: courseTrainer.local, expectedCode: 200, numberOfCourse: 1 },
+      {
+        name: 'training_organisation_manager',
+        credentials: trainerOrganisationManager.local,
+        expectedCode: 200,
+        numberOfCourse: 1,
+      },
+      {
+        name: 'trainer',
+        credentials: courseTrainer.local,
+        expectedCode: 200,
+        numberOfCourse: 1,
+      },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -417,10 +455,15 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expect(response.result.data.courses.length).toBe(role.numberOfCourse);
         if (response.result.data.courses.length) {
           expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
-            program: expect.objectContaining({
-              name: expect.any(String),
-              image: { link: expect.any(String), publicId: expect.any(String) },
-              steps: expect.arrayContaining([expect.any(ObjectID)]),
+            subProgram: expect.objectContaining({
+              _id: expect.any(ObjectID),
+              program: {
+                _id: expect.any(ObjectID),
+                name: programsList[0].name,
+                image: programsList[0].image,
+                subPrograms: [expect.any(ObjectID)],
+              },
+              steps: [expect.any(ObjectID)],
             }),
             slots: expect.arrayContaining([expect.objectContaining({
               startDate: expect.any(Date),
@@ -494,10 +537,25 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data.course).toEqual(expect.objectContaining({
       _id: courseId,
-      program: {
-        ...pick(programsList[0], ['_id', 'name', 'image']),
-        steps: expect.arrayContaining([expect.objectContaining({ name: 'etape', type: 'on_site' })]),
-      },
+      subProgram: expect.objectContaining({
+        _id: expect.any(ObjectID),
+        program: {
+          _id: expect.any(ObjectID),
+          name: programsList[0].name,
+          image: programsList[0].image,
+          subPrograms: [expect.any(ObjectID)],
+        },
+        steps: [{
+          _id: expect.any(ObjectID),
+          name: step.name,
+          type: step.type,
+          activities: [{
+            _id: expect.any(ObjectID),
+            name: activity.name,
+            type: activity.type,
+          }],
+        }],
+      }),
       slots: expect.arrayContaining([
         expect.objectContaining({
           ...pick(slots[0], ['startDate, endDate, step']),
@@ -637,22 +695,22 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  let TwilioHelperStub;
-  const payload = { body: 'Ceci est un test', type: CONVOCATION };
+  let SmsHelperStub;
+  const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
   beforeEach(populateDB);
 
   beforeEach(async () => {
     authToken = await getToken('vendor_admin');
-    TwilioHelperStub = sinon.stub(TwilioHelper, 'send');
+    SmsHelperStub = sinon.stub(SmsHelper, 'send');
   });
   afterEach(() => {
-    TwilioHelperStub.restore();
+    SmsHelperStub.restore();
   });
 
   it('should send a SMS to user from compani', async () => {
     const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany }).lean();
-    TwilioHelperStub.returns('SMS SENT !');
+    SmsHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -665,13 +723,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany }).lean();
     expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
     sinon.assert.calledWithExactly(
-      TwilioHelperStub,
-      { to: `+33${coachFromAuthCompany.contact.phone.substring(1)}`, from: 'Compani', body: payload.body }
+      SmsHelperStub,
+      {
+        recipient: `+33${coachFromAuthCompany.contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
+      }
     );
   });
 
   it('should return a 400 error if type is invalid', async () => {
-    TwilioHelperStub.returns('SMS SENT !');
+    SmsHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -679,13 +742,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       headers: { 'x-access-token': authToken },
     });
     expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(TwilioHelperStub);
+    sinon.assert.notCalled(SmsHelperStub);
   });
 
-  const missingParams = ['body', 'type'];
+  const missingParams = ['content', 'type'];
   missingParams.forEach((param) => {
     it(`should return a 400 error if missing ${param} parameter`, async () => {
-      TwilioHelperStub.returns('SMS SENT !');
+      SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -693,7 +756,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(400);
-      sinon.assert.notCalled(TwilioHelperStub);
+      sinon.assert.notCalled(SmsHelperStub);
     });
   });
 
@@ -707,7 +770,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   ];
   roles.forEach((role) => {
     it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-      TwilioHelperStub.returns('SMS SENT !');
+      SmsHelperStub.returns('SMS SENT !');
       authToken = await getToken(role.name);
       const response = await app.inject({
         method: 'POST',
@@ -721,7 +784,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   });
 
   it('should return 403 as user is trainer if not one of his courses', async () => {
-    TwilioHelperStub.returns('SMS SENT !');
+    SmsHelperStub.returns('SMS SENT !');
     authToken = await getToken('trainer');
     const response = await app.inject({
       method: 'POST',
@@ -735,7 +798,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
 
   ['coach', 'client_admin'].forEach((role) => {
     it(`should return 403 as user is ${role} requesting on an other company`, async () => {
-      TwilioHelperStub.returns('SMS SENT !');
+      SmsHelperStub.returns('SMS SENT !');
       authToken = await getToken(role);
       const response = await app.inject({
         method: 'POST',
@@ -749,7 +812,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   });
 
   it('should return 200 as user is the course trainer', async () => {
-    TwilioHelperStub.returns('SMS SENT !');
+    SmsHelperStub.returns('SMS SENT !');
     authToken = await getTokenByCredentials(courseTrainer.local);
     const response = await app.inject({
       method: 'POST',
@@ -925,7 +988,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           method: 'POST',
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
           headers: { 'x-access-token': token },
-          payload: { ...pick(coachFromAuthCompany, ['local.email', 'company']), identity: { lastname: 'same_trainee' } },
+          payload: {
+            ...pick(coachFromAuthCompany, ['local.email', 'company']),
+            identity: { lastname: 'same_trainee' },
+          },
         });
 
         expect(response.statusCode).toBe(409);
@@ -958,7 +1024,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
       });
     });
-
 
     describe('Other roles', () => {
       const roles = [

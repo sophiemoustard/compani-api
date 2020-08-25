@@ -6,9 +6,9 @@ const os = require('os');
 const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
-const ESignHelper = require('../helpers/eSign');
-const GdriveStorageHelper = require('../helpers/gdriveStorage');
-const FileHelper = require('../helpers/file');
+const ESignHelper = require('./eSign');
+const GdriveStorageHelper = require('./gdriveStorage');
+const FileHelper = require('./file');
 const translate = require('./translate');
 
 const { language } = translate;

@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
@@ -18,6 +18,7 @@ const {
   getSMSHistory,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
+const { COURSE_TYPES } = require('../models/Course');
 const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
@@ -35,7 +36,13 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['courses:read'] },
-        validate: { query: Joi.object({ trainer: Joi.objectId(), company: Joi.objectId(), trainees: Joi.objectId() }) },
+        validate: {
+          query: Joi.object({
+            trainer: Joi.objectId(),
+            company: Joi.objectId(),
+            trainees: Joi.objectId(),
+          }),
+        },
         pre: [{ method: authorizeGetCourseList }],
       },
       handler: list,
@@ -56,8 +63,8 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            type: Joi.string().required(),
-            program: Joi.objectId().required(),
+            type: Joi.string().required().valid(...COURSE_TYPES),
+            subProgram: Joi.objectId().required(),
             misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
@@ -134,7 +141,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            body: Joi.string().required(),
+            content: Joi.string().required(),
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },

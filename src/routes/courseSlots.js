@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create, update, remove } = require('../controllers/courseSlotController');
 const { addressValidation } = require('./validations/utils');
@@ -19,7 +19,7 @@ exports.plugin = {
             endDate: Joi.date().when('startDate', { is: Joi.exist(), then: Joi.required() }),
             address: Joi.alternatives().try(addressValidation, {}),
             courseId: Joi.objectId().required(),
-            step: Joi.objectId(),
+            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
         pre: [{ method: authorizeCreate }],
@@ -38,7 +38,7 @@ exports.plugin = {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             address: Joi.alternatives().try(addressValidation, {}),
-            step: Joi.objectId().allow(null),
+            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],

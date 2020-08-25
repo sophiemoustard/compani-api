@@ -22,11 +22,12 @@ const billDispatch = {
           billsIds: billsAndHelpersChunk.reduce((acc, cus) => [...acc, ...cus.bills], []).map(bill => bill._id),
         };
 
-        const requests = data.helpers.map(async (helper) => {
+        const requests = [];
+        data.helpers.forEach(async (helper) => {
           try {
             if (helper.local && helper.local.email) {
               const company = companies.find(comp => comp._id.toHexString() === helper.company.toHexString());
-              return EmailHelper.billAlertEmail(helper.local.email, company);
+              requests.push(EmailHelper.billAlertEmail(helper.local.email, company));
             }
           } catch (e) {
             server.log(['error', 'cron', 'jobs'], e);

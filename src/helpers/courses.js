@@ -13,17 +13,17 @@ const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
-const TwilioHelper = require('./twilio');
+const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.trainees) {
     return Course.find(query, { misc: 1 })
-      .populate({ path: 'program', select: 'name' })
+      .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
       .lean();
@@ -48,19 +48,25 @@ exports.list = async (query) => {
 };
 
 exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
-  .populate({ path: 'program', select: 'name image steps' })
+  .populate({ path: 'subProgram', select: 'program steps', populate: { path: 'program', select: 'name image' } })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+  .select('_id')
   .lean();
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
-  // A coach/client_admin is not supposed to read infos on trainees from other companies - espacially for INTER_B2B courses.
+  // A coach/client_admin is not supposed to read infos on trainees from other companies
+  // espacially for INTER_B2B courses.
   const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
 
   return Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'program', select: 'name learningGoals steps', populate: { path: 'steps', select: 'name type' } })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+    })
     .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
@@ -74,15 +80,26 @@ exports.getCourse = async (courseId, loggedUser) => {
 };
 
 exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'program', select: 'name learningGoals' })
+  .populate({
+    path: 'subProgram',
+    select: 'program',
+    populate: { path: 'program', select: 'name learningGoals' },
+  })
   .populate('slots')
   .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
 exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
-  .populate({ path: 'program', select: 'name image steps', populate: { path: 'steps', select: 'name type' } })
-  .populate({ path: 'slots', select: 'startDate endDate step' })
+  .populate({
+    path: 'subProgram',
+    select: 'program steps',
+    populate: [
+      { path: 'program', select: 'name image' },
+      { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type' } },
+    ],
+  })
+  .populate({ path: 'slots', select: 'startDate endDate step address' })
   .select('_id')
   .lean();
 
@@ -99,10 +116,11 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   for (const trainee of course.trainees) {
     if (!get(trainee, 'contact.phone')) missingPhones.push(trainee._id);
     else {
-      promises.push(TwilioHelper.send({
-        to: `+33${trainee.contact.phone.substring(1)}`,
-        from: 'Compani',
-        body: payload.body,
+      promises.push(SmsHelper.send({
+        recipient: `+33${trainee.contact.phone.substring(1)}`,
+        sender: 'Compani',
+        content: payload.content,
+        tag: COURSE_SMS,
       }));
     }
   }
@@ -110,7 +128,7 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   promises.push(CourseSmsHistory.create({
     type: payload.type,
     course: courseId,
-    message: payload.body,
+    message: payload.content,
     sender: credentials._id,
     missingPhones,
   }));
@@ -163,8 +181,8 @@ exports.getCourseDuration = (slots) => {
 };
 
 exports.formatCourseForPdf = (course) => {
-  const possiblyMisc = course.misc ? ` - ${course.misc}` : '';
-  const name = course.program.name + possiblyMisc;
+  const possibleMisc = course.misc ? ` - ${course.misc}` : '';
+  const name = course.subProgram.program.name + possibleMisc;
   const slots = course.slots
     ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     : [];
@@ -193,7 +211,7 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate('slots')
     .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
     .populate('trainer')
-    .populate('program')
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
   return {
@@ -204,8 +222,8 @@ exports.generateAttendanceSheets = async (courseId) => {
 
 exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
-  learningGoals: get(course, 'program.learningGoals') || '',
-  programName: get(course, 'program.name').toUpperCase() || '',
+  learningGoals: get(course, 'subProgram.program.learningGoals') || '',
+  programName: get(course, 'subProgram.program.name').toUpperCase() || '',
   startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
   endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
 });
@@ -214,7 +232,7 @@ exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
-    .populate('program')
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);

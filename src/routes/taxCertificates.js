@@ -1,6 +1,6 @@
 'use-strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { generateTaxCertificatePdf, list, create, remove } = require('../controllers/taxCertificateController');
@@ -11,6 +11,7 @@ const {
   authorizeTaxCertificateCreation,
 } = require('./preHandlers/taxCertificates');
 const { YEAR_VALIDATION } = require('../models/TaxCertificate');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-taxcertificates',
@@ -50,12 +51,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['taxcertificates:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object({
             date: Joi.date().required(),

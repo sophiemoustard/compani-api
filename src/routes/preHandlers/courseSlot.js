@@ -4,7 +4,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const Step = require('../../models/Step');
 const translate = require('../../helpers/translate');
-const { checkAuthorization } = require('./courses.js');
+const { checkAuthorization } = require('./courses');
 const { E_LEARNING } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -35,11 +35,11 @@ const checkPayload = async (courseId, payload) => {
   if ((startDate && !endDate) || (!startDate && endDate)) throw Boom.badRequest();
 
   if (stepId) {
-    const course = await Course.findById(courseId).populate({ path: 'program', select: 'steps' }).lean();
+    const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
     const step = await Step.findById(stepId).lean();
 
     if (step.type === E_LEARNING) throw Boom.badRequest();
-    if (!course.program.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
+    if (!course.subProgram.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
   }
 };
 

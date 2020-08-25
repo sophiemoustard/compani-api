@@ -32,7 +32,7 @@ exports.routes = [
     routes: { prefix: '/cloudinary' },
   },
   {
-    plugin: require('./twilio'),
+    plugin: require('./sms'),
     routes: { prefix: '/sms' },
   },
   {
@@ -134,6 +134,10 @@ exports.routes = [
   {
     plugin: require('./programs'),
     routes: { prefix: '/programs' },
+  },
+  {
+    plugin: require('./subPrograms'),
+    routes: { prefix: '/subprograms' },
   },
   {
     plugin: require('./steps'),

@@ -1,5 +1,5 @@
-const { rights } = require('../../../src/data/rights');
 const expect = require('expect');
+const { rights } = require('../../../src/data/rights');
 
 describe('checking the format of right.js file', () => {
   it('there must be only one right per permission', async () => {

@@ -20,7 +20,7 @@ const ReferentHistory = require('../models/ReferentHistory');
 const Service = require('../models/Service');
 const ContractRepository = require('../repositories/ContractRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const { nationalities } = require('../data/nationalities.js');
+const { nationalities } = require('../data/nationalities');
 const { countries } = require('../data/countries');
 
 const getServicesNameList = (subscriptions) => {
@@ -449,7 +449,7 @@ exports.exportFundings = async (credentials) => {
     const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
     let careDays = '';
     if (funding.careDays) {
-      funding.careDays.map((dayIndex) => { careDays = careDays.concat(`${DAYS_INDEX[dayIndex]} `); });
+      careDays = funding.careDays.map(dayIndex => DAYS_INDEX[dayIndex]).join(' ');
     }
 
     data.push([

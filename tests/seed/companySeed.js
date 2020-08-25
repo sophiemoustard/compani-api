@@ -30,7 +30,7 @@ const authCompany = {
 const otherCompany = {
   _id: new ObjectID(),
   name: 'Un autre SAS',
-  tradeName: 'Pas la meme',
+  tradeName: 'Paslameme',
   prefixNumber: 106,
   iban: '4321',
   bic: '8765',
@@ -57,7 +57,7 @@ const otherCompany = {
 const companyWithoutSubscription = {
   _id: new ObjectID(),
   name: 'Test SAS withtout subscription',
-  tradeName: 'eh oh eh oh',
+  tradeName: 'ehohehoh',
   prefixNumber: 103,
   iban: '1234',
   bic: '5678',

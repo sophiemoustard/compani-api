@@ -1260,7 +1260,6 @@ describe('formatAndCreateBills', () => {
       .withExactArgs([customerBillingInfo.bill])
       .once();
 
-
     await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     BillNumberMock.verify();

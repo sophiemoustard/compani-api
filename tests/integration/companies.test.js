@@ -2,6 +2,7 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const GetStream = require('get-stream');
 const { MONTH } = require('../../src/helpers/constants');
 const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
 const Company = require('../../src/models/Company');
@@ -10,10 +11,9 @@ const app = require('../../server');
 const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
 const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
-const GetStream = require('get-stream');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });

@@ -142,7 +142,9 @@ describe('createBillSlips', () => {
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID() };
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] }, month: '09-2019', company: company._id })
+      .withExactArgs(
+        { thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] }, month: '09-2019', company: company._id }
+      )
       .chain('lean')
       .once()
       .returns([{ _id: new ObjectID() }, { _id: new ObjectID() }]);

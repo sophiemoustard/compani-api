@@ -7,7 +7,7 @@ const COURSE_TYPES = [INTRA, INTER_B2B];
 
 const CourseSchema = mongoose.Schema({
   misc: { type: String },
-  program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
+  subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
   type: { type: String, required: true, enum: COURSE_TYPES },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

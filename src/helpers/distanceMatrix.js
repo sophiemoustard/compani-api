@@ -12,8 +12,8 @@ exports.getOrCreateDistanceMatrix = async (params, companyId) => {
 
   const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
   const res = await maps.getDistanceMatrix(query);
-  if (res.status !== 200 || !res.data.rows[0] || !res.data.rows[0].elements
-    || !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
+  if (res.status !== 200 || !res.data.rows[0] || !res.data.rows[0].elements ||
+    !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
     return null;
   }
 

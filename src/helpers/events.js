@@ -29,7 +29,7 @@ const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
-const { AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { AUXILIARY, CUSTOMER } = require('./constants');
 
 momentRange.extendMoment(moment);
 
@@ -44,7 +44,7 @@ exports.list = async (query, credentials) => {
 
   if (groupBy === CUSTOMER) {
     return EventRepository.getEventsGroupedByCustomers(eventsQuery, get(credentials, 'company._id', null));
-  } else if (groupBy === AUXILIARY) {
+  } if (groupBy === AUXILIARY) {
     return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
   }
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
@@ -188,11 +188,10 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) =>
-  Event.updateMany(
-    { type: INTERNAL_HOUR, internalHour: oldInternalHourId, startDate: { $gte: eventsStartDate } },
-    { $set: { internalHour: internalHourId } }
-  );
+exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) => Event.updateMany(
+  { type: INTERNAL_HOUR, internalHour: oldInternalHourId, startDate: { $gte: eventsStartDate } },
+  { $set: { internalHour: internalHourId } }
+);
 
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(

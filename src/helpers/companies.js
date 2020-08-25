@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
 const GdriveStorageHelper = require('./gdriveStorage');
-const { addFile } = require('../helpers/gdriveStorage');
+const { addFile } = require('./gdriveStorage');
 const drive = require('../models/Google/Drive');
 const { INTERVENTION } = require('./constants');
 

@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
 require('sinon-mongoose');
@@ -17,15 +17,13 @@ describe('updateStep', () => {
     StepMock.restore();
   });
 
-  it("should update a step's name", async () => {
+  it('should update a step\'s name', async () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
     const updatedStep = { ...step, ...payload };
 
-    StepMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: step._id }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once()
+    StepMock.expects('updateOne')
+      .withExactArgs({ _id: step._id }, { $set: payload })
       .returns(updatedStep);
 
     const result = await StepHelper.updateStep(step._id, payload);
@@ -36,47 +34,46 @@ describe('updateStep', () => {
 });
 
 describe('addStep', () => {
-  let ProgramMock;
+  let SubProgramMock;
   let StepMock;
 
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    SubProgramMock = sinon.mock(SubProgram);
     StepMock = sinon.mock(Step);
   });
 
   afterEach(() => {
-    ProgramMock.restore();
+    SubProgramMock.restore();
     StepMock.restore();
   });
 
-  const program = { _id: new ObjectID() };
-  const newStep = { name: 'c\'est une étape !' };
+  const subProgram = { _id: new ObjectID() };
+  const newStep = { name: 'c\'est une étape !', type: 'lesson' };
   it('should create a step', async () => {
     const stepId = new ObjectID();
-    ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(1);
+    SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(1);
 
     StepMock.expects('create').withExactArgs(newStep).returns({ _id: stepId });
 
-    ProgramMock.expects('updateOne').withExactArgs({ _id: program._id }, { $push: { steps: stepId } });
+    SubProgramMock.expects('updateOne').withExactArgs({ _id: subProgram._id }, { $push: { steps: stepId } });
 
-    await StepHelper.addStep(program._id, newStep);
+    await StepHelper.addStep(subProgram._id, newStep);
 
-    ProgramMock.verify();
+    SubProgramMock.verify();
     StepMock.verify();
   });
 
-  it('should return an error if program does not exist', async () => {
+  it('should return an error if sub-program does not exist', async () => {
     try {
-      ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(0);
+      SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(0);
 
       StepMock.expects('create').never();
-      ProgramMock.expects('updateOne').never();
+      SubProgramMock.expects('updateOne').never();
 
-      await StepHelper.addStep(program._id, newStep);
+      await StepHelper.addStep(subProgram._id, newStep);
     } catch (e) {
-      ProgramMock.verify();
+      SubProgramMock.verify();
       StepMock.verify();
     }
   });
 });
-

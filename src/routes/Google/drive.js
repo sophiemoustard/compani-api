@@ -1,6 +1,6 @@
 'use strict';
 
-const Joi = require('@hapi/joi');
+const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -11,6 +11,7 @@ const {
   uploadFile,
   downloadFile,
 } = require('../../controllers/Google/driveController');
+const { formDataPayload } = require('../validations/utils');
 
 exports.plugin = {
   name: 'routes-gdrive',
@@ -93,12 +94,7 @@ exports.plugin = {
       path: '/{id}/upload',
       handler: uploadFile,
       options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
+        payload: formDataPayload,
         validate: {
           payload: Joi.object().keys({
             file: Joi.any().required(),
