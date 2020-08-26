@@ -133,7 +133,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        steps: expect.arrayContaining([expect.any(ObjectID)]),
         subPrograms: [
           {
             name: 'c\'est un sous-programme',
