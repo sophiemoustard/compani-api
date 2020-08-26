@@ -32,12 +32,13 @@ const CardSchema = mongoose.Schema({
     publicId: { type: String },
     link: { type: String, trim: true },
   },
-  answers: {
-    type: [mongoose.Schema({ label: { type: String } }, { _id: false })],
+  question: { type: String },
+  qcuGoodAnswer: { type: String },
+  falsyAnswers: {
+    type: [String],
     default: undefined,
   },
   explanation: { type: String },
-  question: { type: String },
   orderedAnswers: {
     type: [String],
     default: undefined,
@@ -49,7 +50,8 @@ async function save(next) {
     if (this.isNew) {
       switch (this.template) {
         case FILL_THE_GAPS:
-          this.answers = [];
+        case SINGLE_CHOICE_QUESTION:
+          this.falsyAnswers = [];
           break;
         case ORDER_THE_SEQUENCE:
           this.orderedAnswers = [];

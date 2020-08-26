@@ -1,9 +1,15 @@
 const Boom = require('@hapi/boom');
 const Card = require('../../models/Card');
-const { FILL_THE_GAPS, ORDER_THE_SEQUENCE } = require('../../helpers/constants');
+const {
+  FILL_THE_GAPS,
+  ORDER_THE_SEQUENCE,
+  SINGLE_CHOICE_QUESTION,
+  SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
+} = require('../../helpers/constants');
 
 const checkFillTheGap = (payload, card) => {
-  const { text, answers } = payload;
+  const { text, falsyAnswers } = payload;
 
   if (text) {
     const { outerAcc, gapAcc } = parseTagCode(text);
@@ -16,15 +22,23 @@ const checkFillTheGap = (payload, card) => {
 
     if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
       !validAnswerInTag) return Boom.badRequest();
-  } else if (answers) {
-    if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
+  } else if (falsyAnswers) {
+    if (falsyAnswers.length === 1 && card.falsyAnswers.length > 1) return Boom.badRequest();
+    if (falsyAnswers.length > FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.badRequest();
 
-    const answersLabel = answers.map(a => a.label);
-    const validAnswersCaracters = isValidAnswersCaracters(answersLabel);
-    const validAnswersLength = isValidAnswersLength(answersLabel);
+    const validAnswersCaracters = isValidAnswersCaracters(falsyAnswers);
+    const validAnswersLength = isValidAnswersLength(falsyAnswers);
 
     if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
   }
+
+  return null;
+};
+
+const checkSingleChoiceQuestion = (payload) => {
+  const { falsyAnswers } = payload;
+
+  if (falsyAnswers && falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.badRequest();
 
   return null;
 };
@@ -43,6 +57,8 @@ exports.authorizeCardUpdate = async (req) => {
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
+    case SINGLE_CHOICE_QUESTION:
+      return checkSingleChoiceQuestion(req.payload, card);
     case ORDER_THE_SEQUENCE:
       return checkOrderTheSequence(req.payload, card);
     default:
