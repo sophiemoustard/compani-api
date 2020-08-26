@@ -31,3 +31,8 @@ exports.uploadMedia = async (cardId, payload) => {
 
   await Card.updateOne({ _id: cardId }, { $set: flat(updatePayload) });
 };
+
+exports.removeCard = async (cardId) => {
+  await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await Card.deleteOne({ _id: cardId });
+};
