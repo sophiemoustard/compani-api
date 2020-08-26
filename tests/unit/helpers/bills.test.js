@@ -1741,7 +1741,7 @@ describe('formatBillSubscriptionsForPdf', () => {
     expect(formattedBillSubscriptions).toEqual({
       formattedSubs: [{
         vat: '5,5',
-        hours: '40,00 h',
+        volume: '40,00 h',
         inclTaxes: '1 074,00 €',
         service: 'Temps de qualité - autonomie',
         unitInclTaxes: '24,64 €',
@@ -1775,7 +1775,7 @@ describe('formatBillSubscriptionsForPdf', () => {
     expect(formattedBillSubscriptions).toEqual({
       formattedSubs: [{
         vat: '5,5',
-        hours: 1,
+        volume: 1,
         inclTaxes: '1 074,00 €',
         service: 'forfait nuit',
         unitInclTaxes: '24,64 €',

@@ -225,9 +225,9 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
     };
     if (sub.service.nature === HOURLY) {
       const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
-      formattedSub.hours = formattedHours === '' ? '' : `${formattedHours} h`;
+      formattedSub.volume = formattedHours === '' ? '' : `${formattedHours} h`;
     } else {
-      formattedSub.hours = sub.events.length;
+      formattedSub.volume = sub.events.length;
     }
     formattedSubs.push(formattedSub);
   }
