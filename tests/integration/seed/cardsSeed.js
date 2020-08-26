@@ -21,11 +21,7 @@ const cardsList = [
   { _id: new ObjectID(), template: FLASHCARD },
   { _id: new ObjectID(), template: FILL_THE_GAPS, falsyAnswers: ['le papa', 'la maman'] },
   { _id: new ObjectID(), template: MULTIPLE_CHOICE_QUESTION },
-  {
-    _id: new ObjectID(),
-    template: SINGLE_CHOICE_QUESTION,
-    falsyAnswers: ['le papa', 'la maman'],
-  },
+  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, falsyAnswers: ['le papa', 'la maman'] },
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
 ];
 
