@@ -38,9 +38,7 @@ const checkFillTheGap = (payload, card) => {
 const checkSingleChoiceQuestion = (payload) => {
   const { falsyAnswers } = payload;
 
-  if (falsyAnswers) {
-    if (falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.badRequest();
-  }
+  if (falsyAnswers && falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.badRequest();
 
   return null;
 };
