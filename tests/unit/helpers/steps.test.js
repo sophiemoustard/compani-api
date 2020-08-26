@@ -20,15 +20,24 @@ describe('updateStep', () => {
   it('should update a step\'s name', async () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
-    const updatedStep = { ...step, ...payload };
 
     StepMock.expects('updateOne')
-      .withExactArgs({ _id: step._id }, { $set: payload })
-      .returns(updatedStep);
+      .withExactArgs({ _id: step._id }, { $set: payload });
 
-    const result = await StepHelper.updateStep(step._id, payload);
+    await StepHelper.updateStep(step._id, payload);
 
-    expect(result).toMatchObject(updatedStep);
+    StepMock.verify();
+  });
+
+  it('should push a reused activity', async () => {
+    const step = { _id: new ObjectID() };
+    const payload = { activities: new ObjectID() };
+
+    StepMock.expects('updateOne')
+      .withExactArgs({ _id: step._id }, { $push: payload });
+
+    await StepHelper.updateStep(step._id, payload);
+
     StepMock.verify();
   });
 });

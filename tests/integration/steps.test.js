@@ -3,7 +3,7 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
-const { populateDB, stepsList } = require('./seed/stepsSeed');
+const { populateDB, stepsList, activitiesList } = require('./seed/stepsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -16,14 +16,14 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
-  const payload = { name: 'une nouvelle étape super innovant' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update step', async () => {
+    it('should update step name', async () => {
+      const payload = { name: 'une nouvelle étape super innovant' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
@@ -35,6 +35,26 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
+    });
+
+    it('should push a reused activity', async () => {
+      const payload = { activities: activitiesList[0]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(stepId);
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated).toEqual(expect.objectContaining({
+        _id: stepId,
+        name: 'c\'est une étape',
+        type: 'on_site',
+        activities: expect.arrayContaining([activitiesList[0]._id]),
+      }));
     });
 
     it('should return a 400 if name is equal to \'\' ', async () => {
@@ -50,6 +70,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
   });
 
   describe('Other roles', () => {
+    const payload = { name: 'une nouvelle étape super innovant' };
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
