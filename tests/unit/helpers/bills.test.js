@@ -1736,7 +1736,9 @@ describe('formatBillSubscriptionsForPdf', () => {
       }],
     };
 
-    const result = {
+    const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
+
+    expect(formattedBillSubscriptions).toEqual({
       formattedSubs: [{
         vat: '5,5',
         hours: '40,00 h',
@@ -1746,11 +1748,7 @@ describe('formatBillSubscriptionsForPdf', () => {
       }],
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
-    };
-
-    const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
-
-    expect(formattedBillSubscriptions).toEqual(result);
+    });
   });
 
   it('should return formatted subscriptions for fixed service', () => {
@@ -1772,7 +1770,9 @@ describe('formatBillSubscriptionsForPdf', () => {
       }],
     };
 
-    const result = {
+    const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
+
+    expect(formattedBillSubscriptions).toEqual({
       formattedSubs: [{
         vat: '5,5',
         hours: 1,
@@ -1782,11 +1782,7 @@ describe('formatBillSubscriptionsForPdf', () => {
       }],
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
-    };
-
-    const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
-
-    expect(formattedBillSubscriptions).toEqual(result);
+    });
   });
 });
 
