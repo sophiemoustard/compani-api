@@ -271,7 +271,7 @@ module.exports = {
   SINGLE_CHOICE_QUESTION: 'single_choice_question',
   ORDER_THE_SEQUENCE: 'order_the_sequence',
   SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT: 3,
-  FILL_THE_GAPS_MAX_ANSWERS_COUNT: 5,
+  FILL_THE_GAPS_MAX_ANSWERS_COUNT: 6,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT: 3,
   // tests end2end
   PLANNING: 'planning',
