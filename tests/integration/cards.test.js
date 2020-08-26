@@ -123,6 +123,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },
         { msg: 'wrong character in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
+        { msg: 'too many falsy answers', payload: { falsyAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
