@@ -25,6 +25,10 @@ exports.plugin = {
             }),
             question: Joi.string(),
             qcuGoodAnswer: Joi.string(),
+            qcmAnswers: Joi.array().items(Joi.object({
+              label: Joi.string().required(),
+              correct: Joi.boolean().required(),
+            })).min(1).max(4),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
             falsyAnswers: Joi.array().items(Joi.string()).min(1),
             explanation: Joi.string(),
