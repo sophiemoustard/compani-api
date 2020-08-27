@@ -29,7 +29,21 @@ const addStep = async (req) => {
   }
 };
 
+const detachStep = async (req) => {
+  try {
+    await StepHelper.detachStep(req.params._id, req.params.stepId);
+
+    return {
+      message: translate[language].subProgramUpdated,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   addStep,
+  detachStep,
 };
