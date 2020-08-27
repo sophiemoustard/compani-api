@@ -1,6 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
+const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 
@@ -271,5 +272,25 @@ describe('formatDuration', () => {
     const result = UtilsHelper.formatDuration(duration);
 
     expect(result).toEqual('50h');
+  });
+});
+
+describe('compareObjectIds', () => {
+  it('should return true if object ids are the same', () => {
+    const id1 = new ObjectID();
+    const id2 = id1.toHexString();
+
+    const result = UtilsHelper.compareObjectIds(id1, id2);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false if object ids are not the same', () => {
+    const id1 = new ObjectID();
+    const id2 = new ObjectID().toHexString();
+
+    const result = UtilsHelper.compareObjectIds(id1, id2);
+
+    expect(result).toBe(false);
   });
 });

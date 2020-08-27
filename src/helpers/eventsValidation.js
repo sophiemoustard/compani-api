@@ -10,6 +10,7 @@ const {
   NEVER,
   INTERNAL_HOUR,
 } = require('./constants');
+const { compareObjectIds } = require('./utils');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const { populateSubscriptionsServices } = require('./subscriptions');
@@ -33,7 +34,7 @@ exports.checkContracts = async (event, user) => {
       .lean();
     customer = populateSubscriptionsServices(customer);
 
-    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription);
+    const eventSubscription = customer.subscriptions.find(sub => compareObjectIds(sub._id, event.subscription));
     if (!eventSubscription) return false;
 
     return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
