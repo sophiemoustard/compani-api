@@ -15,7 +15,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['programs:read'] },
+        auth: { mode: 'required' },
       },
       handler: getById,
     });
