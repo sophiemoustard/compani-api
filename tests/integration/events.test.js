@@ -1101,6 +1101,43 @@ describe('EVENTS ROUTES', () => {
         expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
       });
 
+      it('should update intervention with auxiliary', async () => {
+        const event = eventsList[2];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          auxiliary: auxiliaries[1]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should update intervention with other subscription', async () => {
+        const event = eventsList[2];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          auxiliary: event.auxiliary.toHexString(),
+          subscription: customerAuxiliary.subscriptions[1]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       it('should update internalhour if address is {}', async () => {
         const event = eventsList[0];
         const payload = { auxiliary: event.auxiliary.toHexString(), address: {} };
