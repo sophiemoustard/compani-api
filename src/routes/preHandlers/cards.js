@@ -66,6 +66,13 @@ exports.authorizeCardUpdate = async (req) => {
   }
 };
 
+exports.authorizeCardDeletion = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id }).lean();
+  if (!card) throw Boom.notFound();
+
+  return null;
+};
+
 // fill the gap validation
 const parseTagCode = str => parseTagCodeRecursively('', [], str);
 

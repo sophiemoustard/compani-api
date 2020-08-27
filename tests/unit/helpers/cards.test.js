@@ -71,6 +71,26 @@ describe('updateCard', () => {
   });
 });
 
+describe('removeCard', () => {
+  let updateOneActivity;
+  let deleteOneCard;
+  beforeEach(() => {
+    updateOneActivity = sinon.stub(Activity, 'updateOne');
+    deleteOneCard = sinon.stub(Card, 'deleteOne');
+  });
+  afterEach(() => {
+    updateOneActivity.restore();
+    deleteOneCard.restore();
+  });
+
+  it('should delete card', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.removeCard(cardId);
+    sinon.assert.calledOnceWithExactly(updateOneActivity, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(deleteOneCard, { _id: cardId });
+  });
+});
+
 describe('uploadMedia', () => {
   let updateOneStub;
   let addImageStub;

@@ -231,6 +231,9 @@ module.exports = {
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
+    /* Cards */
+    cardUpdated: 'Card updated.',
+    cardDeleted: 'Card deleted.',
     /* Courses */
     coursesFound: 'Courses found.',
     coursesNotFound: 'Courses not found.',
@@ -477,6 +480,9 @@ module.exports = {
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
+    /* Cards */
+    cardUpdated: 'Carte mise à jour',
+    cardDeleted: 'Carte supprimée',
     /* Courses */
     coursesFound: 'Liste des formations trouvée.',
     coursesNotFound: 'Liste des formations non trouvée.',

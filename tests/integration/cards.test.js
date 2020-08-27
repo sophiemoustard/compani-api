@@ -3,12 +3,14 @@ const GetStream = require('get-stream');
 const sinon = require('sinon');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, cardsList } = require('./seed/cardsSeed');
+const { populateDB, cardsList, cardActivity } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
+const Activity = require('../../src/models/Activity');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -200,6 +202,69 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           method: 'PUT',
           payload,
           url: `/cards/${transitionId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete card', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${cardActivity.cards[0].toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardDeleted = await Card.findById(cardsList[0]._id).lean();
+      expect(cardDeleted).toBeNull();
+
+      const activity = await Activity.findById(cardActivity._id).lean();
+      expect(activity.cards.length).toEqual(cardActivity.cards.length - 1);
+      expect(activity.cards.includes(cardActivity.cards[0])).toBeFalsy();
+    });
+
+    it('should return 404 if card not found', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${(new ObjectID()).toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${cardActivity.cards[0].toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
