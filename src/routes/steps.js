@@ -5,6 +5,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { update, addActivity } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
 
+const isActivityId = { is: Joi.exist(), then: Joi.forbidden(), otherwise: Joi.required() };
+
 exports.plugin = {
   name: 'routes-steps',
   register: async (server) => {
@@ -28,8 +30,9 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            name: Joi.string().required(),
-            type: Joi.string().required().valid(...ACTIVITY_TYPES),
+            name: Joi.string().when('activityId', isActivityId),
+            type: Joi.string().when('activityId', isActivityId).valid(...ACTIVITY_TYPES),
+            activityId: Joi.objectId(),
           }),
         },
         auth: { scope: ['programs:edit'] },

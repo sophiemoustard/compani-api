@@ -2,10 +2,15 @@ const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
+const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
+const cardsList = [
+  { _id: new ObjectID(), template: 'transition', title: 'do mi sol do' },
+];
+
 const activitiesList = [
-  { _id: new ObjectID(), type: 'lesson', name: 'chanter' },
+  { _id: new ObjectID(), type: 'lesson', name: 'chanter', cards: [cardsList[0]] },
 ];
 
 const stepsList = [
@@ -23,16 +28,19 @@ const populateDB = async () => {
   await Program.deleteMany({});
   await Step.deleteMany({});
   await Activity.deleteMany({});
+  await Card.deleteMany({});
 
   await populateDBForAuthentication();
 
   await Program.insertMany(programsList);
   await Step.insertMany(stepsList);
   await Activity.insertMany(activitiesList);
+  await Card.insertMany(cardsList);
 };
 
 module.exports = {
   populateDB,
   stepsList,
   activitiesList,
+  cardsList,
 };

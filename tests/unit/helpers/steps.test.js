@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
