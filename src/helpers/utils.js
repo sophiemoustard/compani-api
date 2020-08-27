@@ -164,4 +164,4 @@ exports.formatDuration = (duration) => {
   return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
 };
 
-exports.compareObjectIds = (id1, id2) => new ObjectID(id1).toHexString() === new ObjectID(id2).toHexString();
+exports.areObjectIdsEquals = (id1, id2) => new ObjectID(id1).toHexString() === new ObjectID(id2).toHexString();

@@ -275,12 +275,12 @@ describe('formatDuration', () => {
   });
 });
 
-describe('compareObjectIds', () => {
+describe('areObjectIdsEquals', () => {
   it('should return true if object ids are the same', () => {
     const id1 = new ObjectID();
     const id2 = id1.toHexString();
 
-    const result = UtilsHelper.compareObjectIds(id1, id2);
+    const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
     expect(result).toBe(true);
   });
@@ -289,7 +289,7 @@ describe('compareObjectIds', () => {
     const id1 = new ObjectID();
     const id2 = new ObjectID().toHexString();
 
-    const result = UtilsHelper.compareObjectIds(id1, id2);
+    const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
     expect(result).toBe(false);
   });
