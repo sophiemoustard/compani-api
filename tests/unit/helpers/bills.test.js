@@ -1732,25 +1732,57 @@ describe('formatBillSubscriptionsForPdf', () => {
         hours: 40,
         exclTaxes: 1018.009,
         inclTaxes: 1074,
-        service: { name: 'Temps de qualité - autonomie' },
+        service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
       }],
     };
 
-    const result = {
+    const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
+
+    expect(formattedBillSubscriptions).toEqual({
       formattedSubs: [{
         vat: '5,5',
-        hours: 40,
+        volume: '40,00 h',
         inclTaxes: '1 074,00 €',
         service: 'Temps de qualité - autonomie',
         unitInclTaxes: '24,64 €',
       }],
       totalExclTaxes: '1 018,01 €',
       totalVAT: '55,99 €',
+    });
+  });
+
+  it('should return formatted subscriptions for fixed service', () => {
+    getUnitInclTaxes.returns('24.63');
+    formatPrice.onCall(0).returns('24,64 €');
+    formatPrice.onCall(1).returns('1 074,00 €');
+    formatPrice.onCall(2).returns('1 018,01 €');
+    formatPrice.onCall(3).returns('55,99 €');
+
+    const bill = {
+      subscriptions: [{
+        events: [{ id: '1234' }],
+        unitInclTaxes: 24.644549763033176,
+        vat: 5.5,
+        hours: 40,
+        exclTaxes: 1018.009,
+        inclTaxes: 1074,
+        service: { name: 'forfait nuit', nature: 'fixed' },
+      }],
     };
 
     const formattedBillSubscriptions = BillHelper.formatBillSubscriptionsForPdf(bill);
 
-    expect(formattedBillSubscriptions).toEqual(result);
+    expect(formattedBillSubscriptions).toEqual({
+      formattedSubs: [{
+        vat: '5,5',
+        volume: 1,
+        inclTaxes: '1 074,00 €',
+        service: 'forfait nuit',
+        unitInclTaxes: '24,64 €',
+      }],
+      totalExclTaxes: '1 018,01 €',
+      totalVAT: '55,99 €',
+    });
   });
 });
 
