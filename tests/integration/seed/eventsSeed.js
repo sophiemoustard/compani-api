@@ -124,18 +124,32 @@ const thirdPartyPayerFromOtherCompany = {
   isApa: true,
 };
 
-const service = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  nature: 'hourly',
-  versions: [{
-    defaultUnitAmount: 12,
-    exemptFromCharges: false,
-    name: 'Service 1',
-    startDate: '2019-01-16 17:58:15.519',
-    vat: 12,
-  }],
-};
+const services = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    nature: 'hourly',
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service 1',
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    }],
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    nature: 'hourly',
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service 2',
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    }],
+  },
+];
 
 const serviceFromOtherCompany = {
   _id: new ObjectID(),
@@ -156,7 +170,8 @@ const customerAuxiliary = {
   company: authCompany._id,
   identity: { firstname: 'Romain', lastname: 'Bardet' },
   subscriptions: [
-    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: service._id },
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
   ],
   contact: {
     primaryAddress: {
@@ -175,7 +190,7 @@ const customerFromOtherCompany = {
   company: otherCompany._id,
   identity: { firstname: 'test', lastname: 'toto' },
   subscriptions: [
-    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: service._id },
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
   ],
   contact: {
     primaryAddress: {
@@ -702,7 +717,7 @@ const populateDB = async () => {
   await (new Customer(customerFromOtherCompany)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await (new ThirdPartyPayer(thirdPartyPayerFromOtherCompany)).save();
-  await (new Service(service)).save();
+  await Service.insertMany(services);
   await (new Service(serviceFromOtherCompany)).save();
   await (new InternalHour(internalHour)).save();
   await (new InternalHour(internalHourFromOtherCompany)).save();
