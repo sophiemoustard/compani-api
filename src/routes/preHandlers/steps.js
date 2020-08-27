@@ -20,3 +20,10 @@ exports.authorizeActivityReuse = async (req) => {
 
   return null;
 };
+
+exports.authorizeActivityDetachment = async (req) => {
+  const step = await Step.findOne({ _id: req.params._id, activities: req.params.activityId }).lean();
+  if (!step) throw Boom.notFound();
+
+  return null;
+};

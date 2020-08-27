@@ -24,3 +24,6 @@ exports.addActivity = async (stepId, payload) => {
   const createdActivity = await Activity.create(newActivity);
   await Step.updateOne({ _id: stepId }, { $push: { activities: createdActivity._id } });
 };
+
+exports.detachActivity = async (stepId, activityId) =>
+  Step.updateOne({ _id: stepId }, { $pull: { activities: activityId } });

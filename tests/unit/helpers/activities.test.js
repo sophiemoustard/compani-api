@@ -125,3 +125,26 @@ describe('addActivity', () => {
     getActivityStub.restore();
   });
 });
+
+describe('detachActivity', () => {
+  let StepMock;
+
+  beforeEach(() => {
+    StepMock = sinon.mock(Step);
+  });
+
+  afterEach(() => {
+    StepMock.restore();
+  });
+
+  it('should detach activity', async () => {
+    const stepId = new ObjectID();
+    const activityId = new ObjectID();
+
+    StepMock.expects('updateOne').withExactArgs({ _id: stepId }, { $pull: { activities: activityId } });
+
+    await ActivityHelper.detachActivity(stepId, activityId);
+
+    StepMock.verify();
+  });
+});

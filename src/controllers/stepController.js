@@ -31,7 +31,21 @@ const addActivity = async (req) => {
   }
 };
 
+const detachActivity = async (req) => {
+  try {
+    await ActivityHelper.detachActivity(req.params._id, req.params.activityId);
+
+    return {
+      message: translate[language].activityDetached,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   addActivity,
+  detachActivity,
 };

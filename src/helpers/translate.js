@@ -231,6 +231,7 @@ module.exports = {
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
+    activityDetached: 'Activity detached.',
     /* Cards */
     cardUpdated: 'Card updated.',
     cardDeleted: 'Card deleted.',
@@ -480,6 +481,7 @@ module.exports = {
     /* Activities */
     activityFound: 'Activité trouvée.',
     activityUpdated: 'Activité mise à jour.',
+    activityDetached: 'Activité retirée.',
     /* Cards */
     cardUpdated: 'Carte mise à jour',
     cardDeleted: 'Carte supprimée',
