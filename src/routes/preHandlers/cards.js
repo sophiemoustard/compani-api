@@ -6,6 +6,7 @@ const {
   SINGLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
+  MULTIPLE_CHOICE_QUESTION,
 } = require('../../helpers/constants');
 
 const checkFillTheGap = (payload, card) => {
@@ -50,6 +51,18 @@ const checkOrderTheSequence = (payload, card) => {
   return null;
 };
 
+const checkMultipleChoiceQuestion = (payload, card) => {
+  const { qcmAnswers } = payload;
+
+  if (qcmAnswers) {
+    const noCorrectAnswer = !qcmAnswers.find(ans => ans.correct);
+    const removeRequiredAnswer = qcmAnswers.length === 1 && card.qcmAnswers.length > 1;
+    if (removeRequiredAnswer || noCorrectAnswer) return Boom.badRequest();
+  }
+
+  return null;
+};
+
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
@@ -58,9 +71,11 @@ exports.authorizeCardUpdate = async (req) => {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
     case SINGLE_CHOICE_QUESTION:
-      return checkSingleChoiceQuestion(req.payload, card);
+      return checkSingleChoiceQuestion(req.payload);
     case ORDER_THE_SEQUENCE:
       return checkOrderTheSequence(req.payload, card);
+    case MULTIPLE_CHOICE_QUESTION:
+      return checkMultipleChoiceQuestion(req.payload, card);
     default:
       return null;
   }

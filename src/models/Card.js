@@ -42,6 +42,10 @@ const CardSchema = mongoose.Schema({
     type: [String],
     default: undefined,
   },
+  qcmAnswers: {
+    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false })],
+    default: undefined,
+  },
   explanation: { type: String },
   orderedAnswers: {
     type: [String],
@@ -59,6 +63,9 @@ async function save(next) {
           break;
         case ORDER_THE_SEQUENCE:
           this.orderedAnswers = [];
+          break;
+        case MULTIPLE_CHOICE_QUESTION:
+          this.qcmAnswers = [];
           break;
       }
     }
