@@ -182,13 +182,14 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
       expect(response.statusCode).toBe(200);
       const subProgramUpdated = await SubProgram.findOne({ _id: subProgramId }).lean();
       expect(subProgramUpdated.steps.length).toEqual(stepsLengthBefore - 1);
+      expect(subProgramUpdated.steps.some(step => step._id === subProgramsList[0].steps[0]._id)).toBeFalsy();
     });
 
     it('should return a 404 if subprogram does not exist', async () => {
       const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/subprograms/${invalidId}/steps`,
+        url: `/subprograms/${invalidId}/steps/${subProgramsList[0].steps[0]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
