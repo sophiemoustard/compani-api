@@ -36,6 +36,10 @@ exports.plugin = {
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
             falsyAnswers: Joi.array().items(Joi.string()).min(1),
             explanation: Joi.string(),
+            label: Joi.object().keys({
+              right: Joi.string().allow('', null),
+              left: Joi.string().allow('', null),
+            }),
           }),
         },
         auth: { scope: ['programs:edit'] },
