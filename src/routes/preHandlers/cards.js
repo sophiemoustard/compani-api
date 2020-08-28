@@ -58,11 +58,9 @@ const checkMultipleChoiceQuestion = (payload, card) => {
     const noCorrectAnswer = !qcmAnswers.find(ans => ans.correct);
     const removeRequiredAnswer = qcmAnswers.length === 1 && card.qcmAnswers.length > 1;
     if (removeRequiredAnswer || noCorrectAnswer) return Boom.badRequest();
-
-    return null;
   }
 
-  return Boom.badRequest();
+  return null;
 };
 
 exports.authorizeCardUpdate = async (req) => {

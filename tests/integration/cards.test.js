@@ -25,6 +25,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const fillTheGapId = cardsList[5]._id;
   const orderTheSequenceId = cardsList[8]._id;
   const singleChoiceQuestionId = cardsList[7]._id;
+  const multipleChoiceQuestionId = cardsList[6]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -75,6 +76,15 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
           falsyAnswers: ['rien', 'des trucs', 'ou pas'],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: singleChoiceQuestionId,
+      },
+      {
+        template: 'multiple_choice_question',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          qcmAnswers: [{ label: 'un truc', correct: true }, { label: 'rien', correct: false }],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -174,6 +184,34 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${singleChoiceQuestionId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('multiple choice question', () => {
+      const requests = [
+        { msg: 'valid answers',
+          payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
+          code: 200 },
+        { msg: 'missing label', payload: { qcmAnswers: [{ correct: true }] }, code: 400 },
+        { msg: 'missing correct', payload: { qcmAnswers: [{ label: 'et la bête' }] }, code: 400 },
+        {
+          msg: 'missing correct answer',
+          payload: { qcmAnswers: [{ label: 'époque', correct: false }, { label: 'et le clochard', correct: false }] },
+          code: 400,
+        },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${multipleChoiceQuestionId.toHexString()}`,
             payload: request.payload,
             headers: { 'x-access-token': authToken },
           });
