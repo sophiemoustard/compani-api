@@ -270,6 +270,8 @@ module.exports = {
   MULTIPLE_CHOICE_QUESTION: 'multiple_choice_question',
   SINGLE_CHOICE_QUESTION: 'single_choice_question',
   ORDER_THE_SEQUENCE: 'order_the_sequence',
+  OPEN_QUESTION: 'open_question',
+  SURVEY: 'survey',
   SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT: 3,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT: 6,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT: 3,

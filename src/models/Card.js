@@ -9,6 +9,8 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  OPEN_QUESTION,
+  SURVEY,
 } = require('../helpers/constants');
 
 const CARD_TEMPLATES = [
@@ -21,6 +23,8 @@ const CARD_TEMPLATES = [
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  OPEN_QUESTION,
+  SURVEY,
 ];
 
 const CardSchema = mongoose.Schema({
