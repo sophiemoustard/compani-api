@@ -5,6 +5,10 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { update, remove, uploadMedia } = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
 const { authorizeCardUpdate, authorizeCardDeletion } = require('./preHandlers/cards');
+const {
+  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+} = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-cards',
@@ -28,8 +32,8 @@ exports.plugin = {
             qcmAnswers: Joi.array().items(Joi.object({
               label: Joi.string().required(),
               correct: Joi.boolean().required(),
-            })).min(1).max(4),
-            orderedAnswers: Joi.array().items(Joi.string()).min(1).max(3),
+            })).min(1).max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
+            orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
             falsyAnswers: Joi.array().items(Joi.string()).min(1),
             explanation: Joi.string(),
           }),
