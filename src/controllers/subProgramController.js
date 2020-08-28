@@ -20,9 +20,18 @@ const addStep = async (req) => {
   try {
     await StepHelper.addStep(req.params._id, req.payload);
 
-    return {
-      message: translate[language].subProgramUpdated,
-    };
+    return { message: translate[language].subProgramUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const detachStep = async (req) => {
+  try {
+    await StepHelper.detachStep(req.params._id, req.params.stepId);
+
+    return { message: translate[language].subProgramUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -32,4 +41,5 @@ const addStep = async (req) => {
 module.exports = {
   update,
   addStep,
+  detachStep,
 };

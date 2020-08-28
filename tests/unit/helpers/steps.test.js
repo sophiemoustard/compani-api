@@ -77,3 +77,24 @@ describe('addStep', () => {
     }
   });
 });
+
+describe('detachStep', () => {
+  let SubProgramUpdate;
+
+  beforeEach(() => {
+    SubProgramUpdate = sinon.stub(SubProgram, 'updateOne');
+  });
+
+  afterEach(() => {
+    SubProgramUpdate.restore();
+  });
+
+  it('remove stepId of subProgram', async () => {
+    const stepId = new ObjectID();
+    const subProgramId = new ObjectID();
+
+    await StepHelper.detachStep(subProgramId, stepId);
+
+    sinon.assert.calledWithExactly(SubProgramUpdate, { _id: subProgramId }, { $pull: { steps: stepId } });
+  });
+});
