@@ -26,6 +26,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const orderTheSequenceId = cardsList[8]._id;
   const singleChoiceQuestionId = cardsList[7]._id;
   const multipleChoiceQuestionId = cardsList[6]._id;
+  const surveyId = cardsList[9]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -88,6 +89,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
+      },
+      {
+        template: 'survey',
+        payload: {
+          question: 'Sur une échelle de 1 à 10 ?',
+          label: { left: '1', right: '10' },
+        },
+        id: surveyId,
       },
     ];
 
@@ -172,7 +181,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    describe('single choice question', () => {
+    describe('Single choice question', () => {
       const requests = [
         { msg: 'valid answers', payload: { falsyAnswers: ['toto'] }, code: 200 },
         { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
@@ -193,7 +202,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       });
     });
 
-    describe('multiple choice question', () => {
+    describe('Multiple choice question', () => {
       const requests = [
         { msg: 'valid answers',
           payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
@@ -212,6 +221,28 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${multipleChoiceQuestionId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('Survey', () => {
+      const requests = [
+        { msg: 'Left label is too long', payload: { label: { left: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Right label is too long', payload: { label: { right: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Unset left label', payload: { label: { left: '' } }, code: 200 },
+        { msg: 'Unset right label', payload: { label: { right: '' } }, code: 200 },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${surveyId.toHexString()}`,
             payload: request.payload,
             headers: { 'x-access-token': authToken },
           });

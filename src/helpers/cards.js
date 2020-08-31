@@ -13,7 +13,10 @@ exports.addCard = async (activityId, payload) => {
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
 
-exports.updateCard = async (cardId, payload) => Card.updateOne({ _id: cardId }, { $set: payload });
+exports.updateCard = async (cardId, payload) => Card.updateOne(
+  { _id: cardId },
+  { $set: flat(payload, { safe: true }) }
+);
 
 exports.uploadMedia = async (cardId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({

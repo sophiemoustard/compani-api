@@ -12,6 +12,7 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  SURVEY,
 } = require('../../../src/helpers/constants');
 
 const cardsList = [
@@ -28,6 +29,7 @@ const cardsList = [
   },
   { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, falsyAnswers: ['le papa', 'la maman'] },
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
+  { _id: new ObjectID(), template: SURVEY },
 ];
 
 const cardActivity = {

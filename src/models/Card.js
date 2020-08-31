@@ -51,29 +51,32 @@ const CardSchema = mongoose.Schema({
     type: [String],
     default: undefined,
   },
+  label: mongoose.Schema({
+    right: { type: String },
+    left: { type: String },
+  }, { default: undefined, _id: false }),
 }, { timestamps: true });
 
-async function save(next) {
-  try {
-    if (this.isNew) {
-      switch (this.template) {
-        case FILL_THE_GAPS:
-        case SINGLE_CHOICE_QUESTION:
-          this.falsyAnswers = [];
-          break;
-        case ORDER_THE_SEQUENCE:
-          this.orderedAnswers = [];
-          break;
-        case MULTIPLE_CHOICE_QUESTION:
-          this.qcmAnswers = [];
-          break;
-      }
+function save(next) {
+  if (this.isNew) {
+    switch (this.template) {
+      case FILL_THE_GAPS:
+      case SINGLE_CHOICE_QUESTION:
+        this.falsyAnswers = [];
+        break;
+      case ORDER_THE_SEQUENCE:
+        this.orderedAnswers = [];
+        break;
+      case MULTIPLE_CHOICE_QUESTION:
+        this.qcmAnswers = [];
+        break;
+      case SURVEY:
+        this.label = {};
+        break;
     }
-
-    return next();
-  } catch (e) {
-    return next(e);
   }
+
+  return next();
 }
 
 CardSchema.pre('save', save);
