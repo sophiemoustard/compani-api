@@ -7,3 +7,10 @@ exports.authorizeStepDetachment = async (req) => {
 
   return null;
 };
+
+exports.authorizeStepAdd = async (req) => {
+  const subProgram = await SubProgram.countDocuments({ _id: req.params._id });
+  if (!subProgram) throw Boom.badRequest();
+
+  return null;
+};

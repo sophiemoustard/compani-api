@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeStepDetachment } = require('./preHandlers/subPrograms');
+const { authorizeStepDetachment, authorizeStepAdd } = require('./preHandlers/subPrograms');
 const { update, addStep, detachStep } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
 
@@ -31,6 +31,7 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeStepAdd }],
       },
       handler: addStep,
     });

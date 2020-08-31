@@ -59,7 +59,6 @@ describe('addStep', () => {
   const newStep = { name: 'c\'est une étape !', type: 'lesson' };
   it('should create a step', async () => {
     const stepId = new ObjectID();
-    SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(1);
 
     StepMock.expects('create').withExactArgs(newStep).returns({ _id: stepId });
 
@@ -69,20 +68,6 @@ describe('addStep', () => {
 
     SubProgramMock.verify();
     StepMock.verify();
-  });
-
-  it('should return an error if sub-program does not exist', async () => {
-    try {
-      SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(0);
-
-      StepMock.expects('create').never();
-      SubProgramMock.expects('updateOne').never();
-
-      await StepHelper.addStep(subProgram._id, newStep);
-    } catch (e) {
-      SubProgramMock.verify();
-      StepMock.verify();
-    }
   });
 });
 
