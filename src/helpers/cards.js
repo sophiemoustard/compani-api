@@ -1,4 +1,3 @@
-const Boom = require('@hapi/boom');
 const moment = require('moment');
 const flat = require('flat');
 const Card = require('../models/Card');
@@ -6,9 +5,6 @@ const Activity = require('../models/Activity');
 const CloudinaryHelper = require('./cloudinary');
 
 exports.addCard = async (activityId, payload) => {
-  const activity = await Activity.countDocuments({ _id: activityId });
-  if (!activity) throw Boom.badRequest();
-
   const card = await Card.create(payload);
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
