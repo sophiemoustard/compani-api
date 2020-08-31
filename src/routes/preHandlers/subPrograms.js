@@ -18,7 +18,12 @@ exports.authorizeSubProgramUpdate = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
   if (!subProgram) throw Boom.notFound();
 
-  if (req.payload.steps && subProgram.steps.every(value => req.payload.steps.includes(value))) return Boom.badRequest();
+  if (req.payload.steps) {
+    const onlyOrderIsUpdated = subProgram.steps.length === req.payload.steps.length &&
+      (subProgram.steps.every(value => req.payload.steps.includes(value.toHexString())) ||
+      req.payload.steps.every(value => subProgram.steps.map(s => s.toHexString()).includes(value)));
+    if (req.payload.steps && !onlyOrderIsUpdated) return Boom.badRequest();
+  }
 
   return null;
 };
