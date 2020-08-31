@@ -36,10 +36,7 @@ const create = async (req) => {
   try {
     const course = await CoursesHelper.createCourse(req.payload);
 
-    return {
-      message: translate[language].courseCreated,
-      data: { course },
-    };
+    return { message: translate[language].courseCreated, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -50,10 +47,7 @@ const getById = async (req) => {
   try {
     const course = await CoursesHelper.getCourse(req.params._id, req.auth.credentials);
 
-    return {
-      message: translate[language].courseFound,
-      data: { course },
-    };
+    return { message: translate[language].courseFound, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -64,10 +58,7 @@ const getPublicInfosById = async (req) => {
   try {
     const course = await CoursesHelper.getCoursePublicInfos(req.params._id);
 
-    return {
-      message: translate[language].courseFound,
-      data: { course },
-    };
+    return { message: translate[language].courseFound, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -78,10 +69,7 @@ const getTraineeCourse = async (req) => {
   try {
     const course = await CoursesHelper.getTraineeCourse(req.params._id);
 
-    return {
-      message: translate[language].courseFound,
-      data: { course },
-    };
+    return { message: translate[language].courseFound, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -92,10 +80,7 @@ const update = async (req) => {
   try {
     const course = await CoursesHelper.updateCourse(req.params._id, req.payload);
 
-    return {
-      message: translate[language].courseUpdated,
-      data: { course },
-    };
+    return { message: translate[language].courseUpdated, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -117,10 +102,7 @@ const getSMSHistory = async (req) => {
   try {
     const sms = await CoursesHelper.getSMSHistory(req.params._id);
 
-    return {
-      message: translate[language].smsFound,
-      data: { sms },
-    };
+    return { message: translate[language].smsFound, data: { sms } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -131,10 +113,7 @@ const addTrainee = async (req) => {
   try {
     const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
 
-    return {
-      message: translate[language].courseTraineeAdded,
-      data: { course },
-    };
+    return { message: translate[language].courseTraineeAdded, data: { course } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

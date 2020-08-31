@@ -50,9 +50,7 @@ const update = async (req) => {
   try {
     await ProgramHelper.updateProgram(req.params._id, req.payload);
 
-    return {
-      message: translate[language].programUpdated,
-    };
+    return { message: translate[language].programUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -63,9 +61,7 @@ const addSubProgram = async (req) => {
   try {
     await SubProgramHelper.addSubProgram(req.params._id, req.payload);
 
-    return {
-      message: translate[language].programUpdated,
-    };
+    return { message: translate[language].programUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -76,9 +72,7 @@ const uploadImage = async (req) => {
   try {
     await ProgramHelper.uploadImage(req.params._id, req.payload);
 
-    return {
-      message: translate[language].fileCreated,
-    };
+    return { message: translate[language].fileCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
