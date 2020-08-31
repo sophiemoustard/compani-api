@@ -4,7 +4,7 @@ const {
   FILL_THE_GAPS,
   ORDER_THE_SEQUENCE,
   SINGLE_CHOICE_QUESTION,
-  SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   MULTIPLE_CHOICE_QUESTION,
 } = require('../../helpers/constants');
@@ -39,7 +39,7 @@ const checkFillTheGap = (payload, card) => {
 const checkSingleChoiceQuestion = (payload) => {
   const { falsyAnswers } = payload;
 
-  if (falsyAnswers && falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.badRequest();
+  if (falsyAnswers && falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT) return Boom.badRequest();
 
   return null;
 };
