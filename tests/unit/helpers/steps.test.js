@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
@@ -20,15 +19,22 @@ describe('updateStep', () => {
   it('should update a step\'s name', async () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
-    const updatedStep = { ...step, ...payload };
 
-    StepMock.expects('updateOne')
-      .withExactArgs({ _id: step._id }, { $set: payload })
-      .returns(updatedStep);
+    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $set: payload });
 
-    const result = await StepHelper.updateStep(step._id, payload);
+    await StepHelper.updateStep(step._id, payload);
 
-    expect(result).toMatchObject(updatedStep);
+    StepMock.verify();
+  });
+
+  it('should push a reused activity', async () => {
+    const step = { _id: new ObjectID() };
+    const payload = { activities: new ObjectID() };
+
+    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: payload });
+
+    await StepHelper.updateStep(step._id, payload);
+
     StepMock.verify();
   });
 });
@@ -51,7 +57,6 @@ describe('addStep', () => {
   const newStep = { name: 'c\'est une étape !', type: 'lesson' };
   it('should create a step', async () => {
     const stepId = new ObjectID();
-    SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(1);
 
     StepMock.expects('create').withExactArgs(newStep).returns({ _id: stepId });
 
@@ -61,20 +66,6 @@ describe('addStep', () => {
 
     SubProgramMock.verify();
     StepMock.verify();
-  });
-
-  it('should return an error if sub-program does not exist', async () => {
-    try {
-      SubProgramMock.expects('countDocuments').withExactArgs({ _id: subProgram._id }).returns(0);
-
-      StepMock.expects('create').never();
-      SubProgramMock.expects('updateOne').never();
-
-      await StepHelper.addStep(subProgram._id, newStep);
-    } catch (e) {
-      SubProgramMock.verify();
-      StepMock.verify();
-    }
   });
 });
 

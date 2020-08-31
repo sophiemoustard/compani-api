@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const { authorizeSubProgramAdd } = require('./preHandlers/programs');
 const {
   list,
   create,
@@ -79,6 +80,7 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeSubProgramAdd }],
       },
       handler: addSubProgram,
     });
