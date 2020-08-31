@@ -232,8 +232,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Survey', () => {
       const requests = [
-        { msg: 'Left label is too long', payload: { label: { left: 'Je suis une très long message' } }, code: 400 },
-        { msg: 'Right label is too long', payload: { label: { right: 'Je suis une très long message' } }, code: 400 },
+        { msg: 'Left label is too long', payload: { label: { left: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Right label is too long', payload: { label: { right: 'Je suis un très long message' } }, code: 400 },
         { msg: 'Unset left label', payload: { label: { left: '' } }, code: 200 },
         { msg: 'Unset right label', payload: { label: { right: '' } }, code: 200 },
       ];
