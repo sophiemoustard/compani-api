@@ -214,7 +214,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
   });
 

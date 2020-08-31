@@ -3,7 +3,7 @@ const Step = require('../../models/Step');
 
 exports.authorizeActivityAdd = async (req) => {
   const step = await Step.countDocuments({ _id: req.params._id });
-  if (!step) throw Boom.badRequest();
+  if (!step) throw Boom.notFound();
 
   return null;
 };

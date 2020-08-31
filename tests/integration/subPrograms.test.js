@@ -127,7 +127,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
   });
 
