@@ -8,6 +8,7 @@ const { authorizeCardUpdate, authorizeCardDeletion } = require('./preHandlers/ca
 const {
   MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+  SURVEY_LABEL_MAX_LENGTH,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -37,8 +38,8 @@ exports.plugin = {
             falsyAnswers: Joi.array().items(Joi.string()).min(1),
             explanation: Joi.string(),
             label: Joi.object().keys({
-              right: Joi.string().allow('', null),
-              left: Joi.string().allow('', null),
+              right: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
+              left: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
             }),
           }),
         },
