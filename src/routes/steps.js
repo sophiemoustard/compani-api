@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const { authorizeActivityAdd } = require('./preHandlers/steps');
 const { update, addActivity } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
 
@@ -36,6 +37,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeActivityAdd }],
       },
       handler: addActivity,
     });

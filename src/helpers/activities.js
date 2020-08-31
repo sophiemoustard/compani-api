@@ -1,4 +1,3 @@
-const Boom = require('@hapi/boom');
 const pick = require('lodash/pick');
 const { ObjectID } = require('mongodb');
 const Activity = require('../models/Activity');
@@ -20,12 +19,7 @@ exports.addActivity = async (stepId, payload) => {
     await Card.insertMany(duplicatedCards);
 
     newActivity = { ...pick(activity, ['name', 'type']), cards: duplicatedCards.map(c => c._id) };
-  } else {
-    const step = await Step.countDocuments({ _id: stepId });
-    if (!step) throw Boom.badRequest();
-
-    newActivity = payload;
-  }
+  } else newActivity = payload;
 
   const activity = await Activity.create(newActivity);
   await Step.updateOne({ _id: stepId }, { $push: { activities: activity._id } });

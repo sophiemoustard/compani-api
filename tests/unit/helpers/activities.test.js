@@ -80,7 +80,6 @@ describe('addActivity', () => {
   it('should create an activity', async () => {
     const newActivity = { name: 'c\'est une étape !' };
     const activityId = new ObjectID();
-    StepMock.expects('countDocuments').withExactArgs({ _id: step._id }).returns(1);
 
     ActivityMock.expects('create').withExactArgs(newActivity).returns({ _id: activityId });
 
@@ -90,20 +89,6 @@ describe('addActivity', () => {
 
     StepMock.verify();
     ActivityMock.verify();
-  });
-
-  it('should return an error if step does not exist', async () => {
-    try {
-      StepMock.expects('countDocuments').withExactArgs({ _id: step._id }).returns(0);
-
-      ActivityMock.expects('create').never();
-      StepMock.expects('updateOne').never();
-
-      await ActivityHelper.addActivity(step._id, { name: 'c\'est une étape !' });
-    } catch (e) {
-      StepMock.verify();
-      ActivityMock.verify();
-    }
   });
 
   it('should duplicate an activity', async () => {
