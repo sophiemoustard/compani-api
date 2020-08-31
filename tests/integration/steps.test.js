@@ -39,8 +39,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 
     it('should push a reused activity', async () => {
       const payload = { activities: activitiesList[0]._id };
-      const duplicatedActivityId = activitiesList[0]._id;
-      const duplicatedCardId = cardsList[0]._id;
+      const reusedActivityId = activitiesList[0]._id;
+      const reusedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
@@ -63,11 +63,11 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         type: 'on_site',
         activities: expect.arrayContaining([
           {
-            _id: duplicatedActivityId,
+            _id: reusedActivityId,
             type: 'lesson',
             name: 'chanter',
             cards: expect.arrayContaining([
-              { _id: duplicatedCardId, template: 'transition', title: 'do mi sol do' },
+              { _id: reusedCardId, template: 'transition', title: 'do mi sol do' },
             ]),
           },
         ]),

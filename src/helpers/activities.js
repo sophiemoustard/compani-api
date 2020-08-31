@@ -13,14 +13,14 @@ exports.updateActivity = async (activityId, payload) => Activity.updateOne({ _id
 exports.addActivity = async (stepId, payload) => {
   let newActivity;
   if (payload.activityId) {
-    const activity = await exports.getActivity(payload.activityId);
+    const duplicatedActivity = await exports.getActivity(payload.activityId);
 
-    const duplicatedCards = activity.cards.map(c => ({ ...c, _id: new ObjectID() }));
+    const duplicatedCards = duplicatedActivity.cards.map(c => ({ ...c, _id: new ObjectID() }));
     await Card.insertMany(duplicatedCards);
 
-    newActivity = { ...pick(activity, ['name', 'type']), cards: duplicatedCards.map(c => c._id) };
+    newActivity = { ...pick(duplicatedActivity, ['name', 'type']), cards: duplicatedCards.map(c => c._id) };
   } else newActivity = payload;
 
-  const activity = await Activity.create(newActivity);
-  await Step.updateOne({ _id: stepId }, { $push: { activities: activity._id } });
+  const createdActivity = await Activity.create(newActivity);
+  await Step.updateOne({ _id: stepId }, { $push: { activities: createdActivity._id } });
 };

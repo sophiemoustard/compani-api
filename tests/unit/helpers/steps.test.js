@@ -20,8 +20,7 @@ describe('updateStep', () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
 
-    StepMock.expects('updateOne')
-      .withExactArgs({ _id: step._id }, { $set: payload });
+    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $set: payload });
 
     await StepHelper.updateStep(step._id, payload);
 
@@ -32,8 +31,7 @@ describe('updateStep', () => {
     const step = { _id: new ObjectID() };
     const payload = { activities: new ObjectID() };
 
-    StepMock.expects('updateOne')
-      .withExactArgs({ _id: step._id }, { $push: payload });
+    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: payload });
 
     await StepHelper.updateStep(step._id, payload);
 
