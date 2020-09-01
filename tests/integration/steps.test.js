@@ -260,7 +260,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 
 describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
   let authToken = null;
-  const stepId = stepsList[1]._id;
+  const step = stepsList[1];
   const activityId = activitiesList[0]._id;
   beforeEach(populateDB);
 
@@ -272,16 +272,16 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
     it('should detach activity from step', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${stepId.toHexString()}/activities/${activityId.toHexString()}`,
+        url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
-      const stepUpdated = await Step.findById(stepId);
+      const stepUpdated = await Step.findById(step._id);
       const detachedActivity = await Activity.findById(activityId);
 
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated._id).toEqual(stepId);
-      expect(stepUpdated.activities.length).toEqual(0);
+      expect(stepUpdated._id).toEqual(step._id);
+      expect(stepUpdated.activities.length).toEqual(step.activities.length - 1);
       expect(detachedActivity._id).toEqual(activityId);
     });
 
@@ -300,7 +300,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const invalidActivityId = activitiesList[1]._id;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${stepId.toHexString()}/activities/${invalidActivityId.toHexString()}`,
+        url: `/steps/${step._id.toHexString()}/activities/${invalidActivityId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -324,7 +324,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/steps/${stepId.toHexString()}/activities/${activityId.toHexString()}`,
+          url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
