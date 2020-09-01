@@ -74,6 +74,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       }));
     });
 
+    it('should not push a reused activity from the same step', async () => {
+      const payload = { activities: activitiesList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -138,7 +150,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 
         expect(response.statusCode).toBe(200);
         expect(stepUpdated._id).toEqual(stepId);
-        expect(stepUpdated.activities.length).toEqual(1);
+        expect(stepUpdated.activities.length).toEqual(2);
       });
 
       ['name', 'type'].forEach((missingParam) => {

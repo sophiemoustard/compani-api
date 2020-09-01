@@ -7,3 +7,16 @@ exports.authorizeActivityAdd = async (req) => {
 
   return null;
 };
+
+exports.authorizeActivityReuse = async (req) => {
+  const { activities } = req.payload;
+
+  if (activities) {
+    const step = await Step.findOne({ _id: req.params._id });
+    if (!step) throw Boom.notFound();
+
+    if (step.activities.map(a => a.toHexString()).includes(activities)) throw Boom.badRequest();
+  }
+
+  return null;
+};
