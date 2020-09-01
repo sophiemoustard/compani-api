@@ -139,6 +139,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
         { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong character in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
+        { msg: 'line break in content', payload: { text: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
         { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
         { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
         { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },

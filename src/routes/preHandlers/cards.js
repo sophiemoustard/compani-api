@@ -106,7 +106,7 @@ const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !an
 
 const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
 
-const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\s'-]*$/.test(v));
+const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(v));
 
 const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
 
