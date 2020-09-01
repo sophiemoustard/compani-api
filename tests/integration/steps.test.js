@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
 const { populateDB, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
+const Activity = require('../../src/models/Activity');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -248,6 +249,82 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           method: 'POST',
           payload,
           url: `/steps/${step._id.toHexString()}/activities`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
+  let authToken = null;
+  const step = stepsList[1];
+  const activityId = activitiesList[0]._id;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should detach activity from step', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(step._id);
+      const detachedActivity = await Activity.findById(activityId);
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated._id).toEqual(step._id);
+      expect(stepUpdated.activities.length).toEqual(step.activities.length - 1);
+      expect(detachedActivity._id).toEqual(activityId);
+    });
+
+    it('should return a 404 if step does not exist', async () => {
+      const unknownStepId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/steps/${unknownStepId.toHexString()}/activities/${activityId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if step does not contain activity', async () => {
+      const invalidActivityId = activitiesList[1]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/steps/${step._id.toHexString()}/activities/${invalidActivityId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
