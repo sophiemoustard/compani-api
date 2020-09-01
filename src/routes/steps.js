@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeActivityAdd } = require('./preHandlers/steps');
+const { authorizeActivityAdd, authorizeActivityReuse } = require('./preHandlers/steps');
 const { update, addActivity } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
 
@@ -20,6 +20,7 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string(), activities: Joi.objectId() }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeActivityReuse }],
       },
       handler: update,
     });

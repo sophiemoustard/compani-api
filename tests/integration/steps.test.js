@@ -74,6 +74,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       }));
     });
 
+    it('should not push a reused activity from the same step', async () => {
+      const payload = { activities: activitiesList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -118,7 +130,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = { name: 'new activity', type: 'video' };
-  const stepId = stepsList[0]._id;
+  const step = stepsList[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -129,23 +141,23 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       it('should create activity', async () => {
         const response = await app.inject({
           method: 'POST',
-          url: `/steps/${stepId.toHexString()}/activities`,
+          url: `/steps/${step._id.toHexString()}/activities`,
           payload,
           headers: { 'x-access-token': authToken },
         });
 
-        const stepUpdated = await Step.findById(stepId);
+        const stepUpdated = await Step.findById(step._id);
 
         expect(response.statusCode).toBe(200);
-        expect(stepUpdated._id).toEqual(stepId);
-        expect(stepUpdated.activities.length).toEqual(1);
+        expect(stepUpdated._id).toEqual(step._id);
+        expect(stepUpdated.activities.length).toEqual(step.activities.length + 1);
       });
 
       ['name', 'type'].forEach((missingParam) => {
         it('should return a 400 if missing requiered param', async () => {
           const response = await app.inject({
             method: 'POST',
-            url: `/steps/${stepId.toHexString()}/activities`,
+            url: `/steps/${step._id.toHexString()}/activities`,
             payload: omit(payload, missingParam),
             headers: { 'x-access-token': authToken },
           });
@@ -158,7 +170,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const wrongPayload = { ...payload, type: 'something_wrong' };
         const response = await app.inject({
           method: 'POST',
-          url: `/steps/${stepId.toHexString()}/activities`,
+          url: `/steps/${step._id.toHexString()}/activities`,
           payload: wrongPayload,
           headers: { 'x-access-token': authToken },
         });
@@ -172,12 +184,12 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const duplicatedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepId.toHexString()}/activities`,
+        url: `/steps/${step._id.toHexString()}/activities`,
         payload: { activityId: activitiesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
-      const stepUpdated = await Step.findById(stepId)
+      const stepUpdated = await Step.findById(step._id)
         .populate({
           path: 'activities',
           select: '-__v -createdAt -updatedAt',
@@ -187,7 +199,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 
       expect(response.statusCode).toBe(200);
       expect(stepUpdated).toEqual(expect.objectContaining({
-        _id: stepId,
+        _id: step._id,
         name: 'c\'est une étape',
         type: 'on_site',
         activities: expect.arrayContaining([
@@ -235,7 +247,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/steps/${stepId.toHexString()}/activities`,
+          url: `/steps/${step._id.toHexString()}/activities`,
           headers: { 'x-access-token': authToken },
         });
 
