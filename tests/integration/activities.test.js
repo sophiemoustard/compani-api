@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
-const { populateDB, activitiesList } = require('./seed/activitiesSeed');
+const { populateDB, activitiesList, stepsList, subProgramsList, programsList } = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
@@ -58,6 +58,13 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
           backText: 'ceci est un backText',
         }),
         ]),
+        steps: expect.arrayContaining([{
+          _id: stepsList[0]._id,
+          subProgram: {
+            _id: subProgramsList[0]._id,
+            program: { _id: programsList[0]._id, name: 'au programme télévisé' },
+          },
+        }]),
       }));
     });
   });
