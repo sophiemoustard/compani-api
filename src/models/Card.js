@@ -36,6 +36,7 @@ const CardSchema = mongoose.Schema({
     publicId: { type: String },
     link: { type: String, trim: true },
   },
+  gappedText: { type: String },
   question: { type: String },
   qcuGoodAnswer: { type: String },
   falsyAnswers: {

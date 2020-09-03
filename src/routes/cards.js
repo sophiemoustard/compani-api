@@ -28,6 +28,7 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
+            gappedText: Joi.string(),
             question: Joi.string(),
             qcuGoodAnswer: Joi.string(),
             qcmAnswers: Joi.array().items(Joi.object({

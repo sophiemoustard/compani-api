@@ -10,10 +10,10 @@ const {
 } = require('../../helpers/constants');
 
 const checkFillTheGap = (payload, card) => {
-  const { text, falsyAnswers } = payload;
+  const { gappedText, falsyAnswers } = payload;
 
-  if (text) {
-    const { outerAcc, gapAcc } = parseTagCode(text);
+  if (gappedText) {
+    const { outerAcc, gapAcc } = parseTagCode(gappedText);
 
     const validTagging = isValidTagging(outerAcc, gapAcc);
     const validAnswerInTag = isValidAnswerInTag(gapAcc);
