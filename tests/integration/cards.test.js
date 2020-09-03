@@ -27,6 +27,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const singleChoiceQuestionId = cardsList[7]._id;
   const multipleChoiceQuestionId = cardsList[6]._id;
   const surveyId = cardsList[9]._id;
+  const openQuestionId = cardsList[10]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -98,6 +99,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         },
         id: surveyId,
       },
+      { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
     ];
 
     cards.forEach((card) => {
