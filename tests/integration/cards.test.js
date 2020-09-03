@@ -57,7 +57,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       {
         template: 'fill_the_gaps',
         payload: {
-          text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
+          gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
           falsyAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
@@ -134,19 +134,19 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Fill the gaps', () => {
       const requests = [
-        { msg: 'valid text', payload: { text: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
-        { msg: 'no tagging', payload: { text: 'du text sans balise' } },
-        { msg: 'single open tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
-        { msg: 'single closing tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
-        { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
-        { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
-        { msg: 'wrong character in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
-        { msg: 'line break in content', payload: { text: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
+        { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
+        { msg: 'no tagging', payload: { gappedText: 'du text sans balise' } },
+        { msg: 'single open tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
+        { msg: 'single closing tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
+        { msg: 'conflicting tags', payload: { gappedText: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
+        { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
+        { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
+        { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
         { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
         { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
         { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },
         { msg: 'wrong character in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
-        { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
+        { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
         { msg: 'too many falsy answers', payload: { falsyAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
