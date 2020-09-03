@@ -1,4 +1,6 @@
 const { ObjectID } = require('mongodb');
+const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
@@ -39,13 +41,21 @@ const stepsList = [
   { _id: new ObjectID(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
 ];
 
+const subProgramsList = [{ _id: new ObjectID(), name: '2_7_4124', steps: [stepsList[0]._id] }];
+
+const programsList = [{ _id: new ObjectID(), name: 'au programme télévisé', subPrograms: [subProgramsList[0]._id] }];
+
 const populateDB = async () => {
+  await Program.deleteMany({});
+  await SubProgram.deleteMany({});
   await Step.deleteMany({});
   await Activity.deleteMany({});
   await Card.deleteMany({});
 
   await populateDBForAuthentication();
 
+  await Program.insertMany(programsList);
+  await SubProgram.insertMany(subProgramsList);
   await Step.insertMany(stepsList);
   await Activity.insertMany(activitiesList);
   await Card.insertMany(cardsList);
@@ -56,4 +66,6 @@ module.exports = {
   cardsList,
   activitiesList,
   stepsList,
+  subProgramsList,
+  programsList,
 };

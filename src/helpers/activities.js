@@ -6,6 +6,11 @@ const Card = require('../models/Card');
 
 exports.getActivity = async activityId => Activity.findOne({ _id: activityId })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+  .populate({
+    path: 'steps',
+    select: '_id -activities',
+    populate: { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+  })
   .lean();
 
 exports.updateActivity = async (activityId, payload) => Activity.updateOne({ _id: activityId }, { $set: payload });

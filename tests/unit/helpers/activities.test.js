@@ -25,6 +25,16 @@ describe('getActivity', () => {
       .withExactArgs({ _id: activity._id })
       .chain('populate')
       .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'steps',
+        select: '_id -activities',
+        populate: {
+          path: 'subProgram',
+          select: '_id -steps',
+          populate: { path: 'program', select: 'name -subPrograms' },
+        },
+      })
       .chain('lean')
       .once()
       .returns(activity);
