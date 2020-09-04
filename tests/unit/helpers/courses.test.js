@@ -311,7 +311,11 @@ describe('getTraineeCourse', () => {
         select: 'program steps',
         populate: [
           { path: 'program', select: 'name image' },
-          { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type' } },
+          {
+            path: 'steps',
+            select: 'name type activities',
+            populate: { path: 'activities', select: 'name type cards' },
+          },
         ],
       })
       .chain('populate')

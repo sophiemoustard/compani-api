@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const { authorizeCardAdd } = require('./preHandlers/activities');
 const { getById, update, addCard } = require('../controllers/activityController');
 const { CARD_TEMPLATES } = require('../models/Card');
 
@@ -15,7 +16,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['programs:read'] },
+        auth: { mode: 'required' },
       },
       handler: getById,
     });
@@ -42,6 +43,7 @@ exports.plugin = {
           payload: Joi.object({ template: Joi.string().required().valid(...CARD_TEMPLATES) }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardAdd }],
       },
       handler: addCard,
     });

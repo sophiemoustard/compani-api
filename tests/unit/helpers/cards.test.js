@@ -25,7 +25,6 @@ describe('addCard', () => {
 
   it('should create an transition card', async () => {
     const cardId = new ObjectID();
-    ActivityMock.expects('countDocuments').withExactArgs({ _id: activity._id }).returns(1);
 
     CardMock.expects('create').withExactArgs(newCard).returns({ _id: cardId });
 
@@ -35,20 +34,6 @@ describe('addCard', () => {
 
     CardMock.verify();
     ActivityMock.verify();
-  });
-
-  it('should return an error if activity does not exist', async () => {
-    try {
-      ActivityMock.expects('countDocuments').withExactArgs({ _id: activity._id }).returns(0);
-
-      CardMock.expects('create').never();
-      ActivityMock.expects('updateOne').never();
-
-      await CardHelper.addCard(activity._id, newCard);
-    } catch (e) {
-      CardMock.verify();
-      ActivityMock.verify();
-    }
   });
 });
 
@@ -68,6 +53,26 @@ describe('updateCard', () => {
   it('should update card', async () => {
     await CardHelper.updateCard(cardId, payload);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $set: payload });
+  });
+});
+
+describe('removeCard', () => {
+  let updateOneActivity;
+  let deleteOneCard;
+  beforeEach(() => {
+    updateOneActivity = sinon.stub(Activity, 'updateOne');
+    deleteOneCard = sinon.stub(Card, 'deleteOne');
+  });
+  afterEach(() => {
+    updateOneActivity.restore();
+    deleteOneCard.restore();
+  });
+
+  it('should delete card', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.removeCard(cardId);
+    sinon.assert.calledOnceWithExactly(updateOneActivity, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(deleteOneCard, { _id: cardId });
   });
 });
 

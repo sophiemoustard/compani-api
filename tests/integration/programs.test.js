@@ -133,7 +133,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        steps: expect.arrayContaining([expect.any(ObjectID)]),
         subPrograms: [
           {
             name: 'c\'est un sous-programme',
@@ -298,7 +297,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
   });
 

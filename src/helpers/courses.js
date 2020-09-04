@@ -96,7 +96,7 @@ exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
     select: 'program steps',
     populate: [
       { path: 'program', select: 'name image' },
-      { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type' } },
+      { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type cards' } },
     ],
   })
   .populate({ path: 'slots', select: 'startDate endDate step address' })
