@@ -38,55 +38,6 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
-    it('should push a reused activity', async () => {
-      const payload = { activities: activitiesList[0]._id };
-      const reusedActivityId = activitiesList[0]._id;
-      const reusedCardId = cardsList[0]._id;
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      const stepUpdated = await Step.findById(stepId)
-        .populate({
-          path: 'activities',
-          select: '-__v -createdAt -updatedAt',
-          populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
-        })
-        .lean();
-
-      expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({
-        _id: stepId,
-        name: 'c\'est une étape',
-        type: 'on_site',
-        activities: expect.arrayContaining([
-          {
-            _id: reusedActivityId,
-            type: 'lesson',
-            name: 'chanter',
-            cards: expect.arrayContaining([
-              { _id: reusedCardId, template: 'transition', title: 'do mi sol do' },
-            ]),
-          },
-        ]),
-      }));
-    });
-
-    it('should not push a reused activity from the same step', async () => {
-      const payload = { activities: activitiesList[1]._id };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -249,6 +200,106 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           method: 'POST',
           payload,
           url: `/steps/${step._id.toHexString()}/activities`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const stepId = stepsList[0]._id;
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should push a reused activity', async () => {
+      const payload = { activities: activitiesList[0]._id };
+      const reusedActivityId = activitiesList[0]._id;
+      const reusedCardId = cardsList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(stepId)
+        .populate({
+          path: 'activities',
+          select: '-__v -createdAt -updatedAt',
+          populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
+        })
+        .lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated).toEqual(expect.objectContaining({
+        _id: stepId,
+        name: 'c\'est une étape',
+        type: 'on_site',
+        activities: expect.arrayContaining([
+          {
+            _id: reusedActivityId,
+            type: 'lesson',
+            name: 'chanter',
+            cards: expect.arrayContaining([
+              { _id: reusedCardId, template: 'transition', title: 'do mi sol do' },
+            ]),
+          },
+        ]),
+      }));
+    });
+
+    it('should not push a reused activity from the same step', async () => {
+      const payload = { activities: activitiesList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should not push an invalid activityid', async () => {
+      const payload = { activities: (new ObjectID()).toHexString() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const payload = { activities: activitiesList[0]._id };
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          payload,
+          url: `/steps/${stepId.toHexString()}/activities`,
           headers: { 'x-access-token': authToken },
         });
 
