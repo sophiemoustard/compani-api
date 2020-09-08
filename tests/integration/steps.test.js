@@ -53,6 +53,17 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
     });
 
+    it('should return a 400 if payload is empty', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',

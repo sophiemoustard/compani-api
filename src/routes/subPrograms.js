@@ -18,7 +18,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             steps: Joi.array().items(Joi.string()).min(1),
-          }),
+          }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeSubProgramUpdate }],
