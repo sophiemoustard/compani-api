@@ -3,12 +3,14 @@ const GetStream = require('get-stream');
 const sinon = require('sinon');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, cardsList } = require('./seed/cardsSeed');
+const { populateDB, cardsList, cardActivity } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
+const Activity = require('../../src/models/Activity');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -22,6 +24,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const transitionId = cardsList[0]._id;
   const fillTheGapId = cardsList[5]._id;
   const orderTheSequenceId = cardsList[8]._id;
+  const singleChoiceQuestionId = cardsList[7]._id;
+  const multipleChoiceQuestionId = cardsList[6]._id;
+  const surveyId = cardsList[9]._id;
+  const openQuestionId = cardsList[10]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -51,8 +57,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       {
         template: 'fill_the_gaps',
         payload: {
-          text: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          answers: [{ label: 'le papa' }, { label: 'la maman' }, { label: 'le papi' }],
+          gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
+          falsyAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -66,6 +72,34 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         },
         id: orderTheSequenceId,
       },
+      {
+        template: 'single_choice_question',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          qcuGoodAnswer: 'plein de trucs',
+          falsyAnswers: ['rien', 'des trucs', 'ou pas'],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: singleChoiceQuestionId,
+      },
+      {
+        template: 'multiple_choice_question',
+        payload: {
+          question: 'Que faire dans cette situation ?',
+          qcmAnswers: [{ label: 'un truc', correct: true }, { label: 'rien', correct: false }],
+          explanation: 'en fait on doit faire ça',
+        },
+        id: singleChoiceQuestionId,
+      },
+      {
+        template: 'survey',
+        payload: {
+          question: 'Sur une échelle de 1 à 10 ?',
+          label: { left: '1', right: '10' },
+        },
+        id: surveyId,
+      },
+      { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
     ];
 
     cards.forEach((card) => {
@@ -100,18 +134,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Fill the gaps', () => {
       const requests = [
-        { msg: 'valid text', payload: { text: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
-        { msg: 'no tagging', payload: { text: 'du text sans balise' } },
-        { msg: 'single open tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
-        { msg: 'single closing tag', payload: { text: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
-        { msg: 'conflicting tags', payload: { text: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
-        { msg: 'long content', payload: { text: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
-        { msg: 'wrong caractere in content', payload: { text: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { answers: [{ label: 'la maman' }, { label: 'le tonton' }] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { answers: [{ label: 'la maman' }] } },
-        { msg: 'long answer', payload: { answers: [{ label: 'la maman' }, { label: 'more then 15 caracteres' }] } },
-        { msg: 'wrong caractere in answer', payload: { answers: [{ label: 'la maman' }, { label: 'c\'est tout.' }] } },
-        { msg: 'spaces around answer', payload: { text: 'on truc <trou> test</trou>propre' } },
+        { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
+        { msg: 'no tagging', payload: { gappedText: 'du text sans balise' } },
+        { msg: 'single open tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
+        { msg: 'single closing tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
+        { msg: 'conflicting tags', payload: { gappedText: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
+        { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
+        { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
+        { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
+        { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
+        { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
+        { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },
+        { msg: 'wrong character in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
+        { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
+        { msg: 'too many falsy answers', payload: { falsyAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
@@ -131,7 +167,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     describe('Order the sequence', () => {
       const requests = [
         { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
-        { msg: 'remove one of the 2 existing ordered answers', payload: { answers: ['en fait si'] } },
+        { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
       ];
 
       requests.forEach((request) => {
@@ -144,6 +180,77 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           });
 
           expect(response.statusCode).toBe(request.passing ? 200 : 400);
+        });
+      });
+    });
+
+    describe('Single choice question', () => {
+      const requests = [
+        { msg: 'valid answers', payload: { falsyAnswers: ['toto'] }, code: 200 },
+        { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
+        { msg: 'too many answer', payload: { falsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${singleChoiceQuestionId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('Multiple choice question', () => {
+      const requests = [
+        { msg: 'valid answers',
+          payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
+          code: 200 },
+        { msg: 'missing label', payload: { qcmAnswers: [{ correct: true }] }, code: 400 },
+        { msg: 'missing correct', payload: { qcmAnswers: [{ label: 'et la bête' }] }, code: 400 },
+        {
+          msg: 'missing correct answer',
+          payload: { qcmAnswers: [{ label: 'époque', correct: false }, { label: 'et le clochard', correct: false }] },
+          code: 400,
+        },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${multipleChoiceQuestionId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('Survey', () => {
+      const requests = [
+        { msg: 'Left label is too long', payload: { label: { left: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Right label is too long', payload: { label: { right: 'Je suis un très long message' } }, code: 400 },
+        { msg: 'Unset left label', payload: { label: { left: '' } }, code: 200 },
+        { msg: 'Unset right label', payload: { label: { right: '' } }, code: 200 },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${surveyId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
         });
       });
     });
@@ -167,6 +274,69 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           method: 'PUT',
           payload,
           url: `/cards/${transitionId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete card', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${cardActivity.cards[0].toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardDeleted = await Card.findById(cardsList[0]._id).lean();
+      expect(cardDeleted).toBeNull();
+
+      const activity = await Activity.findById(cardActivity._id).lean();
+      expect(activity.cards.length).toEqual(cardActivity.cards.length - 1);
+      expect(activity.cards.includes(cardActivity.cards[0])).toBeFalsy();
+    });
+
+    it('should return 404 if card not found', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${(new ObjectID()).toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${cardActivity.cards[0].toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

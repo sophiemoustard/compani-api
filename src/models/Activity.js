@@ -9,5 +9,11 @@ const ActivitySchema = mongoose.Schema({
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
 }, { timestamps: true });
 
+ActivitySchema.virtual('steps', {
+  ref: 'Step',
+  localField: '_id',
+  foreignField: 'activities',
+});
+
 module.exports = mongoose.model('Activity', ActivitySchema);
 module.exports.ACTIVITY_TYPES = ACTIVITY_TYPES;

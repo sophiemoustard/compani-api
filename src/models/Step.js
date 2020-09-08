@@ -9,5 +9,12 @@ const StepSchema = mongoose.Schema({
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
 }, { timestamps: true });
 
+StepSchema.virtual('subProgram', {
+  ref: 'SubProgram',
+  localField: '_id',
+  foreignField: 'steps',
+  justOne: true,
+});
+
 module.exports = mongoose.model('Step', StepSchema);
 module.exports.STEP_TYPES = STEP_TYPES;

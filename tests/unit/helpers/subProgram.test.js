@@ -24,7 +24,6 @@ describe('addSubProgram', () => {
   const newSubProgram = { name: 'nouveau sous programme' };
   it('should create a subProgram', async () => {
     const subProgramId = new ObjectID();
-    ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(1);
 
     SubProgramMock.expects('create').withExactArgs(newSubProgram).returns({ _id: subProgramId });
 
@@ -34,20 +33,6 @@ describe('addSubProgram', () => {
 
     ProgramMock.verify();
     SubProgramMock.verify();
-  });
-
-  it('should return an error if program does not exist', async () => {
-    try {
-      ProgramMock.expects('countDocuments').withExactArgs({ _id: program._id }).returns(0);
-
-      SubProgramMock.expects('create').never();
-      ProgramMock.expects('updateOne').never();
-
-      await SubProgramHelper.addSubProgram(program._id, newSubProgram);
-    } catch (e) {
-      ProgramMock.verify();
-      SubProgramMock.verify();
-    }
   });
 });
 

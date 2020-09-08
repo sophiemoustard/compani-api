@@ -16,14 +16,14 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const subProgramId = subProgramsList[0]._id;
-  const payload = { name: 'un autre nom pour le sous-programme' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update subProgram', async () => {
+    it('should update subProgram name', async () => {
+      const payload = { name: 'un autre nom pour le sous-programme' };
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${subProgramId.toHexString()}`,
@@ -37,11 +37,49 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, name: payload.name }));
     });
 
+    it('should update subProgram steps', async () => {
+      const payload = { steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, steps: payload.steps }));
+    });
+
     it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${subProgramId.toHexString()}`,
         payload: { name: '' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if steps is empty', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: { steps: [] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if step is not from subprogram', async () => {
+      const payload = { steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramsList[1]._id.toHexString()}`,
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
@@ -62,6 +100,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { name: 'un autre nom pour le sous-programme' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
@@ -127,7 +166,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -150,6 +189,82 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
           method: 'POST',
           payload,
           url: `/subprograms/${subProgramId.toHexString()}/steps`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should detach step from subprogram', async () => {
+      const subProgramId = subProgramsList[0]._id;
+      const stepsLengthBefore = subProgramsList[0].steps.length;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      await SubProgram.findById(subProgramId);
+
+      expect(response.statusCode).toBe(200);
+      const subProgramUpdated = await SubProgram.findOne({ _id: subProgramId }).lean();
+      expect(subProgramUpdated.steps.length).toEqual(stepsLengthBefore - 1);
+      expect(subProgramUpdated.steps.some(step => step._id === subProgramsList[0].steps[0]._id)).toBeFalsy();
+    });
+
+    it('should return a 404 if subprogram does not exist', async () => {
+      const invalidId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${invalidId}/steps/${subProgramsList[0].steps[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if subprogram does not contain step', async () => {
+      const invalidId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${subProgramsList[0]._id}/steps/${invalidId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const subProgramId = subProgramsList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 

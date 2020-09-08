@@ -23,9 +23,7 @@ const update = async (req) => {
   try {
     await ActivityHelper.updateActivity(req.params._id, req.payload);
 
-    return {
-      message: translate[language].activityUpdated,
-    };
+    return { message: translate[language].activityUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -36,9 +34,7 @@ const addCard = async (req) => {
   try {
     await CardHelper.addCard(req.params._id, req.payload);
 
-    return {
-      message: translate[language].activityUpdated,
-    };
+    return { message: translate[language].activityUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

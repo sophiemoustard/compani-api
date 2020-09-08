@@ -33,10 +33,9 @@ const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
-    steps: [stepsList[0]._id, stepsList[1]._id],
     subPrograms: [subProgramsList[0]._id],
   },
-  { _id: new ObjectID(), name: 'training program', steps: [stepsList[2]._id] },
+  { _id: new ObjectID(), name: 'training program' },
 ];
 
 const populateDB = async () => {

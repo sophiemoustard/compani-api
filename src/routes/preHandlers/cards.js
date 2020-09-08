@@ -1,12 +1,19 @@
 const Boom = require('@hapi/boom');
 const Card = require('../../models/Card');
-const { FILL_THE_GAPS, ORDER_THE_SEQUENCE } = require('../../helpers/constants');
+const {
+  FILL_THE_GAPS,
+  ORDER_THE_SEQUENCE,
+  SINGLE_CHOICE_QUESTION,
+  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
+  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
+  MULTIPLE_CHOICE_QUESTION,
+} = require('../../helpers/constants');
 
 const checkFillTheGap = (payload, card) => {
-  const { text, answers } = payload;
+  const { gappedText, falsyAnswers } = payload;
 
-  if (text) {
-    const { outerAcc, gapAcc } = parseTagCode(text);
+  if (gappedText) {
+    const { outerAcc, gapAcc } = parseTagCode(gappedText);
 
     const validTagging = isValidTagging(outerAcc, gapAcc);
     const validAnswerInTag = isValidAnswerInTag(gapAcc);
@@ -16,15 +23,23 @@ const checkFillTheGap = (payload, card) => {
 
     if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
       !validAnswerInTag) return Boom.badRequest();
-  } else if (answers) {
-    if (answers.length === 1 && card.answers.length > 1) return Boom.badRequest();
+  } else if (falsyAnswers) {
+    if (falsyAnswers.length === 1 && card.falsyAnswers.length > 1) return Boom.badRequest();
+    if (falsyAnswers.length > FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.badRequest();
 
-    const answersLabel = answers.map(a => a.label);
-    const validAnswersCaracters = isValidAnswersCaracters(answersLabel);
-    const validAnswersLength = isValidAnswersLength(answersLabel);
+    const validAnswersCaracters = isValidAnswersCaracters(falsyAnswers);
+    const validAnswersLength = isValidAnswersLength(falsyAnswers);
 
     if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
   }
+
+  return null;
+};
+
+const checkSingleChoiceQuestion = (payload) => {
+  const { falsyAnswers } = payload;
+
+  if (falsyAnswers && falsyAnswers.length > SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT) return Boom.badRequest();
 
   return null;
 };
@@ -36,6 +51,18 @@ const checkOrderTheSequence = (payload, card) => {
   return null;
 };
 
+const checkMultipleChoiceQuestion = (payload, card) => {
+  const { qcmAnswers } = payload;
+
+  if (qcmAnswers) {
+    const noCorrectAnswer = !qcmAnswers.find(ans => ans.correct);
+    const removeRequiredAnswer = qcmAnswers.length === 1 && card.qcmAnswers.length > 1;
+    if (removeRequiredAnswer || noCorrectAnswer) return Boom.badRequest();
+  }
+
+  return null;
+};
+
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
@@ -43,11 +70,22 @@ exports.authorizeCardUpdate = async (req) => {
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
+    case SINGLE_CHOICE_QUESTION:
+      return checkSingleChoiceQuestion(req.payload);
     case ORDER_THE_SEQUENCE:
       return checkOrderTheSequence(req.payload, card);
+    case MULTIPLE_CHOICE_QUESTION:
+      return checkMultipleChoiceQuestion(req.payload, card);
     default:
       return null;
   }
+};
+
+exports.authorizeCardDeletion = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id }).lean();
+  if (!card) throw Boom.notFound();
+
+  return null;
 };
 
 // fill the gap validation
@@ -68,7 +106,7 @@ const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !an
 
 const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
 
-const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\s'-]*$/.test(v));
+const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(v));
 
 const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
 

@@ -2,7 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, addStep } = require('../controllers/subProgramController');
+const { authorizeStepDetachment, authorizeStepAdd, authorizeSubProgramUpdate } = require('./preHandlers/subPrograms');
+const { update, addStep, detachStep } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
 
 exports.plugin = {
@@ -14,9 +15,13 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ name: Joi.string().required() }),
+          payload: Joi.object({
+            name: Joi.string(),
+            steps: Joi.array().items(Joi.string()).min(1),
+          }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeSubProgramUpdate }],
       },
       handler: update,
     });
@@ -30,8 +35,22 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeStepAdd }],
       },
       handler: addStep,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/steps/{stepId}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), stepId: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeStepDetachment }],
+      },
+      handler: detachStep,
     });
   },
 };

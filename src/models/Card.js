@@ -9,6 +9,8 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  OPEN_QUESTION,
+  SURVEY,
 } = require('../helpers/constants');
 
 const CARD_TEMPLATES = [
@@ -21,6 +23,8 @@ const CARD_TEMPLATES = [
   MULTIPLE_CHOICE_QUESTION,
   SINGLE_CHOICE_QUESTION,
   ORDER_THE_SEQUENCE,
+  OPEN_QUESTION,
+  SURVEY,
 ];
 
 const CardSchema = mongoose.Schema({
@@ -32,35 +36,48 @@ const CardSchema = mongoose.Schema({
     publicId: { type: String },
     link: { type: String, trim: true },
   },
-  answers: {
-    type: [mongoose.Schema({ label: { type: String } }, { _id: false })],
+  gappedText: { type: String },
+  question: { type: String },
+  qcuGoodAnswer: { type: String },
+  falsyAnswers: {
+    type: [String],
+    default: undefined,
+  },
+  qcmAnswers: {
+    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false })],
     default: undefined,
   },
   explanation: { type: String },
-  question: { type: String },
   orderedAnswers: {
     type: [String],
     default: undefined,
   },
+  label: mongoose.Schema({
+    right: { type: String },
+    left: { type: String },
+  }, { default: undefined, _id: false }),
 }, { timestamps: true });
 
-async function save(next) {
-  try {
-    if (this.isNew) {
-      switch (this.template) {
-        case FILL_THE_GAPS:
-          this.answers = [];
-          break;
-        case ORDER_THE_SEQUENCE:
-          this.orderedAnswers = [];
-          break;
-      }
+function save(next) {
+  if (this.isNew) {
+    switch (this.template) {
+      case FILL_THE_GAPS:
+      case SINGLE_CHOICE_QUESTION:
+        this.falsyAnswers = [];
+        break;
+      case ORDER_THE_SEQUENCE:
+        this.orderedAnswers = [];
+        break;
+      case MULTIPLE_CHOICE_QUESTION:
+        this.qcmAnswers = [];
+        break;
+      case SURVEY:
+        this.label = {};
+        break;
     }
-
-    return next();
-  } catch (e) {
-    return next(e);
   }
+
+  return next();
 }
 
 CardSchema.pre('save', save);
