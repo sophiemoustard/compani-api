@@ -38,11 +38,50 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
+    it('should update activities', async () => {
+      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(stepId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
+    });
+
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload: { name: '' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if lengths are not equal', async () => {
+      const payload = { activities: [stepsList[0].activities[1]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if actvities from payload and from db are not the same', async () => {
+      const payload = { activities: [stepsList[0].activities[1], new ObjectID()] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}`,
+        payload,
         headers: { 'x-access-token': authToken },
       });
 

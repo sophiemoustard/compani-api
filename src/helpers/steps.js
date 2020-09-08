@@ -1,10 +1,7 @@
-const omit = require('lodash/omit');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 
-exports.updateStep = async (stepId, payload) => {
-  await Step.updateOne({ _id: stepId }, { $set: omit(payload, ['activities']) });
-};
+exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 
 exports.addStep = async (subProgramId, payload) => {
   const step = await Step.create(payload);

@@ -7,16 +7,23 @@ const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'do mi sol do' },
+  { _id: new ObjectID(), template: 'fill_the_gaps' },
 ];
 
 const activitiesList = [
   { _id: new ObjectID(), type: 'lesson', name: 'chanter', cards: [cardsList[0]] },
   { _id: new ObjectID(), type: 'video', name: 'gater le coin', cards: [cardsList[0]] },
+  { _id: new ObjectID(), type: 'lesson', name: 'douche', cards: [cardsList[1]] },
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), type: 'on_site', name: 'c\'est une étape', activities: [activitiesList[1]] },
-  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape', activities: [activitiesList[0]] },
+  {
+    _id: new ObjectID(),
+    type: 'on_site',
+    name: 'c\'est une étape',
+    activities: [activitiesList[1]._id, activitiesList[2]._id],
+  },
+  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), type: 'e_learning', name: 'encore une étape' },
 ];
 
