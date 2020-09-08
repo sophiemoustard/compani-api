@@ -22,10 +22,10 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.alternatives().try(
-            Joi.object({ name: Joi.string() }),
-            Joi.object({ activities: Joi.array().items(Joi.objectId()) })
-          ),
+          payload: Joi.object({
+            name: Joi.string(),
+            activities: Joi.array().items(Joi.objectId()),
+          }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeStepUpdate }],
