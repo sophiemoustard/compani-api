@@ -2,10 +2,14 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeActivityAdd, authorizeActivityReuse } = require('./preHandlers/steps');
-const { update, addActivity, detachActivity } = require('../controllers/stepController');
+const {
+  authorizeActivityAdd,
+  authorizeActivityReuse,
+  authorizeActivityDetachment,
+  authorizeStepUpdate,
+} = require('./preHandlers/steps');
+const { update, addActivity, detachActivity, reuseActivity } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
-const { authorizeActivityDetachment } = require('./preHandlers/steps');
 
 const activityIdExists = { is: Joi.exist(), then: Joi.forbidden(), otherwise: Joi.required() };
 
@@ -18,10 +22,13 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ name: Joi.string(), activities: Joi.objectId() }),
+          payload: Joi.object({
+            name: Joi.string(),
+            activities: Joi.array().items(Joi.objectId()),
+          }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeActivityReuse }],
+        pre: [{ method: authorizeStepUpdate }],
       },
       handler: update,
     });
@@ -42,6 +49,22 @@ exports.plugin = {
         pre: [{ method: authorizeActivityAdd }],
       },
       handler: addActivity,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/activities',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            activities: Joi.objectId().required(),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeActivityReuse }],
+      },
+      handler: reuseActivity,
     });
 
     server.route({
