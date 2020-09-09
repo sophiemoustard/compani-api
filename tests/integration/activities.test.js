@@ -108,7 +108,6 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
-  const payload = { name: 'rigoler' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -116,6 +115,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
     });
 
     it('should update activity\'s name', async () => {
+      const payload = { name: 'rigoler' };
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
@@ -129,11 +129,68 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
+    it('should update cards', async () => {
+      const payload = {
+        cards: [
+          activitiesList[0].cards[1],
+          activitiesList[0].cards[0],
+          activitiesList[0].cards[2],
+          activitiesList[0].cards[3],
+        ],
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activityId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const activityUpdated = await Activity.findById(activityId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, cards: payload.cards }));
+    });
+
+    it('should return a 400 if payload is empty', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activityId.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload: { name: '' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if lengths are not equal', async () => {
+      const payload = { cards: [activitiesList[0].cards[1]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activityId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if actvities from payload and from db are not the same', async () => {
+      const payload = { cards: [activitiesList[0].cards[1], new ObjectID()] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activityId.toHexString()}`,
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
@@ -154,6 +211,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { name: 'rigoler' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',

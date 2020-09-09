@@ -52,6 +52,17 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, steps: payload.steps }));
     });
 
+    it('should return a 400 if payload is empty', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',

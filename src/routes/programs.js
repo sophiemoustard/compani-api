@@ -64,7 +64,7 @@ exports.plugin = {
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
             }),
-          }),
+          }).min(1),
         },
         auth: { scope: ['programs:edit'] },
       },
