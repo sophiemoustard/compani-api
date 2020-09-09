@@ -194,7 +194,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const stepUpdated = await Step.findById(step._id)
         .populate({
           path: 'activities',
-          select: '-__v -createdAt -updatedAt',
+          select: '-__v -createdAt -updatedAt -status',
           populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
         })
         .lean();
@@ -204,6 +204,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         _id: step._id,
         name: 'c\'est une étape',
         type: 'on_site',
+        status: 'draft',
         activities: expect.arrayContaining([
           {
             _id: expect.any(ObjectID),
@@ -283,7 +284,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       const stepUpdated = await Step.findById(stepId)
         .populate({
           path: 'activities',
-          select: '-__v -createdAt -updatedAt',
+          select: '-__v -createdAt -updatedAt -status',
           populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
         })
         .lean();
@@ -293,6 +294,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         _id: stepId,
         name: 'c\'est une étape',
         type: 'on_site',
+        status: 'draft',
         activities: expect.arrayContaining([
           {
             _id: reusedActivityId,
