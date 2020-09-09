@@ -4,7 +4,7 @@ const { DRAFT, STATUS_TYPE } = require('../helpers/constants');
 const SubProgramSchema = mongoose.Schema({
   name: { type: String, required: true },
   steps: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Step' }],
-  status: { type: String, required: true, default: DRAFT, enum: STATUS_TYPE },
+  status: { type: String, default: DRAFT, enum: STATUS_TYPE },
 }, { timestamps: true });
 
 SubProgramSchema.virtual('program', {

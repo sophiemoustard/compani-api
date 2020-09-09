@@ -8,7 +8,7 @@ const StepSchema = mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, required: true, enum: STEP_TYPES },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
-  status: { type: String, required: true, default: DRAFT, enum: STATUS_TYPE },
+  status: { type: String, default: DRAFT, enum: STATUS_TYPE },
 }, { timestamps: true });
 
 StepSchema.virtual('subProgram', {

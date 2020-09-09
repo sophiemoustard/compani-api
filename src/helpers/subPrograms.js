@@ -16,7 +16,7 @@ exports.updateSubProgram = async (subProgramId, payload) => {
     .populate({ path: 'steps', select: 'activities' })
     .lean();
 
-  await Step.updateMany({ _id: subProgram.steps.map(step => step._id) }, { status: payload.status });
+  await Step.updateMany({ _id: { $in: subProgram.steps.map(step => step._id) } }, { status: payload.status });
   const activities = subProgram.steps.map(step => step.activities).flat();
-  return Activity.updateMany({ _id: activities }, { status: payload.status });
+  return Activity.updateMany({ _id: { $in: activities } }, { status: payload.status });
 };

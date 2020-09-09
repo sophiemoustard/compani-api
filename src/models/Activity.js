@@ -7,7 +7,7 @@ const ActivitySchema = mongoose.Schema({
   name: { type: String, required: true },
   type: { type: String, required: true, enum: ACTIVITY_TYPES },
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
-  status: { type: String, required: true, default: DRAFT, enum: STATUS_TYPE },
+  status: { type: String, default: DRAFT, enum: STATUS_TYPE },
 }, { timestamps: true });
 
 ActivitySchema.virtual('steps', {

@@ -87,9 +87,9 @@ describe('updatedSubProgram', () => {
 
     sinon.assert.calledWithExactly(
       stepUpdateManyStub,
-      { _id: subProgram.steps }, { status: payload.status }
+      { _id: { $in: subProgram.steps } }, { status: payload.status }
     );
-    sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: activities }, { status: payload.status });
+    sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: { $in: activities } }, { status: payload.status });
     SubProgramMock.verify();
   });
 });

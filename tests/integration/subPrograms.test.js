@@ -111,6 +111,17 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return a 400 if tryinig to update status and name at the same time', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: { name: 'new name', status: 'draft' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 403 if trying to update a subprogram with status published', async () => {
       const response = await app.inject({
         method: 'PUT',
