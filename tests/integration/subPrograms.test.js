@@ -63,6 +63,21 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should update subProgram status', async () => {
+      const payload = { status: 'published' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+    });
+
     it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -83,6 +98,28 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if status is not a status type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: { status: 'qwertyuiop' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 403 if trying to update a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramsList[2]._id.toHexString()}`,
+        payload: { name: 'qwertyuiop' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 400 if step is not from subprogram', async () => {
