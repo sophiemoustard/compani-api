@@ -34,7 +34,7 @@ exports.authenticate = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: user.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+  return { token, refreshToken: user.refreshToken, user: tokenPayload };
 };
 
 exports.refreshToken = async (payload) => {
@@ -44,7 +44,7 @@ exports.refreshToken = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: payload.refreshToken, expiresIn: TOKEN_EXPIRE_TIME, user: tokenPayload };
+  return { token, refreshToken: payload.refreshToken, user: tokenPayload };
 };
 
 exports.formatQueryForUsersList = async (query) => {
