@@ -118,12 +118,7 @@ describe('authenticate', () => {
 
     const result = await UsersHelper.authenticate(payload);
 
-    expect(result).toEqual({
-      token: 'token',
-      refreshToken: user.refreshToken,
-      expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString() },
-    });
+    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
     UserMock.verify();
     sinon.assert.calledWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledWithExactly(
@@ -179,12 +174,7 @@ describe('refreshToken', () => {
 
     const result = await UsersHelper.refreshToken(payload);
 
-    expect(result).toEqual({
-      token: 'token',
-      refreshToken: 'token',
-      expiresIn: TOKEN_EXPIRE_TIME,
-      user: { _id: user._id.toHexString() },
-    });
+    expect(result).toEqual({ token: 'token', refreshToken: 'token', user: { _id: user._id.toHexString() } });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
   });

@@ -236,7 +236,6 @@ describe('POST /users/authenticate', () => {
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
       refreshToken: expect.any(String),
-      expiresIn: expect.any(Number),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
   });
