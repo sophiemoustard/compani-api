@@ -501,5 +501,7 @@ module.exports = {
     courseSlotDeleted: 'Créneau de formation supprimé.',
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
+    /* Activities */
+    activityHistoryCreated: 'L\'historique d\'activité à été créé.',
   },
 };
