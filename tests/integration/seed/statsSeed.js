@@ -106,6 +106,13 @@ const sectorHistoryList = [{
   sector: sectorList[0]._id,
   company: authCompany._id,
   startDate: '2019-05-12T23:00:00.000+00:00',
+  endDate: '2020-02-12T22:59:00.000+00:00',
+},
+{
+  auxiliary: userList[1]._id,
+  sector: sectorList[1]._id,
+  company: authCompany._id,
+  startDate: '2020-02-12T23:00:00.000+00:00',
 }];
 
 const serviceList = [{
