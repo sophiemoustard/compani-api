@@ -211,7 +211,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         sectors: { $push: '$customer.sector' },
       },
     },
-    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', -1] } } },
+    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', 0] } } },
     { $lookup: { from: 'sectors', as: 'customer.sector', foreignField: '_id', localField: 'customer.sector.sector' } },
     { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
   ];
