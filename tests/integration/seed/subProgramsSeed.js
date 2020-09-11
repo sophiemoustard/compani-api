@@ -12,7 +12,7 @@ const stepsList = [
 const subProgramsList = [
   { _id: new ObjectID(), name: 'subProgram 1', steps: [stepsList[0]._id, stepsList[1]._id] },
   { _id: new ObjectID(), name: 'subProgram 2', steps: [] },
-  { _id: new ObjectID(), name: 'subProgram 2', steps: [], status: 'published' },
+  { _id: new ObjectID(), name: 'subProgram 3', status: 'published', steps: [stepsList[0]._id] },
 ];
 
 const programsList = [

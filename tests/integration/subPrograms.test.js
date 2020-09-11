@@ -227,6 +227,17 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 403 if trying to add step to a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/subprograms/${subProgramsList[2]._id.toHexString()}/steps`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -257,7 +268,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
   });
 });
 
-describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
+describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -303,6 +314,16 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if trying to remove step to a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${subProgramsList[2]._id}/steps/${subProgramsList[2].steps[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

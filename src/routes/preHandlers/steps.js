@@ -21,7 +21,7 @@ exports.authorizeStepUpdate = async (req) => {
 };
 
 exports.authorizeActivityAdd = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id });
+  const step = await Step.findOne({ _id: req.params._id }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
 
@@ -29,7 +29,7 @@ exports.authorizeActivityAdd = async (req) => {
 };
 
 exports.authorizeActivityReuse = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id });
+  const step = await Step.findOne({ _id: req.params._id }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
 
