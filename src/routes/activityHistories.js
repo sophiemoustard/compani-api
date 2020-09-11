@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { addActivityHistory } = require('../controllers/activityHistoryController');
+const { authorizeAddActivityHistory } = require('./preHandlers/activityHistories');
 
 exports.plugin = {
   name: 'routes-activity-histories',
@@ -15,10 +16,10 @@ exports.plugin = {
           payload: Joi.object({
             user: Joi.objectId().required(),
             activity: Joi.objectId().required(),
-            date: Joi.date(),
           }),
         },
-        auth: { scope: ['programs:edit'] },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeAddActivityHistory }],
       },
       handler: addActivityHistory,
     });

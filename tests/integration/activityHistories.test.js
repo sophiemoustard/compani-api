@@ -1,6 +1,11 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, activityHistoriesList } = require('./seed/activityHistoriesSeed');
+const {
+  populateDB,
+  activitiesList,
+  activityHistoriesUsersList,
+} = require('./seed/activityHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -9,8 +14,15 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ACTIVITY HISTORIES ROUTES - POST /activity-histories/', () => {
+describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
   let authToken = null;
+  const payload = [
+    { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
+    { user: new ObjectID(), activity: activitiesList[0]._id },
+    { user: activityHistoriesUsersList[0], activity: new ObjectID() },
+    { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id },
+  ];
+
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -21,8 +33,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activity-histories/', () => {
     it('should create activityHistory', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/activity-histories',
-        payload: { user: activityHistoriesList[0].user, activity: activityHistoriesList[0].activity },
+        url: '/activityhistories',
+        payload: { user: payload[0].user, activity: payload[0].activity },
         headers: { 'x-access-token': authToken },
       });
 
@@ -32,8 +44,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activity-histories/', () => {
     it('should return a 400 if no user in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/activity-histories',
-        payload: { activity: activityHistoriesList[0].activity },
+        url: '/activityhistories',
+        payload: { activity: payload[0].activity },
         headers: { 'x-access-token': authToken },
       });
 
@@ -43,24 +55,69 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activity-histories/', () => {
     it('should return a 400 if no activity in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/activity-histories',
-        payload: { user: activityHistoriesList[0].user },
+        url: '/activityhistories',
+        payload: { user: payload[0].user },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 401 if user is not connected', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { user: payload[0].user, activity: payload[0].activity },
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return a 404 if user doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { user: payload[1].user, activity: payload[1].activity },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if activity doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { user: payload[2].user, activity: payload[2].activity },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if user doesn\'t follow course where activity', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { user: payload[3].user, activity: payload[3].activity },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'helper', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -68,8 +125,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activity-histories/', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: '/activity-histories',
-          payload: { user: activityHistoriesList[0].user, activity: activityHistoriesList[0].activity },
+          url: '/activityhistories',
+          payload: { user: payload[0].user, activity: activitiesList[0]._id },
           headers: { 'x-access-token': authToken },
         });
 
