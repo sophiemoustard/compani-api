@@ -196,6 +196,18 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 403 if activity is published', async () => {
+      const payload = { name: 'rigoler' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activitiesList[3]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -284,6 +296,17 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if activity is published', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/activities/${activitiesList[3]._id.toHexString()}/cards`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
