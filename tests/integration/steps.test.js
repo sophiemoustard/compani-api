@@ -98,6 +98,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 403 if step is published', async () => {
+      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepsList[3]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -231,6 +243,17 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 403 if step is published', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -331,6 +354,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 403 if step is published', async () => {
+      const payload = { activities: activitiesList[0]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -408,6 +443,18 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if step is published', async () => {
+      const payload = { activities: activitiesList[0]._id };
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/steps/${stepsList[3]._id.toHexString()}/activities/${activitiesList[3]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

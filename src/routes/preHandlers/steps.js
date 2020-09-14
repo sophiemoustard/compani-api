@@ -1,10 +1,12 @@
 const Boom = require('@hapi/boom');
 const Step = require('../../models/Step');
 const Activity = require('../../models/Activity');
+const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeStepUpdate = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }).lean();
   if (!step) throw Boom.notFound();
+  if (step.status === PUBLISHED) throw Boom.forbidden();
 
   const { activities } = req.payload;
   if (activities) {
@@ -19,15 +21,17 @@ exports.authorizeStepUpdate = async (req) => {
 };
 
 exports.authorizeActivityAdd = async (req) => {
-  const step = await Step.countDocuments({ _id: req.params._id });
+  const step = await Step.findOne({ _id: req.params._id }).lean();
   if (!step) throw Boom.notFound();
+  if (step.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeActivityReuse = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id });
+  const step = await Step.findOne({ _id: req.params._id }).lean();
   if (!step) throw Boom.notFound();
+  if (step.status === PUBLISHED) throw Boom.forbidden();
 
   const { activities } = req.payload;
   const existingActivity = await Activity.countDocuments({ _id: activities });
@@ -40,6 +44,7 @@ exports.authorizeActivityReuse = async (req) => {
 exports.authorizeActivityDetachment = async (req) => {
   const step = await Step.findOne({ _id: req.params._id, activities: req.params.activityId }).lean();
   if (!step) throw Boom.notFound();
+  if (step.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };

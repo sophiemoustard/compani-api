@@ -3,15 +3,18 @@ const SubProgram = require('../../models/SubProgram');
 const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeStepDetachment = async (req) => {
-  const subProgram = await SubProgram.countDocuments({ _id: req.params._id, steps: req.params.stepId });
+  const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId }).lean();
   if (!subProgram) throw Boom.notFound();
+  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeStepAdd = async (req) => {
-  const subProgram = await SubProgram.countDocuments({ _id: req.params._id });
+  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
   if (!subProgram) throw Boom.notFound();
+  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+
   return null;
 };
 
