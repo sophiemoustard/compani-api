@@ -194,19 +194,19 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     });
 
     it('should duplicate an activity', async () => {
-      const duplicatedActivityId = activitiesList[0]._id;
+      const duplicatedActivityId = activitiesList[3]._id;
       const duplicatedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'POST',
         url: `/steps/${step._id.toHexString()}/activities`,
-        payload: { activityId: activitiesList[0]._id },
+        payload: { activityId: duplicatedActivityId },
         headers: { 'x-access-token': authToken },
       });
 
       const stepUpdated = await Step.findById(step._id)
         .populate({
           path: 'activities',
-          select: '-__v -createdAt -updatedAt -status',
+          select: '-__v -createdAt -updatedAt',
           populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
         })
         .lean();
@@ -221,7 +221,8 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           {
             _id: expect.any(ObjectID),
             type: 'lesson',
-            name: 'chanter',
+            name: 'published activity',
+            status: 'draft',
             cards: expect.arrayContaining([
               { _id: expect.any(ObjectID), template: 'transition', title: 'do mi sol do' },
             ]),

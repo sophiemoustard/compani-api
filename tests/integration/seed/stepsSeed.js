@@ -14,7 +14,7 @@ const activitiesList = [
   { _id: new ObjectID(), type: 'lesson', name: 'chanter', cards: [cardsList[0]] },
   { _id: new ObjectID(), type: 'video', name: 'gater le coin', cards: [cardsList[0]] },
   { _id: new ObjectID(), type: 'lesson', name: 'douche', cards: [cardsList[1]] },
-  { _id: new ObjectID(), type: 'lesson', name: 'published activity', status: 'published' },
+  { _id: new ObjectID(), type: 'lesson', name: 'published activity', status: 'published', cards: [cardsList[0]] },
 ];
 
 const stepsList = [
