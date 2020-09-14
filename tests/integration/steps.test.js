@@ -194,8 +194,46 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     });
 
     it('should duplicate an activity', async () => {
-      const duplicatedActivityId = activitiesList[3]._id;
+      const duplicatedActivityId = activitiesList[0]._id;
       const duplicatedCardId = cardsList[0]._id;
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id.toHexString()}/activities`,
+        payload: { activityId: duplicatedActivityId },
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(step._id)
+        .populate({
+          path: 'activities',
+          select: '-__v -createdAt -updatedAt -status',
+          populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
+        })
+        .lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated).toEqual(expect.objectContaining({
+        _id: step._id,
+        name: 'c\'est une étape',
+        type: 'on_site',
+        status: 'draft',
+        activities: expect.arrayContaining([
+          {
+            _id: expect.any(ObjectID),
+            type: 'lesson',
+            name: 'chanter',
+            cards: expect.arrayContaining([
+              { _id: expect.any(ObjectID), template: 'transition', title: 'do mi sol do' },
+            ]),
+          },
+        ]),
+      }));
+      expect(stepUpdated.activities[0]._id).not.toBe(duplicatedActivityId);
+      expect(stepUpdated.activities[0].cards[0]._id).not.toBe(duplicatedCardId);
+    });
+
+    it('Duplicated activity should have status draft', async () => {
+      const duplicatedActivityId = activitiesList[3]._id;
       const response = await app.inject({
         method: 'POST',
         url: `/steps/${step._id.toHexString()}/activities`,
@@ -211,26 +249,11 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         })
         .lean();
 
+      const duplicatedActivity = await Activity.findById(duplicatedActivityId).lean();
+
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({
-        _id: step._id,
-        name: 'c\'est une étape',
-        type: 'on_site',
-        status: 'draft',
-        activities: expect.arrayContaining([
-          {
-            _id: expect.any(ObjectID),
-            type: 'lesson',
-            name: 'published activity',
-            status: 'draft',
-            cards: expect.arrayContaining([
-              { _id: expect.any(ObjectID), template: 'transition', title: 'do mi sol do' },
-            ]),
-          },
-        ]),
-      }));
-      expect(stepUpdated.activities[0]._id).not.toBe(duplicatedActivityId);
-      expect(stepUpdated.activities[0].cards[0]._id).not.toBe(duplicatedCardId);
+      expect(stepUpdated.activities[0].status).toBe('draft');
+      expect(duplicatedActivity.status).toBe('published');
     });
 
     it('should return a 400 if step does not exist', async () => {
