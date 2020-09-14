@@ -1,4 +1,5 @@
 const expect = require('expect');
+const get = require('lodash/get');
 const app = require('../../server');
 const {
   customerList,
@@ -141,6 +142,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
         headers: { 'x-access-token': clientAdminToken },
       });
       expect(res.statusCode).toBe(200);
+
       expect(res.result.data.allCustomersFundingsMonitoring).toEqual(expect.arrayContaining([
         expect.objectContaining({
           sector: expect.objectContaining({ name: 'Neptune' }),
@@ -151,6 +153,9 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
           nextMonthCareHours: 0,
         }),
       ]));
+
+      expect(res.result.data.allCustomersFundingsMonitoring.some(el =>
+        get(el, 'customer.lastname') === 'test')).toBe(false);
     });
   });
 
