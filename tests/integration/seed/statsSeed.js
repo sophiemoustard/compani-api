@@ -138,7 +138,7 @@ const tppList = [{
   isApa: true,
 }];
 
-const subscriptionWithoutFundingId = new ObjectID();
+const subscriptionWithEndedFundingId = new ObjectID();
 
 const customerList = [
   {
@@ -209,7 +209,7 @@ const customerList = [
     _id: new ObjectID(),
     company: authCompany._id,
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: subscriptionWithEndedFundingId,
       service: serviceList[0]._id,
     }],
     identity: { lastname: 'test' },
@@ -226,7 +226,7 @@ const customerList = [
     fundings: [{
       nature: HOURLY,
       frequency: MONTHLY,
-      subscription: subscriptionWithoutFundingId,
+      subscription: subscriptionWithEndedFundingId,
       thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
@@ -312,7 +312,7 @@ const eventListForFollowUp = [
     type: 'intervention',
     customer: customerList[1]._id,
     sector: new ObjectID(),
-    subscription: subscriptionWithoutFundingId,
+    subscription: subscriptionWithEndedFundingId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T10:00:00.000+00:00',
     endDate: '2019-07-01T11:00:00.000+00:00',
@@ -605,7 +605,7 @@ const eventListForFundingsMonitoring = [
     type: 'intervention',
     customer: customerList[1]._id,
     sector: new ObjectID(),
-    subscription: subscriptionWithoutFundingId,
+    subscription: subscriptionWithEndedFundingId,
     auxiliary: userList[0]._id,
     isCancelled: false,
     misc: 'test',
