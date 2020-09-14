@@ -252,7 +252,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const duplicatedActivity = await Activity.findById(duplicatedActivityId).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated.activities[0].status).toBe('draft');
+      expect(stepUpdated.activities.find(activity => activity.name === 'published activity').status).toBe('draft');
       expect(duplicatedActivity.status).toBe('published');
     });
 
