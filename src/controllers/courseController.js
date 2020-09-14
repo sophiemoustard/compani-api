@@ -76,7 +76,7 @@ const getPublicInfosById = async (req) => {
 
 const getTraineeCourse = async (req) => {
   try {
-    const course = await CoursesHelper.getTraineeCourse(req.params._id);
+    const course = await CoursesHelper.getTraineeCourse(req.params._id, req.auth.credentials._id);
 
     return {
       message: translate[language].courseFound,
