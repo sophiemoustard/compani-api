@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, cardsList, cardActivity } = require('./seed/cardsSeed');
+const { populateDB, cardsList, activitiesList } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const Activity = require('../../src/models/Activity');
@@ -286,6 +286,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
+  const draftCard = activitiesList[0];
+  const publishedCard = activitiesList[1];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -295,7 +297,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
     it('should delete card', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${cardActivity.cards[0].toHexString()}`,
+        url: `/cards/${draftCard.cards[0].toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -304,9 +306,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
       const cardDeleted = await Card.findById(cardsList[0]._id).lean();
       expect(cardDeleted).toBeNull();
 
-      const activity = await Activity.findById(cardActivity._id).lean();
-      expect(activity.cards.length).toEqual(cardActivity.cards.length - 1);
-      expect(activity.cards.includes(cardActivity.cards[0])).toBeFalsy();
+      const activity = await Activity.findById(draftCard._id).lean();
+      expect(activity.cards.length).toEqual(draftCard.cards.length - 1);
+      expect(activity.cards.includes(draftCard.cards[0])).toBeFalsy();
     });
 
     it('should return 404 if card not found', async () => {
@@ -317,6 +319,16 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if activity is published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${publishedCard.cards[0].toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -336,7 +348,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${cardActivity.cards[0].toHexString()}`,
+          url: `/cards/${draftCard.cards[0].toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
