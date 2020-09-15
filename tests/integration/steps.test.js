@@ -199,7 +199,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/steps/${step._id.toHexString()}/activities`,
-        payload: { activityId: activitiesList[0]._id },
+        payload: { activityId: duplicatedActivityId },
         headers: { 'x-access-token': authToken },
       });
 
@@ -230,6 +230,30 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       }));
       expect(stepUpdated.activities[0]._id).not.toBe(duplicatedActivityId);
       expect(stepUpdated.activities[0].cards[0]._id).not.toBe(duplicatedCardId);
+    });
+
+    it('Duplicated activity should have status draft', async () => {
+      const duplicatedActivityId = activitiesList[3]._id;
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id.toHexString()}/activities`,
+        payload: { activityId: duplicatedActivityId },
+        headers: { 'x-access-token': authToken },
+      });
+
+      const stepUpdated = await Step.findById(step._id)
+        .populate({
+          path: 'activities',
+          select: '-__v -createdAt -updatedAt',
+          populate: { path: 'cards', select: '-__v -createdAt -updatedAt' },
+        })
+        .lean();
+
+      const duplicatedActivity = await Activity.findById(duplicatedActivityId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated.activities.find(activity => activity.name === 'published activity').status).toBe('draft');
+      expect(duplicatedActivity.status).toBe('published');
     });
 
     it('should return a 400 if step does not exist', async () => {
