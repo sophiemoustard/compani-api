@@ -81,7 +81,7 @@ exports.exportCustomers = async (credentials) => {
     const situation = CUSTOMER_SITUATIONS.find(sit => sit.value === get(cus, 'followUp.situation'));
 
     const cells = [
-      cus._id || '',
+      get(cus, '_id') || '',
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
@@ -233,7 +233,7 @@ exports.exportHelpers = async (credentials) => {
       get(hel, '_id', ''),
       get(hel, 'identity.lastname', '').toUpperCase(),
       get(hel, 'identity.firstname', ''),
-      customer._id || '',
+      get(customer, '_id') || '',
       CIVILITY_LIST[get(customer, 'identity.title')] || '',
       get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
