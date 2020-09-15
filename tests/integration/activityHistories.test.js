@@ -16,12 +16,6 @@ describe('NODE ENV', () => {
 
 describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
   let authToken = null;
-  const payload = [
-    { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
-    { user: new ObjectID(), activity: activitiesList[0]._id },
-    { user: activityHistoriesUsersList[0], activity: new ObjectID() },
-    { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id },
-  ];
 
   beforeEach(populateDB);
 
@@ -34,7 +28,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[0].user, activity: payload[0].activity },
+        payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -45,7 +39,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { activity: payload[0].activity },
+        payload: { activity: activitiesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -56,7 +50,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[0].user },
+        payload: { user: activityHistoriesUsersList[0] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -67,7 +61,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[0].user, activity: payload[0].activity },
+        payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
         headers: { 'x-access-token': '' },
       });
 
@@ -78,7 +72,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[1].user, activity: payload[1].activity },
+        payload: { user: new ObjectID(), activity: activitiesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -89,7 +83,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[2].user, activity: payload[2].activity },
+        payload: { user: activityHistoriesUsersList[0], activity: new ObjectID() },
         headers: { 'x-access-token': authToken },
       });
 
@@ -100,7 +94,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: payload[3].user, activity: payload[3].activity },
+        payload: { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -126,7 +120,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/activityhistories',
-          payload: { user: payload[0].user, activity: activitiesList[0]._id },
+          payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
           headers: { 'x-access-token': authToken },
         });
 

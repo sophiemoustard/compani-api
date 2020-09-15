@@ -19,7 +19,6 @@ describe('addActivityHistory', () => {
 
     await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId });
 
-    sinon.assert.calledOnce(addActivityHistoryStub);
-    sinon.assert.calledWithExactly(addActivityHistoryStub, { user: userId, activity: activityId });
+    sinon.assert.calledOnceWithExactly(addActivityHistoryStub, { user: userId, activity: activityId });
   });
 });
