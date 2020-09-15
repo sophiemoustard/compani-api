@@ -50,6 +50,7 @@ describe('exportCustomers', () => {
       'Date de naissance',
       'Adresse',
       '1ère intervention',
+      'Id Auxiliaire référent',
       'Auxiliaire référent',
       'Situation',
       'Environnement',
@@ -84,6 +85,7 @@ describe('exportCustomers', () => {
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
         referent: {
+          _id: new ObjectID(),
           identity: {
             firstname: 'Toto',
             lastname: 'Test',
@@ -124,6 +126,7 @@ describe('exportCustomers', () => {
       '12/12/1919',
       '9 rue du paradis 70015 Paris',
       '08/08/2019',
+      expect.any(ObjectID),
       'Toto Test',
       'Domicile',
       'Père Castor',
@@ -159,7 +162,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
     ]);
     CustomerModel.verify();
   });
