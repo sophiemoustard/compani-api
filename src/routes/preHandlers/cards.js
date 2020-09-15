@@ -7,7 +7,9 @@ const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   MULTIPLE_CHOICE_QUESTION,
+  PUBLISHED,
 } = require('../../helpers/constants');
+const Activity = require('../../models/Activity');
 
 const checkFillTheGap = (payload, card) => {
   const { gappedText, falsyAnswers } = payload;
@@ -84,6 +86,9 @@ exports.authorizeCardUpdate = async (req) => {
 exports.authorizeCardDeletion = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
+
+  const activity = await Activity.findOne({ cards: req.params._id }).lean();
+  if (activity.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };
