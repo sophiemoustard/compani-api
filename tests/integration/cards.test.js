@@ -286,8 +286,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const draftActivity = activitiesList[0];
-  const publishedActivity = activitiesList[1];
+  const draftActivity = activitiesList.find(activity => activity.status === 'draft');
+  const publishedActivity = activitiesList.find(activity => activity.status === 'published');
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
