@@ -34,6 +34,7 @@ const getServicesNameList = (subscriptions) => {
 };
 
 const customerExportHeader = [
+  'Id Bénéficiaire',
   'Titre',
   'Nom',
   'Prenom',
@@ -80,6 +81,7 @@ exports.exportCustomers = async (credentials) => {
     const situation = CUSTOMER_SITUATIONS.find(sit => sit.value === get(cus, 'followUp.situation'));
 
     const cells = [
+      cus._id || '',
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
@@ -112,7 +114,7 @@ exports.exportCustomers = async (credentials) => {
 const auxiliaryExportHeader = [
   'Email',
   'Équipe',
-  'Id de l\'auxiliaire',
+  'Id Auxiliaire',
   'Titre',
   'Nom',
   'Prénom',
@@ -143,7 +145,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
   return [
     get(aux, 'local.email') || '',
     get(aux, 'sector.name') || '',
-    aux._id,
+    aux._id || '',
     CIVILITY_LIST[get(aux, 'identity.title')] || '',
     lastname ? lastname.toUpperCase() : '',
     get(aux, 'identity.firstname') || '',
@@ -193,8 +195,10 @@ exports.exportAuxiliaries = async (credentials) => {
 const helperExportHeader = [
   'Email',
   'Téléphone',
+  'Id Aidant',
   'Aidant - Nom',
   'Aidant - Prénom',
+  'Id Bénéficiaire',
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
   'Bénéficiaire - Prénom',
@@ -226,8 +230,10 @@ exports.exportHelpers = async (credentials) => {
     data.push([
       get(hel, 'local.email', ''),
       get(hel, 'contact.phone', '') !== '' ? `+33${hel.contact.phone.substring(1)}` : '',
+      get(hel, '_id', ''),
       get(hel, 'identity.lastname', '').toUpperCase(),
       get(hel, 'identity.firstname', ''),
+      customer._id || '',
       CIVILITY_LIST[get(customer, 'identity.title')] || '',
       get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
@@ -244,7 +250,7 @@ exports.exportHelpers = async (credentials) => {
 
 const sectorExportHeader = [
   'Equipe',
-  'Id de l\'auxiliaire',
+  'Id Auxiliaire',
   'Nom',
   'Prénom',
   'Date d\'arrivée dans l\'équipe',
@@ -275,6 +281,7 @@ exports.exportSectors = async (credentials) => {
 };
 
 const staffRegisterHeader = [
+  'Id Auxiliaire',
   'Nom',
   'Prénom',
   'Civilité',
@@ -294,6 +301,7 @@ exports.exportStaffRegister = async (credentials) => {
     const birthDate = get(contract, 'user.identity.birthDate');
 
     rows.push([
+      get(contract, 'user._id') || '',
       get(contract, 'user.identity.lastname', '').toUpperCase(),
       get(contract, 'user.identity.firstname') || '',
       CIVILITY_LIST[get(contract, 'user.identity.title')] || '',
@@ -310,9 +318,11 @@ exports.exportStaffRegister = async (credentials) => {
 };
 
 const referentsHeader = [
+  'Id Bénéficiaire',
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
   'Bénéficiaire - Prénom',
+  'Id Auxiliaire',
   'Auxiliaire - Titre',
   'Auxiliaire - Nom',
   'Auxiliaire - Prénom',
@@ -329,9 +339,11 @@ exports.exportReferents = async (credentials) => {
   const rows = [referentsHeader];
   for (const referentHistory of referentsHistories) {
     rows.push([
+      get(referentHistory, 'customer._id') || '',
       CIVILITY_LIST[get(referentHistory, 'customer.identity.title')] || '',
       get(referentHistory, 'customer.identity.lastname', '').toUpperCase(),
       get(referentHistory, 'customer.identity.firstname') || '',
+      get(referentHistory, 'auxiliary._id') || '',
       CIVILITY_LIST[get(referentHistory, 'auxiliary.identity.title')] || '',
       get(referentHistory, 'auxiliary.identity.lastname', '').toUpperCase(),
       get(referentHistory, 'auxiliary.identity.firstname') || '',
@@ -380,6 +392,7 @@ exports.exportServices = async (credentials) => {
 };
 
 const subscriptionExportHeader = [
+  'Id Bénéficiaire',
   'Titre',
   'Nom',
   'Prénom',
@@ -403,6 +416,7 @@ exports.exportSubscriptions = async (credentials) => {
       const lastVersion = UtilsHelper.getLastVersion(sub.versions, 'createdAt');
 
       data.push([
+        get(cus, '_id') || '',
         CIVILITY_LIST[get(cus, 'identity.title')] || '',
         get(cus, 'identity.lastname', '').toUpperCase() || '',
         get(cus, 'identity.firstname', '') || '',
@@ -419,9 +433,11 @@ exports.exportSubscriptions = async (credentials) => {
 };
 
 const fundingExportHeader = [
+  'Id Bénéficiaire',
   'Titre',
   'Nom',
   'Prénom',
+  'Id tiers payeur',
   'Tiers payeur',
   'Nature',
   'Service',
@@ -453,10 +469,12 @@ exports.exportFundings = async (credentials) => {
     }
 
     data.push([
+      cus._id || '',
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
       get(cus, 'identity.lastname', '').toUpperCase() || '',
       get(cus, 'identity.firstname', '') || '',
-      funding.thirdPartyPayer ? (funding.thirdPartyPayer.name || '') : '',
+      get(funding, 'thirdPartyPayer._id') || '',
+      get(funding, 'thirdPartyPayer.name') || '',
       nature ? nature.label : '',
       lastServiceVersion ? lastServiceVersion.name : '',
       funding.startDate ? moment(funding.startDate).format('DD/MM/YYYY') : '',
