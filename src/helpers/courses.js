@@ -8,6 +8,7 @@ const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
 const ActivityHistory = require('../models/ActivityHistory');
+const Activity = require('../models/Activity');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -91,45 +92,26 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
-exports.getTraineeCourse = async (courseId, userId) => {
-  console.time('test');
-  const course = await Course.findOne({ _id: courseId })
-    .populate({
-      path: 'subProgram',
-      select: 'program steps',
-      populate: [
-        { path: 'program', select: 'name image' },
-        { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type cards' } },
-      ],
-    })
-    .populate({ path: 'slots', select: 'startDate endDate step address' })
-    .select('_id')
-    .lean();
-
-  const test = course.subProgram.steps.map(step => step.activities).flat();
-  const activitiesHistories = await ActivityHistory.find({ activity: { $in: test }, user: userId }).lean();
-
-  const returnedValue = !get(course, 'subProgram.steps')
-    ? course
-    : {
-      ...course,
-      subProgram: {
-        ...course.subProgram,
-        steps: course.subProgram.steps.map(step =>
-          ({
-            ...step,
-            activities: step.activities.map(activity =>
-              ({
-                ...activity,
-                activitiesHistoriesCount: activitiesHistories.filter(ah =>
-                  UtilsHelper.areObjectIdsEquals(ah.activity, activity._id)).length,
-              })),
-          })),
+exports.getTraineeCourse = async (courseId, userId) => Course.findOne({ _id: courseId })
+  .populate({
+    path: 'subProgram',
+    select: 'program steps',
+    populate: [
+      { path: 'program', select: 'name image' },
+      {
+        path: 'steps',
+        select: 'name type activities',
+        populate: {
+          path: 'activities',
+          select: 'name type cards activityHistories',
+          populate: { path: 'activityHistories', match: { user: userId } },
+        },
       },
-    };
-  console.timeEnd('test');
-  return returnedValue;
-};
+    ],
+  })
+  .populate({ path: 'slots', select: 'startDate endDate step address' })
+  .select('_id')
+  .lean({ autopopulate: true, virtuals: true });
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
