@@ -16,5 +16,12 @@ ActivitySchema.virtual('steps', {
   foreignField: 'activities',
 });
 
+ActivitySchema.virtual('activityHistories', {
+  ref: 'ActivityHistory',
+  localField: '_id',
+  foreignField: 'activity',
+  sort: { date: -1 },
+});
+
 module.exports = mongoose.model('Activity', ActivitySchema);
 module.exports.ACTIVITY_TYPES = ACTIVITY_TYPES;

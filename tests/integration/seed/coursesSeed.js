@@ -9,6 +9,7 @@ const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
 const {
@@ -57,6 +58,10 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 const card = { _id: ObjectID(), template: 'title_text' };
 
 const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO, cards: [card._id] };
+const activitiesHistory = [
+  { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activity._id },
+  { _id: new ObjectID(), user: clientAdmin._id, activity: activity._id },
+];
 
 const step = {
   _id: new ObjectID(),
@@ -189,6 +194,7 @@ const populateDB = async () => {
   await Step.deleteMany({});
   await Activity.deleteMany({});
   await Card.deleteMany({});
+  await ActivityHistory.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -201,6 +207,7 @@ const populateDB = async () => {
   await Step.create(step);
   await Activity.create(activity);
   await Card.create(card);
+  await ActivityHistory.insertMany(activitiesHistory);
 };
 
 module.exports = {

@@ -20,7 +20,7 @@ const CourseSchema = mongoose.Schema({
 }, { timestamps: true });
 
 function getCompanies() {
-  const redundantCompanies = this.trainees.map(t => t.company._id.toHexString());
+  const redundantCompanies = this.trainees ? this.trainees.map(t => t.company._id.toHexString()) : [];
   return [...new Set(redundantCompanies)];
 }
 
