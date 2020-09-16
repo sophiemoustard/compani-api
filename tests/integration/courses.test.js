@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
-const get = require('lodash/get');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
