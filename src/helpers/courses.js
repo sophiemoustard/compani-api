@@ -7,8 +7,6 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
-const ActivityHistory = require('../models/ActivityHistory');
-const Activity = require('../models/Activity');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -92,7 +90,7 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
-exports.getTraineeCourse = async (courseId, userId) => Course.findOne({ _id: courseId })
+exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
   .populate({
     path: 'subProgram',
     select: 'program steps',
@@ -104,7 +102,7 @@ exports.getTraineeCourse = async (courseId, userId) => Course.findOne({ _id: cou
         populate: {
           path: 'activities',
           select: 'name type cards activityHistories',
-          populate: { path: 'activityHistories', match: { user: userId } },
+          populate: { path: 'activityHistories', match: { user: credentials._id } },
         },
       },
     ],

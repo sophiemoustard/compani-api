@@ -20,6 +20,7 @@ ActivitySchema.virtual('activityHistories', {
   ref: 'ActivityHistory',
   localField: '_id',
   foreignField: 'activity',
+  sort: { date: 1 },
 });
 
 module.exports = mongoose.model('Activity', ActivitySchema);
