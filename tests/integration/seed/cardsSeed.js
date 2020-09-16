@@ -34,12 +34,22 @@ const cardsList = [
   { _id: new ObjectID(), template: OPEN_QUESTION },
 ];
 
-const cardActivity = {
-  _id: new ObjectID(),
-  name: 'Coucou toi',
-  cards: [cardsList[0]._id, cardsList[1]._id],
-  type: 'video',
-};
+const activitiesList = [
+  {
+    _id: new ObjectID(),
+    name: 'Coucou toi',
+    cards: [cardsList[0]._id, cardsList[1]._id],
+    type: 'video',
+    status: 'draft',
+  },
+  {
+    _id: new ObjectID(),
+    name: 'la peche',
+    cards: [cardsList[4]._id, cardsList[5]._id],
+    type: 'quiz',
+    status: 'published',
+  },
+];
 
 const populateDB = async () => {
   await Card.deleteMany({});
@@ -48,11 +58,11 @@ const populateDB = async () => {
   await populateDBForAuthentication();
 
   await Card.insertMany(cardsList);
-  await Activity.create(cardActivity);
+  await Activity.create(activitiesList);
 };
 
 module.exports = {
   populateDB,
   cardsList,
-  cardActivity,
+  activitiesList,
 };

@@ -205,6 +205,18 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(programUpdated.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
     });
 
+    it('should return 400 if payload is empty', async () => {
+      const programId = programsList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/programs/${programId.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const falsyParams = ['name', 'learningGoals'];
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {

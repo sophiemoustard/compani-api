@@ -29,6 +29,7 @@ const activitiesList = [
   },
   { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
   { _id: new ObjectID(), name: 'fumer', type: 'video' },
+  { _id: new ObjectID(), name: 'publiée', type: 'video', status: 'published' },
 ];
 
 const stepsList = [

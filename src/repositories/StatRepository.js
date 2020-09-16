@@ -154,8 +154,8 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         'customer.fundings.nature': HOURLY,
         'customer.fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
         $or: [
-          { 'customer.fundings.endDate': { $exists: false } },
-          { 'customer.fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate } },
+          { 'customer.fundings.version.endDate': { $exists: false } },
+          { 'customer.fundings.version.endDate': { $exists: true, $gte: fundingsDate.minEndDate } },
         ],
       },
     },
@@ -211,7 +211,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         sectors: { $push: '$customer.sector' },
       },
     },
-    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', -1] } } },
+    { $addFields: { 'customer.sector': { $arrayElemAt: ['$sectors', 0] } } },
     { $lookup: { from: 'sectors', as: 'customer.sector', foreignField: '_id', localField: 'customer.sector.sector' } },
     { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
   ];
