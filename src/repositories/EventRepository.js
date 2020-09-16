@@ -242,7 +242,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
     {
       $project: {
-        customer: { identity: 1 },
+        customer: { _id: 1, identity: 1 },
         auxiliary: 1,
         startDate: 1,
         endDate: 1,
