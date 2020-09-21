@@ -65,7 +65,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('if blended, should update subProgram status', async () => {
+    it('should set blended subProgram as published ', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -83,7 +83,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, status: 'published' }));
     });
 
-    it('if strictly e-learning, should update subProgram status and create new course', async () => {
+    it('should set strictly e-learning subProgram as published, and create 100% e-learning course', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -100,6 +100,18 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(!!newCourseCreated).toBeTruthy();
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
+    });
+
+    it('should return 400 if setting status to draft ', async () => {
+      const payload = { status: 'draft' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 400 if name is empty', async () => {

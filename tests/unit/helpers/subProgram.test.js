@@ -92,7 +92,7 @@ describe('updatedSubProgram', () => {
       SubProgramMock.expects('findOneAndUpdate')
         .withExactArgs({ _id: subProgram._id }, { $set: payload })
         .chain('populate')
-        .withExactArgs({ path: 'steps', select: 'activities' })
+        .withExactArgs({ path: 'steps', select: 'activities type' })
         .chain('lean')
         .returns(updatedSubProgram);
 
@@ -114,7 +114,7 @@ describe('updatedSubProgram', () => {
       SubProgramMock.expects('findOneAndUpdate')
         .withExactArgs({ _id: subProgram._id }, { $set: payload })
         .chain('populate')
-        .withExactArgs({ path: 'steps', select: 'activities' })
+        .withExactArgs({ path: 'steps', select: 'activities type' })
         .chain('lean')
         .returns(updatedSubProgram);
 
