@@ -554,6 +554,10 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
             name: activity.name,
             type: activity.type,
             cards: expect.arrayContaining([expect.any(ObjectID)]),
+            activityHistories: expect.arrayContaining([
+              expect.objectContaining({ user: coachFromAuthCompany._id }),
+              expect.not.objectContaining({ user: clientAdmin._id }),
+            ]),
           }],
         }],
       }),
@@ -563,6 +567,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
         }),
       ]),
     }));
+    expect(response.result.data.course.subProgram.steps[0].activities[0].activityHistories).toHaveLength(1);
   });
 
   it('should not get course if not trainee', async () => {

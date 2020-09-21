@@ -90,18 +90,26 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
-exports.getTraineeCourse = async courseId => Course.findOne({ _id: courseId })
+exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
   .populate({
     path: 'subProgram',
     select: 'program steps',
     populate: [
       { path: 'program', select: 'name image' },
-      { path: 'steps', select: 'name type activities', populate: { path: 'activities', select: 'name type cards' } },
+      {
+        path: 'steps',
+        select: 'name type activities',
+        populate: {
+          path: 'activities',
+          select: 'name type cards activityHistories',
+          populate: { path: 'activityHistories', match: { user: credentials._id } },
+        },
+      },
     ],
   })
   .populate({ path: 'slots', select: 'startDate endDate step address' })
   .select('_id')
-  .lean();
+  .lean({ autopopulate: true, virtuals: true });
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
