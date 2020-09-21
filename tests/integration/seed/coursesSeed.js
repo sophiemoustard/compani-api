@@ -98,6 +98,7 @@ const coursesList = [
     trainer: courseTrainer._id,
     trainees: [coachFromAuthCompany._id, helper._id, clientAdmin._id, courseTrainer._id],
     type: 'intra',
+    format: 'blended',
   },
   {
     _id: new ObjectID(),
@@ -107,6 +108,7 @@ const coursesList = [
     trainer: new ObjectID(),
     trainees: [traineeFromOtherCompany._id],
     type: 'intra',
+    format: 'blended',
   },
   {
     _id: new ObjectID(),
@@ -116,6 +118,7 @@ const coursesList = [
     trainer: courseTrainer._id,
     type: 'intra',
     trainees: [coachFromAuthCompany._id, helper._id, trainerOrganisationManager._id, clientAdmin._id, auxiliary._id],
+    format: 'blended',
   },
   {
     _id: new ObjectID(),
@@ -125,6 +128,7 @@ const coursesList = [
     trainer: new ObjectID(),
     type: 'intra',
     trainees: [coachFromAuthCompany._id, clientAdmin._id],
+    format: 'blended',
   },
   {
     _id: new ObjectID(),
@@ -132,6 +136,7 @@ const coursesList = [
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    format: 'blended',
   },
   {
     _id: new ObjectID(),
@@ -139,6 +144,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
+    format: 'blended',
   },
 ];
 

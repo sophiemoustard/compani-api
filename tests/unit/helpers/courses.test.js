@@ -38,6 +38,7 @@ describe('createCourse', () => {
     expect(result.misc).toEqual(newCourse.misc);
     expect(result.subProgram).toEqual(newCourse.subProgram);
     expect(result.company).toEqual(newCourse.company);
+    expect(result.format).toEqual('blended');
   });
 });
 
@@ -55,20 +56,20 @@ describe('list', () => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
+  it('should return blended courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
     CourseMock.expects('findOne').never();
 
-    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
     CourseMock.verify();
   });
 
-  it('should return courses, called with query.trainees', async () => {
-    const query = { trainees: '1234567890abcdef12345612' };
+  it('should return blended courses, called with query.trainees', async () => {
+    const query = { trainees: '1234567890abcdef12345612', format: 'blended' };
     const coursesList = [
       {
         misc: 'Groupe 2',
@@ -94,7 +95,7 @@ describe('list', () => {
     CourseMock.verify();
   });
 
-  it('should return courses, called with query.company', async () => {
+  it('should return blended courses, called with query.company', async () => {
     const coursesList = [
       { misc: 'name', type: 'intra' },
       {
@@ -123,7 +124,11 @@ describe('list', () => {
 
     CourseMock.expects('findOne').never();
 
-    const result = await CourseHelper.list({ company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list({
+      company: authCompany.toHexString(),
+      trainer: '1234567890abcdef12345678',
+      format: 'blended',
+    });
     expect(result).toMatchObject(coursesList);
     expect(findCourseAndPopulate.getCall(0)
       .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
