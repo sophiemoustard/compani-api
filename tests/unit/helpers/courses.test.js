@@ -64,7 +64,7 @@ describe('list', () => {
 
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
-    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
     CourseMock.verify();
   });
 
