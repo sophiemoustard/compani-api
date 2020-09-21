@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
+const Course = require('../../src/models/Course');
 const { populateDB, subProgramsList } = require('./seed/subProgramsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -15,7 +16,8 @@ describe('NODE ENV', () => {
 describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const subProgramId = subProgramsList[0]._id;
+  const blendedSubProgramId = subProgramsList[0]._id;
+  const eLearningSubProgramId = subProgramsList[1]._id;
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -26,36 +28,36 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       const payload = { name: 'un autre nom pour le sous-programme' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
         headers: { 'x-access-token': authToken },
       });
 
-      const subProgramUpdated = await SubProgram.findById(subProgramId);
+      const subProgramUpdated = await SubProgram.findById(blendedSubProgramId);
 
       expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, name: payload.name }));
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, name: payload.name }));
     });
 
     it('should update subProgram steps', async () => {
       const payload = { steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
         headers: { 'x-access-token': authToken },
       });
 
-      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+      const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, steps: payload.steps }));
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, steps: payload.steps }));
     });
 
     it('should return a 400 if payload is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: {},
         headers: { 'x-access-token': authToken },
       });
@@ -63,25 +65,47 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should update subProgram status', async () => {
+    it('if blended, should update subProgram status', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
         headers: { 'x-access-token': authToken },
       });
 
-      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+      const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
+      const newCourseCreated = await Course.findOne({ subProgram: blendedSubProgramId, format: 'strictly_e_learning' })
+        .lean();
 
       expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+      expect(!!newCourseCreated).toBeFalsy();
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, status: 'published' }));
+    });
+
+    it('if strictly e-learning, should update subProgram status and create new course', async () => {
+      const payload = { status: 'published' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
+      const newCourseCreated = await Course
+        .findOne({ subProgram: eLearningSubProgramId, format: 'strictly_e_learning' })
+        .lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(!!newCourseCreated).toBeTruthy();
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
     });
 
     it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { name: '' },
         headers: { 'x-access-token': authToken },
       });
@@ -92,7 +116,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
     it('should return a 400 if steps is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { steps: [] },
         headers: { 'x-access-token': authToken },
       });
@@ -103,7 +127,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
     it('should return a 400 if status is not a status type', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { status: 'qwertyuiop' },
         headers: { 'x-access-token': authToken },
       });
@@ -114,7 +138,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
     it('should return a 400 if tryinig to update status and name at the same time', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${subProgramId.toHexString()}`,
+        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { name: 'new name', status: 'draft' },
         headers: { 'x-access-token': authToken },
       });
@@ -164,7 +188,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/subprograms/${subProgramId.toHexString()}`,
+          url: `/subprograms/${blendedSubProgramId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
