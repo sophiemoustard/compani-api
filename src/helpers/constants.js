@@ -258,7 +258,6 @@ module.exports = {
   // PROGRAMS
   DRAFT: 'draft',
   PUBLISHED: 'published',
-  get STATUS_TYPE() { return [this.DRAFT, this.PUBLISHED]; },
   // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
