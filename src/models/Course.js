@@ -11,7 +11,7 @@ const CourseSchema = mongoose.Schema({
   subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
   type: { type: String, required: true, enum: COURSE_TYPES },
-  format: { type: String, required: true, enum: COURSE_FORMATS, default: BLENDED },
+  format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   contact: {
