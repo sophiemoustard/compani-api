@@ -39,7 +39,11 @@ const CardSchema = mongoose.Schema({
   gappedText: { type: String },
   question: { type: String },
   qcuGoodAnswer: { type: String },
-  falsyAnswers: {
+  falsyGapAnswers: {
+    type: [String],
+    default: undefined,
+  },
+  qcuFalsyAnswers: {
     type: [String],
     default: undefined,
   },
@@ -62,8 +66,10 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
+        this.falsyGapAnswers = [];
+        break;
       case SINGLE_CHOICE_QUESTION:
-        this.falsyAnswers = [];
+        this.qcuFalsyAnswers = [];
         break;
       case ORDER_THE_SEQUENCE:
         this.orderedAnswers = [];
