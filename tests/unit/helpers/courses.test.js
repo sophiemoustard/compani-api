@@ -302,6 +302,7 @@ describe('getTraineeCourse', () => {
 
   it('should return courses', async () => {
     const course = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectID() };
 
     CourseMock.expects('findOne')
       .withExactArgs({ _id: course._id })
@@ -314,7 +315,11 @@ describe('getTraineeCourse', () => {
           {
             path: 'steps',
             select: 'name type activities',
-            populate: { path: 'activities', select: 'name type cards' },
+            populate: {
+              path: 'activities',
+              select: 'name type cards activityHistories',
+              populate: { path: 'activityHistories', match: { user: credentials._id } },
+            },
           },
         ],
       })
@@ -326,7 +331,7 @@ describe('getTraineeCourse', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getTraineeCourse(course._id);
+    const result = await CourseHelper.getTraineeCourse(course._id, credentials);
     expect(result).toMatchObject(course);
   });
 });

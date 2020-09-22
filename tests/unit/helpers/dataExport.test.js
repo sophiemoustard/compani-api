@@ -43,12 +43,14 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
+      'Id Bénéficiaire',
       'Titre',
       'Nom',
       'Prenom',
       'Date de naissance',
       'Adresse',
       '1ère intervention',
+      'Id Auxiliaire référent',
       'Auxiliaire référent',
       'Situation',
       'Environnement',
@@ -71,6 +73,7 @@ describe('exportCustomers', () => {
   it('should return customer info', async () => {
     const customers = [
       {
+        _id: new ObjectID(),
         email: 'papi@mamie.pp',
         identity: {
           lastname: 'Papi',
@@ -82,6 +85,7 @@ describe('exportCustomers', () => {
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
         referent: {
+          _id: new ObjectID(),
           identity: {
             firstname: 'Toto',
             lastname: 'Test',
@@ -115,12 +119,14 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
+      expect.any(ObjectID),
       'M.',
       'PAPI',
       'Grand Père',
       '12/12/1919',
       '9 rue du paradis 70015 Paris',
       '08/08/2019',
+      expect.any(ObjectID),
       'Toto Test',
       'Domicile',
       'Père Castor',
@@ -156,7 +162,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
     ]);
     CustomerModel.verify();
   });
@@ -203,7 +209,7 @@ describe('exportAuxiliaries', () => {
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom',
+    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id Auxiliaire', 'Titre', 'Nom', 'Prénom',
       'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
       'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
@@ -371,8 +377,10 @@ describe('exportHelpers', () => {
     expect(result[0]).toMatchObject([
       'Email',
       'Téléphone',
+      'Id Aidant',
       'Aidant - Nom',
       'Aidant - Prénom',
+      'Id Bénéficiaire',
       'Bénéficiaire - Titre',
       'Bénéficiaire - Nom',
       'Bénéficiaire - Prénom',
@@ -391,6 +399,7 @@ describe('exportHelpers', () => {
     RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
 
     const helpers = [{
+      _id: new ObjectID(),
       local: { email: 'aide@sos.io' },
       contact: { phone: '0123456789' },
       identity: { lastname: 'Je', firstname: 'suis' },
@@ -412,7 +421,22 @@ describe('exportHelpers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(
-      ['aide@sos.io', '+33123456789', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']
+      [
+        'aide@sos.io',
+        '+33123456789',
+        expect.any(ObjectID),
+        'JE',
+        'suis',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        'Inactif',
+        '01/02/2019',
+      ]
     );
   });
 
@@ -422,6 +446,7 @@ describe('exportHelpers', () => {
 
     const helpers = [{
       customers: [{
+        _id: new ObjectID(),
         firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
         identity: { title: 'mr', lastname: 'Patate' },
         local: { phone: '' },
@@ -456,6 +481,8 @@ describe('exportHelpers', () => {
       '',
       '',
       '',
+      '',
+      expect.any(ObjectID),
       'M.',
       'PATATE',
       '',
@@ -494,7 +521,7 @@ describe('exportSectors', () => {
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
       'Equipe',
-      'Id de l\'auxiliaire',
+      'Id Auxiliaire',
       'Nom',
       'Prénom',
       'Date d\'arrivée dans l\'équipe',
@@ -579,9 +606,11 @@ describe('exportReferents', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
+      'Id Bénéficiaire',
       'Bénéficiaire - Titre',
       'Bénéficiaire - Nom',
       'Bénéficiaire - Prénom',
+      'Id Auxiliaire',
       'Auxiliaire - Titre',
       'Auxiliaire - Nom',
       'Auxiliaire - Prénom',
@@ -595,14 +624,15 @@ describe('exportReferents', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const referentHistories = [
       {
-        auxiliary: { identity: { firstname: 'toto', title: 'mr' } },
-        customer: { identity: { firstname: 'titi', lastname: 'Tata', title: 'mr' } },
+        auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', title: 'mr' } },
+        customer: { _id: new ObjectID(), identity: { firstname: 'titi', lastname: 'Tata', title: 'mr' } },
         startDate: '2019-11-10',
         endDate: '2020-01-21',
       },
       {
-        auxiliary: { identity: { firstname: 'toto', lastname: 'Tutu' } },
-        customer: { identity: { lastname: 'Tata', title: 'mr' } },
+        _id: new ObjectID(),
+        auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'Tutu' } },
+        customer: { _id: new ObjectID(), identity: { lastname: 'Tata', title: 'mr' } },
         startDate: '2020-11-10',
       },
     ];
@@ -619,9 +649,11 @@ describe('exportReferents', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toMatchObject([
+      expect.any(ObjectID),
       'M.',
       'TATA',
       'titi',
+      expect.any(ObjectID),
       'M.',
       '',
       'toto',
@@ -629,9 +661,11 @@ describe('exportReferents', () => {
       '21/01/2020',
     ]);
     expect(result[2]).toMatchObject([
+      expect.any(ObjectID),
       'M.',
       'TATA',
       '',
+      expect.any(ObjectID),
       '',
       'TUTU',
       'toto',
@@ -660,6 +694,7 @@ describe('exportStaffRegister', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
+      'Id Auxiliaire',
       'Nom',
       'Prénom',
       'Civilité',
@@ -708,6 +743,7 @@ describe('exportStaffRegister', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toMatchObject([
+      expect.any(ObjectID),
       'TUTU',
       'toto',
       'M.',
@@ -719,6 +755,7 @@ describe('exportStaffRegister', () => {
       '',
     ]);
     expect(result[2]).toMatchObject([
+      expect.any(ObjectID),
       'TUTU2',
       'toto2',
       'Mme',
@@ -856,6 +893,7 @@ describe('exportSubscriptions', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
+      'Id Bénéficiaire',
       'Titre',
       'Nom',
       'Prénom',
@@ -870,6 +908,7 @@ describe('exportSubscriptions', () => {
   it('should return subscriptions info', async () => {
     const customers = [
       {
+        _id: new ObjectID(),
         identity: { lastname: 'Autonomie', title: 'mr' },
         subscriptions: [{
           service: { versions: [{ name: 'Service' }] },
@@ -892,7 +931,7 @@ describe('exportSubscriptions', () => {
     sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject([expect.any(ObjectID), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });
 
@@ -929,9 +968,11 @@ describe('exportFundings', () => {
     sinon.assert.notCalled(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
+      'Id Bénéficiaire',
       'Titre',
       'Nom',
       'Prénom',
+      'Id tiers payeur',
       'Tiers payeur',
       'Nature',
       'Service',
@@ -950,9 +991,10 @@ describe('exportFundings', () => {
   it('should return funding info', async () => {
     const customers = [
       {
+        _id: new ObjectID(),
         identity: { lastname: 'Autonomie', title: 'mr' },
         funding: {
-          thirdPartyPayer: { name: 'tpp' },
+          thirdPartyPayer: { _id: new ObjectID(), name: 'tpp' },
           subscription: { service: { versions: [{ name: 'Toto' }] } },
           nature: 'fixed',
           frequency: 'once',
@@ -978,9 +1020,11 @@ describe('exportFundings', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
+      expect.any(ObjectID),
       'M.',
       'AUTONOMIE',
       '',
+      expect.any(ObjectID),
       'tpp',
       'Forfaitaire',
       'Toto',

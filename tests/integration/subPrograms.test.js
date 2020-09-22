@@ -52,6 +52,32 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, steps: payload.steps }));
     });
 
+    it('should return a 400 if payload is empty', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should update subProgram status', async () => {
+      const payload = { status: 'published' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+    });
+
     it('should return a 400 if name is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -72,6 +98,39 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if status is not a status type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: { status: 'qwertyuiop' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if tryinig to update status and name at the same time', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload: { name: 'new name', status: 'draft' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 403 if trying to update a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramsList[2]._id.toHexString()}`,
+        payload: { name: 'qwertyuiop' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 400 if step is not from subprogram', async () => {
@@ -168,6 +227,17 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 403 if trying to add step to a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/subprograms/${subProgramsList[2]._id.toHexString()}/steps`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -198,7 +268,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
   });
 });
 
-describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
+describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -244,6 +314,16 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step/{stepId}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if trying to remove step to a subprogram with status published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${subProgramsList[2]._id}/steps/${subProgramsList[2].steps[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

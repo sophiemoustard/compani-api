@@ -6,66 +6,67 @@ const StepHelper = require('../../../src/helpers/steps');
 require('sinon-mongoose');
 
 describe('updateStep', () => {
-  let StepMock;
-
+  let updateOne;
   beforeEach(() => {
-    StepMock = sinon.mock(Step);
+    updateOne = sinon.stub(Step, 'updateOne');
   });
-
   afterEach(() => {
-    StepMock.restore();
+    updateOne.restore();
   });
 
   it('should update a step\'s name', async () => {
     const step = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
 
-    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $set: payload });
-
     await StepHelper.updateStep(step._id, payload);
 
-    StepMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: step._id }, { $set: payload });
+  });
+});
+
+describe('addStep', () => {
+  let updateOneSupProgram;
+  let createStep;
+
+  beforeEach(() => {
+    updateOneSupProgram = sinon.stub(SubProgram, 'updateOne');
+    createStep = sinon.stub(Step, 'create');
+  });
+
+  afterEach(() => {
+    updateOneSupProgram.restore();
+    createStep.restore();
+  });
+
+  it('should create a step', async () => {
+    const subProgram = { _id: new ObjectID() };
+    const newStep = { name: 'c\'est une étape !', type: 'lesson' };
+    const stepId = new ObjectID();
+    createStep.returns({ _id: stepId });
+
+    await StepHelper.addStep(subProgram._id, newStep);
+
+    sinon.assert.calledOnceWithExactly(updateOneSupProgram, { _id: subProgram._id }, { $push: { steps: stepId } });
+    sinon.assert.calledOnceWithExactly(createStep, newStep);
+  });
+});
+
+describe('reuseActivity', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Step, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
   });
 
   it('should push a reused activity', async () => {
     const step = { _id: new ObjectID() };
     const payload = { activities: new ObjectID() };
 
-    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: payload });
+    await StepHelper.reuseActivity(step._id, payload);
 
-    await StepHelper.updateStep(step._id, payload);
-
-    StepMock.verify();
-  });
-});
-
-describe('addStep', () => {
-  let SubProgramMock;
-  let StepMock;
-
-  beforeEach(() => {
-    SubProgramMock = sinon.mock(SubProgram);
-    StepMock = sinon.mock(Step);
-  });
-
-  afterEach(() => {
-    SubProgramMock.restore();
-    StepMock.restore();
-  });
-
-  const subProgram = { _id: new ObjectID() };
-  const newStep = { name: 'c\'est une étape !', type: 'lesson' };
-  it('should create a step', async () => {
-    const stepId = new ObjectID();
-
-    StepMock.expects('create').withExactArgs(newStep).returns({ _id: stepId });
-
-    SubProgramMock.expects('updateOne').withExactArgs({ _id: subProgram._id }, { $push: { steps: stepId } });
-
-    await StepHelper.addStep(subProgram._id, newStep);
-
-    SubProgramMock.verify();
-    StepMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: step._id }, { $push: payload });
   });
 });
 

@@ -25,10 +25,12 @@ describe('exportWorkingEventsHistory', () => {
     'Durée',
     'Répétition',
     'Équipe',
+    'Id Auxiliaire',
     'Auxiliaire - Titre',
     'Auxiliaire - Prénom',
     'Auxiliaire - Nom',
     'A affecter',
+    'Id Bénéficiaire',
     'Bénéficiaire - Titre',
     'Bénéficiaire - Nom',
     'Bénéficiaire - Prénom',
@@ -59,6 +61,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
+        _id: new ObjectID(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
@@ -74,6 +77,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
+        _id: new ObjectID(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
@@ -89,6 +93,7 @@ describe('exportWorkingEventsHistory', () => {
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },
       customer: {
+        _id: new ObjectID(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
       startDate: moment('2019-05-20T08:00:00').toDate(),
@@ -128,11 +133,14 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', 'Non', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
+        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
+        'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', '', '', '', 'Oui', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '',
-        '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée',
+        'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+        'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75',
+        '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui',
+        'Facturée & non payée',
         'Initiative de l\'intervenant'],
     ]);
   });
@@ -140,6 +148,7 @@ describe('exportWorkingEventsHistory', () => {
 
 describe('exportAbsencesHistory', () => {
   const header = [
+    'Id Auxiliaire',
     'Auxiliaire - Prénom',
     'Auxiliaire - Nom',
     'Auxiliaire - Titre',
@@ -156,6 +165,7 @@ describe('exportAbsencesHistory', () => {
       absence: 'unjustified absence',
       absenceNature: 'hourly',
       auxiliary: {
+        _id: new ObjectID(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
       },
@@ -168,6 +178,7 @@ describe('exportAbsencesHistory', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
+        _id: new ObjectID(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
       },
@@ -200,8 +211,10 @@ describe('exportAbsencesHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', ''],
-      ['Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019', '20/05/2019', 'brbr'],
+      [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
+        '20/05/2019 08:00', '20/05/2019 10:00', ''],
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+        '20/05/2019', 'brbr'],
     ]);
   });
 });
@@ -528,7 +541,7 @@ describe('exportContractHistory', () => {
     contractMock.verify();
     expect(result).toEqual([[
       'Type',
-      'Id de l\'auxiliaire',
+      'Id Auxiliaire',
       'Titre',
       'Prénom',
       'Nom',
@@ -552,7 +565,7 @@ describe('exportContractHistory', () => {
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([
-      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Type', 'Id Auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
   });
@@ -583,7 +596,7 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
-      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Type', 'Id Auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
@@ -695,6 +708,7 @@ describe('formatSurchargedDetailsForExport', () => {
 
 describe('exportPayAndFinalPayHistory', () => {
   const header = [
+    'Id Auxiliaire',
     'Titre',
     'Prénom',
     'Nom',
@@ -727,6 +741,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const pays = [
     {
       auxiliary: {
+        _id: ObjectID(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mrs' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-05-04T00:00:00' }],
@@ -765,6 +780,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
+        _id: ObjectID(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
       },
@@ -802,6 +818,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
+        _id: ObjectID(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mr' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }],
@@ -841,6 +858,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
+        _id: ObjectID(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }, { startDate: '2019-01-19T00:00:00' }],
@@ -994,6 +1012,7 @@ describe('exportPayAndFinalPayHistory', () => {
     expect(exportArray).toEqual([
       header,
       [
+        expect.any(ObjectID),
         'Mme',
         'Tata',
         'TOTO',
@@ -1024,6 +1043,7 @@ describe('exportPayAndFinalPayHistory', () => {
         '0,00',
       ],
       [
+        expect.any(ObjectID),
         '',
         'Titi',
         'TUTU',
@@ -1054,6 +1074,7 @@ describe('exportPayAndFinalPayHistory', () => {
         '0,00',
       ],
       [
+        expect.any(ObjectID),
         'M.',
         'Tata',
         'TOTO',
@@ -1084,6 +1105,7 @@ describe('exportPayAndFinalPayHistory', () => {
         '156,00',
       ],
       [
+        expect.any(ObjectID),
         '',
         'Titi',
         'TUTU',

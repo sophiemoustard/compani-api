@@ -35,10 +35,12 @@ const workingEventExportHeader = [
   'Durée',
   'Répétition',
   'Équipe',
+  'Id Auxiliaire',
   'Auxiliaire - Titre',
   'Auxiliaire - Prénom',
   'Auxiliaire - Nom',
   'A affecter',
+  'Id Bénéficiaire',
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
   'Bénéficiaire - Prénom',
@@ -85,10 +87,12 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
+      get(auxiliary, '_id') || '',
       CIVILITY_LIST[get(auxiliary, 'identity.title')] || '',
       get(auxiliary, 'identity.firstname', ''),
       get(auxiliary, 'identity.lastname', '').toUpperCase(),
       event.auxiliary ? 'Non' : 'Oui',
+      get(event, 'customer._id', ''),
       CIVILITY_LIST[get(event, 'customer.identity.title')] || '',
       get(event, 'customer.identity.lastname', '').toUpperCase(),
       get(event, 'customer.identity.firstname', ''),
@@ -106,6 +110,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
 };
 
 const absenceExportHeader = [
+  'Id Auxiliaire',
   'Auxiliaire - Prénom',
   'Auxiliaire - Nom',
   'Auxiliaire - Titre',
@@ -124,6 +129,7 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
   for (const event of events) {
     const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
     const cells = [
+      get(event, 'auxiliary._id') || '',
       get(event, 'auxiliary.identity.firstname', ''),
       get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
       CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
@@ -274,7 +280,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
 
 const contractExportHeader = [
   'Type',
-  'Id de l\'auxiliaire',
+  'Id Auxiliaire',
   'Titre',
   'Prénom',
   'Nom',
@@ -299,7 +305,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
       if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
-          get(contract, 'user._id', ''),
+          get(contract, 'user._id') || '',
           CIVILITY_LIST[identity.title] || '',
           identity.firstname || '',
           identity.lastname || '',
@@ -316,6 +322,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
 };
 
 const payExportHeader = [
+  'Id Auxiliaire',
   'Titre',
   'Prénom',
   'Nom',
@@ -430,6 +437,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
   for (const pay of paysAndFinalPay) {
     const hiringDate = getHiringDate(pay.auxiliary.contracts);
     const cells = [
+      get(pay, 'auxiliary._id') || '',
       CIVILITY_LIST[get(pay, 'auxiliary.identity.title')] || '',
       get(pay, 'auxiliary.identity.firstname') || '',
       get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',

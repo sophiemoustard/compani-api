@@ -27,6 +27,17 @@ const addActivity = async (req) => {
   }
 };
 
+const reuseActivity = async (req) => {
+  try {
+    await StepHelper.reuseActivity(req.params._id, req.payload);
+
+    return { message: translate[language].stepUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const detachActivity = async (req) => {
   try {
     await ActivityHelper.detachActivity(req.params._id, req.params.activityId);
@@ -43,5 +54,6 @@ const detachActivity = async (req) => {
 module.exports = {
   update,
   addActivity,
+  reuseActivity,
   detachActivity,
 };

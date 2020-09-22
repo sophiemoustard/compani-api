@@ -106,6 +106,13 @@ const sectorHistoryList = [{
   sector: sectorList[0]._id,
   company: authCompany._id,
   startDate: '2019-05-12T23:00:00.000+00:00',
+  endDate: '2020-02-12T22:59:00.000+00:00',
+},
+{
+  auxiliary: userList[1]._id,
+  sector: sectorList[1]._id,
+  company: authCompany._id,
+  startDate: '2020-02-12T23:00:00.000+00:00',
 }];
 
 const serviceList = [{
@@ -130,6 +137,8 @@ const tppList = [{
   company: authCompany._id,
   isApa: true,
 }];
+
+const subscriptionWithEndedFundingId = new ObjectID();
 
 const customerList = [
   {
@@ -200,7 +209,7 @@ const customerList = [
     _id: new ObjectID(),
     company: authCompany._id,
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: subscriptionWithEndedFundingId,
       service: serviceList[0]._id,
     }],
     identity: { lastname: 'test' },
@@ -214,6 +223,22 @@ const customerList = [
       },
       phone: '0612345678',
     },
+    fundings: [{
+      nature: HOURLY,
+      frequency: MONTHLY,
+      subscription: subscriptionWithEndedFundingId,
+      thirdPartyPayer: tppId,
+      versions: [{
+        _id: new ObjectID(),
+        startDate: '2019-07-01T08:00:00.000+00:00',
+        endDate: '2019-07-01T10:00:00.000+00:00',
+        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
+        unitTTCRate: 20,
+        customerParticipationRate: 60,
+        careHours: 40,
+        careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+      }],
+    }],
   },
 ];
 
@@ -287,7 +312,7 @@ const eventListForFollowUp = [
     type: 'intervention',
     customer: customerList[1]._id,
     sector: new ObjectID(),
-    subscription: subscriptionId,
+    subscription: subscriptionWithEndedFundingId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T10:00:00.000+00:00',
     endDate: '2019-07-01T11:00:00.000+00:00',
@@ -566,6 +591,26 @@ const eventListForFundingsMonitoring = [
     misc: 'test',
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
     endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    customer: customerList[1]._id,
+    sector: new ObjectID(),
+    subscription: subscriptionWithEndedFundingId,
+    auxiliary: userList[0]._id,
+    isCancelled: false,
+    misc: 'test',
+    startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
+    endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toDate(),
     address: {
       street: '37 rue de Ponthieu',
       zipCode: '75008',

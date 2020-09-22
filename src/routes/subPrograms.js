@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeStepDetachment, authorizeStepAdd, authorizeSubProgramUpdate } = require('./preHandlers/subPrograms');
 const { update, addStep, detachStep } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
+const { STATUS_TYPE } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-sub-programs',
@@ -15,10 +16,10 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            name: Joi.string(),
-            steps: Joi.array().items(Joi.string()).min(1),
-          }),
+          payload: Joi.alternatives().try(
+            Joi.object({ name: Joi.string(), steps: Joi.array().items(Joi.string()).min(1) }).min(1),
+            Joi.object({ status: Joi.string().required().valid(...STATUS_TYPE) })
+          ),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeSubProgramUpdate }],

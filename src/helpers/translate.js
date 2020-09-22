@@ -251,6 +251,8 @@ module.exports = {
     courseSlotDeleted: 'Course slot deleted.',
     courseSlotNotFound: 'Course slot not found.',
     courseSlotConflict: 'Course slot in conflict.',
+    /* Activities */
+    activityHistoryCreated: 'Activity history created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -501,5 +503,7 @@ module.exports = {
     courseSlotDeleted: 'Créneau de formation supprimé.',
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
+    /* Activities */
+    activityHistoryCreated: 'Historique d\'activité créé.',
   },
 };
