@@ -97,6 +97,7 @@ exports.formatRumNumber = (companyPrefixNumber, prefix, seq) => {
   return `R-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}${random}`;
 };
 
+
 exports.formatPaymentPayload = async (customerId, payload, company) => {
   const customer = await Customer.findById(customerId).lean();
 
