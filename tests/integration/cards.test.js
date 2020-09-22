@@ -246,7 +246,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           payload: {
             qcmAnswers: [
               { label: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz', correct: true },
-              { label: 'gique', correct: false },
+              { label: 'bleue', correct: false },
             ],
           },
           code: 400,
