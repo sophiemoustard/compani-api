@@ -166,8 +166,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Order the sequence', () => {
       const requests = [
-        { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
+        {
+          msg: 'valid ordered answers',
+          payload: { orderedAnswers: ['en fait si', 'a ouai, non'], question: 'ya quoi ???' },
+          passing: true,
+        },
         { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
+        {
+          msg: 'too many chars in question',
+          payload: {
+            question: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklzbtrbtrbtrhtrhthtvfdbbfbggbfdb'
+              + 'frehuvbierhigvobreipvberuipvbejripvbehriovbehrovhreuogvregcfhergjvrebgjoiprebgjirepbghjrieghroegvroe',
+          },
+          code: 400,
+        },
       ];
 
       requests.forEach((request) => {
@@ -186,9 +198,19 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Single choice question', () => {
       const requests = [
-        { msg: 'valid answers', payload: { falsyAnswers: ['toto'] }, code: 200 },
+        { msg: 'valid answers', payload: { falsyAnswers: ['toto'], qcuGoodAnswer: 'c\'est le S' }, code: 200 },
         { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
         { msg: 'too many answer', payload: { falsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
+        {
+          msg: 'too many chars in falsy answers',
+          payload: { falsyAnswers: ['asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'] },
+          code: 400,
+        },
+        {
+          msg: 'too many chars in good answer',
+          payload: { qcuGoodAnswer: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz' },
+          code: 400,
+        },
       ];
 
       requests.forEach((request) => {
@@ -207,14 +229,26 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Multiple choice question', () => {
       const requests = [
-        { msg: 'valid answers',
+        {
+          msg: 'valid answers',
           payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
-          code: 200 },
+          code: 200,
+        },
         { msg: 'missing label', payload: { qcmAnswers: [{ correct: true }] }, code: 400 },
         { msg: 'missing correct', payload: { qcmAnswers: [{ label: 'et la bête' }] }, code: 400 },
         {
           msg: 'missing correct answer',
           payload: { qcmAnswers: [{ label: 'époque', correct: false }, { label: 'et le clochard', correct: false }] },
+          code: 400,
+        },
+        {
+          msg: 'too many chars in answer',
+          payload: {
+            qcmAnswers: [
+              { label: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz', correct: true },
+              { label: 'gique', correct: false },
+            ],
+          },
           code: 400,
         },
       ];
