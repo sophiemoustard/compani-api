@@ -250,12 +250,14 @@ module.exports = {
   // COURSES
   INTRA: 'intra',
   INTER_B2B: 'inter_b2b',
+  INTER_B2C: 'inter_b2c',
+  BLENDED: 'blended',
+  STRICTLY_E_LEARNING: 'strictly_e_learning',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
   // PROGRAMS
   DRAFT: 'draft',
   PUBLISHED: 'published',
-  get STATUS_TYPE() { return [this.DRAFT, this.PUBLISHED]; },
   // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',

@@ -132,6 +132,7 @@ const coursesList = [
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    format: 'strictly_e_learning',
   },
   {
     _id: new ObjectID(),
@@ -139,6 +140,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
+    format: 'strictly_e_learning',
   },
 ];
 
