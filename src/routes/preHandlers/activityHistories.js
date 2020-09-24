@@ -6,7 +6,7 @@ const Card = require('../../models/Card');
 const { SURVEY } = require('../../helpers/constants');
 
 exports.authorizeAddActivityHistory = async (req) => {
-  const { user: userId, activity: activityId, questionnaireAnswers } = req.payload;
+  const { user: userId, activity: activityId, questionnaireAnswersList } = req.payload;
 
   const activity = await Activity
     .findOne({ _id: activityId })
@@ -26,8 +26,8 @@ exports.authorizeAddActivityHistory = async (req) => {
 
   if (!coursesWithActivityAndFollowedByUser) throw Boom.notFound();
 
-  if (questionnaireAnswers) {
-    for (const qa of questionnaireAnswers) {
+  if (questionnaireAnswersList) {
+    for (const qa of questionnaireAnswersList) {
       const card = await Card.findOne({ _id: qa.card }).lean();
       if (!card) throw Boom.notFound();
       if (card.template !== SURVEY) throw Boom.badData();

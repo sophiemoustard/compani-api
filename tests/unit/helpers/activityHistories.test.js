@@ -17,13 +17,13 @@ describe('addActivityHistory', () => {
   it('should create an activityHistory', async () => {
     const activityId = new ObjectID();
     const userId = new ObjectID();
-    const questionnaireAnswers = [{ card: new ObjectID(), answer: 'blabla' }];
+    const questionnaireAnswersList = [{ card: new ObjectID(), answer: 'blabla' }];
 
-    await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswers });
+    await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswersList });
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { user: userId, activity: activityId, questionnaireAnswers }
+      { user: userId, activity: activityId, questionnaireAnswersList }
     );
   });
 });

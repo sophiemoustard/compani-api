@@ -16,7 +16,7 @@ exports.plugin = {
           payload: Joi.object({
             user: Joi.objectId().required(),
             activity: Joi.objectId().required(),
-            questionnaireAnswers: Joi.array().items(Joi.object({
+            questionnaireAnswersList: Joi.array().items(Joi.object({
               card: Joi.objectId().required(),
               answer: Joi.string().required(),
             })),
