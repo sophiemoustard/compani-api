@@ -32,7 +32,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ card: cardsList[0]._id, answer: 'blabla' }],
+          questionnaireAnswersList: [{ card: cardsList[0]._id, answer: 'blabla' }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -127,7 +127,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ answer: 'blabla' }],
+          questionnaireAnswersList: [{ answer: 'blabla' }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -142,7 +142,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ card: cardsList[0]._id }],
+          questionnaireAnswersList: [{ card: cardsList[0]._id }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -157,7 +157,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ card: new ObjectID(), answer: 'blabla' }],
+          questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -172,7 +172,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ card: cardsList[1]._id, answer: 'blabla' }],
+          questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -187,7 +187,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswers: [{ card: cardsList[2]._id, answer: 'blabla' }],
+          questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }],
         },
         headers: { 'x-access-token': authToken },
       });
