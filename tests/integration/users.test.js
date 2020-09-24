@@ -36,6 +36,7 @@ const {
 const { trainer } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
+const CloudinaryHelper = require('../../src/helpers/cloudinary');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -1801,5 +1802,96 @@ describe('POST /users/forgot-password', () => {
 
     expect(response.statusCode).toBe(404);
     sinon.assert.notCalled(forgotPasswordEmail);
+  });
+});
+
+describe('POST /users/:id/cloudinary/upload', () => {
+  let authToken;
+  let form;
+  let addImageStub;
+  const user = usersSeedList[0];
+  const docPayload = { fileName: 'user_image_test', picture: 'yoyoyo' };
+  beforeEach(() => {
+    form = generateFormData(docPayload);
+    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
+      .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+  });
+  afterEach(() => {
+    addImageStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should add a user pp', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${user._id}/cloudinary/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      const userWithImage = { ...user, picture: { publicId: 'abcdefgh', link: 'https://alenvi.io' } };
+      const programUpdated = await User.findById(user._id, { identity: 1, picture: 1 }).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(programUpdated).toMatchObject(pick(userWithImage, ['_id', 'identity', 'image']));
+      sinon.assert.calledOnce(addImageStub);
+    });
+
+    const wrongParams = ['file', 'fileName'];
+    wrongParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const invalidForm = generateFormData(omit(docPayload, param));
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${user._id}/cloudinary/upload`,
+          payload: await GetStream(invalidForm),
+          headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should upload picture if it is me - auxiliary', async () => {
+      authToken = await getToken('auxiliary', true, usersSeedList);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/${user._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${user._id}/cloudinary/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
   });
 });
