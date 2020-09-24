@@ -13,6 +13,7 @@ const {
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
+  GAP_ANSWER_MAX_LENGTH,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -44,7 +45,7 @@ exports.plugin = {
               Joi.string().max(QC_ANSWER_MAX_LENGTH)
             ).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
             falsyGapAnswers: Joi.array().items(
-              Joi.string().max(QC_ANSWER_MAX_LENGTH)
+              Joi.string().max(GAP_ANSWER_MAX_LENGTH)
             ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
             explanation: Joi.string(),
             label: Joi.object().keys({
