@@ -103,7 +103,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     ];
 
     cards.forEach((card) => {
-      it(`should update a ${card.template} card`, async () => {
+      it(`should updTESTate a ${card.template} card`, async () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/cards/${card.id.toHexString()}`,
