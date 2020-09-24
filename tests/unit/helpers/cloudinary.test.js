@@ -10,6 +10,7 @@ describe('formatPublicId', () => {
     { character: '&', publicId: '&bonj&our&' },
     { character: '%', publicId: '%bonj%our%' },
     { character: '\\', publicId: '\\bonj\\our\\' },
+    { character: 'emoji', publicId: '🏓bonj🤭our🍄' },
   ];
   invalidCharacters.forEach((invalid) => {
     it(`should remove ${invalid.character}`, () => {
