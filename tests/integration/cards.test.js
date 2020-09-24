@@ -58,7 +58,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'fill_the_gaps',
         payload: {
           gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          falsyAnswers: ['le papa', 'la maman', 'le papi'],
+          falsyGapAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -77,7 +77,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
-          falsyAnswers: ['rien', 'des trucs', 'ou pas'],
+          qcuFalsyAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -142,12 +142,12 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
         { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
-        { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },
-        { msg: 'wrong character in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
+        { msg: 'valid answers', payload: { falsyGapAnswers: ['la maman', 'le tonton'] }, passing: true },
+        { msg: 'remove one of the 2 existing answers', payload: { falsyGapAnswers: ['la maman'] } },
+        { msg: 'long answer', payload: { falsyGapAnswers: ['la maman', 'more then 15 characters'] } },
+        { msg: 'wrong character in answer', payload: { falsyGapAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
-        { msg: 'too many falsy answers', payload: { falsyAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
+        { msg: 'too many falsy answers', payload: { falsyGapAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
@@ -198,12 +198,12 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Single choice question', () => {
       const requests = [
-        { msg: 'valid answers', payload: { falsyAnswers: ['toto'], qcuGoodAnswer: 'c\'est le S' }, code: 200 },
-        { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
-        { msg: 'too many answer', payload: { falsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
+        { msg: 'valid answers', payload: { qcuFalsyAnswers: ['toto'], qcuGoodAnswer: 'c\'est le S' }, code: 200 },
+        { msg: 'missing falsyAnswer', payload: { qcuFalsyAnswers: [] }, code: 400 },
+        { msg: 'too many answer', payload: { qcuFalsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
         {
           msg: 'too many chars in falsy answers',
-          payload: { falsyAnswers: ['asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'] },
+          payload: { qcuFalsyAnswers: ['asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'] },
           code: 400,
         },
         {
