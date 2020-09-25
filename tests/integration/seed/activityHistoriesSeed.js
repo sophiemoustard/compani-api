@@ -3,13 +3,20 @@ const Activity = require('../../../src/models/Activity');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
+const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
+const cardsList = [
+  { _id: new ObjectID(), template: 'survey', question: 'test?' },
+  { _id: new ObjectID(), template: 'survey', question: 'test2?' },
+  { _id: new ObjectID(), template: 'single_choice_question', question: 'test3?' },
+];
+
 const activitiesList = [
-  { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
+  { _id: new ObjectID(), name: 'bouger', type: 'lesson', cards: [cardsList[0]._id, cardsList[2]._id] },
 ];
 
 const stepsList = [{
@@ -39,6 +46,7 @@ const populateDB = async () => {
   await Step.deleteMany({});
   await SubProgram.deleteMany({});
   await Course.deleteMany({});
+  await Card.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -46,6 +54,7 @@ const populateDB = async () => {
   await Step.insertMany(stepsList);
   await SubProgram.insertMany(subProgramsList);
   await Course.insertMany(coursesList);
+  await Card.insertMany(cardsList);
 };
 
 module.exports = {
@@ -55,4 +64,5 @@ module.exports = {
   subProgramsList,
   coursesList,
   activityHistoriesUsersList,
+  cardsList,
 };

@@ -5,6 +5,7 @@ const {
   populateDB,
   activitiesList,
   activityHistoriesUsersList,
+  cardsList,
 } = require('./seed/activityHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -28,7 +29,25 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ card: cardsList[0]._id, answer: 'blabla' }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should create activityHistory without questionnaireAnswer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+        },
         headers: { 'x-access-token': authToken },
       });
 
@@ -99,6 +118,81 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if questionnaire answer without card', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ answer: 'blabla' }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if questionnaire answer without answer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ card: cardsList[0]._id }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if card does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if card not in activity', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 422 if card not a survey', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          user: activityHistoriesUsersList[0],
+          activity: activitiesList[0]._id,
+          questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
   });
 
