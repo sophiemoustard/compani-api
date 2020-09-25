@@ -16,7 +16,7 @@ const cardsList = [
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'bouger', type: 'lesson', cards: [cardsList[0]._id] },
+  { _id: new ObjectID(), name: 'bouger', type: 'lesson', cards: [cardsList[0]._id, cardsList[2]._id] },
 ];
 
 const stepsList = [{
