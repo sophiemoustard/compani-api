@@ -180,7 +180,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not an open_question', async () => {
+    it('should return 422 if card not a survey or an open_question', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
