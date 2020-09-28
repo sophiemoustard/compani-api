@@ -31,7 +31,7 @@ exports.authorizeAddActivityHistory = async (req) => {
     for (const qa of questionnaireAnswersList) {
       const card = await Card.findOne({ _id: qa.card }).lean();
       if (!card) throw Boom.notFound();
-      if (card.template !== (SURVEY || OPEN_QUESTION)) throw Boom.badData();
+      if (![SURVEY, OPEN_QUESTION].includes(card.template)) throw Boom.badData();
 
       const activityCount = await Activity.countDocuments({ _id: activityId, cards: card._id });
       if (!activityCount) throw Boom.notFound();
