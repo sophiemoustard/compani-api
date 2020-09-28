@@ -32,7 +32,10 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         payload: {
           user: activityHistoriesUsersList[0],
           activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ card: cardsList[0]._id, answer: 'blabla' }],
+          questionnaireAnswersList: [
+            { card: cardsList[0]._id, answer: 'blabla' },
+            { card: cardsList[3]._id, answer: 'blebleble' },
+          ],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -180,7 +183,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not a survey or an open_question', async () => {
+    it('should return 422 if card not a questionnaire', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
