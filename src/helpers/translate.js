@@ -253,6 +253,7 @@ module.exports = {
     courseSlotConflict: 'Course slot in conflict.',
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
+    activityHistoryFound: 'Activity history found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -505,5 +506,6 @@ module.exports = {
     courseSlotConflict: 'Créneau de formation en conflit.',
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
+    activityHistoryFound: 'Historique d\'activité trouvé.',
   },
 };
