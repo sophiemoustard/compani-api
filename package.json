@@ -32,7 +32,7 @@
     "@hapi/hapi": "^19.2.0",
     "@hapi/inert": "^5.1.0",
     "axios": "^0.19.2",
-    "bcrypt": "^3.0.8",
+    "bcrypt": "^5.0.0",
     "cloudinary": "^1.23.0",
     "cron": "^1.7.2",
     "date-holidays": "^1.7.0",
