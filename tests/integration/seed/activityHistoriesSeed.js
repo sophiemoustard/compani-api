@@ -13,10 +13,14 @@ const cardsList = [
   { _id: new ObjectID(), template: 'survey', question: 'test?' },
   { _id: new ObjectID(), template: 'survey', question: 'test2?' },
   { _id: new ObjectID(), template: 'single_choice_question', question: 'test3?' },
+  { _id: new ObjectID(), template: 'open_question', question: 'test4?' },
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'bouger', type: 'lesson', cards: [cardsList[0]._id, cardsList[2]._id] },
+  { _id: new ObjectID(),
+    name: 'bouger',
+    type: 'lesson',
+    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id] },
 ];
 
 const stepsList = [{
