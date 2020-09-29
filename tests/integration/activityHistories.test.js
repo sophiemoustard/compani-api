@@ -183,7 +183,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not a questionnaire', async () => {
+    it('should return 422 if card not a survey or an open question', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
