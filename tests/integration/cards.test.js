@@ -89,7 +89,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           qcmAnswers: [{ label: 'un truc', correct: true }, { label: 'rien', correct: false }],
           explanation: 'en fait on doit faire ça',
         },
-        id: singleChoiceQuestionId,
+        id: multipleChoiceQuestionId,
       },
       {
         template: 'survey',

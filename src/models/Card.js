@@ -11,6 +11,7 @@ const {
   ORDER_THE_SEQUENCE,
   OPEN_QUESTION,
   SURVEY,
+  QUESTION_ANSWER,
 } = require('../helpers/constants');
 
 const CARD_TEMPLATES = [
@@ -25,6 +26,7 @@ const CARD_TEMPLATES = [
   ORDER_THE_SEQUENCE,
   OPEN_QUESTION,
   SURVEY,
+  QUESTION_ANSWER,
 ];
 
 const CardSchema = mongoose.Schema({
