@@ -203,12 +203,16 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'too many answer', payload: { qcuFalsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
         {
           msg: 'too many chars in falsy answers',
-          payload: { qcuFalsyAnswers: ['asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'] },
+          payload: {
+            qcuFalsyAnswers: ['eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'],
+          },
           code: 400,
         },
         {
           msg: 'too many chars in good answer',
-          payload: { qcuGoodAnswer: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz' },
+          payload: {
+            qcuGoodAnswer: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
+          },
           code: 400,
         },
       ];
@@ -245,7 +249,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           msg: 'too many chars in answer',
           payload: {
             qcmAnswers: [
-              { label: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz', correct: true },
+              {
+                label: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
+                correct: true,
+              },
               { label: 'bleue', correct: false },
             ],
           },
