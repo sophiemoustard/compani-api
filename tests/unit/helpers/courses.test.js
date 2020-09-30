@@ -198,7 +198,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -234,7 +234,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -279,7 +279,7 @@ describe('getCoursePublicInfos', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name learningGoals' },
+        populate: { path: 'program', select: 'name description' },
       })
       .chain('populate')
       .withExactArgs('slots')
@@ -779,7 +779,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
+      subProgram: { program: { description: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -787,7 +787,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      learningGoals: course.subProgram.program.learningGoals,
+      description: course.subProgram.program.description,
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -849,7 +849,7 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { program: { learningGoals: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
+    const formattedCourse = { program: { description: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -860,7 +860,7 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name learningGoals' },
+        populate: { path: 'program', select: 'name description' },
       })
       .chain('lean')
       .once()
