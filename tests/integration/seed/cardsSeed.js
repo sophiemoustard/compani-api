@@ -14,6 +14,7 @@ const {
   ORDER_THE_SEQUENCE,
   SURVEY,
   OPEN_QUESTION,
+  QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
 
 const cardsList = [
@@ -32,6 +33,7 @@ const cardsList = [
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
+  { _id: new ObjectID(), template: QUESTION_ANSWER, questionAnswers: ['hallo', 'shalom'] },
 ];
 
 const activitiesList = [

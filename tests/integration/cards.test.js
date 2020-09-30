@@ -28,6 +28,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const multipleChoiceQuestionId = cardsList[6]._id;
   const surveyId = cardsList[9]._id;
   const openQuestionId = cardsList[10]._id;
+  const questionAnswerId = cardsList[11]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -100,6 +101,15 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         id: surveyId,
       },
       { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
+      {
+        template: 'question_answer',
+        payload: {
+          severalQuestionAnswers: true,
+          question: 'Que faire dans cette situation ?',
+          questionAnswers: ['partir', 'rester'],
+        },
+        id: questionAnswerId,
+      },
     ];
 
     cards.forEach((card) => {
@@ -287,6 +297,42 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${surveyId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('QuestionAnswer', () => {
+      const requests = [
+        {
+          msg: 'Valid questionAnswer',
+          payload: { question: 'vous dites?', questionAnswers: ['bien bien', 'oui oui'] },
+          code: 200,
+        },
+        {
+          msg: 'Missing questionAnswer',
+          payload: { question: 'vous dites?', questionAnswers: ['bien bien'] },
+          code: 400,
+        },
+        {
+          msg: 'Too many questionAnswer',
+          payload: {
+            question: 'vous dites?',
+            questionAnswers: ['ha-ha-ha-ha', 'staying alive', 'staying alive', 'hahaha', 'staying aliiiiive'],
+          },
+          code: 400,
+        },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${questionAnswerId.toHexString()}`,
             payload: request.payload,
             headers: { 'x-access-token': authToken },
           });

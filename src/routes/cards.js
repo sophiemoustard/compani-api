@@ -14,6 +14,7 @@ const {
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
+  QUESTION_ANSWER_MAX_ANSWERS_COUNT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -47,6 +48,8 @@ exports.plugin = {
             falsyGapAnswers: Joi.array().items(
               Joi.string().max(GAP_ANSWER_MAX_LENGTH)
             ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
+            questionAnswers: Joi.array().items(Joi.string()).min(1).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
+            severalQuestionAnswers: Joi.boolean(),
             explanation: Joi.string(),
             label: Joi.object().keys({
               right: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),

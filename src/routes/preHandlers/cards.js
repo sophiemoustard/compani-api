@@ -5,6 +5,7 @@ const {
   ORDER_THE_SEQUENCE,
   MULTIPLE_CHOICE_QUESTION,
   PUBLISHED,
+  QUESTION_ANSWER,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -41,6 +42,13 @@ const checkOrderTheSequence = (payload, card) => {
   return null;
 };
 
+const checkQuestionAnswer = (payload, card) => {
+  const { questionAnswers } = payload;
+  if (questionAnswers && questionAnswers.length === 1 && card.questionAnswers.length > 1) return Boom.badRequest();
+
+  return null;
+};
+
 const checkMultipleChoiceQuestion = (payload, card) => {
   const { qcmAnswers } = payload;
 
@@ -64,6 +72,8 @@ exports.authorizeCardUpdate = async (req) => {
       return checkOrderTheSequence(req.payload, card);
     case MULTIPLE_CHOICE_QUESTION:
       return checkMultipleChoiceQuestion(req.payload, card);
+    case QUESTION_ANSWER:
+      return checkQuestionAnswer(req.payload, card);
     default:
       return null;
   }
