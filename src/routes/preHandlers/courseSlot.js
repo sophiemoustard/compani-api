@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const moment = require('moment');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const Step = require('../../models/Step');
@@ -32,7 +33,9 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
 
 const checkPayload = async (courseId, payload) => {
   const { startDate, endDate, step: stepId } = payload;
-  if ((startDate && !endDate) || (!startDate && endDate)) throw Boom.badRequest();
+  const hasBothOrNeitherDates = (startDate && endDate) || (!startDate && !endDate);
+  const sameDay = moment(startDate).isSame(endDate, 'day');
+  if (!hasBothOrNeitherDates || !sameDay) throw Boom.badRequest();
 
   if (stepId) {
     const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
