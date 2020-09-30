@@ -159,7 +159,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         })]),
       }));
       expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
-      expect(response.result.data.courses[3].subProgram.program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].subProgram.program.description).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
@@ -311,7 +311,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           program: {
             _id: expect.any(ObjectID),
             name: programsList[0].name,
-            learningGoals: programsList[0].learningGoals,
+            description: programsList[0].description,
             subPrograms: [expect.any(ObjectID)],
           },
           steps: [{
