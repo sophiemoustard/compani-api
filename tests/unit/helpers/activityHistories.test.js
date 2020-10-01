@@ -27,23 +27,3 @@ describe('addActivityHistory', () => {
     );
   });
 });
-
-describe('getActivityHistory', () => {
-  let get;
-
-  beforeEach(() => {
-    get = sinon.stub(ActivityHistoryHelper, 'getActivityHistory');
-  });
-
-  afterEach(() => {
-    get.restore();
-  });
-
-  it('should get the activityHistory of the activity', async () => {
-    const activityId = new ObjectID();
-
-    await ActivityHistoryHelper.getActivityHistory(activityId);
-
-    sinon.assert.calledOnceWithExactly(get, activityId);
-  });
-});

@@ -6,6 +6,8 @@ const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const { TRANSITION, FLASHCARD, TITLE_TEXT, TITLE_TEXT_MEDIA } = require('../../../src/helpers/constants');
+const { activityHistoriesUsersList } = require('./activityHistoriesSeed');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'ceci est un titre' },
@@ -46,12 +48,21 @@ const subProgramsList = [{ _id: new ObjectID(), name: '2_7_4124', steps: [stepsL
 
 const programsList = [{ _id: new ObjectID(), name: 'au programme télévisé', subPrograms: [subProgramsList[0]._id] }];
 
+const activityHistoriesList = [
+  {
+    user: activityHistoriesUsersList[0],
+    activity: activitiesList[0]._id,
+    questionnaireAnswersList: [{ card: cardsList[0]._id, answer: 'skusku' }],
+  },
+];
+
 const populateDB = async () => {
   await Program.deleteMany({});
   await SubProgram.deleteMany({});
   await Step.deleteMany({});
   await Activity.deleteMany({});
   await Card.deleteMany({});
+  await ActivityHistory.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -60,6 +71,7 @@ const populateDB = async () => {
   await Step.insertMany(stepsList);
   await Activity.insertMany(activitiesList);
   await Card.insertMany(cardsList);
+  await ActivityHistory.insertMany(activityHistoriesList);
 };
 
 module.exports = {
@@ -69,4 +81,5 @@ module.exports = {
   stepsList,
   subProgramsList,
   programsList,
+  activityHistoriesList,
 };

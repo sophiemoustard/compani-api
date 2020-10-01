@@ -15,21 +15,6 @@ const addActivityHistory = async (req) => {
   }
 };
 
-const getByActivityId = async (req) => {
-  try {
-    const activityHistory = await ActivityHistoryHelper.getActivityHistory(req.params._id);
-
-    return {
-      message: translate[language].activityHistoryFound,
-      data: { activityHistory },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   addActivityHistory,
-  getByActivityId,
 };
