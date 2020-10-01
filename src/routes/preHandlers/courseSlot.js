@@ -35,7 +35,8 @@ const checkPayload = async (courseId, payload) => {
   const { startDate, endDate, step: stepId } = payload;
   const hasBothOrNeitherDates = (startDate && endDate) || (!startDate && !endDate);
   const sameDay = moment(startDate).isSame(endDate, 'day');
-  if (!hasBothOrNeitherDates || !sameDay) throw Boom.badRequest();
+  const startDateBeforeEndDate = moment(startDate).isSameOrBefore(endDate);
+  if (!(hasBothOrNeitherDates && sameDay && startDateBeforeEndDate)) throw Boom.badRequest();
 
   if (stepId) {
     const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
