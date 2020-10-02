@@ -53,7 +53,7 @@ const CardSchema = mongoose.Schema({
     type: [String],
     default: undefined,
   },
-  severalQuestionAnswers: { type: Boolean },
+  isQuestionAnswerMultipleChoiced: { type: Boolean },
   qcmAnswers: {
     type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false })],
     default: undefined,

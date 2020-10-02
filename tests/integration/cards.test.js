@@ -104,7 +104,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       {
         template: 'question_answer',
         payload: {
-          severalQuestionAnswers: true,
+          isQuestionAnswerMultipleChoiced: true,
           question: 'Que faire dans cette situation ?',
           questionAnswers: ['partir', 'rester'],
         },
