@@ -18,7 +18,7 @@ const {
   getSMSHistory,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
-const { COURSE_TYPES } = require('../models/Course');
+const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
 const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
@@ -41,6 +41,7 @@ exports.plugin = {
             trainer: Joi.objectId(),
             company: Joi.objectId(),
             trainees: Joi.objectId(),
+            format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },
         pre: [{ method: authorizeGetCourseList }],

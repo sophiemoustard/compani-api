@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const { INTRA, INTER_B2B } = require('../helpers/constants');
+const { INTRA, INTER_B2B, INTER_B2C, STRICTLY_E_LEARNING, BLENDED } = require('../helpers/constants');
 const { PHONE_VALIDATION } = require('./utils');
 
-const COURSE_TYPES = [INTRA, INTER_B2B];
+const COURSE_TYPES = [INTRA, INTER_B2B, INTER_B2C];
+const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
 
 const CourseSchema = mongoose.Schema({
   misc: { type: String },
   subProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram', required: true },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required() { return this.type === INTRA; } },
   type: { type: String, required: true, enum: COURSE_TYPES },
+  format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   contact: {
@@ -44,3 +46,4 @@ CourseSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Course', CourseSchema);
 module.exports.COURSE_TYPES = COURSE_TYPES;
+module.exports.COURSE_FORMATS = COURSE_FORMATS;

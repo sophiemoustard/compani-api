@@ -38,6 +38,7 @@ describe('createCourse', () => {
     expect(result.misc).toEqual(newCourse.misc);
     expect(result.subProgram).toEqual(newCourse.subProgram);
     expect(result.company).toEqual(newCourse.company);
+    expect(result.format).toEqual('blended');
   });
 });
 
@@ -55,20 +56,20 @@ describe('list', () => {
     CourseMock.restore();
   });
 
-  it('should return courses', async () => {
+  it('should return blended courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
     CourseMock.expects('findOne').never();
 
-    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
-    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678' });
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
     CourseMock.verify();
   });
 
-  it('should return courses, called with query.trainees', async () => {
-    const query = { trainees: '1234567890abcdef12345612' };
+  it('should return blended courses, called with query.trainees', async () => {
+    const query = { trainees: '1234567890abcdef12345612', format: 'blended' };
     const coursesList = [
       {
         misc: 'Groupe 2',
@@ -94,7 +95,7 @@ describe('list', () => {
     CourseMock.verify();
   });
 
-  it('should return courses, called with query.company', async () => {
+  it('should return blended courses, called with query.company', async () => {
     const coursesList = [
       { misc: 'name', type: 'intra' },
       {
@@ -123,7 +124,11 @@ describe('list', () => {
 
     CourseMock.expects('findOne').never();
 
-    const result = await CourseHelper.list({ company: authCompany.toHexString(), trainer: '1234567890abcdef12345678' });
+    const result = await CourseHelper.list({
+      company: authCompany.toHexString(),
+      trainer: '1234567890abcdef12345678',
+      format: 'blended',
+    });
     expect(result).toMatchObject(coursesList);
     expect(findCourseAndPopulate.getCall(0)
       .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
@@ -193,7 +198,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -229,7 +234,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -274,7 +279,7 @@ describe('getCoursePublicInfos', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name learningGoals' },
+        populate: { path: 'program', select: 'name description' },
       })
       .chain('populate')
       .withExactArgs('slots')
@@ -774,7 +779,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
+      subProgram: { program: { description: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -782,7 +787,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      learningGoals: course.subProgram.program.learningGoals,
+      description: course.subProgram.program.description,
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -844,7 +849,7 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { program: { learningGoals: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
+    const formattedCourse = { program: { description: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -855,7 +860,7 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name learningGoals' },
+        populate: { path: 'program', select: 'name description' },
       })
       .chain('lean')
       .once()

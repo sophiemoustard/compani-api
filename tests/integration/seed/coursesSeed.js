@@ -82,7 +82,7 @@ const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
-    learningGoals: 'on est là',
+    description: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
     subPrograms: [subProgramsList[0]._id],
   },
@@ -132,6 +132,7 @@ const coursesList = [
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    format: 'strictly_e_learning',
   },
   {
     _id: new ObjectID(),
@@ -139,6 +140,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
+    format: 'strictly_e_learning',
   },
 ];
 

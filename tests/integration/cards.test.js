@@ -28,6 +28,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   const multipleChoiceQuestionId = cardsList[6]._id;
   const surveyId = cardsList[9]._id;
   const openQuestionId = cardsList[10]._id;
+  const questionAnswerId = cardsList[11]._id;
   const payload = {
     title: 'rigoler',
     text: 'c\'est bien',
@@ -58,7 +59,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'fill_the_gaps',
         payload: {
           gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          falsyAnswers: ['le papa', 'la maman', 'le papi'],
+          falsyGapAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -77,7 +78,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
-          falsyAnswers: ['rien', 'des trucs', 'ou pas'],
+          qcuFalsyAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -89,7 +90,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           qcmAnswers: [{ label: 'un truc', correct: true }, { label: 'rien', correct: false }],
           explanation: 'en fait on doit faire ça',
         },
-        id: singleChoiceQuestionId,
+        id: multipleChoiceQuestionId,
       },
       {
         template: 'survey',
@@ -100,6 +101,15 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         id: surveyId,
       },
       { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
+      {
+        template: 'question_answer',
+        payload: {
+          isQuestionAnswerMultipleChoiced: true,
+          question: 'Que faire dans cette situation ?',
+          questionAnswers: ['partir', 'rester'],
+        },
+        id: questionAnswerId,
+      },
     ];
 
     cards.forEach((card) => {
@@ -142,12 +152,12 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
         { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { falsyAnswers: ['la maman', 'le tonton'] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { falsyAnswers: ['la maman'] } },
-        { msg: 'long answer', payload: { falsyAnswers: ['la maman', 'more then 15 characters'] } },
-        { msg: 'wrong character in answer', payload: { falsyAnswers: ['la maman', 'c\'est tout.'] } },
+        { msg: 'valid answers', payload: { falsyGapAnswers: ['la maman', 'le tonton'] }, passing: true },
+        { msg: 'remove one of the 2 existing answers', payload: { falsyGapAnswers: ['la maman'] } },
+        { msg: 'long answer', payload: { falsyGapAnswers: ['la maman', 'more then 15 characters'] } },
+        { msg: 'wrong character in answer', payload: { falsyGapAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
-        { msg: 'too many falsy answers', payload: { falsyAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
+        { msg: 'too many falsy answers', payload: { falsyGapAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
@@ -166,8 +176,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Order the sequence', () => {
       const requests = [
-        { msg: 'valid ordered answers', payload: { orderedAnswers: ['en fait si', 'a ouai, non'] }, passing: true },
+        {
+          msg: 'valid ordered answers',
+          payload: { orderedAnswers: ['en fait si', 'a ouai, non'], question: 'ya quoi ???' },
+          passing: true,
+        },
         { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
+        {
+          msg: 'too many chars in question',
+          payload: {
+            question: 'asdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklzbtrbtrbtrhtrhthtvfdbbfbggbfdb'
+              + 'frehuvbierhigvobreipvberuipvbejripvbehriovbehrovhreuogvregcfhergjvrebgjoiprebgjirepbghjrieghroegvroe',
+          },
+          code: 400,
+        },
       ];
 
       requests.forEach((request) => {
@@ -186,9 +208,23 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Single choice question', () => {
       const requests = [
-        { msg: 'valid answers', payload: { falsyAnswers: ['toto'] }, code: 200 },
-        { msg: 'missing falsyAnswer', payload: { falsyAnswers: [] }, code: 400 },
-        { msg: 'too many answer', payload: { falsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
+        { msg: 'valid answers', payload: { qcuFalsyAnswers: ['toto'], qcuGoodAnswer: 'c\'est le S' }, code: 200 },
+        { msg: 'missing falsyAnswer', payload: { qcuFalsyAnswers: [] }, code: 400 },
+        { msg: 'too many answer', payload: { qcuFalsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
+        {
+          msg: 'too many chars in falsy answers',
+          payload: {
+            qcuFalsyAnswers: ['eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'],
+          },
+          code: 400,
+        },
+        {
+          msg: 'too many chars in good answer',
+          payload: {
+            qcuGoodAnswer: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
+          },
+          code: 400,
+        },
       ];
 
       requests.forEach((request) => {
@@ -207,14 +243,29 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Multiple choice question', () => {
       const requests = [
-        { msg: 'valid answers',
+        {
+          msg: 'valid answers',
           payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
-          code: 200 },
+          code: 200,
+        },
         { msg: 'missing label', payload: { qcmAnswers: [{ correct: true }] }, code: 400 },
         { msg: 'missing correct', payload: { qcmAnswers: [{ label: 'et la bête' }] }, code: 400 },
         {
           msg: 'missing correct answer',
           payload: { qcmAnswers: [{ label: 'époque', correct: false }, { label: 'et le clochard', correct: false }] },
+          code: 400,
+        },
+        {
+          msg: 'too many chars in answer',
+          payload: {
+            qcmAnswers: [
+              {
+                label: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
+                correct: true,
+              },
+              { label: 'bleue', correct: false },
+            ],
+          },
           code: 400,
         },
       ];
@@ -246,6 +297,42 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${surveyId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
+        });
+      });
+    });
+
+    describe('QuestionAnswer', () => {
+      const requests = [
+        {
+          msg: 'Valid questionAnswer',
+          payload: { question: 'vous dites?', questionAnswers: ['bien bien', 'oui oui'] },
+          code: 200,
+        },
+        {
+          msg: 'Missing questionAnswer',
+          payload: { question: 'vous dites?', questionAnswers: ['bien bien'] },
+          code: 400,
+        },
+        {
+          msg: 'Too many questionAnswer',
+          payload: {
+            question: 'vous dites?',
+            questionAnswers: ['ha-ha-ha-ha', 'staying alive', 'staying alive', 'hahaha', 'staying aliiiiive'],
+          },
+          code: 400,
+        },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${questionAnswerId.toHexString()}`,
             payload: request.payload,
             headers: { 'x-access-token': authToken },
           });

@@ -65,7 +65,7 @@ exports.getCourse = async (courseId, loggedUser) => {
     .populate({
       path: 'subProgram',
       select: 'program steps',
-      populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+      populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
     })
     .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
@@ -83,7 +83,7 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({
     path: 'subProgram',
     select: 'program',
-    populate: { path: 'program', select: 'name learningGoals' },
+    populate: { path: 'program', select: 'name description' },
   })
   .populate('slots')
   .populate({ path: 'slotsToPlan', select: '_id' })
@@ -230,7 +230,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 
 exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
-  learningGoals: get(course, 'subProgram.program.learningGoals') || '',
+  description: get(course, 'subProgram.program.description') || '',
   programName: get(course, 'subProgram.program.name').toUpperCase() || '',
   startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
   endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
@@ -240,7 +240,7 @@ exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name description' } })
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);
