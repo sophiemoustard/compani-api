@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeCardAdd, authorizeActivityUpdate } = require('./preHandlers/activities');
+const { authorizeCardAdd, authorizeActivityUpdate, authorizeGetActivityHistory } = require('./preHandlers/activities');
 const { getById, update, addCard, getActivityHistory } = require('../controllers/activityController');
 const { CARD_TEMPLATES } = require('../models/Card');
 
@@ -60,6 +60,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { mode: 'required' },
+        pre: [{ method: authorizeGetActivityHistory }],
       },
       handler: getActivityHistory,
     });

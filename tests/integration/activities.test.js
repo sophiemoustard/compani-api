@@ -365,8 +365,8 @@ describe('ACTIVITY ROUTES - GET /activities/{_id}/activityhistory', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.activityHistory).toEqual(expect.objectContaining({
         _id: expect.any(ObjectID),
-        user: activityHistoriesList[0].user,
-        activity: activityHistoriesList[0].activity._id,
+        user: activityHistoriesList[6].user,
+        activity: activityHistoriesList[6].activity._id,
         date: expect.any(Date),
         questionnaireAnswersList: [
           { _id: expect.any(ObjectID), card: cardsList[0]._id, answer: 'skusku' },
@@ -374,15 +374,14 @@ describe('ACTIVITY ROUTES - GET /activities/{_id}/activityhistory', () => {
       }));
     });
 
-    it('should return a 200 even if no activityhistory', async () => {
+    it('should return a 404 if no activityhistory', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/activities/${new ObjectID()}/activityhistory`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.activityHistory).toEqual(undefined);
+      expect(response.statusCode).toBe(404);
     });
   });
 

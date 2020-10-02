@@ -43,8 +43,7 @@ const addCard = async (req) => {
 
 const getActivityHistory = async (req) => {
   try {
-    const userId = req.auth.credentials._id;
-    const activityHistory = await ActivityHelper.getActivityHistory(req.params._id, userId);
+    const activityHistory = await ActivityHelper.getActivityHistory(req.params._id, req.auth.credentials._id);
 
     return {
       message: translate[language].activityHistoryFound,
