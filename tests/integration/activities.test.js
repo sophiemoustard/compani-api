@@ -2,7 +2,15 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
-const { populateDB, activitiesList, stepsList, subProgramsList, programsList } = require('./seed/activitiesSeed');
+const {
+  populateDB,
+  activitiesList,
+  stepsList,
+  subProgramsList,
+  programsList,
+  activityHistoriesList,
+  cardsList,
+} = require('./seed/activitiesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
@@ -328,6 +336,81 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
           method: 'POST',
           payload: { template: 'transition' },
           url: `/activities/${activityId.toHexString()}/cards`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('ACTIVITY ROUTES - GET /activities/{_id}/activityhistory', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const activityId = activityHistoriesList[0].activity._id;
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get activityhistory', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/activities/${activityId.toHexString()}/activityhistory`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.activityHistory).toEqual(expect.objectContaining({
+        _id: expect.any(ObjectID),
+        user: activityHistoriesList[6].user,
+        activity: activityHistoriesList[6].activity._id,
+        date: expect.any(Date),
+        questionnaireAnswersList: [
+          { _id: expect.any(ObjectID), card: cardsList[0]._id, answer: 'skusku' },
+        ],
+      }));
+    });
+
+    it('should return a 404 if no activityhistory', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/activities/${new ObjectID()}/activityhistory`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  it('should return 401 if user is not authenticate', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/activities/${activityId.toHexString()}/activityhistory`,
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/activities/${activityId.toHexString()}/activityhistory`,
           headers: { 'x-access-token': authToken },
         });
 
