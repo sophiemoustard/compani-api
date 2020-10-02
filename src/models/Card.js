@@ -80,6 +80,7 @@ function save(next) {
         break;
       case QUESTION_ANSWER:
         this.questionAnswers = [];
+        this.isQuestionAnswerMultipleChoiced = false;
         break;
       case ORDER_THE_SEQUENCE:
         this.orderedAnswers = [];
