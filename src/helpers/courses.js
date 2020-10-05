@@ -16,7 +16,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, BLENDED } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -47,7 +47,7 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
+exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id, format: BLENDED })
   .populate({ path: 'subProgram', select: 'program steps', populate: { path: 'program', select: 'name image' } })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
   .select('_id')

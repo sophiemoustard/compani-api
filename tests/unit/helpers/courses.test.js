@@ -152,7 +152,7 @@ describe('listUserCourses', () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     CourseMock.expects('find')
-      .withExactArgs({ trainees: '1234567890abcdef12345678' })
+      .withExactArgs({ trainees: '1234567890abcdef12345678', format: 'blended' })
       .chain('populate')
       .withExactArgs({
         path: 'subProgram',
@@ -166,7 +166,7 @@ describe('listUserCourses', () => {
       .chain('lean')
       .returns(coursesList);
 
-    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
+    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
   });
 });
