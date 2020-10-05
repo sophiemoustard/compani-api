@@ -105,7 +105,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[0], activity: new ObjectID() },
+        payload: { user: activityHistoriesUsersList[0], activity: new ObjectID(), score: 2 },
         headers: { 'x-access-token': authToken },
       });
 

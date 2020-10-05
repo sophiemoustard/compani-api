@@ -20,6 +20,7 @@ exports.plugin = {
               card: Joi.objectId().required(),
               answer: Joi.string().required(),
             })),
+            score: Joi.number(),
           }),
         },
         auth: { mode: 'required' },
