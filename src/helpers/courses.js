@@ -102,7 +102,10 @@ exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id
         populate: {
           path: 'activities',
           select: 'name type cards activityHistories',
-          populate: { path: 'activityHistories', match: { user: credentials._id } },
+          populate: [
+            { path: 'activityHistories', match: { user: credentials._id } },
+            { path: 'cards', select: 'template' },
+          ],
         },
       },
     ],

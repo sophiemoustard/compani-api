@@ -575,7 +575,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
             _id: expect.any(ObjectID),
             name: activity.name,
             type: activity.type,
-            cards: expect.arrayContaining([expect.any(ObjectID)]),
+            cards: expect.arrayContaining([{ _id: expect.any(ObjectID), template: 'title_text' }]),
+            quizCount: 0,
             activityHistories: expect.arrayContaining([
               expect.objectContaining({ user: coachFromAuthCompany._id }),
               expect.not.objectContaining({ user: clientAdmin._id }),
