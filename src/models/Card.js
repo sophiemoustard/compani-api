@@ -136,36 +136,36 @@ function setIsValid() {
     case FILL_THE_GAPS:
       return typeof this.gappedText === 'string' && this.gappedText !== '' &&
         Array.isArray(this.falsyGapAnswers) && this.falsyGapAnswers.length > 1 &&
-        this.falsyGapAnswers.length < FILL_THE_GAPS_MAX_ANSWERS_COUNT &&
+        this.falsyGapAnswers.length <= FILL_THE_GAPS_MAX_ANSWERS_COUNT &&
         this.falsyGapAnswers.every(answer =>
-          typeof answer === 'string' && answer !== '' && answer.length < GAP_ANSWER_MAX_LENGTH) &&
+          typeof answer === 'string' && answer !== '' && answer.length <= GAP_ANSWER_MAX_LENGTH) &&
         typeof this.explanation === 'string' && this.explanation !== '';
     case SINGLE_CHOICE_QUESTION:
-      return typeof this.question === 'string' && this.question !== '' && this.question.length < QUESTION_MAX_LENGTH &&
+      return typeof this.question === 'string' && this.question !== '' && this.question.length <= QUESTION_MAX_LENGTH &&
         typeof this.qcuGoodAnswer === 'string' && this.qcuGoodAnswer !== '' &&
-        this.qcuGoodAnswer.length < QUESTION_MAX_LENGTH &&
+        this.qcuGoodAnswer.length <= QUESTION_MAX_LENGTH &&
         Array.isArray(this.qcuFalsyAnswers) && this.qcuFalsyAnswers.length > 0 &&
-        this.qcuFalsyAnswers.length < SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT &&
+        this.qcuFalsyAnswers.length <= SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT &&
         this.qcuFalsyAnswers.every(answer =>
-          typeof answer === 'string' && answer !== '' && answer.length < QC_ANSWER_MAX_LENGTH) &&
+          typeof answer === 'string' && answer !== '' && answer.length <= QC_ANSWER_MAX_LENGTH) &&
         typeof this.explanation === 'string' && this.explanation !== '';
     case ORDER_THE_SEQUENCE:
-      return typeof this.question === 'string' && this.question !== '' && this.question.length < QUESTION_MAX_LENGTH &&
+      return typeof this.question === 'string' && this.question !== '' && this.question.length <= QUESTION_MAX_LENGTH &&
       Array.isArray(this.orderedAnswers) && this.orderedAnswers.length > 1 &&
-      this.orderedAnswers.length < ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT &&
+      this.orderedAnswers.length <= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT &&
       this.orderedAnswers.every(answer => typeof answer === 'string') &&
       typeof this.explanation === 'string' && this.explanation !== '';
     case MULTIPLE_CHOICE_QUESTION:
-      return typeof this.question === 'string' && this.question !== '' && this.question.length < QUESTION_MAX_LENGTH &&
+      return typeof this.question === 'string' && this.question !== '' && this.question.length <= QUESTION_MAX_LENGTH &&
         Array.isArray(this.qcmAnswers) && this.qcmAnswers.length > 1 &&
-        this.qcmAnswers.length < MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT &&
+        this.qcmAnswers.length <= MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT &&
         this.qcmAnswers.every(answer => typeof answer === 'object' &&
-          typeof answer.label === 'string' && answer.label !== '' && answer.label.length < QC_ANSWER_MAX_LENGTH &&
+          typeof answer.label === 'string' && answer.label !== '' && answer.label.length <= QC_ANSWER_MAX_LENGTH &&
           typeof answer.correct === 'boolean') &&
         this.qcmAnswers.some(answer => answer.correct === true) &&
         typeof this.explanation === 'string' && this.explanation !== '';
     case SURVEY:
-      if (!(typeof this.question === 'string' && this.question !== '' && this.question.length < QUESTION_MAX_LENGTH)) {
+      if (!(typeof this.question === 'string' && this.question !== '' && this.question.length <= QUESTION_MAX_LENGTH)) {
         return false;
       }
       if (!this.label || (!this.label.right && !this.label.left)) return true;
