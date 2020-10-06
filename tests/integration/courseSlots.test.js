@@ -135,6 +135,54 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if slots startDate is not on same day as endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T17:00:00',
+        endDate: '2020-03-05T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if slots startDate is after endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T20:00:00',
+        endDate: '2020-03-04T19:00:00',
+        courseId: coursesList[0]._id,
+        step: stepsList[0]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if step is eLearning', async () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
@@ -325,6 +373,68 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if endDate without startDate', async () => {
+      const payload = {
+        endDate: '2020-03-04T09:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate without endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate is not on same day as endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-05T12:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate after endDate', async () => {
+      const payload = {
+        startDate: '2020-03-04T15:00:00',
+        endDate: '2020-03-04T12:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 404 if slot not found', async () => {

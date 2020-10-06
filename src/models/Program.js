@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ProgramSchema = mongoose.Schema({
   name: { type: String, required: true },
-  learningGoals: { type: String },
+  description: { type: String },
   subPrograms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram' }],
   image: {
     publicId: String,

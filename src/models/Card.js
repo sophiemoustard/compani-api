@@ -11,6 +11,7 @@ const {
   ORDER_THE_SEQUENCE,
   OPEN_QUESTION,
   SURVEY,
+  QUESTION_ANSWER,
 } = require('../helpers/constants');
 
 const CARD_TEMPLATES = [
@@ -25,6 +26,7 @@ const CARD_TEMPLATES = [
   ORDER_THE_SEQUENCE,
   OPEN_QUESTION,
   SURVEY,
+  QUESTION_ANSWER,
 ];
 
 const CardSchema = mongoose.Schema({
@@ -39,10 +41,19 @@ const CardSchema = mongoose.Schema({
   gappedText: { type: String },
   question: { type: String },
   qcuGoodAnswer: { type: String },
-  falsyAnswers: {
+  falsyGapAnswers: {
     type: [String],
     default: undefined,
   },
+  qcuFalsyAnswers: {
+    type: [String],
+    default: undefined,
+  },
+  questionAnswers: {
+    type: [String],
+    default: undefined,
+  },
+  isQuestionAnswerMultipleChoiced: { type: Boolean },
   qcmAnswers: {
     type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false })],
     default: undefined,
@@ -62,8 +73,14 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
+        this.falsyGapAnswers = [];
+        break;
       case SINGLE_CHOICE_QUESTION:
-        this.falsyAnswers = [];
+        this.qcuFalsyAnswers = [];
+        break;
+      case QUESTION_ANSWER:
+        this.questionAnswers = [];
+        this.isQuestionAnswerMultipleChoiced = false;
         break;
       case ORDER_THE_SEQUENCE:
         this.orderedAnswers = [];

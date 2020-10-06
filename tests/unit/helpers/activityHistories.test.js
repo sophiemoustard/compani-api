@@ -1,24 +1,29 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const ActivityHistoryHelper = require('../../../src/helpers/activityHistories');
 
 describe('addActivityHistory', () => {
-  let addActivityHistoryStub;
+  let create;
 
   beforeEach(() => {
-    addActivityHistoryStub = sinon.stub(ActivityHistoryHelper, 'addActivityHistory');
+    create = sinon.stub(ActivityHistory, 'create');
   });
 
   afterEach(() => {
-    addActivityHistoryStub.restore();
+    create.restore();
   });
 
   it('should create an activityHistory', async () => {
     const activityId = new ObjectID();
     const userId = new ObjectID();
+    const questionnaireAnswersList = [{ card: new ObjectID(), answer: 'blabla' }];
 
-    await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId });
+    await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswersList });
 
-    sinon.assert.calledOnceWithExactly(addActivityHistoryStub, { user: userId, activity: activityId });
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { user: userId, activity: activityId, questionnaireAnswersList }
+    );
   });
 });

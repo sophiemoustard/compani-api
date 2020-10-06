@@ -181,7 +181,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
 describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new name', learningGoals: 'On apprend des trucs\nc\'est chouette' };
+  const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -202,7 +202,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
       expect(programUpdated.name).toEqual('new name');
-      expect(programUpdated.learningGoals).toEqual('On apprend des trucs\nc\'est chouette');
+      expect(programUpdated.description).toEqual('On apprend des trucs\nc\'est chouette');
     });
 
     it('should return 400 if payload is empty', async () => {
@@ -217,7 +217,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const falsyParams = ['name', 'learningGoals'];
+    const falsyParams = ['name', 'description'];
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;

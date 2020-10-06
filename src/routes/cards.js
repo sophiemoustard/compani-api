@@ -6,9 +6,15 @@ const { update, remove, uploadMedia } = require('../controllers/cardController')
 const { formDataPayload } = require('./validations/utils');
 const { authorizeCardUpdate, authorizeCardDeletion } = require('./preHandlers/cards');
 const {
+  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
+  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
+  QC_ANSWER_MAX_LENGTH,
+  QUESTION_MAX_LENGTH,
+  GAP_ANSWER_MAX_LENGTH,
+  QUESTION_ANSWER_MAX_ANSWERS_COUNT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -29,14 +35,21 @@ exports.plugin = {
               publicId: Joi.string().allow(null),
             }),
             gappedText: Joi.string(),
-            question: Joi.string(),
-            qcuGoodAnswer: Joi.string(),
+            question: Joi.string().max(QUESTION_MAX_LENGTH),
+            qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
             qcmAnswers: Joi.array().items(Joi.object({
-              label: Joi.string().required(),
+              label: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
               correct: Joi.boolean().required(),
             })).min(1).max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
-            falsyAnswers: Joi.array().items(Joi.string()).min(1),
+            qcuFalsyAnswers: Joi.array().items(
+              Joi.string().max(QC_ANSWER_MAX_LENGTH)
+            ).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
+            falsyGapAnswers: Joi.array().items(
+              Joi.string().max(GAP_ANSWER_MAX_LENGTH)
+            ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
+            questionAnswers: Joi.array().items(Joi.string()).min(1).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
+            isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             label: Joi.object().keys({
               right: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),

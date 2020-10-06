@@ -159,7 +159,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         })]),
       }));
       expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
-      expect(response.result.data.courses[3].subProgram.program.learningGoals).toBeUndefined();
+      expect(response.result.data.courses[3].subProgram.program.description).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
@@ -174,30 +174,28 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(3);
     });
-  });
 
-  it('should get courses with a specific trainer', async () => {
-    authToken = await getTokenByCredentials(courseTrainer.local);
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses?trainer=${courseTrainer._id}`,
-      headers: { 'x-access-token': authToken },
+    it('should get blended courses', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?format=blended',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toEqual(2);
-  });
+    it('should get strictly e-learning courses', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?format=strictly_e_learning',
+        headers: { 'x-access-token': authToken },
+      });
 
-  it('should get courses for a specific company', async () => {
-    authToken = await getToken('coach');
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses?company=${authCompany._id}`,
-      headers: { 'x-access-token': authToken },
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
     });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.courses.length).toEqual(3);
   });
 
   describe('CLIENT_ADMIN', () => {
@@ -240,6 +238,30 @@ describe('COURSES ROUTES - GET /courses', () => {
   });
 
   describe('Other roles', () => {
+    it('should get courses with a specific trainer', async () => {
+      authToken = await getTokenByCredentials(courseTrainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainer=${courseTrainer._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
+
+    it('should get courses for a specific company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(3);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -289,7 +311,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           program: {
             _id: expect.any(ObjectID),
             name: programsList[0].name,
-            learningGoals: programsList[0].learningGoals,
+            description: programsList[0].description,
             subPrograms: [expect.any(ObjectID)],
           },
           steps: [{

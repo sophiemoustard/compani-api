@@ -250,12 +250,14 @@ module.exports = {
   // COURSES
   INTRA: 'intra',
   INTER_B2B: 'inter_b2b',
+  INTER_B2C: 'inter_b2c',
+  BLENDED: 'blended',
+  STRICTLY_E_LEARNING: 'strictly_e_learning',
   CONVOCATION: 'convocation',
   REMINDER: 'reminder',
   // PROGRAMS
   DRAFT: 'draft',
   PUBLISHED: 'published',
-  get STATUS_TYPE() { return [this.DRAFT, this.PUBLISHED]; },
   // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
@@ -276,11 +278,16 @@ module.exports = {
   ORDER_THE_SEQUENCE: 'order_the_sequence',
   OPEN_QUESTION: 'open_question',
   SURVEY: 'survey',
+  QUESTION_ANSWER: 'question_answer',
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT: 3,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT: 6,
   MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT: 4,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT: 3,
+  QUESTION_ANSWER_MAX_ANSWERS_COUNT: 4,
   SURVEY_LABEL_MAX_LENGTH: 25,
+  QC_ANSWER_MAX_LENGTH: 70,
+  QUESTION_MAX_LENGTH: 170,
+  GAP_ANSWER_MAX_LENGTH: 15,
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
