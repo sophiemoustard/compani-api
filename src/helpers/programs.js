@@ -12,7 +12,7 @@ exports.list = async query => Program.find(query)
 exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({ path: 'subPrograms', populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } } })
-    .lean({ autopopulate: true, virtuals: true });
+    .lean({ virtuals: true });
 
   return {
     ...program,
