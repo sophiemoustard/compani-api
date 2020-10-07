@@ -1,5 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const app = require('../../server');
 const {
   populateDB,
@@ -17,6 +18,15 @@ describe('NODE ENV', () => {
 
 describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
   let authToken = null;
+  const payload = {
+    user: activityHistoriesUsersList[0],
+    activity: activitiesList[0]._id,
+    questionnaireAnswersList: [
+      { card: cardsList[0]._id, answer: 'blabla' },
+      { card: cardsList[3]._id, answer: 'blebleble' },
+    ],
+    score: 1,
+  };
 
   beforeEach(populateDB);
 
@@ -29,61 +39,29 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [
-            { card: cardsList[0]._id, answer: 'blabla' },
-            { card: cardsList[3]._id, answer: 'blebleble' },
-          ],
-        },
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should create activityHistory without questionnaireAnswer', async () => {
+    it('should create activityHistory without questionnaireAnswersList', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-        },
+        payload: omit(payload, 'questionnaireAnswersList'),
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 400 if no user in payload', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/activityhistories',
-        payload: { activity: activitiesList[0]._id },
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 if no activity in payload', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[0] },
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 401 if user is not connected', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
+        payload,
         headers: { 'x-access-token': '' },
       });
 
@@ -94,7 +72,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: new ObjectID(), activity: activitiesList[0]._id },
+        payload: { ...payload, user: new ObjectID() },
         headers: { 'x-access-token': authToken },
       });
 
@@ -105,7 +83,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[0], activity: new ObjectID(), score: 2 },
+        payload: { ...payload, activity: new ObjectID() },
         headers: { 'x-access-token': authToken },
       });
 
@@ -116,7 +94,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id },
+        payload: { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id, score: 9 },
         headers: { 'x-access-token': authToken },
       });
 
@@ -127,11 +105,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ answer: 'blabla' }],
-        },
+        payload: { ...payload, questionnaireAnswersList: [{ answer: 'blabla' }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -142,11 +116,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ card: cardsList[0]._id }],
-        },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[0]._id }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -157,11 +127,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }],
-        },
+        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -172,11 +138,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }],
-        },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -187,15 +149,25 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: {
-          user: activityHistoriesUsersList[0],
-          activity: activitiesList[0]._id,
-          questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }],
-        },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }] },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(422);
+    });
+
+    const missingParams = ['activity', 'user', 'score'];
+    missingParams.forEach((param) => {
+      it(`should return 400 as ${param} is missing`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/activityhistories',
+          payload: omit(payload, param),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
 
@@ -217,7 +189,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/activityhistories',
-          payload: { user: activityHistoriesUsersList[0], activity: activitiesList[0]._id },
+          payload,
           headers: { 'x-access-token': authToken },
         });
 
