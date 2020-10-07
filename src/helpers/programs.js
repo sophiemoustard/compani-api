@@ -10,16 +10,21 @@ exports.createProgram = payload => (new Program(payload)).save();
 
 exports.list = async (query) => {
   let payload = query;
+  let populatePayload = { path: 'subPrograms', select: 'name' };
   if (query.format === STRICTLY_E_LEARNING) {
     const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
     payload = {
       ...omit(query, 'format'),
       subPrograms: { $in: eLearningCourse.map(course => course.subProgram) },
     };
+    populatePayload = {
+      ...populatePayload,
+      match: { _id: { $in: eLearningCourse.map(course => course.subProgram) } },
+    };
   }
 
   return Program.find(payload)
-    .populate({ path: 'subPrograms', select: 'name' })
+    .populate(populatePayload)
     .lean();
 };
 
