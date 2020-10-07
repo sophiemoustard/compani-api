@@ -104,9 +104,8 @@ function save(next) {
 }
 
 function setIsValid() {
-  const cardHasError = !!cardValidationByTemplate(this.template)
-    .validate(this, { allowUnknown: true }).error;
-  return !cardHasError;
+  const validation = cardValidationByTemplate(this.template).validate(this, { allowUnknown: true });
+  return !validation.error;
 }
 
 CardSchema.pre('save', save);
