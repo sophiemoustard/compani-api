@@ -3,6 +3,7 @@ const flat = require('flat');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
+const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
 const CloudinaryHelper = require('../../../src/helpers/cloudinary');
 require('sinon-mongoose');
@@ -26,25 +27,49 @@ describe('createProgram', () => {
 
 describe('list', () => {
   let ProgramMock;
+  let CourseMock;
   beforeEach(() => {
     ProgramMock = sinon.mock(Program);
+    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
     ProgramMock.restore();
+    CourseMock.restore();
   });
 
   it('should return programs', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
 
     ProgramMock.expects('find')
-      .withExactArgs({ type: 'toto' })
+      .withExactArgs({ description: 'toto' })
       .chain('populate')
       .withExactArgs({ path: 'subPrograms', select: 'name' })
       .chain('lean')
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.list({ type: 'toto' });
+    const result = await ProgramHelper.list({ description: 'toto' });
+    expect(result).toMatchObject(programsList);
+  });
+
+  it('should return programs with elearning subprograms', async () => {
+    const programsList = [{ name: 'name' }, { name: 'program' }];
+    const subPrograms = [new ObjectID()];
+
+    CourseMock.expects('find')
+      .withExactArgs({ format: 'strictly_e_learning' })
+      .chain('lean')
+      .returns([{ subProgram: subPrograms[0] }]);
+
+    ProgramMock.expects('find')
+      .withExactArgs({ subPrograms: { $in: subPrograms } })
+      .chain('populate')
+      .withExactArgs({ path: 'subPrograms', match: { _id: { $in: subPrograms } }, select: 'name' })
+      .chain('lean')
+      .once()
+      .returns(programsList);
+
+    const result = await ProgramHelper.list({ format: 'strictly_e_learning' });
     expect(result).toMatchObject(programsList);
   });
 });

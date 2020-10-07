@@ -87,13 +87,23 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
     });
   });
 
+  it('should return 401 if user is not connected', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/programs',
+      headers: { 'x-access-token': '' },
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
+
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
 
