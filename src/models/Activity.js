@@ -35,6 +35,15 @@ function setQuizCount() {
 
 ActivitySchema.virtual('quizCount').get(setQuizCount);
 
+// eslint-disable-next-line consistent-return
+function setAreCardsValid() {
+  if (this.cards.length && this.cards[0].template) { // if card is populated, template exists
+    return this.cards.every(card => card.isValid);
+  }
+}
+
+ActivitySchema.virtual('areCardsValid').get(setAreCardsValid);
+
 ActivitySchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Activity', ActivitySchema);
 module.exports.ACTIVITY_TYPES = ACTIVITY_TYPES;
