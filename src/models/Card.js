@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const {
   TRANSITION,
   TITLE_TEXT_MEDIA,
@@ -13,6 +14,7 @@ const {
   SURVEY,
   QUESTION_ANSWER,
 } = require('../helpers/constants');
+const { cardValidationByTemplate } = require('./validations/cardValidation');
 
 const CARD_TEMPLATES = [
   TRANSITION,
@@ -55,7 +57,7 @@ const CardSchema = mongoose.Schema({
   },
   isQuestionAnswerMultipleChoiced: { type: Boolean },
   qcmAnswers: {
-    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false })],
+    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false, id: false })],
     default: undefined,
   },
   explanation: { type: String },
@@ -66,8 +68,12 @@ const CardSchema = mongoose.Schema({
   label: mongoose.Schema({
     right: { type: String },
     left: { type: String },
-  }, { default: undefined, _id: false }),
-}, { timestamps: true });
+  }, { default: undefined, _id: false, id: false }),
+}, {
+  timestamps: true,
+  toObject: { virtuals: true },
+  id: false,
+});
 
 function save(next) {
   if (this.isNew) {
@@ -97,7 +103,15 @@ function save(next) {
   return next();
 }
 
+function setIsValid() {
+  const validation = cardValidationByTemplate(this.template).validate(this, { allowUnknown: true });
+  return !validation.error;
+}
+
 CardSchema.pre('save', save);
+CardSchema.virtual('isValid').get(setIsValid);
+
+CardSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Card', CardSchema);
 module.exports.CARD_TEMPLATES = CARD_TEMPLATES;

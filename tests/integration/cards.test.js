@@ -121,9 +121,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        const cardUpdated = await Card.findById(card.id).lean();
+        const cardUpdated = await Card.findById(card.id).lean({ virtuals: true });
 
         expect(response.statusCode).toBe(200);
+        expect(cardUpdated).toEqual(expect.objectContaining({ isValid: true }));
 
         const expectedObject = omit(card.payload, ['media']);
         if (card.payload.media) expectedObject.media = expect.objectContaining(card.payload.media);
@@ -169,7 +170,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(fillTheGapId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.passing ? 200 : 400);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -201,7 +205,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(orderTheSequenceId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.passing ? 200 : 400);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -236,7 +243,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(singleChoiceQuestionId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.code);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -279,7 +289,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(multipleChoiceQuestionId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.code);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -301,7 +314,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(surveyId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.code);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -337,7 +353,10 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { 'x-access-token': authToken },
           });
 
+          const cardUpdated = await Card.findById(questionAnswerId).lean({ virtuals: true });
+
           expect(response.statusCode).toBe(request.code);
+          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: request.code === 200 }));
         });
       });
     });
