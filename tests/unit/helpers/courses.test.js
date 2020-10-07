@@ -323,7 +323,10 @@ describe('getTraineeCourse', () => {
             populate: {
               path: 'activities',
               select: 'name type cards activityHistories',
-              populate: { path: 'activityHistories', match: { user: credentials._id } },
+              populate: [
+                { path: 'activityHistories', match: { user: credentials._id } },
+                { path: 'cards', select: 'template' },
+              ],
             },
           },
         ],

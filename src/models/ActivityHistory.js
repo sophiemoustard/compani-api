@@ -5,6 +5,7 @@ const ActivityHistorySchema = mongoose.Schema({
   activity: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity', required: true },
   date: { type: Date, default: Date.now },
   questionnaireAnswersList: [{ card: { type: mongoose.Schema.Types.ObjectId, ref: 'Card' }, answer: { type: String } }],
+  score: { type: Number },
 }, { timestamps: true });
 
 module.exports = mongoose.model('ActivityHistory', ActivityHistorySchema);
