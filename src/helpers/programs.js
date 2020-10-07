@@ -1,13 +1,27 @@
 const flat = require('flat');
 const moment = require('moment');
+const omit = require('lodash/omit');
+const Course = require('../models/Course');
 const Program = require('../models/Program');
 const CloudinaryHelper = require('./cloudinary');
+const { STRICTLY_E_LEARNING } = require('./constants');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
-exports.list = async query => Program.find(query)
-  .populate({ path: 'subPrograms', select: 'name' })
-  .lean();
+exports.list = async (query) => {
+  let payload = query;
+  if (query.format === STRICTLY_E_LEARNING) {
+    const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
+    payload = {
+      ...omit(query, 'format'),
+      subPrograms: { $in: eLearningCourse.map(course => course.subProgram) },
+    };
+  }
+
+  return Program.find(payload)
+    .populate({ path: 'subPrograms', select: 'name' })
+    .lean();
+};
 
 exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })

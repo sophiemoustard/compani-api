@@ -20,7 +20,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['programs:read'] },
+        auth: { mode: 'required' },
       },
       handler: list,
     });
