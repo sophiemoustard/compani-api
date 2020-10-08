@@ -32,7 +32,7 @@ exports.populateSubscriptionsServices = (customer) => {
 };
 
 exports.subscriptionsAccepted = (customer) => {
-  if (customer.subscriptions && customer.subscriptions.length > 0) {
+  if (customer.subscriptions && customer.subscriptions.length > 0 && customer.subscriptions[0].versions) {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = map(customer.subscriptions, (subscription) => {
         const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
