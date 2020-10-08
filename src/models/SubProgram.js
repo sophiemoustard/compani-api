@@ -16,5 +16,11 @@ SubProgramSchema.virtual('program', {
   justOne: true,
 });
 
+SubProgramSchema.virtual('courses', {
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'subProgram',
+});
+
 module.exports = mongoose.model('SubProgram', SubProgramSchema);
 module.exports.STATUS_TYPES = STATUS_TYPES;

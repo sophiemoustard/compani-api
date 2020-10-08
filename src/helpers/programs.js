@@ -1,6 +1,5 @@
 const flat = require('flat');
 const moment = require('moment');
-const omit = require('lodash/omit');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
 const CloudinaryHelper = require('./cloudinary');
@@ -8,23 +7,21 @@ const { STRICTLY_E_LEARNING } = require('./constants');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
-exports.list = async (query) => {
-  let payload = query;
-  let populatePayload = { path: 'subPrograms', select: 'name' };
-  if (query.format === STRICTLY_E_LEARNING) {
-    const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
-    payload = {
-      ...omit(query, 'format'),
-      subPrograms: { $in: eLearningCourse.map(course => course.subProgram) },
-    };
-    populatePayload = {
-      ...populatePayload,
-      match: { _id: { $in: eLearningCourse.map(course => course.subProgram) } },
-    };
-  }
+exports.list = async () => Program.find({})
+  .populate({ path: 'subPrograms', select: 'name' })
+  .lean();
 
-  return Program.find(payload)
-    .populate(populatePayload)
+exports.listELearning = async () => {
+  const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
+  const subPrograms = eLearningCourse.map(course => course.subProgram);
+
+  return Program.find({ subPrograms: { $in: subPrograms } })
+    .populate({
+      path: 'subPrograms',
+      select: 'name',
+      match: { _id: { $in: subPrograms } },
+      populate: { path: 'courses', select: '_id' },
+    })
     .lean();
 };
 

@@ -87,14 +87,60 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
     });
   });
 
-  it('should return 401 if user is not connected', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/programs',
-      headers: { 'x-access-token': '' },
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/programs',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
     });
 
-    expect(response.statusCode).toBe(401);
+    it('should get all programs', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/programs/e-learning',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.programs.length).toEqual(1);
+    });
+
+    it('should return 401 if user is not connected', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/programs/e-learning',
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
   });
 
   describe('Other roles', () => {
@@ -112,7 +158,7 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/programs',
+          url: '/programs/e-learning',
           headers: { 'x-access-token': authToken },
         });
 

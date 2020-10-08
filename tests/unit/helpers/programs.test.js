@@ -27,6 +27,31 @@ describe('createProgram', () => {
 
 describe('list', () => {
   let ProgramMock;
+  beforeEach(() => {
+    ProgramMock = sinon.mock(Program);
+  });
+  afterEach(() => {
+    ProgramMock.restore();
+  });
+
+  it('should return programs', async () => {
+    const programsList = [{ name: 'name' }, { name: 'program' }];
+
+    ProgramMock.expects('find')
+      .withExactArgs({})
+      .chain('populate')
+      .withExactArgs({ path: 'subPrograms', select: 'name' })
+      .chain('lean')
+      .once()
+      .returns(programsList);
+
+    const result = await ProgramHelper.list();
+    expect(result).toMatchObject(programsList);
+  });
+});
+
+describe('listELearning', () => {
+  let ProgramMock;
   let CourseMock;
   beforeEach(() => {
     ProgramMock = sinon.mock(Program);
@@ -35,21 +60,6 @@ describe('list', () => {
   afterEach(() => {
     ProgramMock.restore();
     CourseMock.restore();
-  });
-
-  it('should return programs', async () => {
-    const programsList = [{ name: 'name' }, { name: 'program' }];
-
-    ProgramMock.expects('find')
-      .withExactArgs({ description: 'toto' })
-      .chain('populate')
-      .withExactArgs({ path: 'subPrograms', select: 'name' })
-      .chain('lean')
-      .once()
-      .returns(programsList);
-
-    const result = await ProgramHelper.list({ description: 'toto' });
-    expect(result).toMatchObject(programsList);
   });
 
   it('should return programs with elearning subprograms', async () => {
@@ -64,12 +74,17 @@ describe('list', () => {
     ProgramMock.expects('find')
       .withExactArgs({ subPrograms: { $in: subPrograms } })
       .chain('populate')
-      .withExactArgs({ path: 'subPrograms', match: { _id: { $in: subPrograms } }, select: 'name' })
+      .withExactArgs({
+        path: 'subPrograms',
+        select: 'name',
+        match: { _id: { $in: subPrograms } },
+        populate: { path: 'courses', select: '_id' },
+      })
       .chain('lean')
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.list({ format: 'strictly_e_learning' });
+    const result = await ProgramHelper.listELearning();
     expect(result).toMatchObject(programsList);
   });
 });
