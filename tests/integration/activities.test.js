@@ -73,7 +73,6 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
             program: { _id: programsList[0]._id, name: 'au programme télévisé' },
           },
         }]),
-        areCardsValid: true,
       }));
     });
   });
