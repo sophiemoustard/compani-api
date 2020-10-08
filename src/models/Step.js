@@ -21,7 +21,8 @@ StepSchema.virtual('subProgram', {
 
 // eslint-disable-next-line consistent-return
 function setAreActivitiesValid() {
-  if (this.activities.length && this.activities[0].type) { // if activity is populated, type exists
+  if (this.type === E_LEARNING && this.activities.length &&
+    this.activities[0].type) {
     return this.activities.every(activity => activity.areCardsValid);
   }
 }
