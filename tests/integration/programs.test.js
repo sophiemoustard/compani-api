@@ -138,6 +138,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           steps: [{
             type: 'on_site',
             name: 'encore une étape',
+            areActivitiesValid: true,
             activities: [{
               name: 'c\'est une activité',
               type: 'sharing_experience',
@@ -148,7 +149,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       });
     });
 
-    it('should get program with non valid activities', async () => {
+    it('should get program with non valid activities and non valid steps', async () => {
       const programId = programsList[2]._id;
       const response = await app.inject({
         method: 'GET',
@@ -165,6 +166,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           steps: [{
             type: 'on_site',
             name: 'encore une étape',
+            areActivitiesValid: false,
             activities: [{ areCardsValid: false }],
           }],
         }],
