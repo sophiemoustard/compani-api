@@ -9,9 +9,22 @@ exports.list = async query => Program.find(query)
   .populate({ path: 'subPrograms', select: 'name' })
   .lean();
 
-exports.getProgram = async programId => Program.findOne({ _id: programId })
-  .populate({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
-  .lean();
+exports.getProgram = async (programId) => {
+  const program = await Program.findOne({ _id: programId })
+    .populate({ path: 'subPrograms', populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } } })
+    .lean({ virtuals: true });
+
+  return {
+    ...program,
+    subPrograms: program.subPrograms.map(sp => ({
+      ...sp,
+      steps: sp.steps.map(st => ({
+        ...st,
+        activities: st.activities.map(act => ({ ...act, cards: act.cards.map(c => c._id) })),
+      })),
+    })),
+  };
+};
 
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 

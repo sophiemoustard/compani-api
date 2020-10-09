@@ -59,12 +59,19 @@ describe('getProgram', () => {
   });
 
   it('should return the requested program', async () => {
-    const program = { _id: new ObjectID() };
+    const program = { _id: new ObjectID(),
+      subPrograms: [{ _id: new ObjectID(),
+        steps: [{ _id: new ObjectID(),
+          activities: [{ _id: new ObjectID(),
+            cards: [{ _id: new ObjectID() }] }] }] }] };
 
     ProgramMock.expects('findOne')
       .withExactArgs({ _id: program._id })
       .chain('populate')
-      .withExactArgs({ path: 'subPrograms', populate: { path: 'steps', populate: 'activities' } })
+      .withExactArgs({
+        path: 'subPrograms',
+        populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
+      })
       .chain('lean')
       .once()
       .returns(program);

@@ -133,20 +133,41 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        subPrograms: [
-          {
-            name: 'c\'est un sous-programme',
-            steps: [
-              {
-                type: 'on_site',
-                name: 'encore une étape',
-                activities: [
-                  { name: 'c\'est une activité', type: 'sharing_experience' },
-                ],
-              },
-            ],
-          },
-        ],
+        subPrograms: [{
+          name: 'c\'est un sous-programme',
+          steps: [{
+            type: 'on_site',
+            name: 'encore une étape',
+            activities: [{
+              name: 'c\'est une activité',
+              type: 'sharing_experience',
+              areCardsValid: true,
+            }],
+          }],
+        }],
+      });
+    });
+
+    it('should get program with non valid activities', async () => {
+      const programId = programsList[2]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program).toMatchObject({
+        _id: programId,
+        name: 'non valid program',
+        subPrograms: [{
+          name: 'c\'est un sous-programme',
+          steps: [{
+            type: 'on_site',
+            name: 'encore une étape',
+            activities: [{ areCardsValid: false }],
+          }],
+        }],
       });
     });
   });
