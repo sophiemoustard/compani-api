@@ -3,6 +3,7 @@ const flat = require('flat');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
+const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
 const CloudinaryHelper = require('../../../src/helpers/cloudinary');
 require('sinon-mongoose');
@@ -37,14 +38,53 @@ describe('list', () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
 
     ProgramMock.expects('find')
-      .withExactArgs({ type: 'toto' })
+      .withExactArgs({})
       .chain('populate')
       .withExactArgs({ path: 'subPrograms', select: 'name' })
       .chain('lean')
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.list({ type: 'toto' });
+    const result = await ProgramHelper.list();
+    expect(result).toMatchObject(programsList);
+  });
+});
+
+describe('listELearning', () => {
+  let ProgramMock;
+  let CourseMock;
+  beforeEach(() => {
+    ProgramMock = sinon.mock(Program);
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    ProgramMock.restore();
+    CourseMock.restore();
+  });
+
+  it('should return programs with elearning subprograms', async () => {
+    const programsList = [{ name: 'name' }, { name: 'program' }];
+    const subPrograms = [new ObjectID()];
+
+    CourseMock.expects('find')
+      .withExactArgs({ format: 'strictly_e_learning' })
+      .chain('lean')
+      .returns([{ subProgram: subPrograms[0] }]);
+
+    ProgramMock.expects('find')
+      .withExactArgs({ subPrograms: { $in: subPrograms } })
+      .chain('populate')
+      .withExactArgs({
+        path: 'subPrograms',
+        select: 'name',
+        match: { _id: { $in: subPrograms } },
+        populate: { path: 'courses', select: '_id' },
+      })
+      .chain('lean')
+      .once()
+      .returns(programsList);
+
+    const result = await ProgramHelper.listELearning();
     expect(result).toMatchObject(programsList);
   });
 });

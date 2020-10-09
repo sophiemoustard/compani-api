@@ -7,7 +7,21 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const programs = await ProgramHelper.list(req.query);
+    const programs = await ProgramHelper.list();
+
+    return {
+      message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,
+      data: { programs },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listELearning = async (req) => {
+  try {
+    const programs = await ProgramHelper.listELearning(req.query);
 
     return {
       message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,
@@ -81,6 +95,7 @@ const uploadImage = async (req) => {
 
 module.exports = {
   list,
+  listELearning,
   create,
   getById,
   update,

@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeSubProgramAdd } = require('./preHandlers/programs');
 const {
   list,
+  listELearning,
   create,
   getById,
   update,
@@ -23,6 +24,15 @@ exports.plugin = {
         auth: { scope: ['programs:read'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/e-learning',
+      options: {
+        auth: { mode: 'required' },
+      },
+      handler: listELearning,
     });
 
     server.route({
