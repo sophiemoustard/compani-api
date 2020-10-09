@@ -6,6 +6,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const Program = require('../../src/models/Program');
+const Course = require('../../src/models/Course');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
 const { populateDB, programsList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -130,6 +131,9 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs.length).toEqual(1);
+      const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(course => course._id);
+      const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
+      expect(courses.every(course => course.format === 'strictly_e_learning')).toBeTruthy();
     });
 
     it('should return 401 if user is not connected', async () => {
