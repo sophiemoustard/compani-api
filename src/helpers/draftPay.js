@@ -349,7 +349,9 @@ exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query
     ...hours,
     hoursBalance,
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
-    otherFees: (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio,
+    phoneFees: auxiliary.administrative.phoneInvoice
+      ? (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio
+      : 0,
   };
 };
 
