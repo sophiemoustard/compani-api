@@ -45,7 +45,7 @@ exports.payValidation = {
   mutual: Joi.boolean().required(),
   notSurchargedAndExempt: Joi.number().required(),
   notSurchargedAndNotExempt: Joi.number().required(),
-  otherFees: Joi.number().required(),
+  phoneFees: Joi.number().required(),
   overtimeHours: Joi.number().required(),
   paidTransportHours: Joi.number().required(),
   previousMonthHoursCounter: Joi.number().required(),

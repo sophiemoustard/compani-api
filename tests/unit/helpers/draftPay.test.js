@@ -1374,7 +1374,7 @@ describe('computeBalance', () => {
       surchargedAndNotExempt: 9,
       hoursBalance: 7,
       transport: 26.54,
-      otherFees: 29.6,
+      phoneFees: 29.6,
       hoursToWork: 131,
       holidaysHours: 3,
     });

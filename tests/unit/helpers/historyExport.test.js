@@ -734,7 +734,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Heures comp à payer',
     'Mutuelle',
     'Transport',
-    'Autres frais',
+    'Frais téléphonique',
     'Prime',
     'Indemnité',
   ];
@@ -762,7 +762,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 37.6,
-      otherFees: 18,
+      phoneFees: 18,
       bonus: 0,
       _id: new ObjectID(),
       diff: {

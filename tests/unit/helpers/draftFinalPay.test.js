@@ -94,7 +94,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       hoursBalance: 4,
       hoursCounter: 16,
       transport: 26.54,
-      otherFees: 29.6,
+      phoneFees: 29.6,
     };
     computeBalance.returns(computedPay);
     genericData.returns({
