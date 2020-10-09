@@ -14,7 +14,7 @@ const company = {
   name: 'Test',
   tradeName: 'TT',
   rhConfig: {
-    feeAmount: 12,
+    phoneFeeAmount: 12,
   },
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',

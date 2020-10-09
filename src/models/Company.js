@@ -35,7 +35,7 @@ const CompanySchema = mongoose.Schema({
   auxiliariesFolderId: { type: String, required: true },
   rhConfig: {
     grossHourlyRate: { type: Number, default: 0 },
-    feeAmount: Number,
+    phoneFeeAmount: Number,
     amountPerKm: Number,
     transportSubs: [{
       department: String,
