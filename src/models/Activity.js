@@ -40,6 +40,10 @@ function setAreCardsValid() {
   if (this.cards.length && this.cards[0].template) { // if card is populated, template exists
     return this.cards.every(card => card.isValid);
   }
+
+  if (this.cards.length === 0) {
+    return true;
+  }
 }
 
 ActivitySchema.virtual('areCardsValid').get(setAreCardsValid);
