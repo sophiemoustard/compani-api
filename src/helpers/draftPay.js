@@ -329,6 +329,14 @@ const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((a
   return isAbsenceStartBeforeContractEnd && isAbsenceEndAfterContractStart;
 });
 
+const getPhoneFees = (auxiliary, contractInfo, company) => {
+  if (!auxiliary.administrative.phoneInvoice) return 0;
+
+  const phoneFeeAmount = get(company, 'rhConfig.phoneFeeAmount') || 0;
+
+  return phoneFeeAmount * contractInfo.workedDaysRatio;
+};
+
 exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
@@ -349,9 +357,7 @@ exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query
     ...hours,
     hoursBalance,
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
-    phoneFees: auxiliary.administrative.phoneInvoice
-      ? (get(company, 'rhConfig.phoneFeeAmount') || 0) * contractInfo.workedDaysRatio
-      : 0,
+    phoneFees: getPhoneFees(auxiliary, contractInfo, company),
   };
 };
 

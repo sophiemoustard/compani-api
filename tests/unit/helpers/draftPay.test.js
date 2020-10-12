@@ -1385,7 +1385,7 @@ describe('computeBalance', () => {
     sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
   });
 
-  it('should return balance, contract begins during this month', async () => {
+  it('should return balance without phoneFees', async () => {
     const contract = { startDate: '2019-05-13T00:00:00' };
     const auxiliary = {
       _id: '1234567890',

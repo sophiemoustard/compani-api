@@ -734,7 +734,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Heures comp à payer',
     'Mutuelle',
     'Transport',
-    'Frais téléphonique',
+    'Frais téléphoniques',
     'Prime',
     'Indemnité',
   ];
