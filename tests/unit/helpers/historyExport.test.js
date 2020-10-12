@@ -800,7 +800,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 47.6,
-      otherFees: 20,
+      phoneFees: 20,
       bonus: 100,
       diff: {
         hoursBalance: 8,
@@ -841,7 +841,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 37.6,
-      otherFees: 18,
+      phoneFees: 18,
       bonus: 0,
       compensation: 156,
       diff: {
@@ -881,7 +881,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 47.6,
-      otherFees: 20,
+      phoneFees: 20,
       bonus: 100,
       compensation: 0,
       diff: {
