@@ -90,6 +90,27 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
+exports.getCourseFollowUp = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId }).lean();
+
+  return Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      populate: {
+        path: 'steps',
+        populate: {
+          path: 'activities',
+          populate: {
+            path: 'activityHistories',
+            match: { user: { $in: course.trainees } },
+            populate: { path: 'card' },
+          },
+        },
+      },
+    })
+    .lean();
+};
+
 exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
   .populate({
     path: 'subProgram',
