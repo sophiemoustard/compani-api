@@ -36,7 +36,6 @@ exports.subscriptionsAccepted = (customer) => {
 
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions.map(sub => ({ _id: sub.subscriptionId }));
-
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }
 
