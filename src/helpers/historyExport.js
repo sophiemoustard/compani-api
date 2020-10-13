@@ -348,7 +348,7 @@ const payExportHeader = [
   'Heures comp à payer',
   'Mutuelle',
   'Transport',
-  'Autres frais',
+  'Frais téléphoniques',
   'Prime',
   'Indemnité',
 ];
@@ -463,7 +463,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       UtilsHelper.formatFloatForExport(pay.additionalHours),
       pay.mutual ? 'Oui' : 'Non',
       UtilsHelper.formatFloatForExport(pay.transport),
-      UtilsHelper.formatFloatForExport(pay.otherFees),
+      UtilsHelper.formatFloatForExport(pay.phoneFees),
       UtilsHelper.formatFloatForExport(pay.bonus),
       pay.compensation ? UtilsHelper.formatFloatForExport(pay.compensation) : '0,00',
     ];

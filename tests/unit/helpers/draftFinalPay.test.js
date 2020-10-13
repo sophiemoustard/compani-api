@@ -82,7 +82,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       administrative: { mutualFund: { has: true } },
     };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
-    const company = { rhConfig: { feeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { workedHours: 3, hoursBalance: 2 } };
     const computedPay = {
@@ -94,7 +94,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       hoursBalance: 4,
       hoursCounter: 16,
       transport: 26.54,
-      otherFees: 29.6,
+      phoneFees: 29.6,
     };
     computeBalance.returns(computedPay);
     genericData.returns({
