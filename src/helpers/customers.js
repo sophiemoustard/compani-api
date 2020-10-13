@@ -37,7 +37,9 @@ exports.getCustomers = async (credentials) => {
   const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
-  return customers.map(cus => SubscriptionsHelper.subscriptionsAccepted(cus));
+  const test = customers.map(cus => SubscriptionsHelper.subscriptionsAccepted(cus));
+  console.log(test.filter(cu => cu.subscriptionsAccepted).length);
+  return test;
 };
 
 exports.getCustomersFirstIntervention = async (query, credentials) => {
