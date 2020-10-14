@@ -94,12 +94,16 @@ exports.formatActivity = (activity) => {
   const followUp = {};
   for (const history of activity.activityHistories) {
     for (const answer of history.questionnaireAnswersList) {
-      if (!followUp[answer.card]) followUp[answer.card] = [];
-      followUp[answer.card].push(answer.answer);
+      if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
+      followUp[answer.card._id].answers.push(answer.answer);
     }
   }
 
-  return { ...activity, followUp };
+  return {
+    ...activity,
+    followUp: Object.values(followUp),
+    activityHistories: activity.activityHistories.map(a => a._id),
+  };
 };
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
@@ -118,7 +122,11 @@ exports.getCourseFollowUp = async (courseId) => {
         populate: {
           path: 'activities',
           select: 'name type',
-          populate: { path: 'activityHistories', match: { user: { $in: courseWithTrainees.trainees } } },
+          populate: {
+            path: 'activityHistories',
+            match: { user: { $in: courseWithTrainees.trainees } },
+            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+          },
         },
       },
     })

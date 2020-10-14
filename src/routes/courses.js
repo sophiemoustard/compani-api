@@ -90,7 +90,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/followup',
+      path: '/{_id}/follow-up',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
