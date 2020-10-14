@@ -640,19 +640,19 @@ describe('GET /users/learners', () => {
             publicId: expect.any(String),
             link: expect.any(String),
           }),
-          coursesCount: expect.any(Number),
+          blendedCoursesCount: expect.any(Number),
         }),
         expect.objectContaining({
           _id: coachFromOtherCompany._id,
-          coursesCount: 0,
+          blendedCoursesCount: 0,
         }),
         expect.objectContaining({
           _id: helperFromOtherCompany._id,
-          coursesCount: 1,
+          blendedCoursesCount: 1,
         }),
         expect.objectContaining({
           _id: usersSeedList[0]._id,
-          coursesCount: 2,
+          blendedCoursesCount: 2,
         }),
       ]));
     });
