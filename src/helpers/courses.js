@@ -90,25 +90,44 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
-exports.getCourseFollowUp = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId }).lean();
+exports.formatActivity = (activity) => {
+  const followUp = {};
+  for (const history of activity.activityHistories) {
+    for (const answer of history.questionnaireAnswersList) {
+      if (!followUp[answer.card]) followUp[answer.card] = [];
+      followUp[answer.card].push(answer.answer);
+    }
+  }
 
-  return Course.findOne({ _id: courseId })
+  return { ...activity, followUp };
+};
+
+exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
+
+exports.getCourseFollowUp = async (courseId) => {
+  const courseWithTrainees = await Course.findOne({ _id: courseId }).select('trainees').lean();
+
+  const course = await Course.findOne({ _id: courseId })
+    .select('subProgram')
     .populate({
       path: 'subProgram',
+      select: 'name steps',
       populate: {
         path: 'steps',
+        select: 'name activities type',
         populate: {
           path: 'activities',
-          populate: {
-            path: 'activityHistories',
-            match: { user: { $in: course.trainees } },
-            populate: { path: 'card' },
-          },
+          select: 'name type',
+          populate: { path: 'activityHistories', match: { user: { $in: courseWithTrainees.trainees } } },
         },
       },
     })
     .lean();
+
+  return {
+    ...course,
+    subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(s => exports.formatStep(s)) },
+  };
 };
 
 exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
