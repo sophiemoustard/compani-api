@@ -52,7 +52,7 @@ exports.listUserCourses = async credentials => Course.find({ trainees: credentia
     path: 'subProgram',
     select: 'program steps',
     populate: {
-      path: 'program', select: 'name image description',
+      path: 'program', select: 'name image',
     },
   })
   .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
