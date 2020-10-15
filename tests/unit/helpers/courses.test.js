@@ -296,6 +296,129 @@ describe('getCoursePublicInfos', () => {
   });
 });
 
+describe('formatActivity', () => {
+  it('should return empty follow up if no history', () => {
+    const activity = { activityHistories: [] };
+    const result = CourseHelper.formatActivity(activity);
+
+    expect(result).toEqual({ activityHistories: [], followUp: [] });
+  });
+
+  it('should return format activity with histories', () => {
+    const activity = {
+      activityHistories: [
+        {
+          _id: 'rfvgtgb',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 2 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 3 },
+          ],
+        },
+        {
+          _id: 'yhnjujm',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 3 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+          ],
+        },
+        {
+          _id: 'zxcvbnm',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 1 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+          ],
+        },
+      ],
+    };
+    const result = CourseHelper.formatActivity(activity);
+
+    expect(result).toEqual({
+      activityHistories: ['rfvgtgb', 'yhnjujm', 'zxcvbnm'],
+      followUp: [
+        { _id: '1234567', title: 'Bonjour', answers: [2, 3, 1] },
+        { _id: '0987654', title: 'Hello', answers: [3, 4, 4] },
+      ],
+    });
+  });
+});
+
+describe('formatStep', () => {
+  let formatActivity;
+  beforeEach(() => {
+    formatActivity = sinon.stub(CourseHelper, 'formatActivity');
+  });
+  afterEach(() => {
+    formatActivity.restore();
+  });
+
+  it('should format step', () => {
+    const step = { name: 'Je suis une etape', activities: [{ _id: 1 }, { _id: 2 }, { _id: 3 }] };
+    formatActivity.callsFake(a => a._id);
+    const result = CourseHelper.formatStep(step);
+
+    expect(result).toEqual({ name: 'Je suis une etape', activities: [1, 2, 3] });
+  });
+});
+
+describe('getCourseFollowUp', () => {
+  let CourseMock;
+  let formatStep;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatStep = sinon.stub(CourseHelper, 'formatStep');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatStep.restore();
+  });
+
+  it('should return course follow up', async () => {
+    const courseId = '1234567890';
+    const trainees = [1, 2, 3, 4, 5];
+    const course = {
+      _id: 'my_course',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 1 }, { _id: 2 }, { _id: 3 }] },
+    };
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('select')
+      .withExactArgs('trainees')
+      .chain('lean')
+      .returns({ trainees });
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('select')
+      .withExactArgs('subProgram')
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'name steps',
+        populate: {
+          path: 'steps',
+          select: 'name activities type',
+          populate: {
+            path: 'activities',
+            select: 'name type',
+            populate: {
+              path: 'activityHistories',
+              match: { user: { $in: trainees } },
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
+          },
+        },
+      })
+      .chain('lean')
+      .returns(course);
+
+    formatStep.callsFake(s => s._id);
+    const result = await CourseHelper.getCourseFollowUp(courseId);
+
+    expect(result).toEqual({ _id: 'my_course', subProgram: { name: 'je suis un sous programme', steps: [1, 2, 3] } });
+  });
+});
+
 describe('getTraineeCourse', () => {
   let CourseMock;
   beforeEach(() => {
