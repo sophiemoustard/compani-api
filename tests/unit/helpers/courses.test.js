@@ -416,6 +416,7 @@ describe('getCourseFollowUp', () => {
     const result = await CourseHelper.getCourseFollowUp(courseId);
 
     expect(result).toEqual({ _id: 'my_course', subProgram: { name: 'je suis un sous programme', steps: [1, 2, 3] } });
+    CourseMock.verify();
   });
 });
 
