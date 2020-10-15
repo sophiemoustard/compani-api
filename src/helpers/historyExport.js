@@ -15,8 +15,11 @@ const {
   SURCHARGES,
   PAYMENT_NATURE_LIST,
   PAYMENT_TYPES_LIST,
+  INTERNAL_HOUR,
+  INTERVENTION,
 } = require('./constants');
 const UtilsHelper = require('./utils');
+const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const Contract = require('../models/Contract');
@@ -55,16 +58,47 @@ const getServiceName = (service) => {
   if (!service) return null;
 
   const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
-
   return lastVersion.name;
 };
 
 const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
   .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
 
+exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
+  const payload = {
+    company: companyId,
+    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+    $or: [
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+    ],
+  };
+
+  const events = await Event.find(payload)
+    .sort({ startDate: -1 })
+    .populate({
+      path: 'customer',
+      populate: { path: 'subscriptions', populate: 'service' },
+    })
+    .populate('internalHour')
+    .populate('sector')
+    .lean();
+
+  const eventsWithPopulatedSubscription = events.map((event) => {
+    if (event.type !== INTERVENTION) return event;
+    const { subscription, customer } = event;
+    const customerSubscription = customer.subscriptions.find(sub =>
+      UtilsHelper.areObjectIdsEquals(sub._id, subscription));
+    return { ...event, subscription: customerSubscription };
+  });
+
+  return eventsWithPopulatedSubscription;
+};
+
 exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
-  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate, companyId);
+  const events = await exports.getWorkingEventsForExport(startDate, endDate, companyId);
   const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
   const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
 
