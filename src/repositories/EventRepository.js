@@ -202,64 +202,6 @@ exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId 
   .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
   .lean();
 
-exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
-  const rules = [
-    { type: { $in: [INTERVENTION, INTERNAL_HOUR] } },
-    {
-      $or: [
-        { startDate: { $lte: endDate, $gte: startDate } },
-        { endDate: { $lte: endDate, $gte: startDate } },
-        { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-      ],
-    },
-  ];
-
-  return Event.aggregate([
-    { $match: { $and: rules } },
-    { $sort: { startDate: -1 } },
-    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
-    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        subscription: {
-          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$subscription'] } },
-        },
-      },
-    },
-    { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscription.service',
-        foreignField: '_id',
-        as: 'subscription.service',
-      },
-    },
-    { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-    { $lookup: { from: 'internalhours', localField: 'internalHour', foreignField: '_id', as: 'internalHour' } },
-    { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
-    { $lookup: { from: 'sectors', localField: 'sector', foreignField: '_id', as: 'sector' } },
-    { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        customer: { _id: 1, identity: 1 },
-        auxiliary: 1,
-        startDate: 1,
-        endDate: 1,
-        internalHour: 1,
-        subscription: 1,
-        isCancelled: 1,
-        isBilled: 1,
-        cancel: 1,
-        repetition: 1,
-        misc: 1,
-        type: 1,
-        sector: 1,
-      },
-    },
-  ]).option({ company: companyId });
-};
-
 exports.getAbsencesForExport = async (start, end, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {

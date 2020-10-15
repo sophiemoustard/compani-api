@@ -64,7 +64,7 @@ const getServiceName = (service) => {
 const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
   .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
 
-const getWorkingEventsForExport = async (startDate, endDate, companyId) => {
+exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const payload = {
     company: companyId,
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
@@ -98,7 +98,7 @@ const getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 
 exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
-  const events = await getWorkingEventsForExport(startDate, endDate, companyId);
+  const events = await exports.getWorkingEventsForExport(startDate, endDate, companyId);
   const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
   const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
 
