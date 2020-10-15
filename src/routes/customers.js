@@ -418,6 +418,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
+              subscriptionId: Joi.objectId(),
               service: Joi.string(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),

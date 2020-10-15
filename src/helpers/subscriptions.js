@@ -1,8 +1,8 @@
 const moment = require('moment');
 const Boom = require('@hapi/boom');
+const pick = require('lodash/pick');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
-const pick = require('lodash/pick');
 const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
@@ -32,18 +32,21 @@ exports.populateSubscriptionsServices = (customer) => {
 };
 
 exports.subscriptionsAccepted = (customer) => {
-  if (customer.subscriptions && customer.subscriptions.length > 0) {
+  if (customer.subscriptions && customer.subscriptions.length > 0 && customer.subscriptions[0].versions) {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = map(customer.subscriptions, (subscription) => {
         const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
         const version = pickBy(pick(lastVersion, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays']));
 
-        return { service: get(subscription, 'service.name'), ...version };
+        return { _id: subscription._id, service: get(subscription, 'service.name'), ...version };
       });
 
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
-        .map(sub => pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
+        .map(sub => ({
+          _id: sub.subscriptionId,
+          ...pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']),
+        }));
 
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }
