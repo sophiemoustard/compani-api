@@ -67,7 +67,7 @@ const step = {
   _id: new ObjectID(),
   name: 'etape',
   type: 'on_site',
-  activities: [{ _id: activity._id, name: activity.name, type: activity.type }],
+  activities: [activity._id],
 };
 
 const subProgramsList = [

@@ -60,6 +60,20 @@ const getById = async (req) => {
   }
 };
 
+const getFollowUp = async (req) => {
+  try {
+    const followUp = await CoursesHelper.getCourseFollowUp(req.params._id);
+
+    return {
+      message: translate[language].courseFound,
+      data: { followUp },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const getPublicInfosById = async (req) => {
   try {
     const course = await CoursesHelper.getCoursePublicInfos(req.params._id);
@@ -183,6 +197,7 @@ module.exports = {
   listUserCourses,
   create,
   getById,
+  getFollowUp,
   getPublicInfosById,
   getTraineeCourse,
   update,

@@ -90,6 +90,54 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
+exports.formatActivity = (activity) => {
+  const followUp = {};
+  for (const history of activity.activityHistories) {
+    for (const answer of history.questionnaireAnswersList) {
+      if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
+      followUp[answer.card._id].answers.push(answer.answer);
+    }
+  }
+
+  return {
+    ...activity,
+    followUp: Object.values(followUp),
+    activityHistories: activity.activityHistories.map(a => a._id),
+  };
+};
+
+exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
+
+exports.getCourseFollowUp = async (courseId) => {
+  const courseWithTrainees = await Course.findOne({ _id: courseId }).select('trainees').lean();
+
+  const course = await Course.findOne({ _id: courseId })
+    .select('subProgram')
+    .populate({
+      path: 'subProgram',
+      select: 'name steps',
+      populate: {
+        path: 'steps',
+        select: 'name activities type',
+        populate: {
+          path: 'activities',
+          select: 'name type',
+          populate: {
+            path: 'activityHistories',
+            match: { user: { $in: courseWithTrainees.trainees } },
+            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+          },
+        },
+      },
+    })
+    .lean();
+
+  return {
+    ...course,
+    subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(s => exports.formatStep(s)) },
+  };
+};
+
 exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
   .populate({
     path: 'subProgram',

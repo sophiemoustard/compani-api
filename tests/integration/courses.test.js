@@ -434,6 +434,72 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   });
 });
 
+describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
+  let authToken = null;
+  const courseFromAuthCompanyIntra = coursesList[0];
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.followUp).toEqual(expect.objectContaining({
+        _id: courseFromAuthCompanyIntra._id,
+        subProgram: expect.objectContaining({
+          _id: subProgramsList[0]._id,
+          name: subProgramsList[0].name,
+          steps: expect.arrayContaining([expect.objectContaining({
+            _id: step._id,
+            name: step.name,
+            type: step.type,
+            activities: expect.arrayContaining([expect.objectContaining({
+              _id: activity._id,
+              followUp: expect.any(Array),
+              activityHistories: expect.any(Array),
+              name: expect.any(String),
+              type: expect.any(String),
+            })]),
+          })]),
+        }),
+      }));
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('COURSES ROUTES - GET /courses/user', () => {
   let authToken = null;
   beforeEach(populateDB);
