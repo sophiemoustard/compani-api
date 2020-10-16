@@ -45,7 +45,7 @@ exports.subscriptionsAccepted = (customer) => {
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
         .map(sub => ({
           _id: sub.subscriptionId,
-          ...pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']),
+          ...pickBy(pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service'])),
         }));
 
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
