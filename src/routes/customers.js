@@ -230,8 +230,8 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           }),
           payload: Joi.object({
-            unitTTCRate: Joi.number(),
-            estimatedWeeklyVolume: Joi.number(),
+            unitTTCRate: Joi.number().required(),
+            estimatedWeeklyVolume: Joi.number().required(),
             evenings: Joi.number(),
             sundays: Joi.number(),
           }),

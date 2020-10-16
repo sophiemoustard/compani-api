@@ -894,6 +894,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
+      unitTTCRate: 1,
       evenings: 3,
     };
 
