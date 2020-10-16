@@ -352,11 +352,11 @@ describe('formatStep', () => {
   });
 
   it('should format step', () => {
-    const step = { name: 'Je suis une etape', activities: [{ _id: 1 }, { _id: 2 }, { _id: 3 }] };
+    const step = { name: 'Je suis une etape', activities: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] };
     formatActivity.callsFake(a => a._id);
     const result = CourseHelper.formatStep(step);
 
-    expect(result).toEqual({ name: 'Je suis une etape', activities: [1, 2, 3] });
+    expect(result).toEqual({ name: 'Je suis une etape', activities: ['abc', 'def', 'ghi'] });
   });
 });
 
@@ -377,7 +377,7 @@ describe('getCourseFollowUp', () => {
     const trainees = [1, 2, 3, 4, 5];
     const course = {
       _id: 'my_course',
-      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 1 }, { _id: 2 }, { _id: 3 }] },
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
     };
 
     CourseMock.expects('findOne')
@@ -415,7 +415,10 @@ describe('getCourseFollowUp', () => {
     formatStep.callsFake(s => s._id);
     const result = await CourseHelper.getCourseFollowUp(courseId);
 
-    expect(result).toEqual({ _id: 'my_course', subProgram: { name: 'je suis un sous programme', steps: [1, 2, 3] } });
+    expect(result).toEqual({
+      _id: 'my_course',
+      subProgram: { name: 'je suis un sous programme', steps: ['abc', 'def', 'ghi'] },
+    });
     CourseMock.verify();
   });
 });

@@ -444,7 +444,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get intra course', async () => {
+    it('should get course with follow up', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
