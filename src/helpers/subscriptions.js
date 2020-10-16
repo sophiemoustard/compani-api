@@ -91,9 +91,19 @@ exports.deleteSubscription = async (customerId, subscriptionId) => {
   const eventsCount = await Event.countDocuments({ subscription: subscriptionId });
   if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
 
+  const customer = await Customer.findById(customerId).lean();
+  const subscriptionsHistory = customer.subscriptionsHistory.filter((sh) => {
+    const sub = sh.subscriptions.find(s => UtilsHelper.areObjectIdsEquals(s.subscriptionId, subscriptionId));
+    return !(sh.subscriptions.length === 1 && sub);
+  })
+    .map(sh => ({
+      ...sh,
+      subscriptions: sh.subscriptions.filter(s => !UtilsHelper.areObjectIdsEquals(s.subscriptionId, subscriptionId)),
+    }));
+
   await Customer.updateOne(
     { _id: customerId },
-    { $pull: { subscriptions: { _id: subscriptionId } } }
+    { $pull: { subscriptions: { _id: subscriptionId } }, $set: { subscriptionsHistory } }
   );
 };
 
