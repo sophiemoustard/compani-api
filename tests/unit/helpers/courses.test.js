@@ -296,9 +296,40 @@ describe('getCoursePublicInfos', () => {
   });
 });
 
+describe('selectUserHistory', () => {
+  it('should return only the last history for each user', () => {
+    const user1 = new ObjectID();
+    const user2 = new ObjectID();
+    const histories = [
+      { user: user2.toHexString(), createdAt: '2020-10-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-09-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-08-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-11-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-01-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-02-03T10:00:00' },
+    ];
+
+    const result = CourseHelper.selectUserHistory(histories);
+
+    expect(result).toStrictEqual([
+      { user: user2.toHexString(), createdAt: '2020-10-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-11-03T10:00:00' },
+    ]);
+  });
+});
+
 describe('formatActivity', () => {
+  let selectUserHistory;
+  beforeEach(() => {
+    selectUserHistory = sinon.stub(CourseHelper, 'selectUserHistory');
+  });
+  afterEach(() => {
+    selectUserHistory.restore();
+  });
+
   it('should return empty follow up if no history', () => {
     const activity = { activityHistories: [] };
+    selectUserHistory.returns(activity.activityHistories);
     const result = CourseHelper.formatActivity(activity);
 
     expect(result).toEqual({ activityHistories: [], followUp: [] });
@@ -309,6 +340,7 @@ describe('formatActivity', () => {
       activityHistories: [
         {
           _id: 'rfvgtgb',
+          user: 'qwertyuiop',
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answer: 2 },
             { card: { _id: '0987654', title: 'Hello' }, answer: 3 },
@@ -316,6 +348,7 @@ describe('formatActivity', () => {
         },
         {
           _id: 'yhnjujm',
+          user: 'poiuytre',
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answer: 3 },
             { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
@@ -323,6 +356,7 @@ describe('formatActivity', () => {
         },
         {
           _id: 'zxcvbnm',
+          user: 'xzcvbnm',
           questionnaireAnswersList: [
             { card: { _id: '1234567', title: 'Bonjour' }, answer: 1 },
             { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
@@ -330,6 +364,7 @@ describe('formatActivity', () => {
         },
       ],
     };
+    selectUserHistory.returns(activity.activityHistories);
     const result = CourseHelper.formatActivity(activity);
 
     expect(result).toEqual({

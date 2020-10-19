@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
+const { groupBy } = require('lodash');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
@@ -90,9 +91,16 @@ exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId 
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
   .lean();
 
+exports.selectUserHistory = (histories) => {
+  const groupedHistories = Object.values(groupBy(histories, 'user'));
+
+  return groupedHistories.map(userHistories => UtilsHelper.getLastVersion(userHistories, 'createdAt'));
+};
+
 exports.formatActivity = (activity) => {
   const followUp = {};
-  for (const history of activity.activityHistories) {
+  const filteredHistories = exports.selectUserHistory(activity.activityHistories);
+  for (const history of filteredHistories) {
     for (const answer of history.questionnaireAnswersList) {
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
       followUp[answer.card._id].answers.push(answer.answer);
