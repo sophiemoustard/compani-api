@@ -1343,7 +1343,10 @@ describe('computeBalance', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [contract],
-      administrative: { mutualFund: { has: true } },
+      administrative: {
+        mutualFund: { has: true },
+        phoneInvoice: { driveId: '15FWRBXbYnKBu7AGNUAr6be3kThDR2ed5', link: 'skusku' },
+      },
     };
     const events = {
       events: [
@@ -1356,7 +1359,7 @@ describe('computeBalance', () => {
         { startDate: '2019-04-03T10:00:00', endDate: '2019-05-05T12:00:00' },
       ],
     };
-    const company = { rhConfig: { feeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
@@ -1374,7 +1377,53 @@ describe('computeBalance', () => {
       surchargedAndNotExempt: 9,
       hoursBalance: 7,
       transport: 26.54,
-      otherFees: 29.6,
+      phoneFees: 29.6,
+      hoursToWork: 131,
+      holidaysHours: 3,
+    });
+    sinon.assert.calledWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
+    sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
+  });
+
+  it('should return balance without phoneFees', async () => {
+    const contract = { startDate: '2019-05-13T00:00:00' };
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [contract],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = {
+      events: [
+        [{ startDate: '2019-05-08T10:00:00', endDate: '2019-05-08T12:00:00' }],
+        [{ startDate: '2019-05-20T10:00:00', endDate: '2019-05-20T12:00:00' }],
+      ],
+      absences: [
+        { startDate: '2019-05-10T10:00:00', endDate: '2019-05-15T12:00:00' },
+        { startDate: '2019-05-28T10:00:00', endDate: '2019-06-05T12:00:00' },
+        { startDate: '2019-04-03T10:00:00', endDate: '2019-05-05T12:00:00' },
+      ],
+    };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+
+    getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
+    getPayFromAbsences.returns(16);
+    getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8, holidaysHours: 3 });
+    getTransportRefund.returns(26.54);
+
+    const result = await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, [], []);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      contractHours: 150,
+      absencesHours: 16,
+      workedHours: 138,
+      notSurchargedAndNotExempt: 15,
+      surchargedAndNotExempt: 9,
+      hoursBalance: 7,
+      transport: 26.54,
+      phoneFees: 0,
       hoursToWork: 131,
       holidaysHours: 3,
     });
@@ -1403,7 +1452,7 @@ describe('computeBalance', () => {
         { startDate: '2019-05-14T10:00:00', endDate: '2019-05-28T12:00:00' },
       ],
     };
-    const company = { rhConfig: { feeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
     getPayFromEvents.returns({ workedHours: 0, notSurchargedAndNotExempt: 0, surchargedAndNotExempt: 0 });
@@ -1443,7 +1492,7 @@ describe('computeAuxiliaryDraftPay', () => {
     };
     const contract = { startDate: '2019-05-13T00:00:00' };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
-    const company = { rhConfig: { feeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
     const computedPay = {
@@ -1454,7 +1503,7 @@ describe('computeAuxiliaryDraftPay', () => {
       hoursBalance: 6,
       hoursCounter: 16,
       transport: 26.54,
-      otherFees: 29.6,
+      phoneFees: 29.6,
       bonus: 0,
     };
     computeBalance.returns(computedPay);
@@ -1811,7 +1860,7 @@ describe('computeDraftPayByAuxiliary', () => {
     };
     const contract = { startDate: '2019-02-23T00:00:00' };
     const events = { events: [[]], absences: [] };
-    const company = { rhConfig: { feeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = {};
 

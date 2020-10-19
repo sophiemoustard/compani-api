@@ -76,6 +76,7 @@ const CustomerSchema = mongoose.Schema({
   subscriptionsHistory: [{
     subscriptions: [{
       ...subscriptionSchemaDefinition,
+      subscriptionId: { type: mongoose.Schema.Types.ObjectId },
       service: String,
       startDate: Date,
     }],

@@ -22,6 +22,7 @@ const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = re
 
 const subId = new ObjectID();
 const subId2 = new ObjectID();
+const subId3 = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
 
 const referentList = [
@@ -113,14 +114,28 @@ const customersList = [
       service: customerServiceList[0]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }, {
-      _id: new ObjectID(),
+      _id: subId3,
       service: customerServiceList[1]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     subscriptionsHistory: [{
       subscriptions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, service: 'Service 1' },
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+        {
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          service: 'Service 1',
+          subscriptionId: subId,
+        },
+        {
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          service: 'Service 2',
+          subscriptionId: subId3,
+        },
       ],
       helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
       approvalDate: '2018-01-01T10:00:00.000+01:00',

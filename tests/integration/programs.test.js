@@ -6,6 +6,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const Program = require('../../src/models/Program');
+const Course = require('../../src/models/Course');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
 const { populateDB, programsList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -112,6 +113,65 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
   });
 });
 
+describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get all programs', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/programs/e-learning',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.programs.length).toEqual(1);
+      const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(course => course._id);
+      const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
+      expect(courses.every(course => course.format === 'strictly_e_learning')).toBeTruthy();
+    });
+
+    it('should return 401 if user is not connected', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/programs/e-learning',
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/programs/e-learning',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -133,20 +193,43 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program).toMatchObject({
         _id: programId,
         name: 'program',
-        subPrograms: [
-          {
-            name: 'c\'est un sous-programme',
-            steps: [
-              {
-                type: 'on_site',
-                name: 'encore une étape',
-                activities: [
-                  { name: 'c\'est une activité', type: 'sharing_experience' },
-                ],
-              },
-            ],
-          },
-        ],
+        subPrograms: [{
+          name: 'c\'est un sous-programme',
+          steps: [{
+            type: 'on_site',
+            name: 'encore une étape',
+            areActivitiesValid: true,
+            activities: [{
+              name: 'c\'est une activité',
+              type: 'sharing_experience',
+              areCardsValid: true,
+            }],
+          }],
+        }],
+      });
+    });
+
+    it('should get program with non valid activities and non valid steps', async () => {
+      const programId = programsList[2]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program).toMatchObject({
+        _id: programId,
+        name: 'non valid program',
+        subPrograms: [{
+          name: 'c\'est un sous-programme',
+          steps: [{
+            type: 'on_site',
+            name: 'encore une étape',
+            areActivitiesValid: false,
+            activities: [{ areCardsValid: false }],
+          }],
+        }],
       });
     });
   });

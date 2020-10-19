@@ -30,7 +30,7 @@ describe('COMPANIES ROUTES', () => {
       it('should update company', async () => {
         const payload = {
           name: 'Alenvi Alenvi',
-          rhConfig: { feeAmount: 70 },
+          rhConfig: { phoneFeeAmount: 70 },
           apeCode: '8110Z',
         };
         const response = await app.inject({
@@ -69,7 +69,7 @@ describe('COMPANIES ROUTES', () => {
       it('should update company', async () => {
         const payload = {
           name: 'Alenvi Alenvi',
-          rhConfig: { feeAmount: 70 },
+          rhConfig: { phoneFeeAmount: 70 },
           apeCode: '8110Z',
         };
         const response = await app.inject({
@@ -235,7 +235,7 @@ describe('COMPANIES ROUTES', () => {
       iban: '0987654321234567890987654',
       bic: 'BR12345678',
       billingAssistance: 'test@alenvi.io',
-      rhConfig: { grossHourlyRate: 10, feeAmount: 2, amountPerKm: 10 },
+      rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
       customersConfig: { billingPeriod: MONTH },
     };
 

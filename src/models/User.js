@@ -10,7 +10,7 @@ const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY, BLENDED } = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
@@ -262,11 +262,12 @@ UserSchema.virtual('sectorHistories', {
   options: { sort: { startDate: -1 } },
 });
 
-UserSchema.virtual('coursesCount', {
+UserSchema.virtual('blendedCoursesCount', {
   ref: 'Course',
   localField: '_id',
   foreignField: 'trainees',
   count: true,
+  options: { match: { format: BLENDED } },
 });
 
 UserSchema.statics.serialNumber = serialNumber;

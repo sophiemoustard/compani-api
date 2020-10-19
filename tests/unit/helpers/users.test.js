@@ -405,7 +405,7 @@ describe('getLearnerList', () => {
       .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
-      .withExactArgs({ path: 'coursesCount' })
+      .withExactArgs({ path: 'blendedCoursesCount' })
       .chain('setOptions')
       .withExactArgs({ isVendorUser: true })
       .chain('lean')
