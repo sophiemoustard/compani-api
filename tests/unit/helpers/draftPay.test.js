@@ -1392,7 +1392,7 @@ describe('computeBalance', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [contract],
-      administrative: { mutualFund: { has: true } },
+      administrative: { mutualFund: { has: true }, phoneInvoice: { driveId: null, link: null } },
     };
     const events = {
       events: [

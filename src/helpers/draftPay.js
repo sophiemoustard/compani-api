@@ -330,7 +330,7 @@ const filterAbsences = (eventsToPay, contract) => eventsToPay.absences.filter((a
 });
 
 const getPhoneFees = (auxiliary, contractInfo, company) => {
-  if (!auxiliary.administrative.phoneInvoice) return 0;
+  if (!get(auxiliary, 'administrative.phoneInvoice.driveId')) return 0;
 
   const phoneFeeAmount = get(company, 'rhConfig.phoneFeeAmount') || 0;
 
