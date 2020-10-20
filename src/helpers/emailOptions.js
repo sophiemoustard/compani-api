@@ -16,9 +16,11 @@ const baseWelcomeContent = (customContent, options) => {
       <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
       et cliquez sur <i>"C'est ma première connexion”</i>.
     </p>
+    <br />
     <p>
-      Par la suite, le lien pour vous connecter sera toujours
-      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>.
+      Par la suite, rendez-vous sur
+      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
+      pour vous connecter.
     </p>
     <br />
     <p>Bien cordialement,</p>
