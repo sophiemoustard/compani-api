@@ -1,18 +1,14 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-
-const Service = require('../models/Service');
+const ServiceHelper = require('../helpers/services');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const query = { company: companyId };
-    const services = await Service.find(query)
-      .populate({ path: 'versions.surcharge', match: { company: companyId } })
-      .lean();
+    const services = await ServiceHelper.list(get(req, 'auth.credentials.company._id', null));
+
     return {
       message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,
       data: { services },
@@ -25,12 +21,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const payload = {
-      ...req.payload,
-      company: req.auth.credentials.company._id,
-    };
-    const service = new Service(payload);
-    await service.save();
+    const service = await ServiceHelper.create(req.auth.credentials.company._id, req.payload);
 
     return {
       message: translate[language].serviceCreated,
@@ -44,7 +35,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await Service.updateOne({ _id: req.params._id }, { $push: { versions: req.payload } });
+    await ServiceHelper.update(req.params._id, req.payload);
 
     return { message: translate[language].serviceUpdated };
   } catch (e) {
@@ -55,8 +46,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const service = await Service.findByIdAndRemove(req.params._id);
-    if (!service) return Boom.notFound(translate[language].serviceNotFound);
+    await ServiceHelper.remove(req.params._id);
 
     return {
       message: translate[language].serviceDeleted,

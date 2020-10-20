@@ -172,6 +172,21 @@ describe('PUT /services/:id', () => {
     expect(updatedService.versions.length).toBe(servicesList[0].versions.length + 1);
   });
 
+  it('should archive service', async () => {
+    const payload = { isArchived: true };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/services/${servicesList[0]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+
+    expect(response.statusCode).toBe(200);
+
+    const updatedService = await Service.findOne({ _id: servicesList[0]._id.toHexString() }).lean();
+    expect(updatedService.isArchived).toBe(true);
+  });
+
   it('should return 404 if no service found', async () => {
     const invalidId = new ObjectID().toHexString();
     const payload = {
@@ -197,6 +212,48 @@ describe('PUT /services/:id', () => {
       payload,
     });
     expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 400 if nothing in payload', async () => {
+    const payload = { };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/services/${servicesList[0]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 400 if isArchived is not alone in payload', async () => {
+    const payload = {
+      defaultUnitAmount: 15,
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+      isArchived: true,
+    };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/services/${servicesList[0]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('should return 403 if service isArchived', async () => {
+    const payload = {
+      defaultUnitAmount: 15,
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/services/${servicesList[3]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+    expect(response.statusCode).toBe(403);
   });
 
   it('should return a 403 error if user is not from the same company', async () => {
@@ -269,6 +326,26 @@ describe('DELETE /services/:id', () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should return a 403 error if service is archived', async () => {
+    const response = await app.inject({
+      method: 'DELETE',
+      url: `/services/${servicesList[3]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should return a 403 error if service has subscriptions linked', async () => {
+    const response = await app.inject({
+      method: 'DELETE',
+      url: `/services/${servicesList[2]._id.toHexString()}`,
       headers: { 'x-access-token': authToken },
     });
 
