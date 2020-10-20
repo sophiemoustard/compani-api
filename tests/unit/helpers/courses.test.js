@@ -296,6 +296,168 @@ describe('getCoursePublicInfos', () => {
   });
 });
 
+describe('selectUserHistory', () => {
+  it('should return only the last history for each user', () => {
+    const user1 = new ObjectID();
+    const user2 = new ObjectID();
+    const histories = [
+      { user: user2.toHexString(), createdAt: '2020-10-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-09-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-08-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-11-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-01-03T10:00:00' },
+      { user: user2.toHexString(), createdAt: '2020-02-03T10:00:00' },
+    ];
+
+    const result = CourseHelper.selectUserHistory(histories);
+
+    expect(result).toStrictEqual([
+      { user: user2.toHexString(), createdAt: '2020-10-03T10:00:00' },
+      { user: user1.toHexString(), createdAt: '2020-11-03T10:00:00' },
+    ]);
+  });
+});
+
+describe('formatActivity', () => {
+  let selectUserHistory;
+  beforeEach(() => {
+    selectUserHistory = sinon.stub(CourseHelper, 'selectUserHistory');
+  });
+  afterEach(() => {
+    selectUserHistory.restore();
+  });
+
+  it('should return empty follow up if no history', () => {
+    const activity = { activityHistories: [] };
+    selectUserHistory.returns(activity.activityHistories);
+    const result = CourseHelper.formatActivity(activity);
+
+    expect(result).toEqual({ activityHistories: [], followUp: [] });
+  });
+
+  it('should return format activity with histories', () => {
+    const activity = {
+      activityHistories: [
+        {
+          _id: 'rfvgtgb',
+          user: 'qwertyuiop',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 2 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 3 },
+          ],
+        },
+        {
+          _id: 'yhnjujm',
+          user: 'poiuytre',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 3 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+          ],
+        },
+        {
+          _id: 'zxcvbnm',
+          user: 'xzcvbnm',
+          questionnaireAnswersList: [
+            { card: { _id: '1234567', title: 'Bonjour' }, answer: 1 },
+            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+          ],
+        },
+      ],
+    };
+    selectUserHistory.returns(activity.activityHistories);
+    const result = CourseHelper.formatActivity(activity);
+
+    expect(result).toEqual({
+      activityHistories: ['rfvgtgb', 'yhnjujm', 'zxcvbnm'],
+      followUp: [
+        { _id: '1234567', title: 'Bonjour', answers: [2, 3, 1] },
+        { _id: '0987654', title: 'Hello', answers: [3, 4, 4] },
+      ],
+    });
+  });
+});
+
+describe('formatStep', () => {
+  let formatActivity;
+  beforeEach(() => {
+    formatActivity = sinon.stub(CourseHelper, 'formatActivity');
+  });
+  afterEach(() => {
+    formatActivity.restore();
+  });
+
+  it('should format step', () => {
+    const step = { name: 'Je suis une etape', activities: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] };
+    formatActivity.callsFake(a => a._id);
+    const result = CourseHelper.formatStep(step);
+
+    expect(result).toEqual({ name: 'Je suis une etape', activities: ['abc', 'def', 'ghi'] });
+  });
+});
+
+describe('getCourseFollowUp', () => {
+  let CourseMock;
+  let formatStep;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatStep = sinon.stub(CourseHelper, 'formatStep');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatStep.restore();
+  });
+
+  it('should return course follow up', async () => {
+    const courseId = '1234567890';
+    const trainees = [1, 2, 3, 4, 5];
+    const course = {
+      _id: 'my_course',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+    };
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('select')
+      .withExactArgs('trainees')
+      .chain('lean')
+      .returns({ trainees });
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('select')
+      .withExactArgs('subProgram')
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'name steps',
+        populate: {
+          path: 'steps',
+          select: 'name activities type',
+          populate: {
+            path: 'activities',
+            select: 'name type',
+            populate: {
+              path: 'activityHistories',
+              match: { user: { $in: trainees } },
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
+          },
+        },
+      })
+      .chain('lean')
+      .returns(course);
+
+    formatStep.callsFake(s => s._id);
+    const result = await CourseHelper.getCourseFollowUp(courseId);
+
+    expect(result).toEqual({
+      _id: 'my_course',
+      subProgram: { name: 'je suis un sous programme', steps: ['abc', 'def', 'ghi'] },
+    });
+    CourseMock.verify();
+  });
+});
+
 describe('getTraineeCourse', () => {
   let CourseMock;
   beforeEach(() => {
@@ -323,7 +485,10 @@ describe('getTraineeCourse', () => {
             populate: {
               path: 'activities',
               select: 'name type cards activityHistories',
-              populate: { path: 'activityHistories', match: { user: credentials._id } },
+              populate: [
+                { path: 'activityHistories', match: { user: credentials._id } },
+                { path: 'cards', select: 'template' },
+              ],
             },
           },
         ],

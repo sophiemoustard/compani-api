@@ -7,6 +7,7 @@ const {
   listUserCourses,
   create,
   getById,
+  getFollowUp,
   getPublicInfosById,
   getTraineeCourse,
   update,
@@ -85,6 +86,18 @@ exports.plugin = {
         auth: { scope: ['courses:read'] },
       },
       handler: getById,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/follow-up',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['courses:read'] },
+      },
+      handler: getFollowUp,
     });
 
     server.route({

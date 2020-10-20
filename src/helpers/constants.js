@@ -288,6 +288,23 @@ module.exports = {
   QC_ANSWER_MAX_LENGTH: 70,
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
+  QUESTIONNAIRE: 'questionnaire',
+  get CARD_TEMPLATES() {
+    return [
+      { label: 'Transition', value: this.TRANSITION, type: this.LESSON },
+      { label: 'Titre Texte Média', value: this.TITLE_TEXT_MEDIA, type: this.LESSON },
+      { label: 'Titre Texte', value: this.TITLE_TEXT, type: this.LESSON },
+      { label: 'Texte Média', value: this.TEXT_MEDIA, type: this.LESSON },
+      { label: 'Flashcard', value: this.FLASHCARD, type: this.LESSON },
+      { label: 'Texte à trou', value: this.FILL_THE_GAPS, type: this.QUIZ },
+      { label: 'QCM', value: this.MULTIPLE_CHOICE_QUESTION, type: this.QUIZ },
+      { label: 'QCU', value: this.SINGLE_CHOICE_QUESTION, type: this.QUIZ },
+      { label: 'Mettre dans l\'ordre', value: this.ORDER_THE_SEQUENCE, type: this.QUIZ },
+      { label: 'Question ouverte', value: this.OPEN_QUESTION, type: this.QUESTIONNAIRE },
+      { label: 'Sondage', value: this.SURVEY, type: this.QUESTIONNAIRE },
+      { label: 'Question\t&\tRéponse', value: this.QUESTION_ANSWER, type: this.QUESTIONNAIRE },
+    ];
+  },
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

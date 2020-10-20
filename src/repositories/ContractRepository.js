@@ -78,6 +78,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
       administrative: {
         mutualFund: '$auxiliary.administrative.mutualFund',
         transportInvoice: '$auxiliary.administrative.transportInvoice',
+        phoneInvoice: '$auxiliary.administrative.phoneInvoice',
       },
       prevPay: 1,
     },

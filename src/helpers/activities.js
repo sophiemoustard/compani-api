@@ -12,7 +12,7 @@ exports.getActivity = async activityId => Activity.findOne({ _id: activityId })
     select: '_id -activities',
     populate: { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
   })
-  .lean();
+  .lean({ virtuals: true });
 
 exports.updateActivity = async (activityId, payload) => Activity.updateOne({ _id: activityId }, { $set: payload });
 

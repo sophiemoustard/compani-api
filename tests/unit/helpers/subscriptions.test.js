@@ -64,6 +64,7 @@ describe('subscriptionsAccepted', () => {
           startDate: '2019-01-27T23:00:00.000Z',
           evenings: 3,
           sundays: 2,
+          subscriptionId: new ObjectID('5c41f4d62fc4d8780f0628e9'),
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
         _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
@@ -135,6 +136,7 @@ describe('subscriptionsAccepted', () => {
           unitTTCRate: 35,
           estimatedWeeklyVolume: 12,
           startDate: '2019-01-27T23:00:00.000Z',
+          subscriptionId: new ObjectID('5c41f4d62fc4d8780f0628e9'),
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
         _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
@@ -300,42 +302,60 @@ describe('addSubscription', () => {
 });
 
 describe('deleteSubscription', () => {
+  const customerId = new ObjectID();
+  const subscriptionId = new ObjectID();
+  const secondSubId = new ObjectID();
+
   let updateOne;
   let countDocuments;
+  let CustomerMock;
   beforeEach(() => {
     updateOne = sinon.stub(Customer, 'updateOne');
     countDocuments = sinon.stub(Event, 'countDocuments');
+    CustomerMock = sinon.mock(Customer);
   });
   afterEach(() => {
     updateOne.restore();
     countDocuments.restore();
+    CustomerMock.restore();
   });
 
-  it('should delete subscription', async () => {
-    const customerId = new ObjectID();
-    const subscriptionId = new ObjectID();
+  it('should delete subscription and the subscriptionhistory associated', async () => {
     countDocuments.returns(0);
+    CustomerMock.expects('findById')
+      .chain('lean')
+      .returns({
+        subscriptionsHistory: [
+          { subscriptions: [{ subscriptionId }] },
+          { subscriptions: [{ subscriptionId }, { subscriptionId: secondSubId }] },
+        ],
+      });
 
     await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
     sinon.assert.calledWithExactly(countDocuments, { subscription: subscriptionId.toHexString() });
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: customerId.toHexString() },
-      { $pull: { subscriptions: { _id: subscriptionId.toHexString() } } }
+      {
+        $pull: { subscriptions: { _id: subscriptionId.toHexString() } },
+        $set: { subscriptionsHistory: [{ subscriptions: [{ subscriptionId: secondSubId }] }] },
+      }
     );
+    CustomerMock.verify();
   });
 
   it('should not delete subscription', async () => {
     try {
-      const customerId = new ObjectID();
-      const subscriptionId = new ObjectID();
       countDocuments.returns(2);
+      CustomerMock.expects('findById').never();
 
       await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
     } finally {
+      sinon.assert.calledWithExactly(countDocuments, { subscription: subscriptionId.toHexString() });
       sinon.assert.notCalled(updateOne);
+      CustomerMock.verify();
     }
   });
 });

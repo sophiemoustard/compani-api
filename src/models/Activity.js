@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO, DRAFT } = require('../helpers/constants');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
+const { LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO, DRAFT, CARD_TEMPLATES } = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
 
 const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO];
@@ -9,7 +10,7 @@ const ActivitySchema = mongoose.Schema({
   type: { type: String, required: true, enum: ACTIVITY_TYPES },
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
-}, { timestamps: true });
+}, { timestamps: true, id: false });
 
 ActivitySchema.virtual('steps', {
   ref: 'Step',
@@ -24,5 +25,29 @@ ActivitySchema.virtual('activityHistories', {
   sort: { date: -1 },
 });
 
+// eslint-disable-next-line consistent-return
+function setQuizCount() {
+  if (this.cards.length && this.cards[0].template) {
+    const quizTemplates = CARD_TEMPLATES.filter(temp => temp.type === QUIZ).map(temp => temp.value);
+    return this.cards.filter(card => quizTemplates.includes(card.template)).length;
+  }
+}
+
+ActivitySchema.virtual('quizCount').get(setQuizCount);
+
+// eslint-disable-next-line consistent-return
+function setAreCardsValid() {
+  if (this.cards.length && this.cards[0].template) { // if card is populated, template exists
+    return this.cards.every(card => card.isValid);
+  }
+
+  if (this.cards.length === 0) {
+    return true;
+  }
+}
+
+ActivitySchema.virtual('areCardsValid').get(setAreCardsValid);
+
+ActivitySchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Activity', ActivitySchema);
 module.exports.ACTIVITY_TYPES = ACTIVITY_TYPES;

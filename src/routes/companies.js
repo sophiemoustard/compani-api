@@ -49,7 +49,7 @@ exports.plugin = {
             apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
-              feeAmount: Joi.number(),
+              phoneFeeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
@@ -136,7 +136,7 @@ exports.plugin = {
             apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
-              feeAmount: Joi.number(),
+              phoneFeeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),

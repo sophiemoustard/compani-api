@@ -29,6 +29,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             name: Joi.string(),
+            type: Joi.string(),
             cards: Joi.array().items(Joi.objectId()),
           }).min(1),
         },

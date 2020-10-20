@@ -4,6 +4,7 @@ const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
 require('sinon-mongoose');
+const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
@@ -14,6 +15,158 @@ const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
+
+describe('getWorkingEventsForExport', () => {
+  const auxiliaryId = new ObjectID();
+  const customerId = new ObjectID();
+  const subId1 = new ObjectID();
+  const subId2 = new ObjectID();
+
+  const events = [
+    {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      subscription: subId1,
+      customer: {
+        _id: customerId,
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
+        subscriptions: [
+          { _id: subId1, service: { versions: [{ name: 'Lala' }] } },
+          { _id: subId2, service: { versions: [{ name: 'Lili' }] } },
+        ],
+      },
+      auxiliary: auxiliaryId,
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+    },
+    {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      subscription: subId2,
+      customer: {
+        _id: customerId,
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
+        subscriptions: [
+          { _id: subId1, service: { versions: [{ name: 'Lala' }] } },
+          { _id: subId2, service: { versions: [{ name: 'Lili' }] } },
+        ],
+      },
+      sector: { name: 'Girafes - 75' },
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+    },
+    {
+      isCancelled: true,
+      cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
+      isBilled: false,
+      type: 'internalHour',
+      internalHour: { name: 'Formation' },
+      repetition: { frequency: 'never' },
+      auxiliary: auxiliaryId,
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+      misc: 'brbr',
+    },
+  ];
+
+  const eventsWithSubscription = [
+    {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      subscription: { _id: subId1, service: { versions: [{ name: 'Lala' }] } },
+      customer: {
+        _id: customerId,
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
+        subscriptions: [
+          { _id: subId1, service: { versions: [{ name: 'Lala' }] } },
+          { _id: subId2, service: { versions: [{ name: 'Lili' }] } },
+        ],
+      },
+      auxiliary: auxiliaryId,
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+    },
+    {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      subscription: { _id: subId2, service: { versions: [{ name: 'Lili' }] } },
+      customer: {
+        _id: customerId,
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
+        subscriptions: [
+          { _id: subId1, service: { versions: [{ name: 'Lala' }] } },
+          { _id: subId2, service: { versions: [{ name: 'Lili' }] } },
+        ],
+      },
+      sector: { name: 'Girafes - 75' },
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+    },
+    {
+      isCancelled: true,
+      cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
+      isBilled: false,
+      type: 'internalHour',
+      internalHour: { name: 'Formation' },
+      repetition: { frequency: 'never' },
+      auxiliary: auxiliaryId,
+      startDate: moment('2019-05-20T08:00:00').toDate(),
+      endDate: moment('2019-05-20T10:00:00').toDate(),
+      misc: 'brbr',
+    },
+  ];
+  const companyId = new ObjectID();
+  const startDate = moment('2019-05-20T08:00:00').toDate();
+  const endDate = moment('2019-05-20T10:00:00').toDate();
+
+  const payload = {
+    company: companyId,
+    type: { $in: ['intervention', 'internalHour'] },
+    $or: [
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+    ],
+  };
+
+  let EventMock;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventMock.restore();
+  });
+
+  it('should return events for history export', async () => {
+    EventMock.expects('find')
+      .withExactArgs(payload)
+      .chain('sort')
+      .withExactArgs({ startDate: -1 })
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        populate: { path: 'subscriptions', populate: 'service' },
+      })
+      .chain('populate')
+      .withExactArgs('internalHour')
+      .chain('populate')
+      .withExactArgs('sector')
+      .chain('lean')
+      .returns(events);
+
+    const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
+    expect(result).toStrictEqual(eventsWithSubscription);
+    EventMock.verify();
+  });
+});
 
 describe('exportWorkingEventsHistory', () => {
   const header = [
@@ -105,7 +258,7 @@ describe('exportWorkingEventsHistory', () => {
   let getLastVersion;
   let getAuxiliariesWithSectorHistory;
   beforeEach(() => {
-    getWorkingEventsForExport = sinon.stub(EventRepository, 'getWorkingEventsForExport');
+    getWorkingEventsForExport = sinon.stub(ExportHelper, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
   });
@@ -734,7 +887,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Heures comp à payer',
     'Mutuelle',
     'Transport',
-    'Autres frais',
+    'Frais téléphoniques',
     'Prime',
     'Indemnité',
   ];
@@ -762,7 +915,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 37.6,
-      otherFees: 18,
+      phoneFees: 18,
       bonus: 0,
       _id: new ObjectID(),
       diff: {
@@ -800,7 +953,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 47.6,
-      otherFees: 20,
+      phoneFees: 20,
       bonus: 100,
       diff: {
         hoursBalance: 8,
@@ -841,7 +994,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 37.6,
-      otherFees: 18,
+      phoneFees: 18,
       bonus: 0,
       compensation: 156,
       diff: {
@@ -881,7 +1034,7 @@ describe('exportPayAndFinalPayHistory', () => {
       additionalHours: 0,
       mutual: true,
       transport: 47.6,
-      otherFees: 20,
+      phoneFees: 20,
       bonus: 100,
       compensation: 0,
       diff: {
