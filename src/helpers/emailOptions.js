@@ -11,10 +11,16 @@ const baseWelcomeContent = (customContent, options) => {
     <p>
       Vous pouvez créer votre mot de passe en suivant ce lien: <a href="${link}">${link}</a>.
     </p>
-    <p>Ce lien est valable 24heures.</p>
     <p>
-      Par la suite, voici le lien pour vous connecter : 
+      Ce lien expire au bout de 24 heures. Si vous dépassez ce délai, rendez-vous sur
       <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
+      et cliquez sur <i>"C'est ma première connexion”</i>.
+    </p>
+    <br />
+    <p>
+      Par la suite, rendez-vous sur
+      <a href="${process.env.WEBSITE_HOSTNAME}">${process.env.WEBSITE_HOSTNAME}</a>
+      pour vous connecter.
     </p>
     <br />
     <p>Bien cordialement,</p>
