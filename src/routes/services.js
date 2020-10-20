@@ -12,7 +12,7 @@ const {
   remove,
 } = require('../controllers/serviceController');
 
-const { authorizeServicesUpdate } = require('./preHandlers/services');
+const { authorizeServicesUpdate, authorizeServicesDeletion } = require('./preHandlers/services');
 
 exports.plugin = {
   name: 'routes-services',
@@ -57,7 +57,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeServicesUpdate }],
+        pre: [{ method: authorizeServicesDeletion }],
       },
     });
 
