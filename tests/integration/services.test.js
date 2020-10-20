@@ -214,6 +214,17 @@ describe('PUT /services/:id', () => {
     expect(response.statusCode).toBe(400);
   });
 
+  it('should return 400 if nothing in payload', async () => {
+    const payload = { };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/services/${servicesList[0]._id.toHexString()}`,
+      headers: { 'x-access-token': authToken },
+      payload,
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
   it('should return 400 if isArchived is not alone in payload', async () => {
     const payload = {
       defaultUnitAmount: 15,

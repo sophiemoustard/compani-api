@@ -78,7 +78,7 @@ exports.plugin = {
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean(),
             }),
-            Joi.object().keys({ isArchived: Joi.boolean() })
+            Joi.object().keys({ isArchived: Joi.boolean().required() })
           ),
         },
         pre: [{ method: authorizeServicesUpdate }],
