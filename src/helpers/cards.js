@@ -14,6 +14,11 @@ exports.updateCard = async (cardId, payload) => Card.updateOne(
   { $set: flat(payload, { safe: true }) }
 );
 
+exports.updateCardAnswer = async (params, payload) => Card.updateOne(
+  { _id: params._id, 'questionAnswers._id': params.answerId },
+  { $set: { 'questionAnswers.$.text': payload.text } }
+);
+
 exports.uploadMedia = async (cardId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({
     file: payload.file,

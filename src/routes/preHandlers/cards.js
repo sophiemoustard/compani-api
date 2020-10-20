@@ -79,6 +79,13 @@ exports.authorizeCardUpdate = async (req) => {
   }
 };
 
+exports.authorizeCardAnswerUpdate = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id, 'questionAnswers._id': req.params.answerId }).lean();
+  if (!card) throw Boom.notFound();
+
+  return null;
+};
+
 exports.authorizeCardDeletion = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
