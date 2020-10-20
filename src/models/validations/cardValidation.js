@@ -1,4 +1,5 @@
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const {
   TRANSITION,
   TITLE_TEXT_MEDIA,
@@ -113,7 +114,10 @@ exports.cardValidationByTemplate = (template) => {
     case QUESTION_ANSWER:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        questionAnswers: Joi.array().items(Joi.string()).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
+        questionAnswers: Joi.array().items({
+          _id: Joi.required(),
+          text: Joi.string().required(),
+        }).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
       });
     default:
       return Joi.object().keys();

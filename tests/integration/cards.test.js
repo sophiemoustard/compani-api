@@ -106,7 +106,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           isQuestionAnswerMultipleChoiced: true,
           question: 'Que faire dans cette situation ?',
-          questionAnswers: ['partir', 'rester'],
         },
         id: questionAnswerId,
       },
@@ -121,9 +120,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        const cardUpdated = await Card.findById(card.id).lean({ virtuals: true });
-
         expect(response.statusCode).toBe(200);
+
+        const cardUpdated = await Card.findById(card.id).lean({ virtuals: true });
         expect(cardUpdated).toEqual(expect.objectContaining({ isValid: true }));
 
         const expectedObject = omit(card.payload, ['media']);
@@ -318,45 +317,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
           expect(response.statusCode).toBe(request.code);
           expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
-        });
-      });
-    });
-
-    describe('QuestionAnswer', () => {
-      const requests = [
-        {
-          msg: 'Valid questionAnswer',
-          payload: { question: 'vous dites?', questionAnswers: ['bien bien', 'oui oui'] },
-          code: 200,
-        },
-        {
-          msg: 'Missing questionAnswer',
-          payload: { question: 'vous dites?', questionAnswers: ['bien bien'] },
-          code: 400,
-        },
-        {
-          msg: 'Too many questionAnswer',
-          payload: {
-            question: 'vous dites?',
-            questionAnswers: ['ha-ha-ha-ha', 'staying alive', 'staying alive', 'hahaha', 'staying aliiiiive'],
-          },
-          code: 400,
-        },
-      ];
-
-      requests.forEach((request) => {
-        it(`should return a ${request.code} if ${request.msg}`, async () => {
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/cards/${questionAnswerId.toHexString()}`,
-            payload: request.payload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          const cardUpdated = await Card.findById(questionAnswerId).lean({ virtuals: true });
-
-          expect(response.statusCode).toBe(request.code);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: request.code === 200 }));
         });
       });
     });
