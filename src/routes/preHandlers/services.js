@@ -10,7 +10,8 @@ exports.authorizeServicesUpdate = async (req) => {
   const service = await Service.findOne({ _id: req.params._id }).lean();
 
   if (!service) throw Boom.notFound(translate[language].serviceNotFound);
-  if (service.company.toHexString() === companyId.toHexString()) return null;
+  if (service.isArchived) throw Boom.forbidden();
+  if (service.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
-  throw Boom.forbidden();
+  return null;
 };

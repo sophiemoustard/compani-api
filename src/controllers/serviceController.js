@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 
 const Service = require('../models/Service');
+const ServiceHelper = require('../helpers/services');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -44,7 +45,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await Service.updateOne({ _id: req.params._id }, { $push: { versions: req.payload } });
+    await ServiceHelper.update(req.params._id, req.payload);
 
     return { message: translate[language].serviceUpdated };
   } catch (e) {

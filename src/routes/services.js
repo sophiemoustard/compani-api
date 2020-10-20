@@ -69,14 +69,17 @@ exports.plugin = {
         auth: { scope: ['config:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            startDate: Joi.date().required(),
-            defaultUnitAmount: Joi.number(),
-            name: Joi.string(),
-            vat: Joi.number(),
-            surcharge: Joi.objectId(),
-            exemptFromCharges: Joi.boolean(),
-          }),
+          payload: Joi.alternatives().try(
+            Joi.object().keys({
+              startDate: Joi.date().required(),
+              defaultUnitAmount: Joi.number(),
+              name: Joi.string(),
+              vat: Joi.number(),
+              surcharge: Joi.objectId(),
+              exemptFromCharges: Joi.boolean(),
+            }),
+            Joi.object().keys({ isArchived: Joi.boolean() })
+          ),
         },
         pre: [{ method: authorizeServicesUpdate }],
       },
