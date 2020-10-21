@@ -11,6 +11,7 @@ const {
   getPublicInfosById,
   getTraineeCourse,
   update,
+  deleteCourse,
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,
@@ -24,6 +25,7 @@ const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
+  authorizeCourseDeletion,
   authorizeGetCourseList,
   authorizeCourseGetByTrainee,
 } = require('./preHandlers/courses');
@@ -145,6 +147,19 @@ exports.plugin = {
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['courses:edit'] },
+        pre: [{ method: authorizeCourseDeletion }],
+      },
+      handler: deleteCourse,
     });
 
     server.route({

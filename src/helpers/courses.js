@@ -8,6 +8,7 @@ const moment = require('moment');
 const flat = require('flat');
 const { groupBy } = require('lodash');
 const Course = require('../models/Course');
+const CourseSlot = require('../models/CourseSlot');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -172,6 +173,11 @@ exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
+
+exports.deleteCourse = async courseId => Promise.all([
+  Course.deleteOne({ _id: courseId }),
+  CourseSmsHistory.deleteMany({ course: courseId }),
+]);
 
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
