@@ -7,7 +7,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const services = await ServiceHelper.list(get(req, 'auth.credentials.company._id', null));
+    const services = await ServiceHelper.list(get(req, 'auth.credentials.company._id', null), req.query);
 
     return {
       message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,

@@ -45,6 +45,11 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { scope: ['config:read'] },
+        validate: {
+          query: Joi.object().keys({
+            isArchived: Joi.boolean(),
+          }),
+        },
       },
     });
 

@@ -1,6 +1,6 @@
 const Service = require('../models/Service');
 
-exports.list = async companyId => Service.find({ company: companyId })
+exports.list = async (companyId, query) => Service.find({ ...query, company: companyId })
   .populate({ path: 'versions.surcharge', match: { company: companyId } })
   .lean();
 

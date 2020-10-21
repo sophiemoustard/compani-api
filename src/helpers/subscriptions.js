@@ -1,6 +1,7 @@
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const map = require('lodash/map');
@@ -19,12 +20,11 @@ exports.populateService = (service) => {
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-  return { ...currentVersion, _id: service._id, nature: service.nature };
+  return { ...currentVersion, ...omit(service, 'versions') };
 };
 
 exports.populateSubscriptionsServices = (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
-
   return {
     ...customer,
     subscriptions: customer.subscriptions.map(sub => ({ ...sub, service: exports.populateService(sub.service) })),

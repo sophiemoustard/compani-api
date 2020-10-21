@@ -19,13 +19,13 @@ describe('list', () => {
 
   it('should find services', async () => {
     ServiceMock.expects('find')
-      .withExactArgs({ company: companyId })
+      .withExactArgs({ company: companyId, isArchived: true })
       .chain('populate')
       .withExactArgs({ path: 'versions.surcharge', match: { company: companyId } })
       .chain('lean')
       .returns([{ name: 'test' }]);
 
-    const result = await ServiceHelper.list(companyId);
+    const result = await ServiceHelper.list(companyId, { isArchived: true });
 
     expect(result).toStrictEqual([{ name: 'test' }]);
     ServiceMock.verify();
