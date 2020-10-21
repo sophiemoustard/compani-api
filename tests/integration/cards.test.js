@@ -374,7 +374,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
       expect(cardUpdated).toEqual(expect.objectContaining({
         ...card,
         questionAnswers: [
-          { ...card.questionAnswers[0], text: 'je suis un texte' },
+          { _id: card.questionAnswers[0]._id, text: 'je suis un texte' },
           card.questionAnswers[1],
         ],
       }));

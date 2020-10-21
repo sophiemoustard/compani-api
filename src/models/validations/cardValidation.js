@@ -115,7 +115,6 @@ exports.cardValidationByTemplate = (template) => {
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         questionAnswers: Joi.array().items({
-          _id: Joi.required(),
           text: Joi.string().required(),
         }).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
       });
