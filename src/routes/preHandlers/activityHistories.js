@@ -3,8 +3,7 @@ const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
 const Card = require('../../models/Card');
-const { SURVEY } = require('../../helpers/constants');
-const { OPEN_QUESTION } = require('../../helpers/constants');
+const { SURVEY, OPEN_QUESTION } = require('../../helpers/constants');
 
 exports.authorizeAddActivityHistory = async (req) => {
   const { user: userId, activity: activityId, questionnaireAnswersList } = req.payload;

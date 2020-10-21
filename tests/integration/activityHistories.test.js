@@ -22,8 +22,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
     user: activityHistoriesUsersList[0],
     activity: activitiesList[0]._id,
     questionnaireAnswersList: [
-      { card: cardsList[0]._id, answer: 'blabla' },
-      { card: cardsList[3]._id, answer: 'blebleble' },
+      { card: cardsList[0]._id, answerList: ['blabla'] },
+      { card: cardsList[3]._id, answerList: ['blebleble'] },
     ],
     score: 1,
   };
@@ -105,7 +105,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -127,7 +127,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -138,7 +138,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -149,7 +149,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
