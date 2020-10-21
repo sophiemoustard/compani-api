@@ -57,7 +57,7 @@ exports.authorizeGetCourseList = async (req) => {
   let traineeCompanyId = null;
   if (traineeId) {
     const trainee = await User.findOne({ _id: traineeId }).lean();
-    traineeCompanyId = trainee.company._id.toHexString();
+    if (trainee.company) traineeCompanyId = trainee.company.toHexString();
   }
 
   this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, traineeCompanyId);
