@@ -133,11 +133,6 @@ const customersList = [
         service: customerServiceList[1]._id,
         versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
       },
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[2]._id,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
-      },
     ],
     subscriptionsHistory: [{
       subscriptions: [
@@ -207,6 +202,11 @@ const customersList = [
       bic: 'BNMDHISOBD',
       mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
     },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[2]._id,
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }],
   },
   {
     _id: new ObjectID(),

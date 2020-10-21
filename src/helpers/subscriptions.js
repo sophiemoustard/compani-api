@@ -7,7 +7,6 @@ const get = require('lodash/get');
 const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
-const Event = require('../models/Event');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
 
@@ -25,6 +24,7 @@ exports.populateService = (service) => {
 
 exports.populateSubscriptionsServices = (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
+
   return {
     ...customer,
     subscriptions: customer.subscriptions.map(sub => ({ ...sub, service: exports.populateService(sub.service) })),
