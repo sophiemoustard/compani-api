@@ -71,6 +71,19 @@ const customerServiceList = [
     }],
     nature: HOURLY,
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service archivé',
+      startDate: '2019-01-18 19:58:15',
+      vat: 1,
+    }],
+    nature: HOURLY,
+    isArchived: true,
+  },
 ];
 
 const customerThirdPartyPayer = {
@@ -109,15 +122,23 @@ const customersList = [
       misc: 'code porte: 1234',
       situation: 'home',
     },
-    subscriptions: [{
-      _id: subId,
-      service: customerServiceList[0]._id,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
-    }, {
-      _id: subId3,
-      service: customerServiceList[1]._id,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
-    }],
+    subscriptions: [
+      {
+        _id: subId,
+        service: customerServiceList[0]._id,
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      },
+      {
+        _id: subId3,
+        service: customerServiceList[1]._id,
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      },
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[2]._id,
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      },
+    ],
     subscriptionsHistory: [{
       subscriptions: [
         {

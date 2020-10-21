@@ -88,9 +88,6 @@ exports.addSubscription = async (customerId, payload) => {
 };
 
 exports.deleteSubscription = async (customerId, subscriptionId) => {
-  const eventsCount = await Event.countDocuments({ subscription: subscriptionId });
-  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
-
   const customer = await Customer.findById(customerId).lean();
   const subscriptionsHistory = customer.subscriptionsHistory.filter((sh) => {
     const sub = sh.subscriptions.find(s => UtilsHelper.areObjectIdsEquals(s.subscriptionId, subscriptionId));

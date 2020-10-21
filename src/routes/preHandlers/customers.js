@@ -4,6 +4,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
+const Event = require('../../models/Event');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -58,11 +59,6 @@ exports.authorizeCustomerUpdate = async (req) => {
       if (!referent) throw Boom.forbidden();
     }
 
-    if (req.payload.service) {
-      const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
-      if (!service) throw Boom.forbidden();
-    }
-
     if (req.payload.thirdPartypayer) {
       const thirdPartypayer = await ThirdPartyPayer
         .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
@@ -72,6 +68,56 @@ exports.authorizeCustomerUpdate = async (req) => {
   }
 
   return null;
+};
+
+exports.authorizeSubscriptionCreation = async (req) => {
+  try {
+    await exports.authorizeCustomerUpdate(req);
+    const companyId = get(req, 'auth.credentials.company._id', null);
+
+    const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
+    if (!service) throw Boom.forbidden();
+    if (service.isArchived) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.authorizeSubscriptionUpdate = async (req) => {
+  try {
+    await exports.authorizeCustomerUpdate(req);
+
+    const { subscriptionId } = req.params;
+    const customer = await Customer.findOne({ _id: req.params._id, 'subscriptions._id': subscriptionId })
+      .populate('subscriptions.service')
+      .lean();
+    if (!customer) throw Boom.notFound();
+
+    const subscription = customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscriptionId));
+    if (subscription.service.isArchived) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.authorizeSubscriptionDeletion = async (req) => {
+  try {
+    await exports.authorizeCustomerUpdate(req);
+
+    const eventsCount = await Event.countDocuments({ subscription: req.params.subscriptionId });
+    if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
 };
 
 exports.authorizeCustomerGet = async (req) => {
