@@ -16,21 +16,16 @@ const TaxCertificate = require('../../models/TaxCertificate');
 const { language } = translate;
 
 exports.getCustomer = async (req) => {
-  try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const customer = await Customer
-      .findById(req.params._id)
-      // need the match as it is a virtual populate
-      .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } });
-    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer
+    .findById(req.params._id)
+    // need the match as it is a virtual populate
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } });
+  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-    if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
-    return customer;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  return customer;
 };
 
 exports.validateCustomerCompany = async (params, payload, companyId) => {
@@ -73,19 +68,13 @@ exports.checkAuthorization = async (req) => {
 exports.authorizeCustomerUpdate = async req => exports.checkAuthorization(req);
 
 exports.authorizeSubscriptionCreation = async (req) => {
-  try {
-    await exports.authorizeCustomerUpdate(req);
-    const companyId = get(req, 'auth.credentials.company._id', null);
+  const companyId = get(req, 'auth.credentials.company._id', null);
 
-    const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
-    if (!service) throw Boom.forbidden();
-    if (service.isArchived) throw Boom.forbidden();
+  const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
+  if (!service) throw Boom.forbidden();
+  if (service.isArchived) throw Boom.forbidden();
 
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  return exports.authorizeCustomerUpdate(req);
 };
 
 exports.authorizeSubscriptionUpdate = async (req) => {
