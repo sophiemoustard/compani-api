@@ -49,26 +49,28 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 };
 
-exports.authorizeCustomerUpdate = async (req) => {
+exports.checkAuthorization = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
 
   if (req.payload) {
     if (req.payload.referent) {
       const referent = await User.findOne({ _id: req.payload.referent, company: companyId }).lean();
-      if (!referent) throw Boom.forbidden();
+      if (!referent) return Boom.forbidden();
     }
 
     if (req.payload.thirdPartypayer) {
       const thirdPartypayer = await ThirdPartyPayer
         .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
         .lean();
-      if (!thirdPartypayer) throw Boom.forbidden();
+      if (!thirdPartypayer) return Boom.forbidden();
     }
   }
 
   return null;
 };
+
+exports.authorizeCustomerUpdate = async req => exports.checkAuthorization(req);
 
 exports.authorizeSubscriptionCreation = async (req) => {
   try {
@@ -87,37 +89,21 @@ exports.authorizeSubscriptionCreation = async (req) => {
 };
 
 exports.authorizeSubscriptionUpdate = async (req) => {
-  try {
-    await exports.authorizeCustomerUpdate(req);
+  const { subscriptionId } = req.params;
+  const customer = await Customer.findOne({ _id: req.params._id, 'subscriptions._id': subscriptionId })
+    .populate('subscriptions.service')
+    .lean();
+  if (!customer) throw Boom.notFound();
 
-    const { subscriptionId } = req.params;
-    const customer = await Customer.findOne({ _id: req.params._id, 'subscriptions._id': subscriptionId })
-      .populate('subscriptions.service')
-      .lean();
-    if (!customer) throw Boom.notFound();
-
-    const subscription = customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscriptionId));
-    if (subscription.service.isArchived) throw Boom.forbidden();
-
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  const subscription = customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscriptionId));
+  if (subscription.service.isArchived) throw Boom.forbidden();
+  return exports.authorizeCustomerUpdate(req);
 };
 
 exports.authorizeSubscriptionDeletion = async (req) => {
-  try {
-    await exports.authorizeCustomerUpdate(req);
-
-    const eventsCount = await Event.countDocuments({ subscription: req.params.subscriptionId });
-    if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
-
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  const eventsCount = await Event.countDocuments({ subscription: req.params.subscriptionId });
+  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+  return exports.authorizeCustomerUpdate(req);
 };
 
 exports.authorizeCustomerGet = async (req) => {
