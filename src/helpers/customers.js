@@ -34,10 +34,14 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
 };
 
 exports.getCustomers = async (credentials) => {
-  const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
+  const customers = await Customer.find({ company: get(credentials, 'company._id', null) })
+    .populate({ path: 'subscriptions.service' })
+    .lean();
   if (customers.length === 0) return [];
 
-  return customers.map(cus => SubscriptionsHelper.subscriptionsAccepted(cus));
+  return customers.map(cus => SubscriptionsHelper.subscriptionsAccepted(
+    SubscriptionsHelper.populateSubscriptionsServices(cus)
+  ));
 };
 
 exports.getCustomersFirstIntervention = async (query, credentials) => {

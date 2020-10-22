@@ -74,53 +74,6 @@ exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.agg
   },
 ]).option({ company: companyId });
 
-exports.getCustomersList = async companyId => Customer.aggregate([
-  { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'subscriptions.service',
-      foreignField: '_id',
-      as: 'subscriptions.service',
-    },
-  },
-  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
-  { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
-  { $sort: { 'subscriptions.service.versions.startDate': -1 } },
-  {
-    $group: {
-      _id: { _id: '$_id', subscription: 'subscriptions._id' },
-      customer: { $first: '$$ROOT' },
-      serviceVersions: { $first: '$subscriptions.service.versions' },
-    },
-  },
-  {
-    $addFields: {
-      'customer.subscriptions.service': {
-        $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'],
-      },
-    },
-  },
-  { $replaceRoot: { newRoot: '$customer' } },
-  {
-    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
-  },
-  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
-  { $replaceRoot: { newRoot: '$customer' } },
-  {
-    $project: {
-      identity: 1,
-      contact: 1,
-      payment: 1,
-      subscriptions: 1,
-      subscriptionsHistory: 1,
-      quotes: 1,
-      createdAt: 1,
-      company: 1,
-    },
-  },
-]).option({ company: companyId });
-
 exports.getSubscriptions = async (subscriptionsIds, companyId) => Customer.aggregate([
   { $match: { 'subscriptions._id': { $in: subscriptionsIds } } },
   { $unwind: { path: '$subscriptions' } },
