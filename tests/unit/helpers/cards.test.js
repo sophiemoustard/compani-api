@@ -56,6 +56,25 @@ describe('updateCard', () => {
   });
 });
 
+describe('updateCardAnswer', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update card', async () => {
+    const params = { _id: new ObjectID(), answerId: new ObjectID() };
+    await CardHelper.updateCardAnswer(params, { text: 'test text' });
+    sinon.assert.calledOnceWithExactly(
+      updateOne, { _id: params._id, 'questionAnswers._id': params.answerId },
+      { $set: { 'questionAnswers.$.text': 'test text' } }
+    );
+  });
+});
+
 describe('removeCard', () => {
   let updateOneActivity;
   let deleteOneCard;

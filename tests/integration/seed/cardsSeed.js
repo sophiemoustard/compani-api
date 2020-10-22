@@ -33,7 +33,16 @@ const cardsList = [
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
-  { _id: new ObjectID(), template: QUESTION_ANSWER, questionAnswers: ['hallo', 'shalom'] },
+  {
+    _id: new ObjectID(),
+    template: QUESTION_ANSWER,
+    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+  },
+  {
+    _id: new ObjectID(),
+    template: QUESTION_ANSWER,
+    questionAnswers: [{ text: 'bye bye', _id: new ObjectID() }],
+  },
 ];
 
 const activitiesList = [
