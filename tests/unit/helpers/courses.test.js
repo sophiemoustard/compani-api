@@ -528,6 +528,27 @@ describe('updateCourse', () => {
   });
 });
 
+describe('deleteCourse', () => {
+  let deleteCourse;
+  let deleteCourseSmsHistory;
+  beforeEach(() => {
+    deleteCourse = sinon.stub(Course, 'deleteOne');
+    deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
+  });
+  afterEach(() => {
+    deleteCourse.restore();
+    deleteCourseSmsHistory.restore();
+  });
+
+  it('should delete course and sms history', async () => {
+    const courseId = new ObjectID();
+    await CourseHelper.deleteCourse(courseId);
+
+    sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
+    sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
+  });
+});
+
 describe('sendSMS', () => {
   const courseId = new ObjectID();
   const trainees = [

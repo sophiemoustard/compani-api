@@ -116,6 +116,17 @@ const update = async (req) => {
   }
 };
 
+const deleteCourse = async (req) => {
+  try {
+    await CoursesHelper.deleteCourse(req.params._id);
+
+    return { message: translate[language].courseDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const sendSMS = async (req) => {
   try {
     await CoursesHelper.sendSMS(req.params._id, req.payload, req.auth.credentials);
@@ -201,6 +212,7 @@ module.exports = {
   getPublicInfosById,
   getTraineeCourse,
   update,
+  deleteCourse,
   addTrainee,
   removeTrainee,
   downloadAttendanceSheets,

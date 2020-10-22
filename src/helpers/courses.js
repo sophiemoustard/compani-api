@@ -173,6 +173,11 @@ exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
 
+exports.deleteCourse = async courseId => Promise.all([
+  Course.deleteOne({ _id: courseId }),
+  CourseSmsHistory.deleteMany({ course: courseId }),
+]);
+
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
     .populate({ path: 'trainees', select: '_id contact' })
