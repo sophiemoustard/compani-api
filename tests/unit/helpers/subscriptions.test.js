@@ -5,7 +5,6 @@ const omit = require('lodash/omit');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
-const Event = require('../../../src/models/Event');
 
 require('sinon-mongoose');
 

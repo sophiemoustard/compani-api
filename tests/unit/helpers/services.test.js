@@ -25,7 +25,7 @@ describe('list', () => {
       .chain('lean')
       .returns([{ name: 'test' }]);
 
-    const result = await ServiceHelper.list(companyId, { isArchived: true });
+    const result = await ServiceHelper.list({ company: { _id: companyId } }, { isArchived: true });
 
     expect(result).toStrictEqual([{ name: 'test' }]);
     ServiceMock.verify();
