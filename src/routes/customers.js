@@ -37,6 +37,9 @@ const {
   authorizeCustomerUpdate,
   authorizeCustomerGet,
   authorizeCustomerGetBySector,
+  authorizeSubscriptionCreation,
+  authorizeSubscriptionUpdate,
+  authorizeSubscriptionDeletion,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { addressValidation, objectIdOrArray, phoneNumberValidation, formDataPayload } = require('./validations/utils');
@@ -214,7 +217,7 @@ exports.plugin = {
             }),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeSubscriptionCreation }],
       },
       handler: addSubscription,
     });
@@ -236,7 +239,7 @@ exports.plugin = {
             sundays: Joi.number(),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeSubscriptionUpdate }],
       },
       handler: updateSubscription,
     });
@@ -252,7 +255,7 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeSubscriptionDeletion }],
       },
       handler: deleteSubscription,
     });

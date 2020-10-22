@@ -110,6 +110,7 @@ describe('GET /services', () => {
   beforeEach(async () => {
     authToken = await getToken('client_admin');
   });
+
   it('should return services', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -120,6 +121,17 @@ describe('GET /services', () => {
     expect(response.statusCode).toBe(200);
     const servicesCount = await Service.countDocuments({ company: authCompany._id }).lean();
     expect(response.result.data.services).toHaveLength(servicesCount);
+  });
+
+  it('should return archived services', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/services?isArchived=true',
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.services.every(service => service.isArchived)).toBeTruthy();
   });
 
   describe('Other roles', () => {
