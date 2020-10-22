@@ -109,7 +109,7 @@ exports.formatActivity = (activity) => {
 
   return {
     ...activity,
-    followUp: Object.values(followUp),
+    followUp: Object.values(followUp).map(fu => ({ ...fu, answers: fu.answers.flat() })),
     activityHistories: activity.activityHistories.map(a => a._id),
   };
 };
