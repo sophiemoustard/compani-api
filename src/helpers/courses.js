@@ -8,7 +8,6 @@ const moment = require('moment');
 const flat = require('flat');
 const { groupBy } = require('lodash');
 const Course = require('../models/Course');
-const CourseSlot = require('../models/CourseSlot');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
