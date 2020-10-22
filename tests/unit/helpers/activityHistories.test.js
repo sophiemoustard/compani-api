@@ -17,7 +17,7 @@ describe('addActivityHistory', () => {
   it('should create an activityHistory', async () => {
     const activityId = new ObjectID();
     const userId = new ObjectID();
-    const questionnaireAnswersList = [{ card: new ObjectID(), answerList: 'blabla' }];
+    const questionnaireAnswersList = [{ card: new ObjectID(), answerList: ['blabla'] }];
 
     await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswersList });
 

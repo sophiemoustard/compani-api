@@ -21,7 +21,6 @@ exports.plugin = {
               answerList: Joi.array()
                 .items(Joi.string())
                 .min(1)
-                .max(1)
                 .required(),
             })),
             score: Joi.number().required(),

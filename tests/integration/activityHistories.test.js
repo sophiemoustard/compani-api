@@ -24,6 +24,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
     questionnaireAnswersList: [
       { card: cardsList[0]._id, answerList: ['blabla'] },
       { card: cardsList[3]._id, answerList: ['blebleble'] },
+      { card: cardsList[4]._id, answerList: [new ObjectID(), new ObjectID()] },
     ],
     score: 1,
   };
@@ -105,7 +106,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ answerList: ['blabla'] }] },
+        payload: { ...payload, questionnaireAnswersList: [{ answerList: [new ObjectID(), new ObjectID()] }] },
         headers: { 'x-access-token': authToken },
       });
 
