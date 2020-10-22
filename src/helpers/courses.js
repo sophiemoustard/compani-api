@@ -103,13 +103,13 @@ exports.formatActivity = (activity) => {
   for (const history of filteredHistories) {
     for (const answer of history.questionnaireAnswersList) {
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(answer.answerList);
+      followUp[answer.card._id].answers.push(...answer.answerList);
     }
   }
 
   return {
     ...activity,
-    followUp: Object.values(followUp).map(fu => ({ ...fu, answers: fu.answers.flat() })),
+    followUp: Object.values(followUp),
     activityHistories: activity.activityHistories.map(a => a._id),
   };
 };
