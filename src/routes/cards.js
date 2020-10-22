@@ -4,7 +4,12 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { update, remove, uploadMedia, updateAnswer, addAnswer } = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
-const { authorizeCardUpdate, authorizeCardAnswerUpdate, authorizeCardDeletion } = require('./preHandlers/cards');
+const {
+  authorizeCardUpdate,
+  authorizeCardAnswerUpdate,
+  authorizeCardDeletion,
+  authorizeCardAnswerCreation,
+} = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
@@ -73,6 +78,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardAnswerCreation }],
       },
       handler: addAnswer,
     });
