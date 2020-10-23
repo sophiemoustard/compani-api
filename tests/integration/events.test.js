@@ -989,6 +989,33 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(403);
       });
+
+      it('should return a 403 if service is archived', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2020-09-23T10:00:00.000+01:00',
+          endDate: '2020-09-23T12:30:00.000+01:00',
+          auxiliary: auxiliaries[0]._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -1126,6 +1153,25 @@ describe('EVENTS ROUTES', () => {
           endDate: '2019-01-23T12:00:00.000Z',
           auxiliary: event.auxiliary.toHexString(),
           subscription: customerAuxiliary.subscriptions[1]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should update intervention even if sub service is archived if it was already the selected sub', async () => {
+        const event = eventsList[19];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          auxiliary: event.auxiliary.toHexString(),
+          subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
         };
 
         const response = await app.inject({
@@ -1327,6 +1373,24 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if service is archived', async () => {
+        const event = eventsList[2];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          auxiliary: event.auxiliary.toHexString(),
+          subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${eventsList[0]._id}`,
           payload,
           headers: { 'x-access-token': authToken },
         });
