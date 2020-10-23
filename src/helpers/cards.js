@@ -21,6 +21,10 @@ exports.updateCardAnswer = async (params, payload) => Card.updateOne(
   { $set: { 'questionAnswers.$.text': payload.text } }
 );
 
+exports.deleteCardAnswer = async params => Card.updateOne(
+  { _id: params._id }, { $pull: { questionAnswers: { _id: params.answerId } } }
+);
+
 exports.uploadMedia = async (cardId, payload) => {
   const imageUploaded = await CloudinaryHelper.addImage({
     file: payload.file,
