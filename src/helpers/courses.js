@@ -231,10 +231,22 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
 
-exports.formatCourseSlotsForPdf = slot => ({
+exports.formatIntraCourseSlotsForPdf = slot => ({
   startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
   endHour: UtilsHelper.formatHourWithMinutes(slot.endDate),
 });
+
+exports.formatInterCourseSlotsForPdf = (slot) => {
+  const duration = moment.duration(moment(slot.endDate).diff(slot.startDate));
+
+  return {
+    address: get(slot, 'address.fullAddress') || null,
+    date: moment(slot.startDate).format('DD/MM/YYYY'),
+    startHour: moment(slot.startDate).format('HH:mm'),
+    endHour: moment(slot.endDate).format('HH:mm'),
+    duration: UtilsHelper.formatDuration(duration),
+  };
+};
 
 exports.getCourseDuration = (slots) => {
   const duration = slots.reduce(
@@ -245,13 +257,13 @@ exports.getCourseDuration = (slots) => {
   return UtilsHelper.formatDuration(duration);
 };
 
-exports.formatCourseForPdf = (course) => {
+exports.formatIntraCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
   const courseData = {
     name,
     duration: exports.getCourseDuration(course.slots),
-    company: course.type === INTRA ? course.company.name : '',
+    company: course.company.name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
@@ -262,8 +274,31 @@ exports.formatCourseForPdf = (course) => {
     dates: slotsGroupedByDate.map(groupedSlots => ({
       course: { ...courseData },
       address: get(groupedSlots[0], 'address.fullAddress') || '',
-      slots: groupedSlots.map(exports.formatCourseSlotsForPdf),
+      slots: groupedSlots.map(slot => exports.formatIntraCourseSlotsForPdf(slot)),
       date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+    })),
+  };
+};
+
+exports.formatInterCourseForPdf = (course) => {
+  const possibleMisc = course.misc ? ` - ${course.misc}` : '';
+  const name = course.subProgram.program.name + possibleMisc;
+  const slots = course.slots ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
+
+  const courseData = {
+    name,
+    slots: slots.map(exports.formatInterCourseSlotsForPdf),
+    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+    firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
+    lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
+    duration: exports.getCourseDuration(slots),
+  };
+
+  return {
+    trainees: course.trainees.map(trainee => ({
+      traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
+      company: get(trainee, 'company.name') || '',
+      course: { ...courseData },
     })),
   };
 };
@@ -277,10 +312,11 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
-  return {
-    fileName: 'emargement.pdf',
-    pdf: await PdfHelper.generatePdf(exports.formatCourseForPdf(course), './src/data/attendanceSheet.html'),
-  };
+  const pdf = course.type === INTRA
+    ? await PdfHelper.generatePdf(exports.formatIntraCourseForPdf(course), './src/data/intraAttendanceSheet.html')
+    : await PdfHelper.generatePdf(exports.formatInterCourseForPdf(course), './src/data/interAttendanceSheet.html');
+
+  return { fileName: 'emargement.pdf', pdf };
 };
 
 exports.formatCourseForDocx = course => ({
