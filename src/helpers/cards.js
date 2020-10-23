@@ -14,10 +14,7 @@ exports.updateCard = async (cardId, payload) => Card.updateOne(
   { $set: flat(payload, { safe: true }) }
 );
 
-exports.addCardAnswer = async cardId => Card.updateOne(
-  { _id: cardId },
-  { $push: { questionAnswers: { text: '' } } }
-);
+exports.addCardAnswer = async cardId => Card.updateOne({ _id: cardId }, { $push: { questionAnswers: { text: '' } } });
 
 exports.updateCardAnswer = async (params, payload) => Card.updateOne(
   { _id: params._id, 'questionAnswers._id': params.answerId },

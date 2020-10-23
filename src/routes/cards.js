@@ -72,11 +72,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/answers',
       options: {
-        validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
-        },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeCardAnswerCreation }],
       },
