@@ -7,6 +7,7 @@ const {
   PUBLISHED,
   QUESTION_ANSWER,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
+  QUESTION_ANSWER_MIN_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -94,6 +95,14 @@ exports.authorizeCardAnswerCreation = async (req) => {
 exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id, 'questionAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizeCardAnswerDeletion = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id, 'questionAnswers._id': req.params.answerId }).lean();
+  if (!card) throw Boom.notFound();
+  if (card.questionAnswers.length <= QUESTION_ANSWER_MIN_ANSWERS_COUNT) return Boom.forbidden();
 
   return null;
 };

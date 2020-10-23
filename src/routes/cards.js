@@ -9,6 +9,7 @@ const {
   authorizeCardAnswerUpdate,
   authorizeCardDeletion,
   authorizeCardAnswerCreation,
+  authorizeCardAnswerDeletion,
 } = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
@@ -104,7 +105,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required(), answerId: Joi.objectId().required() }) },
         auth: { scope: ['programs:edit'] },
-        // pre: [{ method: authorizeCardAnswerUpdate }],
+        pre: [{ method: authorizeCardAnswerDeletion }],
       },
       handler: deleteAnswer,
     });
