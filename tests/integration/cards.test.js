@@ -349,6 +349,89 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   });
 });
 
+describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should add an answer', async () => {
+      const card = cardsList[11];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated.questionAnswers.length).toEqual(card.questionAnswers.length + 1);
+    });
+
+    it('should return 404 if invalid card id', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${(new ObjectID()).toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if too many answers', async () => {
+      const card = cardsList[12];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if card activity is published', async () => {
+      const card = cardsList[13];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const card = cardsList[11];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/cards/${card._id.toHexString()}/answers`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -391,7 +474,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if invalid card id', async () => {
+    it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,

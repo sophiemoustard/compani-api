@@ -15,6 +15,17 @@ const update = async (req) => {
   }
 };
 
+const addAnswer = async (req) => {
+  try {
+    await CardHelper.addCardAnswer(req.params._id);
+
+    return { message: translate[language].cardUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const updateAnswer = async (req) => {
   try {
     await CardHelper.updateCardAnswer(req.params, req.payload);
@@ -50,6 +61,7 @@ const uploadMedia = async (req) => {
 
 module.exports = {
   update,
+  addAnswer,
   updateAnswer,
   remove,
   uploadMedia,

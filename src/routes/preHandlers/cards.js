@@ -6,6 +6,7 @@ const {
   MULTIPLE_CHOICE_QUESTION,
   PUBLISHED,
   QUESTION_ANSWER,
+  QUESTION_ANSWER_MAX_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -77,6 +78,17 @@ exports.authorizeCardUpdate = async (req) => {
     default:
       return null;
   }
+};
+
+exports.authorizeCardAnswerCreation = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id }).lean();
+  if (!card) throw Boom.notFound();
+  if (card.questionAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
+
+  const activity = await Activity.findOne({ cards: req.params._id }).lean();
+  if (activity.status === PUBLISHED) throw Boom.forbidden();
+
+  return null;
 };
 
 exports.authorizeCardAnswerUpdate = async (req) => {
