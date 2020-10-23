@@ -41,7 +41,17 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [{ text: 'bye bye', _id: new ObjectID() }],
+    questionAnswers: [
+      { text: 'bye bye', _id: new ObjectID() },
+      { text: 'bye bye', _id: new ObjectID() },
+      { text: 'bye bye', _id: new ObjectID() },
+      { text: 'bye bye', _id: new ObjectID() },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    template: QUESTION_ANSWER,
+    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
   },
 ];
 
@@ -49,14 +59,14 @@ const activitiesList = [
   {
     _id: new ObjectID(),
     name: 'Coucou toi',
-    cards: [cardsList[0]._id, cardsList[1]._id],
+    cards: [cardsList[0]._id, cardsList[1]._id, cardsList[11]._id, cardsList[12]._id],
     type: 'video',
     status: 'draft',
   },
   {
     _id: new ObjectID(),
     name: 'la peche',
-    cards: [cardsList[4]._id, cardsList[5]._id],
+    cards: [cardsList[4]._id, cardsList[5]._id, cardsList[13]._id],
     type: 'quiz',
     status: 'published',
   },
