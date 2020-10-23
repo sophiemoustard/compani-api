@@ -103,7 +103,7 @@ exports.formatActivity = (activity) => {
   for (const history of filteredHistories) {
     for (const answer of history.questionnaireAnswersList) {
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(answer.answer);
+      followUp[answer.card._id].answers.push(...answer.answerList);
     }
   }
 

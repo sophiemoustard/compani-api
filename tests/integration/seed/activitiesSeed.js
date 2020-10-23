@@ -58,7 +58,7 @@ const activityHistoriesList = [
   {
     user: userList[6]._id,
     activity: activitiesList[0]._id,
-    questionnaireAnswersList: [{ card: cardsList[0]._id, answer: 'skusku' }],
+    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['skusku'] }],
   },
   { user: userList[7]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
   { user: userList[8]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },

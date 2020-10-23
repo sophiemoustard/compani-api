@@ -342,24 +342,24 @@ describe('formatActivity', () => {
           _id: 'rfvgtgb',
           user: 'qwertyuiop',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 2 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 3 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [2] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [3] },
           ],
         },
         {
           _id: 'yhnjujm',
           user: 'poiuytre',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 3 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [3] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
           ],
         },
         {
           _id: 'zxcvbnm',
           user: 'xzcvbnm',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 1 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [1] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
           ],
         },
       ],

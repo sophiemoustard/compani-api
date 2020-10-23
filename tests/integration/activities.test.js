@@ -369,7 +369,7 @@ describe('ACTIVITY ROUTES - GET /activities/{_id}/activityhistory', () => {
         activity: activityHistoriesList[6].activity._id,
         date: expect.any(Date),
         questionnaireAnswersList: [
-          { _id: expect.any(ObjectID), card: cardsList[0]._id, answer: 'skusku' },
+          { _id: expect.any(ObjectID), card: cardsList[0]._id, answerList: ['skusku'] },
         ],
       }));
     });
