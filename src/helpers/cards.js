@@ -22,8 +22,7 @@ exports.updateCardAnswer = async (params, payload) => Card.updateOne(
 );
 
 exports.deleteCardAnswer = async params => Card.updateOne(
-  { _id: params._id, 'questionAnswers._id': params.answerId },
-  { $pull: { questionAnswers: params.answerId } }
+  { _id: params._id }, { $pop: { questionAnswers: -1 } }
 );
 
 exports.uploadMedia = async (cardId, payload) => {
