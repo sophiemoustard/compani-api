@@ -62,6 +62,7 @@
   table {
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
   }
   table, th, td {
     border: 1px solid rgba(0, 0, 0, 0.8);
@@ -73,24 +74,22 @@
   }
   th, td {
     padding: 5px;
-    vertical-align: top;
+    vertical-align: center;
     font-size: 12px;
   }
   td {
-    min-height: 40px;
+    height: 40px;
   }
   .signature {
-    font-weight: 700;
+    font-style: italic;
   }
-  .course-hours {
-    font-size: 10px;
-  }
-  .course-address {
-    font-size: 10px;
+  .tampon {
+    font-weight: bold;
   }
 </style>
+
 <div>
-  {{#each trainees}}
+  {{#each dates}}
     <div class="container">
       <div class="header margin-bottom">
         <img class="conscience"
@@ -100,16 +99,16 @@
             <img class="logo"
             src="https://res.cloudinary.com/alenvi/image/upload/v1539605431/images/business/Compani/compani_logo_1L_RVB_S.png">
           </div>
-          <div class="title"><h4>Émargements - {{ traineeName }}</h4></div>
+          <div class="title"><h4>Feuille d'émargement - {{ date }}</h4></div>
         </div>
       </div>
       <div class="course-info margin-bottom">
         <div style="width: 500px">
           <div style="font-weight: bold">Nom de la formation : {{ course.name }}</div>
-          <div>Dates : du {{ course.firstDate }} au {{ course.lastDate }}</div>
           <div>Durée : {{ course.duration }}</div>
-          <div>Structure : {{ company }}</div>
-          <div>Formateur : {{ course.trainer }}</div>
+          <div>Lieu : {{ address }}</div>
+          {{#if course.company }}<div>Structure : {{ course.company }}</div>{{/if}}
+          <div>Intervenant : {{ course.trainer }}</div>
         </div>
         <img class="decision"
           src="https://res.cloudinary.com/alenvi/image/upload/v1586426335/images/business/Compani/aux-prisededecision.png">
@@ -118,31 +117,25 @@
         <table>
           <thead>
             <tr>
-              <th align="center">Créneaux</th>
-              <th align="center">Durée</th>
-              <th align="center">Signature stagiaire</th>
-              <th align="center">Signature formateur</th>
+              <th>Prénom NOM</th>
+              {{#each slots}}<th>{{startHour}} - {{endHour}}</th>{{/each}}
             </tr>
           </thead>
           <tbody>
-            {{#table course.slots}}
+              {{#times 12}}
+                <tr>
+                  <td></td>
+                  {{#each slots}}<td></td>{{/each}}
+                </tr>
+              {{/times}}
               <tr>
-                <td style="max-width: 200px">
-                  <div>{{ date }}</div>
-                  <div class="course-address">{{ address }}</div>
-                </td>
-                <td style="max-width: 100px">
-                  <div>{{ duration }}</div>
-                  <div class="course-hours">{{ startHour }} - {{ endHour }}</div>
-                </td>
-                <td></td>
-                <td></td>
+                <td class="signature">Signature du formateur</td>
+                {{#each slots}}<td></td>{{/each}}
               </tr>
-            {{/table}}
           </tbody>
         </table>
       </div>
-      <div class="signature">Signature et tampon de l'organisme de formation :</div>
+      <div class="tampon">Signature et tampon de l'organisme de formation :</div>
     </div>
   {{/each}}
 </div>

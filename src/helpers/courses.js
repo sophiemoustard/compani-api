@@ -2,11 +2,11 @@ const path = require('path');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
-const { groupBy } = require('lodash');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
@@ -231,17 +231,10 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
 
-exports.formatCourseSlotsForPdf = (slot) => {
-  const duration = moment.duration(moment(slot.endDate).diff(slot.startDate));
-
-  return {
-    address: get(slot, 'address.fullAddress') || null,
-    date: moment(slot.startDate).format('DD/MM/YYYY'),
-    startHour: moment(slot.startDate).format('HH:mm'),
-    endHour: moment(slot.endDate).format('HH:mm'),
-    duration: UtilsHelper.formatDuration(duration),
-  };
-};
+exports.formatCourseSlotsForPdf = slot => ({
+  startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
+  endHour: UtilsHelper.formatHourWithMinutes(slot.endDate),
+});
 
 exports.getCourseDuration = (slots) => {
   const duration = slots.reduce(
@@ -255,24 +248,22 @@ exports.getCourseDuration = (slots) => {
 exports.formatCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
-  const slots = course.slots
-    ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-    : [];
-
   const courseData = {
     name,
-    slots: slots.map(exports.formatCourseSlotsForPdf),
+    duration: exports.getCourseDuration(course.slots),
+    company: course.type === INTRA ? course.company.name : '',
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
-    lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
-    duration: exports.getCourseDuration(slots),
   };
 
+  const slotsGroupedByDate = Object.values(groupBy(course.slots, slot => moment(slot.startDate).format('DD/MM/YYYY')))
+    .sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+
   return {
-    trainees: course.trainees.map(trainee => ({
-      traineeName: UtilsHelper.formatIdentity(trainee.identity, 'FL'),
-      company: get(trainee, 'company.name') || '',
+    dates: slotsGroupedByDate.map(groupedSlots => ({
       course: { ...courseData },
+      address: get(groupedSlots[0], 'address.fullAddress') || '',
+      slots: groupedSlots.map(exports.formatCourseSlotsForPdf),
+      date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
     })),
   };
 };
