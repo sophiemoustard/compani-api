@@ -372,7 +372,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(cardUpdated.questionAnswers.length).toEqual(card.questionAnswers.length + 1);
     });
 
-    it('should return 403 if invalid card id', async () => {
+    it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${(new ObjectID()).toHexString()}/answers`,
@@ -474,7 +474,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if invalid card id', async () => {
+    it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
