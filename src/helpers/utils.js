@@ -79,6 +79,10 @@ const roundFrenchNumber = (number) => {
 
 exports.formatHour = val => (val ? `${roundFrenchNumber(val)}h` : `${roundFrenchNumber(0)}h`);
 
+exports.formatHourWithMinutes = hour => (moment(hour).minutes()
+  ? moment(hour).format('HH[h]mm')
+  : moment(hour).format('HH[h]'));
+
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
   return nf.format(number);

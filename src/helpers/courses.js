@@ -2,11 +2,11 @@ const path = require('path');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
+const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
-const { groupBy } = require('lodash');
 const Course = require('../models/Course');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
@@ -103,7 +103,7 @@ exports.formatActivity = (activity) => {
   for (const history of filteredHistories) {
     for (const answer of history.questionnaireAnswersList) {
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(answer.answer);
+      followUp[answer.card._id].answers.push(...answer.answerList);
     }
   }
 
@@ -173,6 +173,11 @@ exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
 
+exports.deleteCourse = async courseId => Promise.all([
+  Course.deleteOne({ _id: courseId }),
+  CourseSmsHistory.deleteMany({ course: courseId }),
+]);
+
 exports.sendSMS = async (courseId, payload, credentials) => {
   const course = await Course.findById(courseId)
     .populate({ path: 'trainees', select: '_id contact' })
@@ -226,7 +231,12 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
 
-exports.formatCourseSlotsForPdf = (slot) => {
+exports.formatIntraCourseSlotsForPdf = slot => ({
+  startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
+  endHour: UtilsHelper.formatHourWithMinutes(slot.endDate),
+});
+
+exports.formatInterCourseSlotsForPdf = (slot) => {
   const duration = moment.duration(moment(slot.endDate).diff(slot.startDate));
 
   return {
@@ -247,16 +257,37 @@ exports.getCourseDuration = (slots) => {
   return UtilsHelper.formatDuration(duration);
 };
 
-exports.formatCourseForPdf = (course) => {
+exports.formatIntraCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
-  const slots = course.slots
-    ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-    : [];
+  const courseData = {
+    name,
+    duration: exports.getCourseDuration(course.slots),
+    company: course.company.name,
+    trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
+  };
+
+  const slotsGroupedByDate = Object.values(groupBy(course.slots, slot => moment(slot.startDate).format('DD/MM/YYYY')))
+    .sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+
+  return {
+    dates: slotsGroupedByDate.map(groupedSlots => ({
+      course: { ...courseData },
+      address: get(groupedSlots[0], 'address.fullAddress') || '',
+      slots: groupedSlots.map(slot => exports.formatIntraCourseSlotsForPdf(slot)),
+      date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+    })),
+  };
+};
+
+exports.formatInterCourseForPdf = (course) => {
+  const possibleMisc = course.misc ? ` - ${course.misc}` : '';
+  const name = course.subProgram.program.name + possibleMisc;
+  const slots = course.slots ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
 
   const courseData = {
     name,
-    slots: slots.map(exports.formatCourseSlotsForPdf),
+    slots: slots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
     firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
     lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
@@ -281,10 +312,11 @@ exports.generateAttendanceSheets = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
-  return {
-    fileName: 'emargement.pdf',
-    pdf: await PdfHelper.generatePdf(exports.formatCourseForPdf(course), './src/data/attendanceSheet.html'),
-  };
+  const pdf = course.type === INTRA
+    ? await PdfHelper.generatePdf(exports.formatIntraCourseForPdf(course), './src/data/intraAttendanceSheet.html')
+    : await PdfHelper.generatePdf(exports.formatInterCourseForPdf(course), './src/data/interAttendanceSheet.html');
+
+  return { fileName: 'emargement.pdf', pdf };
 };
 
 exports.formatCourseForDocx = course => ({

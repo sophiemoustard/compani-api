@@ -1,12 +1,55 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
-const Event = require('../../../src/models/Event');
 
 require('sinon-mongoose');
+
+describe('populateService', () => {
+  it('should return null if no service or no version', () => {
+    const result = SubscriptionsHelper.populateService();
+    expect(result).toBe(null);
+  });
+
+  it('should return service correctly populated', () => {
+    const service = {
+      _id: new ObjectID(),
+      isArchived: true,
+      versions: [
+        {
+          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          startDate: '2019-01-18T15:46:30.636Z',
+          createdAt: '2019-01-18T15:46:30.636Z',
+          unitTTCRate: 13,
+          estimatedWeeklyVolume: 12,
+          sundays: 2,
+        },
+        {
+          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          startDate: '2020-01-18T15:46:30.636Z',
+          createdAt: '2019-12-17T15:46:30.636Z',
+          unitTTCRate: 1,
+          estimatedWeeklyVolume: 20,
+          sundays: 1,
+        },
+      ],
+    };
+
+    const result = SubscriptionsHelper.populateService(service);
+    expect(result).toStrictEqual({
+      ...omit(service, 'versions'),
+      isArchived: true,
+      startDate: '2020-01-18T15:46:30.636Z',
+      createdAt: '2019-12-17T15:46:30.636Z',
+      unitTTCRate: 1,
+      estimatedWeeklyVolume: 20,
+      sundays: 1,
+    });
+  });
+});
 
 describe('subscriptionsAccepted', () => {
   let findOne;
@@ -307,21 +350,17 @@ describe('deleteSubscription', () => {
   const secondSubId = new ObjectID();
 
   let updateOne;
-  let countDocuments;
   let CustomerMock;
   beforeEach(() => {
     updateOne = sinon.stub(Customer, 'updateOne');
-    countDocuments = sinon.stub(Event, 'countDocuments');
     CustomerMock = sinon.mock(Customer);
   });
   afterEach(() => {
     updateOne.restore();
-    countDocuments.restore();
     CustomerMock.restore();
   });
 
   it('should delete subscription and the subscriptionhistory associated', async () => {
-    countDocuments.returns(0);
     CustomerMock.expects('findById')
       .chain('lean')
       .returns({
@@ -332,7 +371,6 @@ describe('deleteSubscription', () => {
       });
 
     await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
-    sinon.assert.calledWithExactly(countDocuments, { subscription: subscriptionId.toHexString() });
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: customerId.toHexString() },
@@ -342,21 +380,6 @@ describe('deleteSubscription', () => {
       }
     );
     CustomerMock.verify();
-  });
-
-  it('should not delete subscription', async () => {
-    try {
-      countDocuments.returns(2);
-      CustomerMock.expects('findById').never();
-
-      await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(403);
-    } finally {
-      sinon.assert.calledWithExactly(countDocuments, { subscription: subscriptionId.toHexString() });
-      sinon.assert.notCalled(updateOne);
-      CustomerMock.verify();
-    }
   });
 });
 

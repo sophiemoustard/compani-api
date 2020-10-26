@@ -57,7 +57,7 @@ exports.authorizeGetCourseList = async (req) => {
   let traineeCompanyId = null;
   if (traineeId) {
     const trainee = await User.findOne({ _id: traineeId }).lean();
-    traineeCompanyId = trainee.company._id.toHexString();
+    if (trainee.company) traineeCompanyId = trainee.company.toHexString();
   }
 
   this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, traineeCompanyId);
@@ -109,4 +109,21 @@ exports.getCourseTrainee = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.authorizeCourseDeletion = async (req) => {
+  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return Boom.forbidden();
+
+  const course = await Course.findOne({ _id: req.params._id })
+    .populate({ path: 'slots' })
+    .populate({ path: 'slotsToPlan' })
+    .lean();
+  if (!course) return Boom.notFound();
+
+  if (course.trainees.length) return Boom.forbidden('stagiaire');
+  if (course.slots.length) return Boom.forbidden('creneaux');
+  if (course.slotsToPlan.length) return Boom.forbidden('a planifier');
+
+  return null;
 };

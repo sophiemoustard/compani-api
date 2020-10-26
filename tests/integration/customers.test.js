@@ -309,7 +309,7 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-      expect(res.result.data.customers.length).toEqual(6);
+      expect(res.result.data.customers.length).toEqual(7);
       expect(res.result.data.customers[0].contact).toBeDefined();
       const customer = res.result.data.customers
         .find(cus => cus._id.toHexString() === customersList[0]._id.toHexString());
@@ -808,9 +808,31 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.customer.subscriptions).toBeDefined();
-      expect(result.result.data.customer.subscriptions[0].service._id).toEqual(payload.service);
-      expect(result.result.data.customer.subscriptions[0].versions[0].unitTTCRate)
+      expect(result.result.data.customer.subscriptions[1].service._id).toEqual(payload.service);
+      expect(result.result.data.customer.subscriptions[1].versions[0].unitTTCRate)
         .toEqual(payload.versions[0].unitTTCRate);
+    });
+
+    it('should return 403 if service is archived', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: customerServiceList[2]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        headers: { 'x-access-token': clientAdminToken },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(403);
     });
 
     it('should return 409 if service already subscribed', async () => {
@@ -914,6 +936,20 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.result.data.customer.subscriptions[0].versions).toBeDefined();
       expect(result.result.data.customer.subscriptions[0].versions.length)
         .toEqual(subscription.versions.length + 1);
+    });
+
+    it('should return a 403 if service is archived', async () => {
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        headers: { 'x-access-token': clientAdminToken },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(403);
     });
 
     it('should return 404 as customer not found', async () => {

@@ -2,9 +2,15 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, remove, uploadMedia } = require('../controllers/cardController');
+const { update, remove, uploadMedia, updateAnswer, addAnswer, deleteAnswer } = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
-const { authorizeCardUpdate, authorizeCardDeletion } = require('./preHandlers/cards');
+const {
+  authorizeCardUpdate,
+  authorizeCardAnswerUpdate,
+  authorizeCardDeletion,
+  authorizeCardAnswerCreation,
+  authorizeCardAnswerDeletion,
+} = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
@@ -62,6 +68,48 @@ exports.plugin = {
       },
       handler: update,
     });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/answers',
+      options: {
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardAnswerCreation }],
+      },
+      handler: addAnswer,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/answers/{answerId}',
+      options: {
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+            answerId: Joi.objectId().required(),
+          }),
+          payload: Joi.object({
+            text: Joi.string().required(),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardAnswerUpdate }],
+      },
+      handler: updateAnswer,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/answers/{answerId}',
+      options: {
+        validate: { params: Joi.object({ _id: Joi.objectId().required(), answerId: Joi.objectId().required() }) },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardAnswerDeletion }],
+      },
+      handler: deleteAnswer,
+    });
+
     server.route({
       method: 'DELETE',
       path: '/{_id}',

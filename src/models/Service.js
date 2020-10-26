@@ -18,6 +18,7 @@ const ServiceSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     exemptFromCharges: { type: Boolean, required: true },
   }],
+  isArchived: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const countServiceUsage = async (docs) => {
