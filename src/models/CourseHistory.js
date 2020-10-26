@@ -10,7 +10,7 @@ const CourseHistorySchema = mongoose.Schema({
   slot: {
     startDate: { type: Date },
     endDate: { type: Date },
-    address: { type: String, default: '' },
+    address: { type: String },
   },
 }, { timestamps: true });
 

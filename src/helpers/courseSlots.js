@@ -1,9 +1,8 @@
 const Boom = require('@hapi/boom');
 const pickBy = require('lodash/pickBy');
-const { ObjectID } = require('mongodb');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
-const courseHistories = require('./courseHistories');
+const courseHistoriesHelper = require('./courseHistories');
 const { SLOT_CREATION } = require('./constants');
 
 const { language } = translate;
@@ -19,12 +18,12 @@ exports.hasConflicts = async (slot) => {
 
   return !!slotsInConflict;
 };
-exports.createCourseSlot = async (payload) => {
+exports.createCourseSlot = async (payload, user) => {
   const hasConflicts = await exports.hasConflicts(payload);
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  courseHistories.createHistoryOnSlotCreation({
-    createdBy: new ObjectID(),
+  courseHistoriesHelper.createHistoryOnSlotCreation({
+    createdBy: user._id,
     action: SLOT_CREATION,
     course: payload.courseId,
     slot: {
