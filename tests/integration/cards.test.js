@@ -432,7 +432,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
   });
 });
 
-describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
+describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const card = cardsList[11];
@@ -485,7 +485,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if answer is not in card', async () => {
+    it('should return 404 if answer is not in card', async () => {
       const otherQACard = cardsList[12];
       const response = await app.inject({
         method: 'PUT',
@@ -515,6 +515,110 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answer/{answerId}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload: { text: 'je suis un texte' },
+          url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const card = cardsList[11];
+  const answer = card.questionAnswers[0];
+  const params = { _id: card._id, answerId: answer._id };
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete an answer', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { params },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        ...card,
+        questionAnswers: [
+          card.questionAnswers[1],
+        ],
+      }));
+    });
+
+    it('should return 400 if cardId is missing', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { params: { answerId: params.answerId } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if answerId is missing', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { params: { _id: params._id } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if invalid card id', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { params },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if answer is not in card', async () => {
+      const otherQACard = cardsList[12];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.questionAnswers[0]._id.toHexString()}`,
+        payload: { params },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          payload: { params },
           url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
