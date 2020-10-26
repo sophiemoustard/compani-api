@@ -889,11 +889,11 @@ describe('formatIntraCourseForPdf', () => {
         },
       ],
     });
-    sinon.assert.calledWithExactly(getCourseDuration, course.slots);
-    sinon.assert.calledWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(0), course.slots[0]);
-    sinon.assert.calledOnceWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
-    sinon.assert.calledOnceWithExactly(formatIntraCourseSlotsForPdf.getCall(2), course.slots[2]);
+    sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
+    sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(2), course.slots[2]);
     sinon.assert.callCount(formatIntraCourseSlotsForPdf, 3);
   });
 });
