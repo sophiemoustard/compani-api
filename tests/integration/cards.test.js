@@ -528,9 +528,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const card = cardsList[11];
+  const card = cardsList[12];
   const answer = card.questionAnswers[0];
-  const params = { _id: card._id, answerId: answer._id };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -541,7 +540,6 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { params },
         headers: { 'x-access-token': authToken },
       });
 
@@ -552,15 +550,16 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
         ...card,
         questionAnswers: [
           card.questionAnswers[1],
+          card.questionAnswers[2],
+          card.questionAnswers[3],
         ],
       }));
     });
 
     it('should return 400 if cardId is missing', async () => {
       const response = await app.inject({
-        method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { params: { answerId: params.answerId } },
+        method: 'DELETE',
+        url: `/cards/${null}/answers/${answer._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -569,9 +568,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
     it('should return 400 if answerId is missing', async () => {
       const response = await app.inject({
-        method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { params: { _id: params._id } },
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${null}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -582,18 +580,6 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { params },
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if invalid answer id', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${(new ObjectID()).toHexString()}`,
-        payload: { params },
         headers: { 'x-access-token': authToken },
       });
 
@@ -601,15 +587,37 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if answer is not in card', async () => {
-      const otherQACard = cardsList[12];
+      const otherQACard = cardsList[11];
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${otherQACard.questionAnswers[0]._id.toHexString()}`,
-        payload: { params },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if card is in published activity', async () => {
+      const publishedCard = cardsList[13];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.questionAnswers[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if card has 2 or less answers', async () => {
+      const oneQuestionCard = cardsList[11];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${oneQuestionCard._id.toHexString()}
+          /answers/${oneQuestionCard.questionAnswers[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -629,7 +637,6 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          payload: { params },
           url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
