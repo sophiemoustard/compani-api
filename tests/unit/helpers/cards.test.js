@@ -92,6 +92,26 @@ describe('updateCardAnswer', () => {
   });
 });
 
+describe('deleteCardAnswer', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add card answer', async () => {
+    const params = { _id: new ObjectID(), answerId: new ObjectID() };
+    await CardHelper.deleteCardAnswer(params);
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: params._id },
+      { $pull: { questionAnswers: { _id: params.answerId } } }
+    );
+  });
+});
+
 describe('removeCard', () => {
   let updateOneActivity;
   let deleteOneCard;
