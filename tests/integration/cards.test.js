@@ -589,6 +589,17 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return 404 if invalid answer id', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${(new ObjectID()).toHexString()}`,
+        payload: { params },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return 404 if answer is not in card', async () => {
       const otherQACard = cardsList[12];
       const response = await app.inject({
