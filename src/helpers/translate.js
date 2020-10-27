@@ -237,6 +237,7 @@ module.exports = {
     cardDeleted: 'Card deleted.',
     /* Courses */
     coursesFound: 'Courses found.',
+    courseHistoriesFound: 'Course histories found.',
     coursesNotFound: 'Courses not found.',
     courseCreated: 'Course created.',
     courseFound: 'Course found.',
@@ -491,6 +492,7 @@ module.exports = {
     cardDeleted: 'Carte supprimée',
     /* Courses */
     coursesFound: 'Liste des formations trouvée.',
+    courseHistoriesFound: 'Liste des historiques de formation trouvée.',
     coursesNotFound: 'Liste des formations non trouvée.',
     courseCreated: 'Formation créée.',
     courseFound: 'Formation trouvée.',

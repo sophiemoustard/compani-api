@@ -8,3 +8,5 @@ exports.createHistoryOnSlotCreation = async (payload, userId) => CourseHistory.c
   course: payload.courseId,
   slot: pick(payload, ['startDate', 'endDate', 'address']),
 });
+
+exports.list = async query => CourseHistory.find(query).lean();
