@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
+const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 require('sinon-mongoose');
 
 describe('hasConflicts', () => {
@@ -63,13 +64,16 @@ describe('hasConflicts', () => {
 describe('createCourseSlot', () => {
   let save;
   let hasConflicts;
+  let createCourseHistory;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
+    createCourseHistory = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotCreation');
   });
   afterEach(() => {
     save.restore();
     hasConflicts.restore();
+    createCourseHistory.restore();
   });
 
   it('should create a course slot', async () => {
@@ -80,10 +84,12 @@ describe('createCourseSlot', () => {
       courseId: new ObjectID(),
       step: new ObjectID(),
     };
+    const user = { _id: new ObjectID() };
     hasConflicts.returns(false);
 
-    const result = await CourseSlotsHelper.createCourseSlot(newSlot);
+    const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
+    sinon.assert.calledOnceWithExactly(createCourseHistory, newSlot, user._id);
     expect(result.courseId).toEqual(newSlot.courseId);
     expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
     expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());

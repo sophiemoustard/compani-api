@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const pickBy = require('lodash/pickBy');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
+const courseHistoriesHelper = require('./courseHistories');
 
 const { language } = translate;
 
@@ -16,9 +17,12 @@ exports.hasConflicts = async (slot) => {
 
   return !!slotsInConflict;
 };
-exports.createCourseSlot = async (payload) => {
+
+exports.createCourseSlot = async (payload, user) => {
   const hasConflicts = await exports.hasConflicts(payload);
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
+
+  if (payload.startDate) courseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
 
   return (new CourseSlot(payload)).save();
 };

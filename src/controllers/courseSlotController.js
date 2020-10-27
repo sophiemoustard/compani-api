@@ -6,7 +6,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const courseSlot = await CourseSlotsHelper.createCourseSlot(req.payload);
+    const courseSlot = await CourseSlotsHelper.createCourseSlot(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseSlotCreated,
