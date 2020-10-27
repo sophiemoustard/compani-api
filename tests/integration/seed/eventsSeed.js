@@ -149,6 +149,19 @@ const services = [
       vat: 12,
     }],
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    nature: 'hourly',
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service archived',
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    }],
+    isArchived: true,
+  },
 ];
 
 const serviceFromOtherCompany = {
@@ -172,6 +185,7 @@ const customerAuxiliary = {
   subscriptions: [
     { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
     { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
   ],
   contact: {
     primaryAddress: {
@@ -631,6 +645,26 @@ const eventsList = [
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
     },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: sectors[0]._id,
+    type: 'intervention',
+    startDate: '2020-10-23T14:30:19.543Z',
+    endDate: '2020-10-23T16:30:19.543Z',
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliary._id,
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliary.subscriptions[2]._id,
+    isBilled: false,
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',

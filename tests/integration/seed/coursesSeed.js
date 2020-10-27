@@ -57,7 +57,7 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 
 const card = { _id: ObjectID(), template: 'title_text' };
 
-const activity = { _id: new ObjectID(), name: 'KennyIsAwesome', type: VIDEO, cards: [card._id] };
+const activity = { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] };
 const activitiesHistory = [
   { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activity._id },
   { _id: new ObjectID(), user: clientAdmin._id, activity: activity._id },
@@ -126,7 +126,7 @@ const coursesList = [
     type: 'intra',
     trainees: [coachFromAuthCompany._id, clientAdmin._id],
   },
-  {
+  { // course without slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
@@ -134,12 +134,25 @@ const coursesList = [
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     format: 'strictly_e_learning',
   },
-  {
+  { // course with slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
-    trainees: [traineeFromOtherCompany._id],
+    format: 'strictly_e_learning',
+  },
+  { // course without trainees and slots
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter b2b session NOT concerning auth company',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+  },
+  { // course with slots to plan
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter b2b session NOT concerning auth company',
+    type: 'inter_b2b',
     format: 'strictly_e_learning',
   },
 ];
@@ -184,6 +197,13 @@ const slots = [
     step: step._id,
   },
   { courseId: coursesList[3] },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    courseId: coursesList[5],
+    step: step._id,
+  },
+  { courseId: coursesList[7] },
 ];
 
 const populateDB = async () => {

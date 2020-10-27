@@ -172,7 +172,18 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(2);
+    });
+
+    it('should return 200 for a specific trainee without company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?trainees=${traineeWithoutCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(0);
     });
 
     it('should get blended courses', async () => {
@@ -194,7 +205,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
+      expect(response.result.data.courses.length).toEqual(4);
     });
   });
 
@@ -784,6 +795,85 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+  });
+});
+
+describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
+  let token;
+  const courseIdWithTrainees = coursesList[4]._id;
+  const courseIdWithSlots = coursesList[5]._id;
+  const courseIdWithoutTraineesAndSlots = coursesList[6]._id;
+  const courseIdWithSlotsToPLan = coursesList[7]._id;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      token = await getToken('vendor_admin');
+    });
+
+    it('should delete course', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdWithoutTraineesAndSlots}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as course has trainees', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdWithTrainees}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as course has slots to plan', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdWithSlotsToPLan}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as course has slots', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${courseIdWithSlots}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${courseIdWithoutTraineesAndSlots}`,
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

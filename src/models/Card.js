@@ -52,7 +52,7 @@ const CardSchema = mongoose.Schema({
     default: undefined,
   },
   questionAnswers: {
-    type: [String],
+    type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
   isQuestionAnswerMultipleChoiced: { type: Boolean },
@@ -85,7 +85,7 @@ function save(next) {
         this.qcuFalsyAnswers = [];
         break;
       case QUESTION_ANSWER:
-        this.questionAnswers = [];
+        this.questionAnswers = [{ text: '' }, { text: '' }];
         this.isQuestionAnswerMultipleChoiced = false;
         break;
       case ORDER_THE_SEQUENCE:

@@ -342,24 +342,24 @@ describe('formatActivity', () => {
           _id: 'rfvgtgb',
           user: 'qwertyuiop',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 2 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 3 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [2] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [3] },
           ],
         },
         {
           _id: 'yhnjujm',
           user: 'poiuytre',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 3 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [3] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
           ],
         },
         {
           _id: 'zxcvbnm',
           user: 'xzcvbnm',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answer: 1 },
-            { card: { _id: '0987654', title: 'Hello' }, answer: 4 },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [1] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
           ],
         },
       ],
@@ -525,6 +525,27 @@ describe('updateCourse', () => {
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.misc).toEqual(payload.misc);
+  });
+});
+
+describe('deleteCourse', () => {
+  let deleteCourse;
+  let deleteCourseSmsHistory;
+  beforeEach(() => {
+    deleteCourse = sinon.stub(Course, 'deleteOne');
+    deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
+  });
+  afterEach(() => {
+    deleteCourse.restore();
+    deleteCourseSmsHistory.restore();
+  });
+
+  it('should delete course and sms history', async () => {
+    const courseId = new ObjectID();
+    await CourseHelper.deleteCourse(courseId);
+
+    sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
+    sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
   });
 });
 
@@ -723,7 +744,7 @@ describe('removeCourseTrainee', () => {
   });
 });
 
-describe('formatCourseSlotsForPdf', () => {
+describe('formatInterCourseSlotsForPdf', () => {
   it('should format slot for pdf', () => {
     const slot = {
       startDate: '2020-03-20T09:00:00',
@@ -731,7 +752,7 @@ describe('formatCourseSlotsForPdf', () => {
       address: { fullAddress: 'je suis une adress' },
     };
 
-    const result = CourseHelper.formatCourseSlotsForPdf(slot);
+    const result = CourseHelper.formatInterCourseSlotsForPdf(slot);
 
     expect(result).toEqual({
       address: 'je suis une adress',
@@ -802,19 +823,94 @@ describe('getCourseDuration', () => {
   });
 });
 
-describe('formatCourseForPdf', () => {
+describe('formatIntraCourseForPdf', () => {
   let formatIdentity;
   let getCourseDuration;
-  let formatCourseSlotsForPdf;
+  let formatIntraCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
-    formatCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatCourseSlotsForPdf');
+    formatIntraCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatIntraCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
     getCourseDuration.restore();
-    formatCourseSlotsForPdf.restore();
+    formatIntraCourseSlotsForPdf.restore();
+  });
+
+  it('should format course for pdf', () => {
+    const course = {
+      misc: 'des infos en plus',
+      trainer: { identity: { lastname: 'MasterClass' } },
+      subProgram: { program: { name: 'programme de formation' } },
+      slots: [
+        {
+          startDate: '2020-03-20T09:00:00',
+          endDate: '2020-03-20T11:00:00',
+          address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+        },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+      ],
+      company: { name: 'alenvi' },
+    };
+
+    getCourseDuration.returns('8h');
+    formatIdentity.returns('MasterClass');
+    formatIntraCourseSlotsForPdf.onCall(0).returns({ startHour: 'slot1' });
+    formatIntraCourseSlotsForPdf.onCall(1).returns({ startHour: 'slot2' });
+    formatIntraCourseSlotsForPdf.onCall(2).returns({ startHour: 'slot3' });
+
+    const result = CourseHelper.formatIntraCourseForPdf(course);
+
+    expect(result).toEqual({
+      dates: [
+        {
+          course: {
+            name: 'programme de formation - des infos en plus',
+            duration: '8h',
+            company: 'alenvi',
+            trainer: 'MasterClass',
+          },
+          address: '37 rue de Ponthieu 75008 Paris',
+          slots: [{ startHour: 'slot1' }],
+          date: '20/03/2020',
+        },
+        {
+          course: {
+            name: 'programme de formation - des infos en plus',
+            duration: '8h',
+            company: 'alenvi',
+            trainer: 'MasterClass',
+          },
+          address: '',
+          slots: [{ startHour: 'slot2' }, { startHour: 'slot3' }],
+          date: '12/04/2020',
+        },
+      ],
+    });
+    sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
+    sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(0), course.slots[0]);
+    sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
+    sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(2), course.slots[2]);
+    sinon.assert.callCount(formatIntraCourseSlotsForPdf, 3);
+  });
+});
+
+describe('formatInterCourseForPdf', () => {
+  let formatIdentity;
+  let getCourseDuration;
+  let formatInterCourseSlotsForPdf;
+  beforeEach(() => {
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    formatInterCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatInterCourseSlotsForPdf');
+  });
+  afterEach(() => {
+    formatIdentity.restore();
+    getCourseDuration.restore();
+    formatInterCourseSlotsForPdf.restore();
   });
 
   it('should format course for pdf', () => {
@@ -837,13 +933,13 @@ describe('formatCourseForPdf', () => {
       { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
     ];
-    formatCourseSlotsForPdf.returns('slot');
+    formatInterCourseSlotsForPdf.returns('slot');
     formatIdentity.onCall(0).returns('Pere Castor');
     formatIdentity.onCall(1).returns('trainee 1');
     formatIdentity.onCall(2).returns('trainee 2');
     getCourseDuration.returns('7h');
 
-    const result = CourseHelper.formatCourseForPdf(course);
+    const result = CourseHelper.formatInterCourseForPdf(course);
 
     expect(result).toEqual({
       trainees: [
@@ -877,28 +973,31 @@ describe('formatCourseForPdf', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 2' }, 'FL');
     sinon.assert.calledOnceWithExactly(getCourseDuration, sortedSlots);
-    sinon.assert.callCount(formatCourseSlotsForPdf, 3);
+    sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
   });
 });
 
 describe('generateAttendanceSheets', () => {
   let CourseMock;
-  let formatCourseForPdf;
+  let formatInterCourseForPdf;
+  let formatIntraCourseForPdf;
   let generatePdf;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
-    formatCourseForPdf = sinon.stub(CourseHelper, 'formatCourseForPdf');
+    formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
+    formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
   afterEach(() => {
     CourseMock.restore();
-    formatCourseForPdf.restore();
+    formatInterCourseForPdf.restore();
+    formatIntraCourseForPdf.restore();
     generatePdf.restore();
   });
 
-  it('should download attendance sheet', async () => {
+  it('should download attendance sheet for inter b2b course', async () => {
     const courseId = new ObjectID();
-    const course = { misc: 'des infos en plus' };
+    const course = { misc: 'des infos en plus', type: 'inter_b2b' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -914,16 +1013,49 @@ describe('generateAttendanceSheets', () => {
       .chain('lean')
       .once()
       .returns(course);
-    formatCourseForPdf.returns({ name: 'la formation - des infos en plus' });
+    formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
-    sinon.assert.calledOnceWithExactly(formatCourseForPdf, course);
+    sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
+    sinon.assert.notCalled(formatIntraCourseForPdf);
     sinon.assert.calledOnceWithExactly(
       generatePdf,
       { name: 'la formation - des infos en plus' },
-      './src/data/attendanceSheet.html'
+      './src/data/interAttendanceSheet.html'
+    );
+  });
+
+  it('should download attendance sheet for intra course', async () => {
+    const courseId = new ObjectID();
+    const course = { misc: 'des infos en plus', type: 'intra' };
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('populate')
+      .withExactArgs('company')
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
+      .chain('populate')
+      .withExactArgs('trainer')
+      .chain('populate')
+      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
+      .chain('lean')
+      .once()
+      .returns(course);
+    formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
+    generatePdf.returns('pdf');
+
+    await CourseHelper.generateAttendanceSheets(courseId);
+
+    sinon.assert.calledOnceWithExactly(formatIntraCourseForPdf, course);
+    sinon.assert.notCalled(formatInterCourseForPdf);
+    sinon.assert.calledOnceWithExactly(
+      generatePdf,
+      { name: 'la formation - des infos en plus' },
+      './src/data/intraAttendanceSheet.html'
     );
   });
 });

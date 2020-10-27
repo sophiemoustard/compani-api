@@ -31,7 +31,9 @@ describe('validate', () => {
       sector: new ObjectID(),
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -40,6 +42,7 @@ describe('validate', () => {
     const result = await AuthenticationHelper.validate({ _id: userId });
 
     expect(result).toEqual({ isValid: false });
+    UserMock.verify();
   });
 
   it('should not authenticate if roles do not exist', async () => {
@@ -53,7 +56,9 @@ describe('validate', () => {
       sector: new ObjectID(),
     };
     UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers sector')
+      .withExactArgs(userId, '_id identity role company local customers')
+      .chain('populate')
+      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -62,6 +67,7 @@ describe('validate', () => {
     const result = await AuthenticationHelper.validate({ _id: userId });
 
     expect(result).toEqual({ isValid: false });
+    UserMock.verify();
   });
 
   it('should authenticate user', async () => {
@@ -148,6 +154,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
+    UserMock.verify();
   });
 
   it('should authenticate user with customers', async () => {
@@ -190,6 +197,7 @@ describe('validate', () => {
         role: { client: { name: 'helper' } },
       },
     });
+    UserMock.verify();
   });
 
   it('should authenticate auxiliary without company', async () => {
@@ -231,6 +239,7 @@ describe('validate', () => {
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
+    UserMock.verify();
   });
 
   it('should authenticate a user with coach and trainer role', async () => {
@@ -303,5 +312,6 @@ describe('validate', () => {
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
+    UserMock.verify();
   });
 });

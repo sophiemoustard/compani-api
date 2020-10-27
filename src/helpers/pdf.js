@@ -40,6 +40,11 @@ exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printB
   const templatePath = path.resolve('./', templateUrl);
   const content = await ReadFile(templatePath, 'utf8');
   handlebars.registerHelper('table', exports.formatTable);
+  handlebars.registerHelper('times', function (n, block) {
+    let accum = '';
+    for (let i = 0; i < n; ++i) accum += block.fn(this);
+    return accum;
+  });
   const template = handlebars.compile(content);
   const html = template(data);
   await page.setContent(html);

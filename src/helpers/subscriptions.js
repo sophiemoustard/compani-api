@@ -1,12 +1,12 @@
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
-const Event = require('../models/Event');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
 
@@ -19,7 +19,7 @@ exports.populateService = (service) => {
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-  return { ...currentVersion, _id: service._id, nature: service.nature };
+  return { ...currentVersion, ...omit(service, 'versions') };
 };
 
 exports.populateSubscriptionsServices = (customer) => {
@@ -88,9 +88,6 @@ exports.addSubscription = async (customerId, payload) => {
 };
 
 exports.deleteSubscription = async (customerId, subscriptionId) => {
-  const eventsCount = await Event.countDocuments({ subscription: subscriptionId });
-  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
-
   const customer = await Customer.findById(customerId).lean();
   const subscriptionsHistory = customer.subscriptionsHistory.filter((sh) => {
     const sub = sh.subscriptions.find(s => UtilsHelper.areObjectIdsEquals(s.subscriptionId, subscriptionId));

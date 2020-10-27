@@ -22,8 +22,10 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
     user: activityHistoriesUsersList[0],
     activity: activitiesList[0]._id,
     questionnaireAnswersList: [
-      { card: cardsList[0]._id, answer: 'blabla' },
-      { card: cardsList[3]._id, answer: 'blebleble' },
+      { card: cardsList[0]._id, answerList: ['blabla'] },
+      { card: cardsList[3]._id, answerList: ['blebleble'] },
+      { card: cardsList[4]._id, answerList: [new ObjectID(), new ObjectID()] },
+      { card: cardsList[5]._id, answerList: [new ObjectID()] },
     ],
     score: 1,
   };
@@ -105,7 +107,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ answerList: [new ObjectID(), new ObjectID()] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -127,7 +129,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -138,18 +140,68 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[1]._id, answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 422 if card not a survey or an open question', async () => {
+    it('should return 422 if card not a survey, an open question or a question/answer', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answer: 'blabla' }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[2]._id, answerList: ['blabla'] }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card is a survey and has more than one item in answerList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['bla', 'ble'] }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card is a open question and has more than one item in answerList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { ...payload, questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: ['bla', 'ble'] }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if is a q/a and is not multiplechoice and has more than one item in answerList', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[5]._id, answerList: [new ObjectID(), new ObjectID()] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if is a q/a and items in answerList are not ObjectID', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[4]._id, answerList: ['blabla'] }],
+        },
         headers: { 'x-access-token': authToken },
       });
 

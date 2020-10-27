@@ -56,6 +56,62 @@ describe('updateCard', () => {
   });
 });
 
+describe('addCardAnswer', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add card answer', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.addCardAnswer(cardId);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $push: { questionAnswers: { text: '' } } });
+  });
+});
+
+describe('updateCardAnswer', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update card answer', async () => {
+    const params = { _id: new ObjectID(), answerId: new ObjectID() };
+    await CardHelper.updateCardAnswer(params, { text: 'test text' });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: params._id, 'questionAnswers._id': params.answerId },
+      { $set: { 'questionAnswers.$.text': 'test text' } }
+    );
+  });
+});
+
+describe('deleteCardAnswer', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add card answer', async () => {
+    const params = { _id: new ObjectID(), answerId: new ObjectID() };
+    await CardHelper.deleteCardAnswer(params);
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: params._id },
+      { $pull: { questionAnswers: { _id: params.answerId } } }
+    );
+  });
+});
+
 describe('removeCard', () => {
   let updateOneActivity;
   let deleteOneCard;

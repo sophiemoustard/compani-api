@@ -120,10 +120,18 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
-    const customer = await Customer.findOne(({ _id: customerId, company: companyId })).lean();
+    const customer = await Customer.findOne(({ _id: customerId, company: companyId }))
+      .populate('subscriptions.service')
+      .lean();
     if (!customer) throw Boom.forbidden();
-    const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
-    if (!(subscriptionsIds.includes(req.payload.subscription))) throw Boom.forbidden();
+
+    const customerSub = customer.subscriptions.find(sub =>
+      UtilsHelper.areObjectIdsEquals(sub._id, req.payload.subscription));
+    if (!customerSub) throw Boom.forbidden();
+
+    const eventHaveSameSub = req.pre.event &&
+      UtilsHelper.areObjectIdsEquals(req.pre.event.subscription, req.payload.subscription);
+    if (!eventHaveSameSub && get(customerSub, 'service.isArchived')) throw Boom.forbidden();
   }
 
   if (req.payload.auxiliary) {
