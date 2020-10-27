@@ -20,7 +20,7 @@ exports.listELearning = async () => {
       path: 'subPrograms',
       select: 'name',
       match: { _id: { $in: subPrograms } },
-      populate: { path: 'courses', select: '_id' },
+      populate: { path: 'courses', select: '_id', match: { format: STRICTLY_E_LEARNING } },
     })
     .lean();
 };
