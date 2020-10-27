@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const { ObjectID } = require('mongodb');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
