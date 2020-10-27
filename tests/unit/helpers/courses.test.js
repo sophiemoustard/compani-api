@@ -736,10 +736,7 @@ describe('addELearningCourseTrainee', () => {
     const courseId = new ObjectID();
     const credentials = { _id: new ObjectID() };
     await CourseHelper.addELearningCourseTrainee(courseId, credentials);
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { _id: courseId }, { $addToSet: { trainees: credentials._id } }, { new: true }
-    );
+    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
   });
 });
 

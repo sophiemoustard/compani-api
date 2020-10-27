@@ -229,7 +229,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
 };
 
 exports.addELearningCourseTrainee = async (courseId, credentials) =>
-  Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } }, { new: true });
+  Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
 
 exports.removeCourseTrainee = async (courseId, traineeId) =>
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } });
