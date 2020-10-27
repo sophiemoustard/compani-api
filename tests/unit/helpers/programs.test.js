@@ -53,6 +53,7 @@ describe('list', () => {
 describe('listELearning', () => {
   let ProgramMock;
   let CourseMock;
+  const credentials = { _id: new ObjectID() };
   beforeEach(() => {
     ProgramMock = sinon.mock(Program);
     CourseMock = sinon.mock(Course);
@@ -78,13 +79,23 @@ describe('listELearning', () => {
         path: 'subPrograms',
         select: 'name',
         match: { _id: { $in: subPrograms } },
-        populate: { path: 'courses', select: '_id', match: { format: 'strictly_e_learning' } },
+        populate: {
+          path: 'courses',
+          select: '_id trainees',
+          match: { format: 'strictly_e_learning' },
+          populate: {
+            path: 'trainees',
+            select: '_id',
+            match: { _id: credentials._id },
+            options: { gettingOwnInfo: true },
+          },
+        },
       })
       .chain('lean')
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.listELearning();
+    const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject(programsList);
   });
 });
