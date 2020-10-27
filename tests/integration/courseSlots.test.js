@@ -4,6 +4,8 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const CourseHistory = require('../../src/models/CourseHistory');
+const { SLOT_CREATION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -42,6 +44,15 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.findOne({
+        courseId: payload.courseId,
+        slot: { startDate: payload.startDate },
+        action: SLOT_CREATION,
+      })
+        .lean();
+
+      expect(courseHistory).toBeDefined();
     });
 
     it('should create slot to plan', async () => {
