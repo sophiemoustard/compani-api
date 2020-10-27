@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const ProgramHelper = require('../helpers/programs');
 const SubProgramHelper = require('../helpers/subPrograms');
 const translate = require('../helpers/translate');
@@ -21,7 +22,7 @@ const list = async (req) => {
 
 const listELearning = async (req) => {
   try {
-    const programs = await ProgramHelper.listELearning(req.query);
+    const programs = await ProgramHelper.listELearning(get(req, 'auth.credentials'));
 
     return {
       message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,

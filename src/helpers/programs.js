@@ -11,16 +11,22 @@ exports.list = async () => Program.find({})
   .populate({ path: 'subPrograms', select: 'name' })
   .lean();
 
-exports.listELearning = async () => {
+exports.listELearning = async (credentials) => {
   const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
+  const userId = credentials._id;
 
   return Program.find({ subPrograms: { $in: subPrograms } })
     .populate({
       path: 'subPrograms',
       select: 'name',
       match: { _id: { $in: subPrograms } },
-      populate: { path: 'courses', select: '_id', match: { format: STRICTLY_E_LEARNING } },
+      populate: {
+        path: 'courses',
+        select: '_id trainees',
+        match: { format: STRICTLY_E_LEARNING },
+        populate: { path: 'trainees', select: '_id', match: { _id: userId }, options: { gettingOwnInfo: true } },
+      },
     })
     .lean();
 };
