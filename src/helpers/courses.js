@@ -228,8 +228,11 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
 
+exports.addELearningCourseTrainee = async (courseId, credentials) =>
+  Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } }, { new: true });
+
 exports.removeCourseTrainee = async (courseId, traineeId) =>
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } });
 
 exports.formatIntraCourseSlotsForPdf = slot => ({
   startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
