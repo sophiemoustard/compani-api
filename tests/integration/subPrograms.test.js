@@ -4,7 +4,8 @@ const omit = require('lodash/omit');
 const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
-const { populateDB, subProgramsList } = require('./seed/subProgramsSeed');
+const Step = require('../../src/models/Step');
+const { populateDB, subProgramsList, stepsList, activitiesList } = require('./seed/subProgramsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -381,6 +382,143 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get all subprograms', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/subprograms/draft-e-learning',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subPrograms.length).toEqual(2);
+      const subPrograms = response.result.data.subPrograms.filter(subProgram => subProgram.status === 'draft');
+      const stepsIds = subPrograms[0].steps.map(step => step._id);
+      const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
+      expect(steps.every(step => step.type === 'e_learning')).toBeTruthy();
+    });
+
+    it('should return 401 if user is not connected', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/subprograms/draft-e-learning',
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/subprograms/draft-e-learning',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get subprogram', async () => {
+      const subProgramId = subProgramsList[3]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subProgram).toMatchObject({
+        _id: subProgramId,
+        name: 'subProgram 4',
+        status: 'draft',
+        program: { name: 'program 2' },
+        steps: [
+          { _id: stepsList[2]._id, name: 'step 3', type: 'e_learning', activities: [activitiesList[0]] },
+        ],
+      });
+    });
+
+    it('should return 400 if ID is null', async () => {
+      const subProgramId = null;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/subprograms/${subProgramId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if subprogram does not exists', async () => {
+      const subProgramId = new ObjectID();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/subprograms/${subProgramId.toHexString()}/`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const subProgramId = subProgramsList[3]._id;
+        const response = await app.inject({
+          method: 'GET',
+          url: `/subprograms/${subProgramId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

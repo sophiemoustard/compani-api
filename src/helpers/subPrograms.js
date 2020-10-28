@@ -40,15 +40,8 @@ exports.listELearningDraft = async () => {
 
 exports.getSubProgram = async (subProgramId) => {
   const subProgram = await SubProgram.findOne({ _id: subProgramId })
-    .populate({ path: 'steps', populate: { path: 'activities', populate: 'cards' } })
     .populate({ path: 'program', select: 'name' })
-    .populate({ path: 'steps', populate: { path: 'activities', populate: 'cards' } })
+    .populate({ path: 'steps', populate: { path: 'activities' } })
     .lean({ virtuals: true });
-  return {
-    ...subProgram,
-    steps: subProgram.steps.map(st => ({
-      ...st,
-      activities: st.activities.map(act => ({ ...act, cards: act.cards.map(c => c._id) })),
-    })),
-  };
+  return subProgram;
 };

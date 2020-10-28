@@ -68,6 +68,9 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         auth: { scope: ['programs:read'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
       },
       handler: getById,
     });
