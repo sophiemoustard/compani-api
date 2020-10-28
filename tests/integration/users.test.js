@@ -71,6 +71,7 @@ describe('POST /users', () => {
       expect(user.identity.firstname).toBe(userPayload.identity.firstname);
       expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
+      expect(user.serialNumber).toEqual(expect.any(String));
       expect(user).toHaveProperty('picture');
 
       const userSectorHistory = await SectorHistory
