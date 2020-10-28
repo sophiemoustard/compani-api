@@ -21,11 +21,11 @@ StepSchema.virtual('subProgram', {
 
 // eslint-disable-next-line consistent-return
 function setAreActivitiesValid() {
-  if (this.activities.length && this.activities[0].type) {
+  if (this.activities && this.activities.length && this.activities[0].type) {
     return this.activities.every(activity => activity.areCardsValid);
   }
 
-  if (this.activities.length === 0) {
+  if (this.activities && this.activities.length === 0) {
     return true;
   }
 }
