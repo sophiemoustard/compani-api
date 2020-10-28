@@ -9,4 +9,7 @@ exports.createHistoryOnSlotCreation = async (payload, userId) => CourseHistory.c
   slot: pick(payload, ['startDate', 'endDate', 'address']),
 });
 
-exports.list = async query => CourseHistory.find(query).lean();
+exports.list = async query => CourseHistory.find(query)
+  .populate({ path: 'createdBy', select: '_id identity picture' })
+  .sort({ createdAt: -1 })
+  .lean();
