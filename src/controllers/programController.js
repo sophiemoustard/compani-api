@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const get = require('lodash/get');
 const ProgramHelper = require('../helpers/programs');
 const SubProgramHelper = require('../helpers/subPrograms');
 const translate = require('../helpers/translate');
