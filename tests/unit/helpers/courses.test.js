@@ -723,7 +723,7 @@ describe('addCourseTrainee', () => {
   });
 });
 
-describe('addELearningCourseTrainee', () => {
+describe('registerToELearningCourse', () => {
   let updateOne;
   beforeEach(() => {
     updateOne = sinon.stub(Course, 'updateOne');
@@ -735,7 +735,7 @@ describe('addELearningCourseTrainee', () => {
   it('should add a course trainee using existing user', async () => {
     const courseId = new ObjectID();
     const credentials = { _id: new ObjectID() };
-    await CourseHelper.addELearningCourseTrainee(courseId, credentials);
+    await CourseHelper.registerToELearningCourse(courseId, credentials);
     sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
   });
 });

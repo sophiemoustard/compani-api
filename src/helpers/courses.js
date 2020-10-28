@@ -228,7 +228,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee) => {
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
 
-exports.addELearningCourseTrainee = async (courseId, credentials) =>
+exports.registerToELearningCourse = async (courseId, credentials) =>
   Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
 
 exports.removeCourseTrainee = async (courseId, traineeId) =>

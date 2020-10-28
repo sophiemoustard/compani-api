@@ -129,7 +129,7 @@ exports.authorizeCourseDeletion = async (req) => {
   return null;
 };
 
-exports.authorizeAddELearningTrainee = async (req) => {
+exports.authorizeRegisterToELearning = async (req) => {
   const course = await Course.findById(req.params._id).lean();
 
   if (!course) throw Boom.notFound();

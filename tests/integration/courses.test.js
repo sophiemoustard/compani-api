@@ -1306,7 +1306,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
+describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
   let token;
   const course = coursesList[4];
 
@@ -1320,7 +1320,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
     it('should add trainee to e-learning course', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${course._id}/e-learning-trainees`,
+        url: `/courses/${course._id}/register-e-learning`,
         headers: { 'x-access-token': token },
       });
 
@@ -1332,7 +1332,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
     it('should return 401 if user not authenticated', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${course._id}/e-learning-trainees`,
+        url: `/courses/${course._id}/register-e-learning`,
         headers: { 'x-access-token': '' },
       });
 
@@ -1342,7 +1342,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${new ObjectID()}/e-learning-trainees`,
+        url: `/courses/${new ObjectID()}/register-e-learning`,
         headers: { 'x-access-token': token },
       });
 
@@ -1352,7 +1352,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
     it('should return 403 if course is not strictly e learning', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[0]._id}/e-learning-trainees`,
+        url: `/courses/${coursesList[0]._id}/register-e-learning`,
         headers: { 'x-access-token': token },
       });
 
@@ -1364,7 +1364,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${course._id}/e-learning-trainees`,
+        url: `/courses/${course._id}/register-e-learning`,
         headers: { 'x-access-token': token },
       });
 
@@ -1386,7 +1386,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/e-learning-trainees', () => {
         token = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/courses/${coursesList[6]._id}/e-learning-trainees`,
+          url: `/courses/${coursesList[6]._id}/register-e-learning`,
           headers: { 'x-access-token': token },
         });
 

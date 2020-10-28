@@ -13,7 +13,7 @@ const {
   update,
   deleteCourse,
   addTrainee,
-  addELearningTrainee,
+  registerToELearningCourse,
   removeTrainee,
   downloadAttendanceSheets,
   downloadCompletionCertificates,
@@ -29,7 +29,7 @@ const {
   authorizeCourseDeletion,
   authorizeGetCourseList,
   authorizeCourseGetByTrainee,
-  authorizeAddELearningTrainee,
+  authorizeRegisterToELearning,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -218,13 +218,13 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/e-learning-trainees',
+      path: '/{_id}/register-e-learning',
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
-        pre: [{ method: authorizeAddELearningTrainee }],
+        pre: [{ method: authorizeRegisterToELearning }],
         auth: { mode: 'required' },
       },
-      handler: addELearningTrainee,
+      handler: registerToELearningCourse,
     });
 
     server.route({

@@ -166,9 +166,9 @@ const addTrainee = async (req) => {
   }
 };
 
-const addELearningTrainee = async (req) => {
+const registerToELearningCourse = async (req) => {
   try {
-    const course = await CoursesHelper.addELearningCourseTrainee(req.params._id, req.auth.credentials);
+    const course = await CoursesHelper.registerToELearningCourse(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].courseTraineeAdded,
@@ -228,7 +228,7 @@ module.exports = {
   update,
   deleteCourse,
   addTrainee,
-  addELearningTrainee,
+  registerToELearningCourse,
   removeTrainee,
   downloadAttendanceSheets,
   downloadCompletionCertificates,
