@@ -400,7 +400,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get all subprograms', async () => {
+    it('should get all draft and e-learning subprograms', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/subprograms/draft-e-learning',
@@ -409,20 +409,10 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.subPrograms.length).toEqual(2);
-      const subPrograms = response.result.data.subPrograms.filter(subProgram => subProgram.status === 'draft');
+      const { subPrograms } = response.result.data;
       const stepsIds = subPrograms[0].steps.map(step => step._id);
       const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
       expect(steps.every(step => step.type === 'e_learning')).toBeTruthy();
-    });
-
-    it('should return 401 if user is not connected', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/subprograms/draft-e-learning',
-        headers: { 'x-access-token': '' },
-      });
-
-      expect(response.statusCode).toBe(401);
     });
   });
 
@@ -468,6 +458,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
+
       expect(response.result.data.subProgram).toMatchObject({
         _id: subProgramId,
         name: 'subProgram 4',
@@ -491,10 +482,9 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
     });
 
     it('should return 404 if subprogram does not exists', async () => {
-      const subProgramId = new ObjectID();
       const response = await app.inject({
         method: 'GET',
-        url: `/subprograms/${subProgramId.toHexString()}/`,
+        url: `/subprograms/${new ObjectID()}`,
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);

@@ -2,7 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeStepDetachment, authorizeStepAdd, authorizeSubProgramUpdate } = require('./preHandlers/subPrograms');
+const {
+  authorizeStepDetachment,
+  authorizeStepAdd,
+  authorizeSubProgramUpdate,
+  getSubProgram,
+} = require('./preHandlers/subPrograms');
 const { update, addStep, detachStep, listELearningDraft, getById } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
 const { PUBLISHED } = require('../helpers/constants');
@@ -71,6 +76,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
+        pre: [{ method: getSubProgram }],
       },
       handler: getById,
     });

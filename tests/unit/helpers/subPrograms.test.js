@@ -152,40 +152,28 @@ describe('listELearningDraft', () => {
         _id: new ObjectID(),
         status: 'draft',
         steps: [{ type: 'e_learning' }],
-        program: [
-          { _id: new ObjectID(), name: 'name' },
-        ],
+        program: [{ _id: new ObjectID(), name: 'name' }],
       },
       {
         _id: new ObjectID(),
         status: 'draft',
-        steps: [
-          { type: 'on_site' },
-        ],
-        program: [
-          { _id: new ObjectID(), name: 'test' },
-        ],
+        steps: [{ type: 'on_site' }],
+        program: [{ _id: new ObjectID(), name: 'test' }],
       },
     ];
 
     SubProgramMock.expects('find')
       .withExactArgs({ status: 'draft' })
       .chain('populate')
-      .withExactArgs({
-        path: 'program',
-        select: '_id name',
-      })
+      .withExactArgs({ path: 'program', select: '_id name' })
       .chain('populate')
-      .withExactArgs({
-        path: 'steps',
-        select: 'type',
-      })
+      .withExactArgs({ path: 'steps', select: 'type' })
       .chain('lean')
       .once()
       .returns(subProgramsList);
 
     const elearningSubProgramList = subProgramsList
-      .filter(subProgram => subProgram.steps
+      .filter(subProgram => subProgram.steps.length && subProgram.steps
         .every(step => step.type === 'e_learning'));
 
     const result = await SubProgramHelper.listELearningDraft();
@@ -207,21 +195,17 @@ describe('getSubProgram', () => {
       _id: new ObjectID(),
       program: [{
         name: 'program',
-        steps: [{
-          _id: new ObjectID(),
-          activities: [{ _id: new ObjectID() }],
-        }],
+        image: 'link',
+        steps: [{ _id: new ObjectID(), activities: [{ _id: new ObjectID() }] }],
       }],
     };
 
     SubProgramMock.expects('findOne')
       .withExactArgs({ _id: subProgram._id })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name' })
+      .withExactArgs({ path: 'program', select: 'name image' })
       .chain('populate')
-      .withExactArgs({
-        path: 'steps', populate: { path: 'activities' },
-      })
+      .withExactArgs({ path: 'steps', populate: { path: 'activities' } })
       .chain('lean')
       .once()
       .returns(subProgram);

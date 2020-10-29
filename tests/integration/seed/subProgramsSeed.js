@@ -5,9 +5,7 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
-const activitiesList = [
-  { _id: new ObjectID(), type: 'sharing_experience', name: 'activite' },
-];
+const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite' }];
 
 const stepsList = [
   { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
@@ -24,7 +22,7 @@ const subProgramsList = [
 
 const programsList = [
   { _id: new ObjectID(), name: 'program 1', subPrograms: [subProgramsList[0]._id, subProgramsList[1]._id] },
-  { _id: new ObjectID(), name: 'program 2', subPrograms: [subProgramsList[3]._id] },
+  { _id: new ObjectID(), name: 'program 2', subPrograms: [subProgramsList[3]._id], image: 'link' },
 ];
 
 const populateDB = async () => {

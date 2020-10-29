@@ -40,10 +40,10 @@ const detachStep = async (req) => {
 
 const listELearningDraft = async (req) => {
   try {
-    const subPrograms = await SubProgramHelper.listELearningDraft(req.query);
+    const subPrograms = await SubProgramHelper.listELearningDraft();
 
     return {
-      message: subPrograms.length ? translate[language].subProgramsFound : translate[language].subProgramsNotFound,
+      message: subPrograms.length ? translate[language].subProgramFound : translate[language].subProgramNotFound,
       data: { subPrograms },
     };
   } catch (e) {

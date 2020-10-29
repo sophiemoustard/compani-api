@@ -225,8 +225,8 @@ module.exports = {
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
     /* SubPrograms */
-    subProgramsFound: 'Programs found.',
-    subProgramsNotFound: 'Programs not found.',
+    subProgramFound: 'Program found.',
+    subProgramNotFound: 'Program not found.',
     subProgramUpdated: 'Sub-program updated.',
     /* Steps */
     stepUpdated: 'Step updated.',

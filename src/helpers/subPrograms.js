@@ -31,17 +31,15 @@ exports.updateSubProgram = async (subProgramId, payload) => {
 exports.listELearningDraft = async () => {
   const subPrograms = await SubProgram.find({ status: DRAFT })
     .populate({ path: 'program', select: '_id name' })
-    .populate({ path: 'steps', select: 'type' }).lean({ virtuals: true });
-  const eLearningSubProgram = subPrograms
-    .filter(subProgram => subProgram.steps
+    .populate({ path: 'steps', select: 'type' })
+    .lean({ virtuals: true });
+  return subPrograms
+    .filter(subProgram => subProgram.steps.length && subProgram.steps
       .every(step => step.type === E_LEARNING));
-  return eLearningSubProgram;
 };
 
-exports.getSubProgram = async (subProgramId) => {
-  const subProgram = await SubProgram.findOne({ _id: subProgramId })
-    .populate({ path: 'program', select: 'name' })
-    .populate({ path: 'steps', populate: { path: 'activities' } })
-    .lean({ virtuals: true });
-  return subProgram;
-};
+exports.getSubProgram = async subProgramId => SubProgram
+  .findOne({ _id: subProgramId })
+  .populate({ path: 'program', select: 'name image' })
+  .populate({ path: 'steps', populate: { path: 'activities' } })
+  .lean({ virtuals: true });
