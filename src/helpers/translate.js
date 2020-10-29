@@ -484,7 +484,7 @@ module.exports = {
     /* SubPrograms */
     subProgramUpdated: 'Sous-Programme mis à jour.',
     subProgramsFound: 'Sous-Programmes trouvés.',
-    subProgramFound: 'Sous-Programme introuvable.',
+    subProgramFound: 'Sous-Programme trouvé.',
     subProgramsNotFound: 'Sous-Programmes introuvables.',
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
