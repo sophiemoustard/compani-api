@@ -8,10 +8,11 @@ const list = async (req) => {
   try {
     const courseHistories = await CourseHistoriesHelper.list(req.query);
 
-    return {
-      data: { courseHistories },
-      message: translate[language].courseHistoriesFound,
-    };
+    const message = courseHistories.length
+      ? translate[language].courseHistoriesFound
+      : translate[language].courseHistoriesNotFound;
+
+    return { data: { courseHistories }, message };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
