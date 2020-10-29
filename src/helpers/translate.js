@@ -225,9 +225,9 @@ module.exports = {
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
     /* SubPrograms */
-    subProgramsFound: 'Programs found.',
-    subProgramFound: 'Program found.',
-    subProgramsNotFound: 'Programs not found.',
+    subProgramsFound: 'Sub-programs found.',
+    subProgramFound: 'Sub-program found.',
+    subProgramsNotFound: 'Sub-programs not found.',
     subProgramUpdated: 'Sub-program updated.',
     /* Steps */
     stepUpdated: 'Step updated.',
@@ -483,6 +483,9 @@ module.exports = {
     programUpdated: 'Programme mis à jour.',
     /* SubPrograms */
     subProgramUpdated: 'Sous-Programme mis à jour.',
+    subProgramsFound: 'Sous-Programmes trouvés.',
+    subProgramFound: 'Sous-Programme introuvable.',
+    subProgramsNotFound: 'Sous-Programmes introuvables.',
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
     /* Activities */

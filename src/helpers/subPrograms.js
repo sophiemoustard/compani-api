@@ -33,9 +33,8 @@ exports.listELearningDraft = async () => {
     .populate({ path: 'program', select: '_id name' })
     .populate({ path: 'steps', select: 'type' })
     .lean({ virtuals: true });
-  return subPrograms
-    .filter(subProgram => subProgram.steps.length && subProgram.steps
-      .every(step => step.type === E_LEARNING));
+
+  return subPrograms.filter(sp => sp.steps.length && sp.steps.every(step => step.type === E_LEARNING));
 };
 
 exports.getSubProgram = async subProgramId => SubProgram
