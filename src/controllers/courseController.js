@@ -166,6 +166,20 @@ const addTrainee = async (req) => {
   }
 };
 
+const registerToELearningCourse = async (req) => {
+  try {
+    const course = await CoursesHelper.registerToELearningCourse(req.params._id, req.auth.credentials);
+
+    return {
+      message: translate[language].courseTraineeAdded,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const removeTrainee = async (req) => {
   try {
     await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
@@ -214,6 +228,7 @@ module.exports = {
   update,
   deleteCourse,
   addTrainee,
+  registerToELearningCourse,
   removeTrainee,
   downloadAttendanceSheets,
   downloadCompletionCertificates,

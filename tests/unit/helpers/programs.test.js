@@ -78,7 +78,11 @@ describe('listELearning', () => {
         path: 'subPrograms',
         select: 'name',
         match: { _id: { $in: subPrograms } },
-        populate: { path: 'courses', select: '_id' },
+        populate: {
+          path: 'courses',
+          select: '_id trainees',
+          match: { format: 'strictly_e_learning' },
+        },
       })
       .chain('lean')
       .once()

@@ -10,6 +10,7 @@ const {
   CLIENT_ADMIN,
   COACH,
   TRAINING_ORGANISATION_MANAGER,
+  STRICTLY_E_LEARNING,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
@@ -124,6 +125,17 @@ exports.authorizeCourseDeletion = async (req) => {
   if (course.trainees.length) return Boom.forbidden('stagiaire');
   if (course.slots.length) return Boom.forbidden('creneaux');
   if (course.slotsToPlan.length) return Boom.forbidden('a planifier');
+
+  return null;
+};
+
+exports.authorizeRegisterToELearning = async (req) => {
+  const course = await Course.findById(req.params._id).lean();
+
+  if (!course) throw Boom.notFound();
+  if (course.format !== STRICTLY_E_LEARNING) throw Boom.forbidden();
+  const userId = get(req, 'auth.credentials._id');
+  if (course.trainees.map(trainee => trainee.toHexString()).includes(userId)) throw Boom.forbidden();
 
   return null;
 };

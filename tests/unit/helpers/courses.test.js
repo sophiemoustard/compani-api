@@ -723,24 +723,38 @@ describe('addCourseTrainee', () => {
   });
 });
 
-describe('removeCourseTrainee', () => {
-  let CourseMock;
+describe('registerToELearningCourse', () => {
+  let updateOne;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course, 'CourseMock');
+    updateOne = sinon.stub(Course, 'updateOne');
   });
   afterEach(() => {
-    CourseMock.restore();
+    updateOne.restore();
+  });
+
+  it('should add a course trainee using existing user', async () => {
+    const courseId = new ObjectID();
+    const credentials = { _id: new ObjectID() };
+    await CourseHelper.registerToELearningCourse(courseId, credentials);
+    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
+  });
+});
+
+describe('removeCourseTrainee', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
   });
 
   it('should remove a course trainee', async () => {
     const courseId = new ObjectID();
     const traineeId = new ObjectID();
-    CourseMock.expects('updateOne')
-      .withExactArgs({ _id: courseId }, { $pull: { trainees: traineeId } })
-      .chain('lean');
 
     await CourseHelper.removeCourseTrainee(courseId, traineeId);
-    CourseMock.verify();
+    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $pull: { trainees: traineeId } });
   });
 });
 

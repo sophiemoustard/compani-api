@@ -1306,7 +1306,97 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   });
 });
 
-describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
+describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
+  let token;
+  const course = coursesList[4];
+
+  beforeEach(populateDB);
+
+  describe('TRAINER_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      token = await getTokenByCredentials(trainerOrganisationManager.local);
+    });
+
+    it('should add trainee to e-learning course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const courseUpdated = await Course.findById(course._id);
+      expect(courseUpdated.trainees).toEqual(expect.arrayContaining([trainerOrganisationManager._id]));
+    });
+
+    it('should return 401 if user not authenticated', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 404 if course does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${new ObjectID()}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if course is not strictly e learning', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if trainee already suscribed to course', async () => {
+      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${coursesList[6]._id}/register-e-learning`,
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - DELETE /courses/{_id}/traineese-learning-/{traineeId}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
