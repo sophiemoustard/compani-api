@@ -43,7 +43,7 @@ const listELearningDraft = async (req) => {
     const subPrograms = await SubProgramHelper.listELearningDraft();
 
     return {
-      message: subPrograms.length ? translate[language].subProgramFound : translate[language].subProgramNotFound,
+      message: subPrograms.length ? translate[language].subProgramsFound : translate[language].subProgramsNotFound,
       data: { subPrograms },
     };
   } catch (e) {
@@ -57,7 +57,7 @@ const getById = async (req) => {
     const subProgram = await SubProgramHelper.getSubProgram(req.params._id);
 
     return {
-      message: translate[language].subProgramsFound,
+      message: translate[language].subProgramFound,
       data: { subProgram },
     };
   } catch (e) {

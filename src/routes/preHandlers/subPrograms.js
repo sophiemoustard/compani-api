@@ -34,7 +34,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
   return null;
 };
 
-exports.getSubProgram = async (req) => {
+exports.checkSubProgramExists = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
   if (!subProgram) throw Boom.notFound();
 
