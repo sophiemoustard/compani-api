@@ -8,6 +8,7 @@ const {
   list,
   create,
   update,
+  exportDpae,
   createContractVersion,
   updateContractVersion,
   removeContractVersion,
@@ -100,6 +101,17 @@ exports.plugin = {
         ],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/dpae',
+      options: {
+        auth: { scope: ['contracts:edit'] },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
+        pre: [{ method: getContract, assign: 'contract' }],
+      },
+      handler: exportDpae,
     });
 
     server.route({
