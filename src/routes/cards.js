@@ -21,6 +21,7 @@ const {
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
+  FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -35,7 +36,7 @@ exports.plugin = {
           payload: Joi.object({
             title: Joi.string(),
             text: Joi.string(),
-            backText: Joi.string(),
+            backText: Joi.string().max(FLASHCARD_TEXT_MAX_LENGTH),
             media: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
