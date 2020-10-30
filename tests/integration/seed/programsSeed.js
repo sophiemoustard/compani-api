@@ -25,7 +25,7 @@ const stepsList = [
     name: 'c\'est une étape',
     activities: [activitiesList[0]._id, activitiesList[1]._id],
   },
-  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape' },
+  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), type: 'on_site', name: 'encore une étape', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), type: 'on_site', name: 'encore une étape', activities: [activitiesList[1]._id] },
 ];
@@ -75,4 +75,5 @@ module.exports = {
   programsList,
   subProgramsList,
   course,
+  activitiesList,
 };

@@ -55,11 +55,10 @@ exports.getProgramForUser = async (programId) => {
       path: 'subPrograms',
       select: 'name',
       match: { _id: { $in: subPrograms } },
-      populate: {
-        path: 'courses',
-        select: '_id trainees',
-        match: { format: STRICTLY_E_LEARNING },
-      },
+      populate: [
+        { path: 'courses', select: '_id trainees', match: { format: STRICTLY_E_LEARNING } },
+        { path: 'steps', select: 'activities' },
+      ],
     })
     .lean();
 };

@@ -8,7 +8,7 @@ const app = require('../../server');
 const Program = require('../../src/models/Program');
 const Course = require('../../src/models/Course');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, programsList, subProgramsList, course } = require('./seed/programsSeed');
+const { populateDB, programsList, subProgramsList, course, activitiesList } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
@@ -195,7 +195,12 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}/user', () => {
         subPrograms: [{
           _id: subProgramsList[2]._id,
           name: 'c\'est un sous-programme elearning',
-          courses: [{ _id: course._id, trainees: course.trainees, subProgram: subProgramsList[2]._id }],
+          courses: [{
+            _id: course._id,
+            trainees: course.trainees,
+            subProgram: subProgramsList[2]._id,
+          }],
+          steps: [{ activities: [activitiesList[0]._id] }],
         }],
       });
     });
