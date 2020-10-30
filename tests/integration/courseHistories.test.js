@@ -1,11 +1,9 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const {
   populateDB,
   coursesList,
   courseHistoriesList,
-  courseHistoriesUserList,
 } = require('./seed/courseHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -74,7 +72,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
     });
 
-    it('should return 200 as user is trainer and course has user as trainer', async () => {
+    it('should return 200 as user is course trainer', async () => {
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'GET',

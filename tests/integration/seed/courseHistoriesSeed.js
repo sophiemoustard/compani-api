@@ -9,14 +9,12 @@ const subProgramsList = [
   { _id: new ObjectID(), name: 'sous-programme A', steps: [] },
 ];
 
-const companyId = authCompany._id;
-
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
 const coursesList = [{
   _id: new ObjectID(),
   subProgram: subProgramsList[0]._id,
-  company: companyId,
+  company: authCompany._id,
   misc: 'first session',
   type: 'intra',
   trainer: courseTrainer._id,
