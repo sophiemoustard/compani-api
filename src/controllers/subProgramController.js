@@ -38,8 +38,38 @@ const detachStep = async (req) => {
   }
 };
 
+const listELearningDraft = async (req) => {
+  try {
+    const subPrograms = await SubProgramHelper.listELearningDraft();
+
+    return {
+      message: subPrograms.length ? translate[language].subProgramsFound : translate[language].subProgramsNotFound,
+      data: { subPrograms },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const getById = async (req) => {
+  try {
+    const subProgram = await SubProgramHelper.getSubProgram(req.params._id);
+
+    return {
+      message: translate[language].subProgramFound,
+      data: { subProgram },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   addStep,
   detachStep,
+  listELearningDraft,
+  getById,
 };

@@ -3,7 +3,7 @@ const SubProgram = require('../models/SubProgram');
 const Step = require('../models/Step');
 const Activity = require('../models/Activity');
 const Course = require('../models/Course');
-const { INTER_B2C, STRICTLY_E_LEARNING, E_LEARNING } = require('./constants');
+const { INTER_B2C, STRICTLY_E_LEARNING, E_LEARNING, DRAFT } = require('./constants');
 
 exports.addSubProgram = async (programId, payload) => {
   const subProgram = await SubProgram.create(payload);
@@ -27,3 +27,18 @@ exports.updateSubProgram = async (subProgramId, payload) => {
   const activities = subProgram.steps.map(step => step.activities).flat();
   return Activity.updateMany({ _id: { $in: activities } }, { status: payload.status });
 };
+
+exports.listELearningDraft = async () => {
+  const subPrograms = await SubProgram.find({ status: DRAFT })
+    .populate({ path: 'program', select: '_id name' })
+    .populate({ path: 'steps', select: 'type' })
+    .lean({ virtuals: true });
+
+  return subPrograms.filter(sp => sp.steps.length && sp.steps.every(step => step.type === E_LEARNING));
+};
+
+exports.getSubProgram = async subProgramId => SubProgram
+  .findOne({ _id: subProgramId })
+  .populate({ path: 'program', select: 'name image' })
+  .populate({ path: 'steps', populate: { path: 'activities' } })
+  .lean({ virtuals: true });

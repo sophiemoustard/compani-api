@@ -2,8 +2,13 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeStepDetachment, authorizeStepAdd, authorizeSubProgramUpdate } = require('./preHandlers/subPrograms');
-const { update, addStep, detachStep } = require('../controllers/subProgramController');
+const {
+  authorizeStepDetachment,
+  authorizeStepAdd,
+  authorizeSubProgramUpdate,
+  checkSubProgramExists,
+} = require('./preHandlers/subPrograms');
+const { update, addStep, detachStep, listELearningDraft, getById } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
 const { PUBLISHED } = require('../helpers/constants');
 
@@ -52,6 +57,28 @@ exports.plugin = {
         pre: [{ method: authorizeStepDetachment }],
       },
       handler: detachStep,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/draft-e-learning',
+      options: {
+        auth: { scope: ['programs:read'] },
+      },
+      handler: listELearningDraft,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['programs:read'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        pre: [{ method: checkSubProgramExists }],
+      },
+      handler: getById,
     });
   },
 };
