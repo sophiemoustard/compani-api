@@ -9,6 +9,7 @@ const {
   QUESTION_ANSWER,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
+  FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -54,7 +55,7 @@ const checkQuestionAnswer = (payload, card) => {
 
 const checkFlashCard = (payload) => {
   const { text } = payload;
-  if (text.length > 450) return Boom.badRequest();
+  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
 
   return null;
 };
