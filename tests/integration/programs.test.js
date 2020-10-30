@@ -8,7 +8,7 @@ const app = require('../../server');
 const Program = require('../../src/models/Program');
 const Course = require('../../src/models/Course');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, programsList } = require('./seed/programsSeed');
+const { populateDB, programsList, subProgramsList, course } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
@@ -140,6 +140,80 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/programs/e-learning',
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/programs/e-learning',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - GET /programs/{_id}/user', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get a program', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programsList[1]._id}/user`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program).toMatchObject({
+        _id: programsList[1]._id,
+        name: 'training program',
+        subPrograms: [{
+          _id: subProgramsList[2]._id,
+          name: 'c\'est un sous-programme elearning',
+          courses: [{ _id: course._id, trainees: course.trainees, subProgram: subProgramsList[2]._id }],
+        }],
+      });
+    });
+
+    it('should return 404 if program does not exists', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${new ObjectID()}/user`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 401 if user is not connected', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programsList[1]._id}/user`,
         headers: { 'x-access-token': '' },
       });
 

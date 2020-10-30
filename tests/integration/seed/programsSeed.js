@@ -6,6 +6,7 @@ const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { populateDBForAuthentication } = require('./authenticationSeed');
+const { userList } = require('../../seed/userSeed');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },
@@ -43,11 +44,12 @@ const programsList = [
 
 const course = {
   _id: new ObjectID(),
-  subProgram: subProgramsList[1]._id,
+  subProgram: subProgramsList[2]._id,
   misc: 'first session',
   type: 'inter_b2c',
   trainer: new ObjectID(),
   format: 'strictly_e_learning',
+  trainees: [userList[0]._id],
 };
 
 const populateDB = async () => {
@@ -71,4 +73,6 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   programsList,
+  subProgramsList,
+  course,
 };
