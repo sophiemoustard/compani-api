@@ -1,20 +1,25 @@
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, userList } = require('./authenticationSeed');
+const { authCompany } = require('../../seed/companySeed');
 const { SLOT_CREATION } = require('../../../src/helpers/constants');
 
 const subProgramsList = [
   { _id: new ObjectID(), name: 'sous-programme A', steps: [] },
 ];
 
+const companyId = authCompany._id;
+
+const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
+
 const coursesList = [{
   _id: new ObjectID(),
   subProgram: subProgramsList[0]._id,
-  company: new ObjectID(),
+  company: companyId,
   misc: 'first session',
-  type: 'inter_b2b',
-  trainer: new ObjectID(),
+  type: 'intra',
+  trainer: courseTrainer._id,
   trainees: [],
 },
 {
@@ -22,8 +27,17 @@ const coursesList = [{
   subProgram: subProgramsList[0]._id,
   company: new ObjectID(),
   misc: 'first session',
-  type: 'inter_b2b',
+  type: 'intra',
   trainer: new ObjectID(),
+  trainees: [],
+},
+{
+  _id: new ObjectID(),
+  subProgram: subProgramsList[0]._id,
+  misc: 'inter b2b session',
+  type: 'inter_b2b',
+  format: 'blended',
+  trainer: courseTrainer._id,
   trainees: [],
 }];
 
@@ -74,4 +88,5 @@ module.exports = {
   populateDB,
   coursesList,
   courseHistoriesList,
+  courseTrainer,
 };
