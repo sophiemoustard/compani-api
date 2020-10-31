@@ -22,6 +22,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const transitionId = cardsList[0]._id;
+  const flashCardId = cardsList[4]._id;
   const fillTheGapId = cardsList[5]._id;
   const orderTheSequenceId = cardsList[8]._id;
   const singleChoiceQuestionId = cardsList[7]._id;
@@ -42,7 +43,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     });
 
     const cards = [
-      { template: 'transition', payload: { title: 'transition' }, id: cardsList[0]._id },
+      { template: 'transition', payload: { title: 'transition' }, id: transitionId },
       {
         template: 'title_text_media',
         payload: { title: 'TTM', text: 'test', media: { link: 'lien', publicId: 'id' } },
@@ -317,6 +318,32 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
           expect(response.statusCode).toBe(request.code);
           expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
+        });
+      });
+    });
+
+    describe('Flashcard', () => {
+      const veryLongText = 'la maladie d\'Alzheimer a été décrite en 1907 par un médecin allemand. Son nom ? la maladie'
+       + 'd\'Alzheimer a été décrite en 1907 par un médecin allemand. Son nom ? la maladie d\'Alzheimer a été décrite'
+       + ' en1907 par un médecin allemand. Son nom ? la maladie d\'Alzheimer a été décrite en 1907 par un médecin'
+       + ' allemand. Son nom ? la maladie d\'Alzheimer a été décrite en 1907 par un médecin allemand. Son nom ? la '
+       + 'maladie d\'Alzheimer a été décrite en 1907 par un médecin allemand. Son nom ? la maladie d\'Alzheimer a été '
+       + 'décrite en 1907 par un médecin allemand. Son nom ?';
+      const requests = [
+        { msg: 'Text is too long', payload: { text: veryLongText }, code: 400 },
+        { msg: 'Back text is too long', payload: { backText: veryLongText }, code: 400 },
+      ];
+
+      requests.forEach((request) => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/cards/${flashCardId.toHexString()}`,
+            payload: request.payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(request.code);
         });
       });
     });

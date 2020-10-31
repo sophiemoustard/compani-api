@@ -289,6 +289,7 @@ module.exports = {
   QC_ANSWER_MAX_LENGTH: 70,
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
+  FLASHCARD_TEXT_MAX_LENGTH: 450,
   QUESTIONNAIRE: 'questionnaire',
   get CARD_TEMPLATES() {
     return [
