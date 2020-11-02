@@ -1,4 +1,5 @@
 const expect = require('expect');
+const moment = require('moment');
 const app = require('../../server');
 const {
   populateDB,
@@ -45,7 +46,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(
-        ch => ch.course === coursesList[2]._id && ch.createdAt < '2020-06-25T06:00:00'
+        ch => ch.course === coursesList[2]._id && moment(ch.createdAt).isBefore(moment('2020-06-25T06:00:00'))
       );
 
       expect(response.statusCode).toBe(200);
