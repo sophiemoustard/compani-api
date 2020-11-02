@@ -103,6 +103,7 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -162,6 +163,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -241,6 +243,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}/user', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
