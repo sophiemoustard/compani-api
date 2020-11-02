@@ -23,7 +23,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should return all courseHistories from course', async () => {
+    it('should return courseHistories from course', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,
@@ -31,6 +31,22 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(ch => ch.course === coursesList[0]._id);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courseHistories).toBeDefined();
+      expect(response.result.data.courseHistories.length).toEqual(courseHistoriesFromCourse.length);
+    });
+
+    it('should return courseHistories from course before createAt', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[2]._id}&createdAt=2020-06-25T06:00:00`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const courseHistoriesFromCourse = courseHistoriesList.filter(
+        ch => ch.course === coursesList[2]._id && ch.createdAt < '2020-06-25T06:00:00'
+      );
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courseHistories).toBeDefined();
