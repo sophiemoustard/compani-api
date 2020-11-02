@@ -177,6 +177,9 @@ exports.authorizeUserGet = async (req) => {
 
 exports.authorizeLearnersGet = async (req) => {
   const vendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) throw Boom.forbidden();
+  const clientRole = get(req, 'auth.credentials.role.client.name');
+
+  if (vendorRole && ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) throw Boom.forbidden();
+  if (clientRole && ![CLIENT_ADMIN, COACH].includes(clientRole)) throw Boom.forbidden();
   return null;
 };
