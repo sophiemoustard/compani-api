@@ -9,8 +9,13 @@ exports.createHistoryOnSlotCreation = async (payload, userId) => CourseHistory.c
   slot: pick(payload, ['startDate', 'endDate', 'address']),
 });
 
-exports.list = async query => CourseHistory.find({ course: query.course, createdAt: { $lt: query.createdAt } })
-  .populate({ path: 'createdBy', select: '_id identity picture' })
-  .sort({ createdAt: -1 })
-  .limit(8)
-  .lean();
+exports.list = async (query) => {
+  const findQuery = { course: query.course };
+  if (query.createdAt) findQuery.createdAt = { $lt: query.createdAt };
+
+  return CourseHistory.find(findQuery)
+    .populate({ path: 'createdBy', select: '_id identity picture' })
+    .sort({ createdAt: -1 })
+    .limit(8)
+    .lean();
+};

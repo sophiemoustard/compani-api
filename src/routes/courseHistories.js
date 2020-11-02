@@ -17,7 +17,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             course: Joi.objectId().required(),
-            createdAt: Joi.date().required(),
+            createdAt: Joi.date(),
           }),
         },
         pre: [{ method: authorizeGetCourseHistories }],
