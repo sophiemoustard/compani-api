@@ -3,10 +3,12 @@ const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
+const { rolesList } = require('../../seed/roleSeed');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },
@@ -16,6 +18,12 @@ const cards = [
 const activitiesList = [
   { _id: new ObjectID(), name: 'c\'est une activité', type: 'sharing_experience', cards: [cards[0]._id] },
   { _id: new ObjectID(), name: 'toujours une activité', type: 'quiz', cards: [cards[1]._id] },
+];
+
+const vendorAdminRole = rolesList.find(role => role.name === 'vendor_admin')._id;
+const vendorAdmin = userList.find(user => user.role.vendor === vendorAdminRole);
+const activityHistoriesList = [
+  { _id: new ObjectID(), user: vendorAdmin._id, activity: activitiesList[0]._id },
 ];
 
 const stepsList = [
@@ -57,6 +65,7 @@ const populateDB = async () => {
   await SubProgram.deleteMany({});
   await Step.deleteMany({});
   await Activity.deleteMany({});
+  await ActivityHistory.deleteMany({});
   await Card.deleteMany({});
   await Course.deleteMany({});
 
@@ -66,6 +75,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Step.insertMany(stepsList);
   await Activity.insertMany(activitiesList);
+  await ActivityHistory.insertMany(activityHistoriesList);
   await Card.insertMany(cards);
   await new Course(course).save();
 };
@@ -76,4 +86,5 @@ module.exports = {
   subProgramsList,
   course,
   activitiesList,
+  activityHistoriesList,
 };

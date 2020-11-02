@@ -109,6 +109,7 @@ describe('getProgramForUser', () => {
     const programId = new ObjectID();
     const programsList = [{ name: 'name' }, { name: 'program' }];
     const subPrograms = [new ObjectID()];
+    const credentials = { _id: new ObjectID() };
 
     CourseMock.expects('find')
       .withExactArgs({ format: 'strictly_e_learning' })
@@ -124,14 +125,22 @@ describe('getProgramForUser', () => {
         match: { _id: { $in: subPrograms } },
         populate: [
           { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
-          { path: 'steps', select: 'activities' },
+          {
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
+              select: 'activityHistories',
+              populate: { path: 'activityHistories', match: { user: credentials._id } },
+            },
+          },
         ],
       })
       .chain('lean')
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.getProgramForUser(programId);
+    const result = await ProgramHelper.getProgramForUser(programId, credentials);
     expect(result).toMatchObject(programsList);
   });
 });

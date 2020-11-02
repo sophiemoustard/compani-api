@@ -8,7 +8,14 @@ const app = require('../../server');
 const Program = require('../../src/models/Program');
 const Course = require('../../src/models/Course');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
-const { populateDB, programsList, subProgramsList, course, activitiesList } = require('./seed/programsSeed');
+const {
+  populateDB,
+  programsList,
+  subProgramsList,
+  course,
+  activitiesList,
+  activityHistoriesList,
+} = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 
@@ -200,7 +207,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}/user', () => {
             trainees: course.trainees,
             subProgram: subProgramsList[2]._id,
           }],
-          steps: [{ activities: [activitiesList[0]._id] }],
+          steps: [{ activities: [{ _id: activitiesList[0]._id, activityHistories: [activityHistoriesList[0]] }] }],
         }],
       });
     });
@@ -288,6 +295,16 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       });
     });
 
+    it('should return 404 if program does not exists', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${new ObjectID()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should get program with non valid activities and non valid steps', async () => {
       const programId = programsList[2]._id;
       const response = await app.inject({
@@ -365,6 +382,17 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(programUpdated._id).toEqual(programId);
       expect(programUpdated.name).toEqual('new name');
       expect(programUpdated.description).toEqual('On apprend des trucs\nc\'est chouette');
+    });
+
+    it('should return 404 if program does not exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/programs/${new ObjectID()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 400 if payload is empty', async () => {
@@ -448,6 +476,17 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
       expect(programUpdated.subPrograms.length).toEqual(subProgramLengthBefore + 1);
+    });
+
+    it('should return 404 if program does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${new ObjectID()}/subprograms`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 400 if missing name', async () => {
@@ -538,6 +577,17 @@ describe('POST /programs/:id/cloudinary/upload', () => {
       expect(response.statusCode).toBe(200);
       expect(programUpdated).toMatchObject(pick(programWithImage, ['_id', 'name', 'image']));
       sinon.assert.calledOnce(addImageStub);
+    });
+
+    it('should return 404 if program does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${new ObjectID()}/cloudinary/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     const wrongParams = ['file', 'fileName'];
