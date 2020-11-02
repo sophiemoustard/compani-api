@@ -62,7 +62,7 @@ const getById = async (req) => {
 
 const getProgramForUser = async (req) => {
   try {
-    const program = await ProgramHelper.getProgramForUser(req.params._id);
+    const program = await ProgramHelper.getProgramForUser(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].programFound,

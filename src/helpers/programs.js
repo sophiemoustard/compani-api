@@ -46,7 +46,7 @@ exports.getProgram = async (programId) => {
   };
 };
 
-exports.getProgramForUser = async (programId) => {
+exports.getProgramForUser = async (programId, credentials) => {
   const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
 
@@ -57,7 +57,15 @@ exports.getProgramForUser = async (programId) => {
       match: { _id: { $in: subPrograms } },
       populate: [
         { path: 'courses', select: '_id trainees', match: { format: STRICTLY_E_LEARNING } },
-        { path: 'steps', select: 'activities' },
+        {
+          path: 'steps',
+          select: 'activities',
+          populate: {
+            path: 'activities',
+            select: 'activityHistories',
+            populate: { path: 'activityHistories', match: { user: credentials._id } },
+          },
+        },
       ],
     })
     .lean();
