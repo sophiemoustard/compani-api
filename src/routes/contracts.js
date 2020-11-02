@@ -109,7 +109,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
-        pre: [{ method: getContract, assign: 'contract' }],
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: exportDpae,
     });

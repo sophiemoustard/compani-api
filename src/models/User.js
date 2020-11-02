@@ -136,18 +136,20 @@ const validateEmail = (email) => {
 };
 
 const setSerialNumber = (user) => {
-  const createdAt = moment(user.createdAt).format('YYMMDDHHmm');
-  const lastname = user.identity.lastname.replace(/[^a-zA-Z]/g, '').substring(0, 2);
-  const firstname = user.identity.firstname ? user.identity.firstname.charAt(0) : '';
-  const initials = `${lastname}${firstname}`;
-  const random = Math.floor(Math.random() * 1000);
+  const createdAt = moment(user.createdAt).format('YYMMDD');
+  const timestamp = moment(user.createdAt).valueOf().toString();
+  const lastname = user.identity.lastname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
+  const firstname = user.identity.firstname
+    ? user.identity.firstname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase()
+    : '';
 
-  return `${initials.toUpperCase()}${createdAt}${random}`;
+  return `${lastname}${firstname}${createdAt}${timestamp.slice(-8)}`;
 };
 
 async function validate(next) {
   try {
     if (this.isNew) this.serialNumber = setSerialNumber(this);
+
     return next();
   } catch (e) {
     return next(e);

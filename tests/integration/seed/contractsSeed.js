@@ -94,7 +94,7 @@ const contractUsers = [{
 {
   _id: new ObjectID(),
   identity: {
-    firstname: 'Test',
+    firstname: 'ayolo',
     lastname: 'Toto',
     nationality: 'FR',
     socialSecurityNumber: '2987654334562',

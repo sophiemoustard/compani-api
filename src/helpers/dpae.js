@@ -15,17 +15,19 @@ const FS_REGIME = '50'; // Non cadre
 const FS_TITRE_CODE = { [MISTER]: 1, [MRS]: 2 };
 const ADDRESS_MAX_LENGHT = 30;
 
-const formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
+exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
-const shortenAddress = (str, separator = ' ') => {
+exports.shortenAddress = (str = '', separator = ' ') => {
   if (str.length <= ADDRESS_MAX_LENGHT) return str;
   return str.substr(0, str.lastIndexOf(separator, ADDRESS_MAX_LENGHT));
 };
 
-const formatAddress = (address) => {
-  const start = shortenAddress(address);
+exports.formatAddress = (address) => {
+  if (!address) return { start: '', end: '' };
 
-  return { start, end: shortenAddress(address.substr(start.length + 1)) };
+  const start = exports.shortenAddress(address);
+
+  return { start, end: exports.shortenAddress(address.substr(start.length + 1)) };
 };
 
 exports.exportDpae = async (contract) => {
@@ -34,7 +36,7 @@ exports.exportDpae = async (contract) => {
     .lean();
 
   const bic = get(auxiliary, 'administrative.payment.rib.bic') || '';
-  const address = formatAddress(get(auxiliary, 'contact.address.street'));
+  const address = exports.formatAddress(get(auxiliary, 'contact.address.street'));
   const data = {
     ap_soc: process.env.AP_SOC,
     ap_matr: auxiliary.serialNumber || '',
@@ -42,7 +44,7 @@ exports.exportDpae = async (contract) => {
     fs_nom: get(auxiliary, 'identity.lastname') || '',
     fs_prenom: get(auxiliary, 'identity.firstname') || '',
     fs_secu: get(auxiliary, 'identity.socialSecurityNumber') || '',
-    fs_date_nai: formatBirthDate(get(auxiliary, 'identity.birthDate')),
+    fs_date_nai: exports.formatBirthDate(get(auxiliary, 'identity.birthDate')),
     fs_dept_nai: get(auxiliary, 'identity.birthState') || '',
     fs_pays_nai: get(auxiliary, 'identity.birthCountry') || '',
     fs_lieu_nai: get(auxiliary, 'identity.birthCity') || '',

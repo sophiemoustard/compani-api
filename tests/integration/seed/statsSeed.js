@@ -79,7 +79,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary', lastname: 'Black' },
+    identity: { firstname: 'Auxiliary', lastname: 'Red' },
     local: { email: 'blue@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: '2019-01-01T23:59:59',
