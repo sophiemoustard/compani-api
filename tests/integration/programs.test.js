@@ -138,9 +138,9 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs.length).toEqual(1);
-      const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(course => course._id);
+      const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(c => c._id);
       const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
-      expect(courses.every(course => course.format === 'strictly_e_learning')).toBeTruthy();
+      expect(courses.every(c => c.format === 'strictly_e_learning')).toBeTruthy();
     });
 
     it('should return 401 if user is not connected', async () => {
