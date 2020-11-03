@@ -184,6 +184,9 @@ exports.plugin = {
       path: '/learners',
       options: {
         auth: { scope: ['users:list'] },
+        validate: {
+          query: Joi.object({ company: Joi.objectId() }),
+        },
         pre: [{ method: authorizeLearnersGet }],
       },
       handler: learnerList,
