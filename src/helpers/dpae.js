@@ -41,7 +41,7 @@ exports.exportDpae = async (contract) => {
   const address = exports.formatAddress(get(auxiliary, 'contact.address.street'));
   const data = {
     ap_soc: process.env.AP_SOC,
-    ap_etab: get(auxiliary, 'establishment.siret').slice(-NIC_LENGHT) || '',
+    ap_etab: (get(auxiliary, 'establishment.siret') || '').slice(-NIC_LENGHT),
     ap_matr: auxiliary.serialNumber || '',
     fs_titre: FS_TITRE_CODE[get(auxiliary, 'identity.title')] || '',
     fs_nom: get(auxiliary, 'identity.lastname') || '',
