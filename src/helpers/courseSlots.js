@@ -38,4 +38,16 @@ exports.updateCourseSlot = async (slotFromDb, payload) => {
   await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload);
 };
 
-exports.removeCourseSlot = async courseSlotId => CourseSlot.deleteOne({ _id: courseSlotId });
+exports.removeCourseSlot = async (courseSlotId, user) => {
+  const courseSlot = await CourseSlot.findById(courseSlotId).lean();
+  const payload = {
+    courseId: courseSlot.courseId,
+    startDate: courseSlot.startDate,
+    endDate: courseSlot.endDate,
+    address: courseSlot.address,
+  };
+
+  courseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id);
+
+  return CourseSlot.deleteOne({ _id: courseSlotId });
+};
