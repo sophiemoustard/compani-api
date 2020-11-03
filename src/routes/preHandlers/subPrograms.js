@@ -35,8 +35,8 @@ exports.authorizeSubProgramUpdate = async (req) => {
 
   if (req.payload.steps) {
     const onlyOrderIsUpdated = subProgram.steps.length === req.payload.steps.length &&
-      subProgram.steps.every(value => req.payload.steps.includes(value.toHexString())) &&
-      req.payload.steps.every(value => subProgram.steps.map(s => s.toHexString()).includes(value));
+      subProgram.steps.every(value => req.payload.steps.includes(value._id.toHexString())) &&
+      req.payload.steps.every(value => subProgram.steps.map(s => s._id.toHexString()).includes(value));
     if (!onlyOrderIsUpdated) return Boom.badRequest();
   }
 
