@@ -176,10 +176,20 @@ exports.authorizeUserGet = async (req) => {
 };
 
 exports.authorizeLearnersGet = async (req) => {
-  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
-  const clientRole = get(req, 'auth.credentials.role.client.name');
+  const { auth, query } = req;
+  const userCompanyId = get(auth, 'credentials.company._id', null);
+  const queryCompanyId = query.company;
+  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
 
-  if (vendorRole && ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) throw Boom.forbidden();
-  if (clientRole && ![CLIENT_ADMIN, COACH].includes(clientRole)) throw Boom.forbidden();
+  if (!has(authenticatedUser, 'role.vendor')) {
+    if (
+      !queryCompanyId ||
+      ![CLIENT_ADMIN, COACH].includes(authenticatedUser.role.vendor) ||
+      queryCompanyId !== userCompanyId.toHexString()
+    ) throw Boom.forbidden();
+  }
+  if (!has(authenticatedUser, 'role.client')) {
+    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(authenticatedUser.role.client)) throw Boom.forbidden();
+  }
   return null;
 };
