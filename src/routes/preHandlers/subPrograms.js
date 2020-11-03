@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const SubProgram = require('../../models/SubProgram');
-const Course = require('../../models/Course');
-const { PUBLISHED, STRICTLY_E_LEARNING, E_LEARNING } = require('../../helpers/constants');
+const Program = require('../../models/Program');
+const { PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -24,7 +24,7 @@ exports.authorizeStepAdd = async (req) => {
 
 exports.authorizeSubProgramUpdate = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id })
-    .populate({ path: 'program', select: '_id subPrograms' })
+    .populate({ path: 'program', select: '_id' })
     .populate({ path: 'steps', select: '_id type' })
     .lean({ virtuals: true });
 
@@ -40,16 +40,13 @@ exports.authorizeSubProgramUpdate = async (req) => {
     if (!onlyOrderIsUpdated) return Boom.badRequest();
   }
 
-  if (req.payload.status === PUBLISHED) {
-    const isStrictlyElearning = subProgram.steps.every(step => step.type === E_LEARNING);
+  if (req.payload.status === PUBLISHED && subProgram.isStrictlyELearning) {
+    const prog = await Program.findOne({ _id: subProgram.program })
+      .populate({ path: 'subPrograms', select: '_id steps status', populate: { path: 'steps', select: '_id type' } })
+      .lean({ virtuals: true });
 
-    if (isStrictlyElearning) {
-      const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
-      const eLearningSubPrograms = eLearningCourse.map(course => course.subProgram.toHexString());
-
-      if (subProgram.program.subPrograms.some(sp => eLearningSubPrograms.includes(sp._id.toHexString()))) {
-        throw Boom.forbidden(translate[language].eLearningSubProgramAlreadyExist);
-      }
+    if (prog.subPrograms.some(sp => sp.isStrictlyELearning && sp._id !== subProgram._id && sp.status === PUBLISHED)) {
+      throw Boom.conflict(translate[language].eLearningSubProgramAlreadyExist);
     }
   }
 

@@ -229,7 +229,7 @@ module.exports = {
     subProgramFound: 'Sub-program found.',
     subProgramsNotFound: 'Sub-programs not found.',
     subProgramUpdated: 'Sub-program updated.',
-    eLearningSubProgramAlreadyExist: 'A published ELearning subProgram already exists',
+    eLearningSubProgramAlreadyExist: 'A published eLearning sub-program already exists',
     /* Steps */
     stepUpdated: 'Step updated.',
     /* Activities */
@@ -489,7 +489,7 @@ module.exports = {
     subProgramsFound: 'Sous-Programmes trouvés.',
     subProgramFound: 'Sous-Programme trouvé.',
     subProgramsNotFound: 'Sous-Programmes non trouvés.',
-    eLearningSubProgramAlreadyExist: 'Un sous-programme ELearning publié existe déjà',
+    eLearningSubProgramAlreadyExist: 'Un sous-programme eLearning publié existe déjà',
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
     /* Activities */
