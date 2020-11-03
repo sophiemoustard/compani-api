@@ -76,15 +76,16 @@ describe('exportDpae', () => {
         socialSecurityNumber: '21991102309878624',
         nationality: 'AZ',
       },
+      establishment: { siret: '1234567890' },
       serialNumber: 'serialNumber',
       contact: { address: { zipCode: '75', city: 'Paris', street: 'tamalou' } },
       administrative: { payment: { rib: { bic: 'AUDIFRPP', iban: 'raboul le fric' } } },
     };
 
     UserMock.expects('findOne')
-      .withExactArgs({ _id: 'mon auxiliaire' })
-      .chain('select')
-      .withExactArgs('identity serialNumber contact administrative.payment')
+      .withExactArgs({ _id: 'mon auxiliaire' }, 'identity serialNumber contact administrative.payment establishment')
+      .chain('populate')
+      .withExactArgs({ path: 'establishment', select: 'siret' })
       .chain('lean')
       .returns(auxiliary);
     formatAddress.returns({ start: 'start', end: 'end' });
@@ -97,6 +98,7 @@ describe('exportDpae', () => {
       exportToTxt,
       [[
         'ap_soc',
+        'ap_etab',
         'ap_matr',
         'fs_titre',
         'fs_nom',
@@ -126,6 +128,7 @@ describe('exportDpae', () => {
         'fs_mv_entree',
       ], [
         process.env.AP_SOC,
+        '67890',
         'serialNumber',
         1,
         'Sandbox',

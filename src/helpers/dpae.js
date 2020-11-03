@@ -14,6 +14,7 @@ const FS_TYPEC = '005'; // CDI
 const FS_REGIME = '50'; // Non cadre
 const FS_TITRE_CODE = { [MISTER]: 1, [MRS]: 2 };
 const ADDRESS_MAX_LENGHT = 30;
+const NIC_LENGHT = 5;
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
@@ -31,14 +32,16 @@ exports.formatAddress = (address) => {
 };
 
 exports.exportDpae = async (contract) => {
-  const auxiliary = await User.findOne({ _id: contract.user })
-    .select('identity serialNumber contact administrative.payment')
+  const auxiliary = await User
+    .findOne({ _id: contract.user }, 'identity serialNumber contact administrative.payment establishment')
+    .populate({ path: 'establishment', select: 'siret' })
     .lean();
 
   const bic = get(auxiliary, 'administrative.payment.rib.bic') || '';
   const address = exports.formatAddress(get(auxiliary, 'contact.address.street'));
   const data = {
     ap_soc: process.env.AP_SOC,
+    ap_etab: get(auxiliary, 'establishment.siret').slice(-NIC_LENGHT) || '',
     ap_matr: auxiliary.serialNumber || '',
     fs_titre: FS_TITRE_CODE[get(auxiliary, 'identity.title')] || '',
     fs_nom: get(auxiliary, 'identity.lastname') || '',
