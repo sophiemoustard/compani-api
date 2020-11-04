@@ -154,18 +154,38 @@ describe('updateCourseSlot', () => {
 });
 
 describe('removeSlot', () => {
-  let deleteOne;
+  let CourseSlotMock;
+  let createCourseHistory;
   beforeEach(() => {
-    deleteOne = sinon.stub(CourseSlot, 'deleteOne');
+    CourseSlotMock = sinon.mock(CourseSlot);
+    createCourseHistory = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
   });
   afterEach(() => {
-    deleteOne.restore();
+    CourseSlotMock.restore();
+    createCourseHistory.restore();
   });
 
   it('should updte a course slot', async () => {
     const slotId = new ObjectID();
+    const user = { _id: new ObjectID() };
+    const returnedCourseSlot = {
+      courseId: new ObjectID(),
+      startDate: '2020-06-25T17:58:15',
+      endDate: '2019-06-25T19:58:15',
+      address: { fullAddress: '55 rue du sku, Skuville' },
+    };
 
-    await CourseSlotsHelper.removeCourseSlot(slotId);
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: slotId });
+    CourseSlotMock.expects('findById')
+      .withExactArgs(slotId)
+      .chain('lean')
+      .once()
+      .returns(returnedCourseSlot);
+
+    CourseSlotMock.expects('deleteOne').withExactArgs({ _id: slotId });
+
+    await CourseSlotsHelper.removeCourseSlot(slotId, user);
+
+    sinon.assert.calledOnceWithExactly(createCourseHistory, returnedCourseSlot, user._id);
+    CourseSlotMock.verify();
   });
 });
