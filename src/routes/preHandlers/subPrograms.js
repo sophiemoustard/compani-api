@@ -30,8 +30,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
 
   if (!subProgram) throw Boom.notFound();
 
-  if ((subProgram.status === PUBLISHED || req.payload.status === PUBLISHED) &&
-    (Object.keys(req.payload).length > 1 || !req.payload.status)) throw Boom.forbidden();
+  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
 
   if (req.payload.steps) {
     const onlyOrderIsUpdated = subProgram.steps.length === req.payload.steps.length &&
