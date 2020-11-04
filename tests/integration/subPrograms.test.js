@@ -181,6 +181,18 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 409 if a published eLearning subprogram already exist in program', async () => {
+      const payload = { status: 'published' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramsList[3]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {
