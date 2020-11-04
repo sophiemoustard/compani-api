@@ -178,18 +178,16 @@ exports.authorizeUserGet = async (req) => {
 exports.authorizeLearnersGet = async (req) => {
   const { auth, query } = req;
   const userCompanyId = get(auth, 'credentials.company._id', null);
-  const queryCompanyId = query.company;
   const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
+  const vendorRole = get(authenticatedUser.role, 'vendor.name');
+  const clientRole = get(authenticatedUser.role, 'client.name');
+  const isVendorRoleAllowed = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole);
+  const isClientRoleAllowed = [CLIENT_ADMIN, COACH].includes(clientRole);
+  const isQueryCompanyValid = query.company && UtilsHelper.areObjectIdsEquals(query.company, userCompanyId);
 
-  if (!has(authenticatedUser, 'role.vendor')) {
-    if (
-      !queryCompanyId ||
-      ![CLIENT_ADMIN, COACH].includes(authenticatedUser.role.vendor) ||
-      queryCompanyId !== userCompanyId.toHexString()
-    ) throw Boom.forbidden();
-  }
-  if (!has(authenticatedUser, 'role.client')) {
-    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(authenticatedUser.role.client)) throw Boom.forbidden();
-  }
+  if (!vendorRole && (!isClientRoleAllowed || !isQueryCompanyValid)) throw Boom.forbidden();
+  if (!clientRole && !isVendorRoleAllowed) throw Boom.forbidden();
+  if (!isClientRoleAllowed && !isVendorRoleAllowed) throw Boom.forbidden();
+
   return null;
 };
