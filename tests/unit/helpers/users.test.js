@@ -388,8 +388,6 @@ describe('getUsersListWithSectorHistories', () => {
 
 describe('getLearnerList', () => {
   let UserMock;
-  const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-  const credentials = { role: { vendor: new ObjectID() } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -400,6 +398,8 @@ describe('getLearnerList', () => {
   });
 
   it('should get learners', async () => {
+    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const credentials = { role: { vendor: new ObjectID() } };
     UserMock.expects('find')
       .withExactArgs({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
       .chain('populate')
@@ -411,7 +411,30 @@ describe('getLearnerList', () => {
       .chain('lean')
       .returns(users);
 
-    const result = await UsersHelper.getLearnerList(credentials);
+    const result = await UsersHelper.getLearnerList({}, credentials);
+    expect(result).toEqual(users);
+    UserMock.verify();
+  });
+
+  it('should get learners from company', async () => {
+    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const credentials = { role: { vendor: new ObjectID() } };
+    const query = { company: new ObjectID() };
+    UserMock.expects('find')
+      .withExactArgs(
+        { company: query.company },
+        'identity.firstname identity.lastname picture',
+        { autopopulate: false }
+      ).chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'blendedCoursesCount' })
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: true })
+      .chain('lean')
+      .returns(users);
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
     expect(result).toEqual(users);
     UserMock.verify();
   });
