@@ -24,9 +24,10 @@ SubProgramSchema.virtual('courses', {
 });
 
 function setIsStrictlyELearning() {
-  if (this.steps.length && this.steps[0].type) {
+  if (this.steps && this.steps[0].type) {
     return this.steps.every(step => step.type === E_LEARNING);
   }
+
   return false;
 }
 

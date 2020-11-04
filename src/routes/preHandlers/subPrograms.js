@@ -42,10 +42,15 @@ exports.authorizeSubProgramUpdate = async (req) => {
 
   if (req.payload.status === PUBLISHED && subProgram.isStrictlyELearning) {
     const prog = await Program.findOne({ _id: subProgram.program })
-      .populate({ path: 'subPrograms', select: '_id steps status', populate: { path: 'steps', select: '_id type' } })
+      .populate({
+        path: 'subPrograms',
+        select: '_id steps',
+        match: { status: PUBLISHED, _id: { $ne: subProgram._id } },
+        populate: { path: 'steps', select: '_id type' },
+      })
       .lean({ virtuals: true });
 
-    if (prog.subPrograms.some(sp => sp.isStrictlyELearning && sp._id !== subProgram._id && sp.status === PUBLISHED)) {
+    if (prog.subPrograms.some(sp => sp.isStrictlyELearning)) {
       throw Boom.conflict(translate[language].eLearningSubProgramAlreadyExist);
     }
   }

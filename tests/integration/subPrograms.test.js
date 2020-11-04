@@ -182,7 +182,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 403 if a published eLearning subprogram already exist in program', async () => {
+    it('should return a 409 if a published eLearning subprogram already exist in program', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -191,7 +191,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
   });
 
@@ -365,14 +365,14 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 409 if trying to remove step to a subprogram with status published', async () => {
+    it('should return a 403 if trying to remove step to a subprogram with status published', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/subprograms/${subProgramsList[2]._id}/steps/${subProgramsList[2].steps[0]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(403);
     });
   });
 
