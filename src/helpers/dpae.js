@@ -18,10 +18,9 @@ const NIC_LENGHT = 5;
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
-exports.shortenAddress = (str = '', separator = ' ') => {
-  if (str.length <= ADDRESS_MAX_LENGHT) return str;
-  return str.substr(0, str.lastIndexOf(separator, ADDRESS_MAX_LENGHT));
-};
+exports.shortenAddress = (str = '', separator = ' ') => (str.length <= ADDRESS_MAX_LENGHT
+  ? str
+  : str.substr(0, str.lastIndexOf(separator, ADDRESS_MAX_LENGHT)));
 
 exports.formatAddress = (address) => {
   if (!address) return { start: '', end: '' };
@@ -71,5 +70,5 @@ exports.exportDpae = async (contract) => {
     fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
   };
 
-  return FileHelper.exportToTxt([Object.keys(data), Object.values(data)], 'dpae.txt');
+  return FileHelper.exportToTxt([Object.keys(data), Object.values(data)]);
 };
