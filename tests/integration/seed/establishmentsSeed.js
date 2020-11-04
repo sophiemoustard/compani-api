@@ -81,7 +81,7 @@ const userFromOtherCompany = {
 
 const user = {
   _id: new ObjectID(),
-  identity: { firstname: 'Auxiliary', lastname: 'Test' },
+  identity: { firstname: 'User', lastname: 'Test' },
   local: { email: 'auxiliary_establishment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },

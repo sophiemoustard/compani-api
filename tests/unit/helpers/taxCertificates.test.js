@@ -61,13 +61,21 @@ describe('formatInterventions', () => {
   it('should format interventions', () => {
     const interventions = [
       {
-        auxiliary: { identity: { lastname: 'lastname', firstname: 'first' }, createdAt: '2019-07-12T09:08:12' },
+        auxiliary: {
+          identity: { lastname: 'lastname', firstname: 'first' },
+          createdAt: '2019-07-12T09:08:12',
+          serialNumber: 'LAF1907120908',
+        },
         month: '9',
         duration: 12,
         subscription: { service: { name: 'Temps de qualité' } },
       },
       {
-        auxiliary: { identity: { lastname: 'firstname', firstname: 'first' }, createdAt: '2019-05-13T10:08:12' },
+        auxiliary: {
+          identity: { lastname: 'firstname', firstname: 'first' },
+          createdAt: '2019-05-13T10:08:12',
+          serialNumber: 'FIF1905131008',
+        },
         month: '5',
         duration: 13,
         subscription: { service: { name: 'Temps de partage' } },

@@ -388,11 +388,11 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toEqual(200);
         const resultForFirstSector = response.result.data.paidTransportStatsBySector
           .find(res => res.sector.toHexString() === sectors[0]._id.toHexString());
-        expect(resultForFirstSector.duration).toEqual(1);
+        expect(resultForFirstSector.duration).toEqual(0.5);
 
         const resultForSecondSector = response.result.data.paidTransportStatsBySector
           .find(res => res.sector.toHexString() === sectors[1]._id.toHexString());
-        expect(resultForSecondSector.duration).toEqual(0.75);
+        expect(resultForSecondSector.duration).toEqual(0.5);
       });
 
       it('should return a 403 if sector is not from the same company', async () => {

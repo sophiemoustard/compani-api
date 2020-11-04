@@ -43,3 +43,15 @@ exports.exportToCsv = async (data) => {
 
   return tmpOutputPath;
 };
+
+exports.exportToTxt = async (data) => {
+  let textContent = '';
+  data.forEach((rowArray) => { textContent += `${rowArray.join('\t')}\r\n`; });
+
+  const date = new Date();
+  const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.txt`);
+
+  await fsPromises.writeFile(tmpOutputPath, textContent);
+
+  return tmpOutputPath;
+};

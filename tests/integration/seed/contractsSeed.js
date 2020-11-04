@@ -7,6 +7,7 @@ const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
+const Establishment = require('../../../src/models/Establishment');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -61,8 +62,29 @@ const otherContractUser = {
 
 const sector = { _id: new ObjectID(), company: authCompany._id };
 
+const establishment = {
+  _id: new ObjectID(),
+  name: 'Tata',
+  siret: '09876543210987',
+  address: {
+    street: '37, rue des acacias',
+    fullAddress: '37, rue des acacias 69000 Lyon',
+    zipCode: '69000',
+    city: 'Lyon',
+    location: {
+      type: 'Point',
+      coordinates: [4.824302, 3.50807],
+    },
+  },
+  phone: '0446899034',
+  workHealthService: 'MT01',
+  urssafCode: '217',
+  company: authCompany,
+};
+
 const contractUsers = [{
   _id: new ObjectID(),
+  establishment: establishment._id,
   identity: {
     firstname: 'Test7',
     lastname: 'Test7',
@@ -72,7 +94,6 @@ const contractUsers = [{
     birthCity: 'Paris',
     birthState: 75,
   },
-  establishment: new ObjectID(),
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
@@ -94,7 +115,7 @@ const contractUsers = [{
 {
   _id: new ObjectID(),
   identity: {
-    firstname: 'Test',
+    firstname: 'ayolo',
     lastname: 'Toto',
     nationality: 'FR',
     socialSecurityNumber: '2987654334562',
@@ -440,10 +461,12 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
+  await Establishment.deleteMany({});
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
   await new Sector(sector).save();
+  await new Establishment(establishment).save();
   await new Customer(customer).save();
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);

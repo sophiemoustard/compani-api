@@ -14,7 +14,7 @@ const emailUser = {
 
 const emailUserFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'emailUser', lastname: 'Test' },
+  identity: { firstname: 'otherCompany', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
@@ -23,7 +23,7 @@ const emailUserFromOtherCompany = {
 
 const trainerFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'emailUser', lastname: 'Test' },
+  identity: { firstname: 'trainer', lastname: 'Test' },
   local: { email: 'trainer_email_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },

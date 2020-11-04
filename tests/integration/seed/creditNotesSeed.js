@@ -278,7 +278,7 @@ const otherCompanyCustomer = {
 
 const otherCompanyUser = {
   _id: new ObjectID(),
-  identity: { firstname: 'Tutu', lastname: 'Toto' },
+  identity: { firstname: 'Renégat', lastname: 'Toto' },
   local: { email: 'other_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
