@@ -355,7 +355,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.length).toBe(2);
       expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
       expect(res.result.data.users).toEqual(expect.arrayContaining([
         expect.objectContaining({
