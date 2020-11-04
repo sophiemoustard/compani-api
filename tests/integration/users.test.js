@@ -23,6 +23,7 @@ const {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   authCustomer,
+  coachAndTrainer,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -37,6 +38,7 @@ const { trainer } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
+const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -626,40 +628,63 @@ describe('GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toEqual(20);
+
+      const userCount = await User.countDocuments();
+      expect(res.result.data.users.length).toEqual(userCount);
       expect(res.result.data.users).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          identity: expect.objectContaining({
-            firstname: expect.any(String),
-            lastname: expect.any(String),
-          }),
-          company: expect.objectContaining({
-            _id: expect.any(ObjectID),
-            name: expect.any(String),
-          }),
-          picture: expect.objectContaining({
-            publicId: expect.any(String),
-            link: expect.any(String),
-          }),
+          identity: expect.objectContaining({ firstname: expect.any(String), lastname: expect.any(String) }),
+          company: expect.objectContaining({ _id: expect.any(ObjectID), name: expect.any(String) }),
+          picture: expect.objectContaining({ publicId: expect.any(String), link: expect.any(String) }),
           blendedCoursesCount: expect.any(Number),
         }),
-        expect.objectContaining({
-          _id: coachFromOtherCompany._id,
-          blendedCoursesCount: 0,
-        }),
-        expect.objectContaining({
-          _id: helperFromOtherCompany._id,
-          blendedCoursesCount: 1,
-        }),
-        expect.objectContaining({
-          _id: usersSeedList[0]._id,
-          blendedCoursesCount: 2,
-        }),
+        expect.objectContaining({ _id: coachFromOtherCompany._id, blendedCoursesCount: 0 }),
+        expect.objectContaining({ _id: helperFromOtherCompany._id, blendedCoursesCount: 1 }),
+        expect.objectContaining({ _id: usersSeedList[0]._id, blendedCoursesCount: 2 }),
       ]));
     });
   });
 
   describe('Other roles', () => {
+    it('should return 200 if coach requests learners from his company', async () => {
+      authToken = await getToken('coach');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
+    it('should return 200 if coach requests learners from his company', async () => {
+      authToken = await getToken('client_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
+    it('should return 200 if user is both trainer and coach and he requests learners from his company', async () => {
+      authToken = await getTokenByCredentials(coachAndTrainer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
