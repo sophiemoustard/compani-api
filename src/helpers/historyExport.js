@@ -19,6 +19,8 @@ const {
   INTERVENTION,
 } = require('./constants');
 const UtilsHelper = require('./utils');
+const DraftPayHelper = require('./draftPay');
+const { DAILY } = require('./constants');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
@@ -143,6 +145,17 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   return rows;
 };
 
+exports.getAbsenceHours = (absence, contracts) => {
+  const filteredContracts = contracts
+    .filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
+      (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
+    .sort((a, b) => moment(a.startDate).isSameOrBefore(b.startDate));
+
+  return absence.absenceNature === DAILY
+    ? filteredContracts.reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0)
+    : moment(absence.endDate).diff(absence.startDate, 'm') / 60;
+};
+
 const absenceExportHeader = [
   'Id Auxiliaire',
   'Auxiliaire - Prénom',
@@ -153,6 +166,7 @@ const absenceExportHeader = [
   'Nature',
   'Début',
   'Fin',
+  'Equivalent heures contrat',
   'Divers',
 ];
 
@@ -160,22 +174,23 @@ exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
   const events = await EventRepository.getAbsencesForExport(startDate, endDate, credentials);
 
   const rows = [absenceExportHeader];
-  for (const event of events) {
-    const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
-    const cells = [
-      get(event, 'auxiliary._id') || '',
-      get(event, 'auxiliary.identity.firstname', ''),
-      get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
-      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
-      get(event, 'auxiliary.sector.name') || '',
-      ABSENCE_TYPE_LIST[event.absence],
-      ABSENCE_NATURE_LIST[event.absenceNature],
-      moment(event.startDate).format(datetimeFormat),
-      moment(event.endDate).format(datetimeFormat),
-      event.misc || '',
-    ];
+  for (const absence of events) {
+    const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
+    const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
 
-    rows.push(cells);
+    rows.push([
+      get(absence, 'auxiliary._id') || '',
+      get(absence, 'auxiliary.identity.firstname', ''),
+      get(absence, 'auxiliary.identity.lastname', '').toUpperCase(),
+      CIVILITY_LIST[get(absence, 'auxiliary.identity.title')] || '',
+      get(absence, 'auxiliary.sector.name') || '',
+      ABSENCE_TYPE_LIST[absence.absence],
+      ABSENCE_NATURE_LIST[absence.absenceNature],
+      moment(absence.startDate).format(datetimeFormat),
+      moment(absence.endDate).format(datetimeFormat),
+      UtilsHelper.formatFloatForExport(hours),
+      absence.misc || '',
+    ]);
   }
 
   return rows;

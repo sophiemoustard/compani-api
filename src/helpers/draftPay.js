@@ -274,32 +274,32 @@ exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
   return paidHours;
 };
 
+exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
+  let hours = 0;
+  const start = moment.max(moment(absence.startDate).startOf('d'), moment(query.startDate), moment(contract.startDate));
+  const end = contract.endDate
+    ? moment.min(moment(absence.endDate), moment(query.endDate), moment(contract.endDate))
+    : moment.min(moment(absence.endDate), moment(query.endDate));
+  const range = Array.from(moment().range(start, end).by('days'));
+
+  for (const day of range) {
+    if (day.startOf('d').isBusinessDay()) { // startOf('day') is necessery to check fr holidays in business day
+      const version = contract.versions.length === 1
+        ? contract.versions[0]
+        : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
+      if (!version) continue;
+      hours += version.weeklyHours / 6;
+    }
+  }
+
+  return hours;
+};
+
 exports.getPayFromAbsences = (absences, contract, query) => {
   let hours = 0;
   for (const absence of absences) {
-    if (absence.absenceNature === DAILY) {
-      const start = moment.max(
-        moment(absence.startDate).startOf('d'),
-        moment(query.startDate),
-        moment(contract.startDate)
-      );
-      const end = contract.endDate
-        ? moment.min(moment(absence.endDate), moment(query.endDate), moment(contract.endDate))
-        : moment.min(moment(absence.endDate), moment(query.endDate));
-      const range = Array.from(moment().range(start, end).by('days'));
-
-      for (const day of range) {
-        if (day.startOf('d').isBusinessDay()) { // startOf('day') is necessery to check fr holidays in business day
-          const version = contract.versions.length === 1
-            ? contract.versions[0]
-            : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
-          if (!version) continue;
-          hours += version.weeklyHours / 6;
-        }
-      }
-    } else {
-      hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
-    }
+    if (absence.absenceNature === DAILY) hours += exports.getHoursFromDailyAbsence(absence, contract, query);
+    else hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
   }
 
   return hours;

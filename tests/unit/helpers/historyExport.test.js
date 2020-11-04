@@ -310,6 +310,7 @@ describe('exportAbsencesHistory', () => {
     'Nature',
     'Début',
     'Fin',
+    'Equivalent heures contrat',
     'Divers',
   ];
   const events = [
@@ -321,9 +322,12 @@ describe('exportAbsencesHistory', () => {
         _id: new ObjectID(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
     },
     {
       type: 'absence',
@@ -334,9 +338,12 @@ describe('exportAbsencesHistory', () => {
         _id: new ObjectID(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T22:00:00',
       misc: 'brbr',
     },
   ];
@@ -365,9 +372,9 @@ describe('exportAbsencesHistory', () => {
     expect(exportArray).toEqual([
       header,
       [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
-        '20/05/2019 08:00', '20/05/2019 10:00', ''],
+        '20/05/2019 08:00', '20/05/2019 10:00', 2, ''],
       [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '20/05/2019', 'brbr'],
+        '20/05/2019', 4, 'brbr'],
     ]);
   });
 });
