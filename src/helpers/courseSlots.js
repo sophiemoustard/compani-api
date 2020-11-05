@@ -1,8 +1,9 @@
 const Boom = require('@hapi/boom');
 const pickBy = require('lodash/pickBy');
+const pick = require('lodash/pick');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
-const courseHistoriesHelper = require('./courseHistories');
+const CourseHistoriesHelper = require('./courseHistories');
 
 const { language } = translate;
 
@@ -22,7 +23,7 @@ exports.createCourseSlot = async (payload, user) => {
   const hasConflicts = await exports.hasConflicts(payload);
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  if (payload.startDate) courseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
+  if (payload.startDate) CourseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
 
   return (new CourseSlot(payload)).save();
 };
@@ -38,16 +39,11 @@ exports.updateCourseSlot = async (slotFromDb, payload) => {
   await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload);
 };
 
-exports.removeCourseSlot = async (courseSlotId, user) => {
-  const courseSlot = await CourseSlot.findById(courseSlotId).lean();
-  const payload = {
-    courseId: courseSlot.courseId,
-    startDate: courseSlot.startDate,
-    endDate: courseSlot.endDate,
-    address: courseSlot.address,
-  };
+exports.removeCourseSlot = async (courseSlot, user) => {
+  const payload = pick(courseSlot, ['courseId', 'startDate', 'endDate', 'address']);
 
-  courseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id);
-
-  return CourseSlot.deleteOne({ _id: courseSlotId });
+  await Promise.all([
+    CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id),
+    CourseSlot.deleteOne({ _id: courseSlot._id }),
+  ]);
 };

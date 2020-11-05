@@ -4,8 +4,6 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const CourseHistory = require('../../src/models/CourseHistory');
-const { SLOT_CREATION, SLOT_DELETION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -44,15 +42,6 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       });
 
       expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.findOne({
-        courseId: payload.courseId,
-        slot: { startDate: payload.startDate },
-        action: SLOT_CREATION,
-      })
-        .lean();
-
-      expect(courseHistory).toBeDefined();
     });
 
     it('should create slot to plan', async () => {
@@ -606,15 +595,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.findOne({
-        courseId: courseSlotsList[0].courseId,
-        slot: { startDate: courseSlotsList[0].startDate },
-        action: SLOT_DELETION,
-      })
-        .lean();
-
-      expect(courseHistory).toBeDefined();
     });
 
     it('should return 404 if slot not found', async () => {

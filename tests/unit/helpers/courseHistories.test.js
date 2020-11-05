@@ -152,11 +152,7 @@ describe('createHistoryOnSlotDeletion', () => {
     sinon.assert.calledOnceWithExactly(
       create,
       {
-        slot: {
-          startDate: payload.startDate,
-          endDate: payload.endDate,
-          address: payload.address,
-        },
+        slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address },
         course: payload.courseId,
         createdBy: userId,
         action: SLOT_DELETION,

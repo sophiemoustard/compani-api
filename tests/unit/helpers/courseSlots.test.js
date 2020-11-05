@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const pick = require('lodash/pick');
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
@@ -154,38 +155,32 @@ describe('updateCourseSlot', () => {
 });
 
 describe('removeSlot', () => {
-  let CourseSlotMock;
-  let createCourseHistory;
+  let deleteOne;
+  let createHistoryOnSlotDeletion;
   beforeEach(() => {
-    CourseSlotMock = sinon.mock(CourseSlot);
-    createCourseHistory = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
+    deleteOne = sinon.stub(CourseSlot, 'deleteOne');
+    createHistoryOnSlotDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
   });
   afterEach(() => {
-    CourseSlotMock.restore();
-    createCourseHistory.restore();
+    deleteOne.restore();
+    createHistoryOnSlotDeletion.restore();
   });
 
-  it('should updte a course slot', async () => {
-    const slotId = new ObjectID();
+  it('should update a course slot', async () => {
     const user = { _id: new ObjectID() };
     const returnedCourseSlot = {
+      _id: new ObjectID(),
       courseId: new ObjectID(),
       startDate: '2020-06-25T17:58:15',
       endDate: '2019-06-25T19:58:15',
       address: { fullAddress: '55 rue du sku, Skuville' },
     };
 
-    CourseSlotMock.expects('findById')
-      .withExactArgs(slotId)
-      .chain('lean')
-      .once()
-      .returns(returnedCourseSlot);
+    await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot, user);
 
-    CourseSlotMock.expects('deleteOne').withExactArgs({ _id: slotId });
+    const payload = pick(returnedCourseSlot, ['courseId', 'startDate', 'endDate', 'address']);
 
-    await CourseSlotsHelper.removeCourseSlot(slotId, user);
-
-    sinon.assert.calledOnceWithExactly(createCourseHistory, returnedCourseSlot, user._id);
-    CourseSlotMock.verify();
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, payload, user._id);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
   });
 });
