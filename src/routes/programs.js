@@ -2,12 +2,13 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeSubProgramAdd } = require('./preHandlers/programs');
+const { checkProgramExists } = require('./preHandlers/programs');
 const {
   list,
   listELearning,
   create,
   getById,
+  getProgramForUser,
   update,
   uploadImage,
   addSubProgram,
@@ -57,8 +58,22 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:read'] },
+        pre: [{ method: checkProgramExists }],
       },
       handler: getById,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/user',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { mode: 'required' },
+        pre: [{ method: checkProgramExists }],
+      },
+      handler: getProgramForUser,
     });
 
     server.route({
@@ -77,6 +92,7 @@ exports.plugin = {
           }).min(1),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgramExists }],
       },
       handler: update,
     });
@@ -90,7 +106,7 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeSubProgramAdd }],
+        pre: [{ method: checkProgramExists }],
       },
       handler: addSubProgram,
     });
@@ -111,6 +127,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgramExists }],
       },
     });
   },

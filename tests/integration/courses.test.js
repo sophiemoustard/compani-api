@@ -1138,6 +1138,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(200);
         const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
         expect(newUser).toBeDefined();
+        expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
       });

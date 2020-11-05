@@ -620,7 +620,7 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ distance: 10, duration: 60 });
   });
 
-  it('should return transport duration if break is shorter than transport duration', async () => {
+  it('should return break if break is shorter than transport duration', async () => {
     const event = {
       hasFixedService: false,
       startDate: '2019-01-18T15:30:00',
@@ -639,7 +639,7 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ distance: 8, duration: 60 });
+    expect(result).toEqual({ distance: 8, duration: 30 });
   });
 });
 
@@ -1714,7 +1714,7 @@ describe('computePrevPayDiff', () => {
       surchargedAndNotExempt: 3,
       surchargedAndNotExemptDetails: {},
       notSurchargedAndExempt: 6,
-      surchargedAndExempt: 3,
+      surchargedAndExempt: 0,
       surchargedAndExemptDetails: {},
       internalHours: 2,
       paidTransportHours: 4,
@@ -1732,7 +1732,7 @@ describe('computePrevPayDiff', () => {
         surchargedAndNotExempt: 1,
         surchargedAndNotExemptDetails: 'surchargedAndNotExemptDetails',
         notSurchargedAndExempt: -2,
-        surchargedAndExempt: -1,
+        surchargedAndExempt: -4,
         surchargedAndExemptDetails: 'surchargedAndExemptDetails',
         hoursBalance: -4,
         internalHours: 1,

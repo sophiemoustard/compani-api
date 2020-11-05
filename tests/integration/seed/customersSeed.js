@@ -38,7 +38,7 @@ const referentList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Referent2', lastname: 'Test', title: 'mr' },
+    identity: { firstname: 'SuperReferent', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },

@@ -5,6 +5,7 @@ const Contract = require('../models/Contract');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const ContractHelper = require('../helpers/contracts');
+const DpaeHelper = require('../helpers/dpae');
 const ContractRepository = require('../repositories/ContractRepository');
 
 const { language } = translate;
@@ -46,6 +47,17 @@ const update = async (req) => {
       message: translate[language].contractUpdated,
       data: { contract },
     };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const exportDpae = async (req, h) => {
+  try {
+    const txt = await DpaeHelper.exportDpae(req.pre.contract);
+
+    return h.file(txt, { confine: false });
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -152,6 +164,7 @@ module.exports = {
   list,
   create,
   update,
+  exportDpae,
   createContractVersion,
   updateContractVersion,
   removeContractVersion,

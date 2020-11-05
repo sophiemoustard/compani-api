@@ -27,7 +27,7 @@ ActivitySchema.virtual('activityHistories', {
 
 // eslint-disable-next-line consistent-return
 function setQuizCount() {
-  if (this.cards.length && this.cards[0].template) {
+  if (this.cards && this.cards.length && this.cards[0].template) {
     const quizTemplates = CARD_TEMPLATES.filter(temp => temp.type === QUIZ).map(temp => temp.value);
     return this.cards.filter(card => quizTemplates.includes(card.template)).length;
   }
@@ -37,11 +37,11 @@ ActivitySchema.virtual('quizCount').get(setQuizCount);
 
 // eslint-disable-next-line consistent-return
 function setAreCardsValid() {
-  if (this.cards.length && this.cards[0].template) { // if card is populated, template exists
+  if (this.cards && this.cards.length && this.cards[0].template) { // if card is populated, template exists
     return this.cards.every(card => card.isValid);
   }
 
-  if (this.cards.length === 0) {
+  if (this.cards && this.cards.length === 0) {
     return true;
   }
 }

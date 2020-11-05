@@ -93,6 +93,58 @@ describe('listELearning', () => {
   });
 });
 
+describe('getProgramForUser', () => {
+  let ProgramMock;
+  let CourseMock;
+  beforeEach(() => {
+    ProgramMock = sinon.mock(Program);
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    ProgramMock.restore();
+    CourseMock.restore();
+  });
+
+  it('should return programs with elearning subprograms', async () => {
+    const programId = new ObjectID();
+    const programsList = [{ name: 'name' }, { name: 'program' }];
+    const subPrograms = [new ObjectID()];
+    const credentials = { _id: new ObjectID() };
+
+    CourseMock.expects('find')
+      .withExactArgs({ format: 'strictly_e_learning' })
+      .chain('lean')
+      .returns([{ subProgram: subPrograms[0] }]);
+
+    ProgramMock.expects('findOne')
+      .withExactArgs({ _id: programId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'subPrograms',
+        select: 'name',
+        match: { _id: { $in: subPrograms } },
+        populate: [
+          { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
+          {
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
+              select: 'activityHistories',
+              populate: { path: 'activityHistories', match: { user: credentials._id } },
+            },
+          },
+        ],
+      })
+      .chain('lean')
+      .once()
+      .returns(programsList);
+
+    const result = await ProgramHelper.getProgramForUser(programId, credentials);
+    expect(result).toMatchObject(programsList);
+  });
+});
+
 describe('getProgram', () => {
   let ProgramMock;
   beforeEach(() => {

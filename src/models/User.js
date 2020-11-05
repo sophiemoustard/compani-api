@@ -25,6 +25,7 @@ const roleSchemaDefinition = {
 // User schema
 const UserSchema = mongoose.Schema({
   refreshToken: { type: String, select: false },
+  serialNumber: { type: String, immutable: true, required: true, unique: true },
   passwordToken: {
     type: mongoose.Schema({
       token: { type: String },
@@ -134,6 +135,27 @@ const validateEmail = (email) => {
   return emailSchema.validate({ email });
 };
 
+const setSerialNumber = (user) => {
+  const createdAt = moment(user.createdAt).format('YYMMDD');
+  const timestamp = moment(user.createdAt).valueOf().toString();
+  const lastname = user.identity.lastname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
+  const firstname = user.identity.firstname
+    ? user.identity.firstname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase()
+    : '';
+
+  return `${lastname}${firstname}${createdAt}${timestamp.slice(-8)}`;
+};
+
+async function validate(next) {
+  try {
+    if (this.isNew) this.serialNumber = setSerialNumber(this);
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 async function save(next) {
   try {
     const user = this;
@@ -193,13 +215,6 @@ const isActive = (auxiliary) => {
 function setIsActive() {
   return isActive(this);
 }
-
-const serialNumber = (auxiliary) => {
-  const createdAt = moment(auxiliary.createdAt).format('YYMMDDHHmm');
-  const initials = `${auxiliary.identity.lastname.substring(0, 2)}${auxiliary.identity.firstname.charAt(0)}`;
-
-  return `${initials.toUpperCase()}${createdAt}`;
-};
 
 // eslint-disable-next-line consistent-return
 function setContractCreationMissingInfo() {
@@ -270,12 +285,12 @@ UserSchema.virtual('blendedCoursesCount', {
   options: { match: { format: BLENDED } },
 });
 
-UserSchema.statics.serialNumber = serialNumber;
 UserSchema.statics.isActive = isActive;
 
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissingInfo);
 
+UserSchema.pre('validate', validate);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('updateOne', findOneAndUpdate);

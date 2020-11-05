@@ -46,7 +46,7 @@ const auxiliaries = [{
   company: authCompany._id,
 }, {
   _id: auxiliaryId2,
-  identity: { firstname: 'Test8', lastname: 'Test8' },
+  identity: { firstname: 'OtherTest', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456!eR' },
   employee_id: 12345679,
   refreshToken: uuidv4(),

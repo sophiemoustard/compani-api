@@ -70,6 +70,40 @@ const courseHistoriesList = [{
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+},
+{
+  createdBy: new ObjectID(),
+  action: SLOT_CREATION,
+  course: coursesList[2]._id,
+  slot: {
+    startDate: '2020-06-25T05:00:00',
+    endDate: '2020-06-25T07:00:00',
+    address: {
+      fullAddress: '4 rue du test 92240 Malakoff',
+      street: '4 rue du test',
+      zipCode: '92240',
+      city: 'Malakoff',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  createdAt: '2020-06-26T05:00:00',
+},
+{
+  createdBy: new ObjectID(),
+  action: SLOT_CREATION,
+  course: coursesList[2]._id,
+  slot: {
+    startDate: '2020-06-25T05:00:00',
+    endDate: '2020-06-25T07:00:00',
+    address: {
+      fullAddress: '4 rue du test 92240 Malakoff',
+      street: '4 rue du test',
+      zipCode: '92240',
+      city: 'Malakoff',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  createdAt: '2020-06-25T05:00:00',
 }];
 
 const populateDB = async () => {
