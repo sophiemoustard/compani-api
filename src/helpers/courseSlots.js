@@ -23,7 +23,7 @@ exports.createCourseSlot = async (payload, user) => {
   const hasConflicts = await exports.hasConflicts(payload);
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  if (payload.startDate) CourseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
+  if (payload.startDate) await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
 
   return (new CourseSlot(payload)).save();
 };
