@@ -1,18 +1,21 @@
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const CourseHistory = require('../models/CourseHistory');
-const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('./constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION } = require('./constants');
 
 exports.createHistory = async (payload, userId, action) => CourseHistory.create({
   createdBy: userId,
   action,
   course: payload.courseId,
   slot: pick(payload, ['startDate', 'endDate', 'address']),
+  ...pick(payload, 'trainee'),
 });
 
 exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory(payload, userId, SLOT_CREATION);
 
 exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(payload, userId, SLOT_DELETION);
+
+exports.createHistoryOnTraineeAddition = (payload, userId) => exports.createHistory(payload, userId, TRAINEE_ADDITION);
 
 exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
   const isDateUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'd');

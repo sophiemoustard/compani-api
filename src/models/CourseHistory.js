@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../helpers/constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION,  } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
-const ACTION_TYPES = [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION];
+const ACTION_TYPES = [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION];
 
 const CourseHistorySchema = mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
@@ -14,6 +14,11 @@ const CourseHistorySchema = mongoose.Schema({
     address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   },
   update: { startDate: { from: { type: Date }, to: { type: Date } } },
+  trainee: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: () => [TRAINEE_ADDITION].includes(this.action),
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CourseHistory', CourseHistorySchema);

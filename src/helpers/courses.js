@@ -19,6 +19,7 @@ const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const courseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -224,18 +225,24 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, trainee) => {
+exports.addCourseTrainee = async (courseId, payload, trainee, user) => {
   let coursePayload;
+  let traineeId;
   if (!trainee) {
     const newUser = await UsersHelper.createUser(payload);
-    coursePayload = { trainees: newUser._id };
+    traineeId = newUser._id;
+    coursePayload = { trainees: traineeId };
   } else {
+    traineeId = trainee._id;
     if (!trainee.company) {
       const updateUserPayload = pick(payload, 'company');
-      await UsersHelper.updateUser(trainee._id, updateUserPayload, null);
+      await UsersHelper.updateUser(traineeId, updateUserPayload, null);
     }
-    coursePayload = { trainees: trainee._id };
+    coursePayload = { trainees: traineeId };
   }
+
+  await courseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, trainee: traineeId }, user._id);
+
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
 

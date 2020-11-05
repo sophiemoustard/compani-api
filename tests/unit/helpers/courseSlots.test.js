@@ -139,7 +139,7 @@ describe('updateCourseSlot', () => {
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
-    sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user);
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: slot._id }, { $set: payload });
   });
 

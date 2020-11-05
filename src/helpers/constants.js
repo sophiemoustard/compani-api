@@ -319,4 +319,5 @@ module.exports = {
   SLOT_CREATION: 'slot_creation',
   SLOT_DELETION: 'slot_deletion',
   SLOT_EDITION: 'slot_edition',
+  TRAINEE_ADDITION: 'trainee_addition',
 };
