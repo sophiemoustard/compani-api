@@ -620,7 +620,7 @@ describe('GET /users/learners', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should return true and all learners', async () => {
+    it('should return all learners', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/learners',
@@ -659,7 +659,7 @@ describe('GET /users/learners', () => {
         .toBeTruthy();
     });
 
-    it('should return 200 if coach requests learners from his company', async () => {
+    it('should return 200 if client admin requests learners from his company', async () => {
       authToken = await getToken('client_admin');
       const res = await app.inject({
         method: 'GET',
@@ -704,6 +704,21 @@ describe('GET /users/learners', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    [{ name: 'coach', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }].forEach((role) => {
+      it(
+        `should return ${role.expectedCode} as user is ${role.name} and does not request user from his company`,
+        async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/learners?company=${otherCompany._id}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
     });
   });
 });
