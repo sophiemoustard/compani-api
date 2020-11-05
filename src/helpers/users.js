@@ -94,16 +94,12 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getLearnerList = async (query, credentials) => {
-  const queryCompany = query.company ? { company: query.company } : {};
-
-  return User
-    .find(queryCompany, 'identity.firstname identity.lastname picture', { autopopulate: false })
-    .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'blendedCoursesCount' })
-    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
-    .lean();
-};
+exports.getLearnerList = async (query, credentials) => User
+  .find(query, 'identity.firstname identity.lastname picture', { autopopulate: false })
+  .populate({ path: 'company', select: 'name' })
+  .populate({ path: 'blendedCoursesCount' })
+  .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+  .lean();
 
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
