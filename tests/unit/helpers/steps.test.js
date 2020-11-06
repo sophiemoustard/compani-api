@@ -142,6 +142,16 @@ describe('onSiteStepProgress', () => {
 });
 
 describe('getProgress', () => {
+  let elearningStepProgress;
+  let onSiteStepProgress;
+  beforeEach(() => {
+    elearningStepProgress = sinon.stub(StepHelper, 'elearningStepProgress');
+    onSiteStepProgress = sinon.stub(StepHelper, 'onSiteStepProgress');
+  });
+  afterEach(() => {
+    elearningStepProgress.restore();
+    onSiteStepProgress.restore();
+  });
   it('should get progress for elearning step', async () => {
     const step = {
       _id: new ObjectID(),
@@ -151,9 +161,11 @@ describe('getProgress', () => {
       areActivitiesValid: false,
     };
     const slots = [];
+    elearningStepProgress.returns(1);
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toBe(1);
+    sinon.assert.calledWith(elearningStepProgress, step);
   });
 
   it('should return 0 if no activityHistories', async () => {
@@ -165,10 +177,12 @@ describe('getProgress', () => {
       areActivitiesValid: false,
     };
     const slots = [];
+    elearningStepProgress.returns(0);
 
     const result = await StepHelper.getProgress(step, slots);
 
     expect(result).toBe(0);
+    sinon.assert.calledWith(elearningStepProgress, step);
   });
 
   it('should get progress for on site step', async () => {
@@ -184,10 +198,11 @@ describe('getProgress', () => {
       { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
       { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
     ];
+    onSiteStepProgress.returns(1);
 
     const result = await StepHelper.getProgress(step, slots);
-
     expect(result).toBe(1);
+    sinon.assert.calledWith(onSiteStepProgress, slots);
   });
 
   it('should return 0 if no slots', async () => {
@@ -199,9 +214,10 @@ describe('getProgress', () => {
       areActivitiesValid: true,
     };
     const slots = [];
+    onSiteStepProgress.returns(0);
 
     const result = await StepHelper.getProgress(step, slots);
-
     expect(result).toBe(0);
+    sinon.assert.calledWith(onSiteStepProgress, slots);
   });
 });
