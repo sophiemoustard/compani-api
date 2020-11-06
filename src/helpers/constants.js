@@ -317,4 +317,5 @@ module.exports = {
   get SMS_TAGS() { return [this.COURSE_SMS, this.HR_SMS]; },
   // CourseHistory
   SLOT_CREATION: 'slot_creation',
+  SLOT_DELETION: 'slot_deletion',
 };

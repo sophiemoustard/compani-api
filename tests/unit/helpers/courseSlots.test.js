@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const pick = require('lodash/pick');
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
@@ -155,17 +156,31 @@ describe('updateCourseSlot', () => {
 
 describe('removeSlot', () => {
   let deleteOne;
+  let createHistoryOnSlotDeletion;
   beforeEach(() => {
     deleteOne = sinon.stub(CourseSlot, 'deleteOne');
+    createHistoryOnSlotDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
   });
   afterEach(() => {
     deleteOne.restore();
+    createHistoryOnSlotDeletion.restore();
   });
 
-  it('should updte a course slot', async () => {
-    const slotId = new ObjectID();
+  it('should update a course slot', async () => {
+    const user = { _id: new ObjectID() };
+    const returnedCourseSlot = {
+      _id: new ObjectID(),
+      courseId: new ObjectID(),
+      startDate: '2020-06-25T17:58:15',
+      endDate: '2019-06-25T19:58:15',
+      address: { fullAddress: '55 rue du sku, Skuville' },
+    };
 
-    await CourseSlotsHelper.removeCourseSlot(slotId);
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: slotId });
+    await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot, user);
+
+    const payload = pick(returnedCourseSlot, ['courseId', 'startDate', 'endDate', 'address']);
+
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, payload, user._id);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
   });
 });

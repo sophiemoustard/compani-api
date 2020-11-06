@@ -5,7 +5,7 @@ const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { SLOT_CREATION } = require('../../src/helpers/constants');
+const { SLOT_CREATION, SLOT_DELETION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -45,14 +45,13 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const courseHistory = await CourseHistory.findOne({
-        courseId: payload.courseId,
-        slot: { startDate: payload.startDate },
+      const courseHistory = await CourseHistory.countDocuments({
+        course: payload.courseId,
+        'slot.startDate': payload.startDate,
         action: SLOT_CREATION,
-      })
-        .lean();
+      });
 
-      expect(courseHistory).toBeDefined();
+      expect(courseHistory).toEqual(1);
     });
 
     it('should create slot to plan', async () => {
@@ -598,7 +597,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       token = await getToken('vendor_admin');
     });
 
-    it('should delete course slot', async () => {
+    it('should delete course slot and create courseHistory', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${courseSlotsList[0]._id}`,
@@ -606,6 +605,14 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseSlotsList[0].courseId,
+        'slot.startDate': courseSlotsList[0].startDate,
+        action: SLOT_DELETION,
+      });
+
+      expect(courseHistory).toEqual(1);
     });
 
     it('should return 404 if slot not found', async () => {
