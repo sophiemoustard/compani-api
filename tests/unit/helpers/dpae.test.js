@@ -63,7 +63,7 @@ describe('exportDpae', () => {
   });
 
   it('should export dpae', async () => {
-    const contract = { startDate: '2020-10-03T00:00:00', user: 'mon auxiliaire' };
+    const contract = { startDate: '2020-10-03T00:00:00', user: 'mon auxiliaire', serialNumber: '1234567890' };
     const auxiliary = {
       identity: {
         title: 'mr',
@@ -100,6 +100,7 @@ describe('exportDpae', () => {
         'ap_soc',
         'ap_etab',
         'ap_matr',
+        'ap_contrat',
         'fs_titre',
         'fs_nom',
         'fs_prenom',
@@ -130,6 +131,7 @@ describe('exportDpae', () => {
         process.env.AP_SOC,
         '67890',
         'serialNumber',
+        '1234567890',
         1,
         'Sandbox',
         'Olivier',

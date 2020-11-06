@@ -42,6 +42,7 @@ exports.exportDpae = async (contract) => {
     ap_soc: process.env.AP_SOC,
     ap_etab: (get(auxiliary, 'establishment.siret') || '').slice(-NIC_LENGHT),
     ap_matr: auxiliary.serialNumber || '',
+    ap_contrat: contract.serialNumber,
     fs_titre: FS_TITRE_CODE[get(auxiliary, 'identity.title')] || '',
     fs_nom: get(auxiliary, 'identity.lastname') || '',
     fs_prenom: get(auxiliary, 'identity.firstname') || '',
