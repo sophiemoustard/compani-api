@@ -13,12 +13,7 @@ const CourseHistorySchema = mongoose.Schema({
     endDate: { type: Date, required: () => [SLOT_CREATION, SLOT_DELETION].includes(this.action) },
     address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   },
-  update: {
-    startDate: {
-      from: { type: Date },
-      to: { type: Date },
-    },
-  },
+  update: { startDate: { from: { type: Date }, to: { type: Date } } },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CourseHistory', CourseHistorySchema);
