@@ -724,7 +724,7 @@ describe('addCourseTrainee', () => {
     CourseMock.verify();
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { courseId: course._id, trainee: user._id },
+      { courseId: course._id, traineeId: user._id },
       addedBy._id
     );
     sinon.assert.notCalled(createUserStub);
@@ -749,7 +749,7 @@ describe('addCourseTrainee', () => {
     RoleMock.verify();
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { courseId: course._id, trainee: user._id },
+      { courseId: course._id, traineeId: user._id },
       addedBy._id
     );
     sinon.assert.calledWithExactly(createUserStub, payload);

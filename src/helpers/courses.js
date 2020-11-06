@@ -241,7 +241,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee, user) => {
     coursePayload = { trainees: traineeId };
   }
 
-  await CourseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, trainee: traineeId }, user._id);
+  await CourseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, traineeId }, user._id);
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
