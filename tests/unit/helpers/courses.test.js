@@ -18,6 +18,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 require('sinon-mongoose');
@@ -460,15 +461,41 @@ describe('getCourseFollowUp', () => {
 
 describe('getTraineeCourse', () => {
   let CourseMock;
+  let getProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
     CourseMock.restore();
+    getProgress.restore();
   });
 
   it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
+    const stepId = new ObjectID();
+    const course = {
+      _id: new ObjectID(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectID(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId }],
+    };
     const credentials = { _id: new ObjectID() };
 
     CourseMock.expects('findOne')
@@ -500,9 +527,18 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
+    getProgress.returns(1);
 
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
-    expect(result).toMatchObject(course);
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
   });
 });
 

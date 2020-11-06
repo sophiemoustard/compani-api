@@ -649,6 +649,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           name: step.name,
           type: step.type,
           areActivitiesValid: false,
+          progress: expect.any(Number),
           activities: [{
             _id: expect.any(ObjectID),
             name: activity.name,
