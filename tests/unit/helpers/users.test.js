@@ -402,11 +402,8 @@ describe('getLearnerList', () => {
     const credentials = { role: { vendor: new ObjectID() } };
     const query = { company: new ObjectID() };
     UserMock.expects('find')
-      .withExactArgs(
-        { query },
-        'identity.firstname identity.lastname picture',
-        { autopopulate: false }
-      ).chain('populate')
+      .withExactArgs(query, 'identity.firstname identity.lastname picture', { autopopulate: false })
+      .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
       .withExactArgs({ path: 'blendedCoursesCount' })
