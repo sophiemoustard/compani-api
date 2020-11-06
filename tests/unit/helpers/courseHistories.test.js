@@ -3,7 +3,13 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION } = require('../../../src/helpers/constants');
+const {
+  SLOT_CREATION,
+  SLOT_DELETION,
+  SLOT_EDITION,
+  TRAINEE_ADDITION,
+  TRAINEE_DELETION,
+} = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('createHistoryOnSlotCreation', () => {
@@ -269,6 +275,38 @@ describe('createHistoryOnTraineeAddition', () => {
         course: payload.courseId,
         createdBy: userId,
         action: TRAINEE_ADDITION,
+        trainee: payload.traineeId,
+      }
+    );
+  });
+});
+
+describe('createHistoryOnTraineeDeletion', () => {
+  let create;
+
+  beforeEach(() => {
+    create = sinon.stub(CourseHistory, 'create');
+  });
+
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const payload = {
+      traineeId: new ObjectID(),
+      courseId: new ObjectID(),
+    };
+    const userId = new ObjectID();
+
+    await CourseHistoriesHelper.createHistoryOnTraineeDeletion(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        course: payload.courseId,
+        createdBy: userId,
+        action: TRAINEE_DELETION,
         trainee: payload.traineeId,
       }
     );

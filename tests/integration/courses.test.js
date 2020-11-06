@@ -9,7 +9,7 @@ const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -1413,7 +1413,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
   });
 });
 
-describe('COURSES ROUTES - DELETE /courses/{_id}/traineese-learning-/{traineeId}', () => {
+describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
@@ -1436,6 +1436,13 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/traineese-learning-/{traineeId}
       expect(response.statusCode).toBe(200);
       const course = await Course.findById(courseIdFromAuthCompany).lean();
       expect(course.trainees).toHaveLength(coursesList[2].trainees.length - 1);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseIdFromAuthCompany,
+        trainee: traineeId,
+        action: TRAINEE_DELETION,
+      });
+      expect(courseHistory).toEqual(1);
     });
   });
 

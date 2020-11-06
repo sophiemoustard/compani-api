@@ -183,7 +183,7 @@ const registerToELearningCourse = async (req) => {
 
 const removeTrainee = async (req) => {
   try {
-    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
+    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId, req.auth.credentials);
 
     return { message: translate[language].courseTraineeRemoved };
   } catch (e) {

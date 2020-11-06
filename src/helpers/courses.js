@@ -242,8 +242,12 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
 exports.registerToELearningCourse = async (courseId, credentials) =>
   Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
 
-exports.removeCourseTrainee = async (courseId, traineeId) =>
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } });
+exports.removeCourseTrainee = async (courseId, traineeId, user) => {
+  await Promise.all([
+    CourseHistoriesHelper.createHistoryOnTraineeDeletion({ courseId, traineeId }, user._id),
+    Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
+  ]);
+};
 
 exports.formatIntraCourseSlotsForPdf = slot => ({
   startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),
