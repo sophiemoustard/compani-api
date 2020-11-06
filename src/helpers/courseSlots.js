@@ -42,7 +42,7 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
     to: payload.startDate,
   };
   await Promise.all([
-    CourseHistoriesHelper.createHistoryOnSlotEdition(dates, user._id),
+    CourseHistoriesHelper.createHistoryOnSlotEdition(dates, pick(user, '_id')),
     CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
   ]);
 };
