@@ -3,13 +3,13 @@ const moment = require('../extensions/moment');
 const CourseHistory = require('../models/CourseHistory');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION } = require('./constants');
 
-exports.createHistory = async (payload, userId, action) => CourseHistory.create({
-  createdBy: userId,
-  action,
-  course: payload.courseId,
-  slot: pick(payload, ['startDate', 'endDate', 'address']),
-  ...pick(payload, 'trainee'),
-});
+exports.createHistory = async (payload, userId, action) => {
+  const actionPayload = payload.traineeId
+    ? { trainee: payload.traineeId }
+    : { slot: pick(payload, ['startDate', 'endDate', 'address']) };
+
+  return CourseHistory.create({ createdBy: userId, action, course: payload.courseId, ...actionPayload });
+};
 
 exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory(payload, userId, SLOT_CREATION);
 

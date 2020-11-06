@@ -230,13 +230,10 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
 
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
-  await CourseHistoriesHelper.createHistoryOnTraineeAddition(
-    { courseId, traineeId: addedTrainee._id },
-    credentials._id
-  );
-
-  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
-    .lean();
+  await Promise.all([
+    CourseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, traineeId: addedTrainee._id }, credentials._id),
+    Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true }).lean(),
+  ]);
 };
 
 exports.registerToELearningCourse = async (courseId, credentials) =>
