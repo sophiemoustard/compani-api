@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const _ = require('lodash');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -18,6 +19,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 require('sinon-mongoose');
@@ -460,15 +462,41 @@ describe('getCourseFollowUp', () => {
 
 describe('getTraineeCourse', () => {
   let CourseMock;
+  let elearningStepProgress;
+  let onSiteStepProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    elearningStepProgress = sinon.stub(StepHelper, 'elearningStepProgress');
+    onSiteStepProgress = sinon.stub(StepHelper, 'onSiteStepProgress');
   });
   afterEach(() => {
     CourseMock.restore();
+    elearningStepProgress.restore();
+    onSiteStepProgress.restore();
   });
 
   it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
+    const course = {
+      _id: new ObjectID(),
+      subProgram: {
+        steps: [{
+          _id: '5fa159a1795723a10b12825a',
+          activities: [{ activityHistories: [[Object], [Object]] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: '5f329fb55e3e5000146e7f74',
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [{ endDate: '2020-11-03T09:00:00.000Z' }, { endDate: '2020-11-04T16:01:00.000Z' }],
+    };
     const credentials = { _id: new ObjectID() };
 
     CourseMock.expects('findOne')
@@ -500,9 +528,15 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
+    elearningStepProgress.returns(1);
+    onSiteStepProgress.returns(1);
 
+    const expectedCourse = _.cloneDeep(course);
+    expectedCourse.subProgram.steps = expectedCourse.subProgram.steps.map(step => ({ ...step, progress: 1 }));
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
-    expect(result).toMatchObject(course);
+    expect(result).toMatchObject(expectedCourse);
+    sinon.assert.calledWith(elearningStepProgress, course.subProgram.steps[0]);
+    sinon.assert.calledWith(onSiteStepProgress, course.slots);
   });
 });
 

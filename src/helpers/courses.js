@@ -16,6 +16,7 @@ const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
+const StepHelper = require('./steps');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
 
@@ -146,29 +147,38 @@ exports.getCourseFollowUp = async (courseId) => {
   };
 };
 
-exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
-  .populate({
-    path: 'subProgram',
-    select: 'program steps',
-    populate: [
-      { path: 'program', select: 'name image' },
-      {
-        path: 'steps',
-        select: 'name type activities',
-        populate: {
-          path: 'activities',
-          select: 'name type cards activityHistories',
-          populate: [
-            { path: 'activityHistories', match: { user: credentials._id } },
-            { path: 'cards', select: 'template' },
-          ],
+exports.getTraineeCourse = async (courseId, credentials) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [
+        { path: 'program', select: 'name image' },
+        {
+          path: 'steps',
+          select: 'name type activities',
+          populate: {
+            path: 'activities',
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'cards', select: 'template' },
+            ],
+          },
         },
-      },
-    ],
-  })
-  .populate({ path: 'slots', select: 'startDate endDate step address' })
-  .select('_id')
-  .lean({ autopopulate: true, virtuals: true });
+      ],
+    })
+    .populate({ path: 'slots', select: 'startDate endDate step address' })
+    .select('_id')
+    .lean({ autopopulate: true, virtuals: true });
+
+  const stepsWithProgress = course.subProgram.steps.map(step =>
+    (step.type === 'e_learning' ? StepHelper.elearningStepProgress(step)
+      : StepHelper.onSiteStepProgress(course.slots.filter(slot => String(slot.step) === String(step._id)))));
+  course.subProgram.steps =
+    course.subProgram.steps.map((step, index) => ({ ...step, progress: stepsWithProgress[index] }));
+  return course;
+};
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();

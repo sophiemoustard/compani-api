@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
@@ -88,5 +89,49 @@ describe('detachStep', () => {
     await StepHelper.detachStep(subProgramId, stepId);
 
     sinon.assert.calledWithExactly(SubProgramUpdate, { _id: subProgramId }, { $pull: { steps: stepId } });
+  });
+});
+
+describe('elearningStepProgress', () => {
+  it('should get elearning steps progress', async () => {
+    const step = {
+      _id: '5fa159a1795723a10b12825a',
+      activities: [{ activityHistories: [[Object], [Object]] }],
+      name: 'Développement personnel full stack',
+      type: 'e_learning',
+      areActivitiesValid: false,
+    };
+
+    const result = await StepHelper.elearningStepProgress(step);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no activityHistories', async () => {
+    const step = {
+      _id: '5fa159a1795723a10b12825a',
+      activities: [],
+      name: 'Développement personnel full stack',
+      type: 'e_learning',
+      areActivitiesValid: false,
+    };
+
+    const result = await StepHelper.elearningStepProgress(step);
+    expect(result).toBe(0);
+  });
+});
+
+describe('onSiteStepProgress', () => {
+  it('should get on site steps progress', async () => {
+    const slots = [{ endDate: '2020-11-03T09:00:00.000Z' }, { endDate: '2020-11-04T16:01:00.000Z' }];
+
+    const result = await StepHelper.onSiteStepProgress(slots);
+    expect(result).toBe(1);
+  });
+  it('should return 0 if no slots', async () => {
+    const slots = [];
+
+    const result = await StepHelper.onSiteStepProgress(slots);
+
+    expect(result).toBe(0);
   });
 });
