@@ -13,13 +13,13 @@ exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory
 
 exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(payload, userId, SLOT_DELETION);
 
-exports.createHistoryOnSlotEdition = async (payload, userId) => {
-  if (payload.from !== payload.to) {
+exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
+  if (slotFromDb.startDate !== payload.startDate) {
     return CourseHistory.create({
       createdBy: userId,
       action: SLOT_EDITION,
-      course: payload.courseId,
-      update: { startDate: pick(payload, ['from', 'to']) },
+      course: slotFromDb.courseId,
+      update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } },
     });
   }
   return null;
