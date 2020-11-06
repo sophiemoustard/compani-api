@@ -65,16 +65,16 @@ describe('hasConflicts', () => {
 describe('createCourseSlot', () => {
   let save;
   let hasConflicts;
-  let createCourseHistory;
+  let createHistoryOnSlotCreation;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
-    createCourseHistory = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotCreation');
+    createHistoryOnSlotCreation = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotCreation');
   });
   afterEach(() => {
     save.restore();
     hasConflicts.restore();
-    createCourseHistory.restore();
+    createHistoryOnSlotCreation.restore();
   });
 
   it('should create a course slot', async () => {
@@ -90,7 +90,7 @@ describe('createCourseSlot', () => {
 
     const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
-    sinon.assert.calledOnceWithExactly(createCourseHistory, newSlot, user._id);
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotCreation, newSlot, user._id);
     expect(result.courseId).toEqual(newSlot.courseId);
     expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
     expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());

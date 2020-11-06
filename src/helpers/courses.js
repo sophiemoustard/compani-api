@@ -19,7 +19,7 @@ const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
-const courseHistoriesHelper = require('./courseHistories');
+const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -241,7 +241,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee, user) => {
     coursePayload = { trainees: traineeId };
   }
 
-  await courseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, trainee: traineeId }, user._id);
+  await CourseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, trainee: traineeId }, user._id);
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
 };
