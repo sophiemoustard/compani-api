@@ -8,7 +8,8 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
-const { CONVOCATION, COURSE_SMS } = require('../../src/helpers/constants');
+const CourseHistory = require('../../src/models/CourseHistory');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -1126,6 +1127,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
+
+        const courseHistory = await CourseHistory.countDocuments({
+          course: intraCourseIdFromAuthCompany,
+          trainee: auxiliary._id,
+          action: TRAINEE_ADDITION,
+        });
+        expect(courseHistory).toEqual(1);
       });
 
       it('should add new user to course trainees', async () => {
@@ -1142,6 +1150,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
+
+        const courseHistory = await CourseHistory.countDocuments({
+          course: intraCourseIdFromAuthCompany,
+          trainee: newUser._id,
+          action: TRAINEE_ADDITION,
+        });
+        expect(courseHistory).toEqual(1);
       });
 
       it('should add user to course trainees, and update user by adding his company', async () => {

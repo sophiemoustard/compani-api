@@ -21,6 +21,7 @@ const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
+const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -691,18 +692,22 @@ describe('addCourseTrainee', () => {
   let RoleMock;
   let createUserStub;
   let updateUserStub;
+  let createHistoryOnTraineeAddition;
   beforeEach(() => {
     CourseMock = sinon.mock(Course, 'CourseMock');
     RoleMock = sinon.mock(Role, 'RoleMock');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
     updateUserStub = sinon.stub(UsersHelper, 'updateUser');
+    createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
   });
   afterEach(() => {
     CourseMock.restore();
     RoleMock.restore();
     createUserStub.restore();
     updateUserStub.restore();
+    createHistoryOnTraineeAddition.restore();
   });
+  const addedBy = { _id: new ObjectID() };
 
   it('should add a course trainee using existing user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID() };
@@ -714,9 +719,14 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnTraineeAddition,
+      { courseId: course._id, traineeId: user._id },
+      addedBy._id
+    );
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(updateUserStub);
   });
@@ -733,10 +743,15 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, null);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, null, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
     RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnTraineeAddition,
+      { courseId: course._id, traineeId: user._id },
+      addedBy._id
+    );
     sinon.assert.calledWithExactly(createUserStub, payload);
     sinon.assert.notCalled(updateUserStub);
   });
@@ -751,7 +766,7 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
     CourseMock.verify();
