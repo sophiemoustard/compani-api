@@ -28,7 +28,7 @@ exports.createCourseSlot = async (payload, user) => {
   return (new CourseSlot(payload)).save();
 };
 
-exports.updateCourseSlot = async (slotFromDb, payload) => {
+exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
@@ -36,7 +36,10 @@ exports.updateCourseSlot = async (slotFromDb, payload) => {
 
   if (!payload.step) updatePayload.$unset = { step: '' };
 
-  await CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload);
+  await Promise.all([
+    CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user),
+    CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
+  ]);
 };
 
 exports.removeCourseSlot = async (courseSlot, user) => {

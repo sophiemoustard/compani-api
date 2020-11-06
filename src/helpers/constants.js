@@ -318,4 +318,5 @@ module.exports = {
   // CourseHistory
   SLOT_CREATION: 'slot_creation',
   SLOT_DELETION: 'slot_deletion',
+  SLOT_EDITION: 'slot_edition',
 };
