@@ -94,6 +94,19 @@ const auxiliaryFromOtherCompany = {
   inactivityDate: null,
 };
 
+const coachAndTrainer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'bothInterface', lastname: 'Coach Trainer' },
+  local: { email: 'both-interface@alenvi.io', password: '123456!eR' },
+  role: {
+    client: rolesList.find(role => role.name === 'coach')._id,
+    vendor: rolesList.find(role => role.name === 'trainer')._id,
+  },
+  refreshToken: uuidv4(),
+  company: otherCompany._id,
+  inactivityDate: null,
+};
+
 const contractId = new ObjectID();
 const contractNotStartedId = new ObjectID();
 
@@ -258,7 +271,13 @@ const populateDB = async () => {
   await Course.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create(usersSeedList.concat([helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany]));
+  await User.create([
+    ...usersSeedList,
+    helperFromOtherCompany,
+    coachFromOtherCompany,
+    auxiliaryFromOtherCompany,
+    coachAndTrainer,
+  ]);
   await Customer.create(customerFromOtherCompany);
   await Customer.create(authCustomer);
   await Sector.create(userSectors);
@@ -282,4 +301,5 @@ module.exports = {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   authCustomer,
+  coachAndTrainer,
 };
