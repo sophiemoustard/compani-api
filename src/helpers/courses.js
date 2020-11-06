@@ -18,7 +18,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, E_LEARNING } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -172,12 +172,17 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id')
     .lean({ autopopulate: true, virtuals: true });
 
-  const stepsWithProgress = course.subProgram.steps.map(step =>
-    (step.type === 'e_learning' ? StepHelper.elearningStepProgress(step)
-      : StepHelper.onSiteStepProgress(course.slots.filter(slot => String(slot.step) === String(step._id)))));
-  course.subProgram.steps =
-    course.subProgram.steps.map((step, index) => ({ ...step, progress: stepsWithProgress[index] }));
-  return course;
+  const stepsWithProgress = course.subProgram.steps.map(step => (step.type === E_LEARNING
+    ? StepHelper.elearningStepProgress(step)
+    : StepHelper.onSiteStepProgress(course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step, step._id)))));
+
+  return {
+    ...course,
+    subProgram: {
+      ...course.subProgram,
+      steps: course.subProgram.steps.map((step, index) => ({ ...step, progress: stepsWithProgress[index] })),
+    },
+  };
 };
 
 exports.updateCourse = async (courseId, payload) =>

@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const _ = require('lodash');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -476,18 +475,19 @@ describe('getTraineeCourse', () => {
   });
 
   it('should return courses', async () => {
+    const stepId = new ObjectID();
     const course = {
       _id: new ObjectID(),
       subProgram: {
         steps: [{
-          _id: '5fa159a1795723a10b12825a',
+          _id: new ObjectID(),
           activities: [{ activityHistories: [[Object], [Object]] }],
           name: 'Développement personnel full stack',
           type: 'e_learning',
           areActivitiesValid: false,
         },
         {
-          _id: '5f329fb55e3e5000146e7f74',
+          _id: stepId,
           activities: [],
           name: 'Développer des équipes agiles et autonomes',
           type: 'on_site',
@@ -495,7 +495,9 @@ describe('getTraineeCourse', () => {
         },
         ],
       },
-      slots: [{ endDate: '2020-11-03T09:00:00.000Z' }, { endDate: '2020-11-04T16:01:00.000Z' }],
+      slots: [
+        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId }],
     };
     const credentials = { _id: new ObjectID() };
 
@@ -531,10 +533,14 @@ describe('getTraineeCourse', () => {
     elearningStepProgress.returns(1);
     onSiteStepProgress.returns(1);
 
-    const expectedCourse = _.cloneDeep(course);
-    expectedCourse.subProgram.steps = expectedCourse.subProgram.steps.map(step => ({ ...step, progress: 1 }));
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
-    expect(result).toMatchObject(expectedCourse);
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+    });
     sinon.assert.calledWith(elearningStepProgress, course.subProgram.steps[0]);
     sinon.assert.calledWith(onSiteStepProgress, course.slots);
   });
