@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION,  } = require('../helpers/constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const ACTION_TYPES = [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION];
