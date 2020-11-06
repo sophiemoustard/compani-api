@@ -461,17 +461,14 @@ describe('getCourseFollowUp', () => {
 
 describe('getTraineeCourse', () => {
   let CourseMock;
-  let elearningStepProgress;
-  let onSiteStepProgress;
+  let getProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
-    elearningStepProgress = sinon.stub(StepHelper, 'elearningStepProgress');
-    onSiteStepProgress = sinon.stub(StepHelper, 'onSiteStepProgress');
+    getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
     CourseMock.restore();
-    elearningStepProgress.restore();
-    onSiteStepProgress.restore();
+    getProgress.restore();
   });
 
   it('should return courses', async () => {
@@ -530,8 +527,7 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
-    elearningStepProgress.returns(1);
-    onSiteStepProgress.returns(1);
+    getProgress.returns(1);
 
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
     expect(result).toMatchObject({
@@ -541,8 +537,8 @@ describe('getTraineeCourse', () => {
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       },
     });
-    sinon.assert.calledOnceWithExactly(elearningStepProgress, course.subProgram.steps[0]);
-    sinon.assert.calledOnceWithExactly(onSiteStepProgress, course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
   });
 });
 
