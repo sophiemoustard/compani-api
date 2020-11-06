@@ -718,7 +718,8 @@ describe('GET /users/learners', () => {
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
-        });
+        }
+      );
     });
   });
 });
