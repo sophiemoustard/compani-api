@@ -97,7 +97,7 @@ describe('elearningStepProgress', () => {
   it('should get elearning steps progress', async () => {
     const step = {
       _id: '5fa159a1795723a10b12825a',
-      activities: [{ activityHistories: [[Object], [Object]] }],
+      activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
       type: E_LEARNING,
       areActivitiesValid: false,
@@ -131,10 +131,76 @@ describe('onSiteStepProgress', () => {
     const result = await StepHelper.onSiteStepProgress(slots);
     expect(result).toBe(1);
   });
+
   it('should return 0 if no slots', async () => {
     const slots = [];
 
     const result = await StepHelper.onSiteStepProgress(slots);
+
+    expect(result).toBe(0);
+  });
+});
+
+describe('getProgress', () => {
+  it('should get progress for elearning step', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+    const slots = [];
+
+    const result = await StepHelper.getProgress(step, slots);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no activityHistories', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+    const slots = [];
+
+    const result = await StepHelper.getProgress(step, slots);
+
+    expect(result).toBe(0);
+  });
+
+  it('should get progress for on site step', async () => {
+    const stepId = new ObjectID();
+    const step = {
+      _id: stepId,
+      activities: [],
+      name: 'Développer des équipes agiles et autonomes',
+      type: 'on_site',
+      areActivitiesValid: true,
+    };
+    const slots = [
+      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+    ];
+
+    const result = await StepHelper.getProgress(step, slots);
+
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no slots', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [],
+      name: 'Développer des équipes agiles et autonomes',
+      type: 'on_site',
+      areActivitiesValid: true,
+    };
+    const slots = [];
+
+    const result = await StepHelper.getProgress(step, slots);
 
     expect(result).toBe(0);
   });

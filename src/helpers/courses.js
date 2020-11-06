@@ -16,9 +16,9 @@ const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
-const StepHelper = require('./steps');
+const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, E_LEARNING } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -172,15 +172,11 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id')
     .lean({ autopopulate: true, virtuals: true });
 
-  const stepsWithProgress = course.subProgram.steps.map(step => (step.type === E_LEARNING
-    ? StepHelper.elearningStepProgress(step)
-    : StepHelper.onSiteStepProgress(course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step, step._id)))));
-
   return {
     ...course,
     subProgram: {
       ...course.subProgram,
-      steps: course.subProgram.steps.map((step, index) => ({ ...step, progress: stepsWithProgress[index] })),
+      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
     },
   };
 };

@@ -1,6 +1,8 @@
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 const moment = require('../extensions/moment');
+const UtilsHelper = require('./utils');
+const { E_LEARNING } = require('./constants');
 
 exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 
@@ -27,3 +29,7 @@ exports.onSiteStepProgress = (slots) => {
 
   return slots.length ? 1 - nextSlots.length / slots.length : 0;
 };
+
+exports.getProgress = (step, slots) => (step.type === E_LEARNING
+  ? exports.elearningStepProgress(step)
+  : exports.onSiteStepProgress(slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step, step._id))));

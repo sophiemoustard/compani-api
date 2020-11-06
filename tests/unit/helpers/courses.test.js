@@ -481,7 +481,7 @@ describe('getTraineeCourse', () => {
       subProgram: {
         steps: [{
           _id: new ObjectID(),
-          activities: [{ activityHistories: [[Object], [Object]] }],
+          activities: [{ activityHistories: [{}, {}] }],
           name: 'Développement personnel full stack',
           type: 'e_learning',
           areActivitiesValid: false,
