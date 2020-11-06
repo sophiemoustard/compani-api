@@ -21,6 +21,7 @@ const planningReferentId = new ObjectID();
 
 const contracts = [{
   _id: new ObjectID(),
+  serialNumber: 'sdfklasdkljfjsldfjksdss',
   user: auxiliaryId,
   startDate: '2010-09-03T00:00:00',
   company: authCompany._id,
@@ -31,6 +32,7 @@ const contracts = [{
   }],
 }, {
   _id: new ObjectID(),
+  serialNumber: 'dskfajdksjf',
   user: planningReferentId,
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
@@ -738,7 +740,6 @@ const populateDB = async () => {
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await (new Event(eventFromOtherCompany)).save();
-  await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
   await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
@@ -747,6 +748,7 @@ const populateDB = async () => {
   await (new User(auxiliaries[1])).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
+  await Contract.insertMany(contracts);
   await (new Customer(customerAuxiliary)).save();
   await (new Customer(customerFromOtherCompany)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();

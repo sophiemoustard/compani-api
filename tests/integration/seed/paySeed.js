@@ -42,7 +42,7 @@ const auxiliaries = [{
   employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: contractId1,
+  contracts: [contractId1],
   company: authCompany._id,
 }, {
   _id: auxiliaryId2,
@@ -51,7 +51,7 @@ const auxiliaries = [{
   employee_id: 12345679,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: contractId2,
+  contracts: [contractId2],
   company: authCompany._id,
 }];
 
@@ -62,13 +62,14 @@ const auxiliaryFromOtherCompany = {
   employee_id: 9876543,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: contractId2,
+  contracts: [contractId2],
   sector: sectorFromOtherCompany._id,
   company: otherCompany._id,
 };
 
 const contracts = [{
   createdAt: '2018-12-04T16:34:04',
+  serialNumber: 'sdfgdgfdgvc',
   user: auxiliaryId1,
   startDate: '2018-12-03T23:00:00.000Z',
   _id: contractId1,
@@ -86,6 +87,7 @@ const contracts = [{
 }, {
   createdAt: '2018-12-04T16:34:04',
   user: auxiliaryId2,
+  serialNumber: 'dskfajdsfcbnnsdal',
   company: authCompany._id,
   startDate: '2018-12-03T23:00:00.000Z',
   _id: contractId2,

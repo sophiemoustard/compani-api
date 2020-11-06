@@ -215,9 +215,9 @@ describe('createContract', () => {
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const contract = { ...payload, company: '1234567890' };
     const role = { _id: new ObjectID(), interface: 'client' };
-    const user = { name: 'toto' };
+    const user = { name: 'toto', serialNumber: '1234567890', contracts: [] };
+    const contract = { ...payload, company: '1234567890', serialNumber: 'C11234567890' };
 
     isCreationAllowed.returns(true);
     ContractMock.expects('create')

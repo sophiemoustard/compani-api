@@ -47,6 +47,7 @@ const internalHoursList = [
 
 const contractList = [{
   _id: new ObjectID(),
+  serialNumber: 'qsdcfbgfdsasdfv',
   user: new ObjectID(),
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',

@@ -55,11 +55,12 @@ const auxiliaryFromOtherCompany = {
 
 const contract = {
   createdAt: '2018-12-04T16:34:04',
-  endDate: moment('2019-05-28T23:59:59').toDate(),
-  endNotificationDate: moment('2019-03-28T00:00:00').toDate(),
+  serialNumber: 'aswertyujnmklk',
+  endDate: '2019-05-28T23:59:59',
+  endNotificationDate: '2019-03-28T00:00:00',
   endReason: 'mutation',
   user: auxiliaryId,
-  startDate: moment('2018-12-03T00:00:00').toDate(),
+  startDate: '2018-12-03T00:00:00',
   _id: contractId,
   company: authCompany._id,
   versions: [
@@ -67,7 +68,7 @@ const contract = {
       createdAt: '2018-12-04T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
-      startDate: moment('2018-12-03T00:00:00').toDate(),
+      startDate: '2018-12-03T00:00:00',
       weeklyHours: 9,
       _id: new ObjectID(),
     },

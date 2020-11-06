@@ -69,10 +69,15 @@ exports.createContract = async (contractPayload, credentials) => {
   const user = await User.findOne({ _id: contractPayload.user })
     .populate({ path: 'sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
+
   const isCreationAllowed = await exports.isCreationAllowed(contractPayload, user, companyId);
   if (!isCreationAllowed) throw Boom.badData();
 
-  const payload = { ...cloneDeep(contractPayload), company: companyId };
+  const payload = {
+    ...cloneDeep(contractPayload),
+    company: companyId,
+    serialNumber: `C${user.contracts.length + 1}${user.serialNumber}`,
+  };
   if (payload.versions[0].signature) {
     const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
