@@ -1,6 +1,6 @@
 const pick = require('lodash/pick');
 const CourseHistory = require('../models/CourseHistory');
-const { SLOT_CREATION, SLOT_DELETION } = require('./constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('./constants');
 
 exports.createHistory = async (payload, userId, action) => CourseHistory.create({
   createdBy: userId,
@@ -12,6 +12,18 @@ exports.createHistory = async (payload, userId, action) => CourseHistory.create(
 exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory(payload, userId, SLOT_CREATION);
 
 exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(payload, userId, SLOT_DELETION);
+
+exports.createHistoryOnSlotEdition = async (payload, userId) => {
+  if (payload.from !== payload.to) {
+    return CourseHistory.create({
+      createdBy: userId,
+      action: SLOT_EDITION,
+      course: payload.courseId,
+      update: { startDate: pick(payload, ['from', 'to']) },
+    });
+  }
+  return null;
+};
 
 exports.list = async (query) => {
   const findQuery = { course: query.course };
