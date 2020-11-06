@@ -165,7 +165,7 @@ describe('getProgress', () => {
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toBe(1);
-    sinon.assert.calledWith(elearningStepProgress, step);
+    sinon.assert.calledOnceWithExactly(elearningStepProgress, step);
   });
 
   it('should return 0 if no activityHistories', async () => {
@@ -182,7 +182,7 @@ describe('getProgress', () => {
     const result = await StepHelper.getProgress(step, slots);
 
     expect(result).toBe(0);
-    sinon.assert.calledWith(elearningStepProgress, step);
+    sinon.assert.calledOnceWithExactly(elearningStepProgress, step);
   });
 
   it('should get progress for on site step', async () => {
@@ -202,7 +202,7 @@ describe('getProgress', () => {
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toBe(1);
-    sinon.assert.calledWith(onSiteStepProgress, slots);
+    sinon.assert.calledOnceWithExactly(onSiteStepProgress, slots);
   });
 
   it('should return 0 if no slots', async () => {
@@ -218,6 +218,6 @@ describe('getProgress', () => {
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toBe(0);
-    sinon.assert.calledWith(onSiteStepProgress, slots);
+    sinon.assert.calledOnceWithExactly(onSiteStepProgress, slots);
   });
 });

@@ -541,8 +541,8 @@ describe('getTraineeCourse', () => {
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       },
     });
-    sinon.assert.calledWith(elearningStepProgress, course.subProgram.steps[0]);
-    sinon.assert.calledWith(onSiteStepProgress, course.slots);
+    sinon.assert.calledOnceWithExactly(elearningStepProgress, course.subProgram.steps[0]);
+    sinon.assert.calledOnceWithExactly(onSiteStepProgress, course.slots);
   });
 });
 
