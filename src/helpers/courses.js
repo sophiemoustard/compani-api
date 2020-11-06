@@ -225,25 +225,18 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, trainee, user) => {
-  let coursePayload;
-  let traineeId;
-  if (!trainee) {
-    const newUser = await UsersHelper.createUser(payload);
-    traineeId = newUser._id;
-    coursePayload = { trainees: traineeId };
-  } else {
-    traineeId = trainee._id;
-    if (!trainee.company) {
-      const updateUserPayload = pick(payload, 'company');
-      await UsersHelper.updateUser(traineeId, updateUserPayload, null);
-    }
-    coursePayload = { trainees: traineeId };
-  }
+exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
+  const addedTrainee = trainee || await UsersHelper.createUser(payload);
 
-  await CourseHistoriesHelper.createHistoryOnTraineeAddition({ courseId, traineeId }, user._id);
+  if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
-  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
+  await CourseHistoriesHelper.createHistoryOnTraineeAddition(
+    { courseId, traineeId: addedTrainee._id },
+    credentials._id
+  );
+
+  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
+    .lean();
 };
 
 exports.registerToELearningCourse = async (courseId, credentials) =>
