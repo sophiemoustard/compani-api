@@ -37,7 +37,7 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   if (!payload.step) updatePayload.$unset = { step: '' };
 
   await Promise.all([
-    CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, pick(user, '_id')),
+    CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user),
     CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
   ]);
 };

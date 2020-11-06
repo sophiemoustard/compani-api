@@ -119,37 +119,44 @@ describe('createCourseSlot', () => {
 describe('updateCourseSlot', () => {
   let updateOne;
   let hasConflicts;
+  let createHistoryOnSlotEdition;
   beforeEach(() => {
     updateOne = sinon.stub(CourseSlot, 'updateOne');
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
+    createHistoryOnSlotEdition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotEdition');
   });
   afterEach(() => {
     updateOne.restore();
     hasConflicts.restore();
+    createHistoryOnSlotEdition.restore();
   });
 
   it('should update a course slot', async () => {
     const slot = { _id: new ObjectID() };
+    const user = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
     hasConflicts.returns(false);
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: slot._id }, { $set: payload });
   });
 
   it('should throw an error if conflicts', async () => {
     const slot = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00' };
+    const user = { _id: new ObjectID() };
     hasConflicts.returns(true);
 
     try {
-      await CourseSlotsHelper.updateCourseSlot(slot, payload);
+      await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
       sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(createHistoryOnSlotEdition);
     }
   });
 });

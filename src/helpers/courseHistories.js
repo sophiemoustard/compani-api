@@ -15,15 +15,15 @@ exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory
 exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(payload, userId, SLOT_DELETION);
 
 exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
-  if (!moment(slotFromDb.startDate).isSame(payload.startDate, 'd')) {
-    return CourseHistory.create({
+  const isDateUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'd');
+  if (!isDateUpdated) {
+    await CourseHistory.create({
       createdBy: userId,
       action: SLOT_EDITION,
       course: slotFromDb.courseId,
       update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } },
     });
   }
-  return null;
 };
 
 exports.list = async (query) => {

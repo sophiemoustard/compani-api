@@ -3,7 +3,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-const { SLOT_CREATION, SLOT_DELETION } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('createHistoryOnSlotCreation', () => {
@@ -45,6 +45,84 @@ describe('createHistoryOnSlotCreation', () => {
         action: SLOT_CREATION,
       }
     );
+  });
+});
+
+describe('createHistoryOnSlotDeletion', () => {
+  let create;
+
+  beforeEach(() => {
+    create = sinon.stub(CourseHistory, 'create');
+  });
+
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should create a courseHistory', async () => {
+    const payload = {
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
+      address: { fullAddress: 'ertyui',
+        street: '12345',
+        zipCode: '12345',
+        city: 'qwert',
+        location: { type: 'Point', coordinates: [0, 1] } },
+      courseId: new ObjectID(),
+    };
+    const userId = new ObjectID();
+
+    await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address },
+        course: payload.courseId,
+        createdBy: userId,
+        action: SLOT_DELETION,
+      }
+    );
+  });
+});
+
+describe('createHistoryOnSlotEdition', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(CourseHistory, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should create history if date is updated', async () => {
+    const courseId = new ObjectID();
+    const slotFromDb = { startDate: '2020-01-10T09:00:00', courseId };
+    const payload = { startDate: '2020-01-11T09:00:00' };
+    const userId = new ObjectID();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        createdBy: userId,
+        action: SLOT_EDITION,
+        course: courseId,
+        update: { startDate: { from: '2020-01-10T09:00:00', to: '2020-01-11T09:00:00' } },
+      }
+    );
+  });
+
+  it('should not create history if date is not updated', async () => {
+    const courseId = new ObjectID();
+    const slotFromDb = { startDate: '2020-01-10T09:00:00', courseId };
+    const payload = { startDate: '2020-01-10T09:00:00' };
+    const userId = new ObjectID();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.notCalled(create);
   });
 });
 
@@ -120,43 +198,5 @@ describe('list', () => {
 
     expect(result).toMatchObject(returnedList);
     CourseHistoryMock.verify();
-  });
-});
-
-describe('createHistoryOnSlotDeletion', () => {
-  let create;
-
-  beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
-  });
-
-  afterEach(() => {
-    create.restore();
-  });
-
-  it('should create a courseHistory', async () => {
-    const payload = {
-      startDate: '2019-02-03T09:00:00.000Z',
-      endDate: '2019-02-03T10:00:00.000Z',
-      address: { fullAddress: 'ertyui',
-        street: '12345',
-        zipCode: '12345',
-        city: 'qwert',
-        location: { type: 'Point', coordinates: [0, 1] } },
-      courseId: new ObjectID(),
-    };
-    const userId = new ObjectID();
-
-    await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
-
-    sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address },
-        course: payload.courseId,
-        createdBy: userId,
-        action: SLOT_DELETION,
-      }
-    );
   });
 });

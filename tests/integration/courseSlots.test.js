@@ -5,7 +5,7 @@ const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { SLOT_CREATION, SLOT_DELETION } = require('../../src/helpers/constants');
+const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -383,6 +383,14 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseSlotsList[0].courseId,
+        'update.startDate.to': payload.startDate,
+        action: SLOT_EDITION,
+      });
+
+      expect(courseHistory).toEqual(1);
     });
 
     it('should return 400 if endDate without startDate', async () => {
