@@ -63,6 +63,8 @@ exports.isCreationAllowed = async (contract, user, companyId) => {
   return allContractsEnded && user.contractCreationMissingInfo.length === 0;
 };
 
+exports.formatSerialNumber = user => `CT${user.contracts.length + 1}${user.serialNumber}`
+
 exports.createContract = async (contractPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
@@ -76,7 +78,7 @@ exports.createContract = async (contractPayload, credentials) => {
   const payload = {
     ...cloneDeep(contractPayload),
     company: companyId,
-    serialNumber: `C${user.contracts.length + 1}${user.serialNumber}`,
+    serialNumber: exports.formatSerialNumber(user),
   };
   if (payload.versions[0].signature) {
     const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);

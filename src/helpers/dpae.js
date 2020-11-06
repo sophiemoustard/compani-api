@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const moment = require('moment');
 const FileHelper = require('./file');
-const { MISTER, MRS } = require('./constants');
+const { MISTER, MRS, WEEKS_PER_MONTH } = require('./constants');
 const User = require('../models/User');
 const { bicBankMatching } = require('../data/bicBankMatching');
 
@@ -42,7 +42,7 @@ exports.exportDpae = async (contract) => {
     ap_soc: process.env.AP_SOC,
     ap_etab: (get(auxiliary, 'establishment.siret') || '').slice(-NIC_LENGHT),
     ap_matr: auxiliary.serialNumber || '',
-    ap_contrat: contract.serialNumber,
+    ap_contrat: contract.serialNumber || '',
     fs_titre: FS_TITRE_CODE[get(auxiliary, 'identity.title')] || '',
     fs_nom: get(auxiliary, 'identity.lastname') || '',
     fs_prenom: get(auxiliary, 'identity.firstname') || '',
@@ -69,6 +69,7 @@ exports.exportDpae = async (contract) => {
     fs_emploi_insee: FS_EMPLOI_INSEE,
     fs_anc: moment(contract.startDate).format('DD/MM/YYYY'),
     fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
+    fs_horaire: contract.versions[0].weeklyHours * WEEKS_PER_MONTH,
   };
 
   return FileHelper.exportToTxt([Object.keys(data), Object.values(data)]);
