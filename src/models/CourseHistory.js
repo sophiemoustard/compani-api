@@ -19,7 +19,11 @@ const CourseHistorySchema = mongoose.Schema({
     endDate: { type: Date, required: () => [SLOT_CREATION, SLOT_DELETION].includes(this.action) },
     address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   },
-  update: { startDate: { from: { type: Date }, to: { type: Date } } },
+  update: {
+    startDate: { from: { type: Date }, to: { type: Date } },
+    startHour: { from: { type: Date }, to: { type: Date } },
+    endHour: { from: { type: Date }, to: { type: Date } },
+  },
   trainee: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
