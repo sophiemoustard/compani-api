@@ -153,7 +153,6 @@ describe('listUserCourses', () => {
 
   it('should return courses', async () => {
     const stepId = new ObjectID();
-    // const credentials = { _id: new ObjectID() };
     const coursesList = [
       {
         misc: 'name',
@@ -177,7 +176,8 @@ describe('listUserCourses', () => {
         },
         slots: [
           { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-          { endDate: '2020-11-04T16:01:00.000Z', step: stepId }],
+          { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+        ],
       },
       {
         misc: 'program',
@@ -189,19 +189,18 @@ describe('listUserCourses', () => {
             name: 'Brochure : le mal de dos',
             type: 'e_learning',
             areActivitiesValid: false,
-          },
-          {
+          }, {
             _id: stepId,
             activities: [],
             name: 'Enjailler son équipe autonome',
             type: 'on_site',
             areActivitiesValid: true,
-          },
-          ],
+          }],
         },
         slots: [
           { endDate: '2019-11-06T09:00:00.000Z', step: stepId },
-          { endDate: '2019-12-22T16:01:00.000Z', step: stepId }],
+          { endDate: '2019-12-22T16:01:00.000Z', step: stepId },
+        ],
       },
     ];
 
@@ -239,8 +238,7 @@ describe('listUserCourses', () => {
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
-        steps: course.subProgram.steps
-          .map(step => ({ ...step, progress: 1 })),
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       } })));
     sinon.assert.calledWithExactly(getProgress.getCall(0), coursesList[0].subProgram.steps[0], coursesList[0].slots);
     sinon.assert.calledWithExactly(getProgress.getCall(1), coursesList[0].subProgram.steps[1], coursesList[0].slots);
@@ -571,7 +569,8 @@ describe('getTraineeCourse', () => {
       },
       slots: [
         { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-        { endDate: '2020-11-04T16:01:00.000Z', step: stepId }],
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      ],
     };
     const credentials = { _id: new ObjectID() };
 

@@ -74,12 +74,13 @@ exports.listUserCourses = async (credentials) => {
     .select('_id')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => ({ ...course,
+  return courses.map(course => ({
+    ...course,
     subProgram: {
       ...course.subProgram,
-      steps: course.subProgram.steps
-        .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    } }));
+      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
+    },
+  }));
 };
 
 exports.getCourse = async (courseId, loggedUser) => {
