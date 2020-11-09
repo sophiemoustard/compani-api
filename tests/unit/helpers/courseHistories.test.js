@@ -12,15 +12,33 @@ const {
 } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
-describe('createHistoryOnSlotCreation', () => {
+describe('createHistory', () => {
   let create;
-
   beforeEach(() => {
     create = sinon.stub(CourseHistory, 'create');
   });
-
   afterEach(() => {
     create.restore();
+  });
+
+  it('should create history', async () => {
+    const course = new ObjectID();
+    const user = new ObjectID();
+    await CourseHistoriesHelper.createHistory(course, user, 'action', { trainee: 'bonjour' });
+
+    sinon.assert.calledOnceWithExactly(create, { course, createdBy: user, action: 'action', trainee: 'bonjour' });
+  });
+});
+
+describe('createHistoryOnSlotCreation', () => {
+  let createHistory;
+
+  beforeEach(() => {
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
+  });
+
+  afterEach(() => {
+    createHistory.restore();
   });
 
   it('should create a courseHistory', async () => {
@@ -39,30 +57,30 @@ describe('createHistoryOnSlotCreation', () => {
     await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
+      createHistory,
+      payload.courseId,
+      userId,
+      SLOT_CREATION,
       {
         slot: {
           startDate: payload.startDate,
           endDate: payload.endDate,
           address: payload.address,
         },
-        course: payload.courseId,
-        createdBy: userId,
-        action: SLOT_CREATION,
       }
     );
   });
 });
 
 describe('createHistoryOnSlotDeletion', () => {
-  let create;
+  let createHistory;
 
   beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
-    create.restore();
+    createHistory.restore();
   });
 
   it('should create a courseHistory', async () => {
@@ -81,24 +99,22 @@ describe('createHistoryOnSlotDeletion', () => {
     await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address },
-        course: payload.courseId,
-        createdBy: userId,
-        action: SLOT_DELETION,
-      }
+      createHistory,
+      payload.courseId,
+      userId,
+      SLOT_DELETION,
+      { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
     );
   });
 });
 
 describe('createHistoryOnSlotEdition', () => {
-  let create;
+  let createHistory;
   beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
   afterEach(() => {
-    create.restore();
+    createHistory.restore();
   });
 
   it('should create history if date is updated', async () => {
@@ -110,13 +126,11 @@ describe('createHistoryOnSlotEdition', () => {
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        createdBy: userId,
-        action: SLOT_EDITION,
-        course: courseId,
-        update: { startDate: { from: '2020-01-10T09:00:00', to: '2020-01-11T09:00:00' } },
-      }
+      createHistory,
+      courseId,
+      userId,
+      SLOT_EDITION,
+      { update: { startDate: { from: '2020-01-10T09:00:00', to: '2020-01-11T09:00:00' } } }
     );
   });
 
@@ -128,7 +142,7 @@ describe('createHistoryOnSlotEdition', () => {
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
-    sinon.assert.notCalled(create);
+    sinon.assert.notCalled(createHistory);
   });
 
   it('should create history if hour is updated', async () => {
@@ -140,11 +154,11 @@ describe('createHistoryOnSlotEdition', () => {
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
+      createHistory,
+      courseId,
+      userId,
+      SLOT_EDITION,
       {
-        createdBy: userId,
-        action: SLOT_EDITION,
-        course: courseId,
         update: {
           startHour: { from: '2020-01-10T09:00:00', to: '2020-01-10T11:00:00' },
           endHour: { from: '2020-01-10T11:30:00', to: '2020-01-10T13:00:00' },
@@ -234,14 +248,14 @@ describe('list', () => {
 });
 
 describe('createHistoryOnSlotDeletion', () => {
-  let create;
+  let createHistory;
 
   beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
-    create.restore();
+    createHistory.restore();
   });
 
   it('should create a courseHistory', async () => {
@@ -260,26 +274,24 @@ describe('createHistoryOnSlotDeletion', () => {
     await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address },
-        course: payload.courseId,
-        createdBy: userId,
-        action: SLOT_DELETION,
-      }
+      createHistory,
+      payload.courseId,
+      userId,
+      SLOT_DELETION,
+      { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
     );
   });
 });
 
 describe('createHistoryOnTraineeAddition', () => {
-  let create;
+  let createHistory;
 
   beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
-    create.restore();
+    createHistory.restore();
   });
 
   it('should create a courseHistory', async () => {
@@ -292,26 +304,24 @@ describe('createHistoryOnTraineeAddition', () => {
     await CourseHistoriesHelper.createHistoryOnTraineeAddition(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        course: payload.courseId,
-        createdBy: userId,
-        action: TRAINEE_ADDITION,
-        trainee: payload.traineeId,
-      }
+      createHistory,
+      payload.courseId,
+      userId,
+      TRAINEE_ADDITION,
+      { trainee: payload.traineeId }
     );
   });
 });
 
 describe('createHistoryOnTraineeDeletion', () => {
-  let create;
+  let createHistory;
 
   beforeEach(() => {
-    create = sinon.stub(CourseHistory, 'create');
+    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
-    create.restore();
+    createHistory.restore();
   });
 
   it('should create a courseHistory', async () => {
@@ -324,13 +334,11 @@ describe('createHistoryOnTraineeDeletion', () => {
     await CourseHistoriesHelper.createHistoryOnTraineeDeletion(payload, userId);
 
     sinon.assert.calledOnceWithExactly(
-      create,
-      {
-        course: payload.courseId,
-        createdBy: userId,
-        action: TRAINEE_DELETION,
-        trainee: payload.traineeId,
-      }
+      createHistory,
+      payload.courseId,
+      userId,
+      TRAINEE_DELETION,
+      { trainee: payload.traineeId }
     );
   });
 });
