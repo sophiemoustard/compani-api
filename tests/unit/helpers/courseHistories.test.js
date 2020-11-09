@@ -14,9 +14,11 @@ require('sinon-mongoose');
 
 describe('createHistory', () => {
   let create;
+
   beforeEach(() => {
     create = sinon.stub(CourseHistory, 'create');
   });
+
   afterEach(() => {
     create.restore();
   });
@@ -110,9 +112,11 @@ describe('createHistoryOnSlotDeletion', () => {
 
 describe('createHistoryOnSlotEdition', () => {
   let createHistory;
+
   beforeEach(() => {
     createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
   });
+
   afterEach(() => {
     createHistory.restore();
   });
