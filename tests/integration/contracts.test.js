@@ -159,6 +159,8 @@ describe('POST /contracts', () => {
     expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
     expect(user.inactivityDate).toBeNull();
 
+    expect(response.result.data.contract.serialNumber).toEqual(`CT${moment().format('YYMMDD')}0001`);
+
     const sectorHistoriesLength = await SectorHistory
       .countDocuments({
         auxiliary: contractUsers[1]._id,

@@ -63,7 +63,12 @@ describe('exportDpae', () => {
   });
 
   it('should export dpae', async () => {
-    const contract = { startDate: '2020-10-03T00:00:00', user: 'mon auxiliaire', serialNumber: '1234567890' };
+    const contract = {
+      startDate: '2020-10-03T00:00:00',
+      user: 'mon auxiliaire',
+      serialNumber: '1234567890',
+      versions: [{ weeklyHours: 24 }],
+    };
     const auxiliary = {
       identity: {
         title: 'mr',
@@ -127,6 +132,7 @@ describe('exportDpae', () => {
         'fs_emploi_insee',
         'fs_anc',
         'fs_mv_entree',
+        'fs_horaire',
       ], [
         process.env.AP_SOC,
         '67890',
@@ -158,6 +164,7 @@ describe('exportDpae', () => {
         '563b',
         '03/10/2020',
         '03/10/2020',
+        104,
       ]]
     );
   });
