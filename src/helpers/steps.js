@@ -32,4 +32,4 @@ exports.onSiteStepProgress = (slots) => {
 
 exports.getProgress = (step, slots) => (step.type === E_LEARNING
   ? exports.elearningStepProgress(step)
-  : exports.onSiteStepProgress(slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step, step._id))));
+  : exports.onSiteStepProgress(slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))));

@@ -141,16 +141,69 @@ describe('list', () => {
 
 describe('listUserCourses', () => {
   let CourseMock;
-
+  let getProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
     CourseMock.restore();
+    getProgress.restore();
   });
 
   it('should return courses', async () => {
-    const coursesList = [{ misc: 'name' }, { misc: 'program' }];
+    const stepId = new ObjectID();
+    // const credentials = { _id: new ObjectID() };
+    const coursesList = [
+      {
+        misc: 'name',
+        _id: new ObjectID(),
+        subProgram: {
+          steps: [{
+            _id: new ObjectID(),
+            activities: [{ activityHistories: [{}, {}] }],
+            name: 'Développement personnel full stack',
+            type: 'e_learning',
+            areActivitiesValid: false,
+          },
+          {
+            _id: stepId,
+            activities: [],
+            name: 'Développer des équipes agiles et autonomes',
+            type: 'on_site',
+            areActivitiesValid: true,
+          },
+          ],
+        },
+        slots: [
+          { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+          { endDate: '2020-11-04T16:01:00.000Z', step: stepId }],
+      },
+      {
+        misc: 'program',
+        _id: new ObjectID(),
+        subProgram: {
+          steps: [{
+            _id: new ObjectID(),
+            activities: [{ activityHistories: [{}, {}] }],
+            name: 'Brochure : le mal de dos',
+            type: 'e_learning',
+            areActivitiesValid: false,
+          },
+          {
+            _id: stepId,
+            activities: [],
+            name: 'Enjailler son équipe autonome',
+            type: 'on_site',
+            areActivitiesValid: true,
+          },
+          ],
+        },
+        slots: [
+          { endDate: '2019-11-06T09:00:00.000Z', step: stepId },
+          { endDate: '2019-12-22T16:01:00.000Z', step: stepId }],
+      },
+    ];
 
     CourseMock.expects('find')
       .withExactArgs({ trainees: '1234567890abcdef12345678' })
@@ -158,7 +211,21 @@ describe('listUserCourses', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: { path: 'program', select: 'name image' },
+        populate: [
+          { path: 'program', select: 'name image' },
+          {
+            path: 'steps',
+            select: 'name type activities',
+            populate: {
+              path: 'activities',
+              select: 'name type cards activityHistories',
+              populate: [
+                { path: 'activityHistories', match: { user: '1234567890abcdef12345678' } },
+                { path: 'cards', select: 'template' },
+              ],
+            },
+          },
+        ],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
@@ -166,9 +233,19 @@ describe('listUserCourses', () => {
       .withExactArgs('_id')
       .chain('lean')
       .returns(coursesList);
+    getProgress.returns(1);
 
     const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
-    expect(result).toMatchObject(coursesList);
+    expect(result).toMatchObject(coursesList.map(course => ({ ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps
+          .map(step => ({ ...step, progress: 1 })),
+      } })));
+    sinon.assert.calledWithExactly(getProgress.getCall(0), coursesList[0].subProgram.steps[0], coursesList[0].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), coursesList[0].subProgram.steps[1], coursesList[0].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(2), coursesList[1].subProgram.steps[0], coursesList[1].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(3), coursesList[1].subProgram.steps[1], coursesList[1].slots);
   });
 });
 
