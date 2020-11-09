@@ -130,6 +130,28 @@ describe('createHistoryOnSlotEdition', () => {
 
     sinon.assert.notCalled(create);
   });
+
+  it('should create history if hour is updated', async () => {
+    const courseId = new ObjectID();
+    const slotFromDb = { startDate: '2020-01-10T09:00:00', endDate: '2020-01-10T11:30:00', courseId };
+    const payload = { startDate: '2020-01-10T11:00:00', endDate: '2020-01-10T13:00:00' };
+    const userId = new ObjectID();
+
+    await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        createdBy: userId,
+        action: SLOT_EDITION,
+        course: courseId,
+        update: {
+          startHour: { from: '2020-01-10T09:00:00', to: '2020-01-10T11:00:00' },
+          endHour: { from: '2020-01-10T11:30:00', to: '2020-01-10T13:00:00' },
+        },
+      }
+    );
+  });
 });
 
 describe('list', () => {
