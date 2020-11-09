@@ -20,9 +20,18 @@ const CourseHistorySchema = mongoose.Schema({
     address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   },
   update: {
-    startDate: { from: { type: Date }, to: { type: Date } },
-    startHour: { from: { type: Date }, to: { type: Date } },
-    endHour: { from: { type: Date }, to: { type: Date } },
+    startDate: {
+      type: mongoose.Schema({ from: { type: Date }, to: { type: Date } }),
+      required: () => this.action === SLOT_EDITION && !this.update.startHour,
+    },
+    startHour: {
+      type: mongoose.Schema({ from: { type: Date }, to: { type: Date } }),
+      required: () => this.action === SLOT_EDITION && !this.update.startDate,
+    },
+    endHour: {
+      type: mongoose.Schema({ from: { type: Date }, to: { type: Date } }),
+      required: () => this.action === SLOT_EDITION && this.update.startHour,
+    },
   },
   trainee: {
     type: mongoose.Schema.Types.ObjectId,
