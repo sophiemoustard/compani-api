@@ -518,32 +518,32 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
   describe('Get user own courses for each role', () => {
     const roles = [
-      { name: 'helper', credentials: helper.local, expectedCode: 200, numberOfCourse: 2 },
-      { name: 'auxiliary', credentials: auxiliary.local, expectedCode: 200, numberOfCourse: 1 },
+      { name: 'helper', user: helper, expectedCode: 200, numberOfCourse: 2 },
+      { name: 'auxiliary', user: auxiliary, expectedCode: 200, numberOfCourse: 1 },
       {
         name: 'auxiliary_without_company',
-        credentials: auxiliaryWithoutCompany.local,
+        user: auxiliaryWithoutCompany,
         expectedCode: 200,
         numberOfCourse: 0,
       },
-      { name: 'coach', credentials: coachFromAuthCompany.local, expectedCode: 200, numberOfCourse: 4 },
-      { name: 'client_admin', credentials: clientAdmin.local, expectedCode: 200, numberOfCourse: 3 },
+      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 4 },
+      { name: 'client_admin', user: clientAdmin, expectedCode: 200, numberOfCourse: 3 },
       {
         name: 'training_organisation_manager',
-        credentials: trainerOrganisationManager.local,
+        user: trainerOrganisationManager,
         expectedCode: 200,
         numberOfCourse: 1,
       },
       {
         name: 'trainer',
-        credentials: courseTrainer.local,
+        user: courseTrainer,
         expectedCode: 200,
         numberOfCourse: 1,
       },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getTokenByCredentials(role.credentials);
+        authToken = await getTokenByCredentials(role.user.local);
 
         const response = await app.inject({
           method: 'GET',
@@ -563,7 +563,28 @@ describe('COURSES ROUTES - GET /courses/user', () => {
                 image: programsList[0].image,
                 subPrograms: [expect.any(ObjectID)],
               },
-              steps: [expect.any(ObjectID)],
+              steps: expect.arrayContaining([
+                expect.objectContaining({
+                  _id: expect.any(ObjectID),
+                  name: step.name,
+                  type: step.type,
+                  areActivitiesValid: false,
+                  progress: expect.any(Number),
+                  activities: expect.arrayContaining([
+                    expect.objectContaining({
+                      _id: expect.any(ObjectID),
+                      name: activity.name,
+                      type: activity.type,
+                      cards: expect.arrayContaining([
+                        expect.objectContaining({ _id: expect.any(ObjectID), template: 'title_text', isValid: false }),
+                      ]),
+                      quizCount: 0,
+                      areCardsValid: false,
+                      activityHistories: expect.arrayContaining([
+                        expect.objectContaining({ user: role.user._id }),
+                      ]),
+                    })]),
+                })]),
             }),
             slots: expect.arrayContaining([expect.objectContaining({
               startDate: expect.any(Date),
@@ -573,6 +594,8 @@ describe('COURSES ROUTES - GET /courses/user', () => {
               }),
             })]),
           }));
+          expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
+            .every(history => history.user.toHexString() === role.user._id.toHexString())).toBeTruthy();
         }
       });
     });

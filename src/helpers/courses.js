@@ -50,11 +50,39 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.listUserCourses = async credentials => Course.find({ trainees: credentials._id })
-  .populate({ path: 'subProgram', select: 'program steps', populate: { path: 'program', select: 'name image' } })
-  .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
-  .select('_id')
-  .lean();
+exports.listUserCourses = async (credentials) => {
+  const courses = await Course.find({ trainees: credentials._id })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [
+        { path: 'program', select: 'name image' },
+        {
+          path: 'steps',
+          select: 'name type activities',
+          populate: {
+            path: 'activities',
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'cards', select: 'template' },
+            ],
+          },
+        },
+      ],
+    })
+    .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+    .select('_id')
+    .lean({ autopopulate: true, virtuals: true });
+
+  return courses.map(course => ({
+    ...course,
+    subProgram: {
+      ...course.subProgram,
+      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
+    },
+  }));
+};
 
 exports.getCourse = async (courseId, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
