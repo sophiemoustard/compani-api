@@ -3,43 +3,45 @@ const moment = require('../extensions/moment');
 const CourseHistory = require('../models/CourseHistory');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION, TRAINEE_DELETION } = require('./constants');
 
-exports.createHistory = async (payload, userId, action) => {
-  const actionPayload = payload.traineeId
-    ? { trainee: payload.traineeId }
-    : { slot: pick(payload, ['startDate', 'endDate', 'address']) };
+exports.createHistory = async (course, createdBy, action, payload) =>
+  CourseHistory.create({ course, createdBy, action, ...payload });
 
-  return CourseHistory.create({ createdBy: userId, action, course: payload.courseId, ...actionPayload });
-};
+exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory(
+  payload.courseId,
+  userId,
+  SLOT_CREATION,
+  { slot: pick(payload, ['startDate', 'endDate', 'address']) }
+);
 
-exports.createHistoryOnSlotCreation = (payload, userId) => exports.createHistory(payload, userId, SLOT_CREATION);
+exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(
+  payload.courseId,
+  userId,
+  SLOT_DELETION,
+  { slot: pick(payload, ['startDate', 'endDate', 'address']) }
+);
 
-exports.createHistoryOnSlotDeletion = (payload, userId) => exports.createHistory(payload, userId, SLOT_DELETION);
+exports.createHistoryOnTraineeAddition = (payload, userId) =>
+  exports.createHistory(payload.courseId, userId, TRAINEE_ADDITION, { trainee: payload.traineeId });
 
-exports.createHistoryOnTraineeAddition = (payload, userId) => exports.createHistory(payload, userId, TRAINEE_ADDITION);
+exports.createHistoryOnTraineeDeletion = (payload, userId) =>
+  exports.createHistory(payload.courseId, userId, TRAINEE_DELETION, { trainee: payload.traineeId });
 
 exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
-  const isDateUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'd');
-  const isHourUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'm');
-  if (!isDateUpdated) {
-    await CourseHistory.create({
-      createdBy: userId,
-      action: SLOT_EDITION,
-      course: slotFromDb.courseId,
-      update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } },
-    });
-  } else if (!isHourUpdated) {
-    await CourseHistory.create({
-      createdBy: userId,
-      action: SLOT_EDITION,
-      course: slotFromDb.courseId,
+  const isDateUpdated = !moment(slotFromDb.startDate).isSame(payload.startDate, 'd');
+  const isHourUpdated = !moment(slotFromDb.startDate).isSame(payload.startDate, 'm');
+  if (!isDateUpdated && !isHourUpdated) return;
+
+  const actionPayload = isDateUpdated
+    ? { update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } } }
+    : {
       update: {
         startHour: { from: slotFromDb.startDate, to: payload.startDate },
         endHour: { from: slotFromDb.endDate, to: payload.endDate },
       },
-    });
-  }
+    };
+
+  await exports.createHistory(slotFromDb.courseId, userId, SLOT_EDITION, actionPayload);
 };
-exports.createHistoryOnTraineeDeletion = (payload, userId) => exports.createHistory(payload, userId, TRAINEE_DELETION);
 
 exports.list = async (query) => {
   const findQuery = { course: query.course };
