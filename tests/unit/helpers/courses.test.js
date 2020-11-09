@@ -793,19 +793,24 @@ describe('registerToELearningCourse', () => {
 
 describe('removeCourseTrainee', () => {
   let updateOne;
+  let createHistoryOnTraineeDeletion;
   beforeEach(() => {
     updateOne = sinon.stub(Course, 'updateOne');
+    createHistoryOnTraineeDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeDeletion');
   });
   afterEach(() => {
     updateOne.restore();
+    createHistoryOnTraineeDeletion.restore();
   });
 
   it('should remove a course trainee', async () => {
     const courseId = new ObjectID();
     const traineeId = new ObjectID();
+    const removedBy = { _id: new ObjectID() };
 
-    await CourseHelper.removeCourseTrainee(courseId, traineeId);
+    await CourseHelper.removeCourseTrainee(courseId, traineeId, removedBy);
     sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { courseId, traineeId }, removedBy._id);
   });
 });
 
