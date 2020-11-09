@@ -19,12 +19,23 @@ exports.createHistoryOnTraineeAddition = (payload, userId) => exports.createHist
 
 exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
   const isDateUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'd');
+  const isHourUpdated = moment(slotFromDb.startDate).isSame(payload.startDate, 'm');
   if (!isDateUpdated) {
     await CourseHistory.create({
       createdBy: userId,
       action: SLOT_EDITION,
       course: slotFromDb.courseId,
       update: { startDate: { from: slotFromDb.startDate, to: payload.startDate } },
+    });
+  } else if (!isHourUpdated) {
+    await CourseHistory.create({
+      createdBy: userId,
+      action: SLOT_EDITION,
+      course: slotFromDb.courseId,
+      update: {
+        startHour: { from: slotFromDb.startDate, to: payload.startDate },
+        endHour: { from: slotFromDb.endDate, to: payload.endDate },
+      },
     });
   }
 };
