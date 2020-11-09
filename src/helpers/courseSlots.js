@@ -9,7 +9,7 @@ const { language } = translate;
 
 exports.hasConflicts = async (slot) => {
   const query = {
-    courseId: slot.courseId,
+    course: slot.course,
     startDate: { $lt: slot.endDate },
     endDate: { $gt: slot.startDate },
   };
@@ -43,7 +43,7 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
 };
 
 exports.removeCourseSlot = async (courseSlot, user) => {
-  const payload = pick(courseSlot, ['courseId', 'startDate', 'endDate', 'address']);
+  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address']);
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id),
