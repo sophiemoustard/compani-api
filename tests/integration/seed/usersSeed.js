@@ -219,6 +219,7 @@ const userPayload = {
 const contracts = [
   {
     _id: contractId,
+    serialNumber: 'sadfasdgvxcsda',
     user: usersSeedList[0]._id,
     startDate: moment('2018-10-10').toDate(),
     createdAt: moment('2018-10-10').toDate(),
@@ -226,6 +227,7 @@ const contracts = [
   },
   {
     _id: contractNotStartedId,
+    serialNumber: 'sdadsfsdfsd',
     user: usersSeedList[4]._id,
     startDate: moment().add(1, 'month').toDate(),
     createdAt: moment('2018-10-10').toDate(),

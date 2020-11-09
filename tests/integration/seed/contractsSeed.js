@@ -227,7 +227,7 @@ const sectorHistories = [
 
 const otherContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
-  endDate: null,
+  serialNumber: 'wfjefajsdklvcmkdmck',
   user: otherContractUser._id,
   startDate: '2018-12-03T23:00:00.000Z',
   _id: otherContractUser.contracts[0],
@@ -259,6 +259,7 @@ const userFromOtherCompany = {
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'mnbvcxzaserfghjiu',
     user: contractUsers[0]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: contractUsers[0].contracts[0],
@@ -275,9 +276,12 @@ const contractsList = [
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'sdfgtresddbgr',
     user: contractUsers[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     endDate: '2019-02-03T23:00:00.000Z',
+    endNotificationDate: '2019-02-03T23:00:00.000Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -292,6 +296,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'qwdfgbnhygfc',
     endDate: null,
     company: authCompany._id,
     user: getUser('auxiliary')._id,
@@ -310,9 +315,12 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'cvfdjsbjknvkaskdj',
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     endDate: '2018-09-02T17:12:55.144Z',
+    endNotificationDate: '2018-02-03T23:00:00.000Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -328,9 +336,12 @@ const contractsList = [
   },
   {
     createdAt: '2017-08-02T17:12:55.144Z',
+    serialNumber: 'cacnxnkzlas',
     user: contractUsers[2]._id,
     startDate: '2017-08-02T17:12:55.144Z',
     endDate: '2017-09-02T17:12:55.144Z',
+    endNotificationDate: '2017-09-02T17:12:55.144Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -346,6 +357,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'sldfnasdlknfkds',
     user: contractUsers[3]._id,
     startDate: '2018-08-02T17:12:55.144Z',
     _id: new ObjectID(),
@@ -362,6 +374,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'lqwjrewjqpjefek',
     user: getUser('auxiliary_without_company')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     _id: new ObjectID(),

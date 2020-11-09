@@ -72,6 +72,7 @@ const secondAuxiliary = {
 const contracts = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'msndfasjdhgsd',
     user: loggedAuxiliary._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: loggedAuxiliary.contracts[0],
@@ -88,6 +89,7 @@ const contracts = [
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'ejfadjkshfsdhflknsjd',
     user: secondAuxiliary._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: secondAuxiliary.contracts[0],

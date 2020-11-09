@@ -12,6 +12,7 @@ const User = require('../models/User');
 const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
+const ContractNumber = require('../models/ContractNumber');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
@@ -63,16 +64,32 @@ exports.isCreationAllowed = async (contract, user, companyId) => {
   return allContractsEnded && user.contractCreationMissingInfo.length === 0;
 };
 
+exports.formatSerialNumber = async (company) => {
+  const createdAt = moment().format('YYMMDD');
+  const contractNumber = await ContractNumber.findOneAndUpdate(
+    { company },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  ).lean();
+
+  return `CT${createdAt}${contractNumber.seq.toString().padStart(4, '0')}`;
+};
+
 exports.createContract = async (contractPayload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
   const user = await User.findOne({ _id: contractPayload.user })
     .populate({ path: 'sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
+
   const isCreationAllowed = await exports.isCreationAllowed(contractPayload, user, companyId);
   if (!isCreationAllowed) throw Boom.badData();
 
-  const payload = { ...cloneDeep(contractPayload), company: companyId };
+  const payload = {
+    ...cloneDeep(contractPayload),
+    company: companyId,
+    serialNumber: await exports.formatSerialNumber(companyId),
+  };
   if (payload.versions[0].signature) {
     const doc = await ESignHelper.generateSignatureRequest(payload.versions[0].signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
