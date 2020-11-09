@@ -52,9 +52,8 @@ describe('createHistoryOnSlotCreation', () => {
         street: '12345',
         zipCode: '12345',
         city: 'qwert',
-        location: { type: 'Point', coordinates: [0, 1] },
-      },
-      courseId: new ObjectID(),
+        location: { type: 'Point', coordinates: [0, 1] } },
+      course: new ObjectID(),
     };
     const userId = new ObjectID();
 
@@ -62,7 +61,7 @@ describe('createHistoryOnSlotCreation', () => {
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
-      payload.courseId,
+      payload.course,
       userId,
       SLOT_CREATION,
       { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
@@ -73,7 +72,7 @@ describe('createHistoryOnSlotCreation', () => {
     const payload = {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
-      courseId: new ObjectID(),
+      course: new ObjectID(),
     };
     const userId = new ObjectID();
 
@@ -81,7 +80,7 @@ describe('createHistoryOnSlotCreation', () => {
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
-      payload.courseId,
+      payload.course,
       userId,
       SLOT_CREATION,
       { slot: { startDate: payload.startDate, endDate: payload.endDate } }
@@ -109,9 +108,8 @@ describe('createHistoryOnSlotDeletion', () => {
         street: '12345',
         zipCode: '12345',
         city: 'qwert',
-        location: { type: 'Point', coordinates: [0, 1] },
-      },
-      courseId: new ObjectID(),
+        location: { type: 'Point', coordinates: [0, 1] } },
+      course: new ObjectID(),
     };
     const userId = new ObjectID();
 
@@ -119,7 +117,7 @@ describe('createHistoryOnSlotDeletion', () => {
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
-      payload.courseId,
+      payload.course,
       userId,
       SLOT_DELETION,
       { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
@@ -141,8 +139,8 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should create history if date is updated', async () => {
-    const courseId = new ObjectID();
-    const slotFromDb = { startDate: '2020-01-10T09:00:00', courseId };
+    const course = new ObjectID();
+    const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
     const payload = { startDate: '2020-01-11T09:00:00' };
     const userId = new ObjectID();
 
@@ -150,7 +148,7 @@ describe('createHistoryOnSlotEdition', () => {
 
     sinon.assert.calledOnceWithExactly(
       createHistory,
-      courseId,
+      course,
       userId,
       SLOT_EDITION,
       { update: { startDate: { from: '2020-01-10T09:00:00', to: '2020-01-11T09:00:00' } } }
@@ -171,8 +169,8 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should not create history if date is not updated', async () => {
-    const courseId = new ObjectID();
-    const slotFromDb = { startDate: '2020-01-10T09:00:00', courseId };
+    const course = new ObjectID();
+    const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
     const payload = { startDate: '2020-01-10T09:00:00' };
     const userId = new ObjectID();
 

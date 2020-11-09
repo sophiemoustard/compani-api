@@ -26,7 +26,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-01-04T17:00:00',
         endDate: '2020-01-04T20:00:00',
-        courseId: courseSlotsList[0].courseId,
+        course: courseSlotsList[0].course,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -46,7 +46,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
 
       const courseHistory = await CourseHistory.countDocuments({
-        course: payload.courseId,
+        course: payload.course,
         'slot.startDate': payload.startDate,
         action: SLOT_CREATION,
       });
@@ -56,7 +56,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     it('should create slot to plan', async () => {
       const payload = {
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -79,7 +79,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: courseSlotsList[0].startDate,
         endDate: courseSlotsList[0].endDate,
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -102,7 +102,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
     it('should return 400 if slots endDate without startDate', async () => {
       const payload = {
         endDate: '2020-03-04T17:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -125,7 +125,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
     it('should return 400 if slots startDate without endDate', async () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -149,7 +149,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         endDate: '2020-03-05T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -173,7 +173,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T20:00:00',
         endDate: '2020-03-04T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -197,7 +197,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         endDate: '2020-03-04T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[1]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -221,7 +221,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         endDate: '2020-03-04T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[3]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -242,7 +242,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
     });
 
     const missingParams = [
-      { path: 'courseId' },
+      { path: 'course' },
       { path: 'step' },
       { path: 'endDate' },
       { path: 'address.fullAddress' },
@@ -253,7 +253,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
           step: stepsList[0]._id,
-          courseId: coursesList[0]._id,
+          course: coursesList[0]._id,
           address: {
             street: '37 rue de Ponthieu',
             zipCode: '75008',
@@ -279,7 +279,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        courseId: coursesList[1]._id,
+        course: coursesList[1]._id,
         step: stepsList[0]._id,
       };
       token = await getTokenByCredentials(trainer.local);
@@ -297,7 +297,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
       };
       token = await getToken('client_admin');
@@ -315,7 +315,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[0]._id,
       };
       token = await getToken('coach');
@@ -343,7 +343,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
-          courseId: coursesList[1]._id,
+          course: coursesList[1]._id,
           step: stepsList[0]._id,
         };
         token = await getToken(role.name);
@@ -385,7 +385,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].courseId,
+        course: courseSlotsList[0].course,
         'update.startDate.to': payload.startDate,
         action: SLOT_EDITION,
       });
@@ -475,7 +475,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         endDate: '2020-03-04T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[1]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -498,7 +498,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T17:00:00',
         endDate: '2020-03-04T19:00:00',
-        courseId: coursesList[0]._id,
+        course: coursesList[0]._id,
         step: stepsList[1]._id,
         address: {
           street: '37 rue de Ponthieu',
@@ -615,7 +615,7 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].courseId,
+        course: courseSlotsList[0].course,
         'slot.startDate': courseSlotsList[0].startDate,
         action: SLOT_DELETION,
       });

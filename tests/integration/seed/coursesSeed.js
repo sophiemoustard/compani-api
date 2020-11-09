@@ -174,41 +174,41 @@ const slots = [
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
-    courseId: coursesList[0],
+    course: coursesList[0],
     step: step._id,
   },
   {
     startDate: moment('2020-03-20T14:00:00').toDate(),
     endDate: moment('2020-03-20T18:00:00').toDate(),
-    courseId: coursesList[0],
+    course: coursesList[0],
     step: step._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
-    courseId: coursesList[1],
+    course: coursesList[1],
     step: step._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
-    courseId: coursesList[2],
+    course: coursesList[2],
     step: step._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
-    courseId: coursesList[3],
+    course: coursesList[3],
     step: step._id,
   },
-  { courseId: coursesList[3] },
+  { course: coursesList[3] },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
-    courseId: coursesList[5],
+    course: coursesList[5],
     step: step._id,
   },
-  { courseId: coursesList[7] },
+  { course: coursesList[7] },
 ];
 
 const populateDB = async () => {

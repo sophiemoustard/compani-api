@@ -20,7 +20,7 @@ describe('hasConflicts', () => {
   it('should return true if has conflicts', async () => {
     const slot = {
       _id: new ObjectID(),
-      courseId: new ObjectID(),
+      course: new ObjectID(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
       step: new ObjectID(),
@@ -33,7 +33,7 @@ describe('hasConflicts', () => {
       countDocuments,
       {
         _id: { $ne: slot._id },
-        courseId: slot.courseId,
+        course: slot.course,
         startDate: { $lt: '2020-09-12T11:00:00' },
         endDate: { $gt: '2020-09-12T09:00:00' },
       }
@@ -42,7 +42,7 @@ describe('hasConflicts', () => {
 
   it('should return false if no conflict', async () => {
     const slot = {
-      courseId: new ObjectID(),
+      course: new ObjectID(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
       step: new ObjectID(),
@@ -54,7 +54,7 @@ describe('hasConflicts', () => {
     sinon.assert.calledWithExactly(
       countDocuments,
       {
-        courseId: slot.courseId,
+        course: slot.course,
         startDate: { $lt: '2020-09-12T11:00:00' },
         endDate: { $gt: '2020-09-12T09:00:00' },
       }
@@ -82,7 +82,7 @@ describe('createCourseSlot', () => {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      courseId: new ObjectID(),
+      course: new ObjectID(),
       step: new ObjectID(),
     };
     const user = { _id: new ObjectID() };
@@ -91,7 +91,7 @@ describe('createCourseSlot', () => {
     const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotCreation, newSlot, user._id);
-    expect(result.courseId).toEqual(newSlot.courseId);
+    expect(result.course).toEqual(newSlot.course);
     expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
     expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());
   });
@@ -101,7 +101,7 @@ describe('createCourseSlot', () => {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      courseId: new ObjectID(),
+      course: new ObjectID(),
       step: new ObjectID(),
     };
     hasConflicts.returns(true);
@@ -177,7 +177,7 @@ describe('removeSlot', () => {
     const user = { _id: new ObjectID() };
     const returnedCourseSlot = {
       _id: new ObjectID(),
-      courseId: new ObjectID(),
+      course: new ObjectID(),
       startDate: '2020-06-25T17:58:15',
       endDate: '2019-06-25T19:58:15',
       address: { fullAddress: '55 rue du sku, Skuville' },
@@ -185,7 +185,7 @@ describe('removeSlot', () => {
 
     await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot, user);
 
-    const payload = pick(returnedCourseSlot, ['courseId', 'startDate', 'endDate', 'address']);
+    const payload = pick(returnedCourseSlot, ['course', 'startDate', 'endDate', 'address']);
 
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, payload, user._id);
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
