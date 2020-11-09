@@ -43,7 +43,7 @@ const auxiliary = {
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'toto', lastname: 'test' },
+  identity: { firstname: 'Cricri', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   employee_id: 9876543,
   refreshToken: uuidv4(),

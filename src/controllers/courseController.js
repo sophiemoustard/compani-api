@@ -154,7 +154,22 @@ const getSMSHistory = async (req) => {
 
 const addTrainee = async (req) => {
   try {
-    const course = await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee);
+    const course = await CoursesHelper
+      .addCourseTrainee(req.params._id, req.payload, req.pre.trainee, req.auth.credentials);
+
+    return {
+      message: translate[language].courseTraineeAdded,
+      data: { course },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const registerToELearningCourse = async (req) => {
+  try {
+    const course = await CoursesHelper.registerToELearningCourse(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].courseTraineeAdded,
@@ -168,7 +183,7 @@ const addTrainee = async (req) => {
 
 const removeTrainee = async (req) => {
   try {
-    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId);
+    await CoursesHelper.removeCourseTrainee(req.params._id, req.params.traineeId, req.auth.credentials);
 
     return { message: translate[language].courseTraineeRemoved };
   } catch (e) {
@@ -214,6 +229,7 @@ module.exports = {
   update,
   deleteCourse,
   addTrainee,
+  registerToELearningCourse,
   removeTrainee,
   downloadAttendanceSheets,
   downloadCompletionCertificates,

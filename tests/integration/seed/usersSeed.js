@@ -65,7 +65,7 @@ const customerFromOtherCompany = {
 
 const helperFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'test', lastname: 'toto' },
+  identity: { firstname: 'Guigui', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
@@ -76,7 +76,7 @@ const helperFromOtherCompany = {
 
 const coachFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'test', lastname: 'toto' },
+  identity: { firstname: 'Arnaud', lastname: 'toto' },
   local: { email: 'othercompanycoach@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   refreshToken: uuidv4(),
@@ -86,9 +86,22 @@ const coachFromOtherCompany = {
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'test', lastname: 'toto' },
+  identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  refreshToken: uuidv4(),
+  company: otherCompany._id,
+  inactivityDate: null,
+};
+
+const coachAndTrainer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'bothInterface', lastname: 'Coach Trainer' },
+  local: { email: 'both-interface@alenvi.io', password: '123456!eR' },
+  role: {
+    client: rolesList.find(role => role.name === 'coach')._id,
+    vendor: rolesList.find(role => role.name === 'trainer')._id,
+  },
   refreshToken: uuidv4(),
   company: otherCompany._id,
   inactivityDate: null,
@@ -167,7 +180,7 @@ const usersSeedList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'White' },
+    identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'Green' },
     local: { email: 'withouCompany@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
     refreshToken: uuidv4(),
@@ -258,7 +271,13 @@ const populateDB = async () => {
   await Course.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create(usersSeedList.concat([helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany]));
+  await User.create([
+    ...usersSeedList,
+    helperFromOtherCompany,
+    coachFromOtherCompany,
+    auxiliaryFromOtherCompany,
+    coachAndTrainer,
+  ]);
   await Customer.create(customerFromOtherCompany);
   await Customer.create(authCustomer);
   await Sector.create(userSectors);
@@ -282,4 +301,5 @@ module.exports = {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   authCustomer,
+  coachAndTrainer,
 };

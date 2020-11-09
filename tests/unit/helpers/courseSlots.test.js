@@ -1,9 +1,11 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const pick = require('lodash/pick');
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
+const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 require('sinon-mongoose');
 
 describe('hasConflicts', () => {
@@ -63,13 +65,16 @@ describe('hasConflicts', () => {
 describe('createCourseSlot', () => {
   let save;
   let hasConflicts;
+  let createHistoryOnSlotCreation;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
+    createHistoryOnSlotCreation = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotCreation');
   });
   afterEach(() => {
     save.restore();
     hasConflicts.restore();
+    createHistoryOnSlotCreation.restore();
   });
 
   it('should create a course slot', async () => {
@@ -80,10 +85,12 @@ describe('createCourseSlot', () => {
       courseId: new ObjectID(),
       step: new ObjectID(),
     };
+    const user = { _id: new ObjectID() };
     hasConflicts.returns(false);
 
-    const result = await CourseSlotsHelper.createCourseSlot(newSlot);
+    const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotCreation, newSlot, user._id);
     expect(result.courseId).toEqual(newSlot.courseId);
     expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
     expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());
@@ -112,54 +119,75 @@ describe('createCourseSlot', () => {
 describe('updateCourseSlot', () => {
   let updateOne;
   let hasConflicts;
+  let createHistoryOnSlotEdition;
   beforeEach(() => {
     updateOne = sinon.stub(CourseSlot, 'updateOne');
     hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
+    createHistoryOnSlotEdition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotEdition');
   });
   afterEach(() => {
     updateOne.restore();
     hasConflicts.restore();
+    createHistoryOnSlotEdition.restore();
   });
 
   it('should update a course slot', async () => {
     const slot = { _id: new ObjectID() };
+    const user = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
     hasConflicts.returns(false);
 
-    await CourseSlotsHelper.updateCourseSlot(slot, payload);
+    await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: slot._id }, { $set: payload });
   });
 
   it('should throw an error if conflicts', async () => {
     const slot = { _id: new ObjectID() };
     const payload = { startDate: '2020-03-03T22:00:00' };
+    const user = { _id: new ObjectID() };
     hasConflicts.returns(true);
 
     try {
-      await CourseSlotsHelper.updateCourseSlot(slot, payload);
+      await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
       sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(createHistoryOnSlotEdition);
     }
   });
 });
 
 describe('removeSlot', () => {
   let deleteOne;
+  let createHistoryOnSlotDeletion;
   beforeEach(() => {
     deleteOne = sinon.stub(CourseSlot, 'deleteOne');
+    createHistoryOnSlotDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotDeletion');
   });
   afterEach(() => {
     deleteOne.restore();
+    createHistoryOnSlotDeletion.restore();
   });
 
-  it('should updte a course slot', async () => {
-    const slotId = new ObjectID();
+  it('should update a course slot', async () => {
+    const user = { _id: new ObjectID() };
+    const returnedCourseSlot = {
+      _id: new ObjectID(),
+      courseId: new ObjectID(),
+      startDate: '2020-06-25T17:58:15',
+      endDate: '2019-06-25T19:58:15',
+      address: { fullAddress: '55 rue du sku, Skuville' },
+    };
 
-    await CourseSlotsHelper.removeCourseSlot(slotId);
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: slotId });
+    await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot, user);
+
+    const payload = pick(returnedCourseSlot, ['courseId', 'startDate', 'endDate', 'address']);
+
+    sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, payload, user._id);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
   });
 });

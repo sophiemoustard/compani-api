@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const set = require('lodash/set');
+const expect = require('expect');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
@@ -133,5 +134,83 @@ describe('updatedSubProgram', () => {
         { subProgram: subProgram._id, type: 'inter_b2c', format: 'strictly_e_learning' }
       );
     });
+  });
+});
+
+describe('listELearningDraft', () => {
+  let SubProgramMock;
+  beforeEach(() => {
+    SubProgramMock = sinon.mock(SubProgram);
+  });
+  afterEach(() => {
+    SubProgramMock.restore();
+  });
+
+  it('should return draft subprograms with elearning steps', async () => {
+    const subProgramsList = [
+      {
+        _id: new ObjectID(),
+        status: 'draft',
+        steps: [{ type: 'e_learning' }],
+        program: [{ _id: new ObjectID(), name: 'name' }],
+      },
+      {
+        _id: new ObjectID(),
+        status: 'draft',
+        steps: [{ type: 'on_site' }],
+        program: [{ _id: new ObjectID(), name: 'test' }],
+      },
+    ];
+
+    SubProgramMock.expects('find')
+      .withExactArgs({ status: 'draft' })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'steps', select: 'type' })
+      .chain('lean')
+      .once()
+      .returns(subProgramsList);
+
+    const elearningSubProgramList = subProgramsList
+      .filter(subProgram => subProgram.steps.length && subProgram.steps
+        .every(step => step.type === 'e_learning'));
+
+    const result = await SubProgramHelper.listELearningDraft();
+    expect(result).toMatchObject(elearningSubProgramList);
+  });
+});
+
+describe('getSubProgram', () => {
+  let SubProgramMock;
+  beforeEach(() => {
+    SubProgramMock = sinon.mock(SubProgram);
+  });
+  afterEach(() => {
+    SubProgramMock.restore();
+  });
+
+  it('should return the requested subprogram', async () => {
+    const subProgram = {
+      _id: new ObjectID(),
+      program: [{
+        name: 'program',
+        image: 'link',
+        steps: [{ _id: new ObjectID(), activities: [{ _id: new ObjectID() }] }],
+      }],
+    };
+
+    SubProgramMock.expects('findOne')
+      .withExactArgs({ _id: subProgram._id })
+      .chain('populate')
+      .withExactArgs({ path: 'program', select: 'name image' })
+      .chain('populate')
+      .withExactArgs({ path: 'steps', populate: { path: 'activities' } })
+      .chain('lean')
+      .once()
+      .returns(subProgram);
+
+    const result = await SubProgramHelper.getSubProgram(subProgram._id);
+    expect(result).toMatchObject(subProgram);
   });
 });

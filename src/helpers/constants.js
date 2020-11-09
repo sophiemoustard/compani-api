@@ -289,6 +289,7 @@ module.exports = {
   QC_ANSWER_MAX_LENGTH: 70,
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
+  FLASHCARD_TEXT_MAX_LENGTH: 450,
   QUESTIONNAIRE: 'questionnaire',
   get CARD_TEMPLATES() {
     return [
@@ -314,4 +315,10 @@ module.exports = {
   COURSE_SMS: 'Formation',
   HR_SMS: 'RH',
   get SMS_TAGS() { return [this.COURSE_SMS, this.HR_SMS]; },
+  // CourseHistory
+  SLOT_CREATION: 'slot_creation',
+  SLOT_DELETION: 'slot_deletion',
+  SLOT_EDITION: 'slot_edition',
+  TRAINEE_ADDITION: 'trainee_addition',
+  TRAINEE_DELETION: 'trainee_deletion',
 };

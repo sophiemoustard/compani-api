@@ -113,7 +113,7 @@ const auxiliaryList = [{
   establishment: establishment._id,
   identity: {
     firstname: 'Lulu',
-    lastname: 'Lala',
+    lastname: 'Uiui',
     title: MISTER,
     birthDate: moment('1992-01-01').toDate(),
     birthCountry: 'FR',

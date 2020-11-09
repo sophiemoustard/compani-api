@@ -4,7 +4,6 @@ const Boom = require('@hapi/boom');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
-const User = require('../models/User');
 const moment = require('../extensions/moment');
 const GdriveStorage = require('./gdriveStorage');
 const TaxCertificate = require('../models/TaxCertificate');
@@ -22,7 +21,7 @@ exports.formatInterventions = interventions => interventions.map((int) => {
 
   return {
     auxiliary: UtilsHelper.formatIdentity(int.auxiliary.identity, 'FL'),
-    serialNumber: User.serialNumber(int.auxiliary),
+    serialNumber: int.auxiliary.serialNumber,
     subscription: service.name,
     month: moment(int.month, 'M').format('MMMM'),
     hours: UtilsHelper.formatHour(int.duration),

@@ -16,8 +16,10 @@ const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
+const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -38,7 +40,7 @@ exports.list = async (query) => {
 
     return [
       ...intraCourse,
-      ...interCourse.filter(course => course.companies.includes(query.company))
+      ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
         .map(course => ({
           ...omit(course, ['companies']),
           trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
@@ -146,29 +148,39 @@ exports.getCourseFollowUp = async (courseId) => {
   };
 };
 
-exports.getTraineeCourse = async (courseId, credentials) => Course.findOne({ _id: courseId })
-  .populate({
-    path: 'subProgram',
-    select: 'program steps',
-    populate: [
-      { path: 'program', select: 'name image' },
-      {
-        path: 'steps',
-        select: 'name type activities',
-        populate: {
-          path: 'activities',
-          select: 'name type cards activityHistories',
-          populate: [
-            { path: 'activityHistories', match: { user: credentials._id } },
-            { path: 'cards', select: 'template' },
-          ],
+exports.getTraineeCourse = async (courseId, credentials) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'program steps',
+      populate: [
+        { path: 'program', select: 'name image' },
+        {
+          path: 'steps',
+          select: 'name type activities',
+          populate: {
+            path: 'activities',
+            select: 'name type cards activityHistories',
+            populate: [
+              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'cards', select: 'template' },
+            ],
+          },
         },
-      },
-    ],
-  })
-  .populate({ path: 'slots', select: 'startDate endDate step address' })
-  .select('_id')
-  .lean({ autopopulate: true, virtuals: true });
+      ],
+    })
+    .populate({ path: 'slots', select: 'startDate endDate step address' })
+    .select('_id')
+    .lean({ autopopulate: true, virtuals: true });
+
+  return {
+    ...course,
+    subProgram: {
+      ...course.subProgram,
+      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
+    },
+  };
+};
 
 exports.updateCourse = async (courseId, payload) =>
   Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
@@ -213,23 +225,27 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, trainee) => {
-  let coursePayload;
-  if (!trainee) {
-    const newUser = await UsersHelper.createUser(payload);
-    coursePayload = { trainees: newUser._id };
-  } else {
-    if (!trainee.company) {
-      const updateUserPayload = pick(payload, 'company');
-      await UsersHelper.updateUser(trainee._id, updateUserPayload, null);
-    }
-    coursePayload = { trainees: trainee._id };
-  }
-  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: coursePayload }, { new: true }).lean();
+exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
+  const addedTrainee = trainee || await UsersHelper.createUser(payload);
+
+  if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
+
+  await CourseHistoriesHelper.createHistoryOnTraineeAddition(
+    { courseId, traineeId: addedTrainee._id },
+    credentials._id
+  );
+
+  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
+    .lean();
 };
 
-exports.removeCourseTrainee = async (courseId, traineeId) =>
-  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }).lean();
+exports.registerToELearningCourse = async (courseId, credentials) =>
+  Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
+
+exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
+  CourseHistoriesHelper.createHistoryOnTraineeDeletion({ courseId, traineeId }, user._id),
+  Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
+]);
 
 exports.formatIntraCourseSlotsForPdf = slot => ({
   startHour: UtilsHelper.formatHourWithMinutes(slot.startDate),

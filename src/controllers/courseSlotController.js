@@ -6,7 +6,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const courseSlot = await CourseSlotsHelper.createCourseSlot(req.payload);
+    const courseSlot = await CourseSlotsHelper.createCourseSlot(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseSlotCreated,
@@ -20,7 +20,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload);
+    await CourseSlotsHelper.updateCourseSlot(req.pre.courseSlot, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].courseSlotUpdated,
@@ -33,7 +33,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await CourseSlotsHelper.removeCourseSlot(req.params._id);
+    await CourseSlotsHelper.removeCourseSlot(req.pre.courseSlot, req.auth.credentials);
 
     return {
       message: translate[language].courseSlotDeleted,

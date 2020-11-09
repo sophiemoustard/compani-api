@@ -4,10 +4,12 @@ const {
   FILL_THE_GAPS,
   ORDER_THE_SEQUENCE,
   MULTIPLE_CHOICE_QUESTION,
+  FLASHCARD,
   PUBLISHED,
   QUESTION_ANSWER,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
+  FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -51,6 +53,13 @@ const checkQuestionAnswer = (payload, card) => {
   return null;
 };
 
+const checkFlashCard = (payload) => {
+  const { text } = payload;
+  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
+
+  return null;
+};
+
 const checkMultipleChoiceQuestion = (payload, card) => {
   const { qcmAnswers } = payload;
 
@@ -76,6 +85,8 @@ exports.authorizeCardUpdate = async (req) => {
       return checkMultipleChoiceQuestion(req.payload, card);
     case QUESTION_ANSWER:
       return checkQuestionAnswer(req.payload, card);
+    case FLASHCARD:
+      return checkFlashCard(req.payload);
     default:
       return null;
   }

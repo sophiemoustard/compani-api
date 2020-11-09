@@ -8,7 +8,8 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
-const { CONVOCATION, COURSE_SMS } = require('../../src/helpers/constants');
+const CourseHistory = require('../../src/models/CourseHistory');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -649,6 +650,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           name: step.name,
           type: step.type,
           areActivitiesValid: false,
+          progress: expect.any(Number),
           activities: [{
             _id: expect.any(ObjectID),
             name: activity.name,
@@ -1125,6 +1127,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
+
+        const courseHistory = await CourseHistory.countDocuments({
+          course: intraCourseIdFromAuthCompany,
+          trainee: auxiliary._id,
+          action: TRAINEE_ADDITION,
+        });
+        expect(courseHistory).toEqual(1);
       });
 
       it('should add new user to course trainees', async () => {
@@ -1138,8 +1147,16 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(200);
         const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
         expect(newUser).toBeDefined();
+        expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
+
+        const courseHistory = await CourseHistory.countDocuments({
+          course: intraCourseIdFromAuthCompany,
+          trainee: newUser._id,
+          action: TRAINEE_ADDITION,
+        });
+        expect(courseHistory).toEqual(1);
       });
 
       it('should add user to course trainees, and update user by adding his company', async () => {
@@ -1306,7 +1323,97 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   });
 });
 
-describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
+describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
+  let token;
+  const course = coursesList[4];
+
+  beforeEach(populateDB);
+
+  describe('TRAINER_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      token = await getTokenByCredentials(trainerOrganisationManager.local);
+    });
+
+    it('should add trainee to e-learning course', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const courseUpdated = await Course.findById(course._id);
+      expect(courseUpdated.trainees).toEqual(expect.arrayContaining([trainerOrganisationManager._id]));
+    });
+
+    it('should return 401 if user not authenticated', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': '' },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 404 if course does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${new ObjectID()}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if course is not strictly e learning', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[0]._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if trainee already suscribed to course', async () => {
+      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        token = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${coursesList[6]._id}/register-e-learning`,
+          headers: { 'x-access-token': token },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
@@ -1329,6 +1436,13 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainees/{traineeId}', () => {
       expect(response.statusCode).toBe(200);
       const course = await Course.findById(courseIdFromAuthCompany).lean();
       expect(course.trainees).toHaveLength(coursesList[2].trainees.length - 1);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseIdFromAuthCompany,
+        trainee: traineeId,
+        action: TRAINEE_DELETION,
+      });
+      expect(courseHistory).toEqual(1);
     });
   });
 
