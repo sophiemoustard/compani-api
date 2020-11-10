@@ -455,7 +455,7 @@ describe('COMPANIES ROUTES', () => {
     });
   });
 
-  describe('GET /companies/_id', () => {
+  describe('GET /companies/:id', () => {
     describe('VENDOR_ADMIN', () => {
       beforeEach(populateDB);
 

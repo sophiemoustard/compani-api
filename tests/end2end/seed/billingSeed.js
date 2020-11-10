@@ -337,6 +337,7 @@ const contracts = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
     user: billUserList[0]._id,
+    serialNumber: 'sdfasdcssdcasdcas',
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[0].contracts[0],
     company: authCompany._id,
@@ -353,6 +354,7 @@ const contracts = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
     user: billUserList[1]._id,
+    serialNumber: 'sdfasdgfadsgscqw',
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[1].contracts[0],
     company: otherCompany._id,
@@ -578,9 +580,9 @@ const populateBilling = async () => {
   await new ThirdPartyPayer(thirdPartyPayer).save();
   await Service.insertMany(services);
   await Customer.insertMany(customerList.concat(billAuthcustomer));
+  await User.create(billUserList);
   await Contract.create(contracts);
   await Event.insertMany(eventList);
-  await User.create(billUserList);
   await FundingHistory.create(fundingHistory);
 };
 

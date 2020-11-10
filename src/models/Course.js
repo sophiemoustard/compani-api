@@ -21,9 +21,12 @@ const CourseSchema = mongoose.Schema({
   },
 }, { timestamps: true });
 
+// eslint-disable-next-line consistent-return
 function getCompanies() {
-  const redundantCompanies = this.trainees ? this.trainees.map(t => t.company._id.toHexString()) : [];
-  return [...new Set(redundantCompanies)];
+  if (this.trainees && this.trainees.some(t => t.company)) {
+    const redundantCompanies = this.trainees ? this.trainees.map(t => t.company._id.toHexString()) : [];
+    return [...new Set(redundantCompanies)];
+  }
 }
 
 CourseSchema.virtual('slots', {

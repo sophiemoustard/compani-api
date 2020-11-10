@@ -124,7 +124,7 @@ const activeList = async (req) => {
 
 const learnerList = async (req) => {
   try {
-    const users = await getLearnerList(req.auth.credentials);
+    const users = await getLearnerList(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,

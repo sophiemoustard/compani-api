@@ -1,8 +1,10 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
+const { E_LEARNING } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('updateStep', () => {
@@ -88,5 +90,134 @@ describe('detachStep', () => {
     await StepHelper.detachStep(subProgramId, stepId);
 
     sinon.assert.calledWithExactly(SubProgramUpdate, { _id: subProgramId }, { $pull: { steps: stepId } });
+  });
+});
+
+describe('elearningStepProgress', () => {
+  it('should get elearning steps progress', async () => {
+    const step = {
+      _id: '5fa159a1795723a10b12825a',
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+
+    const result = await StepHelper.elearningStepProgress(step);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no activityHistories', async () => {
+    const step = {
+      _id: '5fa159a1795723a10b12825a',
+      activities: [],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+
+    const result = await StepHelper.elearningStepProgress(step);
+    expect(result).toBe(0);
+  });
+});
+
+describe('onSiteStepProgress', () => {
+  it('should get on site steps progress', async () => {
+    const slots = [
+      { endDate: '2020-11-03T09:00:00.000Z', step: new ObjectID() },
+      { endDate: '2020-11-04T16:01:00.000Z', step: new ObjectID() },
+    ];
+
+    const result = await StepHelper.onSiteStepProgress(slots);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no slots', async () => {
+    const slots = [];
+
+    const result = await StepHelper.onSiteStepProgress(slots);
+
+    expect(result).toBe(0);
+  });
+});
+
+describe('getProgress', () => {
+  let elearningStepProgress;
+  let onSiteStepProgress;
+  beforeEach(() => {
+    elearningStepProgress = sinon.stub(StepHelper, 'elearningStepProgress');
+    onSiteStepProgress = sinon.stub(StepHelper, 'onSiteStepProgress');
+  });
+  afterEach(() => {
+    elearningStepProgress.restore();
+    onSiteStepProgress.restore();
+  });
+  it('should get progress for elearning step', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+    const slots = [];
+    elearningStepProgress.returns(1);
+
+    const result = await StepHelper.getProgress(step, slots);
+    expect(result).toBe(1);
+    sinon.assert.calledOnceWithExactly(elearningStepProgress, step);
+  });
+
+  it('should return 0 if no activityHistories', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+    };
+    const slots = [];
+    elearningStepProgress.returns(0);
+
+    const result = await StepHelper.getProgress(step, slots);
+
+    expect(result).toBe(0);
+    sinon.assert.calledOnceWithExactly(elearningStepProgress, step);
+  });
+
+  it('should get progress for on site step', async () => {
+    const stepId = new ObjectID();
+    const step = {
+      _id: stepId,
+      activities: [],
+      name: 'Développer des équipes agiles et autonomes',
+      type: 'on_site',
+      areActivitiesValid: true,
+    };
+    const slots = [
+      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+    ];
+    onSiteStepProgress.returns(1);
+
+    const result = await StepHelper.getProgress(step, slots);
+    expect(result).toBe(1);
+    sinon.assert.calledOnceWithExactly(onSiteStepProgress, slots);
+  });
+
+  it('should return 0 if no slots', async () => {
+    const step = {
+      _id: new ObjectID(),
+      activities: [],
+      name: 'Développer des équipes agiles et autonomes',
+      type: 'on_site',
+      areActivitiesValid: true,
+    };
+    const slots = [];
+    onSiteStepProgress.returns(0);
+
+    const result = await StepHelper.getProgress(step, slots);
+    expect(result).toBe(0);
+    sinon.assert.calledOnceWithExactly(onSiteStepProgress, slots);
   });
 });

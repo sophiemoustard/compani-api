@@ -113,7 +113,7 @@ const auxiliaryList = [{
   establishment: establishment._id,
   identity: {
     firstname: 'Lulu',
-    lastname: 'Lala',
+    lastname: 'Uiui',
     title: MISTER,
     birthDate: moment('1992-01-01').toDate(),
     birthCountry: 'FR',
@@ -170,19 +170,24 @@ const auxiliaryList = [{
 
 const contractList = [{
   _id: contract1Id,
+  serialNumber: 'safsdgsdgsd',
   user: auxiliaryList[0]._id,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01', endDate: '2020-01-01' }],
-  startDate: '2018-01-01',
-  endDate: '2020-01-01',
+  startDate: '2018-01-01t00:00:00',
+  endDate: '2020-01-01t00:00:00',
+  endNotificationDate: '2020-01-01t00:00:00',
+  endReason: 'mutation',
   company: authCompany._id,
 }, {
   _id: contract2Id,
+  serialNumber: 'sfasdfsdf',
   user: auxiliaryList[0]._id,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
   startDate: '2020-02-01',
   company: authCompany._id,
 }, {
   _id: contract3Id,
+  serialNumber: 'nckxavhsasidf',
   user: auxiliaryList[1]._id,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
   startDate: '2020-02-01',

@@ -160,7 +160,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
 
     const transport = await exports.getTransportInfo(dm, origins, destinations, transportMode, event.company);
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    const pickTransportDuration = (transport.duration > breakDuration) || breakDuration > (transport.duration + 15);
+    const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
     paidKm = transport.distance;
   }
@@ -416,10 +416,7 @@ exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
 };
 
 const getDiff = (prevPay, hours, key) => {
-  let diff;
-  if (prevPay && prevPay[key] && hours[key]) diff = hours[key] - prevPay[key];
-  else if (hours[key]) diff = hours[key];
-  else diff = 0;
+  const diff = (get(hours, key) || 0) - (get(prevPay, key) || 0);
 
   return Math.round(diff * 100) / 100;
 };

@@ -176,7 +176,18 @@ exports.authorizeUserGet = async (req) => {
 };
 
 exports.authorizeLearnersGet = async (req) => {
-  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) throw Boom.forbidden();
+  const { auth, query } = req;
+  const userCompanyId = get(auth, 'credentials.company._id', null);
+  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
+  const vendorRole = get(authenticatedUser.role, 'vendor.name');
+  const clientRole = get(authenticatedUser.role, 'client.name');
+  const isVendorRoleAllowed = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole);
+  const isClientRoleAllowed = [CLIENT_ADMIN, COACH].includes(clientRole);
+  const isQueryCompanyValid = query.company && UtilsHelper.areObjectIdsEquals(query.company, userCompanyId);
+
+  if (!vendorRole && (!isClientRoleAllowed || !isQueryCompanyValid)) throw Boom.forbidden();
+  if (!clientRole && !isVendorRoleAllowed) throw Boom.forbidden();
+  if (!isClientRoleAllowed && !isVendorRoleAllowed) throw Boom.forbidden();
+
   return null;
 };

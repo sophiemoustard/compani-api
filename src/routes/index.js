@@ -167,4 +167,8 @@ exports.routes = [
     plugin: require('./activityHistories'),
     routes: { prefix: '/activityhistories' },
   },
+  {
+    plugin: require('./courseHistories'),
+    routes: { prefix: '/coursehistories' },
+  },
 ];

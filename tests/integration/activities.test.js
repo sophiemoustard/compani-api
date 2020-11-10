@@ -70,6 +70,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
           _id: stepsList[0]._id,
           subProgram: {
             _id: subProgramsList[0]._id,
+            isStrictlyELearning: false,
             program: { _id: programsList[0]._id, name: 'au programme télévisé' },
           },
         }]),

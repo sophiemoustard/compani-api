@@ -43,7 +43,7 @@ const auxiliary = {
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'toto', lastname: 'test' },
+  identity: { firstname: 'Cricri', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   employee_id: 9876543,
   refreshToken: uuidv4(),
@@ -55,6 +55,7 @@ const auxiliaryFromOtherCompany = {
 
 const contract = {
   createdAt: '2018-12-04T16:34:04',
+  serialNumber: 'aswertyujnmklk',
   endDate: moment('2019-05-28T23:59:59').toDate(),
   endNotificationDate: moment('2019-03-28T00:00:00').toDate(),
   endReason: 'mutation',

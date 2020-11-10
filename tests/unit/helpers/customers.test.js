@@ -59,13 +59,16 @@ describe('getCustomersWithBilledEvents', () => {
 describe('getCustomers', () => {
   let CustomerMock;
   let subscriptionsAccepted;
+  let populateSubscriptionsServices;
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
     subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
+    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
     CustomerMock.restore();
     subscriptionsAccepted.restore();
+    populateSubscriptionsServices.restore();
   });
 
   it('should return empty array if no customer', async () => {
@@ -80,8 +83,9 @@ describe('getCustomers', () => {
     const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([]);
-    sinon.verify(CustomerMock);
+    CustomerMock.verify();
     sinon.assert.notCalled(subscriptionsAccepted);
+    sinon.assert.notCalled(populateSubscriptionsServices);
   });
 
   it('should return customers', async () => {
@@ -97,6 +101,7 @@ describe('getCustomers', () => {
       .withExactArgs({ path: 'subscriptions.service' })
       .chain('lean')
       .returns(customers);
+    populateSubscriptionsServices.returnsArg(0);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
     const result = await CustomerHelper.getCustomers(credentials);
@@ -105,8 +110,9 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
-    sinon.verify(CustomerMock);
+    CustomerMock.verify();
     sinon.assert.calledTwice(subscriptionsAccepted);
+    sinon.assert.calledTwice(populateSubscriptionsServices);
   });
 });
 

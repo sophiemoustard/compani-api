@@ -159,6 +159,8 @@ describe('POST /contracts', () => {
     expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
     expect(user.inactivityDate).toBeNull();
 
+    expect(response.result.data.contract.serialNumber).toEqual(`CT${moment().format('YYMMDD')}0001`);
+
     const sectorHistoriesLength = await SectorHistory
       .countDocuments({
         auxiliary: contractUsers[1]._id,
@@ -382,10 +384,13 @@ describe('PUT contract/:id', () => {
   });
 
   const roles = [
-    { name: 'client_admin', expectedCode: 200 },
+    { name: 'coach', expectedCode: 200 },
     { name: 'auxiliary', expectedCode: 403 },
     { name: 'helper', expectedCode: 403 },
     { name: 'auxiliary_without_company', expectedCode: 403 },
+    { name: 'vendor_admin', expectedCode: 403 },
+    { name: 'trainer', expectedCode: 403 },
+    { name: 'training_organisation_manager', expectedCode: 403 },
   ];
 
   roles.forEach((role) => {
@@ -399,6 +404,67 @@ describe('PUT contract/:id', () => {
         method: 'PUT',
         url: `/contracts/${contractsList[0]._id}`,
         payload,
+        headers: { 'x-access-token': await getToken(role.name) },
+      });
+
+      expect(response.statusCode).toBe(role.expectedCode);
+    });
+  });
+});
+
+describe('GET contract/:id/dpae', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  beforeEach(async () => {
+    authToken = await getToken('client_admin');
+  });
+
+  it('should export dape', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/contracts/${contractsList[0]._id}/dpae`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('should return 403 as user and contract are not in the same company', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: `/contracts/${otherContract._id}/dpae`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should return 404 error if no contract', async () => {
+    const invalidId = new ObjectID().toHexString();
+    const response = await app.inject({
+      method: 'GET',
+      url: `/contracts/${invalidId}/dpae`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(404);
+  });
+
+  const roles = [
+    { name: 'coach', expectedCode: 200 },
+    { name: 'auxiliary', expectedCode: 403 },
+    { name: 'helper', expectedCode: 403 },
+    { name: 'auxiliary_without_company', expectedCode: 403 },
+    { name: 'vendor_admin', expectedCode: 403 },
+    { name: 'trainer', expectedCode: 403 },
+    { name: 'training_organisation_manager', expectedCode: 403 },
+  ];
+
+  roles.forEach((role) => {
+    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts/${contractsList[0]._id}/dpae`,
         headers: { 'x-access-token': await getToken(role.name) },
       });
 

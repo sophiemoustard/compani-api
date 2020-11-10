@@ -23,6 +23,7 @@ const {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   authCustomer,
+  coachAndTrainer,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -37,6 +38,7 @@ const { trainer } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
+const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -71,6 +73,7 @@ describe('POST /users', () => {
       expect(user.identity.firstname).toBe(userPayload.identity.firstname);
       expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
+      expect(user.serialNumber).toEqual(expect.any(String));
       expect(user).toHaveProperty('picture');
 
       const userSectorHistory = await SectorHistory
@@ -352,7 +355,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.length).toBe(2);
       expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
       expect(res.result.data.users).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -617,7 +620,7 @@ describe('GET /users/learners', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should return true and all learners', async () => {
+    it('should return all learners', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/learners',
@@ -625,40 +628,63 @@ describe('GET /users/learners', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toEqual(20);
+
+      const userCount = await User.countDocuments();
+      expect(res.result.data.users.length).toEqual(userCount);
       expect(res.result.data.users).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          identity: expect.objectContaining({
-            firstname: expect.any(String),
-            lastname: expect.any(String),
-          }),
-          company: expect.objectContaining({
-            _id: expect.any(ObjectID),
-            name: expect.any(String),
-          }),
-          picture: expect.objectContaining({
-            publicId: expect.any(String),
-            link: expect.any(String),
-          }),
+          identity: expect.objectContaining({ firstname: expect.any(String), lastname: expect.any(String) }),
+          company: expect.objectContaining({ _id: expect.any(ObjectID), name: expect.any(String) }),
+          picture: expect.objectContaining({ publicId: expect.any(String), link: expect.any(String) }),
           blendedCoursesCount: expect.any(Number),
         }),
-        expect.objectContaining({
-          _id: coachFromOtherCompany._id,
-          blendedCoursesCount: 0,
-        }),
-        expect.objectContaining({
-          _id: helperFromOtherCompany._id,
-          blendedCoursesCount: 1,
-        }),
-        expect.objectContaining({
-          _id: usersSeedList[0]._id,
-          blendedCoursesCount: 2,
-        }),
+        expect.objectContaining({ _id: coachFromOtherCompany._id, blendedCoursesCount: 0 }),
+        expect.objectContaining({ _id: helperFromOtherCompany._id, blendedCoursesCount: 1 }),
+        expect.objectContaining({ _id: usersSeedList[0]._id, blendedCoursesCount: 2 }),
       ]));
     });
   });
 
   describe('Other roles', () => {
+    it('should return 200 if coach requests learners from his company', async () => {
+      authToken = await getToken('coach');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
+    it('should return 200 if client admin requests learners from his company', async () => {
+      authToken = await getToken('client_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
+    it('should return 200 if user is both trainer and coach and he requests learners from his company', async () => {
+      authToken = await getTokenByCredentials(coachAndTrainer.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
+        .toBeTruthy();
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -678,6 +704,22 @@ describe('GET /users/learners', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    [{ name: 'coach', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }].forEach((role) => {
+      it(
+        `should return ${role.expectedCode} as user is ${role.name} and does not request user from his company`,
+        async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/learners?company=${otherCompany._id}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        }
+      );
     });
   });
 });

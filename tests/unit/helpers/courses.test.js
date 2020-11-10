@@ -18,8 +18,10 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
+const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
+const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -140,16 +142,68 @@ describe('list', () => {
 
 describe('listUserCourses', () => {
   let CourseMock;
-
+  let getProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
     CourseMock.restore();
+    getProgress.restore();
   });
 
   it('should return courses', async () => {
-    const coursesList = [{ misc: 'name' }, { misc: 'program' }];
+    const stepId = new ObjectID();
+    const coursesList = [
+      {
+        misc: 'name',
+        _id: new ObjectID(),
+        subProgram: {
+          steps: [{
+            _id: new ObjectID(),
+            activities: [{ activityHistories: [{}, {}] }],
+            name: 'Développement personnel full stack',
+            type: 'e_learning',
+            areActivitiesValid: false,
+          },
+          {
+            _id: stepId,
+            activities: [],
+            name: 'Développer des équipes agiles et autonomes',
+            type: 'on_site',
+            areActivitiesValid: true,
+          },
+          ],
+        },
+        slots: [
+          { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+          { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+        ],
+      },
+      {
+        misc: 'program',
+        _id: new ObjectID(),
+        subProgram: {
+          steps: [{
+            _id: new ObjectID(),
+            activities: [{ activityHistories: [{}, {}] }],
+            name: 'Brochure : le mal de dos',
+            type: 'e_learning',
+            areActivitiesValid: false,
+          }, {
+            _id: stepId,
+            activities: [],
+            name: 'Enjailler son équipe autonome',
+            type: 'on_site',
+            areActivitiesValid: true,
+          }],
+        },
+        slots: [
+          { endDate: '2019-11-06T09:00:00.000Z', step: stepId },
+          { endDate: '2019-12-22T16:01:00.000Z', step: stepId },
+        ],
+      },
+    ];
 
     CourseMock.expects('find')
       .withExactArgs({ trainees: '1234567890abcdef12345678' })
@@ -157,7 +211,21 @@ describe('listUserCourses', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: { path: 'program', select: 'name image' },
+        populate: [
+          { path: 'program', select: 'name image' },
+          {
+            path: 'steps',
+            select: 'name type activities',
+            populate: {
+              path: 'activities',
+              select: 'name type cards activityHistories',
+              populate: [
+                { path: 'activityHistories', match: { user: '1234567890abcdef12345678' } },
+                { path: 'cards', select: 'template' },
+              ],
+            },
+          },
+        ],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
@@ -165,9 +233,18 @@ describe('listUserCourses', () => {
       .withExactArgs('_id')
       .chain('lean')
       .returns(coursesList);
+    getProgress.returns(1);
 
     const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
-    expect(result).toMatchObject(coursesList);
+    expect(result).toMatchObject(coursesList.map(course => ({ ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      } })));
+    sinon.assert.calledWithExactly(getProgress.getCall(0), coursesList[0].subProgram.steps[0], coursesList[0].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), coursesList[0].subProgram.steps[1], coursesList[0].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(2), coursesList[1].subProgram.steps[0], coursesList[1].slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(3), coursesList[1].subProgram.steps[1], coursesList[1].slots);
   });
 });
 
@@ -460,15 +537,42 @@ describe('getCourseFollowUp', () => {
 
 describe('getTraineeCourse', () => {
   let CourseMock;
+  let getProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
+    getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
     CourseMock.restore();
+    getProgress.restore();
   });
 
   it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
+    const stepId = new ObjectID();
+    const course = {
+      _id: new ObjectID(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectID(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      ],
+    };
     const credentials = { _id: new ObjectID() };
 
     CourseMock.expects('findOne')
@@ -500,9 +604,18 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
+    getProgress.returns(1);
 
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
-    expect(result).toMatchObject(course);
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
   });
 });
 
@@ -655,18 +768,22 @@ describe('addCourseTrainee', () => {
   let RoleMock;
   let createUserStub;
   let updateUserStub;
+  let createHistoryOnTraineeAddition;
   beforeEach(() => {
     CourseMock = sinon.mock(Course, 'CourseMock');
     RoleMock = sinon.mock(Role, 'RoleMock');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
     updateUserStub = sinon.stub(UsersHelper, 'updateUser');
+    createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
   });
   afterEach(() => {
     CourseMock.restore();
     RoleMock.restore();
     createUserStub.restore();
     updateUserStub.restore();
+    createHistoryOnTraineeAddition.restore();
   });
+  const addedBy = { _id: new ObjectID() };
 
   it('should add a course trainee using existing user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID() };
@@ -678,9 +795,14 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnTraineeAddition,
+      { courseId: course._id, traineeId: user._id },
+      addedBy._id
+    );
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(updateUserStub);
   });
@@ -697,10 +819,15 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, null);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, null, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     CourseMock.verify();
     RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnTraineeAddition,
+      { courseId: course._id, traineeId: user._id },
+      addedBy._id
+    );
     sinon.assert.calledWithExactly(createUserStub, payload);
     sinon.assert.notCalled(updateUserStub);
   });
@@ -715,7 +842,7 @@ describe('addCourseTrainee', () => {
       .chain('lean')
       .returns({ ...course, trainee: [user._id] });
 
-    const result = await CourseHelper.addCourseTrainee(course._id, payload, user);
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
     CourseMock.verify();
@@ -723,24 +850,43 @@ describe('addCourseTrainee', () => {
   });
 });
 
-describe('removeCourseTrainee', () => {
-  let CourseMock;
+describe('registerToELearningCourse', () => {
+  let updateOne;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course, 'CourseMock');
+    updateOne = sinon.stub(Course, 'updateOne');
   });
   afterEach(() => {
-    CourseMock.restore();
+    updateOne.restore();
+  });
+
+  it('should add a course trainee using existing user', async () => {
+    const courseId = new ObjectID();
+    const credentials = { _id: new ObjectID() };
+    await CourseHelper.registerToELearningCourse(courseId, credentials);
+    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
+  });
+});
+
+describe('removeCourseTrainee', () => {
+  let updateOne;
+  let createHistoryOnTraineeDeletion;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+    createHistoryOnTraineeDeletion = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeDeletion');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    createHistoryOnTraineeDeletion.restore();
   });
 
   it('should remove a course trainee', async () => {
     const courseId = new ObjectID();
     const traineeId = new ObjectID();
-    CourseMock.expects('updateOne')
-      .withExactArgs({ _id: courseId }, { $pull: { trainees: traineeId } })
-      .chain('lean');
+    const removedBy = { _id: new ObjectID() };
 
-    await CourseHelper.removeCourseTrainee(courseId, traineeId);
-    CourseMock.verify();
+    await CourseHelper.removeCourseTrainee(courseId, traineeId, removedBy);
+    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { courseId, traineeId }, removedBy._id);
   });
 });
 

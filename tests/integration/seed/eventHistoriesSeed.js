@@ -24,7 +24,7 @@ const eventHistoryAuxiliaries = [{
   refreshToken: uuidv4(),
 }, {
   _id: new ObjectID(),
-  identity: { firstname: 'Mimi2', lastname: 'Mita' },
+  identity: { firstname: 'Joséphine', lastname: 'Mita' },
   local: { email: 'lili2@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[2]._id },
   company: authCompany._id,

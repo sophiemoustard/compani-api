@@ -159,7 +159,7 @@ const billUserList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Tata', lastname: 'Toto' },
+    identity: { firstname: 'Youpi', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
@@ -168,7 +168,7 @@ const billUserList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Tutu', lastname: 'Toto' },
+    identity: { firstname: 'Bravo', lastname: 'Toto' },
     local: { email: 'tutu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
@@ -190,6 +190,7 @@ const contracts = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
     user: billUserList[1]._id,
+    serialNumber: 'poijhgfghjsd',
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[1].contracts[0],
     company: authCompany._id,
@@ -205,6 +206,7 @@ const contracts = [
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'knbgyujnbvgfhj',
     user: billUserList[2]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[2].contracts[0],
@@ -221,9 +223,11 @@ const contracts = [
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'knalkdsflkdsjlk',
     user: billUserList[2]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     endDate: '2018-12-03T22:59:59.000Z',
+    endNotificationDate: '2018-12-03T22:59:59.000Z',
     endReason: 'mutation',
     _id: billUserList[3].contracts[0],
     company: otherCompany._id,

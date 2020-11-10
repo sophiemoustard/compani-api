@@ -7,6 +7,7 @@ const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
+const Establishment = require('../../../src/models/Establishment');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -61,8 +62,29 @@ const otherContractUser = {
 
 const sector = { _id: new ObjectID(), company: authCompany._id };
 
+const establishment = {
+  _id: new ObjectID(),
+  name: 'Tata',
+  siret: '09876543210987',
+  address: {
+    street: '37, rue des acacias',
+    fullAddress: '37, rue des acacias 69000 Lyon',
+    zipCode: '69000',
+    city: 'Lyon',
+    location: {
+      type: 'Point',
+      coordinates: [4.824302, 3.50807],
+    },
+  },
+  phone: '0446899034',
+  workHealthService: 'MT01',
+  urssafCode: '217',
+  company: authCompany,
+};
+
 const contractUsers = [{
   _id: new ObjectID(),
+  establishment: establishment._id,
   identity: {
     firstname: 'Test7',
     lastname: 'Test7',
@@ -72,7 +94,6 @@ const contractUsers = [{
     birthCity: 'Paris',
     birthState: 75,
   },
-  establishment: new ObjectID(),
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: null,
   employee_id: 12345678,
@@ -94,7 +115,7 @@ const contractUsers = [{
 {
   _id: new ObjectID(),
   identity: {
-    firstname: 'Test',
+    firstname: 'ayolo',
     lastname: 'Toto',
     nationality: 'FR',
     socialSecurityNumber: '2987654334562',
@@ -206,7 +227,7 @@ const sectorHistories = [
 
 const otherContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
-  endDate: null,
+  serialNumber: 'wfjefajsdklvcmkdmck',
   user: otherContractUser._id,
   startDate: '2018-12-03T23:00:00.000Z',
   _id: otherContractUser.contracts[0],
@@ -238,6 +259,7 @@ const userFromOtherCompany = {
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'mnbvcxzaserfghjiu',
     user: contractUsers[0]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: contractUsers[0].contracts[0],
@@ -254,9 +276,12 @@ const contractsList = [
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
+    serialNumber: 'sdfgtresddbgr',
     user: contractUsers[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     endDate: '2019-02-03T23:00:00.000Z',
+    endNotificationDate: '2019-02-03T23:00:00.000Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -271,6 +296,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'qwdfgbnhygfc',
     endDate: null,
     company: authCompany._id,
     user: getUser('auxiliary')._id,
@@ -289,9 +315,12 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'cvfdjsbjknvkaskdj',
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     endDate: '2018-09-02T17:12:55.144Z',
+    endNotificationDate: '2018-02-03T23:00:00.000Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -307,9 +336,12 @@ const contractsList = [
   },
   {
     createdAt: '2017-08-02T17:12:55.144Z',
+    serialNumber: 'cacnxnkzlas',
     user: contractUsers[2]._id,
     startDate: '2017-08-02T17:12:55.144Z',
     endDate: '2017-09-02T17:12:55.144Z',
+    endNotificationDate: '2017-09-02T17:12:55.144Z',
+    endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [
@@ -325,6 +357,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'sldfnasdlknfkds',
     user: contractUsers[3]._id,
     startDate: '2018-08-02T17:12:55.144Z',
     _id: new ObjectID(),
@@ -341,6 +374,7 @@ const contractsList = [
   },
   {
     createdAt: '2018-08-02T17:12:55.144Z',
+    serialNumber: 'lqwjrewjqpjefek',
     user: getUser('auxiliary_without_company')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     _id: new ObjectID(),
@@ -440,10 +474,12 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
+  await Establishment.deleteMany({});
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
   await new Sector(sector).save();
+  await new Establishment(establishment).save();
   await new Customer(customer).save();
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);

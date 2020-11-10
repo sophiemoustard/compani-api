@@ -187,9 +187,11 @@ describe('createContract', () => {
   let UserMock;
   let RoleMock;
   let createHistoryOnContractCreation;
+  let formatSerialNumber;
 
   beforeEach(() => {
     isCreationAllowed = sinon.stub(ContractHelper, 'isCreationAllowed');
+    formatSerialNumber = sinon.stub(ContractHelper, 'formatSerialNumber');
     generateSignatureRequestStub = sinon.stub(ESignHelper, 'generateSignatureRequest');
     createHistoryOnContractCreation = sinon.stub(SectorHistoryHelper, 'createHistoryOnContractCreation');
     ContractMock = sinon.mock(Contract);
@@ -199,6 +201,7 @@ describe('createContract', () => {
 
   afterEach(() => {
     isCreationAllowed.restore();
+    formatSerialNumber.restore();
     generateSignatureRequestStub.restore();
     createHistoryOnContractCreation.restore();
     ContractMock.restore();
@@ -215,11 +218,12 @@ describe('createContract', () => {
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const contract = { ...payload, company: '1234567890' };
     const role = { _id: new ObjectID(), interface: 'client' };
-    const user = { name: 'toto' };
+    const user = { name: 'toto', contracts: [] };
+    const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
 
     isCreationAllowed.returns(true);
+    formatSerialNumber.returns('CT1234567890');
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
@@ -246,6 +250,7 @@ describe('createContract', () => {
 
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
+    sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
     ContractMock.verify();
     UserMock.verify();
@@ -267,8 +272,8 @@ describe('createContract', () => {
       ],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const contract = { ...payload, company: '1234567890' };
-    const user = { name: 'Toto' };
+    const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
+    const user = { name: 'Toto', contracts: [] };
     const contractWithDoc = {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
@@ -276,6 +281,7 @@ describe('createContract', () => {
     const role = { _id: new ObjectID(), interface: 'client' };
 
     isCreationAllowed.returns(true);
+    formatSerialNumber.returns('CT1234567890');
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
     ContractMock.expects('create')
       .withExactArgs(contractWithDoc)
@@ -302,6 +308,7 @@ describe('createContract', () => {
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.calledWithExactly(generateSignatureRequestStub, contract.versions[0].signature);
+    sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     ContractMock.verify();
@@ -318,11 +325,17 @@ describe('createContract', () => {
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const contract = { ...payload, company: '1234567890' };
+    const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
     const role = { _id: new ObjectID(), interface: 'client' };
-    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
+    const user = {
+      name: 'toto',
+      sector: new ObjectID(),
+      _id: new ObjectID(),
+      contracts: [],
+    };
 
     isCreationAllowed.returns(true);
+    formatSerialNumber.returns('CT1234567890');
     ContractMock.expects('create')
       .withExactArgs(contract)
       .returns(contract);
@@ -347,12 +360,13 @@ describe('createContract', () => {
 
     const result = await ContractHelper.createContract(payload, credentials);
 
+    expect(result).toEqual(expect.objectContaining(contract));
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
+    sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.calledWithExactly(createHistoryOnContractCreation, user, contract, credentials.company._id);
     ContractMock.verify();
     UserMock.verify();
-    expect(result).toEqual(expect.objectContaining(contract));
   });
 
   it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
@@ -385,6 +399,7 @@ describe('createContract', () => {
       sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
       sinon.assert.notCalled(generateSignatureRequestStub);
       sinon.assert.notCalled(createHistoryOnContractCreation);
+      sinon.assert.notCalled(formatSerialNumber);
       ContractMock.verify();
       UserMock.verify();
     }
