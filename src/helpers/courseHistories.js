@@ -12,7 +12,7 @@ exports.createHistoryOnSlotCreation = (payload, userId) => {
     : ['startDate', 'endDate'];
 
   return exports.createHistory(
-    payload.courseId,
+    payload.course,
     userId,
     SLOT_CREATION,
     { slot: pick(payload, pickedFields) }
@@ -25,7 +25,7 @@ exports.createHistoryOnSlotDeletion = (payload, userId) => {
     : ['startDate', 'endDate'];
 
   return exports.createHistory(
-    payload.courseId,
+    payload.course,
     userId,
     SLOT_DELETION,
     { slot: pick(payload, pickedFields) }
@@ -33,10 +33,10 @@ exports.createHistoryOnSlotDeletion = (payload, userId) => {
 };
 
 exports.createHistoryOnTraineeAddition = (payload, userId) =>
-  exports.createHistory(payload.courseId, userId, TRAINEE_ADDITION, { trainee: payload.traineeId });
+  exports.createHistory(payload.course, userId, TRAINEE_ADDITION, { trainee: payload.traineeId });
 
 exports.createHistoryOnTraineeDeletion = (payload, userId) =>
-  exports.createHistory(payload.courseId, userId, TRAINEE_DELETION, { trainee: payload.traineeId });
+  exports.createHistory(payload.course, userId, TRAINEE_DELETION, { trainee: payload.traineeId });
 
 exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
   if (!slotFromDb.startDate && payload.startDate) {
@@ -57,7 +57,7 @@ exports.createHistoryOnSlotEdition = async (slotFromDb, payload, userId) => {
       },
     };
 
-  return exports.createHistory(slotFromDb.courseId, userId, SLOT_EDITION, actionPayload);
+  return exports.createHistory(slotFromDb.course, userId, SLOT_EDITION, actionPayload);
 };
 
 exports.list = async (query) => {

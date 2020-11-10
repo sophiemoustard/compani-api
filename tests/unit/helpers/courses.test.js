@@ -800,7 +800,7 @@ describe('addCourseTrainee', () => {
     CourseMock.verify();
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { courseId: course._id, traineeId: user._id },
+      { course: course._id, traineeId: user._id },
       addedBy._id
     );
     sinon.assert.notCalled(createUserStub);
@@ -825,7 +825,7 @@ describe('addCourseTrainee', () => {
     RoleMock.verify();
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
-      { courseId: course._id, traineeId: user._id },
+      { course: course._id, traineeId: user._id },
       addedBy._id
     );
     sinon.assert.calledWithExactly(createUserStub, payload);
@@ -880,13 +880,13 @@ describe('removeCourseTrainee', () => {
   });
 
   it('should remove a course trainee', async () => {
-    const courseId = new ObjectID();
+    const course = new ObjectID();
     const traineeId = new ObjectID();
     const removedBy = { _id: new ObjectID() };
 
-    await CourseHelper.removeCourseTrainee(courseId, traineeId, removedBy);
-    sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $pull: { trainees: traineeId } });
-    sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { courseId, traineeId }, removedBy._id);
+    await CourseHelper.removeCourseTrainee(course, traineeId, removedBy);
+    sinon.assert.calledWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
+    sinon.assert.calledOnceWithExactly(createHistoryOnTraineeDeletion, { course, traineeId }, removedBy._id);
   });
 });
 

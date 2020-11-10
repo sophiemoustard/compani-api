@@ -259,7 +259,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
   await CourseHistoriesHelper.createHistoryOnTraineeAddition(
-    { courseId, traineeId: addedTrainee._id },
+    { course: courseId, traineeId: addedTrainee._id },
     credentials._id
   );
 
@@ -271,7 +271,7 @@ exports.registerToELearningCourse = async (courseId, credentials) =>
   Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
 
 exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
-  CourseHistoriesHelper.createHistoryOnTraineeDeletion({ courseId, traineeId }, user._id),
+  CourseHistoriesHelper.createHistoryOnTraineeDeletion({ course: courseId, traineeId }, user._id),
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
 ]);
 
