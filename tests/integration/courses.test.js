@@ -151,7 +151,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
           endDate: moment('2020-03-20T11:00:00').toDate(),
-          courseId: coursesList[3]._id,
+          course: coursesList[3]._id,
           _id: expect.any(ObjectID),
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
@@ -342,13 +342,13 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           expect.objectContaining({
             startDate: moment('2020-03-20T09:00:00').toDate(),
             endDate: moment('2020-03-20T11:00:00').toDate(),
-            courseId: courseFromAuthCompanyIntra._id,
+            course: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
           expect.objectContaining({
             startDate: moment('2020-03-20T14:00:00').toDate(),
             endDate: moment('2020-03-20T18:00:00').toDate(),
-            courseId: courseFromAuthCompanyIntra._id,
+            course: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
         ]),

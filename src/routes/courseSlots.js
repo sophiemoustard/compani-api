@@ -18,7 +18,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date().when('startDate', { is: Joi.exist(), then: Joi.required() }),
             address: Joi.alternatives().try(addressValidation, {}),
-            courseId: Joi.objectId().required(),
+            course: Joi.objectId().required(),
             step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
