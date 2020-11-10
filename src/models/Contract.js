@@ -31,13 +31,14 @@ const END_CONTRACT_REASONS = [
 ];
 
 const ContractSchema = mongoose.Schema({
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true, immutable: true },
+  serialNumber: { type: String, required: true, immutable: true, unique: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date },
-  endReason: { type: String, enum: END_CONTRACT_REASONS },
-  otherMisc: { type: String },
-  endNotificationDate: { type: Date },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  endReason: { type: String, enum: END_CONTRACT_REASONS, required() { return !!this.endDate; } },
+  otherMisc: { type: String, required() { return this.endReason === OTHER; } },
+  endNotificationDate: { type: Date, required() { return !!this.endDate; } },
   versions: [{
     signature: {
       eversignId: String,

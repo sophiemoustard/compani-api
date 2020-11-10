@@ -61,6 +61,11 @@ const activity = { _id: new ObjectID(), name: 'great activity', type: VIDEO, car
 const activitiesHistory = [
   { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activity._id },
   { _id: new ObjectID(), user: clientAdmin._id, activity: activity._id },
+  { _id: new ObjectID(), user: helper._id, activity: activity._id },
+  { _id: new ObjectID(), user: auxiliary._id, activity: activity._id },
+  { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activity._id },
+  { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activity._id },
+  { _id: new ObjectID(), user: courseTrainer._id, activity: activity._id },
 ];
 
 const step = {
