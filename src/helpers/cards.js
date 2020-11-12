@@ -3,6 +3,7 @@ const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
 const CloudinaryHelper = require('./cloudinary');
+const GCloudStorageHelper = require('./gCloudStorage');
 
 exports.addCard = async (activityId, payload) => {
   const card = await Card.create(payload);
@@ -26,20 +27,13 @@ exports.deleteCardAnswer = async params => Card.updateOne(
 );
 
 exports.uploadMedia = async (cardId, payload) => {
-  const imageUploaded = await CloudinaryHelper.addImage({
-    file: payload.file,
-    folder: 'images/business/Compani/cards',
-    public_id: `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
-  });
+  const fileName = `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`;
+  const imageUploaded = await GCloudStorageHelper.uploadImage({ fileName, file: payload.file });
 
-  const updatePayload = {
-    media: {
-      publicId: imageUploaded.public_id,
-      link: imageUploaded.secure_url,
-    },
-  };
-
-  await Card.updateOne({ _id: cardId }, { $set: flat(updatePayload) });
+  await Card.updateOne(
+    { _id: cardId },
+    { $set: flat({ media: { publicId: fileName, link: imageUploaded } }) }
+  );
 };
 
 exports.removeCard = async (cardId) => {
