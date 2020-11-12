@@ -40,6 +40,7 @@ exports.plugin = {
             media: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
+              type: Joi.string(),
             }),
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
@@ -126,7 +127,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/cloudinary/upload',
+      path: '/{_id}/upload',
       handler: uploadMedia,
       options: {
         payload: formDataPayload,

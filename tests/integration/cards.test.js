@@ -749,7 +749,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   });
 });
 
-describe('POST /cards/:id/cloudinary/upload', () => {
+describe('POST /cards/:id/upload', () => {
   let authToken;
   let form;
   let addImageStub;
@@ -773,7 +773,7 @@ describe('POST /cards/:id/cloudinary/upload', () => {
     it('should add a card media', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id}/cloudinary/upload`,
+        url: `/cards/${card._id}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
@@ -792,7 +792,7 @@ describe('POST /cards/:id/cloudinary/upload', () => {
         const invalidForm = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/cloudinary/upload`,
+          url: `/cards/${card._id}/upload`,
           payload: await GetStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
         });
@@ -817,7 +817,7 @@ describe('POST /cards/:id/cloudinary/upload', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/cloudinary/upload`,
+          url: `/cards/${card._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
         });
