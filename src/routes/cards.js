@@ -40,6 +40,7 @@ exports.plugin = {
             media: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
+              type: Joi.string(),
             }),
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
