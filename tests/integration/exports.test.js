@@ -110,9 +110,9 @@ describe('EXPORTS ROUTES', () => {
         expect(response.result).toBeDefined();
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(3);
-        expect(rows[0]).toEqual('\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Divers"');
-        expect(rows[1]).toEqual(`${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";`);
-        expect(rows[2]).toEqual(`${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 15:00";"19/01/2019 17:00";"test absence"`);
+        expect(rows[0]).toEqual('\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Equivalent heures contrat";"Divers"');
+        expect(rows[1]).toEqual(`${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"test absence"`);
+        expect(rows[2]).toEqual(`${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";`);
       });
     });
 

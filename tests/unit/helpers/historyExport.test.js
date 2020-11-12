@@ -372,9 +372,9 @@ describe('exportAbsencesHistory', () => {
     expect(exportArray).toEqual([
       header,
       [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
-        '20/05/2019 08:00', '20/05/2019 10:00', 2, ''],
+        '20/05/2019 08:00', '20/05/2019 10:00', '2,00', ''],
       [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '20/05/2019', 4, 'brbr'],
+        '20/05/2019', '4,00', 'brbr'],
     ]);
   });
 });
