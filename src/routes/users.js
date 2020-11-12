@@ -82,7 +82,7 @@ exports.plugin = {
             company: Joi.objectId(),
             sector: Joi.objectId(),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
-            role: Joi.objectId().required(),
+            role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
