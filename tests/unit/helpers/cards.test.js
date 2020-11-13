@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const moment = require('moment');
 const { fn: momentProto } = require('moment');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
