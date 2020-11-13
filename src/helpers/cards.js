@@ -26,13 +26,18 @@ exports.deleteCardAnswer = async params => Card.updateOne(
 );
 
 exports.uploadMedia = async (cardId, payload) => {
-  const fileName = `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`;
+  const fileName = `${payload.fileName}-${moment().format('YYYYMMDDHHmmss')}`;
   const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
   await Card.updateOne(
     { _id: cardId },
     { $set: flat({ media: { publicId: fileName, link: imageUploaded } }) }
   );
+};
+
+exports.deleteMedia = async (params) => {
+  await Card.updateOne({ _id: params._id }, { $unset: { 'media.publicId': '', 'media.link': '' } });
+  await GCloudStorageHelper.deleteMedia(params.publicId);
 };
 
 exports.removeCard = async (cardId) => {

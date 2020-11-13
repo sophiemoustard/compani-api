@@ -19,7 +19,7 @@ const {
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'Lala' },
-  { _id: new ObjectID(), template: TITLE_TEXT_MEDIA },
+  { _id: new ObjectID(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
   { _id: new ObjectID(), template: TITLE_TEXT },
   { _id: new ObjectID(), template: TEXT_MEDIA },
   { _id: new ObjectID(), template: FLASHCARD },

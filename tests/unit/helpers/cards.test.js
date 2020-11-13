@@ -149,12 +149,12 @@ describe('uploadMedia', () => {
   });
 
   it('should upload image', async () => {
-    momentFormat.returns('2020_06_25_05_45_12');
+    momentFormat.returns('20200625054512');
     uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
 
     const cardId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const publicId = `${payload.fileName}-2020_06_25_05_45_12`;
+    const publicId = `${payload.fileName}-20200625054512`;
 
     await CardHelper.uploadMedia(cardId, payload);
 
@@ -164,5 +164,31 @@ describe('uploadMedia', () => {
       { _id: cardId },
       { $set: flat({ media: { publicId, link: 'https://storage.googleapis.com/BucketKFC/myMedia' } }) }
     );
+  });
+});
+
+describe('deleteMedia', () => {
+  let updateOne;
+  let deleteMedia;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    deleteMedia.restore();
+  });
+
+  it('should update card and delete media', async () => {
+    const params = { _id: new ObjectID(), publicId: 'publicId' };
+
+    await CardHelper.deleteMedia(params);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: params._id },
+      { $unset: { 'media.publicId': '', 'media.link': '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
   });
 });

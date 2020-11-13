@@ -70,6 +70,17 @@ const uploadMedia = async (req) => {
   }
 };
 
+const deleteMedia = async (req) => {
+  try {
+    await CardHelper.deleteMedia(req.params);
+
+    return { message: translate[language].cardUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   addAnswer,
@@ -77,4 +88,5 @@ module.exports = {
   deleteAnswer,
   remove,
   uploadMedia,
+  deleteMedia,
 };

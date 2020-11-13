@@ -749,7 +749,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   });
 });
 
-describe('POST /cards/:id/upload', () => {
+describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   let authToken;
   let form;
   let uploadMediaStub;
@@ -830,6 +830,63 @@ describe('POST /cards/:id/upload', () => {
           url: `/cards/${card._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CARDS ROUTES - DELETE /cards/:id/upload/publicId', () => {
+  let authToken;
+  let deleteMediaStub;
+  beforeEach(() => {
+    deleteMediaStub = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+  });
+  afterEach(() => {
+    deleteMediaStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should add a card media', async () => {
+      const card = cardsList[1];
+      const { publicId } = card.media;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id}/upload/${publicId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnce(deleteMediaStub);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const card = cardsList[1];
+        const { publicId } = card.media;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${card._id}/upload/${publicId}`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
