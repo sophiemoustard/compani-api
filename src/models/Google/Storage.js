@@ -1,9 +1,9 @@
-const Cloud = require('@google-cloud/storage');
+const { Storage } = require('@google-cloud/storage');
 
-const { Storage } = Cloud;
-const storage = new Storage({
-  keyFilename: './src/models/Google/GCSConfig.json',
-  projectId: process.env.GOOGLE_CLOUD_STORAGE_PROJECT_ID,
+module.exports = new Storage({
+  credentials: {
+    client_email: process.env.GCS_API_EMAIL,
+    private_key: process.env.GCS_API_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  },
+  projectId: process.env.GCP_PROJECT,
 });
-
-module.exports = storage;
