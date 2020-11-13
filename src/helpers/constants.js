@@ -266,6 +266,7 @@ module.exports = {
   QUIZ: 'quiz',
   SHARING_EXPERIENCE: 'sharing_experience',
   VIDEO: 'video',
+  QUESTIONNAIRE: 'questionnaire',
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
@@ -290,7 +291,6 @@ module.exports = {
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
   FLASHCARD_TEXT_MAX_LENGTH: 450,
-  QUESTIONNAIRE: 'questionnaire',
   get CARD_TEMPLATES() {
     return [
       { label: 'Transition', value: this.TRANSITION, type: this.LESSON },
