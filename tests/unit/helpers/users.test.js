@@ -18,6 +18,7 @@ const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
+const { HELPER, AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -388,21 +389,22 @@ describe('getUsersListWithSectorHistories', () => {
 
 describe('getLearnerList', () => {
   let UserMock;
-
+  let findRole;
   beforeEach(() => {
     UserMock = sinon.mock(User);
+    findRole = sinon.stub(Role, 'find');
   });
-
   afterEach(() => {
     UserMock.restore();
+    findRole.restore();
   });
 
-  it('should get learners', async () => {
-    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  it('should get all learners', async () => {
+    const query = {};
     const credentials = { role: { vendor: new ObjectID() } };
-    const query = { company: new ObjectID() };
+    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     UserMock.expects('find')
-      .withExactArgs(query, 'identity.firstname identity.lastname picture', { autopopulate: false })
+      .withExactArgs({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
       .chain('populate')
       .withExactArgs({ path: 'company', select: 'name' })
       .chain('populate')
@@ -413,7 +415,39 @@ describe('getLearnerList', () => {
       .returns(users);
 
     const result = await UsersHelper.getLearnerList(query, credentials);
+
     expect(result).toEqual(users);
+    sinon.assert.notCalled(findRole);
+    UserMock.verify();
+  });
+
+  it('should get learners from company', async () => {
+    const query = { company: new ObjectID() };
+    const credentials = { role: { client: new ObjectID() } };
+    const roleId1 = new ObjectID();
+    const roleId2 = new ObjectID();
+    const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
+    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    findRole.returns(rolesToExclude);
+    UserMock.expects('find')
+      .withExactArgs(
+        { company: query.company, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
+        'identity.firstname identity.lastname picture',
+        { autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'company', select: 'name' })
+      .chain('populate')
+      .withExactArgs({ path: 'blendedCoursesCount' })
+      .chain('setOptions')
+      .withExactArgs({ isVendorUser: false })
+      .chain('lean')
+      .returns(users);
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
+
+    expect(result).toEqual(users);
+    sinon.assert.calledOnceWithExactly(findRole, { name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
     UserMock.verify();
   });
 });
