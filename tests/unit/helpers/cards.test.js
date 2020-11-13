@@ -1,10 +1,11 @@
 const sinon = require('sinon');
+const { fn: momentProto } = require('moment');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const CardHelper = require('../../../src/helpers/cards');
-const CloudinaryHelper = require('../../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 require('sinon-mongoose');
 
 describe('addCard', () => {
@@ -134,29 +135,34 @@ describe('removeCard', () => {
 
 describe('uploadMedia', () => {
   let updateOneStub;
-  let addImageStub;
+  let uploadMediaStub;
+  let momentFormat;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
     updateOneStub.restore();
-    addImageStub.restore();
+    uploadMediaStub.restore();
+    momentFormat.restore();
   });
 
   it('should upload image', async () => {
+    momentFormat.returns('2020_06_25_05_45_12');
+    uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+
     const cardId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const cardUpdatePayload = {
-      media: {
-        publicId: 'azertyuiop',
-        link: 'https://compani.io',
-      },
-    };
+    const publicId = `${payload.fileName}-2020_06_25_05_45_12`;
 
     await CardHelper.uploadMedia(cardId, payload);
-    sinon.assert.calledOnce(addImageStub);
-    sinon.assert.calledWithExactly(updateOneStub, { _id: cardId }, { $set: flat(cardUpdatePayload) });
+
+    sinon.assert.calledOnceWithExactly(uploadMediaStub, { fileName: publicId, file: payload.file });
+    sinon.assert.calledWithExactly(
+      updateOneStub,
+      { _id: cardId },
+      { $set: flat({ media: { publicId, link: 'https://storage.googleapis.com/BucketKFC/myMedia' } }) }
+    );
   });
 });

@@ -1,12 +1,12 @@
 const expect = require('expect');
+const { fn: momentProto } = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
-const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
-const CloudinaryHelper = require('../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { populateDB, cardsList, activitiesList } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -752,16 +752,18 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
 describe('POST /cards/:id/upload', () => {
   let authToken;
   let form;
-  let addImageStub;
+  let uploadMediaStub;
+  let momentFormat;
   const card = cardsList[0];
   const docPayload = { fileName: 'title_text_media', file: 'true' };
   beforeEach(() => {
     form = generateFormData(docPayload);
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
-    addImageStub.restore();
+    uploadMediaStub.restore();
+    momentFormat.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -771,6 +773,9 @@ describe('POST /cards/:id/upload', () => {
     });
 
     it('should add a card media', async () => {
+      momentFormat.returns('2020_06_25_05_45_12');
+      uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${card._id}/upload`,
@@ -778,12 +783,17 @@ describe('POST /cards/:id/upload', () => {
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
-      const cardWithMedia = { ...card, media: { publicId: 'abcdefgh', link: 'https://alenvi.io' } };
-      const cardUpdated = await Card.findById(card._id, { name: 1, media: 1 }).lean();
+      const cardUpdated = await Card.findById(card._id).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(cardUpdated).toMatchObject(pick(cardWithMedia, ['_id', 'name', 'media']));
-      sinon.assert.calledOnce(addImageStub);
+      expect(cardUpdated).toMatchObject({
+        _id: card._id,
+        media: {
+          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+          publicId: `${docPayload.fileName}-2020_06_25_05_45_12`,
+        },
+      });
+      sinon.assert.calledOnce(uploadMediaStub);
     });
 
     const wrongParams = ['file', 'fileName'];
