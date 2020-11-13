@@ -2,7 +2,6 @@ const moment = require('moment');
 const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
-const CloudinaryHelper = require('./cloudinary');
 const GCloudStorageHelper = require('./gCloudStorage');
 
 exports.addCard = async (activityId, payload) => {

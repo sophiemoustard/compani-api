@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const moment = require('moment');
+const { fn: momentProto } = require('moment');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
@@ -136,33 +137,33 @@ describe('removeCard', () => {
 describe('uploadMedia', () => {
   let updateOneStub;
   let uploadMediaStub;
+  let momentFormat;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
-    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia')
-      .returns('https://storage.googleapis.com/BucketKFC/myMedia');
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
     updateOneStub.restore();
     uploadMediaStub.restore();
+    momentFormat.restore();
   });
 
   it('should upload image', async () => {
+    momentFormat.returns('2020_06_25_05_45_12');
+    uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+
     const cardId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const cardUpdatePayload = {
-      media: {
-        publicId: `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`, // STUB MOMENT ?
-        link: 'https://storage.googleapis.com/BucketKFC/myMedia',
-      },
-    };
+    const publicId = `${payload.fileName}-2020_06_25_05_45_12`;
 
     await CardHelper.uploadMedia(cardId, payload);
 
-    sinon.assert.calledOnce(uploadMediaStub);
+    sinon.assert.calledOnceWithExactly(uploadMediaStub, { fileName: publicId, file: payload.file });
     sinon.assert.calledWithExactly(
       updateOneStub,
       { _id: cardId },
-      { $set: flat({ media: { publicId: cardUpdatePayload.media.publicId, link: cardUpdatePayload.media.link } }) }
+      { $set: flat({ media: { publicId, link: 'https://storage.googleapis.com/BucketKFC/myMedia' } }) }
     );
   });
 });
