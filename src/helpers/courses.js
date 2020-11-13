@@ -72,7 +72,7 @@ exports.listUserCourses = async (credentials) => {
       ],
     })
     .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
-    .select('_id')
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return courses.map(course => ({
@@ -198,7 +198,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
       ],
     })
     .populate({ path: 'slots', select: 'startDate endDate step address' })
-    .select('_id')
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return {
