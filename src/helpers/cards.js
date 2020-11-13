@@ -28,7 +28,7 @@ exports.deleteCardAnswer = async params => Card.updateOne(
 
 exports.uploadMedia = async (cardId, payload) => {
   const fileName = `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`;
-  const imageUploaded = await GCloudStorageHelper.uploadImage({ fileName, file: payload.file });
+  const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
   await Card.updateOne(
     { _id: cardId },

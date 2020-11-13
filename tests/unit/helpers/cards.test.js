@@ -1,10 +1,11 @@
 const sinon = require('sinon');
+const moment = require('moment');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const CardHelper = require('../../../src/helpers/cards');
-const CloudinaryHelper = require('../../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 require('sinon-mongoose');
 
 describe('addCard', () => {
@@ -134,15 +135,15 @@ describe('removeCard', () => {
 
 describe('uploadMedia', () => {
   let updateOneStub;
-  let addImageStub;
+  let uploadMediaStub;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia')
+      .returns('https://storage.googleapis.com/BucketKFC/myMedia');
   });
   afterEach(() => {
     updateOneStub.restore();
-    addImageStub.restore();
+    uploadMediaStub.restore();
   });
 
   it('should upload image', async () => {
@@ -150,13 +151,18 @@ describe('uploadMedia', () => {
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
     const cardUpdatePayload = {
       media: {
-        publicId: 'azertyuiop',
-        link: 'https://compani.io',
+        publicId: `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`, // STUB MOMENT ?
+        link: 'https://storage.googleapis.com/BucketKFC/myMedia',
       },
     };
 
     await CardHelper.uploadMedia(cardId, payload);
-    sinon.assert.calledOnce(addImageStub);
-    sinon.assert.calledWithExactly(updateOneStub, { _id: cardId }, { $set: flat(cardUpdatePayload) });
+
+    sinon.assert.calledOnce(uploadMediaStub);
+    sinon.assert.calledWithExactly(
+      updateOneStub,
+      { _id: cardId },
+      { $set: flat({ media: { publicId: cardUpdatePayload.media.publicId, link: cardUpdatePayload.media.link } }) }
+    );
   });
 });
