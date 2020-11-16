@@ -325,4 +325,5 @@ module.exports = {
   UPLOAD_IMAGE: 'image',
   UPLOAD_VIDEO: 'video',
   UPLOAD_AUDIO: 'audio',
+  UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
 };
