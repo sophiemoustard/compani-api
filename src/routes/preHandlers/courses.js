@@ -139,3 +139,11 @@ exports.authorizeRegisterToELearning = async (req) => {
 
   return null;
 };
+
+exports.getCourse = async (req) => {
+  const course = await Course.findById(req.params._id).lean();
+
+  if (!course) throw Boom.notFound();
+
+  return course;
+};

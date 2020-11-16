@@ -30,6 +30,7 @@ const {
   authorizeGetCourseList,
   authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
+  getCourse,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -88,6 +89,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
+        pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getById,
     });

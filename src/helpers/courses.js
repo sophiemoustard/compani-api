@@ -18,7 +18,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -84,14 +84,14 @@ exports.listUserCourses = async (credentials) => {
   }));
 };
 
-exports.getCourse = async (courseId, loggedUser) => {
+exports.getCourse = async (course, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
 
-  return Course.findOne({ _id: courseId })
+  return Course.findById(course._id)
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
