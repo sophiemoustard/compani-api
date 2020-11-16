@@ -98,6 +98,23 @@ const userList = [
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: companyWithoutSubscription._id,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'aux', lastname: 'test' },
+    refreshToken: uuidv4(),
+    local: { email: 'testr@alenvi.io', password: 'fdsf556D' },
+    role: { client: rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id },
+    contact: { phone: '0798643728' },
+    company: companyWithoutSubscription._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'ttt', lastname: 'iii' },
+    refreshToken: uuidv4(),
+    local: { email: 'testrdd@alenvi.io', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+    company: companyWithoutSubscription._id,
+  },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');

@@ -9,7 +9,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
-const { HELPER, AUXILIARY, TRAINER } = require('../../src/helpers/constants');
+const { HELPER, AUXILIARY, TRAINER, AUXILIARY_WITHOUT_COMPANY } = require('../../src/helpers/constants');
 const {
   usersSeedList,
   userPayload,
@@ -1220,6 +1220,45 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should not update another field than allowed ones if aux-without-company', async () => {
+      const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
+      const userId = userList[10]._id;
+      const auxiliaryPayload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        contact: { phone: '0600000001' },
+        local: { email: userList[10].local.email },
+        role: roleAuxiliary._id,
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload: auxiliaryPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+    it('should not update another field than allowed ones if no role', async () => {
+      const userId = userList[11]._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: userList[11].local.email },
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

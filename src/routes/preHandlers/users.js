@@ -17,6 +17,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   CLIENT,
   VENDOR,
+  AUXILIARY_WITHOUT_COMPANY,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -38,7 +39,7 @@ exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
   const companyId = get(credentials, 'company._id', null);
-  const isVendorUser = get(credentials, 'role.vendor', null);
+  const isVendorUser = !!get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
   const payloadRole = get(req, 'payload.role');
 
@@ -84,6 +85,14 @@ exports.authorizeUserUpdate = async (req) => {
     const customer = await Customer.findOne({ _id: req.payload.customers[0] }).lean();
 
     if (userCompany !== customer.company.toHexString()) throw Boom.forbidden();
+  }
+
+  if (!isVendorUser &&
+    (!get(credentials, 'role.client.name') || credentials.role.client.name === AUXILIARY_WITHOUT_COMPANY)) {
+    const payload = get(req, 'payload');
+    const allowedUpdateKeys = ['firstname', 'lastname', 'phone', 'email'];
+    const payloadKeys = (Object.values(payload).map(value => Object.keys(value))).flat();
+    if (!payloadKeys.every(key => allowedUpdateKeys.includes(key))) throw Boom.forbidden();
   }
 
   return null;

@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { AUXILIARY_WITHOUT_COMPANY, CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
+const { CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
@@ -39,9 +39,14 @@ const validate = async (decoded) => {
     const userRights = formatRights(userRoles, user.company);
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
-    const scope = [`user:read-${decoded._id}`, ...userRolesName, ...userRights, ...customersScopes];
+    const scope = [
+      `user:read-${decoded._id}`,
+      ...userRolesName,
+      ...userRights,
+      ...customersScopes,
+      `user:edit-${decoded._id}`,
+    ];
 
-    if (get(user, 'role.client.name') !== AUXILIARY_WITHOUT_COMPANY) scope.push(`user:edit-${decoded._id}`);
     if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
 
     const credentials = {
