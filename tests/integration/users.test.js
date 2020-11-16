@@ -1221,45 +1221,6 @@ describe('PUT /users/:id/', () => {
 
       expect(response.statusCode).toBe(400);
     });
-
-    it('should not update another field than allowed ones if aux-without-company', async () => {
-      const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
-      const userId = userList[10]._id;
-      const auxiliaryPayload = {
-        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-        contact: { phone: '0600000001' },
-        local: { email: userList[10].local.email },
-        role: roleAuxiliary._id,
-        picture: { link: 'test' },
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload: auxiliaryPayload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-    it('should not update another field than allowed ones if no role', async () => {
-      const userId = userList[11]._id;
-      const payload = {
-        identity: { firstname: 'No', lastname: 'Body' },
-        contact: { phone: '0344543932' },
-        local: { email: userList[11].local.email },
-        picture: { link: 'test' },
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -1313,6 +1274,49 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should not update another field than allowed ones if aux-without-company', async () => {
+      authToken = await getToken('auxiliary_without_company', true, userList);
+      const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
+      const userId = userList[3]._id;
+      const auxiliaryPayload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        contact: { phone: '0600000001' },
+        local: { email: userList[3].local.email },
+        role: roleAuxiliary._id,
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload: auxiliaryPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not update another field than allowed ones if no role', async () => {
+      const user = userList[10];
+      authToken = await getTokenByCredentials(user.local);
+      const userId = user._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: user.local.email },
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [
