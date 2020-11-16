@@ -1,9 +1,8 @@
 const flat = require('flat');
-const moment = require('moment');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { STRICTLY_E_LEARNING, UPLOAD_DATE_FORMAT } = require('./constants');
+const { STRICTLY_E_LEARNING } = require('./constants');
 
 exports.createProgram = payload => (new Program(payload)).save();
 
@@ -78,4 +77,11 @@ exports.uploadImage = async (programId, payload) => {
   const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
   await Program.updateOne({ _id: programId }, { $set: flat({ image: { publicId: fileName, link: imageUploaded } }) });
+};
+
+exports.deleteImage = async (programId, publicId) => {
+  if (!publicId) return;
+
+  await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
+  await GCloudStorageHelper.deleteMedia(publicId);
 };

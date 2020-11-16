@@ -26,7 +26,10 @@ exports.uploadMedia = async payload => new Promise((resolve, reject) => {
 
 exports.deleteMedia = async publicId => new Promise((resolve, reject) => {
   getStorage().bucket(process.env.GCS_BUCKET_NAME).file(publicId).delete({}, (err, res) => {
-    if (err && err.code !== 404) reject(err);
-    else resolve(res);
+    if (err) {
+      // eslint-disable-next-line no-param-reassign
+      err.upload = true;
+      reject(err);
+    } else resolve(res);
   });
 });

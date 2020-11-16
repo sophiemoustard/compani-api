@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { checkProgramExists } = require('./preHandlers/programs');
+const { checkProgramExists, getProgramImagePublicId } = require('./preHandlers/programs');
 const {
   list,
   listELearning,
@@ -12,6 +12,7 @@ const {
   update,
   uploadImage,
   addSubProgram,
+  deleteImage,
 } = require('../controllers/programController');
 const { formDataPayload } = require('./validations/utils');
 
@@ -128,6 +129,21 @@ exports.plugin = {
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: checkProgramExists }],
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/upload',
+      handler: deleteImage,
+      options: {
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: getProgramImagePublicId, assign: 'publicId' }],
       },
     });
   },
