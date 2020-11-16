@@ -773,7 +773,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     });
 
     it('should add a card media', async () => {
-      momentFormat.returns('2020_06_25_05_45_12');
+      momentFormat.returns('20200625054512');
       uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
 
       const response = await app.inject({
@@ -790,7 +790,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         _id: card._id,
         media: {
           link: 'https://storage.googleapis.com/BucketKFC/myMedia',
-          publicId: `${docPayload.fileName}-2020_06_25_05_45_12`,
+          publicId: 'media-titletextmedia-20200625054512',
         },
       });
       sinon.assert.calledOnce(uploadMediaStub);
@@ -854,7 +854,7 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should add a card media', async () => {
+    it('should delete a card media', async () => {
       const card = cardsList[1];
       const response = await app.inject({
         method: 'DELETE',

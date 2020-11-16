@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const { fn: momentProto } = require('moment');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
@@ -136,33 +135,37 @@ describe('removeCard', () => {
 describe('uploadMedia', () => {
   let updateOneStub;
   let uploadMediaStub;
-  let momentFormat;
+  let formatFileName;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
     uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
-    momentFormat = sinon.stub(momentProto, 'format');
+    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
   });
   afterEach(() => {
     updateOneStub.restore();
     uploadMediaStub.restore();
-    momentFormat.restore();
+    formatFileName.restore();
   });
 
   it('should upload image', async () => {
-    momentFormat.returns('20200625054512');
     uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+    formatFileName.returns('jesuisunsupernomdefichier');
 
     const cardId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const publicId = `${payload.fileName}-20200625054512`;
 
     await CardHelper.uploadMedia(cardId, payload);
 
-    sinon.assert.calledOnceWithExactly(uploadMediaStub, { fileName: publicId, file: payload.file });
+    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
+    sinon.assert.calledOnceWithExactly(uploadMediaStub, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
     sinon.assert.calledWithExactly(
       updateOneStub,
       { _id: cardId },
-      { $set: flat({ media: { publicId, link: 'https://storage.googleapis.com/BucketKFC/myMedia' } }) }
+      {
+        $set: flat({
+          media: { publicId: 'jesuisunsupernomdefichier', link: 'https://storage.googleapis.com/BucketKFC/myMedia' },
+        }),
+      }
     );
   });
 });
@@ -179,9 +182,16 @@ describe('deleteMedia', () => {
     deleteMedia.restore();
   });
 
+  it('should do nothing as publicId is not set', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.deleteMedia(cardId, '');
+
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteMedia);
+  });
+
   it('should update card and delete media', async () => {
     const cardId = new ObjectID();
-
     await CardHelper.deleteMedia(cardId, 'publicId');
 
     sinon.assert.calledOnceWithExactly(

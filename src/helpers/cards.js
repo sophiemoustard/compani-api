@@ -1,4 +1,3 @@
-const moment = require('moment');
 const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
@@ -26,7 +25,7 @@ exports.deleteCardAnswer = async params => Card.updateOne(
 );
 
 exports.uploadMedia = async (cardId, payload) => {
-  const fileName = `${payload.fileName}-${moment().format('YYYYMMDDHHmmss')}`;
+  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
   const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
   await Card.updateOne(
