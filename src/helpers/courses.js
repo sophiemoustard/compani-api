@@ -29,6 +29,7 @@ exports.list = async (query) => {
       .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
+      .select('format')
       .lean();
   }
   if (query.company) {
