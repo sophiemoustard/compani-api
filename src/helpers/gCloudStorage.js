@@ -13,8 +13,7 @@ exports.uploadMedia = async payload => new Promise((resolve, reject) => {
   const stream = bucket.file(fileName)
     .createWriteStream({ metadata: { contentType: get(file, 'hapi.headers.content-type') } })
     .on('finish', () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      resolve(publicUrl);
+      resolve({ link: `https://storage.googleapis.com/${bucket.name}/${fileName}`, publicId: fileName });
     })
     .on('error', (err) => {
       console.error(err);
@@ -26,7 +25,10 @@ exports.uploadMedia = async payload => new Promise((resolve, reject) => {
 
 exports.deleteMedia = async publicId => new Promise((resolve, reject) => {
   getStorage().bucket(process.env.GCS_BUCKET_NAME).file(publicId).delete({}, (err, res) => {
-    if (err && err.code !== 404) reject(err);
-    else resolve(res);
+    if (err) {
+      // eslint-disable-next-line no-param-reassign
+      err.upload = true;
+      reject(err);
+    } else resolve(res);
   });
 });

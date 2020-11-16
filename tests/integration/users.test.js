@@ -1884,13 +1884,13 @@ describe('POST /users/:id/cloudinary/upload', () => {
       sinon.assert.calledOnce(addImageStub);
     });
 
-    const wrongParams = ['file', 'fileName'];
+    const wrongParams = ['picture', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const invalidForm = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${user._id}/cloudinary/upload`,
+          url: `/users/${user._id}/cloudinary/upload`,
           payload: await GetStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
         });

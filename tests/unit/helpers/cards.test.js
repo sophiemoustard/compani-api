@@ -148,7 +148,10 @@ describe('uploadMedia', () => {
   });
 
   it('should upload image', async () => {
-    uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+    uploadMediaStub.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
     formatFileName.returns('jesuisunsupernomdefichier');
 
     const cardId = new ObjectID();
