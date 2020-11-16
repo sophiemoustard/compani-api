@@ -421,7 +421,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object({
             date: Joi.date(),
@@ -473,7 +473,7 @@ exports.plugin = {
             picture: Joi.any().required(),
           }),
         },
-        payload: formDataPayload,
+        payload: formDataPayload(),
       },
     });
   },

@@ -139,7 +139,7 @@ exports.plugin = {
       path: '/{_id}/upload',
       handler: uploadMedia,
       options: {
-        payload: formDataPayload,
+        payload: formDataPayload(25 * 1000 * 1000),
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),

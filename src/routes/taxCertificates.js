@@ -51,7 +51,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['taxcertificates:edit'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object({
             date: Joi.date().required(),

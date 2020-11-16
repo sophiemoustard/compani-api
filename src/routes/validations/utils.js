@@ -17,13 +17,13 @@ const addressValidation = Joi.object().keys({
 
 const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId()));
 
-const formDataPayload = {
+const formDataPayload = (maxSize = 5242880) => ({
   output: 'stream',
   parse: true,
   multipart: true,
   allow: 'multipart/form-data',
-  maxBytes: 5242880,
-};
+  maxBytes: maxSize,
+});
 
 module.exports = {
   monthValidation,

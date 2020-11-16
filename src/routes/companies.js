@@ -98,7 +98,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['company-{params._id}'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({
