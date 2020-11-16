@@ -121,3 +121,34 @@ exports.exportContracts = async (query, credentials) => {
 
   return FileHelper.exportToTxt(data);
 };
+
+exports.exportContractVersions = async (query, credentials) => {
+  const endDate = moment(query.endDate).endOf('d').toDate();
+  const companyId = get(credentials, 'company._id') || '';
+
+  const contractQuery = {
+    startDate: { $lte: endDate },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
+    company: companyId,
+    versions: { $gte: { $size: 2 } },
+  };
+  const contracts = await Contract.find(contractQuery)
+    .populate({ path: 'user', select: 'serialNumber identity' })
+    .lean();
+
+  const data = [];
+  for (const contract of contracts) {
+    for (let i = 1; i < contract.versions.length; i++) {
+      data.push({
+        ap_soc: process.env.AP_SOC,
+        ap_matr: get(contract, 'user.serialNumber') || '',
+        fs_nom: get(contract, 'user.identity.lastname') || '',
+        ap_contrat: contract.serialNumber || '',
+        fs_date_avenant: moment(contract.versions[i].startDate).format('DD/MM/YYYY'),
+        fs_horaire: contract.versions[i].weeklyHours * WEEKS_PER_MONTH,
+      });
+    }
+  }
+
+  return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+};

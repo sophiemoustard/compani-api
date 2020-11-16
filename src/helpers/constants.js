@@ -209,6 +209,7 @@ module.exports = {
   PAY: 'pay',
   // CONTRACTS
   CONTRACT: 'contract',
+  CONTRACT_VERSION: 'contract_version',
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
   RESIGNATION: 'resignation',

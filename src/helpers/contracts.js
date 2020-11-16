@@ -24,7 +24,6 @@ const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
-const DpaeHelper = require('./dpae');
 
 exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
@@ -40,6 +39,7 @@ exports.getQuery = (query, companyId) => {
 
   return rules;
 };
+
 exports.getContractList = async (query, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
   const rules = exports.getQuery(query, companyId);
