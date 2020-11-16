@@ -25,13 +25,13 @@ exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.trainees) {
-    return Course.find(query, { misc: 1 })
+    return Course.find(query, { misc: 1, format: 1 })
       .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
-      .select('format')
       .lean();
   }
+
   if (query.company) {
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
@@ -48,6 +48,7 @@ exports.list = async (query) => {
         })),
     ];
   }
+
   return CourseRepository.findCourseAndPopulate(query);
 };
 
