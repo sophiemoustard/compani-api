@@ -24,6 +24,7 @@ const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
+const DpaeHelper = require('./dpae');
 
 exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
