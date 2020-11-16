@@ -85,6 +85,10 @@ exports.listUserCourses = async (credentials) => {
 };
 
 exports.getCourse = async (course, loggedUser) => {
+  if (course.format === STRICTLY_E_LEARNING) {
+    return exports.getCourseFollowUp(course._id);
+  }
+
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -103,7 +107,7 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
-      select: 'identity.firstname identity.lastname local.email company contact ',
+      select: 'identity.firstname identity.lastname local.email company contact',
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
@@ -168,13 +172,28 @@ exports.getCourseFollowUp = async (courseId) => {
         },
       },
     })
+    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname' })
     .lean();
 
   return {
     ...course,
     subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(s => exports.formatStep(s)) },
+    trainees: course.trainees.map(t => (
+      { ...t, followUp: exports.getTraineeProgress(t._id, course.subProgram.steps) })),
   };
 };
+
+exports.getTraineeProgress = (traineeId, steps, slots = null) => steps.map((s) => {
+  const traineeStep = {
+    ...s,
+    activities: s.activities.map(a => ({
+      ...a,
+      activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+    })),
+  };
+
+  return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+});
 
 exports.getTraineeCourse = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
