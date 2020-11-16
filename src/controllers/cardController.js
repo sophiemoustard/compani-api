@@ -72,7 +72,7 @@ const uploadMedia = async (req) => {
 
 const deleteMedia = async (req) => {
   try {
-    await CardHelper.deleteMedia(req.params);
+    await CardHelper.deleteMedia(req.params._id, req.pre.publicId);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {

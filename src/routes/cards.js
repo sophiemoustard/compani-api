@@ -18,6 +18,7 @@ const {
   authorizeCardDeletion,
   authorizeCardAnswerCreation,
   authorizeCardAnswerDeletion,
+  getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
@@ -158,16 +159,14 @@ exports.plugin = {
 
     server.route({
       method: 'DELETE',
-      path: '/{_id}/upload/{publicId}',
+      path: '/{_id}/upload',
       handler: deleteMedia,
       options: {
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            publicId: Joi.string().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: getCardMediaPublicId, assign: 'publicId' }],
       },
     });
   },

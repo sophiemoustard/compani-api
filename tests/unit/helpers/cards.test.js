@@ -180,13 +180,13 @@ describe('deleteMedia', () => {
   });
 
   it('should update card and delete media', async () => {
-    const params = { _id: new ObjectID(), publicId: 'publicId' };
+    const cardId = new ObjectID();
 
-    await CardHelper.deleteMedia(params);
+    await CardHelper.deleteMedia(cardId, 'publicId');
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: params._id },
+      { _id: cardId },
       { $unset: { 'media.publicId': '', 'media.link': '' } }
     );
     sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');

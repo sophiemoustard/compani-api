@@ -838,7 +838,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   });
 });
 
-describe('CARDS ROUTES - DELETE /cards/:id/upload/publicId', () => {
+describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
   let authToken;
   let deleteMediaStub;
   beforeEach(() => {
@@ -856,15 +856,17 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload/publicId', () => {
 
     it('should add a card media', async () => {
       const card = cardsList[1];
-      const { publicId } = card.media;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id}/upload/${publicId}`,
+        url: `/cards/${card._id}/upload`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnce(deleteMediaStub);
+
+      const cardUpdated = await Card.findOne({ _id: card._id });
+      expect(cardUpdated.media.publicId).not.toBeDefined();
     });
   });
 
@@ -882,10 +884,9 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload/publicId', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const card = cardsList[1];
-        const { publicId } = card.media;
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${card._id}/upload/${publicId}`,
+          url: `/cards/${card._id}/upload`,
           headers: { 'x-access-token': authToken },
         });
 

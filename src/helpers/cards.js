@@ -35,9 +35,11 @@ exports.uploadMedia = async (cardId, payload) => {
   );
 };
 
-exports.deleteMedia = async (params) => {
-  await Card.updateOne({ _id: params._id }, { $unset: { 'media.publicId': '', 'media.link': '' } });
-  await GCloudStorageHelper.deleteMedia(params.publicId);
+exports.deleteMedia = async (cardId, publicId) => {
+  if (!publicId) return;
+
+  await Card.updateOne({ _id: cardId }, { $unset: { 'media.publicId': '', 'media.link': '' } });
+  await GCloudStorageHelper.deleteMedia(publicId);
 };
 
 exports.removeCard = async (cardId) => {
