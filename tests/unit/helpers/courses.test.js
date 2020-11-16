@@ -230,7 +230,7 @@ describe('listUserCourses', () => {
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
       .chain('select')
-      .withExactArgs('_id')
+      .withExactArgs('_id misc')
       .chain('lean')
       .returns(coursesList);
     getProgress.returns(1);
@@ -600,7 +600,7 @@ describe('getTraineeCourse', () => {
       .chain('populate')
       .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
       .chain('select')
-      .withExactArgs('_id')
+      .withExactArgs('_id misc')
       .chain('lean')
       .once()
       .returns(course);
