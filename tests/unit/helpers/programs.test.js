@@ -233,7 +233,10 @@ describe('uploadImage', () => {
   });
 
   it('should upload image', async () => {
-    uploadMedia.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+    uploadMedia.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
     formatFileName.returns('jesuisunsupernomdefichier');
 
     const programId = new ObjectID();

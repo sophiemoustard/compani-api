@@ -468,6 +468,10 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            fileName: Joi.string().required(),
+            picture: Joi.any().required(),
+          }),
         },
         payload: formDataPayload,
       },

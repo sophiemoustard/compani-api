@@ -13,8 +13,7 @@ exports.uploadMedia = async payload => new Promise((resolve, reject) => {
   const stream = bucket.file(fileName)
     .createWriteStream({ metadata: { contentType: get(file, 'hapi.headers.content-type') } })
     .on('finish', () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      resolve(publicUrl);
+      resolve({ link: `https://storage.googleapis.com/${bucket.name}/${fileName}`, publicId: fileName });
     })
     .on('error', (err) => {
       console.error(err);

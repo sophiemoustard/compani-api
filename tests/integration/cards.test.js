@@ -774,7 +774,10 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
 
     it('should add a card media', async () => {
       momentFormat.returns('20200625054512');
-      uploadMediaStub.returns('https://storage.googleapis.com/BucketKFC/myMedia');
+      uploadMediaStub.returns({
+        link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+        publicId: 'media-titletextmedia-20200625054512',
+      });
 
       const response = await app.inject({
         method: 'POST',
@@ -825,6 +828,11 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        uploadMediaStub.returns({
+          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+          publicId: 'media-titletextmedia-20200625054512',
+        });
+
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${card._id}/upload`,

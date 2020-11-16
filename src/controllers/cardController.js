@@ -76,6 +76,8 @@ const deleteMedia = async (req) => {
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
+    if (e.upload && e.code === 404) return { message: translate[language].cardUpdated };
+
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
