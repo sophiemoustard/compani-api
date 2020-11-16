@@ -2,7 +2,15 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, remove, uploadMedia, updateAnswer, addAnswer, deleteAnswer } = require('../controllers/cardController');
+const {
+  update,
+  remove,
+  uploadMedia,
+  updateAnswer,
+  addAnswer,
+  deleteAnswer,
+  deleteMedia,
+} = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
 const {
   authorizeCardUpdate,
@@ -10,6 +18,7 @@ const {
   authorizeCardDeletion,
   authorizeCardAnswerCreation,
   authorizeCardAnswerDeletion,
+  getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
@@ -145,6 +154,19 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/upload',
+      handler: deleteMedia,
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: getCardMediaPublicId, assign: 'publicId' }],
       },
     });
   },

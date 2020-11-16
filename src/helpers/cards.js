@@ -1,4 +1,3 @@
-const moment = require('moment');
 const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
@@ -26,13 +25,20 @@ exports.deleteCardAnswer = async params => Card.updateOne(
 );
 
 exports.uploadMedia = async (cardId, payload) => {
-  const fileName = `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`;
+  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
   const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
   await Card.updateOne(
     { _id: cardId },
     { $set: flat({ media: { publicId: fileName, link: imageUploaded } }) }
   );
+};
+
+exports.deleteMedia = async (cardId, publicId) => {
+  if (!publicId) return;
+
+  await Card.updateOne({ _id: cardId }, { $unset: { 'media.publicId': '', 'media.link': '' } });
+  await GCloudStorageHelper.deleteMedia(publicId);
 };
 
 exports.removeCard = async (cardId) => {
