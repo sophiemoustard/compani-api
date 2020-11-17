@@ -62,7 +62,7 @@ const getById = async (req) => {
 
 const getFollowUp = async (req) => {
   try {
-    const followUp = await CoursesHelper.getCourseFollowUp(req.params._id);
+    const followUp = await CoursesHelper.getCourseFollowUp(req.pre.course);
 
     return {
       message: translate[language].courseFound,
@@ -76,7 +76,7 @@ const getFollowUp = async (req) => {
 
 const getPublicInfosById = async (req) => {
   try {
-    const course = await CoursesHelper.getCoursePublicInfos(req.params._id);
+    const course = await CoursesHelper.getCoursePublicInfos(req.pre.course);
 
     return {
       message: translate[language].courseFound,

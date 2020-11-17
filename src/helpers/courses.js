@@ -85,17 +85,13 @@ exports.listUserCourses = async (credentials) => {
 };
 
 exports.getCourse = async (course, loggedUser) => {
-  if (course.format === STRICTLY_E_LEARNING) {
-    return exports.getCourseFollowUp(course._id);
-  }
-
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
 
-  return Course.findById(course._id)
+  return Course.findOne({ _id: course._id })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -114,7 +110,7 @@ exports.getCourse = async (course, loggedUser) => {
     .lean();
 };
 
-exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
+exports.getCoursePublicInfos = async course => Course.findOne({ _id: course._id })
   .populate({
     path: 'subProgram',
     select: 'program',
@@ -150,40 +146,49 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (courseId) => {
-  const courseWithTrainees = await Course.findOne({ _id: courseId }).select('trainees').lean();
+exports.getCourseFollowUp = async (course) => {
+  const courseWithTrainees = await Course.findOne({ _id: course._id }).select('trainees').lean();
 
-  const course = await Course.findOne({ _id: courseId })
+  const courseFollowUp = await Course.findOne({ _id: course._id })
     .select('subProgram')
     .populate({
       path: 'subProgram',
-      select: 'name steps',
-      populate: {
-        path: 'steps',
-        select: 'name activities type',
-        populate: {
-          path: 'activities',
-          select: 'name type',
+      select: 'name steps program',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'name activities type',
           populate: {
-            path: 'activityHistories',
-            match: { user: { $in: courseWithTrainees.trainees } },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            path: 'activities',
+            select: 'name type',
+            populate: {
+              path: 'activityHistories',
+              match: { user: { $in: courseWithTrainees.trainees } },
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
           },
         },
-      },
+      ],
     })
     .populate({ path: 'trainees', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 
   return {
-    ...course,
-    subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(s => exports.formatStep(s)) },
-    trainees: course.trainees.map(t => (
-      { ...t, followUp: exports.getTraineeProgress(t._id, course.subProgram.steps) })),
+    ...courseFollowUp,
+    subProgram: {
+      ...courseFollowUp.subProgram,
+      steps: courseFollowUp.subProgram.steps.map(s => exports.formatStep(s)),
+    },
+    trainees: courseFollowUp.trainees.map(t => ({
+      ...t,
+      followUp: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+    })),
   };
 };
 
-exports.getTraineeProgress = (traineeId, steps, slots = null) => steps.map((s) => {
+exports.getTraineeProgress = (traineeId, steps, slots) => steps.map((s) => {
   const traineeStep = {
     ...s,
     activities: s.activities.map(a => ({

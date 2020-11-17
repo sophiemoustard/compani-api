@@ -102,6 +102,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
+        pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getFollowUp,
     });
@@ -114,6 +115,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { mode: 'optional' },
+        pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getPublicInfosById,
     });
