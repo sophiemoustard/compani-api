@@ -9,7 +9,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
-const { HELPER, AUXILIARY, TRAINER } = require('../../src/helpers/constants');
+const { HELPER, AUXILIARY, TRAINER, AUXILIARY_WITHOUT_COMPANY } = require('../../src/helpers/constants');
 const {
   usersSeedList,
   userPayload,
@@ -329,7 +329,7 @@ describe('GET /users', () => {
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = userList.filter(u => isExistingRole(u.role.client, 'coach'));
+      const coachUsers = userList.filter(u => u.role && isExistingRole(u.role.client, 'coach'));
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
@@ -1274,6 +1274,49 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should not update another field than allowed ones if aux-without-company', async () => {
+      authToken = await getToken('auxiliary_without_company', true, userList);
+      const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
+      const userId = userList[3]._id;
+      const auxiliaryPayload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        contact: { phone: '0600000001' },
+        local: { email: userList[3].local.email },
+        role: roleAuxiliary._id,
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload: auxiliaryPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not update another field than allowed ones if no role', async () => {
+      const user = userList[10];
+      authToken = await getTokenByCredentials(user.local);
+      const userId = user._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: user.local.email },
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [
