@@ -106,6 +106,9 @@ function save(next) {
       case TEXT_MEDIA:
         this.media = { type: UPLOAD_IMAGE };
         break;
+      case TITLE_TEXT_MEDIA:
+        this.media = { type: UPLOAD_IMAGE };
+        break;
     }
   }
 
