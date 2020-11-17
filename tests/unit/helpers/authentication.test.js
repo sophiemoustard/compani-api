@@ -110,6 +110,7 @@ describe('validate', () => {
         sector: sectorId.toHexString(),
         scope: [
           `user:read-${userId}`,
+          `user:edit-${userId}`,
           'client_admin',
           'vendor_admin',
           'bills:edit',
@@ -148,7 +149,6 @@ describe('validate', () => {
           'programs:edit',
           'programs:read',
           'scripts:run',
-          `user:edit-${userId}`,
           `company-${user.company._id}`,
         ],
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
@@ -193,7 +193,7 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'helper', `customer-${customerId.toHexString()}`, `user:edit-${userId}`],
+        scope: [`user:read-${userId}`, `user:edit-${userId}`, 'helper', `customer-${customerId.toHexString()}`],
         role: { client: { name: 'helper' } },
       },
     });
@@ -235,7 +235,7 @@ describe('validate', () => {
         email: 'email@email.com',
         company: { _id: 'company' },
         sector: sectorId.toHexString(),
-        scope: [`user:read-${userId}`, 'auxiliary_without_company', `user:edit-${userId}`],
+        scope: [`user:read-${userId}`, `user:edit-${userId}`, 'auxiliary_without_company'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
@@ -282,6 +282,7 @@ describe('validate', () => {
         sector: sectorId.toHexString(),
         scope: [
           `user:read-${userId}`,
+          `user:edit-${userId}`,
           'coach',
           'trainer',
           'bills:read',
@@ -307,7 +308,6 @@ describe('validate', () => {
           'users:edit',
           'users:exist',
           'users:list',
-          `user:edit-${userId}`,
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },

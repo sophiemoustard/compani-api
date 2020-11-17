@@ -52,13 +52,13 @@ exports.authorizeUserUpdate = async (req) => {
   if (!isVendorUser && (!userCompany || userCompany !== companyId.toHexString())) throw Boom.forbidden();
 
   if (get(req, 'payload.company') && user.company &&
-  get(req, 'payload.company') !== user.company.toHexString()) throw Boom.forbidden();
+    get(req, 'payload.company') !== user.company.toHexString()) throw Boom.forbidden();
 
   if (payloadRole) {
     const userInDB = req.pre.user;
     const newRole = await Role.findById(payloadRole, { name: 1, interface: 1 }).lean();
     const clientRoleSwitch = newRole.interface === CLIENT && get(userInDB, 'role.client') &&
-    userInDB.role.client.toHexString() !== payloadRole;
+      userInDB.role.client.toHexString() !== payloadRole;
     if (clientRoleSwitch) {
       const formerClientRole = await Role.findById(userInDB.role.client, { name: 1 }).lean();
       const allowedRoleChanges = [
