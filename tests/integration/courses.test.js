@@ -30,6 +30,7 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -463,12 +464,19 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const courseSlots = slots.filter(s => areObjectIdsEquals(s.course._id, coursesList[0]._id));
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.followUp).toEqual(expect.objectContaining({
         _id: courseFromAuthCompanyIntra._id,
         subProgram: expect.objectContaining({
           _id: subProgramsList[0]._id,
           name: subProgramsList[0].name,
+          program: expect.objectContaining({
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            subPrograms: programsList[0].subPrograms,
+          }),
           steps: expect.arrayContaining([expect.objectContaining({
             _id: step._id,
             name: step.name,
@@ -482,6 +490,24 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
             })]),
           })]),
         }),
+        slots: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          startDate: courseSlots[0].startDate,
+          endDate: courseSlots[0].endDate,
+          course: courseSlots[0].course._id,
+          step: { _id: courseSlots[0].step },
+        })]),
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: coachFromAuthCompany._id,
+          identity: coachFromAuthCompany.identity,
+          followUp: expect.arrayContaining([expect.objectContaining({
+            _id: expect.any(ObjectID),
+            activities: expect.any(Array),
+            name: expect.any(String),
+            type: expect.any(String),
+            progress: 1,
+          })]),
+        })]),
       }));
     });
   });

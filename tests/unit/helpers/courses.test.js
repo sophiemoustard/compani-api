@@ -289,7 +289,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email company contact ',
+        select: 'identity.firstname identity.lastname local.email company contact',
         populate: { path: 'company', select: 'name' },
         match: {},
       })
@@ -300,7 +300,7 @@ describe('getCourse', () => {
       .returns(course);
 
     const result = await CourseHelper.getCourse(
-      course._id,
+      course,
       { role: { vendor: { name: 'vendor_admin' } }, company: { _id: authCompanyId } }
     );
     expect(result).toMatchObject(course);
@@ -325,7 +325,7 @@ describe('getCourse', () => {
       .chain('populate')
       .withExactArgs({
         path: 'trainees',
-        select: 'identity.firstname identity.lastname local.email company contact ',
+        select: 'identity.firstname identity.lastname local.email company contact',
         populate: { path: 'company', select: 'name' },
         match: { company: authCompanyId },
       })
@@ -336,7 +336,7 @@ describe('getCourse', () => {
       .returns({ ...course, trainees: [course.trainees[0]] });
 
     const result = await CourseHelper.getCourse(
-      course._id,
+      course,
       { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
     );
     expect(result.trainees.length).toEqual(1);
@@ -373,7 +373,7 @@ describe('getCoursePublicInfos', () => {
       .once()
       .returns(course);
 
-    const result = await CourseHelper.getCoursePublicInfos(course._id);
+    const result = await CourseHelper.getCoursePublicInfos(course);
     expect(result).toMatchObject(course);
   });
 });
@@ -480,62 +480,71 @@ describe('formatStep', () => {
 describe('getCourseFollowUp', () => {
   let CourseMock;
   let formatStep;
+  let getTraineeProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
     formatStep = sinon.stub(CourseHelper, 'formatStep');
+    getTraineeProgress = sinon.stub(CourseHelper, 'getTraineeProgress');
   });
   afterEach(() => {
     CourseMock.restore();
     formatStep.restore();
+    getTraineeProgress.restore();
   });
 
   it('should return course follow up', async () => {
-    const courseId = '1234567890';
-    const trainees = [1, 2, 3, 4, 5];
     const course = {
-      _id: 'my_course',
+      _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [{ _id: '123213123', followUp: { progress: 1 } }],
+      slots: [{ _id: '123456789' }],
     };
+    const trainees = [1, 2, 3, 4, 5];
 
     CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
+      .withExactArgs({ _id: course._id })
       .chain('select')
       .withExactArgs('trainees')
       .chain('lean')
       .returns({ trainees });
 
     CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
+      .withExactArgs({ _id: course._id })
       .chain('select')
       .withExactArgs('subProgram')
       .chain('populate')
       .withExactArgs({
         path: 'subProgram',
-        select: 'name steps',
-        populate: {
-          path: 'steps',
-          select: 'name activities type',
-          populate: {
-            path: 'activities',
-            select: 'name type',
+        select: 'name steps program',
+        populate: [
+          { path: 'program', select: 'name' },
+          {
+            path: 'steps',
+            select: 'name activities type',
             populate: {
-              path: 'activityHistories',
-              match: { user: { $in: trainees } },
-              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              path: 'activities',
+              select: 'name type',
+              populate: {
+                path: 'activityHistories',
+                match: { user: { $in: trainees } },
+                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              },
             },
           },
-        },
+        ],
       })
+      .chain('populate')
+      .withExactArgs({ path: 'trainees', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'slots', populate: { path: 'step', select: '_id' } })
       .chain('lean')
       .returns(course);
 
-    formatStep.callsFake(s => s._id);
-    const result = await CourseHelper.getCourseFollowUp(courseId);
+    formatStep.callsFake(s => s);
+    getTraineeProgress.returns({ progress: 1 });
+    const result = await CourseHelper.getCourseFollowUp(course);
 
-    expect(result).toEqual({
-      _id: 'my_course',
-      subProgram: { name: 'je suis un sous programme', steps: ['abc', 'def', 'ghi'] },
-    });
+    expect(result).toEqual(course);
     CourseMock.verify();
   });
 });
