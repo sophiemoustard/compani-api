@@ -105,6 +105,7 @@ exports.getLearnerList = async (query, credentials) => {
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
+    .populate({ path: 'eLearningCoursesCount' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 };

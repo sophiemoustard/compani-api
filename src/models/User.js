@@ -10,7 +10,13 @@ const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT, AUXILIARY_WITHOUT_COMPANY, BLENDED } = require('../helpers/constants');
+const {
+  AUXILIARY,
+  PLANNING_REFERENT,
+  AUXILIARY_WITHOUT_COMPANY,
+  BLENDED,
+  STRICTLY_E_LEARNING,
+} = require('../helpers/constants');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
@@ -283,6 +289,14 @@ UserSchema.virtual('blendedCoursesCount', {
   foreignField: 'trainees',
   count: true,
   options: { match: { format: BLENDED } },
+});
+
+UserSchema.virtual('eLearningCoursesCount', {
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'trainees',
+  count: true,
+  options: { match: { format: STRICTLY_E_LEARNING } },
 });
 
 UserSchema.statics.isActive = isActive;

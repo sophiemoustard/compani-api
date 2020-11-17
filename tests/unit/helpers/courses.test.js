@@ -58,7 +58,7 @@ describe('list', () => {
     CourseMock.restore();
   });
 
-  it('should return blended courses', async () => {
+  it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
@@ -70,8 +70,8 @@ describe('list', () => {
     CourseMock.verify();
   });
 
-  it('should return blended courses, called with query.trainees', async () => {
-    const query = { trainees: '1234567890abcdef12345612', format: 'blended' };
+  it('should return trainee courses', async () => {
+    const query = { trainees: '1234567890abcdef12345612' };
     const coursesList = [
       {
         misc: 'Groupe 2',
@@ -80,7 +80,7 @@ describe('list', () => {
     ];
 
     CourseMock.expects('find')
-      .withExactArgs(query, { misc: 1 })
+      .withExactArgs(query, { misc: 1, format: 1 })
       .chain('populate')
       .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .chain('populate')
@@ -97,7 +97,7 @@ describe('list', () => {
     CourseMock.verify();
   });
 
-  it('should return blended courses, called with query.company', async () => {
+  it('should return company courses', async () => {
     const coursesList = [
       { misc: 'name', type: 'intra' },
       {
@@ -132,10 +132,15 @@ describe('list', () => {
       format: 'blended',
     });
     expect(result).toMatchObject(coursesList);
-    expect(findCourseAndPopulate.getCall(0)
-      .calledWithExactly({ company: authCompany, trainer: '1234567890abcdef12345678', type: 'intra' }));
-    expect(findCourseAndPopulate.getCall(1)
-      .calledWithExactly({ trainer: '1234567890abcdef12345678', type: 'inter_b2b' }));
+    sinon.assert.calledWithExactly(
+      findCourseAndPopulate.getCall(0),
+      { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', type: 'intra', format: 'blended' }
+    );
+    sinon.assert.calledWithExactly(
+      findCourseAndPopulate.getCall(1),
+      { trainer: '1234567890abcdef12345678', type: 'inter_b2b', format: 'blended' },
+      true
+    );
     CourseMock.verify();
   });
 });
