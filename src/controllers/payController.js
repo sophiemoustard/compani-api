@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
+const DpaeHelper = require('../helpers/dpae');
 const { createPayList, hoursBalanceDetail, getHoursToWorkBySector } = require('../helpers/pay');
 
 const { language } = translate;
@@ -58,9 +59,25 @@ const getHoursToWork = async (req) => {
   }
 };
 
+const exportDsnInfo = async (req, h) => {
+  try {
+    let txt = '';
+    switch (req.params.type) {
+      case 'contract':
+        txt = await DpaeHelper.exportContracts(req.query, req.auth.credentials);
+    }
+
+    return h.file(txt, { confine: false });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   draftPayList,
   createList,
   getHoursBalanceDetails,
   getHoursToWork,
+  exportDsnInfo,
 };

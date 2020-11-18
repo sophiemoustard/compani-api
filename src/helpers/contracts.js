@@ -25,8 +25,7 @@ const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
 
-exports.getContractList = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
   if (query.startDate && query.endDate) {
     rules.push({
@@ -37,6 +36,12 @@ exports.getContractList = async (query, credentials) => {
     });
   }
   if (query.user) rules.push({ user: query.user });
+
+  return rules;
+};
+exports.getContractList = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id') || null;
+  const rules = exports.getQuery(query, companyId);
 
   return Contract.find({ $and: rules })
     .populate({
