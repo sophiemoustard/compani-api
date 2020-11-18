@@ -185,7 +185,7 @@ exports.getCourseFollowUp = async (course) => {
     },
     trainees: courseFollowUp.trainees.map(t => ({
       ...t,
-      followUp: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+      steps: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
     })),
   };
 };
