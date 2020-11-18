@@ -87,10 +87,7 @@ exports.plugin = {
         auth: { scope: ['pay:edit'] },
         validate: {
           params: Joi.object({ type: Joi.string().valid(CONTRACT) }),
-          query: Joi.object({
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
-          }),
+          query: Joi.object({ endDate: Joi.date().required() }),
         },
       },
       handler: exportDsnInfo,
