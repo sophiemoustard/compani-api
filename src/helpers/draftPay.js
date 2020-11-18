@@ -295,15 +295,11 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
   return hours;
 };
 
-exports.getPayFromAbsences = (absences, contract, query) => {
-  let hours = 0;
-  for (const absence of absences) {
-    if (absence.absenceNature === DAILY) hours += exports.getHoursFromDailyAbsence(absence, contract, query);
-    else hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
-  }
+exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
+  if (abs.absenceNature !== DAILY) return moment(abs.endDate).diff(abs.startDate, 'm') / 60;
 
-  return hours;
-};
+  return acc + exports.getHoursFromDailyAbsence(abs, contract, query);
+}, 0);
 
 exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
