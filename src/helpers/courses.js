@@ -52,8 +52,8 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.listUserCourses = async (credentials) => {
-  const courses = await Course.find({ trainees: credentials._id })
+exports.listUserCourses = async (traineeId) => {
+  const courses = await Course.find({ trainees: traineeId })
     .populate({
       path: 'subProgram',
       select: 'program steps',
@@ -66,7 +66,7 @@ exports.listUserCourses = async (credentials) => {
             path: 'activities',
             select: 'name type cards activityHistories',
             populate: [
-              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'activityHistories', match: { user: traineeId } },
               { path: 'cards', select: 'template' },
             ],
           },

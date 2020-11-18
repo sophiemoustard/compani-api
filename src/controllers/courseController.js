@@ -20,7 +20,7 @@ const list = async (req) => {
 
 const listUserCourses = async (req) => {
   try {
-    const courses = await CoursesHelper.listUserCourses(req.auth.credentials);
+    const courses = await CoursesHelper.listUserCourses(req.pre.traineeId);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,

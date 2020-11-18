@@ -147,3 +147,21 @@ exports.getCourse = async (req) => {
 
   return course;
 };
+
+exports.authorizeAndGetTraineeId = async (req) => {
+  const traineeId = get(req, 'query.traineeId');
+  if (traineeId) {
+    const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+    if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return traineeId;
+
+    const loggedUserClientRole = get(req, 'auth.credentials.role.client.name');
+    if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) {
+      const isFromSameCompany = await User.countDocuments({ _id: traineeId, company: req.aut.credentials.company });
+      if (isFromSameCompany) return traineeId;
+    }
+
+    return Boom.forbidden();
+  }
+
+  return req.auth.credentials._id;
+};
