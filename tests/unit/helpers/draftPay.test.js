@@ -1173,7 +1173,7 @@ describe('getPayFromAbsences', () => {
     expect(result).toBeDefined();
     expect(result).toBe(6);
     sinon.assert.notCalled(getMatchingVersion);
-    sinon.assert.called(getHoursFromDailyAbsence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absences[0], contract, query);
   });
 
   it('should call getHoursFromDailyAbsence for every daily absence', () => {

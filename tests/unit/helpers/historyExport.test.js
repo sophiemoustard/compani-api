@@ -13,6 +13,7 @@ const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
+const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 
@@ -296,6 +297,160 @@ describe('exportWorkingEventsHistory', () => {
         'Facturée & non payée',
         'Initiative de l\'intervenant'],
     ]);
+  });
+});
+
+describe('getAbsenceHours', () => {
+  let getHoursFromDailyAbsence;
+  beforeEach(() => {
+    getHoursFromDailyAbsence = sinon.stub(DraftPayHelper, 'getHoursFromDailyAbsence');
+  });
+  afterEach(() => {
+    getHoursFromDailyAbsence.restore();
+  });
+
+  it('should return daily absence hours by calling getHoursFromDailyAbsence', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(2);
+    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(exportArray).toEqual(2);
+    sinon.assert.called(getHoursFromDailyAbsence);
+  });
+
+  it('should return daily absence hours with multiple contracts', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(2);
+    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(exportArray).toEqual(4);
+    sinon.assert.called(getHoursFromDailyAbsence);
+  });
+
+  it('should return hourly absence hours without calling getHoursFromDailyAbsence', async () => {
+    const absence = { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(exportArray).toEqual(2);
+    sinon.assert.notCalled(getHoursFromDailyAbsence);
+  });
+});
+
+describe('formatAbsence', () => {
+  const events = [
+    {
+      type: 'absence',
+      absence: 'unjustified absence',
+      absenceNature: 'hourly',
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
+        sector: { name: 'Girafes - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+    },
+    {
+      type: 'absence',
+      absence: 'leave',
+      absenceNature: 'daily',
+      internalHour: { name: 'Formation' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Princess', lastname: 'Carolyn' },
+        sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T22:00:00',
+      misc: 'brbr',
+    },
+  ];
+  let getAbsenceHours;
+  beforeEach(() => {
+    getAbsenceHours = sinon.stub(ExportHelper, 'getAbsenceHours');
+  });
+  afterEach(() => {
+    getAbsenceHours.restore();
+  });
+
+  it('should return an array with the header and 1 row for daily absence', async () => {
+    getAbsenceHours.returns(2);
+    const exportArray = await ExportHelper.formatAbsence(events[0]);
+
+    expect(exportArray).toEqual([
+      expect.any(ObjectID),
+      'Jean-Claude',
+      'VAN DAMME',
+      '',
+      'Girafes - 75',
+      'Absence injustifiée',
+      'Horaire',
+      '20/05/2019 08:00',
+      '20/05/2019 10:00',
+      '2,00',
+      '',
+    ]);
+    sinon.assert.called(getAbsenceHours);
+  });
+
+  it('should return an array with the header and 1 row for hourly absence', async () => {
+    getAbsenceHours.returns(4);
+    const exportArray = await ExportHelper.formatAbsence(events[1]);
+
+    expect(exportArray).toEqual([
+      expect.any(ObjectID),
+      'Princess',
+      'CAROLYN',
+      '',
+      'Etoiles - 75',
+      'Congé',
+      'Journalière',
+      '20/05/2019',
+      '20/05/2019',
+      '4,00',
+      'brbr',
+    ]);
+    sinon.assert.called(getAbsenceHours);
   });
 });
 

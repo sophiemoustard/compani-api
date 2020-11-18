@@ -170,7 +170,7 @@ const absenceExportHeader = [
   'Divers',
 ];
 
-const formatAbsence = (absence) => {
+exports.formatAbsence = (absence) => {
   const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
   const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
 
@@ -194,15 +194,15 @@ exports.exportAbsencesHistory = async (start, end, credentials) => {
 
   const rows = [absenceExportHeader];
   for (const event of events) {
-    const absenceisOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month')
-    if (absenceisOnOneMonth) rows.push(formatAbsence(event));
+    const absenceisOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month');
+    if (absenceisOnOneMonth) rows.push(exports.formatAbsence(event));
     else { // split absence by month to ease analytics
-      rows.push(formatAbsence({ ...event, endDate: moment(event.startDate).endOf('month').toISOString() }));
+      rows.push(exports.formatAbsence({ ...event, endDate: moment(event.startDate).endOf('month').toISOString() }));
 
       const monthsDiff = moment(event.endDate).diff(event.startDate, 'month');
       for (let i = 1; i <= monthsDiff; i++) {
         const endOfMonth = moment(event.startDate).add(i, 'month').endOf('month').toISOString();
-        rows.push(formatAbsence({
+        rows.push(exports.formatAbsence({
           ...event,
           endDate: moment(event.endDate).isBefore(endOfMonth) ? event.endDate : endOfMonth,
           startDate: moment(event.startDate).add(i, 'month').startOf('month').toISOString(),
@@ -210,7 +210,7 @@ exports.exportAbsencesHistory = async (start, end, credentials) => {
       }
 
       if (moment(event.startDate).add(monthsDiff, 'month').endOf('month').isBefore(event.endDate)) {
-        rows.push(formatAbsence({
+        rows.push(exports.formatAbsence({
           ...event,
           endDate: event.endDate,
           startDate: moment(event.startDate).add(monthsDiff + 1, 'month').startOf('month').toISOString(),

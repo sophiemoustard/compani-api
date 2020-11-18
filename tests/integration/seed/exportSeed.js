@@ -173,7 +173,7 @@ const contractList = [{
   serialNumber: 'safsdgsdgsd',
   user: auxiliaryList[0]._id,
   versions: [
-    { weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01T00:00:00', endDate: '2020-01-01T00:00:00' }
+    { weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01T00:00:00', endDate: '2020-01-01T00:00:00' },
   ],
   startDate: '2018-01-01T00:00:00',
   endDate: '2020-01-01T00:00:00',
