@@ -1,6 +1,6 @@
-const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const moment = require('../extensions/moment');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -194,8 +194,8 @@ exports.exportAbsencesHistory = async (start, end, credentials) => {
 
   const rows = [absenceExportHeader];
   for (const event of events) {
-    const absenceisOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month');
-    if (absenceisOnOneMonth) rows.push(exports.formatAbsence(event));
+    const absenceIsOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month');
+    if (absenceIsOnOneMonth) rows.push(exports.formatAbsence(event));
     else { // split absence by month to ease analytics
       rows.push(exports.formatAbsence({ ...event, endDate: moment(event.startDate).endOf('month').toISOString() }));
 

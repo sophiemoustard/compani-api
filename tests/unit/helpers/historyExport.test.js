@@ -320,10 +320,10 @@ describe('getAbsenceHours', () => {
     ];
 
     getHoursFromDailyAbsence.returns(2);
-    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
 
-    expect(exportArray).toEqual(2);
-    sinon.assert.called(getHoursFromDailyAbsence);
+    expect(absenceHours).toEqual(2);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
   });
 
   it('should return daily absence hours with multiple contracts', async () => {
@@ -335,17 +335,17 @@ describe('getAbsenceHours', () => {
         versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
       },
       {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
         versions: [{ weeklyHours: 12 }],
       },
     ];
 
     getHoursFromDailyAbsence.returns(2);
-    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
 
-    expect(exportArray).toEqual(4);
-    sinon.assert.called(getHoursFromDailyAbsence);
+    expect(absenceHours).toEqual(2);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
   });
 
   it('should return hourly absence hours without calling getHoursFromDailyAbsence', async () => {
@@ -357,22 +357,30 @@ describe('getAbsenceHours', () => {
         versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
       },
       {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
         versions: [{ weeklyHours: 12 }],
       },
     ];
 
-    const exportArray = await ExportHelper.getAbsenceHours(absence, contracts);
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
 
-    expect(exportArray).toEqual(2);
+    expect(absenceHours).toEqual(2);
     sinon.assert.notCalled(getHoursFromDailyAbsence);
   });
 });
 
 describe('formatAbsence', () => {
-  const events = [
-    {
+  let getAbsenceHours;
+  beforeEach(() => {
+    getAbsenceHours = sinon.stub(ExportHelper, 'getAbsenceHours');
+  });
+  afterEach(() => {
+    getAbsenceHours.restore();
+  });
+
+  it('should return an array with the header and 1 row for daily absence', async () => {
+    const event = {
       type: 'absence',
       absence: 'unjustified absence',
       absenceNature: 'hourly',
@@ -386,8 +394,29 @@ describe('formatAbsence', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T10:00:00',
-    },
-    {
+    };
+
+    getAbsenceHours.returns(2);
+    const exportArray = await ExportHelper.formatAbsence(event);
+
+    expect(exportArray).toEqual([
+      expect.any(ObjectID),
+      'Jean-Claude',
+      'VAN DAMME',
+      '',
+      'Girafes - 75',
+      'Absence injustifiée',
+      'Horaire',
+      '20/05/2019 08:00',
+      '20/05/2019 10:00',
+      '2,00',
+      '',
+    ]);
+    sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
+  });
+
+  it('should return an array with the header and 1 row for hourly absence', async () => {
+    const event = {
       type: 'absence',
       absence: 'leave',
       absenceNature: 'daily',
@@ -403,39 +432,9 @@ describe('formatAbsence', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T22:00:00',
       misc: 'brbr',
-    },
-  ];
-  let getAbsenceHours;
-  beforeEach(() => {
-    getAbsenceHours = sinon.stub(ExportHelper, 'getAbsenceHours');
-  });
-  afterEach(() => {
-    getAbsenceHours.restore();
-  });
-
-  it('should return an array with the header and 1 row for daily absence', async () => {
-    getAbsenceHours.returns(2);
-    const exportArray = await ExportHelper.formatAbsence(events[0]);
-
-    expect(exportArray).toEqual([
-      expect.any(ObjectID),
-      'Jean-Claude',
-      'VAN DAMME',
-      '',
-      'Girafes - 75',
-      'Absence injustifiée',
-      'Horaire',
-      '20/05/2019 08:00',
-      '20/05/2019 10:00',
-      '2,00',
-      '',
-    ]);
-    sinon.assert.called(getAbsenceHours);
-  });
-
-  it('should return an array with the header and 1 row for hourly absence', async () => {
+    };
     getAbsenceHours.returns(4);
-    const exportArray = await ExportHelper.formatAbsence(events[1]);
+    const exportArray = await ExportHelper.formatAbsence(event);
 
     expect(exportArray).toEqual([
       expect.any(ObjectID),
@@ -450,7 +449,7 @@ describe('formatAbsence', () => {
       '4,00',
       'brbr',
     ]);
-    sinon.assert.called(getAbsenceHours);
+    sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
   });
 });
 
@@ -468,8 +467,30 @@ describe('exportAbsencesHistory', () => {
     'Equivalent heures contrat',
     'Divers',
   ];
-  const events = [
-    {
+  const start = '2019-05-20T08:00:00'; // inutile ?
+  const end = '2019-05-20T22:00:00';
+  let getAbsencesForExport;
+  let formatAbsence;
+  beforeEach(() => {
+    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
+    formatAbsence = sinon.stub(ExportHelper, 'formatAbsence');
+  });
+  afterEach(() => {
+    getAbsencesForExport.restore();
+    formatAbsence.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    getAbsencesForExport.returns([]);
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([header]);
+    sinon.assert.notCalled(formatAbsence);
+  });
+
+  it('should return an array with the header and 1 rows', async () => {
+    const event = {
       type: 'absence',
       absence: 'unjustified absence',
       absenceNature: 'hourly',
@@ -483,8 +504,25 @@ describe('exportAbsencesHistory', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-21T10:00:00',
-    },
-    {
+    };
+    const credentials = { company: { _id: '1234567890' } };
+    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
+      '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''];
+
+    getAbsencesForExport.returns([event]);
+    formatAbsence.returns(formattedAbsence);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      formattedAbsence,
+    ]);
+    sinon.assert.calledOnceWithExactly(formatAbsence, event);
+  });
+
+  it('should return an array with the header and 3 rows for event on 2 months', async () => {
+    const event = {
       type: 'absence',
       absence: 'leave',
       absenceNature: 'daily',
@@ -500,8 +538,36 @@ describe('exportAbsencesHistory', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-07-20T22:00:00',
       misc: 'brbr',
-    },
-    {
+    };
+    const credentials = { company: { _id: '1234567890' } };
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+      '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+      '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+      '20/07/2019', '72,00', 'brbr'];
+
+    getAbsencesForExport.returns([event]);
+    formatAbsence.onCall(0).returns(formattedAbsenceRow);
+    formatAbsence.onCall(1).returns(formattedAbsenceRow2);
+    formatAbsence.onCall(2).returns(formattedAbsenceRow3);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      formattedAbsenceRow,
+      formattedAbsenceRow2,
+      formattedAbsenceRow3,
+    ]);
+    sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
+    sinon.assert.callCount(formatAbsence, 3);
+  });
+
+  it('should return an array with the header and 3 rows for event on 2 months with (endDate + 2 months) < startDate', async () => {
+    const event = {
       type: 'absence',
       absence: 'leave',
       absenceNature: 'daily',
@@ -517,72 +583,32 @@ describe('exportAbsencesHistory', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-07-01T22:00:00',
       misc: 'brbr',
-    },
-  ];
-  const start = '2019-05-20T08:00:00'; // inutile ?
-  const end = '2019-05-20T22:00:00';
-  let getAbsencesForExport;
-  beforeEach(() => {
-    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
-  });
-  afterEach(() => {
-    getAbsencesForExport.restore();
-  });
-
-  it('should return an array containing just the header', async () => {
+    };
     const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns([]);
-    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+      '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+      '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+      '01/07/2019', '4,00', 'brbr'];
 
-    expect(exportArray).toEqual([header]);
-  });
-
-  it('should return an array with the header and 1 rows', async () => {
-    const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns([events[0]]);
+    getAbsencesForExport.returns([event]);
+    formatAbsence.onCall(0).returns(formattedAbsenceRow);
+    formatAbsence.onCall(1).returns(formattedAbsenceRow2);
+    formatAbsence.onCall(2).returns(formattedAbsenceRow3);
 
     const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
 
     expect(exportArray).toEqual([
       header,
-      [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
-        '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''],
-    ]); // Je pense que c'est mieux de tester qu'exportAbsencesHistory retourne bien cet objet plutôt que de tester les appels à la fonction formatAbsence
-  });
-
-  it('should return an array with the header and 1 rows for event on 2 months', async () => {
-    const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns([events[1]]);
-
-    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
-
-    expect(exportArray).toEqual([
-      header,
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '31/05/2019', '40,00', 'brbr'],
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
-        '30/06/2019', '96,00', 'brbr'],
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
-        '20/07/2019', '72,00', 'brbr'],
+      formattedAbsenceRow,
+      formattedAbsenceRow2,
+      formattedAbsenceRow3,
     ]);
-  });
-
-  // J'aime pas trop le nom de ce test mais je ne voyais pas comment mieux le définir
-  it('should return an array with the header and 1 rows for event on 2 months with (endDate + 2 months) < startDate', async () => {
-    const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns([events[2]]);
-
-    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
-
-    expect(exportArray).toEqual([
-      header,
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '31/05/2019', '40,00', 'brbr'],
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
-        '30/06/2019', '96,00', 'brbr'],
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
-        '01/07/2019', '4,00', 'brbr'],
-    ]);
+    sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
+    sinon.assert.callCount(formatAbsence, 3);
   });
 });
 
