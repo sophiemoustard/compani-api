@@ -482,7 +482,7 @@ describe('exportAbsencesHistory', () => {
         ],
       },
       startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      endDate: '2019-05-21T10:00:00',
     },
     {
       type: 'absence',
@@ -498,10 +498,29 @@ describe('exportAbsencesHistory', () => {
         ],
       },
       startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T22:00:00',
+      endDate: '2019-07-20T22:00:00',
+      misc: 'brbr',
+    },
+    {
+      type: 'absence',
+      absence: 'leave',
+      absenceNature: 'daily',
+      internalHour: { name: 'Formation' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Princess', lastname: 'Carolyn' },
+        sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-07-01T22:00:00',
       misc: 'brbr',
     },
   ];
+  const start = '2019-05-20T08:00:00'; // inutile ?
+  const end = '2019-05-20T22:00:00';
   let getAbsencesForExport;
   beforeEach(() => {
     getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
@@ -513,23 +532,56 @@ describe('exportAbsencesHistory', () => {
   it('should return an array containing just the header', async () => {
     const credentials = { company: { _id: '1234567890' } };
     getAbsencesForExport.returns([]);
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
 
     expect(exportArray).toEqual([header]);
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 1 rows', async () => {
     const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns(events);
+    getAbsencesForExport.returns([events[0]]);
 
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
 
     expect(exportArray).toEqual([
       header,
       [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
-        '20/05/2019 08:00', '20/05/2019 10:00', '2,00', ''],
+        '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''],
+    ]); // Je pense que c'est mieux de tester qu'exportAbsencesHistory retourne bien cet objet plutôt que de tester les appels à la fonction formatAbsence
+  });
+
+  it('should return an array with the header and 1 rows for event on 2 months', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    getAbsencesForExport.returns([events[1]]);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
       [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '20/05/2019', '4,00', 'brbr'],
+        '31/05/2019', '40,00', 'brbr'],
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+        '30/06/2019', '96,00', 'brbr'],
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+        '20/07/2019', '72,00', 'brbr'],
+    ]);
+  });
+
+  // J'aime pas trop le nom de ce test mais je ne voyais pas comment mieux le définir
+  it('should return an array with the header and 1 rows for event on 2 months with (endDate + 2 months) < startDate', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    getAbsencesForExport.returns([events[2]]);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+        '31/05/2019', '40,00', 'brbr'],
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+        '30/06/2019', '96,00', 'brbr'],
+      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+        '01/07/2019', '4,00', 'brbr'],
     ]);
   });
 });
