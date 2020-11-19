@@ -39,6 +39,7 @@ exports.getQuery = (query, companyId) => {
 
   return rules;
 };
+
 exports.getContractList = async (query, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
   const rules = exports.getQuery(query, companyId);

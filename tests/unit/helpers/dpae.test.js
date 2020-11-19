@@ -258,3 +258,67 @@ describe('exportContracts', () => {
     sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank', 'contract'], [1, 1, 1], [2, 2, 2]]);
   });
 });
+
+describe('exportsContractVersions', () => {
+  let ContractMock;
+  let exportToTxt;
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+  });
+  afterEach(() => {
+    ContractMock.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export contract version', async () => {
+    const query = { endDate: '2020-11-01T22:00:00' };
+    const companyId = '1234567890';
+    const versions = [{
+      user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
+      serialNumber: 'contractNumber',
+      versions: [
+        { weeklyHours: 18, startDate: '2020-09-01T22:00:00' },
+        { weeklyHours: 24, startDate: '2020-11-01T22:00:00' },
+        { weeklyHours: 18, startDate: '2020-11-10T22:00:00' },
+      ],
+    }, {
+      user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
+      serialNumber: 'titotu',
+      versions: [
+        { weeklyHours: 12, startDate: '2020-07-01T22:00:00' },
+        { weeklyHours: 6, startDate: '2020-10-01T22:00:00' },
+      ],
+    }];
+    ContractMock.expects('find')
+      .withExactArgs({
+        startDate: { $lte: moment(query.endDate).endOf('d').toDate() },
+        $or: [
+          { endDate: null },
+          { endDate: { $exists: false } },
+          { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } },
+        ],
+        company: companyId,
+        versions: { $gte: { $size: 2 } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'user', select: 'serialNumber identity' })
+      .chain('lean')
+      .once()
+      .returns(versions);
+    exportToTxt.returns('file');
+
+    const result = await DpaeHelper.exportContractVersions(query, { company: { _id: companyId } });
+
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '01/11/2020', 104],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '01/10/2020', 26],
+      ]
+    );
+  });
+});

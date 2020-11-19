@@ -12,7 +12,7 @@ const {
 } = require('../controllers/payController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
-const { CONTRACT } = require('../helpers/constants');
+const { CONTRACT, CONTRACT_VERSION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-pay',
@@ -86,7 +86,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          params: Joi.object({ type: Joi.string().valid(CONTRACT) }),
+          params: Joi.object({ type: Joi.string().valid(CONTRACT, CONTRACT_VERSION) }),
           query: Joi.object({ endDate: Joi.date().required() }),
         },
       },
