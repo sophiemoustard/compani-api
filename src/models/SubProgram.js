@@ -31,6 +31,19 @@ function setIsStrictlyELearning() {
   return false;
 }
 
+// eslint-disable-next-line consistent-return
+function setAreStepsValid() {
+  if (this.steps && this.steps.length && this.steps[0].type) {
+    return this.steps.every(step => step.areActivitiesValid);
+  }
+
+  if (this.steps && this.steps.length === 0) {
+    return true;
+  }
+}
+
+SubProgramSchema.virtual('areStepsValid').get(setAreStepsValid);
+
 SubProgramSchema.virtual('isStrictlyELearning').get(setIsStrictlyELearning);
 
 SubProgramSchema.plugin(mongooseLeanVirtuals);

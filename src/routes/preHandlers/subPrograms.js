@@ -39,6 +39,14 @@ exports.authorizeSubProgramUpdate = async (req) => {
     if (!onlyOrderIsUpdated) return Boom.badRequest();
   }
 
+  if (req.payload.status === PUBLISHED) {
+    const publishedSubProgram = await SubProgram.findOne({ _id: req.params._id })
+      .populate({ path: 'steps', populate: { path: 'activities', populate: 'cards' } }) // BUG CHELOU
+      .lean({ virtuals: true });
+
+    if (!publishedSubProgram.areStepsValid) throw Boom.forbidden();
+  }
+
   if (req.payload.status === PUBLISHED && subProgram.isStrictlyELearning) {
     const prog = await Program.findOne({ _id: subProgram.program })
       .populate({
