@@ -25,26 +25,20 @@ exports.authorizeStepAdd = async (req) => {
 exports.authorizeSubProgramUpdate = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id })
     .populate({ path: 'program', select: '_id' })
-    .populate({ path: 'steps', select: '_id type' })
+    .populate({ path: 'steps', select: '_id type', populate: { path: 'activities', populate: 'cards' } })
     .lean({ virtuals: true });
 
   if (!subProgram) throw Boom.notFound();
 
   if (subProgram.status === PUBLISHED) throw Boom.forbidden();
 
+  if (req.payload.status === PUBLISHED && !subProgram.areStepsValid) throw Boom.forbidden();
+
   if (req.payload.steps) {
     const onlyOrderIsUpdated = subProgram.steps.length === req.payload.steps.length &&
       subProgram.steps.every(value => req.payload.steps.includes(value._id.toHexString())) &&
       req.payload.steps.every(value => subProgram.steps.map(s => s._id.toHexString()).includes(value));
     if (!onlyOrderIsUpdated) return Boom.badRequest();
-  }
-
-  if (req.payload.status === PUBLISHED) {
-    const publishedSubProgram = await SubProgram.findOne({ _id: req.params._id })
-      .populate({ path: 'steps', populate: { path: 'activities', populate: 'cards' } }) // BUG CHELOU
-      .lean({ virtuals: true });
-
-    if (!publishedSubProgram.areStepsValid) throw Boom.forbidden();
   }
 
   if (req.payload.status === PUBLISHED && subProgram.isStrictlyELearning) {
