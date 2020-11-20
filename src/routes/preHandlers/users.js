@@ -39,26 +39,25 @@ exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const userFromDB = req.pre.user;
   const userCompany = userFromDB.company ? userFromDB.company.toHexString() : get(req, 'payload.company');
-  const isVendorLoggedUser = !!get(credentials, 'role.vendor');
+  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
 
-  checkCompany(credentials, userFromDB, req.payload);
+  checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customers')) await checkCustomers(userCompany, req.payload);
-  if (!isVendorLoggedUser && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
+  if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateRestrictions(req.payload);
   }
 
   return null;
 };
 
-const checkCompany = (credentials, userFromDB, payload) => {
+const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
   const loggedUserCompany = get(credentials, 'company._id') || '';
-  const isVendorLoggedUser = !!get(credentials, 'role.vendor');
   const userCompany = userFromDB.company ? userFromDB.company.toHexString() : payload.company;
 
-  const canLoggedUserUpdate = isVendorLoggedUser ||
+  const canLoggedUserUpdate = isLoggedUserVendor ||
     (userCompany && loggedUserCompany && userCompany === loggedUserCompany.toHexString());
   const isCompanyUpdated = payload.company && userFromDB.company &&
     payload.company !== userFromDB.company.toHexString();
@@ -95,9 +94,9 @@ const checkRole = async (userFromDB, payload) => {
 const checkCustomers = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   if (get(payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
-  const customer = await Customer.findOne({ _id: payload.customers[0] }).lean();
+  const customerCount = await Customer.countDocuments({ _id: payload.customers[0], company: userCompany });
 
-  if (userCompany !== customer.company.toHexString()) throw Boom.forbidden();
+  if (!customerCount) throw Boom.forbidden();
 };
 
 const checkUpdateRestrictions = (payload) => {
