@@ -500,7 +500,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
         trainees: expect.arrayContaining([expect.objectContaining({
           _id: coachFromAuthCompany._id,
           identity: coachFromAuthCompany.identity,
-          followUp: expect.arrayContaining([expect.objectContaining({
+          steps: expect.arrayContaining([expect.objectContaining({
             _id: expect.any(ObjectID),
             activities: expect.any(Array),
             name: expect.any(String),
@@ -623,6 +623,99 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
             .every(history => history.user.toHexString() === role.user._id.toHexString())).toBeTruthy();
         }
+      });
+    });
+  });
+
+  describe('should get trainee courses', () => {
+    describe('vendor_admin', () => {
+      it('should return 200 if valid traineeId', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should throw 403 if invalid traineeId', async () => {
+        authToken = await getToken('vendor_admin');
+        const traineeId = new ObjectID();
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      it('should return 200 if client admin and same company', async () => {
+        authToken = await getToken('client_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 200 if coach and same company', async () => {
+        authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 403 if client admin and different company', async () => {
+        authToken = await getToken('client_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it('should return 403 if coach and different company', async () => {
+        authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });

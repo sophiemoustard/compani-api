@@ -240,7 +240,7 @@ describe('listUserCourses', () => {
       .returns(coursesList);
     getProgress.returns(1);
 
-    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
+    const result = await CourseHelper.listUserCourses('1234567890abcdef12345678');
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
@@ -496,7 +496,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', followUp: { progress: 1 } }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 } }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
