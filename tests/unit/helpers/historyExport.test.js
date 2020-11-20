@@ -566,7 +566,7 @@ describe('exportAbsencesHistory', () => {
     sinon.assert.callCount(formatAbsence, 3);
   });
 
-  it('should return an array with the header and 3 rows for event on 2 months with (endDate + 2 months) < startDate', async () => {
+  it('should return an array with the header and 3 rows for event on 2 months with (startDate + 2 months) > endDate', async () => {
     const event = {
       type: 'absence',
       absence: 'leave',

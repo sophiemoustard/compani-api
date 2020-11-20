@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
+const moment = require('../../../src/extensions/moment');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -396,8 +396,8 @@ const eventList = [
     type: ABSENCE,
     absence: UNJUSTIFIED,
     absenceNature: HOURLY,
-    startDate: '2019-01-19T14:00:00',
-    endDate: '2019-01-19T16:00:00',
+    startDate: moment('2019-01-19T14:00:00').toDate(),
+    endDate: moment('2019-01-19T16:00:00').toDate(),
     auxiliary: auxiliaryList[0]._id,
     misc: 'test absence',
   },
