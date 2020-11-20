@@ -3,7 +3,7 @@ const SubProgram = require('../models/SubProgram');
 const Step = require('../models/Step');
 const Activity = require('../models/Activity');
 const Course = require('../models/Course');
-const { INTER_B2C, STRICTLY_E_LEARNING, E_LEARNING, DRAFT } = require('./constants');
+const { INTER_B2C, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
 
 exports.addSubProgram = async (programId, payload) => {
   const subProgram = await SubProgram.create(payload);
@@ -16,10 +16,9 @@ exports.updateSubProgram = async (subProgramId, payload) => {
   const subProgram = await SubProgram
     .findOneAndUpdate({ _id: subProgramId }, { $set: payload })
     .populate({ path: 'steps', select: 'activities type' })
-    .lean();
+    .lean({ virtuals: true });
 
-  const isStrictlyElearning = subProgram.steps.every(step => step.type === E_LEARNING);
-  if (isStrictlyElearning) {
+  if (subProgram.isStrictlyELearning) {
     await Course.create({ subProgram: subProgramId, type: INTER_B2C, format: STRICTLY_E_LEARNING });
   }
 
@@ -33,8 +32,7 @@ exports.listELearningDraft = async () => {
     .populate({ path: 'program', select: '_id name' })
     .populate({ path: 'steps', select: 'type' })
     .lean({ virtuals: true });
-
-  return subPrograms.filter(sp => sp.steps.length && sp.steps.every(step => step.type === E_LEARNING));
+  return subPrograms.filter(sp => sp.steps.length && sp.isStrictlyELearning);
 };
 
 exports.getSubProgram = async subProgramId => SubProgram

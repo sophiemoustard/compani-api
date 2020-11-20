@@ -1,6 +1,5 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const set = require('lodash/set');
 const expect = require('expect');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -77,19 +76,25 @@ describe('updatedSubProgram', () => {
   });
 
   describe('update status', () => {
-    const payload = { status: 'published' };
-    const subProgram = { _id: new ObjectID(), name: 'non', status: 'draft', steps: [new ObjectID(), new ObjectID()] };
-    const activities = [new ObjectID()];
-    const updatedSubProgram = {
-      ...subProgram,
-      status: 'published',
-      steps: [
-        { _id: subProgram.steps[0], activities, type: 'e_learning' },
-        { _id: subProgram.steps[1], activities: [], type: 'on_site' },
-      ],
-    };
-
     it('if subProgram is blended, should only update status', async () => {
+      const payload = { status: 'published' };
+      const subProgram = {
+        _id: new ObjectID(),
+        name: 'non',
+        status: 'draft',
+        steps: [new ObjectID(), new ObjectID()],
+        isStrictlyELearning: false,
+      };
+      const activities = [new ObjectID()];
+      const updatedSubProgram = {
+        ...subProgram,
+        status: 'published',
+        steps: [
+          { _id: subProgram.steps[0], activities, type: 'e_learning' },
+          { _id: subProgram.steps[1], activities: [], type: 'on_site' },
+        ],
+      };
+
       SubProgramMock.expects('findOneAndUpdate')
         .withExactArgs({ _id: subProgram._id }, { $set: payload })
         .chain('populate')
@@ -111,7 +116,24 @@ describe('updatedSubProgram', () => {
     });
 
     it('if subProgram is strictly e-learning, should also create new course', async () => {
-      set(updatedSubProgram, ['steps', '1', 'type'], 'e_learning');
+      const payload = { status: 'published' };
+      const subProgram = {
+        _id: new ObjectID(),
+        name: 'non',
+        status: 'draft',
+        steps: [new ObjectID(), new ObjectID()],
+        isStrictlyELearning: true,
+      };
+      const activities = [new ObjectID()];
+      const updatedSubProgram = {
+        ...subProgram,
+        status: 'published',
+        steps: [
+          { _id: subProgram.steps[0], activities, type: 'e_learning' },
+          { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
+        ],
+      };
+
       SubProgramMock.expects('findOneAndUpdate')
         .withExactArgs({ _id: subProgram._id }, { $set: payload })
         .chain('populate')
@@ -173,8 +195,7 @@ describe('listELearningDraft', () => {
       .returns(subProgramsList);
 
     const elearningSubProgramList = subProgramsList
-      .filter(subProgram => subProgram.steps.length && subProgram.steps
-        .every(step => step.type === 'e_learning'));
+      .filter(subProgram => subProgram.steps.length && subProgram.isStrictlyELearning);
 
     const result = await SubProgramHelper.listELearningDraft();
     expect(result).toMatchObject(elearningSubProgramList);
