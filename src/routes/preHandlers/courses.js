@@ -13,6 +13,7 @@ const {
   STRICTLY_E_LEARNING,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -151,14 +152,15 @@ exports.getCourse = async (req) => {
 exports.authorizeAndGetTraineeId = async (req) => {
   const traineeId = get(req, 'query.traineeId');
   if (traineeId) {
+    const user = await User.findOne({ _id: traineeId }, { company: 1 }).lean();
+    if (!user) return Boom.forbidden();
+
     const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
     if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return traineeId;
 
     const loggedUserClientRole = get(req, 'auth.credentials.role.client.name');
-    if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) {
-      const isFromSameCompany = await User.countDocuments({ _id: traineeId, company: req.aut.credentials.company });
-      if (isFromSameCompany) return traineeId;
-    }
+    const isSameCompany = UtilsHelper.areObjectIdsEquals(user.company, get(req, 'auth.credentials.company._id'));
+    if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && isSameCompany) return traineeId;
 
     return Boom.forbidden();
   }
