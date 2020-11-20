@@ -240,7 +240,7 @@ describe('listUserCourses', () => {
       .returns(coursesList);
     getProgress.returns(1);
 
-    const result = await CourseHelper.listUserCourses({ _id: '1234567890abcdef12345678' });
+    const result = await CourseHelper.listUserCourses('1234567890abcdef12345678');
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
