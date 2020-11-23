@@ -13,6 +13,7 @@ const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
+const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 
@@ -299,6 +300,159 @@ describe('exportWorkingEventsHistory', () => {
   });
 });
 
+describe('getAbsenceHours', () => {
+  let getHoursFromDailyAbsence;
+  beforeEach(() => {
+    getHoursFromDailyAbsence = sinon.stub(DraftPayHelper, 'getHoursFromDailyAbsence');
+  });
+  afterEach(() => {
+    getHoursFromDailyAbsence.restore();
+  });
+
+  it('should return daily absence hours by calling getHoursFromDailyAbsence', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(2);
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(2);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
+  });
+
+  it('should return daily absence hours with multiple contracts', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(2);
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(2);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
+  });
+
+  it('should return hourly absence hours without calling getHoursFromDailyAbsence', async () => {
+    const absence = { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(2);
+    sinon.assert.notCalled(getHoursFromDailyAbsence);
+  });
+});
+
+describe('formatAbsence', () => {
+  let getAbsenceHours;
+  beforeEach(() => {
+    getAbsenceHours = sinon.stub(ExportHelper, 'getAbsenceHours');
+  });
+  afterEach(() => {
+    getAbsenceHours.restore();
+  });
+
+  it('should return an array with the header and 1 row for daily absence', async () => {
+    const event = {
+      type: 'absence',
+      absence: 'unjustified absence',
+      absenceNature: 'hourly',
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
+        sector: { name: 'Girafes - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+    };
+
+    getAbsenceHours.returns(2);
+    const exportArray = await ExportHelper.formatAbsence(event);
+
+    expect(exportArray).toEqual([
+      expect.any(ObjectID),
+      'Jean-Claude',
+      'VAN DAMME',
+      '',
+      'Girafes - 75',
+      'Absence injustifiée',
+      'Horaire',
+      '20/05/2019 08:00',
+      '20/05/2019 10:00',
+      '2,00',
+      '',
+    ]);
+    sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
+  });
+
+  it('should return an array with the header and 1 row for hourly absence', async () => {
+    const event = {
+      type: 'absence',
+      absence: 'leave',
+      absenceNature: 'daily',
+      internalHour: { name: 'Formation' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Princess', lastname: 'Carolyn' },
+        sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T22:00:00',
+      misc: 'brbr',
+    };
+    getAbsenceHours.returns(4);
+    const exportArray = await ExportHelper.formatAbsence(event);
+
+    expect(exportArray).toEqual([
+      expect.any(ObjectID),
+      'Princess',
+      'CAROLYN',
+      '',
+      'Etoiles - 75',
+      'Congé',
+      'Journalière',
+      '20/05/2019',
+      '20/05/2019',
+      '4,00',
+      'brbr',
+    ]);
+    sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
+  });
+});
+
 describe('exportAbsencesHistory', () => {
   const header = [
     'Id Auxiliaire',
@@ -310,10 +464,33 @@ describe('exportAbsencesHistory', () => {
     'Nature',
     'Début',
     'Fin',
+    'Equivalent heures contrat',
     'Divers',
   ];
-  const events = [
-    {
+  const start = '2019-05-20T08:00:00'; // inutile ?
+  const end = '2019-05-20T22:00:00';
+  let getAbsencesForExport;
+  let formatAbsence;
+  beforeEach(() => {
+    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
+    formatAbsence = sinon.stub(ExportHelper, 'formatAbsence');
+  });
+  afterEach(() => {
+    getAbsencesForExport.restore();
+    formatAbsence.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    getAbsencesForExport.returns([]);
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([header]);
+    sinon.assert.notCalled(formatAbsence);
+  });
+
+  it('should return an array with the header and 1 rows', async () => {
+    const event = {
       type: 'absence',
       absence: 'unjustified absence',
       absenceNature: 'hourly',
@@ -321,11 +498,31 @@ describe('exportAbsencesHistory', () => {
         _id: new ObjectID(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
-    },
-    {
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-21T10:00:00',
+    };
+    const credentials = { company: { _id: '1234567890' } };
+    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
+      '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''];
+
+    getAbsencesForExport.returns([event]);
+    formatAbsence.returns(formattedAbsence);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      formattedAbsence,
+    ]);
+    sinon.assert.calledOnceWithExactly(formatAbsence, event);
+  });
+
+  it('should return an array with the header and 3 rows for event on 2 months', async () => {
+    const event = {
       type: 'absence',
       absence: 'leave',
       absenceNature: 'daily',
@@ -334,41 +531,84 @@ describe('exportAbsencesHistory', () => {
         _id: new ObjectID(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-07-20T22:00:00',
       misc: 'brbr',
-    },
-  ];
-  let getAbsencesForExport;
-  beforeEach(() => {
-    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
-  });
-  afterEach(() => {
-    getAbsencesForExport.restore();
-  });
-
-  it('should return an array containing just the header', async () => {
+    };
     const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns([]);
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+      '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+      '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+      '20/07/2019', '72,00', 'brbr'];
 
-    expect(exportArray).toEqual([header]);
-  });
+    getAbsencesForExport.returns([event]);
+    formatAbsence.onCall(0).returns(formattedAbsenceRow);
+    formatAbsence.onCall(1).returns(formattedAbsenceRow2);
+    formatAbsence.onCall(2).returns(formattedAbsenceRow3);
 
-  it('should return an array with the header and 2 rows', async () => {
-    const credentials = { company: { _id: '1234567890' } };
-    getAbsencesForExport.returns(events);
-
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
 
     expect(exportArray).toEqual([
       header,
-      [expect.any(ObjectID), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
-        '20/05/2019 08:00', '20/05/2019 10:00', ''],
-      [expect.any(ObjectID), 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-        '20/05/2019', 'brbr'],
+      formattedAbsenceRow,
+      formattedAbsenceRow2,
+      formattedAbsenceRow3,
     ]);
+    sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
+    sinon.assert.callCount(formatAbsence, 3);
+  });
+
+  it('should return an array with the header and 3 rows for event on 2 months with (startDate + 2 months) > endDate', async () => {
+    const event = {
+      type: 'absence',
+      absence: 'leave',
+      absenceNature: 'daily',
+      internalHour: { name: 'Formation' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'Princess', lastname: 'Carolyn' },
+        sector: { name: 'Etoiles - 75' },
+        contracts: [
+          { startDate: '2018-05-20T00:00:00', versions: [{ startDate: '2018-05-20T00:00:00', weeklyHours: 24 }] },
+        ],
+      },
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-07-01T22:00:00',
+      misc: 'brbr',
+    };
+    const credentials = { company: { _id: '1234567890' } };
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
+      '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
+      '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
+      '01/07/2019', '4,00', 'brbr'];
+
+    getAbsencesForExport.returns([event]);
+    formatAbsence.onCall(0).returns(formattedAbsenceRow);
+    formatAbsence.onCall(1).returns(formattedAbsenceRow2);
+    formatAbsence.onCall(2).returns(formattedAbsenceRow3);
+
+    const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
+
+    expect(exportArray).toEqual([
+      header,
+      formattedAbsenceRow,
+      formattedAbsenceRow2,
+      formattedAbsenceRow3,
+    ]);
+    sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
+    sinon.assert.callCount(formatAbsence, 3);
   });
 });
 
@@ -872,6 +1112,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Motif',
     'Fin',
     'Heures contrat',
+    'Heures absences',
     'Heures à travailler',
     'Heures travaillées',
     'Dont exo non majo',
@@ -880,13 +1121,14 @@ describe('exportPayAndFinalPayHistory', () => {
     'Dont non exo et non majo',
     'Dont non exo et majo',
     'Détails des majo non exo',
+    'Heures transports',
     'Solde heures',
     'Dont diff mois précédent',
     'Compteur',
     'Heures sup à payer',
     'Heures comp à payer',
     'Mutuelle',
-    'Transport',
+    'Remboursement transport',
     'Frais téléphoniques',
     'Prime',
     'Indemnité',
@@ -902,6 +1144,7 @@ describe('exportPayAndFinalPayHistory', () => {
       startDate: '2019-05-01T00:00:00.000Z',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 77.94,
+      absencesHours: 10,
       workedHours: 0,
       notSurchargedAndNotExempt: 0,
       surchargedAndNotExempt: 0,
@@ -909,6 +1152,7 @@ describe('exportPayAndFinalPayHistory', () => {
       notSurchargedAndExempt: 0,
       surchargedAndExempt: 0,
       surchargedAndExemptDetails: 'details 2',
+      paidTransportHours: 6,
       hoursBalance: -77.94,
       hoursCounter: -77.94,
       overtimeHours: 0,
@@ -919,6 +1163,7 @@ describe('exportPayAndFinalPayHistory', () => {
       bonus: 0,
       _id: new ObjectID(),
       diff: {
+        paidTransportHours: 2,
         hoursBalance: 8,
         notSurchargedAndNotExempt: 2,
         notSurchargedAndExempt: 2,
@@ -940,6 +1185,7 @@ describe('exportPayAndFinalPayHistory', () => {
       startDate: '2019-05-01T00:00:00.000Z',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 97.94,
+      absencesHours: 10,
       workedHours: 0,
       notSurchargedAndNotExempt: 0,
       surchargedAndNotExempt: 0,
@@ -947,6 +1193,7 @@ describe('exportPayAndFinalPayHistory', () => {
       notSurchargedAndExempt: 0,
       surchargedAndExempt: 0,
       surchargedAndExemptDetails: 'details 4',
+      paidTransportHours: 0,
       hoursBalance: -97.94,
       hoursCounter: -97.94,
       overtimeHours: 0,
@@ -956,6 +1203,8 @@ describe('exportPayAndFinalPayHistory', () => {
       phoneFees: 20,
       bonus: 100,
       diff: {
+        paidTransportHours: 2,
+        absencesHours: -2,
         hoursBalance: 8,
         notSurchargedAndNotExempt: 2,
         notSurchargedAndExempt: 2,
@@ -981,6 +1230,7 @@ describe('exportPayAndFinalPayHistory', () => {
       endReason: 'resignation',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 77.94,
+      absencesHours: 0,
       workedHours: 0,
       notSurchargedAndNotExempt: 0,
       surchargedAndNotExempt: 0,
@@ -988,6 +1238,7 @@ describe('exportPayAndFinalPayHistory', () => {
       notSurchargedAndExempt: 0,
       surchargedAndExempt: 0,
       surchargedAndExemptDetails: 'details 2',
+      paidTransportHours: 10,
       hoursBalance: -77.94,
       hoursCounter: -77.94,
       overtimeHours: 0,
@@ -998,6 +1249,8 @@ describe('exportPayAndFinalPayHistory', () => {
       bonus: 0,
       compensation: 156,
       diff: {
+        paidTransportHours: 2,
+        absencesHours: 3,
         hoursBalance: 8,
         notSurchargedAndNotExempt: 2,
         notSurchargedAndExempt: 2,
@@ -1021,6 +1274,7 @@ describe('exportPayAndFinalPayHistory', () => {
       endReason: 'mutation',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 97.94,
+      absencesHours: 0,
       workedHours: 0,
       notSurchargedAndNotExempt: 0,
       surchargedAndNotExempt: 0,
@@ -1028,6 +1282,7 @@ describe('exportPayAndFinalPayHistory', () => {
       notSurchargedAndExempt: 0,
       surchargedAndExempt: 0,
       surchargedAndExemptDetails: 'details 4',
+      paidTransportHours: 0,
       hoursBalance: -97.94,
       hoursCounter: -97.94,
       overtimeHours: 0,
@@ -1038,6 +1293,8 @@ describe('exportPayAndFinalPayHistory', () => {
       bonus: 100,
       compensation: 0,
       diff: {
+        paidTransportHours: 0,
+        absencesHours: 0,
         hoursBalance: 8,
         notSurchargedAndNotExempt: 2,
         notSurchargedAndExempt: 2,
@@ -1116,7 +1373,7 @@ describe('exportPayAndFinalPayHistory', () => {
     FinalPayMock.verify();
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 4 rows', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
@@ -1164,132 +1421,23 @@ describe('exportPayAndFinalPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      [
-        expect.any(ObjectID),
-        'Mme',
-        'Tata',
-        'TOTO',
-        'Test',
-        '04/05/2019',
-        '01/05/2019',
-        '',
-        '',
-        '31/05/2019',
-        '77,94',
-        '30,00',
-        '0,00',
-        '2,00',
-        '2,00',
-        'surchargedAndExemptDetails',
-        '2,00',
-        '2,00',
-        'surchargedAndNotExemptDetails',
-        '-69,94',
-        '8,00',
-        '-77,94',
-        '0,00',
-        '0,00',
-        'Oui',
-        '37,60',
-        '18,00',
-        '0,00',
-        '0,00',
-      ],
-      [
-        expect.any(ObjectID),
-        '',
-        'Titi',
-        'TUTU',
-        'Autre test',
-        '',
-        '01/05/2019',
-        '',
-        '',
-        '31/05/2019',
-        '97,94',
-        '20,00',
-        '0,00',
-        '2,00',
-        '2,00',
-        'surchargedAndExemptDetails',
-        '2,00',
-        '2,00',
-        'surchargedAndNotExemptDetails',
-        '-89,94',
-        '8,00',
-        '-97,94',
-        '0,00',
-        '0,00',
-        'Oui',
-        '47,60',
-        '20,00',
-        '100,00',
-        '0,00',
-      ],
-      [
-        expect.any(ObjectID),
-        'M.',
-        'Tata',
-        'TOTO',
-        'Test',
-        '04/03/2019',
-        '01/05/2019',
-        '31/05/2019',
-        'Démission',
-        '31/05/2019',
-        '77,94',
-        '20,00',
-        '0,00',
-        '2,00',
-        '2,00',
-        'surchargedAndExemptDetails',
-        '2,00',
-        '2,00',
-        'surchargedAndNotExemptDetails',
-        '-69,94',
-        '8,00',
-        '-77,94',
-        '0,00',
-        '0,00',
-        'Oui',
-        '37,60',
-        '18,00',
-        '0,00',
-        '156,00',
-      ],
-      [
-        expect.any(ObjectID),
-        '',
-        'Titi',
-        'TUTU',
-        'Autre test',
-        '19/01/2019',
-        '01/05/2019',
-        '31/05/2019',
-        'Mutation',
-        '31/05/2019',
-        '97,94',
-        '20,00',
-        '0,00',
-        '2,00',
-        '2,00',
-        'surchargedAndExemptDetails',
-        '2,00',
-        '2,00',
-        'surchargedAndNotExemptDetails',
-        '-89,94',
-        '8,00',
-        '-97,94',
-        '0,00',
-        '0,00',
-        'Oui',
-        '47,60',
-        '20,00',
-        '100,00',
-        '0,00',
-      ],
+      [expect.any(ObjectID), 'Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94',
+        '10,00', '30,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
+        'surchargedAndNotExemptDetails', '8,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00',
+        '0,00', '0,00'],
+      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '8,00',
+        '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails',
+        '2,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      [expect.any(ObjectID), 'M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission',
+        '31/05/2019', '77,94', '3,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
+        'surchargedAndNotExemptDetails', '12,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00',
+        '0,00', '156,00'],
+      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation',
+        '31/05/2019', '97,94', '0,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
+        'surchargedAndNotExemptDetails', '0,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00',
+        '100,00', '0,00'],
     ]);
-    sinon.assert.callCount(formatFloatForExportStub, 61);
+    sinon.assert.callCount(formatFloatForExportStub, 69);
     PayMock.verify();
     FinalPayMock.verify();
   });

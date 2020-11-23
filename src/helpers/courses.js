@@ -25,12 +25,13 @@ exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.trainees) {
-    return Course.find(query, { misc: 1 })
+    return Course.find(query, { misc: 1, format: 1 })
       .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
       .lean();
   }
+
   if (query.company) {
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
@@ -47,11 +48,12 @@ exports.list = async (query) => {
         })),
     ];
   }
+
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.listUserCourses = async (credentials) => {
-  const courses = await Course.find({ trainees: credentials._id })
+exports.listUserCourses = async (traineeId) => {
+  const courses = await Course.find({ trainees: traineeId })
     .populate({
       path: 'subProgram',
       select: 'program steps',
@@ -64,7 +66,7 @@ exports.listUserCourses = async (credentials) => {
             path: 'activities',
             select: 'name type cards activityHistories',
             populate: [
-              { path: 'activityHistories', match: { user: credentials._id } },
+              { path: 'activityHistories', match: { user: traineeId } },
               { path: 'cards', select: 'template' },
             ],
           },
@@ -72,7 +74,7 @@ exports.listUserCourses = async (credentials) => {
       ],
     })
     .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
-    .select('_id')
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return courses.map(course => ({
@@ -84,14 +86,14 @@ exports.listUserCourses = async (credentials) => {
   }));
 };
 
-exports.getCourse = async (courseId, loggedUser) => {
+exports.getCourse = async (course, loggedUser) => {
   const userHasVendorRole = !!get(loggedUser, 'role.vendor');
   const userCompanyId = get(loggedUser, 'company._id') || null;
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
   const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
 
-  return Course.findOne({ _id: courseId })
+  return Course.findOne({ _id: course._id })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -103,14 +105,14 @@ exports.getCourse = async (courseId, loggedUser) => {
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
-      select: 'identity.firstname identity.lastname local.email company contact ',
+      select: 'identity.firstname identity.lastname local.email company contact',
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .lean();
 };
 
-exports.getCoursePublicInfos = async courseId => Course.findOne({ _id: courseId })
+exports.getCoursePublicInfos = async course => Course.findOne({ _id: course._id })
   .populate({
     path: 'subProgram',
     select: 'program',
@@ -146,35 +148,59 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (courseId) => {
-  const courseWithTrainees = await Course.findOne({ _id: courseId }).select('trainees').lean();
+exports.getCourseFollowUp = async (course) => {
+  const courseWithTrainees = await Course.findOne({ _id: course._id }).select('trainees').lean();
 
-  const course = await Course.findOne({ _id: courseId })
+  const courseFollowUp = await Course.findOne({ _id: course._id })
     .select('subProgram')
     .populate({
       path: 'subProgram',
-      select: 'name steps',
-      populate: {
-        path: 'steps',
-        select: 'name activities type',
-        populate: {
-          path: 'activities',
-          select: 'name type',
+      select: 'name steps program',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'name activities type',
           populate: {
-            path: 'activityHistories',
-            match: { user: { $in: courseWithTrainees.trainees } },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            path: 'activities',
+            select: 'name type',
+            populate: {
+              path: 'activityHistories',
+              match: { user: { $in: courseWithTrainees.trainees } },
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
           },
         },
-      },
+      ],
     })
+    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 
   return {
-    ...course,
-    subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(s => exports.formatStep(s)) },
+    ...courseFollowUp,
+    subProgram: {
+      ...courseFollowUp.subProgram,
+      steps: courseFollowUp.subProgram.steps.map(s => exports.formatStep(s)),
+    },
+    trainees: courseFollowUp.trainees.map(t => ({
+      ...t,
+      steps: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+    })),
   };
 };
+
+exports.getTraineeProgress = (traineeId, steps, slots) => steps.map((s) => {
+  const traineeStep = {
+    ...s,
+    activities: s.activities.map(a => ({
+      ...a,
+      activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+    })),
+  };
+
+  return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+});
 
 exports.getTraineeCourse = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
@@ -198,7 +224,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
       ],
     })
     .populate({ path: 'slots', select: 'startDate endDate step address' })
-    .select('_id')
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return {
@@ -259,7 +285,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
   await CourseHistoriesHelper.createHistoryOnTraineeAddition(
-    { courseId, traineeId: addedTrainee._id },
+    { course: courseId, traineeId: addedTrainee._id },
     credentials._id
   );
 
@@ -271,7 +297,7 @@ exports.registerToELearningCourse = async (courseId, credentials) =>
   Course.updateOne({ _id: courseId }, { $addToSet: { trainees: credentials._id } });
 
 exports.removeCourseTrainee = async (courseId, traineeId, user) => Promise.all([
-  CourseHistoriesHelper.createHistoryOnTraineeDeletion({ courseId, traineeId }, user._id),
+  CourseHistoriesHelper.createHistoryOnTraineeDeletion({ course: courseId, traineeId }, user._id),
   Course.updateOne({ _id: courseId }, { $pull: { trainees: traineeId } }),
 ]);
 

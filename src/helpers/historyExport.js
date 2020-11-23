@@ -1,6 +1,6 @@
-const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const moment = require('../extensions/moment');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -19,6 +19,7 @@ const {
   INTERVENTION,
 } = require('./constants');
 const UtilsHelper = require('./utils');
+const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
@@ -143,6 +144,15 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   return rows;
 };
 
+exports.getAbsenceHours = (absence, contracts) => {
+  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
+
+  return contracts
+    .filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
+      (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
+    .reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0);
+};
+
 const absenceExportHeader = [
   'Id Auxiliaire',
   'Auxiliaire - Prénom',
@@ -153,29 +163,57 @@ const absenceExportHeader = [
   'Nature',
   'Début',
   'Fin',
+  'Equivalent heures contrat',
   'Divers',
 ];
 
-exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
-  const events = await EventRepository.getAbsencesForExport(startDate, endDate, credentials);
+exports.formatAbsence = (absence) => {
+  const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
+  const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
+
+  return [
+    get(absence, 'auxiliary._id') || '',
+    get(absence, 'auxiliary.identity.firstname', ''),
+    get(absence, 'auxiliary.identity.lastname', '').toUpperCase(),
+    CIVILITY_LIST[get(absence, 'auxiliary.identity.title')] || '',
+    get(absence, 'auxiliary.sector.name') || '',
+    ABSENCE_TYPE_LIST[absence.absence],
+    ABSENCE_NATURE_LIST[absence.absenceNature],
+    moment(absence.startDate).format(datetimeFormat),
+    moment(absence.endDate).format(datetimeFormat),
+    UtilsHelper.formatFloatForExport(hours),
+    absence.misc || '',
+  ];
+};
+
+exports.exportAbsencesHistory = async (start, end, credentials) => {
+  const events = await EventRepository.getAbsencesForExport(start, end, credentials);
 
   const rows = [absenceExportHeader];
   for (const event of events) {
-    const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
-    const cells = [
-      get(event, 'auxiliary._id') || '',
-      get(event, 'auxiliary.identity.firstname', ''),
-      get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
-      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
-      get(event, 'auxiliary.sector.name') || '',
-      ABSENCE_TYPE_LIST[event.absence],
-      ABSENCE_NATURE_LIST[event.absenceNature],
-      moment(event.startDate).format(datetimeFormat),
-      moment(event.endDate).format(datetimeFormat),
-      event.misc || '',
-    ];
+    const absenceIsOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month');
+    if (absenceIsOnOneMonth) rows.push(exports.formatAbsence(event));
+    else { // split absence by month to ease analytics
+      rows.push(exports.formatAbsence({ ...event, endDate: moment(event.startDate).endOf('month').toISOString() }));
 
-    rows.push(cells);
+      const monthsDiff = moment(event.endDate).diff(event.startDate, 'month');
+      for (let i = 1; i <= monthsDiff; i++) {
+        const endOfMonth = moment(event.startDate).add(i, 'month').endOf('month').toISOString();
+        rows.push(exports.formatAbsence({
+          ...event,
+          endDate: moment(event.endDate).isBefore(endOfMonth) ? event.endDate : endOfMonth,
+          startDate: moment(event.startDate).add(i, 'month').startOf('month').toISOString(),
+        }));
+      }
+
+      if (moment(event.startDate).add(monthsDiff, 'month').endOf('month').isBefore(event.endDate)) {
+        rows.push(exports.formatAbsence({
+          ...event,
+          endDate: event.endDate,
+          startDate: moment(event.startDate).add(monthsDiff + 1, 'month').startOf('month').toISOString(),
+        }));
+      }
+    }
   }
 
   return rows;
@@ -367,6 +405,7 @@ const payExportHeader = [
   'Motif',
   'Fin',
   'Heures contrat',
+  'Heures absences',
   'Heures à travailler',
   'Heures travaillées',
   'Dont exo non majo',
@@ -375,13 +414,14 @@ const payExportHeader = [
   'Dont non exo et non majo',
   'Dont non exo et majo',
   'Détails des majo non exo',
+  'Heures transports',
   'Solde heures',
   'Dont diff mois précédent',
   'Compteur',
   'Heures sup à payer',
   'Heures comp à payer',
   'Mutuelle',
-  'Transport',
+  'Remboursement transport',
   'Frais téléphoniques',
   'Prime',
   'Indemnité',
@@ -482,6 +522,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
       moment(pay.endDate).format('DD/MM/YYYY'),
       UtilsHelper.formatFloatForExport(pay.contractHours),
+      exports.formatHoursWithDiff(pay, 'absencesHours'),
       exports.formatHoursWithDiff(pay, 'hoursToWork'),
       exports.formatHoursWithDiff(pay, 'workedHours'),
       exports.formatHoursWithDiff(pay, 'notSurchargedAndExempt'),
@@ -490,6 +531,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       exports.formatHoursWithDiff(pay, 'notSurchargedAndNotExempt'),
       exports.formatHoursWithDiff(pay, 'surchargedAndNotExempt'),
       exports.formatSurchargedDetailsForExport(pay, 'surchargedAndNotExemptDetails'),
+      exports.formatHoursWithDiff(pay, 'paidTransportHours'),
       exports.formatHoursWithDiff(pay, 'hoursBalance'),
       get(pay, 'diff.hoursBalance') ? UtilsHelper.formatFloatForExport(pay.diff.hoursBalance) : '0,00',
       UtilsHelper.formatFloatForExport(pay.hoursCounter),

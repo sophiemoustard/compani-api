@@ -20,7 +20,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['paydocuments:edit'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object({
             date: Joi.date(),

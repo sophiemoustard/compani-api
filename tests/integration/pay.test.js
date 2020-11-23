@@ -408,3 +408,66 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     });
   });
 });
+
+describe('PAY ROUTES - GET /pays/export/{type}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should export contract for pay', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/contract?endDate=2020-11-30T23:00:00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/toto?endDate=2020-11-30T23:00:00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if missing endDate', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/contract',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/pay/export/contract?endDate=2020-11-30T23:00:00',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

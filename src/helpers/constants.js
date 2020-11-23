@@ -209,6 +209,7 @@ module.exports = {
   PAY: 'pay',
   // CONTRACTS
   CONTRACT: 'contract',
+  CONTRACT_VERSION: 'contract_version',
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
   RESIGNATION: 'resignation',
@@ -266,6 +267,7 @@ module.exports = {
   QUIZ: 'quiz',
   SHARING_EXPERIENCE: 'sharing_experience',
   VIDEO: 'video',
+  QUESTIONNAIRE: 'questionnaire',
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
@@ -290,7 +292,6 @@ module.exports = {
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
   FLASHCARD_TEXT_MAX_LENGTH: 450,
-  QUESTIONNAIRE: 'questionnaire',
   get CARD_TEMPLATES() {
     return [
       { label: 'Transition', value: this.TRANSITION, type: this.LESSON },
@@ -321,4 +322,9 @@ module.exports = {
   SLOT_EDITION: 'slot_edition',
   TRAINEE_ADDITION: 'trainee_addition',
   TRAINEE_DELETION: 'trainee_deletion',
+  // MediaUpload
+  UPLOAD_IMAGE: 'image',
+  UPLOAD_VIDEO: 'video',
+  UPLOAD_AUDIO: 'audio',
+  UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
 };

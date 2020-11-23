@@ -17,6 +17,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   CLIENT,
   VENDOR,
+  AUXILIARY_WITHOUT_COMPANY,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -36,57 +37,72 @@ exports.getUser = async (req) => {
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
-  const user = req.pre.user || req.payload;
-  const companyId = get(credentials, 'company._id', null);
-  const isVendorUser = get(credentials, 'role.vendor', null);
-  const establishmentId = get(req, 'payload.establishment');
-  const payloadRole = get(req, 'payload.role');
+  const userFromDB = req.pre.user;
+  const userCompany = userFromDB.company ? userFromDB.company.toHexString() : get(req, 'payload.company');
+  const isLoggedUserVendor = !!get(credentials, 'role.vendor');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
 
-  if (establishmentId) {
-    const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
-    if (!establishment) throw Boom.forbidden();
-  }
-
-  const userCompany = get(req, 'pre.user.company') ? req.pre.user.company.toHexString() : get(req, 'payload.company');
-  if (!isVendorUser && (!userCompany || userCompany !== companyId.toHexString())) throw Boom.forbidden();
-
-  if (get(req, 'payload.company') && user.company &&
-    get(req, 'payload.company') !== user.company.toHexString()) throw Boom.forbidden();
-
-  if (payloadRole) {
-    const userInDB = req.pre.user;
-    const newRole = await Role.findById(payloadRole, { name: 1, interface: 1 }).lean();
-    const clientRoleSwitch = newRole.interface === CLIENT && get(userInDB, 'role.client') &&
-      userInDB.role.client.toHexString() !== payloadRole;
-    if (clientRoleSwitch) {
-      const formerClientRole = await Role.findById(userInDB.role.client, { name: 1 }).lean();
-      const allowedRoleChanges = [
-        { from: AUXILIARY, to: PLANNING_REFERENT },
-        { from: PLANNING_REFERENT, to: AUXILIARY },
-        { from: COACH, to: CLIENT_ADMIN },
-        { from: CLIENT_ADMIN, to: COACH },
-      ];
-
-      let forbiddenRoleChange = true;
-      allowedRoleChanges.forEach((roleSwitch) => {
-        if (roleSwitch.from === formerClientRole.name && roleSwitch.to === newRole.name) forbiddenRoleChange = false;
-      });
-      if (forbiddenRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
-    }
-
-    const vendorRoleChange = newRole.interface === VENDOR && !!get(userInDB, 'role.vendor');
-    if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
-  }
-
-  if (get(req, 'payload.customers')) {
-    const role = await Role.findOne({ name: HELPER }).lean();
-    if (get(req.payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
-    const customer = await Customer.findOne({ _id: req.payload.customers[0] }).lean();
-
-    if (userCompany !== customer.company.toHexString()) throw Boom.forbidden();
+  checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
+  if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
+  if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
+  if (get(req, 'payload.customers')) await checkCustomers(userCompany, req.payload);
+  if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
+    checkUpdateRestrictions(req.payload);
   }
 
   return null;
+};
+
+const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
+  const loggedUserCompany = get(credentials, 'company._id') || '';
+  const userCompany = userFromDB.company ? userFromDB.company.toHexString() : payload.company;
+
+  const canLoggedUserUpdate = isLoggedUserVendor ||
+    (userCompany && loggedUserCompany && userCompany === loggedUserCompany.toHexString());
+  const isCompanyUpdated = payload.company && userFromDB.company &&
+    payload.company !== userFromDB.company.toHexString();
+  if (!canLoggedUserUpdate || isCompanyUpdated) throw Boom.forbidden();
+};
+
+const checkEstablishment = async (companyId, payload) => {
+  const establishment = await Establishment.findOne({ _id: payload.establishment, company: companyId }).lean();
+  if (!establishment) throw Boom.forbidden();
+};
+
+const checkRole = async (userFromDB, payload) => {
+  const role = await Role.findOne({ _id: payload.role }, { name: 1, interface: 1 }).lean();
+  const clientRoleSwitch = role.interface === CLIENT && get(userFromDB, 'role.client') &&
+      userFromDB.role.client.toHexString() !== payload.role;
+  if (clientRoleSwitch) {
+    const formerClientRole = await Role.findById(userFromDB.role.client, { name: 1 }).lean();
+    const allowedRoleChanges = [
+      { from: AUXILIARY, to: PLANNING_REFERENT },
+      { from: PLANNING_REFERENT, to: AUXILIARY },
+      { from: COACH, to: CLIENT_ADMIN },
+      { from: CLIENT_ADMIN, to: COACH },
+    ];
+
+    const isRoleUpdateAllowed = allowedRoleChanges.some(({ from, to }) =>
+      (from === formerClientRole.name && to === role.name));
+    if (!isRoleUpdateAllowed) throw Boom.conflict(translate[language].userRoleConflict);
+  }
+
+  const vendorRoleChange = role.interface === VENDOR && !!get(userFromDB, 'role.vendor');
+  if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
+};
+
+const checkCustomers = async (userCompany, payload) => {
+  const role = await Role.findOne({ name: HELPER }).lean();
+  if (get(payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
+  const customerCount = await Customer.countDocuments({ _id: payload.customers[0], company: userCompany });
+
+  if (!customerCount) throw Boom.forbidden();
+};
+
+const checkUpdateRestrictions = (payload) => {
+  const allowedUpdateKeys = ['firstname', 'lastname', 'phone', 'email'];
+  const payloadKeys = (Object.values(payload).map(value => Object.keys(value))).flat();
+  if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
 };
 
 exports.authorizeUserGetById = async (req) => {

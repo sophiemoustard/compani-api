@@ -5,7 +5,8 @@ const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
 const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
-const CloudinaryHelper = require('../../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
+
 require('sinon-mongoose');
 
 describe('createProgram', () => {
@@ -217,33 +218,75 @@ describe('update', () => {
 });
 
 describe('uploadImage', () => {
-  let ProgramMock;
-  let addImageStub;
+  let updateOne;
+  let formatFileName;
+  let uploadMedia;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+    updateOne = sinon.stub(Program, 'updateOne');
+    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
   });
   afterEach(() => {
-    ProgramMock.restore();
-    addImageStub.restore();
+    updateOne.restore();
+    formatFileName.restore();
+    uploadMedia.restore();
   });
 
   it('should upload image', async () => {
+    uploadMedia.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
+    formatFileName.returns('jesuisunsupernomdefichier');
+
     const programId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const programUpdatePayload = {
-      image: {
-        publicId: 'azertyuiop',
-        link: 'https://compani.io',
-      },
-    };
-
-    ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: flat(programUpdatePayload) })
-      .once();
 
     await ProgramHelper.uploadImage(programId, payload);
-    sinon.assert.calledOnce(addImageStub);
+
+    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
+    sinon.assert.calledOnceWithExactly(uploadMedia, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: programId },
+      {
+        $set: flat({
+          image: { publicId: 'jesuisunsupernomdefichier', link: 'https://storage.googleapis.com/BucketKFC/myMedia' },
+        }),
+      }
+    );
+  });
+});
+
+describe('deleteImage', () => {
+  let updateOne;
+  let deleteMedia;
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    deleteMedia.restore();
+  });
+
+  it('should do nothing as publicId is not set', async () => {
+    const programId = new ObjectID();
+    await ProgramHelper.deleteImage(programId, '');
+
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteMedia);
+  });
+
+  it('should update card and delete media', async () => {
+    const programId = new ObjectID();
+    await ProgramHelper.deleteImage(programId, 'publicId');
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: programId },
+      { $unset: { 'image.publicId': '', 'image.link': '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
   });
 });

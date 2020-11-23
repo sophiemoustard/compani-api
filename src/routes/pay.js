@@ -8,9 +8,11 @@ const {
   createList,
   getHoursBalanceDetails,
   getHoursToWork,
+  exportDsnInfo,
 } = require('../controllers/payController');
 const { monthValidation, objectIdOrArray } = require('./validations/utils');
 const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
+const { CONTRACT, CONTRACT_VERSION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-pay',
@@ -76,6 +78,19 @@ exports.plugin = {
         pre: [{ method: authorizeGetHoursToWork }],
       },
       handler: getHoursToWork,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/export/{type}',
+      options: {
+        auth: { scope: ['pay:edit'] },
+        validate: {
+          params: Joi.object({ type: Joi.string().valid(CONTRACT, CONTRACT_VERSION) }),
+          query: Joi.object({ endDate: Joi.date().required() }),
+        },
+      },
+      handler: exportDsnInfo,
     });
   },
 };

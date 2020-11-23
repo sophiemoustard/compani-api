@@ -1,12 +1,12 @@
 const expect = require('expect');
+const { fn: momentProto } = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
-const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
-const CloudinaryHelper = require('../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { populateDB, cardsList, activitiesList } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -749,19 +749,21 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   });
 });
 
-describe('POST /cards/:id/cloudinary/upload', () => {
+describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   let authToken;
   let form;
-  let addImageStub;
+  let uploadMediaStub;
+  let momentFormat;
   const card = cardsList[0];
   const docPayload = { fileName: 'title_text_media', file: 'true' };
   beforeEach(() => {
     form = generateFormData(docPayload);
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
-    addImageStub.restore();
+    uploadMediaStub.restore();
+    momentFormat.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -771,19 +773,30 @@ describe('POST /cards/:id/cloudinary/upload', () => {
     });
 
     it('should add a card media', async () => {
+      momentFormat.returns('20200625054512');
+      uploadMediaStub.returns({
+        link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+        publicId: 'media-titletextmedia-20200625054512',
+      });
+
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id}/cloudinary/upload`,
+        url: `/cards/${card._id}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
-      const cardWithMedia = { ...card, media: { publicId: 'abcdefgh', link: 'https://alenvi.io' } };
-      const cardUpdated = await Card.findById(card._id, { name: 1, media: 1 }).lean();
+      const cardUpdated = await Card.findById(card._id).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(cardUpdated).toMatchObject(pick(cardWithMedia, ['_id', 'name', 'media']));
-      sinon.assert.calledOnce(addImageStub);
+      expect(cardUpdated).toMatchObject({
+        _id: card._id,
+        media: {
+          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+          publicId: 'media-titletextmedia-20200625054512',
+        },
+      });
+      sinon.assert.calledOnce(uploadMediaStub);
     });
 
     const wrongParams = ['file', 'fileName'];
@@ -792,7 +805,7 @@ describe('POST /cards/:id/cloudinary/upload', () => {
         const invalidForm = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/cloudinary/upload`,
+          url: `/cards/${card._id}/upload`,
           payload: await GetStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
         });
@@ -815,11 +828,74 @@ describe('POST /cards/:id/cloudinary/upload', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        uploadMediaStub.returns({
+          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+          publicId: 'media-titletextmedia-20200625054512',
+        });
+
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/cloudinary/upload`,
+          url: `/cards/${card._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
+  let authToken;
+  let deleteMediaStub;
+  beforeEach(() => {
+    deleteMediaStub = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+  });
+  afterEach(() => {
+    deleteMediaStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete a card media', async () => {
+      const card = cardsList[1];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id}/upload`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnce(deleteMediaStub);
+
+      const cardUpdated = await Card.findOne({ _id: card._id });
+      expect(cardUpdated.media.publicId).not.toBeDefined();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const card = cardsList[1];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${card._id}/upload`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

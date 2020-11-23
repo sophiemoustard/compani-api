@@ -30,6 +30,7 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -151,7 +152,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
           endDate: moment('2020-03-20T11:00:00').toDate(),
-          courseId: coursesList[3]._id,
+          course: coursesList[3]._id,
           _id: expect.any(ObjectID),
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
@@ -342,13 +343,13 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           expect.objectContaining({
             startDate: moment('2020-03-20T09:00:00').toDate(),
             endDate: moment('2020-03-20T11:00:00').toDate(),
-            courseId: courseFromAuthCompanyIntra._id,
+            course: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
           expect.objectContaining({
             startDate: moment('2020-03-20T14:00:00').toDate(),
             endDate: moment('2020-03-20T18:00:00').toDate(),
-            courseId: courseFromAuthCompanyIntra._id,
+            course: courseFromAuthCompanyIntra._id,
             _id: expect.any(ObjectID),
           }),
         ]),
@@ -463,12 +464,19 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
         headers: { 'x-access-token': authToken },
       });
 
+      const courseSlots = slots.filter(s => areObjectIdsEquals(s.course._id, coursesList[0]._id));
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.followUp).toEqual(expect.objectContaining({
         _id: courseFromAuthCompanyIntra._id,
         subProgram: expect.objectContaining({
           _id: subProgramsList[0]._id,
           name: subProgramsList[0].name,
+          program: expect.objectContaining({
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            subPrograms: programsList[0].subPrograms,
+          }),
           steps: expect.arrayContaining([expect.objectContaining({
             _id: step._id,
             name: step.name,
@@ -482,6 +490,24 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
             })]),
           })]),
         }),
+        slots: expect.arrayContaining([expect.objectContaining({
+          _id: expect.any(ObjectID),
+          startDate: courseSlots[0].startDate,
+          endDate: courseSlots[0].endDate,
+          course: courseSlots[0].course._id,
+          step: { _id: courseSlots[0].step },
+        })]),
+        trainees: expect.arrayContaining([expect.objectContaining({
+          _id: coachFromAuthCompany._id,
+          identity: coachFromAuthCompany.identity,
+          steps: expect.arrayContaining([expect.objectContaining({
+            _id: expect.any(ObjectID),
+            activities: expect.any(Array),
+            name: expect.any(String),
+            type: expect.any(String),
+            progress: 1,
+          })]),
+        })]),
       }));
     });
   });
@@ -597,6 +623,99 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
             .every(history => history.user.toHexString() === role.user._id.toHexString())).toBeTruthy();
         }
+      });
+    });
+  });
+
+  describe('should get trainee courses', () => {
+    describe('vendor_admin', () => {
+      it('should return 200 if valid traineeId', async () => {
+        authToken = await getToken('vendor_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should throw 403 if invalid traineeId', async () => {
+        authToken = await getToken('vendor_admin');
+        const traineeId = new ObjectID();
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      it('should return 200 if client admin and same company', async () => {
+        authToken = await getToken('client_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 200 if coach and same company', async () => {
+        authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 403 if client admin and different company', async () => {
+        authToken = await getToken('client_admin');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it('should return 403 if coach and different company', async () => {
+        authToken = await getToken('coach');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });

@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
+const moment = require('../../../src/extensions/moment');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -172,9 +172,11 @@ const contractList = [{
   _id: contract1Id,
   serialNumber: 'safsdgsdgsd',
   user: auxiliaryList[0]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01', endDate: '2020-01-01' }],
-  startDate: '2018-01-01t00:00:00',
-  endDate: '2020-01-01t00:00:00',
+  versions: [
+    { weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01T00:00:00', endDate: '2020-01-01T00:00:00' },
+  ],
+  startDate: '2018-01-01T00:00:00',
+  endDate: '2020-01-01T00:00:00',
   endNotificationDate: '2020-01-01t00:00:00',
   endReason: 'mutation',
   company: authCompany._id,
@@ -183,7 +185,7 @@ const contractList = [{
   serialNumber: 'sfasdfsdf',
   user: auxiliaryList[0]._id,
   versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
-  startDate: '2020-02-01',
+  startDate: '2020-02-01T00:00:00',
   company: authCompany._id,
 }, {
   _id: contract3Id,
@@ -383,10 +385,9 @@ const eventList = [
     type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
-    startDate: '2019-01-19T14:00:18.653Z',
-    endDate: '2019-01-21T22:59:00.000Z',
+    startDate: '2019-01-19T00:00:00',
+    endDate: '2019-01-21T22:59:00',
     auxiliary: auxiliaryList[0]._id,
-    createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
     _id: new ObjectID(),
@@ -395,10 +396,9 @@ const eventList = [
     type: ABSENCE,
     absence: UNJUSTIFIED,
     absenceNature: HOURLY,
-    startDate: '2019-01-19T14:00:18.653Z',
-    endDate: '2019-01-19T16:00:00.000Z',
+    startDate: moment('2019-01-19T14:00:00').toDate(),
+    endDate: moment('2019-01-19T16:00:00').toDate(),
     auxiliary: auxiliaryList[0]._id,
-    createdAt: '2019-01-11T08:38:18.653Z',
     misc: 'test absence',
   },
   {
@@ -826,6 +826,7 @@ const populateEvents = async () => {
   await SectorHistory.deleteMany();
   await InternalHour.deleteMany();
   await Service.deleteMany();
+  await Contract.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
@@ -835,6 +836,7 @@ const populateEvents = async () => {
   await new Customer(customer).save();
   await new InternalHour(internalHour).save();
   await Service.insertMany(serviceList);
+  await Contract.insertMany(contractList);
 };
 
 const populateSectorHistories = async () => {

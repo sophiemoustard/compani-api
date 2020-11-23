@@ -2,7 +2,15 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { update, remove, uploadMedia, updateAnswer, addAnswer, deleteAnswer } = require('../controllers/cardController');
+const {
+  update,
+  remove,
+  uploadMedia,
+  updateAnswer,
+  addAnswer,
+  deleteAnswer,
+  deleteMedia,
+} = require('../controllers/cardController');
 const { formDataPayload } = require('./validations/utils');
 const {
   authorizeCardUpdate,
@@ -10,6 +18,7 @@ const {
   authorizeCardDeletion,
   authorizeCardAnswerCreation,
   authorizeCardAnswerDeletion,
+  getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
@@ -40,6 +49,7 @@ exports.plugin = {
             media: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),
+              type: Joi.string(),
             }),
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
@@ -126,10 +136,10 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/cloudinary/upload',
+      path: '/{_id}/upload',
       handler: uploadMedia,
       options: {
-        payload: formDataPayload,
+        payload: formDataPayload(25 * 1000 * 1000),
         validate: {
           payload: Joi.object({
             fileName: Joi.string().required(),
@@ -144,6 +154,19 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/upload',
+      handler: deleteMedia,
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: getCardMediaPublicId, assign: 'publicId' }],
       },
     });
   },
