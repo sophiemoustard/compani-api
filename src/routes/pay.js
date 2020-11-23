@@ -89,7 +89,7 @@ exports.plugin = {
           params: Joi.object({ type: Joi.string().valid(CONTRACT, CONTRACT_VERSION, ABSENCE) }),
           query: Joi.object({
             startDate: Joi.date().required(),
-            endDate: Joi.date().required().min(Joi.ref('startDate')),
+            endDate: Joi.date().required().greater(Joi.ref('startDate')),
           }),
         },
       },

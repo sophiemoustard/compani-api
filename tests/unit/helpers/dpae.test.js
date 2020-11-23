@@ -342,7 +342,7 @@ describe('exportsAbsence', () => {
     exportToTxt.restore();
   });
 
-  it('should export absence for auxiliary with contract', async () => {
+  it('should export daily absence for auxiliary with contract', async () => {
     const companyId = new ObjectID();
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     const absences = [{
@@ -369,7 +369,7 @@ describe('exportsAbsence', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'serialNumber',
-        populate: [{ path: 'contracts' }, { path: 'establishement' }],
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
       })
       .chain('lean')
       .once()
@@ -404,6 +404,59 @@ describe('exportsAbsence', () => {
     sinon.assert.calledWithExactly(
       getAbsenceHours.getCall(2),
       { absenceNature: 'daily', startDate: '2020-11-22T23:00:00.000Z', endDate: '2020-11-23T22:59:59.999Z' },
+      [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
+    );
+    sinon.assert.callCount(getAbsenceHours, 3);
+  });
+
+  it('should export hourly absence for auxiliary with contract', async () => {
+    const companyId = new ObjectID();
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    const absences = [{
+      absenceNature: 'hourly',
+      absence: 'leave',
+      startDate: '2020-11-21T10:00:00',
+      endDate: '2020-11-21T12:00:00',
+      auxiliary: {
+        contracts: [
+          { endDate: '2019-11-01T00:00:00', startDate: '2018-02-01T00:00:00', serialNumber: 'contract' },
+          { startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }],
+        establishment: { siret: '100009876' },
+        serialNumber: '0987654321',
+      },
+    }];
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+    getAbsenceHours.returns(2);
+    exportToTxt.returns('file');
+    const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
+
+    EventMock.verify();
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_etab', 'ap_matr', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      getAbsenceHours,
+      absences[0],
       [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
     );
   });

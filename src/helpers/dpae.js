@@ -9,13 +9,17 @@ const {
   PAID_LEAVE,
   UNPAID_LEAVE,
   MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
   ILLNESS,
   UNJUSTIFIED,
   WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
   CESSATION_OF_WORK_CHILD,
   CESSATION_OF_WORK_RISK,
   OTHER,
   DAILY,
+  HOURLY,
 } = require('./constants');
 const HistoryExportHelper = require('./historyExport');
 const User = require('../models/User');
@@ -37,12 +41,15 @@ const VA_ABS_CODE = {
   [PAID_LEAVE]: 'CPL',
   [UNPAID_LEAVE]: 'CSS',
   [MATERNITY_LEAVE]: 'MAT',
+  [PATERNITY_LEAVE]: 'ENF',
+  [PARENTAL_LEAVE]: 'CPE',
   [ILLNESS]: 'MAL',
-  [UNJUSTIFIED]: '',
+  [UNJUSTIFIED]: 'AAN',
   [WORK_ACCIDENT]: 'ATW',
-  [CESSATION_OF_WORK_CHILD]: 'ENF',
-  [CESSATION_OF_WORK_RISK]: '',
-  [OTHER]: '',
+  [TRANSPORT_ACCIDENT]: 'ATR',
+  [CESSATION_OF_WORK_CHILD]: 'MAL',
+  [CESSATION_OF_WORK_RISK]: 'MAL',
+  [OTHER]: 'MAL',
 };
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
@@ -205,7 +212,7 @@ exports.exportAbsences = async (query, credentials) => {
     .populate({
       path: 'auxiliary',
       select: 'serialNumber',
-      populate: [{ path: 'contracts' }, { path: 'establishement' }],
+      populate: [{ path: 'contracts' }, { path: 'establishment' }],
     })
     .lean();
 
@@ -228,11 +235,13 @@ exports.exportAbsences = async (query, credentials) => {
 
     const range = Array.from(moment().range(abs.startDate, abs.endDate).by('days'));
     for (const day of range) {
-      const formattedAbsence = {
-        absenceNature: DAILY,
-        startDate: moment(day).startOf('d').toISOString(),
-        endDate: moment(day).endOf('d').toISOString(),
-      };
+      const formattedAbsence = abs.absenceNature === HOURLY
+        ? { ...abs }
+        : {
+          absenceNature: DAILY,
+          startDate: moment(day).startOf('d').toISOString(),
+          endDate: moment(day).endOf('d').toISOString(),
+        };
       data.push(Object.values({
         ...absenceInfo,
         va_abs_date: moment(day).format('DD/MM/YYYY'),
