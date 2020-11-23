@@ -11,6 +11,7 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const Company = require('../models/Company');
 const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -19,6 +20,7 @@ const AuthenticationHelper = require('./authentication');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
+const GdriveStorageHelper = require('./gdriveStorage');
 
 const { language } = translate;
 
@@ -293,4 +295,15 @@ exports.removeHelper = async (user) => {
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
 
   await User.findOneAndUpdate({ _id: user._id }, payload);
+};
+
+exports.createDriveFolder = async (user) => {
+  const userCompany = await Company.findOne({ _id: user.company }, { auxiliariesFolderId: 1 }).lean();
+  if (!userCompany || !userCompany.auxiliariesFolderId) throw Boom.badData();
+
+  const folder = await GdriveStorageHelper.createFolder(user.identity, userCompany.auxiliariesFolderId);
+
+  const administrative = { driveFolder: { link: folder.webViewLink, driveId: folder.id } };
+
+  await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
 };

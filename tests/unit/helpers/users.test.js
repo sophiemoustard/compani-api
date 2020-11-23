@@ -19,6 +19,7 @@ const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
+const Company = require('../../../src/models/Company');
 
 require('sinon-mongoose');
 
@@ -1319,5 +1320,83 @@ describe('generatePasswordToken', () => {
 
     expect(result).toEqual(payload.passwordToken);
     UserMock.verify();
+  });
+});
+
+describe('createDriveFolder', () => {
+  let CompanyMock;
+  let createFolder;
+  let updateOne;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+    createFolder.restore();
+    updateOne.restore();
+  });
+
+  it('should create a google drive folder and update user', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID(), identity: { lastname: 'Delenda' } };
+
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+      .chain('lean')
+      .once()
+      .returns({ auxiliariesFolderId: 'auxiliariesFolderId' });
+
+    createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
+
+    await UsersHelper.createDriveFolder(user);
+
+    CompanyMock.verify();
+    sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: user._id },
+      { $set: { 'administrative.driveFolder.link': 'webViewLink', 'administrative.driveFolder.driveId': 'folderId' } }
+    );
+  });
+
+  it('should return a 422 if user has no company', async () => {
+    try {
+      const user = { _id: new ObjectID(), company: new ObjectID() };
+
+      CompanyMock.expects('findOne')
+        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+        .chain('lean')
+        .once()
+        .returns(null);
+
+      await UsersHelper.createDriveFolder(user);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      CompanyMock.verify();
+      sinon.assert.notCalled(createFolder);
+      sinon.assert.notCalled(updateOne);
+    }
+  });
+
+  it('should return a 422 if user company has no auxialiaries folder Id', async () => {
+    try {
+      const user = { _id: new ObjectID(), company: new ObjectID() };
+
+      CompanyMock.expects('findOne')
+        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+        .chain('lean')
+        .once()
+        .returns({ _id: user.company });
+
+      await UsersHelper.createDriveFolder(user);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      CompanyMock.verify();
+      sinon.assert.notCalled(createFolder);
+      sinon.assert.notCalled(updateOne);
+    }
   });
 });

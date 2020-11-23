@@ -1752,10 +1752,8 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
 describe('POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
-  const folderPayload = { parentFolderId: '0987654321' };
   beforeEach(() => {
-    createFolderStub = sinon.stub(GdriveStorage, 'createFolder')
-      .returns({ id: '1234567890', webViewLink: 'http://test.com' });
+    createFolderStub = sinon.stub(GdriveStorage, 'createFolder');
   });
   afterEach(() => {
     createFolderStub.restore();
@@ -1768,22 +1766,20 @@ describe('POST /users/:id/drivefolder', () => {
     });
 
     it('should create a drive folder for a user', async () => {
+      createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
+
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-        payload: folderPayload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.updatedUser).toBeDefined();
-      expect(response.result.data.updatedUser.administrative.driveFolder)
-        .toMatchObject({ driveId: '1234567890', link: 'http://test.com' });
-      sinon.assert.calledWithExactly(
-        createFolderStub,
-        sinon.match(usersSeedList[0].identity),
-        folderPayload.parentFolderId
-      );
+
+      const updatedUser = await User.findOne({ _id: usersSeedList[0]._id }, { 'administrative.driveFolder': 1 }).lean();
+      expect(updatedUser).toBeDefined();
+      expect(updatedUser.administrative.driveFolder).toEqual({ driveId: '1234567890', link: 'http://test.com' });
+      sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
     });
   });
 
@@ -1797,11 +1793,11 @@ describe('POST /users/:id/drivefolder', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
 
         const response = await app.inject({
           method: 'POST',
           url: `/users/${usersSeedList[1]._id.toHexString()}/drivefolder`,
-          payload: folderPayload,
           headers: { 'x-access-token': authToken },
         });
 
