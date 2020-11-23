@@ -15,7 +15,6 @@ const {
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
   EVERY_WEEK,
-  DAILY,
 } = require('./constants');
 const translate = require('./translate');
 const EventHistoriesHelper = require('./eventHistories');
@@ -484,15 +483,4 @@ exports.getUnassignedHoursBySector = async (query, credentials) => {
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
-};
-
-exports.getAbsenceHours = (absence, contracts) => {
-  const filteredContracts = contracts
-    .filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
-      (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
-    .sort((a, b) => moment(a.startDate).isSameOrBefore(b.startDate));
-
-  return absence.absenceNature === DAILY
-    ? filteredContracts.reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0)
-    : moment(absence.endDate).diff(absence.startDate, 'm') / 60;
 };
