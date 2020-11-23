@@ -6,11 +6,11 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
-const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite' }];
+const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite', areCardsValid: true }];
 
 const stepsList = [
   { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
-  { _id: new ObjectID(), name: 'step 2', type: 'e_learning' },
+  { _id: new ObjectID(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
 ];
 
