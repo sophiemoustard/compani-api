@@ -33,12 +33,11 @@ function setIsStrictlyELearning() {
 
 // eslint-disable-next-line consistent-return
 function setAreStepsValid() {
-  if (this.steps && this.steps.length && this.steps[0].type) {
-    return this.steps.every(step => step.areActivitiesValid);
-  }
+  if (this.steps && this.steps.length === 0) return false;
 
-  if (this.steps && this.steps.length === 0) {
-    return true;
+  if (this.steps && this.steps.length && this.steps[0].activities && this.steps[0].activities.length &&
+    this.steps[0].activities[0].cards) {
+    return this.steps.every(step => step.areActivitiesValid);
   }
 }
 

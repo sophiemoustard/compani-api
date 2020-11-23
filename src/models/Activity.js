@@ -49,9 +49,7 @@ function setAreCardsValid() {
     return this.cards.every(card => card.isValid);
   }
 
-  if (this.cards && this.cards.length === 0) {
-    return true;
-  }
+  if (this.cards && this.cards.length === 0) return true;
 }
 
 ActivitySchema.virtual('areCardsValid').get(setAreCardsValid);

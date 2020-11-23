@@ -25,9 +25,7 @@ function setAreActivitiesValid() {
     return this.activities.every(activity => activity.areCardsValid);
   }
 
-  if (this.activities && this.activities.length === 0) {
-    return true;
-  }
+  if (this.activities && this.activities.length === 0) return true;
 }
 
 StepSchema.virtual('areActivitiesValid').get(setAreActivitiesValid);
