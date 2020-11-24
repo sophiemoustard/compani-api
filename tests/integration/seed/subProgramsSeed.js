@@ -6,7 +6,7 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
-const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite', areCardsValid: true }];
+const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite' }];
 
 const stepsList = [
   { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
