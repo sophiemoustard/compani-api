@@ -82,7 +82,7 @@ exports.plugin = {
             company: Joi.objectId(),
             sector: Joi.objectId(),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
-            role: Joi.objectId().required(),
+            role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
@@ -421,7 +421,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object({
             date: Joi.date(),
@@ -468,8 +468,12 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            fileName: Joi.string().required(),
+            picture: Joi.any().required(),
+          }),
         },
-        payload: formDataPayload,
+        payload: formDataPayload(),
       },
     });
   },

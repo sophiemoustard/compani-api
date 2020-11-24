@@ -7,7 +7,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const Program = require('../../src/models/Program');
 const Course = require('../../src/models/Course');
-const CloudinaryHelper = require('../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const {
   populateDB,
   programsList,
@@ -545,19 +545,18 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   });
 });
 
-describe('POST /programs/:id/cloudinary/upload', () => {
+describe('POST /programs/:id/upload', () => {
   let authToken;
   let form;
-  let addImageStub;
+  let uploadMedia;
   const program = programsList[0];
   const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
     form = generateFormData(docPayload);
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
   });
   afterEach(() => {
-    addImageStub.restore();
+    uploadMedia.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -567,25 +566,29 @@ describe('POST /programs/:id/cloudinary/upload', () => {
     });
 
     it('should add a program image', async () => {
+      uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${program._id}/cloudinary/upload`,
+        url: `/programs/${program._id}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
-      const programWithImage = { ...program, image: { publicId: 'abcdefgh', link: 'https://alenvi.io' } };
       const programUpdated = await Program.findById(program._id, { name: 1, image: 1 }).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(programUpdated).toMatchObject(pick(programWithImage, ['_id', 'name', 'image']));
-      sinon.assert.calledOnce(addImageStub);
+      expect(programUpdated).toMatchObject({
+        ...pick(program, ['_id', 'name']),
+        image: { publicId: 'abcdefgh', link: 'https://alenvi.io' },
+      });
+      sinon.assert.calledOnce(uploadMedia);
     });
 
     it('should return 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/cloudinary/upload`,
+        url: `/programs/${new ObjectID()}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
@@ -599,7 +602,7 @@ describe('POST /programs/:id/cloudinary/upload', () => {
         const invalidForm = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${program._id}/cloudinary/upload`,
+          url: `/programs/${program._id}/upload`,
           payload: await GetStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
         });
@@ -622,9 +625,11 @@ describe('POST /programs/:id/cloudinary/upload', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${program._id}/cloudinary/upload`,
+          url: `/programs/${program._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
         });

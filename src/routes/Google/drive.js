@@ -94,7 +94,7 @@ exports.plugin = {
       path: '/{id}/upload',
       handler: uploadFile,
       options: {
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object().keys({
             file: Joi.any().required(),

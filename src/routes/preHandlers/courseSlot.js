@@ -49,7 +49,7 @@ const checkPayload = async (courseId, payload) => {
 
 exports.authorizeCreate = async (req) => {
   try {
-    const courseId = get(req, 'payload.courseId') || '';
+    const courseId = get(req, 'payload.course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
     await checkPayload(courseId, req.payload);
 
@@ -62,7 +62,7 @@ exports.authorizeCreate = async (req) => {
 
 exports.authorizeUpdate = async (req) => {
   try {
-    const courseId = get(req, 'pre.courseSlot.courseId') || '';
+    const courseId = get(req, 'pre.courseSlot.course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
     await checkPayload(courseId, req.payload);
 
@@ -75,7 +75,7 @@ exports.authorizeUpdate = async (req) => {
 
 exports.authorizeDeletion = async (req) => {
   try {
-    const courseId = get(req, 'pre.courseSlot.courseId') || '';
+    const courseId = get(req, 'pre.courseSlot.course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
 
     return null;

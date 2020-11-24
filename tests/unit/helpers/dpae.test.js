@@ -1,8 +1,14 @@
+/* eslint-disable max-len */
 const expect = require('expect');
 const sinon = require('sinon');
+const moment = require('moment');
+const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
+const Event = require('../../../src/models/Event');
+const Contract = require('../../../src/models/Contract');
 const DpaeHelper = require('../../../src/helpers/dpae');
 const FileHelper = require('../../../src/helpers/file');
+const HistoryExportHelper = require('../../../src/helpers/historyExport');
 require('sinon-mongoose');
 
 describe('formatBirthDate', () => {
@@ -47,28 +53,16 @@ describe('formatAddress', () => {
   });
 });
 
-describe('exportDpae', () => {
-  let UserMock;
+describe('formatIdentificationInfo', () => {
   let formatAddress;
-  let exportToTxt;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
     formatAddress = sinon.stub(DpaeHelper, 'formatAddress');
-    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
   });
   afterEach(() => {
-    UserMock.restore();
     formatAddress.restore();
-    exportToTxt.restore();
   });
 
-  it('should export dpae', async () => {
-    const contract = {
-      startDate: '2020-10-03T00:00:00',
-      user: 'mon auxiliaire',
-      serialNumber: '1234567890',
-      versions: [{ weeklyHours: 24 }],
-    };
+  it('should format identification info', async () => {
     const auxiliary = {
       identity: {
         title: 'mr',
@@ -84,8 +78,105 @@ describe('exportDpae', () => {
       establishment: { siret: '1234567890' },
       serialNumber: 'serialNumber',
       contact: { address: { zipCode: '75', city: 'Paris', street: 'tamalou' } },
+    };
+    formatAddress.returns({ start: 'start', end: 'end' });
+
+    const result = await DpaeHelper.formatIdentificationInfo(auxiliary);
+
+    expect(result).toEqual({
+      ap_soc: process.env.AP_SOC,
+      ap_etab: '67890',
+      ap_matr: 'serialNumber',
+      fs_titre: 1,
+      fs_nom: 'Sandbox',
+      fs_prenom: 'Olivier',
+      fs_secu: '21991102309878624',
+      fs_date_nai: '01/10/1991',
+      fs_dept_nai: 'DJ',
+      fs_pays_nai: 'Djibouti',
+      fs_lieu_nai: 'Djibouti',
+      fs_nat: 'AZ',
+      fs_adr1: 'start',
+      fs_adr2: 'end',
+      fs_cp: '75',
+      fs_ville: 'Paris',
+      fs_pays: 'FR',
+    });
+  });
+});
+
+describe('formatBankingInfo', () => {
+  it('should format banking info', async () => {
+    const auxiliary = {
       administrative: { payment: { rib: { bic: 'AUDIFRPP', iban: 'raboul le fric' } } },
     };
+
+    const result = await DpaeHelper.formatBankingInfo(auxiliary);
+
+    expect(result).toEqual({
+      fs_bq_dom: 'BANK AUDI FRANCE',
+      fs_bq_iban: 'raboul le fric',
+      fs_bq_bic: 'AUDIFRPP',
+      fs_bq_mode: 'V',
+    });
+  });
+});
+
+describe('formatContractInfo', () => {
+  it('should format contract info', async () => {
+    const contract = {
+      startDate: '2020-10-03T00:00:00',
+      user: 'mon auxiliaire',
+      serialNumber: '1234567890',
+      versions: [{ weeklyHours: 24 }],
+    };
+
+    const result = await DpaeHelper.formatContractInfo(contract);
+
+    expect(result).toEqual({
+      ap_contrat: '1234567890',
+      fs_regime: '50',
+      fs_natc: '00201:0:0:0:0:0',
+      fs_categ: '015',
+      fs_typec: '005',
+      fs_emploi: 'Auxiliaire d\'envie',
+      fs_emploi_insee: '563b',
+      fs_anc: '03/10/2020',
+      fs_mv_entree: '03/10/2020',
+      fs_horaire: 104,
+    });
+  });
+});
+
+describe('exportDpae', () => {
+  let UserMock;
+  let formatIdentificationInfo;
+  let formatBankingInfo;
+  let formatContractInfo;
+  let exportToTxt;
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
+    formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
+    formatContractInfo = sinon.stub(DpaeHelper, 'formatContractInfo');
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+  });
+  afterEach(() => {
+    UserMock.restore();
+    formatIdentificationInfo.restore();
+    formatBankingInfo.restore();
+    formatContractInfo.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export dpae', async () => {
+    const contract = {
+      startDate: '2020-10-03T00:00:00',
+      user: 'mon auxiliaire',
+      serialNumber: '1234567890',
+      versions: [{ weeklyHours: 24 }],
+    };
+    const auxiliary = { serialNumber: 'serialNumber' };
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: 'mon auxiliaire' }, 'identity serialNumber contact administrative.payment establishment')
@@ -93,79 +184,280 @@ describe('exportDpae', () => {
       .withExactArgs({ path: 'establishment', select: 'siret' })
       .chain('lean')
       .returns(auxiliary);
-    formatAddress.returns({ start: 'start', end: 'end' });
+    formatIdentificationInfo.returns({ ap_matr: 'serialNumber' });
+    formatBankingInfo.returns({ fs_bq_dom: 'BANK AUDI FRANCE' });
+    formatContractInfo.returns({ ap_contrat: '1234567890' });
     exportToTxt.returns('file');
 
     const result = await DpaeHelper.exportDpae(contract);
 
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(formatIdentificationInfo, auxiliary);
+    sinon.assert.calledOnceWithExactly(formatBankingInfo, auxiliary);
+    sinon.assert.calledOnceWithExactly(formatContractInfo, contract);
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
-      [[
-        'ap_soc',
-        'ap_etab',
-        'ap_matr',
-        'ap_contrat',
-        'fs_titre',
-        'fs_nom',
-        'fs_prenom',
-        'fs_secu',
-        'fs_date_nai',
-        'fs_dept_nai',
-        'fs_pays_nai',
-        'fs_lieu_nai',
-        'fs_nat',
-        'fs_adr1',
-        'fs_adr2',
-        'fs_cp',
-        'fs_ville',
-        'fs_pays',
-        'fs_bq_dom',
-        'fs_bq_iban',
-        'fs_bq_bic',
-        'fs_bq_mode',
-        'fs_regime',
-        'fs_natc',
-        'fs_categ',
-        'fs_typec',
-        'fs_emploi',
-        'fs_emploi_insee',
-        'fs_anc',
-        'fs_mv_entree',
-        'fs_horaire',
-      ], [
-        process.env.AP_SOC,
-        '67890',
-        'serialNumber',
-        '1234567890',
-        1,
-        'Sandbox',
-        'Olivier',
-        '21991102309878624',
-        '01/10/1991',
-        'DJ',
-        'Djibouti',
-        'Djibouti',
-        'AZ',
-        'start',
-        'end',
-        '75',
-        'Paris',
-        'FR',
-        'BANK AUDI FRANCE',
-        'raboul le fric',
-        'AUDIFRPP',
-        'V',
-        '50',
-        '00201:0:0:0:0:0',
-        '015',
-        '005',
-        'Auxiliaire d\'envie',
-        '563b',
-        '03/10/2020',
-        '03/10/2020',
-        104,
-      ]]
+      [['ap_matr', 'fs_bq_dom', 'ap_contrat'], ['serialNumber', 'BANK AUDI FRANCE', '1234567890']]
+    );
+  });
+});
+
+describe('exportContracts', () => {
+  let ContractMock;
+  let formatIdentificationInfo;
+  let formatBankingInfo;
+  let formatContractInfo;
+  let exportToTxt;
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+    formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
+    formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
+    formatContractInfo = sinon.stub(DpaeHelper, 'formatContractInfo');
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+  });
+  afterEach(() => {
+    ContractMock.restore();
+    formatIdentificationInfo.restore();
+    formatBankingInfo.restore();
+    formatContractInfo.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export contracts', async () => {
+    const endDate = moment('2020-01-11T14:00:00').toDate();
+    const companyId = new ObjectID();
+
+    ContractMock.expects('find')
+      .withExactArgs({
+        startDate: { $lte: moment(endDate).endOf('d').toDate() },
+        $or: [
+          { endDate: null },
+          { endDate: { $exists: false } },
+          { endDate: { $gt: moment(endDate).endOf('d').toDate() } },
+        ],
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'user', select: 'serialNumber identity contact.address administrative.payment' })
+      .chain('lean')
+      .once()
+      .returns([{ user: 'first user' }, { user: 'second user' }]);
+    formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
+    formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
+    formatContractInfo.onFirstCall().returns({ contract: 1 }).onSecondCall().returns({ contract: 2 });
+    exportToTxt.returns('file');
+
+    const result = await DpaeHelper.exportContracts({ endDate }, { company: { _id: companyId } });
+    expect(result).toEqual('file');
+    sinon.assert.calledTwice(formatIdentificationInfo);
+    sinon.assert.calledWithExactly(formatIdentificationInfo.getCall(0), 'first user');
+    sinon.assert.calledWithExactly(formatIdentificationInfo.getCall(1), 'second user');
+    sinon.assert.calledTwice(formatBankingInfo);
+    sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
+    sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
+    sinon.assert.calledTwice(formatContractInfo);
+    sinon.assert.calledWithExactly(formatContractInfo.getCall(0), { user: 'first user' });
+    sinon.assert.calledWithExactly(formatContractInfo.getCall(1), { user: 'second user' });
+    sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank', 'contract'], [1, 1, 1], [2, 2, 2]]);
+  });
+});
+
+describe('exportsContractVersions', () => {
+  let ContractMock;
+  let exportToTxt;
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+  });
+  afterEach(() => {
+    ContractMock.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export contract version', async () => {
+    const query = { endDate: '2020-11-01T22:00:00' };
+    const companyId = '1234567890';
+    const versions = [{
+      user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
+      serialNumber: 'contractNumber',
+      versions: [
+        { weeklyHours: 18, startDate: '2020-09-01T22:00:00' },
+        { weeklyHours: 24, startDate: '2020-11-01T22:00:00' },
+        { weeklyHours: 18, startDate: '2020-11-10T22:00:00' },
+      ],
+    }, {
+      user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
+      serialNumber: 'titotu',
+      versions: [
+        { weeklyHours: 12, startDate: '2020-07-01T22:00:00' },
+        { weeklyHours: 6, startDate: '2020-10-01T22:00:00' },
+      ],
+    }];
+    ContractMock.expects('find')
+      .withExactArgs({
+        startDate: { $lte: moment(query.endDate).endOf('d').toDate() },
+        $or: [
+          { endDate: null },
+          { endDate: { $exists: false } },
+          { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } },
+        ],
+        company: companyId,
+        versions: { $gte: { $size: 2 } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'user', select: 'serialNumber identity' })
+      .chain('lean')
+      .once()
+      .returns(versions);
+    exportToTxt.returns('file');
+
+    const result = await DpaeHelper.exportContractVersions(query, { company: { _id: companyId } });
+
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '01/11/2020', 104],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '01/10/2020', 26],
+      ]
+    );
+  });
+});
+
+describe('exportsAbsence', () => {
+  let EventMock;
+  let getAbsenceHours;
+  let exportToTxt;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+    getAbsenceHours = sinon.stub(HistoryExportHelper, 'getAbsenceHours');
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+    process.env.AP_SOC = 'ap_soc';
+  });
+  afterEach(() => {
+    EventMock.restore();
+    getAbsenceHours.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export daily absence for auxiliary with contract', async () => {
+    const companyId = new ObjectID();
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    const absences = [{
+      absenceNature: 'daily',
+      absence: 'leave',
+      startDate: '2020-11-21T00:00:00',
+      endDate: '2020-11-23T23:00:00',
+      auxiliary: {
+        contracts: [
+          { endDate: '2019-11-01T00:00:00', startDate: '2018-02-01T00:00:00', serialNumber: 'contract' },
+          { startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }],
+        establishment: { siret: '100009876' },
+        serialNumber: '0987654321',
+      },
+    }];
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+    getAbsenceHours.onCall(0).returns(5);
+    getAbsenceHours.onCall(1).returns(0);
+    getAbsenceHours.onCall(2).returns(4);
+    exportToTxt.returns('file');
+    const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
+
+    EventMock.verify();
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_etab', 'ap_matr', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '21/11/2020', 0, 1, 1, 5],
+        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '22/11/2020', 0, 0, 1, 0],
+        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '23/11/2020', 1, 1, 1, 4],
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      getAbsenceHours.getCall(0),
+      { absenceNature: 'daily', startDate: '2020-11-20T23:00:00.000Z', endDate: '2020-11-21T22:59:59.999Z' },
+      [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
+    );
+    sinon.assert.calledWithExactly(
+      getAbsenceHours.getCall(1),
+      { absenceNature: 'daily', startDate: '2020-11-21T23:00:00.000Z', endDate: '2020-11-22T22:59:59.999Z' },
+      [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
+    );
+    sinon.assert.calledWithExactly(
+      getAbsenceHours.getCall(2),
+      { absenceNature: 'daily', startDate: '2020-11-22T23:00:00.000Z', endDate: '2020-11-23T22:59:59.999Z' },
+      [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
+    );
+    sinon.assert.callCount(getAbsenceHours, 3);
+  });
+
+  it('should export hourly absence for auxiliary with contract', async () => {
+    const companyId = new ObjectID();
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    const absences = [{
+      absenceNature: 'hourly',
+      absence: 'leave',
+      startDate: '2020-11-21T10:00:00',
+      endDate: '2020-11-21T12:00:00',
+      auxiliary: {
+        contracts: [
+          { endDate: '2019-11-01T00:00:00', startDate: '2018-02-01T00:00:00', serialNumber: 'contract' },
+          { startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }],
+        establishment: { siret: '100009876' },
+        serialNumber: '0987654321',
+      },
+    }];
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+    getAbsenceHours.returns(2);
+    exportToTxt.returns('file');
+    const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
+
+    EventMock.verify();
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_etab', 'ap_matr', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      getAbsenceHours,
+      absences[0],
+      [{ startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }]
     );
   });
 });

@@ -98,6 +98,14 @@ const userList = [
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: companyWithoutSubscription._id,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'norole', lastname: 'test' },
+    refreshToken: uuidv4(),
+    local: { email: 'norole@alenvi.io', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+    company: companyWithoutSubscription._id,
+  },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');

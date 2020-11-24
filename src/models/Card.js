@@ -13,6 +13,9 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
+  UPLOAD_IMAGE,
+  UPLOAD_VIDEO,
+  UPLOAD_AUDIO,
 } = require('../helpers/constants');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
@@ -31,6 +34,8 @@ const CARD_TEMPLATES = [
   QUESTION_ANSWER,
 ];
 
+const MEDIA_TYPES = [UPLOAD_IMAGE, UPLOAD_VIDEO, UPLOAD_AUDIO];
+
 const CardSchema = mongoose.Schema({
   template: { type: String, enum: CARD_TEMPLATES, immutable: true, required: true },
   title: { type: String },
@@ -39,6 +44,7 @@ const CardSchema = mongoose.Schema({
   media: {
     publicId: { type: String },
     link: { type: String, trim: true },
+    type: { type: String, enum: MEDIA_TYPES },
   },
   gappedText: { type: String },
   question: { type: String },
@@ -96,6 +102,12 @@ function save(next) {
         break;
       case SURVEY:
         this.label = {};
+        break;
+      case TEXT_MEDIA:
+        this.media = { type: UPLOAD_IMAGE };
+        break;
+      case TITLE_TEXT_MEDIA:
+        this.media = { type: UPLOAD_IMAGE };
         break;
     }
   }

@@ -107,6 +107,19 @@ const uploadImage = async (req) => {
   }
 };
 
+const deleteImage = async (req) => {
+  try {
+    await ProgramHelper.deleteImage(req.params._id, req.pre.publicId);
+
+    return { message: translate[language].programUpdated };
+  } catch (e) {
+    if (e.upload && e.code === 404) return { message: translate[language].programUpdated };
+
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listELearning,
@@ -116,4 +129,5 @@ module.exports = {
   update,
   addSubProgram,
   uploadImage,
+  deleteImage,
 };

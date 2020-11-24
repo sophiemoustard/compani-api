@@ -16,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const AuthenticationHelper = require('./authentication');
-const { TRAINER, AUXILIARY_ROLES } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 
@@ -94,12 +94,21 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getLearnerList = async (query, credentials) => User
-  .find(query, 'identity.firstname identity.lastname picture', { autopopulate: false })
-  .populate({ path: 'company', select: 'name' })
-  .populate({ path: 'blendedCoursesCount' })
-  .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
-  .lean();
+exports.getLearnerList = async (query, credentials) => {
+  let userQuery = { ...query };
+  if (query.company) {
+    const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
+    userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
+  }
+
+  return User
+    .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'blendedCoursesCount' })
+    .populate({ path: 'eLearningCoursesCount' })
+    .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
+    .lean();
+};
 
 exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })

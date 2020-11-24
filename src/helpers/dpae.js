@@ -1,8 +1,30 @@
 const get = require('lodash/get');
 const moment = require('moment');
 const FileHelper = require('./file');
-const { MISTER, MRS, WEEKS_PER_MONTH } = require('./constants');
+const {
+  MISTER,
+  MRS,
+  WEEKS_PER_MONTH,
+  ABSENCE,
+  PAID_LEAVE,
+  UNPAID_LEAVE,
+  MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
+  ILLNESS,
+  UNJUSTIFIED,
+  WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
+  CESSATION_OF_WORK_CHILD,
+  CESSATION_OF_WORK_RISK,
+  OTHER,
+  DAILY,
+  HOURLY,
+} = require('./constants');
+const HistoryExportHelper = require('./historyExport');
 const User = require('../models/User');
+const Event = require('../models/Event');
+const Contract = require('../models/Contract');
 const { bicBankMatching } = require('../data/bicBankMatching');
 
 const FS_BQ_MODE = 'V'; // Virement
@@ -12,9 +34,23 @@ const FS_NATC = '00201:0:0:0:0:0'; // Service à la personne ou aide à domicile
 const FS_CATEG = '015'; // Intervenants
 const FS_TYPEC = '005'; // CDI
 const FS_REGIME = '50'; // Non cadre
-const FS_TITRE_CODE = { [MISTER]: 1, [MRS]: 2 };
 const ADDRESS_MAX_LENGHT = 30;
+const FS_TITRE_CODE = { [MISTER]: 1, [MRS]: 2 };
 const NIC_LENGHT = 5;
+const VA_ABS_CODE = {
+  [PAID_LEAVE]: 'CPL',
+  [UNPAID_LEAVE]: 'CSS',
+  [MATERNITY_LEAVE]: 'MAT',
+  [PATERNITY_LEAVE]: 'ENF',
+  [PARENTAL_LEAVE]: 'CPE',
+  [ILLNESS]: 'MAL',
+  [UNJUSTIFIED]: 'AAN',
+  [WORK_ACCIDENT]: 'ATW',
+  [TRANSPORT_ACCIDENT]: 'ATR',
+  [CESSATION_OF_WORK_CHILD]: 'MAL',
+  [CESSATION_OF_WORK_RISK]: 'MAL',
+  [OTHER]: 'MAL',
+};
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
@@ -30,19 +66,13 @@ exports.formatAddress = (address) => {
   return { start, end: exports.shortenAddress(address.substr(start.length + 1)) };
 };
 
-exports.exportDpae = async (contract) => {
-  const auxiliary = await User
-    .findOne({ _id: contract.user }, 'identity serialNumber contact administrative.payment establishment')
-    .populate({ path: 'establishment', select: 'siret' })
-    .lean();
-
-  const bic = get(auxiliary, 'administrative.payment.rib.bic') || '';
+exports.formatIdentificationInfo = (auxiliary) => {
   const address = exports.formatAddress(get(auxiliary, 'contact.address.street'));
-  const data = {
+
+  return {
     ap_soc: process.env.AP_SOC,
     ap_etab: (get(auxiliary, 'establishment.siret') || '').slice(-NIC_LENGHT),
     ap_matr: auxiliary.serialNumber || '',
-    ap_contrat: contract.serialNumber || '',
     fs_titre: FS_TITRE_CODE[get(auxiliary, 'identity.title')] || '',
     fs_nom: get(auxiliary, 'identity.lastname') || '',
     fs_prenom: get(auxiliary, 'identity.firstname') || '',
@@ -57,20 +87,171 @@ exports.exportDpae = async (contract) => {
     fs_cp: get(auxiliary, 'contact.address.zipCode') || '',
     fs_ville: get(auxiliary, 'contact.address.city') || '',
     fs_pays: 'FR',
+  };
+};
+
+exports.formatBankingInfo = (auxiliary) => {
+  const bic = get(auxiliary, 'administrative.payment.rib.bic') || '';
+
+  return {
     fs_bq_dom: bicBankMatching[bic.substring(0, 8)] || '',
     fs_bq_iban: get(auxiliary, 'administrative.payment.rib.iban') || '',
     fs_bq_bic: bic,
     fs_bq_mode: FS_BQ_MODE,
-    fs_regime: FS_REGIME,
-    fs_natc: FS_NATC,
-    fs_categ: FS_CATEG,
-    fs_typec: FS_TYPEC,
-    fs_emploi: FS_EMPLOI,
-    fs_emploi_insee: FS_EMPLOI_INSEE,
-    fs_anc: moment(contract.startDate).format('DD/MM/YYYY'),
-    fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
-    fs_horaire: contract.versions[0].weeklyHours * WEEKS_PER_MONTH,
+  };
+};
+
+exports.formatContractInfo = contract => ({
+  ap_contrat: contract.serialNumber || '',
+  fs_regime: FS_REGIME,
+  fs_natc: FS_NATC,
+  fs_categ: FS_CATEG,
+  fs_typec: FS_TYPEC,
+  fs_emploi: FS_EMPLOI,
+  fs_emploi_insee: FS_EMPLOI_INSEE,
+  fs_anc: moment(contract.startDate).format('DD/MM/YYYY'),
+  fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
+  fs_horaire: contract.versions[0].weeklyHours * WEEKS_PER_MONTH,
+});
+
+exports.exportDpae = async (contract) => {
+  const auxiliary = await User
+    .findOne({ _id: contract.user }, 'identity serialNumber contact administrative.payment establishment')
+    .populate({ path: 'establishment', select: 'siret' })
+    .lean();
+
+  const data = {
+    ...exports.formatIdentificationInfo(auxiliary),
+    ...exports.formatBankingInfo(auxiliary),
+    ...exports.formatContractInfo(contract),
   };
 
   return FileHelper.exportToTxt([Object.keys(data), Object.values(data)]);
+};
+
+exports.exportContracts = async (query, credentials) => {
+  const endDate = moment(query.endDate).endOf('d').toDate();
+  const companyId = get(credentials, 'company._id') || '';
+
+  const contractQuery = {
+    startDate: { $lte: endDate },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
+    company: companyId,
+  };
+  const contracts = await Contract.find(contractQuery)
+    .populate({ path: 'user', select: 'serialNumber identity contact.address administrative.payment' })
+    .lean();
+
+  const data = [];
+  for (const contract of contracts) {
+    const info = {
+      ...exports.formatIdentificationInfo(contract.user),
+      ...exports.formatBankingInfo(contract.user),
+      ...exports.formatContractInfo(contract),
+    };
+
+    if (!data.length) data.push(Object.keys(info));
+    data.push(Object.values(info));
+  }
+
+  return FileHelper.exportToTxt(data);
+};
+
+exports.exportContractVersions = async (query, credentials) => {
+  const endDate = moment(query.endDate).endOf('d').toDate();
+  const companyId = get(credentials, 'company._id') || '';
+
+  const contractQuery = {
+    startDate: { $lte: endDate },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
+    company: companyId,
+    versions: { $gte: { $size: 2 } },
+  };
+  const contracts = await Contract.find(contractQuery)
+    .populate({ path: 'user', select: 'serialNumber identity' })
+    .lean();
+
+  const data = [];
+  for (const contract of contracts) {
+    for (let i = 1; i < contract.versions.length; i++) {
+      data.push({
+        ap_soc: process.env.AP_SOC,
+        ap_matr: get(contract, 'user.serialNumber') || '',
+        fs_nom: get(contract, 'user.identity.lastname') || '',
+        ap_contrat: contract.serialNumber || '',
+        fs_date_avenant: moment(contract.versions[i].startDate).format('DD/MM/YYYY'),
+        fs_horaire: contract.versions[i].weeklyHours * WEEKS_PER_MONTH,
+      });
+    }
+  }
+
+  return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+};
+
+const exportHeader = [
+  'ap_soc',
+  'ap_etab',
+  'ap_matr',
+  'ap_contrat',
+  'va_abs_code',
+  'va_abs_deb',
+  'va_abs_fin',
+  'va_abs_date',
+  'va_abs_nb22',
+  'va_abs_nb26',
+  'va_abs_nb30',
+  'va_abs_nbh',
+];
+
+exports.exportAbsences = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id') || '';
+  const start = moment(query.startDate).startOf('day').toDate();
+  const end = moment(query.endDate).endOf('day').toDate();
+  const absences = await Event
+    .find({ type: ABSENCE, startDate: { $lt: end }, endDate: { $gt: start }, company: companyId })
+    .populate({
+      path: 'auxiliary',
+      select: 'serialNumber',
+      populate: [{ path: 'contracts' }, { path: 'establishment' }],
+    })
+    .lean();
+
+  const data = [exportHeader];
+  for (const abs of absences) {
+    const matchingContract = abs.auxiliary.contracts.find((c) => {
+      if (c.endDate) return moment(abs.startDate).isBetween(c.startDate, c.endDate, 'd', '[]');
+      return moment(abs.startDate).isSameOrAfter(c.startDate, 'd');
+    });
+
+    const absenceInfo = {
+      ap_soc: process.env.AP_SOC,
+      ap_etab: (get(abs, 'auxiliary.establishment.siret') || '').slice(-NIC_LENGHT),
+      ap_matr: abs.auxiliary.serialNumber || '',
+      ap_contrat: matchingContract.serialNumber || '',
+      va_abs_code: VA_ABS_CODE[abs.absence],
+      va_abs_deb: moment(abs.startDate).format('DD/MM/YYYY'),
+      va_abs_fin: moment(abs.endDate).format('DD/MM/YYYY'),
+    };
+
+    const range = Array.from(moment().range(abs.startDate, abs.endDate).by('days'));
+    for (const day of range) {
+      const formattedAbsence = abs.absenceNature === HOURLY
+        ? { ...abs }
+        : {
+          absenceNature: DAILY,
+          startDate: moment(day).startOf('d').toISOString(),
+          endDate: moment(day).endOf('d').toISOString(),
+        };
+      data.push(Object.values({
+        ...absenceInfo,
+        va_abs_date: moment(day).format('DD/MM/YYYY'),
+        va_abs_nb22: [1, 2, 3, 4, 5].includes(moment(day).isoWeekday()) ? 1 : 0,
+        va_abs_nb26: [1, 2, 3, 4, 5, 6].includes(moment(day).isoWeekday()) ? 1 : 0,
+        va_abs_nb30: 1,
+        va_abs_nbh: HistoryExportHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
+      }));
+    }
+  }
+
+  return FileHelper.exportToTxt(data);
 };

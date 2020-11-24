@@ -1,8 +1,7 @@
 const flat = require('flat');
-const moment = require('moment');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
-const CloudinaryHelper = require('./cloudinary');
+const GCloudStorageHelper = require('./gCloudStorage');
 const { STRICTLY_E_LEARNING } = require('./constants');
 
 exports.createProgram = payload => (new Program(payload)).save();
@@ -74,17 +73,15 @@ exports.getProgramForUser = async (programId, credentials) => {
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 
 exports.uploadImage = async (programId, payload) => {
-  const imageUploaded = await CloudinaryHelper.addImage({
-    file: payload.file,
-    folder: 'images/business/Compani/programs',
-    public_id: `${payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
-  });
+  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
+  const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
 
-  const updatePayload = {
-    image: {
-      publicId: imageUploaded.public_id,
-      link: imageUploaded.secure_url,
-    },
-  };
-  await Program.updateOne({ _id: programId }, { $set: flat(updatePayload) });
+  await Program.updateOne({ _id: programId }, { $set: flat({ image: imageUploaded }) });
+};
+
+exports.deleteImage = async (programId, publicId) => {
+  if (!publicId) return;
+
+  await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
+  await GCloudStorageHelper.deleteMedia(publicId);
 };

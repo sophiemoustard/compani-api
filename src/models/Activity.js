@@ -1,9 +1,17 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const { LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO, DRAFT, CARD_TEMPLATES } = require('../helpers/constants');
+const {
+  LESSON,
+  QUIZ,
+  SHARING_EXPERIENCE,
+  VIDEO,
+  DRAFT,
+  CARD_TEMPLATES,
+  QUESTIONNAIRE,
+} = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
 
-const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO];
+const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO, QUESTIONNAIRE];
 
 const ActivitySchema = mongoose.Schema({
   name: { type: String, required: true },

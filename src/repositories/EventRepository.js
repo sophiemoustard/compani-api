@@ -215,10 +215,13 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
-      select: 'identity sector',
-      populate: { path: 'sector', match: { company: companyId } },
+      select: 'identity sector contracts',
+      populate: [
+        { path: 'sector', match: { company: companyId } },
+        { path: 'contracts', match: { company: companyId } },
+      ],
     })
-    .lean({ autopopulate: true, virtuals: true });
+    .lean({ autopopulate: true });
 };
 
 exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate([

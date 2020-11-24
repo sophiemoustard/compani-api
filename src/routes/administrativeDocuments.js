@@ -14,7 +14,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:edit'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),

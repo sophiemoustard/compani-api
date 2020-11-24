@@ -10,7 +10,10 @@ module.exports = {
   PAID_LEAVE: 'leave',
   UNPAID_LEAVE: 'unpaid leave',
   MATERNITY_LEAVE: 'maternity leave',
+  PATERNITY_LEAVE: 'paternity_leave',
+  PARENTAL_LEAVE: 'parental_leave',
   WORK_ACCIDENT: 'work accident',
+  TRANSPORT_ACCIDENT: 'transport_accident',
   CESSATION_OF_WORK_CHILD: 'cessation_of_work_child',
   CESSATION_OF_WORK_RISK: 'cessation_of_work_risk',
   get EVENT_TYPE_LIST() {
@@ -26,9 +29,12 @@ module.exports = {
       [this.PAID_LEAVE]: 'Congé',
       [this.UNPAID_LEAVE]: 'Congé sans solde',
       [this.MATERNITY_LEAVE]: 'Congé maternité',
+      [this.PATERNITY_LEAVE]: 'Congé paternité',
+      [this.PARENTAL_LEAVE]: 'Congé parental',
       [this.ILLNESS]: 'Maladie',
       [this.UNJUSTIFIED]: 'Absence injustifiée',
       [this.WORK_ACCIDENT]: 'Accident du travail',
+      [this.TRANSPORT_ACCIDENT]: 'Accident de trajet',
       [this.CESSATION_OF_WORK_CHILD]: 'Arrêt de travail - garde d’enfant',
       [this.CESSATION_OF_WORK_RISK]: 'Arrêt de travail - salarié à risque',
       [this.OTHER]: 'other',
@@ -209,6 +215,7 @@ module.exports = {
   PAY: 'pay',
   // CONTRACTS
   CONTRACT: 'contract',
+  CONTRACT_VERSION: 'contract_version',
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
   RESIGNATION: 'resignation',
@@ -266,6 +273,7 @@ module.exports = {
   QUIZ: 'quiz',
   SHARING_EXPERIENCE: 'sharing_experience',
   VIDEO: 'video',
+  QUESTIONNAIRE: 'questionnaire',
   // E-LEARNING CARDS
   TRANSITION: 'transition',
   TITLE_TEXT_MEDIA: 'title_text_media',
@@ -290,7 +298,6 @@ module.exports = {
   QUESTION_MAX_LENGTH: 170,
   GAP_ANSWER_MAX_LENGTH: 15,
   FLASHCARD_TEXT_MAX_LENGTH: 450,
-  QUESTIONNAIRE: 'questionnaire',
   get CARD_TEMPLATES() {
     return [
       { label: 'Transition', value: this.TRANSITION, type: this.LESSON },
@@ -321,4 +328,9 @@ module.exports = {
   SLOT_EDITION: 'slot_edition',
   TRAINEE_ADDITION: 'trainee_addition',
   TRAINEE_DELETION: 'trainee_deletion',
+  // MediaUpload
+  UPLOAD_IMAGE: 'image',
+  UPLOAD_VIDEO: 'video',
+  UPLOAD_AUDIO: 'audio',
+  UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
 };

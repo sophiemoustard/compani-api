@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const Card = require('../../models/Card');
 const {
   FILL_THE_GAPS,
@@ -129,6 +130,13 @@ exports.authorizeCardDeletion = async (req) => {
   if (activity.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
+};
+
+exports.getCardMediaPublicId = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id }).lean();
+  if (!card) throw Boom.notFound();
+
+  return get(card, 'media.publicId') || '';
 };
 
 // fill the gap validation

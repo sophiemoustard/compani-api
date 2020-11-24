@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const CardHelper = require('../../../src/helpers/cards');
-const CloudinaryHelper = require('../../../src/helpers/cloudinary');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 require('sinon-mongoose');
 
 describe('addCard', () => {
@@ -134,29 +134,74 @@ describe('removeCard', () => {
 
 describe('uploadMedia', () => {
   let updateOneStub;
-  let addImageStub;
+  let uploadMediaStub;
+  let formatFileName;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
-    addImageStub = sinon.stub(CloudinaryHelper, 'addImage')
-      .returns({ public_id: 'azertyuiop', secure_url: 'https://compani.io' });
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
   });
   afterEach(() => {
     updateOneStub.restore();
-    addImageStub.restore();
+    uploadMediaStub.restore();
+    formatFileName.restore();
   });
 
   it('should upload image', async () => {
+    uploadMediaStub.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
+    formatFileName.returns('jesuisunsupernomdefichier');
+
     const cardId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
-    const cardUpdatePayload = {
-      media: {
-        publicId: 'azertyuiop',
-        link: 'https://compani.io',
-      },
-    };
 
     await CardHelper.uploadMedia(cardId, payload);
-    sinon.assert.calledOnce(addImageStub);
-    sinon.assert.calledWithExactly(updateOneStub, { _id: cardId }, { $set: flat(cardUpdatePayload) });
+
+    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
+    sinon.assert.calledOnceWithExactly(uploadMediaStub, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
+    sinon.assert.calledWithExactly(
+      updateOneStub,
+      { _id: cardId },
+      {
+        $set: flat({
+          media: { publicId: 'jesuisunsupernomdefichier', link: 'https://storage.googleapis.com/BucketKFC/myMedia' },
+        }),
+      }
+    );
+  });
+});
+
+describe('deleteMedia', () => {
+  let updateOne;
+  let deleteMedia;
+  beforeEach(() => {
+    updateOne = sinon.stub(Card, 'updateOne');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    deleteMedia.restore();
+  });
+
+  it('should do nothing as publicId is not set', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.deleteMedia(cardId, '');
+
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteMedia);
+  });
+
+  it('should update card and delete media', async () => {
+    const cardId = new ObjectID();
+    await CardHelper.deleteMedia(cardId, 'publicId');
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: cardId },
+      { $unset: { 'media.publicId': '', 'media.link': '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
   });
 });

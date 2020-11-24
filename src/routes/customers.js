@@ -356,7 +356,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
-        payload: formDataPayload,
+        payload: formDataPayload(),
         validate: {
           params: Joi.object({
             _id: Joi.objectId().required(),
