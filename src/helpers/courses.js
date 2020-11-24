@@ -25,7 +25,7 @@ exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.trainees) {
-    return Course.find(query, { misc: 1, format: 1 })
+    return Course.find(query, { misc: 1 })
       .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
       .populate({ path: 'slots', select: 'startDate endDate' })
       .populate({ path: 'slotsToPlan', select: '_id' })
@@ -53,7 +53,7 @@ exports.list = async (query) => {
 };
 
 exports.listUserCourses = async (traineeId) => {
-  const courses = await Course.find({ trainees: traineeId })
+  const courses = await Course.find({ trainees: traineeId }, { format: 1 })
     .populate({
       path: 'subProgram',
       select: 'program steps',
