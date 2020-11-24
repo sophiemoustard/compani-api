@@ -19,7 +19,12 @@ exports.updateSubProgram = async (subProgramId, payload) => {
     .lean({ virtuals: true });
 
   if (subProgram.isStrictlyELearning) {
-    await Course.create({ subProgram: subProgramId, type: INTER_B2C, format: STRICTLY_E_LEARNING });
+    await Course.create({
+      subProgram: subProgramId,
+      type: INTER_B2C,
+      format: STRICTLY_E_LEARNING,
+      accessRules: payload.accessCompany ? [payload.accessCompany] : [],
+    });
   }
 
   await Step.updateMany({ _id: { $in: subProgram.steps.map(step => step._id) } }, { status: payload.status });
