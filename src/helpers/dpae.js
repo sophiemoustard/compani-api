@@ -1,8 +1,29 @@
 const get = require('lodash/get');
 const moment = require('moment');
 const FileHelper = require('./file');
-const { MISTER, MRS, WEEKS_PER_MONTH } = require('./constants');
+const {
+  MISTER,
+  MRS,
+  WEEKS_PER_MONTH,
+  ABSENCE,
+  PAID_LEAVE,
+  UNPAID_LEAVE,
+  MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
+  ILLNESS,
+  UNJUSTIFIED,
+  WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
+  CESSATION_OF_WORK_CHILD,
+  CESSATION_OF_WORK_RISK,
+  OTHER,
+  DAILY,
+  HOURLY,
+} = require('./constants');
+const HistoryExportHelper = require('./historyExport');
 const User = require('../models/User');
+const Event = require('../models/Event');
 const Contract = require('../models/Contract');
 const { bicBankMatching } = require('../data/bicBankMatching');
 
@@ -16,6 +37,20 @@ const FS_REGIME = '50'; // Non cadre
 const ADDRESS_MAX_LENGHT = 30;
 const FS_TITRE_CODE = { [MISTER]: 1, [MRS]: 2 };
 const NIC_LENGHT = 5;
+const VA_ABS_CODE = {
+  [PAID_LEAVE]: 'CPL',
+  [UNPAID_LEAVE]: 'CSS',
+  [MATERNITY_LEAVE]: 'MAT',
+  [PATERNITY_LEAVE]: 'ENF',
+  [PARENTAL_LEAVE]: 'CPE',
+  [ILLNESS]: 'MAL',
+  [UNJUSTIFIED]: 'AAN',
+  [WORK_ACCIDENT]: 'ATW',
+  [TRANSPORT_ACCIDENT]: 'ATR',
+  [CESSATION_OF_WORK_CHILD]: 'MAL',
+  [CESSATION_OF_WORK_RISK]: 'MAL',
+  [OTHER]: 'MAL',
+};
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
@@ -151,4 +186,72 @@ exports.exportContractVersions = async (query, credentials) => {
   }
 
   return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+};
+
+const exportHeader = [
+  'ap_soc',
+  'ap_etab',
+  'ap_matr',
+  'ap_contrat',
+  'va_abs_code',
+  'va_abs_deb',
+  'va_abs_fin',
+  'va_abs_date',
+  'va_abs_nb22',
+  'va_abs_nb26',
+  'va_abs_nb30',
+  'va_abs_nbh',
+];
+
+exports.exportAbsences = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id') || '';
+  const start = moment(query.startDate).startOf('day').toDate();
+  const end = moment(query.endDate).endOf('day').toDate();
+  const absences = await Event
+    .find({ type: ABSENCE, startDate: { $lt: end }, endDate: { $gt: start }, company: companyId })
+    .populate({
+      path: 'auxiliary',
+      select: 'serialNumber',
+      populate: [{ path: 'contracts' }, { path: 'establishment' }],
+    })
+    .lean();
+
+  const data = [exportHeader];
+  for (const abs of absences) {
+    const matchingContract = abs.auxiliary.contracts.find((c) => {
+      if (c.endDate) return moment(abs.startDate).isBetween(c.startDate, c.endDate, 'd', '[]');
+      return moment(abs.startDate).isSameOrAfter(c.startDate, 'd');
+    });
+
+    const absenceInfo = {
+      ap_soc: process.env.AP_SOC,
+      ap_etab: (get(abs, 'auxiliary.establishment.siret') || '').slice(-NIC_LENGHT),
+      ap_matr: abs.auxiliary.serialNumber || '',
+      ap_contrat: matchingContract.serialNumber || '',
+      va_abs_code: VA_ABS_CODE[abs.absence],
+      va_abs_deb: moment(abs.startDate).format('DD/MM/YYYY'),
+      va_abs_fin: moment(abs.endDate).format('DD/MM/YYYY'),
+    };
+
+    const range = Array.from(moment().range(abs.startDate, abs.endDate).by('days'));
+    for (const day of range) {
+      const formattedAbsence = abs.absenceNature === HOURLY
+        ? { ...abs }
+        : {
+          absenceNature: DAILY,
+          startDate: moment(day).startOf('d').toISOString(),
+          endDate: moment(day).endOf('d').toISOString(),
+        };
+      data.push(Object.values({
+        ...absenceInfo,
+        va_abs_date: moment(day).format('DD/MM/YYYY'),
+        va_abs_nb22: [1, 2, 3, 4, 5].includes(moment(day).isoWeekday()) ? 1 : 0,
+        va_abs_nb26: [1, 2, 3, 4, 5, 6].includes(moment(day).isoWeekday()) ? 1 : 0,
+        va_abs_nb30: 1,
+        va_abs_nbh: HistoryExportHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
+      }));
+    }
+  }
+
+  return FileHelper.exportToTxt(data);
 };
