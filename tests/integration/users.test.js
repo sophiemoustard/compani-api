@@ -548,6 +548,30 @@ describe('GET /users/exists', () => {
   });
 });
 
+describe('GET /users/new-user', () => {
+  beforeEach(populateDB);
+
+  it('should return true if user exists', async () => {
+    const { email } = usersSeedList[0].local;
+    const res = await app.inject({
+      method: 'GET',
+      url: `/users/new-user?email=${email}`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.result.data).toBeTruthy();
+  });
+
+  it('should return false if user does not exists', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/users/new-user?email=test@test.fr',
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.result.data).toBeFalsy();
+  });
+});
+
 describe('GET /users/sector-histories', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
