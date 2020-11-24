@@ -193,6 +193,18 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return a 403 if subprogram is invalid', async () => {
+      const payload = { status: 'published' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramsList[4]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {

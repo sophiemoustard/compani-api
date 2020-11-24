@@ -25,12 +25,14 @@ exports.authorizeStepAdd = async (req) => {
 exports.authorizeSubProgramUpdate = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id })
     .populate({ path: 'program', select: '_id' })
-    .populate({ path: 'steps', select: '_id type' })
+    .populate({ path: 'steps', select: '_id type', populate: { path: 'activities', populate: 'cards' } })
     .lean({ virtuals: true });
 
   if (!subProgram) throw Boom.notFound();
 
   if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+
+  if (req.payload.status === PUBLISHED && !subProgram.areStepsValid) throw Boom.forbidden();
 
   if (req.payload.steps) {
     const onlyOrderIsUpdated = subProgram.steps.length === req.payload.steps.length &&
