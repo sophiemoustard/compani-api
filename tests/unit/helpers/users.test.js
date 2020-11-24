@@ -583,6 +583,34 @@ describe('userExists', () => {
   });
 });
 
+describe('newUserExists', () => {
+  let userMock;
+  const email = 'test@test.fr';
+  const nonExistantEmail = 'toto.gateau@alenvi.io';
+  beforeEach(() => {
+    userMock = sinon.mock(User);
+  });
+  afterEach(() => {
+    userMock.restore();
+  });
+
+  it('should find a user', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(true);
+
+    const rep = await UsersHelper.newUserExists(email);
+
+    expect(rep).toBeTruthy();
+  });
+
+  it('should not find as email does not exist', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(false);
+
+    const rep = await UsersHelper.newUserExists(nonExistantEmail);
+
+    expect(rep).toBeFalsy();
+  });
+});
+
 describe('createAndSaveFile', () => {
   let addFileStub;
   let saveCertificateDriveIdStub;

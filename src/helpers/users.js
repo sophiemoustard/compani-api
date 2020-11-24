@@ -143,6 +143,8 @@ exports.userExists = async (email, credentials) => {
     : { exists: !!targetUser, user: {} };
 };
 
+exports.newUserExists = async email => !!(await User.findOne({ 'local.email': email }).lean());
+
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };
 
