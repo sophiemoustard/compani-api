@@ -2,7 +2,6 @@ const flat = require('flat');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const translate = require('../helpers/translate');
-const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const UsersHelper = require('../helpers/users');
 const {
   getUsersList,

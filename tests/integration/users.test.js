@@ -1777,7 +1777,6 @@ describe('POST /users/:id/drivefolder', () => {
       expect(response.statusCode).toBe(200);
 
       const updatedUser = await User.findOne({ _id: usersSeedList[0]._id }, { 'administrative.driveFolder': 1 }).lean();
-      expect(updatedUser).toBeDefined();
       expect(updatedUser.administrative.driveFolder).toEqual({ driveId: '1234567890', link: 'http://test.com' });
       sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
     });
