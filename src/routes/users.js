@@ -448,14 +448,8 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            parentFolderId: Joi.string().required(),
-          }),
         },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
+        pre: [{ method: getUser, assign: 'user' }],
       },
       handler: createDriveFolder,
     });
