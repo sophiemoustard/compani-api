@@ -485,7 +485,7 @@ describe('GET /users/exists', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.result.data.exists).toBeTruthy();
-    expect(res.result.data.users).toBeUndefined();
+    expect(res.result.data.user).toEqual({});
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -515,7 +515,7 @@ describe('GET /users/exists', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBeFalsy();
-      expect(res.result.data.users).toBeUndefined();
+      expect(res.result.data.user).toEqual({});
     });
   });
 

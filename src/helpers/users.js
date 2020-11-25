@@ -129,21 +129,19 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }).lean();
+  const targetUser = await User.findOne({ 'local.email': email }, { role: 1, company: 1 }).lean();
   if (!targetUser) return { exists: false, user: {} };
-  if (credentials) {
-    const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-    const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
-    const targetUserHasCompany = !!targetUser.company;
-    const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
-    const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+  if (!credentials) return { exists: true, user: {} };
 
-    return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
-      ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
-      : { exists: !!targetUser, user: {} };
-  }
+  const loggedUserhasVendorRole = has(credentials, 'role.vendor');
+  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
+  const targetUserHasCompany = !!targetUser.company;
+  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
+  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
 
-  return { exists: true, user: {} };
+  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+    ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
+    : { exists: !!targetUser, user: {} };
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
