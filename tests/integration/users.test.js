@@ -484,12 +484,11 @@ describe('GET /users/exists', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.result.data.exists).toBeTruthy();
+    expect(res.result.data.exists).toBe(true);
     expect(res.result.data.user).toEqual({});
   });
 
   describe('VENDOR_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
@@ -502,7 +501,7 @@ describe('GET /users/exists', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.exists).toBeTruthy();
+      expect(res.result.data.exists).toBe(true);
       expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
     });
 
@@ -514,7 +513,7 @@ describe('GET /users/exists', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.exists).toBeFalsy();
+      expect(res.result.data.exists).toBe(false);
       expect(res.result.data.user).toEqual({});
     });
   });
@@ -540,7 +539,7 @@ describe('GET /users/exists', () => {
         expect(response.statusCode).toBe(role.expectedCode);
 
         if (response.result.data) {
-          expect(response.result.data.exists).toBeTruthy();
+          expect(response.result.data.exists).toBe(true);
           expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
         }
       });
@@ -555,7 +554,7 @@ describe('GET /users/exists', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.exists).toBeTruthy();
+      expect(response.result.data.exists).toBe(true);
       expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
     });
   });
