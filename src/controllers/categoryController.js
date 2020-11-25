@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const CategoryHelper = require('../helpers/programs');
+const CategoryHelper = require('../helpers/categories');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
