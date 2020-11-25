@@ -546,7 +546,7 @@ describe('userExists', () => {
     userMock.restore();
   });
 
-  it('should find a user', async () => {
+  it('should find a user if credential', async () => {
     userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
@@ -581,33 +581,23 @@ describe('userExists', () => {
     expect(rep.exists).toBeTruthy();
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
   });
-});
 
-describe('newUserExists', () => {
-  let userMock;
-  const email = 'test@test.fr';
-  const nonExistantEmail = 'toto.gateau@alenvi.io';
-  beforeEach(() => {
-    userMock = sinon.mock(User);
-  });
-  afterEach(() => {
-    userMock.restore();
+  it('should find an email but no user if no crendential', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email, null);
+
+    expect(rep.exists).toBeTruthy();
+    expect(rep.user).toEqual({});
   });
 
-  it('should find a user', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(true);
+  it('should not find as email and credential do not exist', async () => {
+    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(null);
 
-    const rep = await UsersHelper.newUserExists(email);
+    const rep = await UsersHelper.userExists(nonExistantEmail, null);
 
-    expect(rep).toBeTruthy();
-  });
-
-  it('should not find as email does not exist', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(false);
-
-    const rep = await UsersHelper.newUserExists(nonExistantEmail);
-
-    expect(rep).toBeFalsy();
+    expect(rep.exists).toBeFalsy();
+    expect(rep.user).toEqual({});
   });
 });
 

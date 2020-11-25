@@ -10,7 +10,6 @@ const {
   createAndSaveFile,
   getUser,
   userExists,
-  newUserExists,
 } = require('../helpers/users');
 const User = require('../models/User');
 const cloudinary = require('../helpers/cloudinary');
@@ -164,20 +163,6 @@ const exists = async (req) => {
   }
 };
 
-const newUser = async (req) => {
-  try {
-    const userInfo = await newUserExists(req.query.email);
-
-    return {
-      message: translate[language].userFound,
-      data: userInfo,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const update = async (req) => {
   try {
     await UsersHelper.updateUser(
@@ -319,7 +304,6 @@ module.exports = {
   learnerList,
   show,
   exists,
-  newUser,
   update,
   removeHelper,
   refreshToken,

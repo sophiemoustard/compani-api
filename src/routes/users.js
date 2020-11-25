@@ -13,7 +13,6 @@ const {
   learnerList,
   show,
   exists,
-  newUser,
   update,
   removeHelper,
   refreshToken,
@@ -172,24 +171,12 @@ exports.plugin = {
       method: 'GET',
       path: '/exists',
       options: {
-        auth: { scope: ['users:exist'] },
+        auth: { mode: 'optional' },
         validate: {
           query: Joi.object({ email: Joi.string().email().required() }),
         },
       },
       handler: exists,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/new-user',
-      options: {
-        auth: false,
-        validate: {
-          query: Joi.object({ email: Joi.string().email().required() }),
-        },
-      },
-      handler: newUser,
     });
 
     server.route({

@@ -475,6 +475,19 @@ describe('GET /users', () => {
 
 describe('GET /users/exists', () => {
   let authToken;
+  beforeEach(populateDB);
+  it('should return 200 if user not connected', async () => {
+    const { email } = usersSeedList[0].local;
+    const res = await app.inject({
+      method: 'GET',
+      url: `/users/exists?email=${email}`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.result.data.exists).toBeTruthy();
+    expect(res.result.data.users).toBeUndefined();
+  });
+
   describe('VENDOR_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -508,9 +521,9 @@ describe('GET /users/exists', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
@@ -545,30 +558,6 @@ describe('GET /users/exists', () => {
       expect(response.result.data.exists).toBeTruthy();
       expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
     });
-  });
-});
-
-describe('GET /users/new-user', () => {
-  beforeEach(populateDB);
-
-  it('should return true if user exists', async () => {
-    const { email } = usersSeedList[0].local;
-    const res = await app.inject({
-      method: 'GET',
-      url: `/users/new-user?email=${email}`,
-    });
-    expect(res.statusCode).toBe(200);
-    expect(res.result.data).toBeTruthy();
-  });
-
-  it('should return false if user does not exists', async () => {
-    const res = await app.inject({
-      method: 'GET',
-      url: '/users/new-user?email=test@test.fr',
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.result.data).toBeFalsy();
   });
 });
 

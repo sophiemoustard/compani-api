@@ -131,19 +131,20 @@ exports.getUser = async (userId, credentials) => {
 exports.userExists = async (email, credentials) => {
   const targetUser = await User.findOne({ 'local.email': email }).lean();
   if (!targetUser) return { exists: false, user: {} };
+  if (credentials) {
+    const loggedUserhasVendorRole = has(credentials, 'role.vendor');
+    const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
+    const targetUserHasCompany = !!targetUser.company;
+    const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
+    const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
 
-  const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
-  const targetUserHasCompany = !!targetUser.company;
-  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
-  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+    return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+      ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
+      : { exists: !!targetUser, user: {} };
+  }
 
-  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
-    ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
-    : { exists: !!targetUser, user: {} };
+  return { exists: true, user: {} };
 };
-
-exports.newUserExists = async email => !!(await User.findOne({ 'local.email': email }).lean());
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };
