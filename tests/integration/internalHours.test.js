@@ -1,6 +1,5 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const omit = require('lodash/omit');
 const app = require('../../server');
 const InternalHour = require('../../src/models/InternalHour');
 const Event = require('../../src/models/Event');
@@ -22,7 +21,6 @@ describe('INTERNAL HOURS ROUTES', () => {
   let authToken = null;
 
   describe('POST /internalhours', () => {
-    const payload = { name: 'Test3', default: false };
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -34,11 +32,10 @@ describe('INTERNAL HOURS ROUTES', () => {
           method: 'POST',
           url: '/internalhours',
           headers: { 'x-access-token': authToken },
-          payload,
+          payload: { name: 'Test3' },
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.internalHour).toBeDefined();
         const internalHours = await InternalHour.find({ company: authCompany._id });
         expect(internalHours.length).toEqual(authInternalHoursList.length + 1);
       });
@@ -53,7 +50,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           method: 'POST',
           url: '/internalhours',
           headers: { 'x-access-token': authToken },
-          payload,
+          payload: { name: 'Test3' },
         });
 
         expect(response.statusCode).toBe(403);
@@ -64,7 +61,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           method: 'POST',
           url: '/internalhours',
           headers: { 'x-access-token': authToken },
-          payload: omit({ ...payload }, 'name'),
+          payload: {},
         });
 
         expect(response.statusCode).toBe(400);
@@ -86,7 +83,7 @@ describe('INTERNAL HOURS ROUTES', () => {
             method: 'POST',
             url: '/internalhours',
             headers: { 'x-access-token': authToken },
-            payload,
+            payload: { name: 'Test3' },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

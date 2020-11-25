@@ -1,29 +1,16 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-
 const InternalHour = require('../models/InternalHour');
 const InternalHourHelper = require('../helpers/internalHours');
-const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const companyInternalHoursCount = await InternalHour.countDocuments({ company: companyId });
+    await InternalHourHelper.create(req.payload, req.auth.credentials);
 
-    if (companyInternalHoursCount >= MAX_INTERNAL_HOURS_NUMBER) {
-      return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
-    }
-
-    const internalHour = new InternalHour({ ...req.payload, company: companyId });
-    await internalHour.save();
-
-    return {
-      message: translate[language].companyInternalHourCreated,
-      data: { internalHour },
-    };
+    return { message: translate[language].companyInternalHourCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

@@ -2,7 +2,11 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeInternalHourUpdate, getInternalHour } = require('./preHandlers/internalHours');
+const {
+  authorizeInternalHourUpdate,
+  getInternalHour,
+  authorizeInternalHourCreation,
+} = require('./preHandlers/internalHours');
 const {
   create,
   update,
@@ -24,6 +28,7 @@ exports.plugin = {
             default: Joi.boolean(),
           }),
         },
+        pre: [{ method: authorizeInternalHourCreation }],
       },
       handler: create,
     });

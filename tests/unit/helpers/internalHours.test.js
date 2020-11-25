@@ -8,6 +8,26 @@ const EventHelper = require('../../../src/helpers/events');
 
 require('sinon-mongoose');
 
+describe('create', () => {
+  let createStub;
+  beforeEach(() => {
+    createStub = sinon.stub(InternalHour, 'create');
+  });
+  afterEach(() => {
+    createStub.restore();
+  });
+
+  it('should create an internal hour', async () => {
+    const payload = { name: 'skusku', default: true };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    await InternalHoursHelper.create(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(createStub, { name: 'skusku', default: true, company: companyId });
+  });
+});
+
 describe('removeInternalHour', () => {
   let InternalHourMock;
   let updateEventsInternalHourTypeStub;
