@@ -42,8 +42,8 @@ describe('INTERNAL HOURS ROUTES', () => {
 
       it('should return a 403 error if company internal hours reach limits', async () => {
         await InternalHour.insertMany([
-          { name: 'Koko', default: false, company: authCompany._id },
-          { name: 'Nut', default: false, company: authCompany._id },
+          { name: 'Koko', company: authCompany._id },
+          { name: 'Nut', company: authCompany._id },
         ]);
 
         const response = await app.inject({
@@ -138,82 +138,6 @@ describe('INTERNAL HOURS ROUTES', () => {
             method: 'GET',
             url: '/internalhours',
             headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('PUT /internalhours/:id', () => {
-    describe('CLIENT_ADMIN', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('client_admin');
-      });
-
-      it('should update an internal hour', async () => {
-        const internalHour = authInternalHoursList[0];
-        const payload = { default: false };
-
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(200);
-
-        const updatedInternalHour = await InternalHour.findOne({ _id: internalHour._id.toHexString() }).lean();
-        expect(updatedInternalHour).toMatchObject(payload);
-      });
-
-      it('should return a 404 error if internalHour does not exist', async () => {
-        const payload = { default: false };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/internalhours/${new ObjectID().toHexString()}`,
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(404);
-      });
-
-      it('should return a 403 error if internal hour company is not from user company', async () => {
-        const internalHour = internalHoursList[0];
-        const payload = { default: false };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(403);
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 403 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const payload = { name: 'SuperTest' };
-          const internalHour = authInternalHoursList[0];
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/internalhours/${internalHour._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
-            payload,
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

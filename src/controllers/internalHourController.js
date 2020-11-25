@@ -17,17 +17,6 @@ const create = async (req) => {
   }
 };
 
-const update = async (req) => {
-  try {
-    await InternalHour.updateOne({ _id: req.params._id }, { $set: req.payload });
-
-    return { message: translate[language].companyInternalHourUpdated };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const list = async (req) => {
   try {
     const query = { ...req.query, company: get(req, 'auth.credentials.company._id', null) };
@@ -45,10 +34,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { internalHour } = req.pre;
-    if (internalHour.default) return Boom.forbidden(translate[language].companyInternalHourDeletionNotAllowed);
-
-    await InternalHourHelper.removeInternalHour(internalHour, new Date());
+    await InternalHourHelper.removeInternalHour(req.pre.internalHour, new Date());
 
     return { message: translate[language].companyInternalHourRemoved };
   } catch (e) {
@@ -59,7 +45,6 @@ const remove = async (req) => {
 
 module.exports = {
   create,
-  update,
   list,
   remove,
 };

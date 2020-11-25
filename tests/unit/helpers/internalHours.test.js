@@ -18,13 +18,13 @@ describe('create', () => {
   });
 
   it('should create an internal hour', async () => {
-    const payload = { name: 'skusku', default: true };
+    const payload = { name: 'skusku' };
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
     await InternalHoursHelper.create(payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(createStub, { name: 'skusku', default: true, company: companyId });
+    sinon.assert.calledOnceWithExactly(createStub, { name: 'skusku', company: companyId });
   });
 });
 
@@ -35,7 +35,6 @@ describe('removeInternalHour', () => {
   const internalHour = {
     _id: new ObjectID(),
     name: 'Test',
-    default: false,
     company: companyId,
   };
   const date = new Date();
@@ -54,13 +53,12 @@ describe('removeInternalHour', () => {
     const defaultInternalHour = {
       _id: new ObjectID(),
       name: 'default',
-      default: true,
       company: companyId,
     };
 
     InternalHourMock
       .expects('findOne')
-      .withExactArgs({ default: true, company: companyId })
+      .withExactArgs({ company: companyId })
       .chain('lean')
       .returns(defaultInternalHour);
 

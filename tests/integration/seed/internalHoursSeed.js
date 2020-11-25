@@ -22,21 +22,21 @@ const internalHourUsers = [{
 }];
 
 const authInternalHoursList = [
-  { default: true, _id: new ObjectID(), name: 'Planning', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Intégration', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Réunion', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Visite', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Prospection', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Recrutement', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Formation', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Autre', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Planning', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Intégration', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Réunion', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Visite', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Prospection', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Recrutement', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Formation', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Autre', company: authCompany._id },
 ];
 
 const internalHoursList = [
-  { default: true, _id: new ObjectID(), name: 'Tutu', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Toto', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Tata', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Titi', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Toto', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Tata', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Titi', company: otherCompany._id },
 ];
 
 const populateDB = async () => {
