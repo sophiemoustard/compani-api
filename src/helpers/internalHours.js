@@ -6,6 +6,8 @@ const EventsHelper = require('./events');
 exports.create = async (payload, credentials) =>
   InternalHour.create({ ...payload, company: get(credentials, 'company._id') });
 
+exports.list = async credentials => InternalHour.find({ company: get(credentials, 'company._id') }).lean();
+
 exports.removeInternalHour = async (internalHour, date) => {
   const defaultInternalHour = await InternalHour.findOne({ default: true, company: internalHour.company }).lean();
   if (!defaultInternalHour) throw Boom.badImplementation('No default internal hour set');

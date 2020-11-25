@@ -1,6 +1,4 @@
 const Boom = require('@hapi/boom');
-const get = require('lodash/get');
-const InternalHour = require('../models/InternalHour');
 const InternalHourHelper = require('../helpers/internalHours');
 const translate = require('../helpers/translate');
 
@@ -19,8 +17,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const query = { ...req.query, company: get(req, 'auth.credentials.company._id', null) };
-    const internalHours = await InternalHour.find(query).lean();
+    const internalHours = await InternalHourHelper.list(req.auth.credentials);
 
     return {
       message: translate[language].companyInternalHoursFound,

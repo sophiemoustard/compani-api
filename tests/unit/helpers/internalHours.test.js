@@ -28,6 +28,31 @@ describe('create', () => {
   });
 });
 
+describe('list', () => {
+  let InternalHourMock;
+  beforeEach(() => {
+    InternalHourMock = sinon.mock(InternalHour);
+  });
+  afterEach(() => {
+    InternalHourMock.restore();
+  });
+
+  it('should return an array of every internal hour of user company', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const internalHours = [{ _id: new ObjectID(), name: 'skusku' }];
+
+    InternalHourMock.expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns(internalHours);
+
+    const result = await InternalHoursHelper.list(credentials);
+
+    expect(result).toEqual(internalHours);
+    InternalHourMock.verify();
+  });
+});
+
 describe('removeInternalHour', () => {
   let InternalHourMock;
   let updateEventsInternalHourTypeStub;
