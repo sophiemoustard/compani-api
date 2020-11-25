@@ -70,33 +70,6 @@ describe('list', () => {
     CourseMock.verify();
   });
 
-  it('should return trainee courses', async () => {
-    const query = { trainees: '1234567890abcdef12345612' };
-    const coursesList = [
-      {
-        misc: 'Groupe 2',
-        trainees: [{ identity: { firstname: 'Shalom' }, company: { _id: authCompany } }],
-      },
-    ];
-
-    CourseMock.expects('find')
-      .withExactArgs(query, { misc: 1 })
-      .chain('populate')
-      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('lean')
-      .once()
-      .returns(coursesList);
-
-    const result = await CourseHelper.list(query);
-    expect(result).toMatchObject(coursesList);
-    sinon.assert.notCalled(findCourseAndPopulate);
-    CourseMock.verify();
-  });
-
   it('should return company courses', async () => {
     const coursesList = [
       { misc: 'name', type: 'intra' },

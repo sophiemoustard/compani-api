@@ -47,7 +47,6 @@ exports.plugin = {
           query: Joi.object({
             trainer: Joi.objectId(),
             company: Joi.objectId(),
-            trainees: Joi.objectId(),
             format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },

@@ -166,28 +166,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
 
-    it('should get courses for a specific trainee', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
-    });
-
-    it('should return 200 for a specific trainee without company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeWithoutCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(0);
-    });
-
     it('should get blended courses', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -220,29 +198,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should get course if trainee from same company', async () => {
-      authToken = await getToken('client_admin');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${helper._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
-    });
-
-    it('should not get course if trainee from different company', async () => {
-      authToken = await getToken('client_admin');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
