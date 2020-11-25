@@ -14,7 +14,7 @@ exports.updateSubProgram = async (subProgramId, payload) => {
   if (!payload.status) return SubProgram.updateOne({ _id: subProgramId }, { $set: payload });
 
   const subProgram = await SubProgram
-    .findOneAndUpdate({ _id: subProgramId }, { $set: payload })
+    .findOneAndUpdate({ _id: subProgramId }, { $set: { status: payload.status } })
     .populate({ path: 'steps', select: 'activities type' })
     .lean({ virtuals: true });
 

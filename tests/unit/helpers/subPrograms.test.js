@@ -135,7 +135,7 @@ describe('updatedSubProgram', () => {
       };
 
       SubProgramMock.expects('findOneAndUpdate')
-        .withExactArgs({ _id: subProgram._id }, { $set: payload })
+        .withExactArgs({ _id: subProgram._id }, { $set: { status: payload.status } })
         .chain('populate')
         .withExactArgs({ path: 'steps', select: 'activities type' })
         .chain('lean')
@@ -153,9 +153,60 @@ describe('updatedSubProgram', () => {
       SubProgramMock.verify();
       sinon.assert.calledWithExactly(
         courseCreateStub,
-        { subProgram: subProgram._id, type: 'inter_b2c', format: 'strictly_e_learning' }
+        { subProgram: subProgram._id, type: 'inter_b2c', format: 'strictly_e_learning', accessRules: [] }
       );
     });
+
+    it('if subProgram is strictly e-learning and payload has accessCompany, it should create course with accessRules',
+      async () => {
+        const payload = { status: 'published', accessCompany: new ObjectID() };
+        const subProgram = {
+          _id: new ObjectID(),
+          name: 'non',
+          status: 'draft',
+          steps: [new ObjectID(), new ObjectID()],
+          isStrictlyELearning: true,
+        };
+        const activities = [new ObjectID()];
+        const updatedSubProgram = {
+          ...subProgram,
+          status: 'published',
+          steps: [
+            { _id: subProgram.steps[0], activities, type: 'e_learning' },
+            { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
+          ],
+        };
+
+        SubProgramMock.expects('findOneAndUpdate')
+          .withExactArgs({ _id: subProgram._id }, { $set: { status: payload.status } })
+          .chain('populate')
+          .withExactArgs({ path: 'steps', select: 'activities type' })
+          .chain('lean')
+          .returns(updatedSubProgram);
+
+        stepUpdateManyStub.returns({ activities });
+
+        await SubProgramHelper.updateSubProgram(subProgram._id, payload);
+
+        sinon.assert.calledWithExactly(
+          stepUpdateManyStub,
+          { _id: { $in: subProgram.steps } }, { status: payload.status }
+        );
+        sinon.assert.calledWithExactly(
+          activityUpdateManyStub,
+          { _id: { $in: activities } }, { status: payload.status }
+        );
+        SubProgramMock.verify();
+        sinon.assert.calledWithExactly(
+          courseCreateStub,
+          {
+            subProgram: subProgram._id,
+            type: 'inter_b2c',
+            format: 'strictly_e_learning',
+            accessRules: [payload.accessCompany],
+          }
+        );
+      });
   });
 });
 

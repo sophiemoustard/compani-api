@@ -6,7 +6,7 @@ const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
 const Step = require('../../src/models/Step');
 const { populateDB, subProgramsList, stepsList, activitiesList } = require('./seed/subProgramsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -94,14 +94,47 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       });
 
       const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
-      const newCourseCreated = await Course
-        .findOne({ subProgram: eLearningSubProgramId, format: 'strictly_e_learning' })
-        .lean();
+      const newCourseCreated = await Course.countDocuments(
+        { subProgram: eLearningSubProgramId, format: 'strictly_e_learning', accessRules: [] }
+      );
 
       expect(response.statusCode).toBe(200);
       expect(!!newCourseCreated).toBeTruthy();
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
     });
+
+    it('should set strictly e-learning subProgram as published, and create 100% e-learning course with accessRules',
+      async () => {
+        const payload = { status: 'published', accessCompany: authCompany._id };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
+        const newCourseCreated = await Course.countDocuments(
+          { subProgram: eLearningSubProgramId, format: 'strictly_e_learning', accessRules: [payload.accessCompany] }
+        );
+
+        expect(response.statusCode).toBe(200);
+        expect(!!newCourseCreated).toBeTruthy();
+        expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
+      });
+
+    it('should return a 422 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
+      async () => {
+        const payload = { status: 'published', accessCompany: new ObjectID() };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(422);
+      });
 
     it('should return 400 if setting status to draft ', async () => {
       const payload = { status: 'draft' };
