@@ -1,6 +1,5 @@
 const expect = require('expect');
 const app = require('../../server');
-const Category = require('../../src/models/Category');
 const {
   populateDB,
   categoriesList,
@@ -25,12 +24,23 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
     it('should create a category', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/category',
+        url: '/categories',
         headers: { 'x-access-token': token },
-        payload: { name: 'ma première catégorie' },
+        payload: { name: 'ma nouvelle catégorie' },
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should block new category with same name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/categories',
+        headers: { 'x-access-token': token },
+        payload: { name: 'ce nom de catégorie est déja pris!' },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -52,7 +62,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
           method: 'POST',
           url: '/categories',
           headers: { 'x-access-token': token },
-          payload: { name: 'ma première catégorie' },
+          payload: { name: `ma nouvelle catégorie en tant que ${role.name}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
