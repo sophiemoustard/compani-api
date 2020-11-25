@@ -31,7 +31,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await InternalHourHelper.removeInternalHour(req.pre.internalHour, new Date());
+    await InternalHourHelper.removeInternalHour(req.pre.internalHour);
 
     return { message: translate[language].companyInternalHourRemoved };
   } catch (e) {

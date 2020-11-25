@@ -9,7 +9,7 @@ const {
   authInternalHoursList,
   internalHourUsers,
 } = require('./seed/internalHoursSeed');
-const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -127,6 +127,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
       ];
@@ -150,15 +151,11 @@ describe('INTERNAL HOURS ROUTES', () => {
     describe('CLIENT_ADMIN', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getTokenByCredentials(internalHourUsers[0].local);
+        authToken = await getToken('client_admin');
       });
 
       it('should delete an internal hour', async () => {
-        const internalHour = internalHoursList[1];
-        const defaultInternalHour = internalHoursList[0];
-        const initialInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
-        const initialDefaultInternalHourEventsCount =
-          await Event.countDocuments({ internalHour: defaultInternalHour._id });
+        const internalHour = authInternalHoursList[1];
 
         const response = await app.inject({
           method: 'DELETE',
@@ -167,37 +164,10 @@ describe('INTERNAL HOURS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const internalHoursCount = await InternalHour.countDocuments({ company: otherCompany._id });
-        expect(internalHoursCount).toBe(internalHoursList.length - 1);
+        const internalHoursCount = await InternalHour.countDocuments({ company: authCompany._id });
+        expect(internalHoursCount).toBe(authInternalHoursList.length - 1);
         const deletedInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
         expect(deletedInternalHourEventsCount).toBe(0);
-        const defaultInternalHourEventsCount = await Event.countDocuments({ internalHour: defaultInternalHour._id });
-        expect(defaultInternalHourEventsCount)
-          .toBe(initialDefaultInternalHourEventsCount + initialInternalHourEventsCount);
-      });
-
-      it('should return 403 if default internal hour', async () => {
-        const internalHour = internalHoursList[0];
-
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(403);
-      });
-
-      it('should return 403 if not in same company', async () => {
-        const internalHour = internalHoursList[0];
-
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': await getToken('client_admin') },
-        });
-
-        expect(response.statusCode).toBe(403);
       });
 
       it('should return a 404 error if internal hour does not exist', async () => {
@@ -209,12 +179,37 @@ describe('INTERNAL HOURS ROUTES', () => {
 
         expect(response.statusCode).toBe(404);
       });
+
+      it('should return 403 if not in same company', async () => {
+        const internalHour = internalHoursList[0];
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/internalhours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+      it('should return 403 if internal hour is used in an event', async () => {
+        const internalHour = authInternalHoursList[0];
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/internalhours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
@@ -222,7 +217,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
-          const internalHour = authInternalHoursList[0];
+          const internalHour = authInternalHoursList[1];
           const response = await app.inject({
             method: 'DELETE',
             url: `/internalhours/${internalHour._id.toHexString()}`,

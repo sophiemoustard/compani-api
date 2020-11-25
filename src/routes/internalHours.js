@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
-  authorizeInternalHourUpdate,
+  authorizeInternalHourDeletion,
   getInternalHour,
   authorizeInternalHourCreation,
 } = require('./preHandlers/internalHours');
@@ -48,7 +48,7 @@ exports.plugin = {
         },
         pre: [
           { method: getInternalHour, assign: 'internalHour' },
-          { method: authorizeInternalHourUpdate },
+          { method: authorizeInternalHourDeletion },
         ],
       },
       handler: remove,
