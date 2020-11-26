@@ -129,8 +129,9 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }).lean();
+  const targetUser = await User.findOne({ 'local.email': email }, { role: 1, company: 1 }).lean();
   if (!targetUser) return { exists: false, user: {} };
+  if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
   const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;

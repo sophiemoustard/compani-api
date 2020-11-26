@@ -171,7 +171,7 @@ exports.plugin = {
       method: 'GET',
       path: '/exists',
       options: {
-        auth: { scope: ['users:exist'] },
+        auth: { mode: 'optional' },
         validate: {
           query: Joi.object({ email: Joi.string().email().required() }),
         },
