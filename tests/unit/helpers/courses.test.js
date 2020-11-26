@@ -169,6 +169,13 @@ describe('getCourseProgress', () => {
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toBe(1);
   });
+
+  it('should return 0 if no steps', async () => {
+    const steps = null;
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toBe(0);
+  });
 });
 
 describe('formatCourseWithProgress', () => {

@@ -53,6 +53,8 @@ exports.list = async (query) => {
 };
 
 exports.getCourseProgress = (steps) => {
+  if (steps === null) return 0;
+
   const progressSum = steps.map(step => step.progress).reduce((acc, value) => acc + value, 0);
   return steps.length ? (progressSum / steps.length) : 0;
 };
