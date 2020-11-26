@@ -171,7 +171,7 @@ describe('getCourseProgress', () => {
   });
 
   it('should return 0 if no steps', async () => {
-    const steps = null;
+    const steps = [];
 
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toBe(0);
