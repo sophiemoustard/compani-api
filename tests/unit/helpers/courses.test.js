@@ -19,7 +19,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
-const { COURSE_SMS } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 require('sinon-mongoose');
@@ -67,33 +67,6 @@ describe('list', () => {
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
-    CourseMock.verify();
-  });
-
-  it('should return trainee courses', async () => {
-    const query = { trainees: '1234567890abcdef12345612' };
-    const coursesList = [
-      {
-        misc: 'Groupe 2',
-        trainees: [{ identity: { firstname: 'Shalom' }, company: { _id: authCompany } }],
-      },
-    ];
-
-    CourseMock.expects('find')
-      .withExactArgs(query, { misc: 1, format: 1 })
-      .chain('populate')
-      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('lean')
-      .once()
-      .returns(coursesList);
-
-    const result = await CourseHelper.list(query);
-    expect(result).toMatchObject(coursesList);
-    sinon.assert.notCalled(findCourseAndPopulate);
     CourseMock.verify();
   });
 
@@ -163,6 +136,7 @@ describe('listUserCourses', () => {
       {
         misc: 'name',
         _id: new ObjectID(),
+        format: BLENDED,
         subProgram: {
           steps: [{
             _id: new ObjectID(),
@@ -188,6 +162,7 @@ describe('listUserCourses', () => {
       {
         misc: 'program',
         _id: new ObjectID(),
+        format: BLENDED,
         subProgram: {
           steps: [{
             _id: new ObjectID(),
@@ -211,7 +186,7 @@ describe('listUserCourses', () => {
     ];
 
     CourseMock.expects('find')
-      .withExactArgs({ trainees: '1234567890abcdef12345678' })
+      .withExactArgs({ trainees: '1234567890abcdef12345678' }, { format: 1 })
       .chain('populate')
       .withExactArgs({
         path: 'subProgram',
