@@ -35,7 +35,7 @@ describe('list', () => {
     const categoriesList = [{ name: 'ma première catégorie' }, { name: 'ma seconde catégorie' }];
 
     CategoryMock.expects('find')
-      .withExactArgs({})
+      .once()
       .chain('lean')
       .once()
       .returns(categoriesList);
