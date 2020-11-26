@@ -12,10 +12,6 @@ module.exports = {
     if (!hasCompany && !isPopulate && !isVendorUser && !processingAuthentication) next(Boom.badRequest());
     next();
   },
-  validatePayload(next, isVendorUser = false) {
-    if (!this.company && !isVendorUser) next(Boom.badRequest());
-    next();
-  },
   validateAggregation(next) {
     if (get(this, 'options.allCompanies', null)) next();
     else {

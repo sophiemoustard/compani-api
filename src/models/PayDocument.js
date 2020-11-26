@@ -6,7 +6,7 @@ const {
   PAYSLIP,
   CERTIFICATE,
 } = require('../helpers/constants');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
 
@@ -18,7 +18,6 @@ const PayDocumentSchema = mongoose.Schema({
   file: driveResourceSchemaDefinition,
 }, { timestamps: true });
 
-PayDocumentSchema.pre('validate', validatePayload);
 PayDocumentSchema.pre('find', validateQuery);
 PayDocumentSchema.pre('aggregate', validateAggregation);
 
