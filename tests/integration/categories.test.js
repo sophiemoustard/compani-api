@@ -40,7 +40,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
         payload: { name: 'ce nom de catégorie est déja pris!' },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
   });
 
