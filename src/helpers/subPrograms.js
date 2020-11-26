@@ -14,12 +14,17 @@ exports.updateSubProgram = async (subProgramId, payload) => {
   if (!payload.status) return SubProgram.updateOne({ _id: subProgramId }, { $set: payload });
 
   const subProgram = await SubProgram
-    .findOneAndUpdate({ _id: subProgramId }, { $set: payload })
+    .findOneAndUpdate({ _id: subProgramId }, { $set: { status: payload.status } })
     .populate({ path: 'steps', select: 'activities type' })
     .lean({ virtuals: true });
 
   if (subProgram.isStrictlyELearning) {
-    await Course.create({ subProgram: subProgramId, type: INTER_B2C, format: STRICTLY_E_LEARNING });
+    await Course.create({
+      subProgram: subProgramId,
+      type: INTER_B2C,
+      format: STRICTLY_E_LEARNING,
+      accessRules: payload.accessCompany ? [payload.accessCompany] : [],
+    });
   }
 
   await Step.updateMany({ _id: { $in: subProgram.steps.map(step => step._id) } }, { status: payload.status });

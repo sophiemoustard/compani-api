@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
+const Company = require('../../models/Company');
 const { PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
@@ -42,12 +43,17 @@ exports.authorizeSubProgramUpdate = async (req) => {
   }
 
   if (req.payload.status === PUBLISHED && subProgram.isStrictlyELearning) {
+    if (req.payload.accessCompany) {
+      const company = await Company.countDocuments({ _id: req.payload.accessCompany });
+      if (!company) throw Boom.badRequest();
+    }
+
     const prog = await Program.findOne({ _id: subProgram.program })
       .populate({
         path: 'subPrograms',
-        select: '_id steps',
+        select: 'steps',
         match: { status: PUBLISHED, _id: { $ne: subProgram._id } },
-        populate: { path: 'steps', select: '_id type' },
+        populate: { path: 'steps', select: 'type' },
       })
       .lean({ virtuals: true });
 
