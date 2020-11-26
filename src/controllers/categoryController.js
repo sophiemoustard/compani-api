@@ -22,9 +22,7 @@ const create = async (req) => {
   try {
     await CategoryHelper.create(req.payload);
 
-    return {
-      message: translate[language].categoryCreated,
-    };
+    return { message: translate[language].categoryCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
