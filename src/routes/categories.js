@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, update } = require('../controllers/categoryController');
-const { checkCategoryNameExists } = require('./preHandlers/categories');
+const { checkCategoryNameExists, authorizeCategoryUpdate } = require('./preHandlers/categories');
 
 exports.plugin = {
   name: 'routes-categories',
@@ -43,7 +43,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkCategoryNameExists }],
+        pre: [{ method: authorizeCategoryUpdate }],
       },
       handler: update,
     });
