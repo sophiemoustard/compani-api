@@ -224,6 +224,10 @@ module.exports = {
     programCreated: 'Program created.',
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
+    /* Categories */
+    categoriesFound: 'Categories found.',
+    categoriesNotFound: 'Categories not found.',
+    categoryCreated: 'Category created.',
     /* SubPrograms */
     subProgramsFound: 'Sub-programs found.',
     subProgramFound: 'Sub-program found.',
@@ -484,6 +488,10 @@ module.exports = {
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
+    /* Categories */
+    categoriesFound: 'Catégories trouvées.',
+    categoriesNotFound: 'Catégories non trouvées.',
+    categoryCreated: 'Catégorie créée.',
     /* SubPrograms */
     subProgramUpdated: 'Sous-Programme mis à jour.',
     subProgramsFound: 'Sous-Programmes trouvés.',
