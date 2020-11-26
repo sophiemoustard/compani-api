@@ -57,10 +57,14 @@ const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
   const loggedUserCompany = get(credentials, 'company._id') || '';
   const userCompany = userFromDB.company ? userFromDB.company.toHexString() : payload.company;
 
-  const canLoggedUserUpdate = isLoggedUserVendor ||
-    (userCompany && loggedUserCompany && userCompany === loggedUserCompany.toHexString());
+  const sameCompany = userCompany && loggedUserCompany &&
+    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany.toHexString());
+  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
+  const canLoggedUserUpdate = isLoggedUserVendor || sameCompany || updatingOwnInfos;
+
   const isCompanyUpdated = payload.company && userFromDB.company &&
     payload.company !== userFromDB.company.toHexString();
+
   if (!canLoggedUserUpdate || isCompanyUpdated) throw Boom.forbidden();
 };
 
@@ -145,7 +149,7 @@ exports.authorizeUserUpdateWithoutCompany = (req) => {
   const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
   const loggedUserHasVendorRole = get(credentials, 'role.vendor', null);
 
-  return loggedUserHasVendorRole || addNewCompanyToTargetUser;
+  return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
 };
 
 exports.authorizeUserCreation = async (req) => {
