@@ -10,5 +10,6 @@ exports.checkCategoryNameExists = async (req) => {
 exports.authorizeCategoryUpdate = async (req) => {
   const category = await Category.findOne({ _id: req.params._id }).lean();
   if (!category) throw Boom.notFound();
+
   return this.checkCategoryNameExists(req);
 };

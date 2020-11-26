@@ -44,6 +44,17 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 400 if there is no name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/categories',
+        headers: { 'x-access-token': token },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -124,7 +135,6 @@ describe('CATEGORIES ROUTES - GET /categories', () => {
 describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'nouveau nom' };
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -137,14 +147,13 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         method: 'PUT',
         url: `/categories/${categoryId.toHexString()}`,
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: { name: 'nouveau nom' },
       });
 
       const categoryUpdated = await Category.findById(categoryId);
 
       expect(response.statusCode).toBe(200);
-      expect(categoryUpdated._id).toEqual(categoryId);
-      expect(categoryUpdated.name).toEqual(payload.name);
+      expect(categoryUpdated.name).toEqual('nouveau nom');
     });
 
     it('should return 404 if category does not exist', async () => {
@@ -152,7 +161,7 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         method: 'PUT',
         url: `/categories/${new ObjectID()}`,
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: { name: 'nouveau nom' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -168,6 +177,18 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 if payload has no name', async () => {
+      const categoryId = categoriesList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/categories/${categoryId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 

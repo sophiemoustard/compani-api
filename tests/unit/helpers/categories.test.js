@@ -57,13 +57,12 @@ describe('update', () => {
 
   it('should update name', async () => {
     const categoryId = new ObjectID();
-    const payload = { name: 'nouveau nom' };
 
     CategoryMock.expects('updateOne')
-      .withExactArgs({ _id: categoryId }, { $set: payload })
+      .withExactArgs({ _id: categoryId }, { $set: { name: 'nouveau nom' } })
       .returns({ _id: categoryId, name: 'nouveau nom' });
 
-    const result = await CategoryHelper.update(categoryId, payload);
+    const result = await CategoryHelper.update(categoryId, { name: 'nouveau nom' });
     expect(result).toMatchObject({ _id: categoryId, name: 'nouveau nom' });
   });
 });
