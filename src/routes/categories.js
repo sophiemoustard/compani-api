@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create } = require('../controllers/categoryController');
+const { list, create, update } = require('../controllers/categoryController');
 const { checkCategoryNameExists } = require('./preHandlers/categories');
 
 exports.plugin = {
@@ -30,6 +30,22 @@ exports.plugin = {
         pre: [{ method: checkCategoryNameExists }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            name: Joi.string(),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkCategoryNameExists }],
+      },
+      handler: update,
     });
   },
 };

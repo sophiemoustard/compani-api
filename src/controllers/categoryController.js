@@ -29,7 +29,19 @@ const create = async (req) => {
   }
 };
 
+const update = async (req) => {
+  try {
+    await CategoryHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].categoryUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
+  update,
 };
