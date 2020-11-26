@@ -31,7 +31,6 @@ const validate = async (decoded) => {
     const user = await User.findById(decoded._id, '_id identity role company local customers')
       .populate({ path: 'sector', options: { processingAuthentication: true } })
       .lean({ autopopulate: true });
-    if (!get(user, 'company') && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 
