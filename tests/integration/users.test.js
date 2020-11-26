@@ -34,7 +34,7 @@ const {
   authCompany,
   rolesList,
 } = require('./seed/authenticationSeed');
-const { trainer } = require('../seed/userSeed');
+const { trainer, userList: userListFromGlobalSeed } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const CloudinaryHelper = require('../../src/helpers/cloudinary');
@@ -120,16 +120,6 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should not create a user if missing parameters', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload: omit(userPayload, 'role'),
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return a 403 if customer is not from the same company', async () => {
       const payload = { ...userPayload, customers: [customerFromOtherCompany] };
       const response = await app.inject({
@@ -159,6 +149,20 @@ describe('POST /users', () => {
 
       expect(response.statusCode).toBe(409);
       expect(response.result.message).toBe('Cet email est déjà pris par un autre utilisateur.');
+    });
+
+    const missingParams = ['local.email'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+        const res = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: omit(userPayload, param),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(400);
+      });
     });
   });
 
@@ -235,6 +239,20 @@ describe('POST /users/authenticate', () => {
       method: 'POST',
       url: '/users/authenticate',
       payload: { email: 'kitty@alenvi.io', password: '123456!eR' },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data).toEqual(expect.objectContaining({
+      token: expect.any(String),
+      refreshToken: expect.any(String),
+      user: expect.objectContaining({ _id: expect.any(String) }),
+    }));
+  });
+
+  it('should authenticate a user without role or company', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: userListFromGlobalSeed[10].local,
     });
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
@@ -882,12 +900,12 @@ describe('GET /users/:id', () => {
   });
 
   describe('Other roles', () => {
-    it('should return user if it is me - auxiliary', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+    it('should return user if it is me - no role', async () => {
+      authToken = await getTokenByCredentials(userListFromGlobalSeed[10].local);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        url: `/users/${userListFromGlobalSeed[10]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1264,11 +1282,11 @@ describe('PUT /users/:id/', () => {
     beforeEach(populateDB);
 
     it('should update user if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+      authToken = await getTokenByCredentials(userListFromGlobalSeed[10].local);
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        url: `/users/${userListFromGlobalSeed[10]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
