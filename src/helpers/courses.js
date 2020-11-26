@@ -52,6 +52,11 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
+exports.getCourseProgress = (steps) => {
+  const progressSum = steps.map(step => step.progress).reduce((acc, value) => acc + value, 0);
+  return steps.length ? (progressSum / steps.length) : 0;
+};
+
 exports.listUserCourses = async (traineeId) => {
   const courses = await Course.find({ trainees: traineeId })
     .populate({
@@ -77,13 +82,19 @@ exports.listUserCourses = async (traineeId) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => ({
-    ...course,
-    subProgram: {
-      ...course.subProgram,
-      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    },
-  }));
+  return courses.map((course) => {
+    const steps = course.subProgram.steps
+      .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) }));
+
+    return {
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps,
+        progress: exports.getCourseProgress(steps),
+      },
+    };
+  });
 };
 
 exports.getCourse = async (course, loggedUser) => {
