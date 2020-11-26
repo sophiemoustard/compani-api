@@ -7,9 +7,9 @@ module.exports = {
     const query = this.getQuery();
     const isPopulate = get(query, '_id.$in', null);
     const hasCompany = (query.$and && query.$and.some(q => !!get(q, 'company', null))) || query.company;
-    const { isVendorUser, processingAuthentication } = this.getOptions();
+    const { isVendorUser, requestingOwnInfos } = this.getOptions();
 
-    if (!hasCompany && !isPopulate && !isVendorUser && !processingAuthentication) next(Boom.badRequest());
+    if (!hasCompany && !isPopulate && !isVendorUser && !requestingOwnInfos) next(Boom.badRequest());
     next();
   },
   validateAggregation(next) {

@@ -29,7 +29,7 @@ const validate = async (decoded) => {
   try {
     if (!decoded._id) throw new Error('No id present in token');
     const user = await User.findById(decoded._id, '_id identity role company local customers')
-      .populate({ path: 'sector', options: { processingAuthentication: true } })
+      .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
 
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
