@@ -157,7 +157,7 @@ describe('updatedSubProgram', () => {
       );
     });
 
-    it('if subProgram is strictly e-learning and payload has accessCompany, it should create course with accessRules',
+    it('should create course with restricted access if subProgram is strictly e-learning and payload has accessCompany',
       async () => {
         const payload = { status: 'published', accessCompany: new ObjectID() };
         const subProgram = {

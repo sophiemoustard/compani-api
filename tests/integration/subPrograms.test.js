@@ -66,7 +66,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should set blended subProgram as published ', async () => {
+    it('should publish blended subProgram', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -84,7 +84,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, status: 'published' }));
     });
 
-    it('should set strictly e-learning subProgram as published, and create 100% e-learning course', async () => {
+    it('should publish strictly e-learning subProgram, and create 100% e-learning course', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -103,7 +103,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
     });
 
-    it('should set strictly e-learning subProgram as published, and create 100% e-learning course with accessRules',
+    it('should publish strictly e-learning subProgram, and create 100% e-learning course with accessRules',
       async () => {
         const payload = { status: 'published', accessCompany: authCompany._id };
         const response = await app.inject({
@@ -123,7 +123,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
       });
 
-    it('should return a 422 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
+    it('should return a 400 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
       async () => {
         const payload = { status: 'published', accessCompany: new ObjectID() };
         const response = await app.inject({
@@ -133,7 +133,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        expect(response.statusCode).toBe(422);
+        expect(response.statusCode).toBe(400);
       });
 
     it('should return 400 if setting status to draft ', async () => {
