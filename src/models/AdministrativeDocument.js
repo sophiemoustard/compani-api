@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const AdministrativeDocumentSchema = mongoose.Schema({
@@ -10,7 +10,6 @@ const AdministrativeDocumentSchema = mongoose.Schema({
 }, { timestamps: true });
 
 AdministrativeDocumentSchema.pre('find', validateQuery);
-AdministrativeDocumentSchema.pre('validate', validatePayload);
 AdministrativeDocumentSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('AdministrativeDocument', AdministrativeDocumentSchema);

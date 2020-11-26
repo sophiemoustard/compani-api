@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const SectorHistory = require('./SectorHistory');
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const SectorSchema = mongoose.Schema({
   name: String,
-  company: mongoose.Schema.Types.ObjectId,
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, {
   timestamps: true,
 });
@@ -18,7 +18,6 @@ const hasAuxiliaries = async (docs) => {
 };
 
 SectorSchema.pre('find', validateQuery);
-SectorSchema.pre('validate', validatePayload);
 SectorSchema.pre('aggregate', validateAggregation);
 SectorSchema.post('find', hasAuxiliaries);
 

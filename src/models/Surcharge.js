@@ -1,23 +1,22 @@
 const mongoose = require('mongoose');
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
-  name: String,
-  saturday: Number,
-  sunday: Number,
-  publicHoliday: Number,
-  twentyFifthOfDecember: Number,
-  firstOfMay: Number,
-  evening: Number,
-  eveningStartTime: String,
-  eveningEndTime: String,
-  custom: Number,
-  customStartTime: String,
-  customEndTime: String,
-  company: mongoose.Schema.Types.ObjectId,
+  name: { type: String },
+  saturday: { type: Number },
+  sunday: { type: Number },
+  publicHoliday: { type: Number },
+  twentyFifthOfDecember: { type: Number },
+  firstOfMay: { type: Number },
+  evening: { type: Number },
+  eveningStartTime: { type: String },
+  eveningEndTime: { type: String },
+  custom: { type: Number },
+  customStartTime: { type: String },
+  customEndTime: { type: String },
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
-SurchargeSchema.pre('validate', validatePayload);
 SurchargeSchema.pre('find', validateQuery);
 SurchargeSchema.pre('aggregate', validateAggregation);
 

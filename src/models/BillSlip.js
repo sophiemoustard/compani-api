@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const BillSlipSchema = mongoose.Schema({
   thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer', required: true },
@@ -8,7 +8,6 @@ const BillSlipSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
-BillSlipSchema.pre('validate', validatePayload);
 BillSlipSchema.pre('find', validateQuery);
 BillSlipSchema.pre('aggregate', validateAggregation);
 

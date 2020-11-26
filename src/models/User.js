@@ -17,7 +17,7 @@ const {
   BLENDED,
   STRICTLY_E_LEARNING,
 } = require('../helpers/constants');
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
@@ -264,10 +264,6 @@ function populateSectors(docs, next) {
   return next();
 }
 
-async function validateUserPayload(next) {
-  validatePayload.call(this, next, !!this.role.vendor);
-}
-
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
   localField: '_id',
@@ -309,7 +305,6 @@ UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('updateOne', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
-UserSchema.pre('validate', validateUserPayload);
 UserSchema.pre('aggregate', validateAggregation);
 
 UserSchema.post('findOne', populateSector);
