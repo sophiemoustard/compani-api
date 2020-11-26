@@ -52,7 +52,7 @@ const validate = async (decoded) => {
       email: get(user, 'local.email', null),
       _id: decoded._id,
       identity: user.identity || null,
-      company: user.company,
+      company: user.company || null,
       sector: user.sector ? user.sector.toHexString() : null,
       role: pick(user.role, ['client.name', 'vendor.name']),
       scope,

@@ -469,7 +469,7 @@ describe('getUser', () => {
   it('should return user without populating role', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { name: 'helper', rights: [] } };
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
     userMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
@@ -482,7 +482,63 @@ describe('getUser', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
-        options: { isVendorUser: false },
+        options: { isVendorUser: false, requestingOwnInfos: false },
+      })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns(user);
+
+    await UsersHelper.getUser(userId, credentials);
+
+    userMock.verify();
+  });
+
+  it('should return user populating role because isVendorUser', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
+    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID(), role: { vendor: 'trainer' } };
+    userMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'contracts',
+        select: '-__v -createdAt -updatedAt',
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: true, requestingOwnInfos: false },
+      })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns(user);
+
+    await UsersHelper.getUser(userId, credentials);
+
+    userMock.verify();
+  });
+
+  it('should return user populating role because requestingOwnInfos', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
+    const credentials = { company: { _id: new ObjectID() }, _id: userId };
+    userMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'contracts',
+        select: '-__v -createdAt -updatedAt',
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        options: { isVendorUser: false, requestingOwnInfos: true },
       })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
@@ -497,7 +553,12 @@ describe('getUser', () => {
   it('should throw error if user not found', async () => {
     try {
       const userId = new ObjectID();
-      const credentials = { company: { _id: new ObjectID() }, role: { vendor: { _id: new ObjectID() } } };
+      const credentials = {
+        company: { _id: new ObjectID() },
+        role: { vendor: { _id: new ObjectID() } },
+        _id: new ObjectID(),
+      };
+
       userMock.expects('findOne')
         .withExactArgs({ _id: userId })
         .chain('populate')
@@ -510,7 +571,7 @@ describe('getUser', () => {
           path: 'sector',
           select: '_id sector',
           match: { company: credentials.company._id },
-          options: { isVendorUser: true },
+          options: { isVendorUser: true, requestingOwnInfos: false },
         })
         .chain('lean')
         .withExactArgs({ autopopulate: true, virtuals: true })
