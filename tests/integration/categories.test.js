@@ -150,7 +150,7 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         payload: { name: 'nouveau nom' },
       });
 
-      const categoryUpdated = await Category.findById(categoryId);
+      const categoryUpdated = await Category.findById(categoryId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(categoryUpdated.name).toEqual('nouveau nom');

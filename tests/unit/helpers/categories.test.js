@@ -47,22 +47,20 @@ describe('list', () => {
 });
 
 describe('update', () => {
-  let CategoryMock;
+  let updateOne;
   beforeEach(() => {
-    CategoryMock = sinon.mock(Category);
+    updateOne = sinon.stub(Category, 'updateOne');
   });
   afterEach(() => {
-    CategoryMock.restore();
+    updateOne.restore();
   });
 
   it('should update name', async () => {
-    const categoryId = new ObjectID();
+    const category = { _id: new ObjectID(), name: 'jour' };
+    const payload = { name: 'nuit' };
 
-    CategoryMock.expects('updateOne')
-      .withExactArgs({ _id: categoryId }, { $set: { name: 'nouveau nom' } })
-      .returns({ _id: categoryId, name: 'nouveau nom' });
+    await CategoryHelper.update(category._id, payload);
 
-    const result = await CategoryHelper.update(categoryId, { name: 'nouveau nom' });
-    expect(result).toMatchObject({ _id: categoryId, name: 'nouveau nom' });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: category._id }, { $set: payload });
   });
 });
