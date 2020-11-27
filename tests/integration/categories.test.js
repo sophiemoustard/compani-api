@@ -15,19 +15,19 @@ describe('NODE ENV', () => {
 });
 
 describe('CATEGORIES ROUTES - POST /categories', () => {
-  let token;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should create a category', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/categories',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
         payload: { name: 'ma nouvelle catégorie' },
       });
 
@@ -38,7 +38,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/categories',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
         payload: { name: 'ce nom de catégorie est déja pris!' },
       });
 
@@ -49,7 +49,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/categories',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
         payload: {},
       });
 
@@ -70,11 +70,11 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/categories',
-          headers: { 'x-access-token': token },
+          headers: { 'x-access-token': authToken },
           payload: { name: `ma nouvelle catégorie en tant que ${role.name}` },
         });
 
@@ -210,6 +210,66 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload: { name: `mon nouveau nom de catégorie en tant que ${role.name}` },
+          url: `/categories/${categoryId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete category', async () => {
+      const categoryId = categoriesList[0]._id;
+      const categoriesNumber = await Category.count();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/categories/${categoryId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await Category.count()).toEqual(categoriesNumber - 1);
+    });
+
+    it('should return a 404 if category does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/categories/${new ObjectID().toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const categoryId = categoriesList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
           url: `/categories/${categoryId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
