@@ -104,7 +104,7 @@ const checkCustomers = async (userCompany, payload) => {
 };
 
 const checkUpdateRestrictions = (payload) => {
-  const allowedUpdateKeys = ['firstname', 'lastname', 'phone', 'email'];
+  const allowedUpdateKeys = ['firstname', 'lastname', 'phone', 'email', 'link', 'publicId'];
   const payloadKeys = (Object.values(payload).map(value => Object.keys(value))).flat();
   if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
 };

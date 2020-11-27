@@ -16,6 +16,7 @@ const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
+const GCloudStorageHelper = require('./gCloudStorage');
 const AuthenticationHelper = require('./authentication');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
@@ -300,6 +301,13 @@ exports.removeHelper = async (user) => {
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
 
   await User.findOneAndUpdate({ _id: user._id }, payload);
+};
+
+exports.uploadImage = async (userId, payload) => {
+  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
+  const picture = await GCloudStorageHelper.uploadUserMedia({ fileName, file: payload.file });
+
+  await User.updateOne({ _id: userId }, { $set: flat({ picture }) });
 };
 
 exports.createDriveFolder = async (user) => {

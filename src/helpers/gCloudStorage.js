@@ -6,7 +6,9 @@ const { UPLOAD_DATE_FORMAT } = require('./constants');
 exports.formatFileName = fileName =>
   `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
 
-exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_BUCKET_NAME);
+exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_PROGRAM_BUCKET);
+
+exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_USER_BUCKET);
 
 const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
   const { fileName, file } = payload;

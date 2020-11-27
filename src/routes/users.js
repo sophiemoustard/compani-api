@@ -456,7 +456,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/cloudinary/upload',
+      path: '/{_id}/upload',
       handler: uploadImage,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
@@ -464,7 +464,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
-            picture: Joi.any().required(),
+            file: Joi.any().required(),
           }),
         },
         payload: formDataPayload(),
