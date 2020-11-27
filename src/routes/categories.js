@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update } = require('../controllers/categoryController');
+const { list, create, update, deleteCategory } = require('../controllers/categoryController');
 const { checkCategoryNameExists, authorizeCategoryUpdate } = require('./preHandlers/categories');
 
 exports.plugin = {
@@ -46,6 +46,18 @@ exports.plugin = {
         pre: [{ method: authorizeCategoryUpdate }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+      },
+      handler: deleteCategory,
     });
   },
 };
