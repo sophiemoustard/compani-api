@@ -68,7 +68,7 @@ describe('update', () => {
 describe('delete', () => {
   let deleteCategory;
   beforeEach(() => {
-    deleteCategory = sinon.stub(Category, 'remove');
+    deleteCategory = sinon.stub(Category, 'deleteOne');
   });
   afterEach(() => {
     deleteCategory.restore();

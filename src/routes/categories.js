@@ -43,7 +43,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkCategoryExists }],
+        pre: [{ method: checkCategoryNameExists }, { method: checkCategoryExists }],
       },
       handler: update,
     });
