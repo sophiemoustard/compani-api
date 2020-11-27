@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
+const { CLIENT_ADMIN, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
