@@ -228,6 +228,7 @@ module.exports = {
     categoriesFound: 'Categories found.',
     categoriesNotFound: 'Categories not found.',
     categoryCreated: 'Category created.',
+    categoryUpdated: 'Category updated.',
     /* SubPrograms */
     subProgramsFound: 'Sub-programs found.',
     subProgramFound: 'Sub-program found.',
@@ -492,6 +493,7 @@ module.exports = {
     categoriesFound: 'Catégories trouvées.',
     categoriesNotFound: 'Catégories non trouvées.',
     categoryCreated: 'Catégorie créée.',
+    categoryUpdated: 'Catégorie mise à jour.',
     /* SubPrograms */
     subProgramUpdated: 'Sous-Programme mis à jour.',
     subProgramsFound: 'Sous-Programmes trouvés.',

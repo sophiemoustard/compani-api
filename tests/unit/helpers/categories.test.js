@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const CategoryHelper = require('../../../src/helpers/categories');
 
@@ -42,5 +43,24 @@ describe('list', () => {
 
     const result = await CategoryHelper.list();
     expect(result).toMatchObject(categoriesList);
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Category, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update name', async () => {
+    const category = { _id: new ObjectID(), name: 'jour' };
+    const payload = { name: 'nuit' };
+
+    await CategoryHelper.update(category._id, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: category._id }, { $set: payload });
   });
 });
