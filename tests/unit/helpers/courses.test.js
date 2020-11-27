@@ -377,6 +377,8 @@ describe('getCourse', () => {
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'accessRules', select: 'name' })
       .chain('lean')
       .once()
       .returns(course);
