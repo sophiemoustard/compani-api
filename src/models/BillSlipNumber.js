@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
-const {
-  validatePayload,
-  validateQuery,
-  validateAggregation,
-  validateUpdateOne,
-} = require('./preHooks/validate');
+const { validateQuery, validateAggregation, validateUpdateOne } = require('./preHooks/validate');
 
 const BillSlipNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -12,7 +7,6 @@ const BillSlipNumberSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
-BillSlipNumberSchema.pre('validate', validatePayload);
 BillSlipNumberSchema.pre('find', validateQuery);
 BillSlipNumberSchema.pre('aggregate', validateAggregation);
 BillSlipNumberSchema.pre('updateOne', validateUpdateOne);

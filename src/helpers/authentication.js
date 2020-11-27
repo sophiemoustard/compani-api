@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, TRAINER, CLIENT } = require('./constants');
+const { CLIENT_ADMIN, CLIENT } = require('./constants');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
@@ -29,9 +29,8 @@ const validate = async (decoded) => {
   try {
     if (!decoded._id) throw new Error('No id present in token');
     const user = await User.findById(decoded._id, '_id identity role company local customers')
-      .populate({ path: 'sector', options: { processingAuthentication: true } })
+      .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
-    if (!get(user, 'company') && get(user, 'role.vendor.name') !== TRAINER) return { isValid: false };
 
     const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
 
@@ -53,7 +52,7 @@ const validate = async (decoded) => {
       email: get(user, 'local.email', null),
       _id: decoded._id,
       identity: user.identity || null,
-      company: user.company,
+      company: user.company || null,
       sector: user.sector ? user.sector.toHexString() : null,
       role: pick(user.role, ['client.name', 'vendor.name']),
       scope,

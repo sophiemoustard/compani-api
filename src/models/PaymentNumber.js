@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
-const {
-  validatePayload,
-  validateQuery,
-  validateAggregation,
-  validateUpdateOne,
-} = require('./preHooks/validate');
+const { validateQuery, validateAggregation, validateUpdateOne } = require('./preHooks/validate');
 const { REFUND, PAYMENT } = require('../helpers/constants');
 
 const PaymentNumberSchema = mongoose.Schema({
@@ -14,7 +9,6 @@ const PaymentNumberSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
-PaymentNumberSchema.pre('validate', validatePayload);
 PaymentNumberSchema.pre('find', validateQuery);
 PaymentNumberSchema.pre('aggregate', validateAggregation);
 PaymentNumberSchema.pre('updateOne', validateUpdateOne);
