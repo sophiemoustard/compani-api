@@ -6,10 +6,12 @@ const { UPLOAD_DATE_FORMAT } = require('./constants');
 exports.formatFileName = fileName =>
   `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
 
-exports.uploadMedia = async payload => new Promise((resolve, reject) => {
+exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_BUCKET_NAME);
+
+const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
   const { fileName, file } = payload;
 
-  const bucket = getStorage().bucket(process.env.GCS_BUCKET_NAME);
+  const bucket = getStorage().bucket(bucketName);
   const stream = bucket.file(fileName)
     .createWriteStream({ metadata: { contentType: get(file, 'hapi.headers.content-type') } })
     .on('finish', () => {

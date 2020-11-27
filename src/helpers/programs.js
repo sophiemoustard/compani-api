@@ -74,7 +74,7 @@ exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: p
 
 exports.uploadImage = async (programId, payload) => {
   const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
-  const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
+  const imageUploaded = await GCloudStorageHelper.uploadProgramMedia({ fileName, file: payload.file });
 
   await Program.updateOne({ _id: programId }, { $set: flat({ image: imageUploaded }) });
 };

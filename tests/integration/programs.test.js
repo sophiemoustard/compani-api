@@ -570,7 +570,7 @@ describe('POST /programs/:id/upload', () => {
   const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
     form = generateFormData(docPayload);
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
     uploadMedia.restore();

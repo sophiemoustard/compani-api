@@ -224,7 +224,7 @@ describe('uploadImage', () => {
   beforeEach(() => {
     updateOne = sinon.stub(Program, 'updateOne');
     formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();

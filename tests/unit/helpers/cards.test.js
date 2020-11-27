@@ -138,7 +138,7 @@ describe('uploadMedia', () => {
   let formatFileName;
   beforeEach(() => {
     updateOneStub = sinon.stub(Card, 'updateOne');
-    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
     formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
   });
   afterEach(() => {

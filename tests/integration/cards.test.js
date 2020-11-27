@@ -758,7 +758,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   const docPayload = { fileName: 'title_text_media', file: 'true' };
   beforeEach(() => {
     form = generateFormData(docPayload);
-    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
     momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
