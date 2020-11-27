@@ -112,6 +112,7 @@ exports.getCourse = async (course, loggedUser) => {
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'accessRules', select: 'name' })
     .lean();
 };
 
