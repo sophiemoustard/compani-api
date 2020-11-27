@@ -22,6 +22,8 @@ const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
+const { E_LEARNING, ON_SITE } = require('../../../src/helpers/constants');
+
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -118,16 +120,106 @@ describe('list', () => {
   });
 });
 
-describe('listUserCourses', () => {
-  let CourseMock;
+describe('getCourseProgress', () => {
+  it('should get progress for course', async () => {
+    const steps = [{
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+      progress: 1,
+    },
+    {
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: 1,
+    }];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no steps', async () => {
+    const steps = [];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toBe(0);
+  });
+});
+
+describe('formatCourseWithProgress', () => {
   let getProgress;
+  let getCourseProgress;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
     getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
-    CourseMock.restore();
+    getCourseProgress.restore();
     getProgress.restore();
+  });
+  it('should format course', async () => {
+    const stepId = new ObjectID();
+    const course = {
+      misc: 'name',
+      _id: new ObjectID(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectID(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      ],
+    };
+    getProgress.returns(1);
+    getCourseProgress.returns(1);
+
+    const result = await CourseHelper.formatCourseWithProgress(course);
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+    sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
+      { ...course.subProgram.steps[0], progress: 1 },
+      { ...course.subProgram.steps[1], progress: 1 },
+    ]);
+  });
+});
+
+describe('listUserCourses', () => {
+  let CourseMock;
+  let formatCourseWithProgress;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatCourseWithProgress.restore();
   });
 
   it('should return courses', async () => {
@@ -213,18 +305,33 @@ describe('listUserCourses', () => {
       .withExactArgs('_id misc')
       .chain('lean')
       .returns(coursesList);
-    getProgress.returns(1);
+    formatCourseWithProgress.onCall(0).returns({
+      ...coursesList[0],
+      subProgram: {
+        ...coursesList[0].subProgram,
+        steps: coursesList[0].subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
+    formatCourseWithProgress.onCall(1).returns({
+      ...coursesList[1],
+      subProgram: {
+        ...coursesList[1].subProgram,
+        steps: coursesList[1].subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
 
     const result = await CourseHelper.listUserCourses('1234567890abcdef12345678');
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
-      } })));
-    sinon.assert.calledWithExactly(getProgress.getCall(0), coursesList[0].subProgram.steps[0], coursesList[0].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), coursesList[0].subProgram.steps[1], coursesList[0].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(2), coursesList[1].subProgram.steps[0], coursesList[1].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(3), coursesList[1].subProgram.steps[1], coursesList[1].slots);
+      },
+      progress: 1 })));
+
+    sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
+    sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
   });
 });
 
@@ -526,14 +633,14 @@ describe('getCourseFollowUp', () => {
 
 describe('getTraineeCourse', () => {
   let CourseMock;
-  let getProgress;
+  let formatCourseWithProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
   });
   afterEach(() => {
     CourseMock.restore();
-    getProgress.restore();
+    formatCourseWithProgress.restore();
   });
 
   it('should return courses', async () => {
@@ -593,7 +700,14 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
-    getProgress.returns(1);
+    formatCourseWithProgress.returns({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
 
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
     expect(result).toMatchObject({
@@ -602,9 +716,10 @@ describe('getTraineeCourse', () => {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       },
+      progress: 1,
     });
-    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+
+    sinon.assert.calledWithExactly(formatCourseWithProgress, course);
   });
 });
 

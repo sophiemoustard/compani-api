@@ -44,6 +44,23 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
+exports.getCourseProgress = (steps) => {
+  if (!steps || !steps.length) return 0;
+
+  return steps.map(step => step.progress).reduce((acc, value) => acc + value, 0) / steps.length;
+};
+
+exports.formatCourseWithProgress = (course) => {
+  const steps = course.subProgram.steps
+    .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) }));
+
+  return {
+    ...course,
+    subProgram: { ...course.subProgram, steps },
+    progress: exports.getCourseProgress(steps),
+  };
+};
+
 exports.listUserCourses = async (traineeId) => {
   const courses = await Course.find({ trainees: traineeId }, { format: 1 })
     .populate({
@@ -69,13 +86,7 @@ exports.listUserCourses = async (traineeId) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => ({
-    ...course,
-    subProgram: {
-      ...course.subProgram,
-      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    },
-  }));
+  return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
 exports.getCourse = async (course, loggedUser) => {
@@ -219,13 +230,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return {
-    ...course,
-    subProgram: {
-      ...course.subProgram,
-      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    },
-  };
+  return exports.formatCourseWithProgress(course);
 };
 
 exports.updateCourse = async (courseId, payload) =>
