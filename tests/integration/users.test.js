@@ -248,12 +248,43 @@ describe('POST /users/authenticate', () => {
     }));
   });
 
-  it('should authenticate a user without role or company', async () => {
+  it('should authenticate a user without company', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: userListFromGlobalSeed[8].local,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data).toEqual(expect.objectContaining({
+      token: expect.any(String),
+      refreshToken: expect.any(String),
+      user: expect.objectContaining({ _id: expect.any(String) }),
+    }));
+  });
+
+  it('should authenticate a user without role', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
       payload: userListFromGlobalSeed[10].local,
     });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data).toEqual(expect.objectContaining({
+      token: expect.any(String),
+      refreshToken: expect.any(String),
+      user: expect.objectContaining({ _id: expect.any(String) }),
+    }));
+  });
+
+  it('should authenticate a user without role or company', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: userListFromGlobalSeed[11].local,
+    });
+
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
@@ -912,12 +943,12 @@ describe('GET /users/:id', () => {
   });
 
   describe('Other roles', () => {
-    it('should return user if it is me - no role', async () => {
-      authToken = await getTokenByCredentials(userListFromGlobalSeed[10].local);
+    it('should return user if it is me - no role no company', async () => {
+      authToken = await getTokenByCredentials(userListFromGlobalSeed[11].local);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/users/${userListFromGlobalSeed[10]._id.toHexString()}`,
+        url: `/users/${userListFromGlobalSeed[11]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1293,12 +1324,12 @@ describe('PUT /users/:id/', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
 
-    it('should update user if it is me', async () => {
-      authToken = await getTokenByCredentials(userListFromGlobalSeed[10].local);
+    it('should update user if it is me - no role no company', async () => {
+      authToken = await getTokenByCredentials(userListFromGlobalSeed[11].local);
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userListFromGlobalSeed[10]._id.toHexString()}`,
+        url: `/users/${userListFromGlobalSeed[11]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });

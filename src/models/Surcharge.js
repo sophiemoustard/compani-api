@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
-  name: { type: String },
+  name: { type: String, required: true },
   saturday: { type: Number },
   sunday: { type: Number },
   publicHoliday: { type: Number },
