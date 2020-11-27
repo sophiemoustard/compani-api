@@ -2,8 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update } = require('../controllers/categoryController');
-const { checkCategoryNameExists, authorizeCategoryUpdate } = require('./preHandlers/categories');
+const { list, create, update, deleteCategory } = require('../controllers/categoryController');
+const { checkCategoryNameExists, checkCategoryExists } = require('./preHandlers/categories');
 
 exports.plugin = {
   name: 'routes-categories',
@@ -43,9 +43,22 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCategoryUpdate }],
+        pre: [{ method: checkCategoryNameExists }, { method: checkCategoryExists }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkCategoryExists }],
+      },
+      handler: deleteCategory,
     });
   },
 };

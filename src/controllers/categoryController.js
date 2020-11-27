@@ -40,8 +40,20 @@ const update = async (req) => {
   }
 };
 
+const deleteCategory = async (req) => {
+  try {
+    await CategoryHelper.delete(req.params._id);
+
+    return { message: translate[language].categoryDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
   update,
+  deleteCategory,
 };

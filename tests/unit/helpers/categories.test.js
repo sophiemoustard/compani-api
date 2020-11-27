@@ -17,8 +17,8 @@ describe('create', () => {
 
   it('should create a category', async () => {
     const newCategory = { name: 'ma catégorie' };
-
     const result = await CategoryHelper.create(newCategory);
+
     expect(result).toMatchObject(newCategory);
   });
 });
@@ -42,6 +42,7 @@ describe('list', () => {
       .returns(categoriesList);
 
     const result = await CategoryHelper.list();
+
     expect(result).toMatchObject(categoriesList);
   });
 });
@@ -58,9 +59,25 @@ describe('update', () => {
   it('should update name', async () => {
     const category = { _id: new ObjectID(), name: 'jour' };
     const payload = { name: 'nuit' };
-
     await CategoryHelper.update(category._id, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: category._id }, { $set: payload });
+  });
+});
+
+describe('delete', () => {
+  let deleteCategory;
+  beforeEach(() => {
+    deleteCategory = sinon.stub(Category, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteCategory.restore();
+  });
+
+  it('should remove a category', async () => {
+    const categoryId = new ObjectID();
+    await CategoryHelper.delete(categoryId);
+
+    sinon.assert.calledWithExactly(deleteCategory, { _id: categoryId });
   });
 });

@@ -2,14 +2,11 @@ const Boom = require('@hapi/boom');
 const Category = require('../../models/Category');
 
 exports.checkCategoryNameExists = async (req) => {
-  const existingCourse = await Category.countDocuments({ name: req.payload.name.toLowerCase() });
-
-  return existingCourse ? Boom.conflict() : null;
+  const existingCategoryName = await Category.countDocuments({ name: req.payload.name.toLowerCase() });
+  return existingCategoryName ? Boom.conflict() : null;
 };
 
-exports.authorizeCategoryUpdate = async (req) => {
-  const category = await Category.findOne({ _id: req.params._id }).lean();
-  if (!category) throw Boom.notFound();
-
-  return this.checkCategoryNameExists(req);
+exports.checkCategoryExists = async (req) => {
+  const existingCategory = await Category.countDocuments({ _id: req.params._id });
+  return !existingCategory ? Boom.notFound() : null;
 };
