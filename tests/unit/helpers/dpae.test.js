@@ -9,6 +9,7 @@ const Pay = require('../../../src/models/Pay');
 const Contract = require('../../../src/models/Contract');
 const DpaeHelper = require('../../../src/helpers/dpae');
 const FileHelper = require('../../../src/helpers/file');
+const ContractHelper = require('../../../src/helpers/contracts');
 const HistoryExportHelper = require('../../../src/helpers/historyExport');
 const {
   PAID_LEAVE,
@@ -271,45 +272,40 @@ describe('exportIdentification', () => {
 describe('exportsContractVersions', () => {
   let ContractMock;
   let exportToTxt;
+  let getQuery;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+    getQuery = sinon.stub(ContractHelper, 'getQuery');
   });
   afterEach(() => {
     ContractMock.restore();
     exportToTxt.restore();
+    getQuery.restore();
   });
 
   it('should export contract version', async () => {
-    const query = { endDate: '2020-11-01T22:00:00' };
+    const query = { startDate: '2020-10-31T22:00:00', endDate: '2020-11-30T22:00:00' };
     const companyId = '1234567890';
     const versions = [{
       user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
       serialNumber: 'contractNumber',
       versions: [
-        { weeklyHours: 18, startDate: '2020-09-01T22:00:00' },
-        { weeklyHours: 24, startDate: '2020-11-01T22:00:00' },
+        { weeklyHours: 18, startDate: '2020-09-01T22:00:00', endDate: '2020-10-01T21:59:59' },
+        { weeklyHours: 24, startDate: '2020-10-01T22:00:00', endDate: '2020-11-09T21:59:59' },
         { weeklyHours: 18, startDate: '2020-11-10T22:00:00' },
       ],
     }, {
       user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
       serialNumber: 'titotu',
       versions: [
-        { weeklyHours: 12, startDate: '2020-07-01T22:00:00' },
-        { weeklyHours: 6, startDate: '2020-10-01T22:00:00' },
+        { weeklyHours: 12, startDate: '2020-07-01T22:00:00', endDate: '2020-11-02T21:59:59' },
+        { weeklyHours: 6, startDate: '2020-11-02T22:00:00' },
       ],
     }];
+    getQuery.returns([{ endDate: null }, { endDate: { $exists: false } }]);
     ContractMock.expects('find')
-      .withExactArgs({
-        startDate: { $lte: moment(query.endDate).endOf('d').toDate() },
-        $or: [
-          { endDate: null },
-          { endDate: { $exists: false } },
-          { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } },
-        ],
-        company: companyId,
-        versions: { $gte: { $size: 2 } },
-      })
+      .withExactArgs({ $and: [{ endDate: null }, { endDate: { $exists: false } }] })
       .chain('populate')
       .withExactArgs({ path: 'user', select: 'serialNumber identity' })
       .chain('lean')
@@ -320,13 +316,13 @@ describe('exportsContractVersions', () => {
     const result = await DpaeHelper.exportContractVersions(query, { company: { _id: companyId } });
 
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getQuery, query, companyId);
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
         ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
-        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '01/11/2020', 104],
         [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
-        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '01/10/2020', 26],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26],
       ]
     );
   });

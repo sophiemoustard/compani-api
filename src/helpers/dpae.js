@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const moment = require('moment');
+const { pick } = require('lodash');
 const FileHelper = require('./file');
 const {
   MISTER,
@@ -19,11 +20,12 @@ const {
   HOURLY,
 } = require('./constants');
 const HistoryExportHelper = require('./historyExport');
+const ContractHelper = require('./contracts');
 const User = require('../models/User');
 const Event = require('../models/Event');
 const Contract = require('../models/Contract');
-const { bicBankMatching } = require('../data/bicBankMatching');
 const Pay = require('../models/Pay');
+const { bicBankMatching } = require('../data/bicBankMatching');
 
 const FS_BQ_MODE = 'V'; // Virement
 const BQ_DOM_MAX_LENGTH = 25;
@@ -156,31 +158,27 @@ exports.exportIdentification = async (query, credentials) => {
 };
 
 exports.exportContractVersions = async (query, credentials) => {
-  const endDate = moment(query.endDate).endOf('d').toDate();
-  const companyId = get(credentials, 'company._id') || '';
+  const rules = ContractHelper.getQuery(query, get(credentials, 'company._id') || '');
 
-  const contractQuery = {
-    startDate: { $lte: endDate },
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
-    company: companyId,
-    versions: { $gte: { $size: 2 } },
-  };
-  const contracts = await Contract.find(contractQuery)
+  const contracts = await Contract.find({ $and: rules })
     .populate({ path: 'user', select: 'serialNumber identity' })
     .lean();
+  const filteredVersions = contracts
+    .map(c => c.versions
+      .filter(v => moment(v.startDate).isBetween(query.startDate, query.endDate, 'day', '[]'))
+      .map(v => ({ ...v, ...pick(c, ['user', 'serialNumber']) })))
+    .flat();
 
   const data = [];
-  for (const contract of contracts) {
-    for (let i = 1; i < contract.versions.length; i++) {
-      data.push({
-        ap_soc: process.env.AP_SOC,
-        ap_matr: get(contract, 'user.serialNumber') || '',
-        fs_nom: get(contract, 'user.identity.lastname') || '',
-        ap_contrat: contract.serialNumber || '',
-        fs_date_avenant: moment(contract.versions[i].startDate).format('DD/MM/YYYY'),
-        fs_horaire: contract.versions[i].weeklyHours * WEEKS_PER_MONTH,
-      });
-    }
+  for (const version of filteredVersions) {
+    data.push({
+      ap_soc: process.env.AP_SOC,
+      ap_matr: get(version, 'user.serialNumber') || '',
+      fs_nom: get(version, 'user.identity.lastname') || '',
+      ap_contrat: version.serialNumber || '',
+      fs_date_avenant: moment(version.startDate).format('DD/MM/YYYY'),
+      fs_horaire: version.weeklyHours * WEEKS_PER_MONTH,
+    });
   }
 
   return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
