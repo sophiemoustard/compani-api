@@ -28,6 +28,8 @@ const Contract = require('../models/Contract');
 const { bicBankMatching } = require('../data/bicBankMatching');
 
 const FS_BQ_MODE = 'V'; // Virement
+const BQ_DOM_MAX_LENGTH = 25;
+const DEFAULT_BQ_DOM = 'banque';
 const FS_EMPLOI = 'Auxiliaire d\'envie';
 const FS_EMPLOI_INSEE = '563b'; // Aides à domicile, aides ménagères, travailleuses familiales
 const FS_NATC = '00201:0:0:0:0:0'; // Service à la personne ou aide à domicile - Service à la personne
@@ -92,9 +94,10 @@ exports.formatIdentificationInfo = (auxiliary) => {
 
 exports.formatBankingInfo = (auxiliary) => {
   const bic = get(auxiliary, 'administrative.payment.rib.bic') || '';
+  const bqDom = bicBankMatching[bic.substring(0, 8)];
 
   return {
-    fs_bq_dom: bicBankMatching[bic.substring(0, 8)] || '',
+    fs_bq_dom: bqDom ? bqDom.substring(0, BQ_DOM_MAX_LENGTH).trim() : DEFAULT_BQ_DOM,
     fs_bq_iban: get(auxiliary, 'administrative.payment.rib.iban') || '',
     fs_bq_bic: bic,
     fs_bq_mode: FS_BQ_MODE,

@@ -108,15 +108,15 @@ describe('formatIdentificationInfo', () => {
 describe('formatBankingInfo', () => {
   it('should format banking info', async () => {
     const auxiliary = {
-      administrative: { payment: { rib: { bic: 'AUDIFRPP', iban: 'raboul le fric' } } },
+      administrative: { payment: { rib: { bic: 'BATIFRP1', iban: 'raboul le fric' } } },
     };
 
     const result = await DpaeHelper.formatBankingInfo(auxiliary);
 
     expect(result).toEqual({
-      fs_bq_dom: 'BANK AUDI FRANCE',
+      fs_bq_dom: 'BANQUE DU BAT ET DES TRAV',
       fs_bq_iban: 'raboul le fric',
-      fs_bq_bic: 'AUDIFRPP',
+      fs_bq_bic: 'BATIFRP1',
       fs_bq_mode: 'V',
     });
   });
