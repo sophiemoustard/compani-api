@@ -23,6 +23,7 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Contract = require('../models/Contract');
 const { bicBankMatching } = require('../data/bicBankMatching');
+const Pay = require('../models/Pay');
 
 const FS_BQ_MODE = 'V'; // Virement
 const BQ_DOM_MAX_LENGTH = 25;
@@ -201,11 +202,20 @@ const exportHeader = [
   'va_abs_nbh',
 ];
 
-exports.exportAbsences = async (query, credentials) => {
+exports.getAbsences = async (query, credentials) => {
   const companyId = get(credentials, 'company._id') || '';
-  const start = moment(query.startDate).startOf('day').toDate();
+  const lastMonth = moment(query.endDate).subtract(1, 'month').startOf('month').toDate();
+  const lastPay = await Pay.find({ date: { $gte: lastMonth }, company: companyId })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .lean();
+
+  const start = lastPay.length
+    ? moment(lastPay[0].createdAt).toDate()
+    : moment(query.startDate).startOf('day').toDate();
   const end = moment(query.endDate).endOf('day').toDate();
-  const absences = await Event
+
+  return Event
     .find({
       type: ABSENCE,
       absence: { $in: Object.keys(VA_ABS_CODE) },
@@ -219,6 +229,10 @@ exports.exportAbsences = async (query, credentials) => {
       populate: [{ path: 'contracts' }, { path: 'establishment' }],
     })
     .lean();
+};
+
+exports.exportAbsences = async (query, credentials) => {
+  const absences = await exports.getAbsences(query, credentials);
 
   const data = [exportHeader];
   for (const abs of absences) {

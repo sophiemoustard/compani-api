@@ -5,6 +5,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
+const Pay = require('../../../src/models/Pay');
 const Contract = require('../../../src/models/Contract');
 const DpaeHelper = require('../../../src/helpers/dpae');
 const FileHelper = require('../../../src/helpers/file');
@@ -338,18 +339,107 @@ describe('exportsContractVersions', () => {
   });
 });
 
-describe('exportsAbsence', () => {
+describe('getAbsences', () => {
   let EventMock;
+  let PayMock;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+    PayMock = sinon.mock(Pay);
+  });
+  afterEach(() => {
+    EventMock.restore();
+    PayMock.restore();
+  });
+
+  it('should return absence from previous month pay date', async () => {
+    const companyId = new ObjectID();
+    const absences = [{ _id: new ObjectID() }];
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    PayMock.expects('find')
+      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
+      .chain('sort')
+      .withExactArgs({ createdAt: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([{ createdAt: '2020-10-29T10:31:00' }]);
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment('2020-10-29T10:31:00').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+
+    const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
+
+    expect(result).toEqual(absences);
+    EventMock.verify();
+    PayMock.verify();
+  });
+
+  it('should return absence from query start date', async () => {
+    const companyId = new ObjectID();
+    const absences = [{ _id: new ObjectID() }];
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    PayMock.expects('find')
+      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
+      .chain('sort')
+      .withExactArgs({ createdAt: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([]);
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+
+    const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
+
+    expect(result).toEqual(absences);
+    EventMock.verify();
+    PayMock.verify();
+  });
+});
+
+describe('exportsAbsence', () => {
+  let getAbsences;
   let getAbsenceHours;
   let exportToTxt;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
+    getAbsences = sinon.stub(DpaeHelper, 'getAbsences');
     getAbsenceHours = sinon.stub(HistoryExportHelper, 'getAbsenceHours');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
-    EventMock.restore();
+    getAbsences.restore();
     getAbsenceHours.restore();
     exportToTxt.restore();
   });
@@ -370,31 +460,15 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
       },
     }];
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    getAbsences.returns(absences);
     getAbsenceHours.onCall(0).returns(5);
     getAbsenceHours.onCall(1).returns(0);
     getAbsenceHours.onCall(2).returns(4);
     exportToTxt.returns('file');
     const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
 
-    EventMock.verify();
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getAbsences, query, { company: { _id: companyId } });
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
@@ -438,29 +512,13 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
       },
     }];
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    getAbsences.returns(absences);
     getAbsenceHours.returns(2);
     exportToTxt.returns('file');
     const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
 
-    EventMock.verify();
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getAbsences, query, { company: { _id: companyId } });
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
