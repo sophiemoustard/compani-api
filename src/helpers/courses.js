@@ -425,3 +425,8 @@ exports.generateCompletionCertificates = async (courseId) => {
 
   return ZipHelper.generateZip('attestations.zip', await Promise.all(fileListPromises));
 };
+
+exports.addAccessRule = async (courseId, companyId) => Course.updateOne(
+  { _id: courseId },
+  { $push: { accessRules: companyId } }
+);
