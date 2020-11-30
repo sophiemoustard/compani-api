@@ -1,5 +1,6 @@
 module.exports = {
   SENDER_MAIL: 'nepasrepondre@compani.fr',
+  IDENTIFICATION: 'identification',
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',

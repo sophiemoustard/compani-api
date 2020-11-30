@@ -215,24 +215,21 @@ describe('exportDpae', () => {
   });
 });
 
-describe('exportContracts', () => {
+describe('exportIdentification', () => {
   let ContractMock;
   let formatIdentificationInfo;
   let formatBankingInfo;
-  let formatContractInfo;
   let exportToTxt;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
     formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
-    formatContractInfo = sinon.stub(DpaeHelper, 'formatContractInfo');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
   });
   afterEach(() => {
     ContractMock.restore();
     formatIdentificationInfo.restore();
     formatBankingInfo.restore();
-    formatContractInfo.restore();
     exportToTxt.restore();
   });
 
@@ -257,10 +254,9 @@ describe('exportContracts', () => {
       .returns([{ user: 'first user' }, { user: 'second user' }]);
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
     formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
-    formatContractInfo.onFirstCall().returns({ contract: 1 }).onSecondCall().returns({ contract: 2 });
     exportToTxt.returns('file');
 
-    const result = await DpaeHelper.exportContracts({ endDate }, { company: { _id: companyId } });
+    const result = await DpaeHelper.exportIdentification({ endDate }, { company: { _id: companyId } });
     expect(result).toEqual('file');
     sinon.assert.calledTwice(formatIdentificationInfo);
     sinon.assert.calledWithExactly(formatIdentificationInfo.getCall(0), 'first user');
@@ -268,10 +264,7 @@ describe('exportContracts', () => {
     sinon.assert.calledTwice(formatBankingInfo);
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
-    sinon.assert.calledTwice(formatContractInfo);
-    sinon.assert.calledWithExactly(formatContractInfo.getCall(0), { user: 'first user' });
-    sinon.assert.calledWithExactly(formatContractInfo.getCall(1), { user: 'second user' });
-    sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank', 'contract'], [1, 1, 1], [2, 2, 2]]);
+    sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank'], [1, 1], [2, 2]]);
   });
 });
 

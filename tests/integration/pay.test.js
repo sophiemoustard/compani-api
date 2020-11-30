@@ -421,7 +421,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should export contract for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -441,7 +441,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract?startDate=2020-11-01T00:00:00',
+        url: '/pay/export/identification?startDate=2020-11-01T00:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -451,7 +451,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing startDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/toto?endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -461,7 +461,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if startDate after endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/toto?startDate=2020-12-01T00:00:00&endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2020-12-01T00:00:00&endDate=2020-11-30T23:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -482,7 +482,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/pay/export/contract?endDate=2020-11-30T23:00:00',
+          url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
           headers: { 'x-access-token': authToken },
         });
 

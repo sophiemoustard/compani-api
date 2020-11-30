@@ -128,7 +128,7 @@ exports.exportDpae = async (contract) => {
   return FileHelper.exportToTxt([Object.keys(data), Object.values(data)]);
 };
 
-exports.exportContracts = async (query, credentials) => {
+exports.exportIdentification = async (query, credentials) => {
   const endDate = moment(query.endDate).endOf('d').toDate();
   const companyId = get(credentials, 'company._id') || '';
 
@@ -146,7 +146,6 @@ exports.exportContracts = async (query, credentials) => {
     const info = {
       ...exports.formatIdentificationInfo(contract.user),
       ...exports.formatBankingInfo(contract.user),
-      ...exports.formatContractInfo(contract),
     };
 
     if (!data.length) data.push(Object.keys(info));
