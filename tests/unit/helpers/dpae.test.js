@@ -5,10 +5,23 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
+const Pay = require('../../../src/models/Pay');
 const Contract = require('../../../src/models/Contract');
 const DpaeHelper = require('../../../src/helpers/dpae');
 const FileHelper = require('../../../src/helpers/file');
+const ContractHelper = require('../../../src/helpers/contracts');
 const HistoryExportHelper = require('../../../src/helpers/historyExport');
+const {
+  PAID_LEAVE,
+  UNPAID_LEAVE,
+  MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
+  ILLNESS,
+  UNJUSTIFIED,
+  WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
+} = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('formatBirthDate', () => {
@@ -108,15 +121,15 @@ describe('formatIdentificationInfo', () => {
 describe('formatBankingInfo', () => {
   it('should format banking info', async () => {
     const auxiliary = {
-      administrative: { payment: { rib: { bic: 'AUDIFRPP', iban: 'raboul le fric' } } },
+      administrative: { payment: { rib: { bic: 'BATIFRP1', iban: 'raboul le fric' } } },
     };
 
     const result = await DpaeHelper.formatBankingInfo(auxiliary);
 
     expect(result).toEqual({
-      fs_bq_dom: 'BANK AUDI FRANCE',
+      fs_bq_dom: 'BANQUE DU BAT ET DES TRAV',
       fs_bq_iban: 'raboul le fric',
-      fs_bq_bic: 'AUDIFRPP',
+      fs_bq_bic: 'BATIFRP1',
       fs_bq_mode: 'V',
     });
   });
@@ -143,6 +156,7 @@ describe('formatContractInfo', () => {
       fs_emploi_insee: '563b',
       fs_anc: '03/10/2020',
       fs_mv_entree: '03/10/2020',
+      fs_date_avenant: '03/10/2020',
       fs_horaire: 104,
     });
   });
@@ -202,24 +216,21 @@ describe('exportDpae', () => {
   });
 });
 
-describe('exportContracts', () => {
+describe('exportIdentification', () => {
   let ContractMock;
   let formatIdentificationInfo;
   let formatBankingInfo;
-  let formatContractInfo;
   let exportToTxt;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
     formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
-    formatContractInfo = sinon.stub(DpaeHelper, 'formatContractInfo');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
   });
   afterEach(() => {
     ContractMock.restore();
     formatIdentificationInfo.restore();
     formatBankingInfo.restore();
-    formatContractInfo.restore();
     exportToTxt.restore();
   });
 
@@ -244,10 +255,9 @@ describe('exportContracts', () => {
       .returns([{ user: 'first user' }, { user: 'second user' }]);
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
     formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
-    formatContractInfo.onFirstCall().returns({ contract: 1 }).onSecondCall().returns({ contract: 2 });
     exportToTxt.returns('file');
 
-    const result = await DpaeHelper.exportContracts({ endDate }, { company: { _id: companyId } });
+    const result = await DpaeHelper.exportIdentification({ endDate }, { company: { _id: companyId } });
     expect(result).toEqual('file');
     sinon.assert.calledTwice(formatIdentificationInfo);
     sinon.assert.calledWithExactly(formatIdentificationInfo.getCall(0), 'first user');
@@ -255,55 +265,47 @@ describe('exportContracts', () => {
     sinon.assert.calledTwice(formatBankingInfo);
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
-    sinon.assert.calledTwice(formatContractInfo);
-    sinon.assert.calledWithExactly(formatContractInfo.getCall(0), { user: 'first user' });
-    sinon.assert.calledWithExactly(formatContractInfo.getCall(1), { user: 'second user' });
-    sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank', 'contract'], [1, 1, 1], [2, 2, 2]]);
+    sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank'], [1, 1], [2, 2]]);
   });
 });
 
 describe('exportsContractVersions', () => {
   let ContractMock;
   let exportToTxt;
+  let getQuery;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+    getQuery = sinon.stub(ContractHelper, 'getQuery');
   });
   afterEach(() => {
     ContractMock.restore();
     exportToTxt.restore();
+    getQuery.restore();
   });
 
   it('should export contract version', async () => {
-    const query = { endDate: '2020-11-01T22:00:00' };
+    const query = { startDate: '2020-10-31T22:00:00', endDate: '2020-11-30T22:00:00' };
     const companyId = '1234567890';
     const versions = [{
       user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
       serialNumber: 'contractNumber',
       versions: [
-        { weeklyHours: 18, startDate: '2020-09-01T22:00:00' },
-        { weeklyHours: 24, startDate: '2020-11-01T22:00:00' },
+        { weeklyHours: 18, startDate: '2020-09-01T22:00:00', endDate: '2020-10-01T21:59:59' },
+        { weeklyHours: 24, startDate: '2020-10-01T22:00:00', endDate: '2020-11-09T21:59:59' },
         { weeklyHours: 18, startDate: '2020-11-10T22:00:00' },
       ],
     }, {
       user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
       serialNumber: 'titotu',
       versions: [
-        { weeklyHours: 12, startDate: '2020-07-01T22:00:00' },
-        { weeklyHours: 6, startDate: '2020-10-01T22:00:00' },
+        { weeklyHours: 12, startDate: '2020-07-01T22:00:00', endDate: '2020-11-02T21:59:59' },
+        { weeklyHours: 6, startDate: '2020-11-02T22:00:00' },
       ],
     }];
+    getQuery.returns([{ endDate: null }, { endDate: { $exists: false } }]);
     ContractMock.expects('find')
-      .withExactArgs({
-        startDate: { $lte: moment(query.endDate).endOf('d').toDate() },
-        $or: [
-          { endDate: null },
-          { endDate: { $exists: false } },
-          { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } },
-        ],
-        company: companyId,
-        versions: { $gte: { $size: 2 } },
-      })
+      .withExactArgs({ $and: [{ endDate: null }, { endDate: { $exists: false } }] })
       .chain('populate')
       .withExactArgs({ path: 'user', select: 'serialNumber identity' })
       .chain('lean')
@@ -314,30 +316,119 @@ describe('exportsContractVersions', () => {
     const result = await DpaeHelper.exportContractVersions(query, { company: { _id: companyId } });
 
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getQuery, query, companyId);
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
         ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
-        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '01/11/2020', 104],
         [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
-        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '01/10/2020', 26],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26],
       ]
     );
   });
 });
 
-describe('exportsAbsence', () => {
+describe('getAbsences', () => {
   let EventMock;
+  let PayMock;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+    PayMock = sinon.mock(Pay);
+  });
+  afterEach(() => {
+    EventMock.restore();
+    PayMock.restore();
+  });
+
+  it('should return absence from previous month pay date', async () => {
+    const companyId = new ObjectID();
+    const absences = [{ _id: new ObjectID() }];
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    PayMock.expects('find')
+      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
+      .chain('sort')
+      .withExactArgs({ createdAt: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([{ createdAt: '2020-10-29T10:31:00' }]);
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment('2020-10-29T10:31:00').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+
+    const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
+
+    expect(result).toEqual(absences);
+    EventMock.verify();
+    PayMock.verify();
+  });
+
+  it('should return absence from query start date', async () => {
+    const companyId = new ObjectID();
+    const absences = [{ _id: new ObjectID() }];
+    const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+    PayMock.expects('find')
+      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
+      .chain('sort')
+      .withExactArgs({ createdAt: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([]);
+    EventMock.expects('find')
+      .withExactArgs({
+        type: 'absence',
+        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+        company: companyId,
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'serialNumber',
+        populate: [{ path: 'contracts' }, { path: 'establishment' }],
+      })
+      .chain('lean')
+      .once()
+      .returns(absences);
+
+    const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
+
+    expect(result).toEqual(absences);
+    EventMock.verify();
+    PayMock.verify();
+  });
+});
+
+describe('exportsAbsence', () => {
+  let getAbsences;
   let getAbsenceHours;
   let exportToTxt;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
+    getAbsences = sinon.stub(DpaeHelper, 'getAbsences');
     getAbsenceHours = sinon.stub(HistoryExportHelper, 'getAbsenceHours');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
-    EventMock.restore();
+    getAbsences.restore();
     getAbsenceHours.restore();
     exportToTxt.restore();
   });
@@ -358,30 +449,15 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
       },
     }];
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    getAbsences.returns(absences);
     getAbsenceHours.onCall(0).returns(5);
     getAbsenceHours.onCall(1).returns(0);
     getAbsenceHours.onCall(2).returns(4);
     exportToTxt.returns('file');
     const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
 
-    EventMock.verify();
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getAbsences, query, { company: { _id: companyId } });
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
@@ -425,28 +501,13 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
       },
     }];
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    getAbsences.returns(absences);
     getAbsenceHours.returns(2);
     exportToTxt.returns('file');
     const result = await DpaeHelper.exportAbsences(query, { company: { _id: companyId } });
 
-    EventMock.verify();
     expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(getAbsences, query, { company: { _id: companyId } });
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [

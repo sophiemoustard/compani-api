@@ -382,7 +382,7 @@ describe('formatAbsence', () => {
   it('should return an array with the header and 1 row for daily absence', async () => {
     const event = {
       type: 'absence',
-      absence: 'unjustified absence',
+      absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
         _id: new ObjectID(),
@@ -492,7 +492,7 @@ describe('exportAbsencesHistory', () => {
   it('should return an array with the header and 1 rows', async () => {
     const event = {
       type: 'absence',
-      absence: 'unjustified absence',
+      absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
         _id: new ObjectID(),
