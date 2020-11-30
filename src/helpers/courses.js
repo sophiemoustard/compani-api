@@ -189,22 +189,26 @@ exports.getCourseFollowUp = async (course) => {
     },
     trainees: courseFollowUp.trainees.map(t => ({
       ...t,
-      steps: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+      ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
     })),
   };
 };
 
-exports.getTraineeProgress = (traineeId, steps, slots) => steps.map((s) => {
-  const traineeStep = {
-    ...s,
-    activities: s.activities.map(a => ({
-      ...a,
-      activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
-    })),
-  };
+exports.getTraineeProgress = (traineeId, steps, slots) => {
+  const formattedSteps = steps.map((s) => {
+    const traineeStep = {
+      ...s,
+      activities: s.activities.map(a => ({
+        ...a,
+        activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+      })),
+    };
 
-  return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
-});
+    return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+  });
+
+  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
+};
 
 exports.getTraineeCourse = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })

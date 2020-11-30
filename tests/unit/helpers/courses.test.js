@@ -580,7 +580,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 } }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -625,7 +625,7 @@ describe('getCourseFollowUp', () => {
       .returns(course);
 
     formatStep.callsFake(s => s);
-    getTraineeProgress.returns({ progress: 1 });
+    getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
     const result = await CourseHelper.getCourseFollowUp(course);
 
     expect(result).toEqual(course);
