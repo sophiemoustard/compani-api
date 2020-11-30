@@ -15,9 +15,6 @@ const {
   UNJUSTIFIED,
   WORK_ACCIDENT,
   TRANSPORT_ACCIDENT,
-  CESSATION_OF_WORK_CHILD,
-  CESSATION_OF_WORK_RISK,
-  OTHER,
   DAILY,
   HOURLY,
 } = require('./constants');
@@ -46,12 +43,9 @@ const VA_ABS_CODE = {
   [PATERNITY_LEAVE]: 'ENF',
   [PARENTAL_LEAVE]: 'CPE',
   [ILLNESS]: 'MAL',
-  [UNJUSTIFIED]: 'AAN',
+  [UNJUSTIFIED]: 'ANN',
   [WORK_ACCIDENT]: 'ATW',
   [TRANSPORT_ACCIDENT]: 'ATR',
-  [CESSATION_OF_WORK_CHILD]: 'MAL',
-  [CESSATION_OF_WORK_RISK]: 'MAL',
-  [OTHER]: 'MAL',
 };
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
@@ -212,7 +206,13 @@ exports.exportAbsences = async (query, credentials) => {
   const start = moment(query.startDate).startOf('day').toDate();
   const end = moment(query.endDate).endOf('day').toDate();
   const absences = await Event
-    .find({ type: ABSENCE, startDate: { $lt: end }, endDate: { $gt: start }, company: companyId })
+    .find({
+      type: ABSENCE,
+      absence: { $in: Object.keys(VA_ABS_CODE) },
+      startDate: { $lt: end },
+      endDate: { $gt: start },
+      company: companyId,
+    })
     .populate({
       path: 'auxiliary',
       select: 'serialNumber',
