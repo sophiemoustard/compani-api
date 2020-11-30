@@ -111,6 +111,7 @@ exports.formatContractInfo = contract => ({
   fs_emploi_insee: FS_EMPLOI_INSEE,
   fs_anc: moment(contract.startDate).format('DD/MM/YYYY'),
   fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
+  fs_date_avenant: moment(contract.startDate).format('DD/MM/YYYY'),
   fs_horaire: contract.versions[0].weeklyHours * WEEKS_PER_MONTH,
 });
 

@@ -143,6 +143,7 @@ describe('formatContractInfo', () => {
       fs_emploi_insee: '563b',
       fs_anc: '03/10/2020',
       fs_mv_entree: '03/10/2020',
+      fs_date_avenant: '03/10/2020',
       fs_horaire: 104,
     });
   });
