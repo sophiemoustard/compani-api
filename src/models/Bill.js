@@ -3,7 +3,7 @@ const ServiceSchema = require('./Service').schema;
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 
@@ -49,7 +49,6 @@ const BillSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
-BillSchema.pre('validate', validatePayload);
 BillSchema.pre('find', validateQuery);
 BillSchema.pre('aggregate', validateAggregation);
 

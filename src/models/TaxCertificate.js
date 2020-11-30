@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateAggregation, validatePayload, validateQuery } = require('./preHooks/validate');
+const { validateAggregation, validateQuery } = require('./preHooks/validate');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const YEAR_VALIDATION = /^[2]{1}[0]{1}[0-9]{2}$/;
@@ -12,7 +12,6 @@ const TaxCertificateSchema = mongoose.Schema({
   driveFile: driveResourceSchemaDefinition,
 }, { timestamps: true });
 
-TaxCertificateSchema.pre('validate', validatePayload);
 TaxCertificateSchema.pre('find', validateQuery);
 TaxCertificateSchema.pre('aggregate', validateAggregation);
 

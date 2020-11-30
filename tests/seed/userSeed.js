@@ -106,6 +106,13 @@ const userList = [
     contact: { phone: '0798640728' },
     company: companyWithoutSubscription._id,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'norole', lastname: 'nocompany' },
+    refreshToken: uuidv4(),
+    local: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+  },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');

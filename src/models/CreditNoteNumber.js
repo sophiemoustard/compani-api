@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
-const {
-  validatePayload,
-  validateQuery,
-  validateAggregation,
-  validateUpdateOne,
-} = require('./preHooks/validate');
+const { validateQuery, validateAggregation, validateUpdateOne } = require('./preHooks/validate');
 
 const CreditNoteNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -12,7 +7,6 @@ const CreditNoteNumberSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
-CreditNoteNumberSchema.pre('validate', validatePayload);
 CreditNoteNumberSchema.pre('find', validateQuery);
 CreditNoteNumberSchema.pre('aggregate', validateAggregation);
 CreditNoteNumberSchema.pre('updateOne', validateUpdateOne);

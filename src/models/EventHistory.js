@@ -9,7 +9,7 @@ const {
   EVENT_CANCELLATION_REASONS,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
 
@@ -61,7 +61,6 @@ const EventHistorySchema = mongoose.Schema({
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
 }, { timestamps: true });
 
-EventHistorySchema.pre('validate', validatePayload);
 EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
 

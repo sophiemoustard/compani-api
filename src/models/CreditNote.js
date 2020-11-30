@@ -4,7 +4,7 @@ const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { SERVICE_NATURES } = require('./Service');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
@@ -84,7 +84,6 @@ const CreditNoteSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-CreditNoteSchema.pre('validate', validatePayload);
 CreditNoteSchema.pre('find', validateQuery);
 CreditNoteSchema.pre('aggregate', validateAggregation);
 

@@ -20,20 +20,18 @@ describe('validate', () => {
     expect(result).toEqual({ isValid: false });
   });
 
-  it('should not authenticate as user does not have company', async () => {
+  it('should authenticate user without role and company', async () => {
     const userId = new ObjectID();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: 'coach' }, vendor: { name: 'admin' } },
       local: { email: 'email@email.com' },
       customers: [],
-      sector: new ObjectID(),
     };
     UserMock.expects('findById')
       .withExactArgs(userId, '_id identity role company local customers')
       .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
+      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -41,32 +39,18 @@ describe('validate', () => {
 
     const result = await AuthenticationHelper.validate({ _id: userId });
 
-    expect(result).toEqual({ isValid: false });
-    UserMock.verify();
-  });
-
-  it('should not authenticate if roles do not exist', async () => {
-    const userId = new ObjectID();
-    const user = {
-      _id: userId,
-      identity: { lastname: 'lastname' },
-      role: { client: null, vendor: null },
-      local: { email: 'email@email.com' },
-      customers: [],
-      sector: new ObjectID(),
-    };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
-
-    const result = await AuthenticationHelper.validate({ _id: userId });
-
-    expect(result).toEqual({ isValid: false });
+    expect(result).toEqual({
+      isValid: true,
+      credentials: {
+        _id: userId,
+        identity: { lastname: 'lastname' },
+        email: 'email@email.com',
+        scope: [`user:read-${userId}`, `user:edit-${userId}`],
+        role: {},
+        sector: null,
+        company: null,
+      },
+    });
     UserMock.verify();
   });
 
@@ -92,7 +76,7 @@ describe('validate', () => {
     UserMock.expects('findById')
       .withExactArgs(userId, '_id identity role company local customers')
       .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
+      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -177,7 +161,7 @@ describe('validate', () => {
     UserMock.expects('findById')
       .withExactArgs(userId, '_id identity role company local customers')
       .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
+      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -219,7 +203,7 @@ describe('validate', () => {
     UserMock.expects('findById')
       .withExactArgs(userId, '_id identity role company local customers')
       .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
+      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()
@@ -264,7 +248,7 @@ describe('validate', () => {
     UserMock.expects('findById')
       .withExactArgs(userId, '_id identity role company local customers')
       .chain('populate')
-      .withExactArgs({ path: 'sector', options: { processingAuthentication: true } })
+      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .once()

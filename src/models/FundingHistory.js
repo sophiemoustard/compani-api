@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const FundingHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -12,6 +12,5 @@ const FundingHistorySchema = mongoose.Schema({
 
 FundingHistorySchema.pre('aggregate', validateAggregation);
 FundingHistorySchema.pre('find', validateQuery);
-FundingHistorySchema.pre('validate', validatePayload);
 
 module.exports = mongoose.model('FundingHistory', FundingHistorySchema);

@@ -19,6 +19,7 @@ const AuthenticationHelper = require('./authentication');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
+const UtilsHelper = require('./utils');
 
 const { language } = translate;
 
@@ -117,7 +118,10 @@ exports.getUser = async (userId, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
-      options: { isVendorUser: has(credentials, 'role.vendor') },
+      options: {
+        isVendorUser: has(credentials, 'role.vendor'),
+        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
+      },
     })
     .lean({ autopopulate: true, virtuals: true });
 
