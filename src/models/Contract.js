@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const {
   EMPLOYER_TRIAL_PERIOD_TERMINATION,
@@ -59,7 +59,6 @@ const ContractSchema = mongoose.Schema({
   timestamps: true,
 });
 
-ContractSchema.pre('validate', validatePayload);
 ContractSchema.pre('find', validateQuery);
 ContractSchema.pre('aggregate', validateAggregation);
 

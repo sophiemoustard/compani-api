@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { PHONE_VALIDATION } = require('./utils');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
@@ -31,7 +31,6 @@ EstablishmentSchema.virtual('usersCount', {
   count: true,
 });
 
-EstablishmentSchema.pre('validate', validatePayload);
 EstablishmentSchema.pre('find', validateQuery);
 EstablishmentSchema.pre('aggregate', validateAggregation);
 

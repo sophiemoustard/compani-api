@@ -4,7 +4,7 @@ const { EVENT_TYPES } = require('./Event');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const RepetitionSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
@@ -26,7 +26,6 @@ const RepetitionSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
-RepetitionSchema.pre('validate', validatePayload);
 RepetitionSchema.pre('find', validateQuery);
 RepetitionSchema.pre('aggregate', validateAggregation);
 

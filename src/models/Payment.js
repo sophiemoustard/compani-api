@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const {
   PAYMENT,
@@ -26,7 +26,6 @@ const PaymentSchema = mongoose.Schema({
 
 }, { timestamps: true });
 
-PaymentSchema.pre('validate', validatePayload);
 PaymentSchema.pre('find', validateQuery);
 PaymentSchema.pre('aggregate', validateAggregation);
 

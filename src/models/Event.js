@@ -53,7 +53,7 @@ const EVENT_CANCELLATION_REASONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
 const EVENT_CANCELLATION_CONDITIONS = [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, NOT_INVOICED_AND_NOT_PAID];
 const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS];
 
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const EventSchema = mongoose.Schema(
   {
@@ -113,7 +113,6 @@ const EventSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-EventSchema.pre('validate', validatePayload);
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
 
