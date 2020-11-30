@@ -11,6 +11,7 @@ const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -999,17 +1000,8 @@ describe('getPayFromEvents', () => {
 
   it('should return pay for internal hour', async () => {
     const surchargeId = new ObjectID();
-    const events = [
-      [{
-        startDate: '2019-07-12T09:00:00',
-        endDate: '2019-07-01T11:00:00',
-        type: 'internalHour',
-      }],
-    ];
-    const surcharges = [
-      { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
-    ];
+    const events = [[{ startDate: '2019-07-12T09:00:00', endDate: '2019-07-01T11:00:00', type: INTERNAL_HOUR }]];
+    const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectID(), sunday: 14 }];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getEventHours.returns({
@@ -1034,14 +1026,7 @@ describe('getPayFromEvents', () => {
       internalHours: 5,
       paidTransportHours: 2,
     });
-    sinon.assert.calledWithExactly(
-      getEventHours,
-      { ...events[0][0], auxiliary },
-      false,
-      null,
-      {},
-      []
-    );
+    sinon.assert.calledWithExactly(getEventHours, { ...events[0][0], auxiliary }, false, null, {}, []);
     sinon.assert.notCalled(getMatchingVersion);
   });
 

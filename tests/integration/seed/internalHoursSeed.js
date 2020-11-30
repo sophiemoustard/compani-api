@@ -5,6 +5,7 @@ const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
 const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
+const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 
 const internalHourUsers = [{
   _id: new ObjectID(),
@@ -43,7 +44,7 @@ const internalHoursList = [
 const eventList = [
   {
     _id: new ObjectID(),
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     company: authCompany._id,
     startDate: '2019-01-16T09:00:00.543Z',
     endDate: '2019-01-16T10:00:00.653Z',
@@ -52,7 +53,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     company: otherCompany._id,
     startDate: '2019-01-16T09:00:00.543Z',
     endDate: '2019-01-16T10:00:00.653Z',

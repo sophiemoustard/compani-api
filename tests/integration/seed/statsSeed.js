@@ -20,6 +20,8 @@ const {
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
   CUSTOMER_INITIATIVE,
+  INTERNAL_HOUR,
+  INTERVENTION,
 } = require('../../../src/helpers/constants');
 
 const sectorList = [
@@ -292,7 +294,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -310,7 +312,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: subscriptionWithEndedFundingId,
@@ -328,7 +330,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -346,7 +348,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -364,7 +366,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -382,7 +384,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: customerList[1].subscriptions[0]._id,
@@ -400,7 +402,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[1].subscriptions[0]._id,
@@ -418,7 +420,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[0].subscriptions[0]._id,
@@ -436,7 +438,7 @@ const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: customerList[0].subscriptions[0]._id,
@@ -453,7 +455,7 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     startDate: '2019-07-12T09:00:00',
     endDate: '2019-07-12T10:00:00',
     internalHour: internalHoursList[0]._id,
@@ -462,7 +464,7 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     startDate: '2019-11-02T09:00:00',
     endDate: '2019-11-02T11:00:00',
     internalHour: internalHoursList[0]._id,
@@ -507,7 +509,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -525,7 +527,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -543,7 +545,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -561,7 +563,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -582,7 +584,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -603,7 +605,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     customer: customerList[1]._id,
     sector: new ObjectID(),
     subscription: subscriptionWithEndedFundingId,
