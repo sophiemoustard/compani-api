@@ -32,17 +32,9 @@ exports.authorizeInternalHourCreation = async (req) => {
   return null;
 };
 
-exports.authorizeInternalHourUpdate = (req) => {
-  const { credentials } = req.auth;
-  const internalHour = req.pre.internalHour || req.payload;
-  if (!UtilsHelper.areObjectIdsEquals(internalHour.company, credentials.company._id)) return Boom.forbidden();
-
-  return null;
-};
-
 exports.authorizeInternalHourDeletion = async (req) => {
   const eventCounts = await Event.countDocuments({ internalHour: req.pre.internalHour._id });
-  if (eventCounts) return Boom.forbidden();
+  if (eventCounts) return Boom.conflict();
 
   return null;
 };
