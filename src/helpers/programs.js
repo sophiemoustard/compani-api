@@ -4,12 +4,7 @@ const Program = require('../models/Program');
 const GCloudStorageHelper = require('./gCloudStorage');
 const { STRICTLY_E_LEARNING } = require('./constants');
 
-exports.createProgram = async payload => (
-  Program.create({
-    name: payload.name,
-    categories: [payload.category],
-  })
-);
+exports.createProgram = async payload => Program.create(payload);
 
 exports.list = async () => Program.find({})
   .populate({ path: 'subPrograms', select: 'name' })

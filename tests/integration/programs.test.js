@@ -15,6 +15,7 @@ const {
   course,
   activitiesList,
   activityHistoriesList,
+  categoriesList,
 } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -35,14 +36,26 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     });
 
     it('should create program', async () => {
+      const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'POST',
         url: '/programs',
         headers: { 'x-access-token': token },
-        payload: { name: 'program' },
+        payload: { name: 'program', categories: [categoryId] },
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if wrong category id', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/programs',
+        headers: { 'x-access-token': token },
+        payload: { name: 'program', categories: [new ObjectID()] },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -60,11 +73,12 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         token = await getToken(role.name);
+        const categoryId = categoriesList[0]._id;
         const response = await app.inject({
           method: 'POST',
           url: '/programs',
           headers: { 'x-access-token': token },
-          payload: { name: 'program' },
+          payload: { name: 'program', categories: [categoryId] },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

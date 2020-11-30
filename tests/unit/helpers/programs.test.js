@@ -19,10 +19,10 @@ describe('createProgram', () => {
   });
 
   it('should create program', async () => {
-    const newProgram = { name: 'name', category: new ObjectID() };
+    const newProgram = { name: 'name', categories: [new ObjectID()] };
     await ProgramHelper.createProgram(newProgram);
 
-    sinon.assert.calledOnceWithExactly(create, { name: 'name', categories: [newProgram.category] });
+    sinon.assert.calledOnceWithExactly(create, newProgram);
   });
 });
 
