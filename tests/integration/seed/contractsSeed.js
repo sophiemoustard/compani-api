@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const { DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -396,7 +396,7 @@ const contractEvents = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: new ObjectID(),
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     startDate: '2019-08-08T14:00:18.653Z',
     endDate: '2019-08-08T16:00:18.653Z',
     auxiliary: contractUsers[0]._id,
@@ -407,7 +407,7 @@ const contractEvents = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: new ObjectID(),
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
@@ -419,7 +419,7 @@ const contractEvents = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: new ObjectID(),
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-07-06T14:00:18.653Z',
@@ -431,7 +431,7 @@ const contractEvents = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: new ObjectID(),
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: contractUsers[0]._id,
@@ -450,7 +450,7 @@ const contractEvents = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: new ObjectID(),
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: contractUsers[0]._id,

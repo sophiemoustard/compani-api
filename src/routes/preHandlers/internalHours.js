@@ -34,7 +34,7 @@ exports.authorizeInternalHourCreation = async (req) => {
 
 exports.authorizeInternalHourDeletion = async (req) => {
   const eventCounts = await Event.countDocuments({ internalHour: req.pre.internalHour._id });
-  if (eventCounts) return Boom.conflict();
+  if (eventCounts) return Boom.forbidden();
 
   return null;
 };

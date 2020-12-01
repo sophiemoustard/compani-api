@@ -16,6 +16,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
+const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectID();
@@ -64,7 +65,7 @@ describe('getWorkingEventsForExport', () => {
       isCancelled: true,
       cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
       isBilled: false,
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
       internalHour: { name: 'Formation' },
       repetition: { frequency: 'never' },
       auxiliary: auxiliaryId,
@@ -115,7 +116,7 @@ describe('getWorkingEventsForExport', () => {
       isCancelled: true,
       cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
       isBilled: false,
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
       internalHour: { name: 'Formation' },
       repetition: { frequency: 'never' },
       auxiliary: auxiliaryId,
@@ -130,7 +131,7 @@ describe('getWorkingEventsForExport', () => {
 
   const payload = {
     company: companyId,
-    type: { $in: ['intervention', 'internalHour'] },
+    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
     $or: [
       { startDate: { $lte: endDate, $gte: startDate } },
       { endDate: { $lte: endDate, $gte: startDate } },
@@ -242,7 +243,7 @@ describe('exportWorkingEventsHistory', () => {
       isCancelled: true,
       cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
       isBilled: false,
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
       internalHour: { name: 'Formation' },
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },

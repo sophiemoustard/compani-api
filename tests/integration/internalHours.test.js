@@ -193,7 +193,7 @@ describe('DELETE /internalhours/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 409 if internal hour is used in an event', async () => {
+    it('should return 403 if internal hour is used in an event', async () => {
       const internalHour = authInternalHoursList[0];
       const response = await app.inject({
         method: 'DELETE',
@@ -201,7 +201,7 @@ describe('DELETE /internalhours/:id', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(403);
     });
   });
 
