@@ -1,14 +1,12 @@
 const Boom = require('@hapi/boom');
-
-const Surcharge = require('../models/Surcharge');
+const SurchargeHelper = require('../helpers/surcharges');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = { company: req.auth.credentials.company._id };
-    const surcharges = await Surcharge.find(query);
+    const surcharges = await SurchargeHelper.list(req.auth.credentials);
 
     return {
       message: surcharges.length === 0 ? translate[language].surchargesNotFound : translate[language].surchargesFound,
@@ -22,17 +20,9 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const payload = {
-      ...req.payload,
-      company: req.auth.credentials.company._id,
-    };
-    const surcharge = new Surcharge(payload);
-    await surcharge.save();
+    await SurchargeHelper.create(req.payload, req.auth.credentials);
 
-    return {
-      message: translate[language].surchargeCreated,
-      data: { surcharge },
-    };
+    return { message: translate[language].surchargeCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -41,14 +31,9 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedSurcharge = await Surcharge.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+    await SurchargeHelper.update(req.pre.surcharge, req.payload);
 
-    if (!updatedSurcharge) return Boom.notFound(translate[language].surchargeNotFound);
-
-    return {
-      message: translate[language].surchargeUpdated,
-      data: { surcharge: updatedSurcharge },
-    };
+    return { message: translate[language].surchargeUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -57,13 +42,9 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const surcharge = await Surcharge.findByIdAndRemove(req.params._id);
+    await SurchargeHelper.delete(req.pre.surcharge);
 
-    if (!surcharge) return Boom.notFound(translate[language].surchargeNotFound);
-
-    return {
-      message: translate[language].surchargeDeleted,
-    };
+    return { message: translate[language].surchargeDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

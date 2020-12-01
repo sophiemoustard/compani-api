@@ -1,4 +1,15 @@
+const get = require('lodash/get');
 const moment = require('../extensions/moment');
+const Surcharge = require('../models/Surcharge');
+
+exports.list = async credentials => Surcharge.find({ company: get(credentials, 'company._id') }).lean();
+
+exports.create = async (payload, credentials) =>
+  Surcharge.create({ ...payload, company: get(credentials, 'company._id') });
+
+exports.update = async (surcharge, payload) => Surcharge.updateOne({ _id: surcharge._id }, { $set: payload });
+
+exports.delete = async surcharge => Surcharge.deleteOne({ _id: surcharge._id });
 
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
   if (!percentage || percentage <= 0) return null;

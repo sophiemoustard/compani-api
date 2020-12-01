@@ -2,14 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-
-const {
-  create,
-  list,
-  update,
-  remove,
-} = require('../controllers/surchargeController');
-
+const { create, list, update, remove } = require('../controllers/surchargeController');
 const { authorizeSurchargesUpdate } = require('./preHandlers/surcharges');
 
 exports.plugin = {
@@ -62,7 +55,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeSurchargesUpdate }],
+        pre: [{ method: authorizeSurchargesUpdate, assign: 'surcharge' }],
       },
     });
 
@@ -93,7 +86,7 @@ exports.plugin = {
               .when('custom', { is: Joi.number(), then: Joi.required() }),
           }),
         },
-        pre: [{ method: authorizeSurchargesUpdate }],
+        pre: [{ method: authorizeSurchargesUpdate, assign: 'surcharge' }],
       },
     });
   },
