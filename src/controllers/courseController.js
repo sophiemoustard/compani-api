@@ -220,7 +220,7 @@ const downloadCompletionCertificates = async (req, h) => {
 
 const addAccessRule = async (req) => {
   try {
-    await CoursesHelper.addAccessRule(req.params._id, req.payload.company);
+    await CoursesHelper.addAccessRule(req.params._id, req.payload);
 
     return { message: translate[language].courseAccessRulesAdded };
   } catch (e) {

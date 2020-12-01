@@ -278,12 +278,10 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/access-rule',
+      path: '/{_id}/accessrules',
       options: {
         validate: {
-          payload: Joi.object({
-            company: Joi.string().required(),
-          }),
+          payload: Joi.object({ company: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeAddAccessRules }],

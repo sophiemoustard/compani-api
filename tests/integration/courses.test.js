@@ -185,7 +185,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
   });
 
@@ -1786,7 +1786,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   });
 });
 
-describe('COURSE ROUTES - POST /:_id/access-rule', () => {
+describe('COURSE ROUTES - POST /:_id/accessrules', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -1798,7 +1798,7 @@ describe('COURSE ROUTES - POST /:_id/access-rule', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[8]._id}/access-rule`,
+        url: `/courses/${coursesList[8]._id}/accessrules`,
         headers: { 'x-access-token': authToken },
         payload: { company: otherCompany._id },
       });
@@ -1809,7 +1809,7 @@ describe('COURSE ROUTES - POST /:_id/access-rule', () => {
     it('should return 404 if course doen\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${new ObjectID()}/access-rule`,
+        url: `/courses/${new ObjectID()}/accessrules`,
         headers: { 'x-access-token': authToken },
         payload: { company: otherCompany._id },
       });
@@ -1820,7 +1820,7 @@ describe('COURSE ROUTES - POST /:_id/access-rule', () => {
     it('should return 409 if accessRules already exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[8]._id}/access-rule`,
+        url: `/courses/${coursesList[8]._id}/accessrules`,
         headers: { 'x-access-token': authToken },
         payload: { company: authCompany._id },
       });
@@ -1831,7 +1831,7 @@ describe('COURSE ROUTES - POST /:_id/access-rule', () => {
     it('should return 400 if no accessRules in payload', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${coursesList[8]._id}/access-rule`,
+        url: `/courses/${coursesList[8]._id}/accessrules`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1853,7 +1853,7 @@ describe('COURSE ROUTES - POST /:_id/access-rule', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/courses/${coursesList[8]._id}/access-rule`,
+          url: `/courses/${coursesList[8]._id}/accessrules`,
           headers: { 'x-access-token': authToken },
           payload: { company: otherCompany._id },
         });

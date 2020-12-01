@@ -162,7 +162,7 @@ exports.authorizeAndGetTraineeId = async (req) => {
 };
 
 exports.authorizeAddAccessRules = async (req) => {
-  const course = await Course.findById(req.params._id).lean();
+  const course = await Course.findById(req.params._id, 'accessRules').lean();
 
   if (!course) throw Boom.notFound();
 

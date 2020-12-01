@@ -22,8 +22,6 @@ const {
   VIDEO,
 } = require('../../../src/helpers/constants.js');
 
-const accessRulesList = [authCompany._id];
-
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
 const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === HELPER)._id);
 const auxiliaryWithoutCompany = userList
@@ -168,7 +166,7 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    accessRules: [accessRulesList[0]._id],
+    accessRules: [authCompany._id],
   },
 ];
 

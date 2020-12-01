@@ -1528,12 +1528,12 @@ describe('addAccessRule', () => {
     updateOne.restore();
   });
 
-  it('should format course for docx', async () => {
+  it('should add access rule to course', async () => {
     const courseId = new ObjectID();
-    const companyId = new ObjectID();
+    const payload = { company: new ObjectID() };
 
-    await CourseHelper.addAccessRule(courseId, companyId);
+    await CourseHelper.addAccessRule(courseId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $push: { accessRules: companyId } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $push: { accessRules: payload.company } });
   });
 });
