@@ -155,9 +155,8 @@ module.exports = {
     surchargesFound: 'Surcharges found.',
     surchargeCreated: 'Surcharge created.',
     surchargeDeleted: 'Surcharge deleted.',
-    surchargesNotFound: 'Surcharges not found.',
     surchargeNotFound: 'Surcharge not found.',
-    surchargesUpdated: 'Surcharges updated.',
+    surchargeUpdated: 'Surcharge updated.',
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
@@ -420,7 +419,6 @@ module.exports = {
     surchargesFound: 'Plans de majorations trouvés.',
     surchargeCreated: 'Plan de majoration créé.',
     surchargeDeleted: 'Plan de majoration supprimé.',
-    surchargesNotFound: 'Plans de majorations non trouvés.',
     surchargeNotFound: 'Plan de majoration non trouvé.',
     surchargeUpdated: 'Plan de majoration modifié.',
     /* Third party payers */

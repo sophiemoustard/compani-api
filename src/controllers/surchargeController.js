@@ -8,10 +8,7 @@ const list = async (req) => {
   try {
     const surcharges = await SurchargeHelper.list(req.auth.credentials);
 
-    return {
-      message: surcharges.length === 0 ? translate[language].surchargesNotFound : translate[language].surchargesFound,
-      data: { surcharges },
-    };
+    return { message: translate[language].surchargesFound, data: { surcharges } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

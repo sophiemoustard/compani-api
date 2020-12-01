@@ -1,55 +1,123 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-
+const { ObjectID } = require('mongodb');
+const Surcharge = require('../../../src/models/Surcharge');
 const SurchargesHelper = require('../../../src/helpers/surcharges');
+require('sinon-mongoose');
+
+describe('list', () => {
+  let SurchargeMock;
+  beforeEach(() => {
+    SurchargeMock = sinon.mock(Surcharge);
+  });
+  afterEach(() => {
+    SurchargeMock.restore();
+  });
+  it('should return a list of every surcharges from company', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    SurchargeMock.expects('find')
+      .withExactArgs({ company: companyId })
+      .chain('lean')
+      .once()
+      .returns([{ company: companyId, name: 'Coucou' }]);
+
+    const result = await SurchargesHelper.list(credentials);
+
+    SurchargeMock.verify();
+    expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);
+  });
+});
+
+describe('create', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(Surcharge, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+  it('should create a surcharge', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    await SurchargesHelper.create({ name: 'Salut toi' }, credentials);
+
+    sinon.assert.calledOnceWithExactly(create, { name: 'Salut toi', company: companyId });
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Surcharge, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+  it('should update a surcharge', async () => {
+    const surchargeId = new ObjectID();
+
+    await SurchargesHelper.update({ _id: surchargeId }, { name: 'Skusku' });
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: surchargeId }, { $set: { name: 'Skusku' } });
+  });
+});
+
+describe('delete', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(Surcharge, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+  it('should delete a surcharge', async () => {
+    const surchargeId = new ObjectID();
+
+    await SurchargesHelper.delete({ _id: surchargeId });
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: surchargeId });
+  });
+});
 
 describe('getCustomSurcharge', () => {
-  // Les dates sont triées, pour lire plus rapidement si il y a intersection.
-  const dates = [
-    '2018-01-01 01:00',
-    '2018-01-01 05:00',
-    '2018-01-01 09:00',
-    '2018-01-01 13:00',
-    '2018-01-01 17:00',
-    '2018-01-01 21:00',
-  ];
-  const surchargeSteps = dates.map(date => moment(date).format('HH:mm'));
-
   it('should return null if there is no surcharge', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[1], surchargeSteps[3]);
-    expect(result).toBe(null);
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '05:00', '13:00');
+    expect(res).toBe(null);
   });
 
   it('should return null if the surcharge is 0', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[1], surchargeSteps[3], 0);
-    expect(result).toBe(null);
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '05:00', '13:00', 0);
+    expect(res).toBe(null);
   });
 
   it('should return null if there is no intersection', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[3], surchargeSteps[4], 0);
-    expect(result).toBe(null);
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '13:00', '17:00', 0);
+    expect(res).toBe(null);
   });
 
   it('should return null if the intersection has a duration of 0', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[2], surchargeSteps[4], 25);
-    expect(result).toBe(null);
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '09:00', '17:00', 25);
+    expect(res).toBe(null);
   });
 
   it('should return a surcharge if they intersect', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[3], surchargeSteps[2], surchargeSteps[4], 25);
-    expect(result).toEqual({
-      startHour: moment(dates[2]).toDate(),
-      endHour: moment(dates[3]).toDate(),
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T13:00:00', '09:00', '17:00', 25);
+    expect(res).toEqual({
+      startHour: moment('2018-01-01T09:00:00').toDate(),
+      endHour: moment('2018-01-01T13:00:00').toDate(),
       percentage: 25,
     });
   });
 
   it('should return a surcharge if the surcharge wraps the event', () => {
-    const result = SurchargesHelper.getCustomSurcharge(dates[4], dates[5], surchargeSteps[2], surchargeSteps[5], 12);
-    expect(result).toEqual({
-      startHour: moment(dates[4]).toDate(),
-      endHour: moment(dates[5]).toDate(),
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T17:00:00', '2018-01-01T21:00:00', '09:00', '21:00', 12);
+    expect(res).toEqual({
+      startHour: moment('2018-01-01T17:00:00').toDate(),
+      endHour: moment('2018-01-01T21:00:00').toDate(),
       percentage: 12,
     });
   });
