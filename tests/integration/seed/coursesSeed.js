@@ -160,6 +160,14 @@ const coursesList = [
     type: 'inter_b2b',
     format: 'strictly_e_learning',
   },
+  { // course with access rules
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    accessRules: [authCompany._id],
+  },
 ];
 
 const courseSmsHistory = {

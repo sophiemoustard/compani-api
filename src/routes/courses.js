@@ -19,6 +19,7 @@ const {
   downloadCompletionCertificates,
   sendSMS,
   getSMSHistory,
+  addAccessRule,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -32,6 +33,7 @@ const {
   authorizeRegisterToELearning,
   getCourse,
   authorizeAndGetTraineeId,
+  authorizeAddAccessRules,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -272,6 +274,19 @@ exports.plugin = {
         pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/accessrules',
+      options: {
+        validate: {
+          payload: Joi.object({ company: Joi.string().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeAddAccessRules }],
+      },
+      handler: addAccessRule,
     });
   },
 };

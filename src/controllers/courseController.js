@@ -218,6 +218,17 @@ const downloadCompletionCertificates = async (req, h) => {
   }
 };
 
+const addAccessRule = async (req) => {
+  try {
+    await CoursesHelper.addAccessRule(req.params._id, req.payload);
+
+    return { message: translate[language].courseAccessRulesAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listUserCourses,
@@ -235,4 +246,5 @@ module.exports = {
   downloadCompletionCertificates,
   sendSMS,
   getSMSHistory,
+  addAccessRule,
 };

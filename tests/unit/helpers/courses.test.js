@@ -1518,3 +1518,22 @@ describe('generateCompletionCertificate', () => {
     CourseMock.verify();
   });
 });
+
+describe('addAccessRule', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add access rule to course', async () => {
+    const courseId = new ObjectID();
+    const payload = { company: new ObjectID() };
+
+    await CourseHelper.addAccessRule(courseId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $push: { accessRules: payload.company } });
+  });
+});

@@ -160,3 +160,16 @@ exports.authorizeAndGetTraineeId = async (req) => {
 
   return req.auth.credentials._id;
 };
+
+exports.authorizeAddAccessRules = async (req) => {
+  const course = await Course.findById(req.params._id, 'accessRules').lean();
+
+  if (!course) throw Boom.notFound();
+
+  const accessRuleAlreadyExist = course.accessRules.map(c => c.toHexString())
+    .includes(req.payload.company);
+
+  if (accessRuleAlreadyExist) throw Boom.conflict();
+
+  return null;
+};
