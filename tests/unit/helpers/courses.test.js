@@ -6,7 +6,6 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
-const pick = require('lodash/pick');
 const Course = require('../../../src/models/Course');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
@@ -671,10 +670,17 @@ describe('getTraineeProgress', () => {
 
     const result = CourseHelper.getTraineeProgress(traineeId, steps, slots);
 
-    expect(result).toEqual({ steps: formattedSteps, progress: 1 });
+    expect(result).toEqual({
+      steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE, progress: 1 }],
+      progress: 1,
+    });
     sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
     sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
-    sinon.assert.calledOnceWithExactly(getProgress, pick(formattedSteps[0], ['activities', 'type']), slots);
+    sinon.assert.calledOnceWithExactly(
+      getProgress,
+      { activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE },
+      slots
+    );
     sinon.assert.calledOnceWithExactly(getCourseProgress, formattedSteps);
   });
 });
