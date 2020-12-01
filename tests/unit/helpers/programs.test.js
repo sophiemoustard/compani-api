@@ -174,6 +174,8 @@ describe('getProgram', () => {
         path: 'subPrograms',
         populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
       })
+      .chain('populate')
+      .withExactArgs({ path: 'categories' })
       .chain('lean')
       .once()
       .returns(program);

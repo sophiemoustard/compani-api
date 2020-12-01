@@ -31,6 +31,7 @@ exports.listELearning = async () => {
 exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({ path: 'subPrograms', populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } } })
+    .populate({ path: 'categories' })
     .lean({ virtuals: true });
 
   return {
