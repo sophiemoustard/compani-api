@@ -1694,6 +1694,98 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
   });
 });
 
+describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
+  let authToken = null;
+  const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdFromOtherCompany = coursesList[3]._id;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 404 error if course does not exist', async () => {
+      const invalidId = (new ObjectID()).toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${invalidId}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 403 as user is trainer if not one of his courses', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    ['coach', 'client_admin'].forEach((role) => {
+      it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${courseIdFromOtherCompany}/completion-certificates`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+    });
+
+    it('should return 200 as user is the course trainer', async () => {
+      authToken = await getTokenByCredentials(courseTrainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+});
+
 describe('COURSE ROUTES - POST /:_id/access-rule', () => {
   let authToken = null;
   beforeEach(populateDB);
