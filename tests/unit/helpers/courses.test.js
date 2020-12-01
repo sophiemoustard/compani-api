@@ -6,6 +6,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
+const pick = require('lodash/pick');
 const Course = require('../../../src/models/Course');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
@@ -630,6 +631,51 @@ describe('getCourseFollowUp', () => {
 
     expect(result).toEqual(course);
     CourseMock.verify();
+  });
+});
+
+describe('getTraineeProgress', () => {
+  let areObjectIdsEquals;
+  let getProgress;
+  let getCourseProgress;
+  beforeEach(() => {
+    areObjectIdsEquals = sinon.stub(UtilsHelper, 'areObjectIdsEquals');
+    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
+  });
+  afterEach(() => {
+    areObjectIdsEquals.restore();
+    getProgress.restore();
+    getCourseProgress.restore();
+  });
+
+  it('should return formatted steps and course progress', () => {
+    const traineeId = new ObjectID();
+    const otherTraineeId = new ObjectID();
+    const steps = [{
+      activities: [{ activityHistories: [{ user: traineeId }, { user: otherTraineeId }] }],
+      type: ON_SITE,
+    }];
+    const slots = [{ endDate: '2020-11-03T09:00:00.000Z' }];
+
+    const formattedSteps = [{
+      activities: [{ activityHistories: [{ user: traineeId }] }],
+      type: ON_SITE,
+      progress: 1,
+    }];
+
+    areObjectIdsEquals.onCall(0).returns(true);
+    areObjectIdsEquals.onCall(1).returns(false);
+    getProgress.returns(1);
+    getCourseProgress.returns(1);
+
+    const result = CourseHelper.getTraineeProgress(traineeId, steps, slots);
+
+    expect(result).toEqual({ steps: formattedSteps, progress: 1 });
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
+    sinon.assert.calledOnceWithExactly(getProgress, pick(formattedSteps[0], ['activities', 'type']), slots);
+    sinon.assert.calledOnceWithExactly(getCourseProgress, formattedSteps);
   });
 });
 
