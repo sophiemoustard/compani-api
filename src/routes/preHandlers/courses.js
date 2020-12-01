@@ -163,10 +163,11 @@ exports.authorizeAndGetTraineeId = async (req) => {
 
 exports.authorizeAddAccessRules = async (req) => {
   const course = await Course.findById(req.params._id).lean();
-  const accessRuleAlreadyExist = course.accessRules.map(c => c.toHexString())
-    .includes(req.payload.company);
 
   if (!course) throw Boom.notFound();
+
+  const accessRuleAlreadyExist = course.accessRules.map(c => c.toHexString())
+    .includes(req.payload.company);
 
   if (accessRuleAlreadyExist) throw Boom.conflict();
 

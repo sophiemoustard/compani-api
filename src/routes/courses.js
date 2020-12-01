@@ -282,7 +282,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            company: Joi.string().required(), // refacto subprograms ?
+            company: Joi.string().required(),
           }),
         },
         auth: { scope: ['programs:edit'] },
