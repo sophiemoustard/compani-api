@@ -377,6 +377,8 @@ describe('getCourse', () => {
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'accessRules', select: 'name' })
       .chain('lean')
       .once()
       .returns(course);
@@ -578,7 +580,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 } }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -623,11 +625,63 @@ describe('getCourseFollowUp', () => {
       .returns(course);
 
     formatStep.callsFake(s => s);
-    getTraineeProgress.returns({ progress: 1 });
+    getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
     const result = await CourseHelper.getCourseFollowUp(course);
 
     expect(result).toEqual(course);
     CourseMock.verify();
+  });
+});
+
+describe('getTraineeProgress', () => {
+  let areObjectIdsEquals;
+  let getProgress;
+  let getCourseProgress;
+  beforeEach(() => {
+    areObjectIdsEquals = sinon.stub(UtilsHelper, 'areObjectIdsEquals');
+    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
+  });
+  afterEach(() => {
+    areObjectIdsEquals.restore();
+    getProgress.restore();
+    getCourseProgress.restore();
+  });
+
+  it('should return formatted steps and course progress', () => {
+    const traineeId = new ObjectID();
+    const otherTraineeId = new ObjectID();
+    const steps = [{
+      activities: [{ activityHistories: [{ user: traineeId }, { user: otherTraineeId }] }],
+      type: ON_SITE,
+    }];
+    const slots = [{ endDate: '2020-11-03T09:00:00.000Z' }];
+
+    const formattedSteps = [{
+      activities: [{ activityHistories: [{ user: traineeId }] }],
+      type: ON_SITE,
+      progress: 1,
+    }];
+
+    areObjectIdsEquals.onCall(0).returns(true);
+    areObjectIdsEquals.onCall(1).returns(false);
+    getProgress.returns(1);
+    getCourseProgress.returns(1);
+
+    const result = CourseHelper.getTraineeProgress(traineeId, steps, slots);
+
+    expect(result).toEqual({
+      steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE, progress: 1 }],
+      progress: 1,
+    });
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
+    sinon.assert.calledOnceWithExactly(
+      getProgress,
+      { activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE },
+      slots
+    );
+    sinon.assert.calledOnceWithExactly(getCourseProgress, formattedSteps);
   });
 });
 
