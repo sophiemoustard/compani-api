@@ -10,19 +10,19 @@ const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 require('sinon-mongoose');
 
 describe('createProgram', () => {
-  let save;
+  let create;
   beforeEach(() => {
-    save = sinon.stub(Program.prototype, 'save').returnsThis();
+    create = sinon.stub(Program, 'create');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
   });
 
-  it('should create a program', async () => {
-    const newProgram = { name: 'name' };
+  it('should create program', async () => {
+    const newProgram = { name: 'name', categories: [new ObjectID()] };
+    await ProgramHelper.createProgram(newProgram);
 
-    const result = await ProgramHelper.createProgram(newProgram);
-    expect(result).toMatchObject(newProgram);
+    sinon.assert.calledOnceWithExactly(create, newProgram);
   });
 });
 

@@ -231,7 +231,7 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
 
     it('should delete category', async () => {
       const categoryId = categoriesList[0]._id;
-      const categoriesNumber = await Category.count();
+      const categoriesCount = await Category.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
         url: `/categories/${categoryId.toHexString()}`,
@@ -239,7 +239,18 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await Category.count()).toEqual(categoriesNumber - 1);
+      expect(await Category.countDocuments()).toEqual(categoriesCount - 1);
+    });
+
+    it('should return a 403 if category is used', async () => {
+      const categoryId = categoriesList[4]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/categories/${categoryId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 404 if category does not exist', async () => {

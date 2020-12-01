@@ -4,6 +4,7 @@ const ProgramSchema = mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   subPrograms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SubProgram' }],
+  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
   image: {
     publicId: String,
     link: { type: String, trim: true },
