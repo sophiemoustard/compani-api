@@ -37,6 +37,8 @@ describe('list', () => {
 
     CategoryMock.expects('find')
       .once()
+      .chain('populate')
+      .withExactArgs({ path: 'programsCount' })
       .chain('lean')
       .once()
       .returns(categoriesList);

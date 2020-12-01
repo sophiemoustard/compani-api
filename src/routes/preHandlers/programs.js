@@ -17,7 +17,7 @@ exports.getProgramImagePublicId = async (req) => {
   return get(program, 'image.publicId') || '';
 };
 
-exports.checkCategoryExists = async (req) => {
+exports.authorizeProgramCreation = async (req) => {
   const category = await Category.countDocuments({ _id: req.payload.categories[0] });
   if (!category) throw Boom.notFound();
 
