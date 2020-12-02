@@ -430,3 +430,27 @@ exports.addAccessRule = async (courseId, payload) => Course.updateOne(
   { _id: courseId },
   { $push: { accessRules: payload.company } }
 );
+
+exports.formatCourseForCourseInfoPDF = (course) => {
+  const trainerIdentity = UtilsHelper.formatIdentity(course.trainer.identity, 'FL');
+  const contactPhoneNumber = course.contact.phone.replace(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 $5');
+  const slots = course.slots.map((slot, i) => ({
+    startDay: moment(slot.startDate).format('DD MMM YYYY'),
+    hours: `${moment(slot.startDate).format('HH:mm')} - ${moment(slot.endDate).format('HH:mm')}`,
+    address: get(slot, 'address.fullAddress') || 'Adresse non renseignée',
+    position: i + 1,
+    length: course.slots.length,
+  }));
+
+  return { ...course, trainerIdentity, contactPhoneNumber, slots };
+};
+
+exports.generatePdf = async (courseId) => {
+  const course = await exports.getCoursePublicInfos({ _id: courseId });
+  const courseName = get(course, 'subProgram.program.name').split(' ').join('-') || 'Formation';
+
+  return {
+    pdf: PdfHelper.generatePdf(exports.formatCourseForCourseInfoPDF(course), './src/data/blendedCourseInfo.html'),
+    courseName,
+  };
+};

@@ -229,6 +229,19 @@ const addAccessRule = async (req) => {
   }
 };
 
+const generatePdf = async (req, h) => {
+  try {
+    const { pdf, courseName } = await CoursesHelper.generatePdf(req.params._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${courseName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listUserCourses,
@@ -247,4 +260,5 @@ module.exports = {
   sendSMS,
   getSMSHistory,
   addAccessRule,
+  generatePdf,
 };
