@@ -21,6 +21,8 @@ const {
   UNJUSTIFIED,
   WORK_ACCIDENT,
   TRANSPORT_ACCIDENT,
+  SERIOUS_MISCONDUCT_LAYOFF,
+  CONTRACTUAL_TERMINATION,
 } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
@@ -323,6 +325,61 @@ describe('exportsContractVersions', () => {
         ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
         [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
         [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26],
+      ]
+    );
+  });
+});
+
+describe('exportContractEnds', () => {
+  let ContractMock;
+  let exportToTxt;
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+    exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+  });
+  afterEach(() => {
+    ContractMock.restore();
+    exportToTxt.restore();
+  });
+
+  it('should export contract version', async () => {
+    const query = { startDate: '2020-10-31T22:00:00', endDate: '2020-11-30T22:00:00' };
+    const companyId = '1234567890';
+    const contracts = [{
+      user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
+      serialNumber: 'contractNumber',
+      endDate: '2020-11-04T00:00:00',
+      endReason: CONTRACTUAL_TERMINATION,
+    }, {
+      user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
+      serialNumber: 'titotu',
+      endDate: '2020-11-07T00:00:00',
+      endReason: SERIOUS_MISCONDUCT_LAYOFF,
+    }];
+    ContractMock.expects('find')
+      .withExactArgs({
+        endDate: {
+          $lte: moment(query.endDate).endOf('d').toDate(),
+          $gte: moment(query.startDate).startOf('d').toDate(),
+        },
+        company: '1234567890',
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'user', select: 'serialNumber identity' })
+      .chain('lean')
+      .once()
+      .returns(contracts);
+    exportToTxt.returns('file');
+
+    const result = await DpaeHelper.exportContractEnds(query, { company: { _id: companyId } });
+
+    expect(result).toEqual('file');
+    sinon.assert.calledOnceWithExactly(
+      exportToTxt,
+      [
+        ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_mv_sortie', 'fs_mv_motif_s'],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '04/11/2020', 8],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '07/11/2020', 16],
       ]
     );
   });

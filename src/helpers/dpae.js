@@ -18,6 +18,17 @@ const {
   TRANSPORT_ACCIDENT,
   DAILY,
   HOURLY,
+  EMPLOYER_TRIAL_PERIOD_TERMINATION,
+  EMPLOYEE_TRIAL_PERIOD_TERMINATION,
+  RESIGNATION,
+  SERIOUS_MISCONDUCT_LAYOFF,
+  GROSS_FAULT_LAYOFF,
+  OTHER_REASON_LAYOFF,
+  MUTATION,
+  CONTRACTUAL_TERMINATION,
+  INTERNSHIP_END,
+  CDD_END,
+  OTHER,
 } = require('./constants');
 const HistoryExportHelper = require('./historyExport');
 const ContractHelper = require('./contracts');
@@ -49,6 +60,19 @@ const VA_ABS_CODE = {
   [UNJUSTIFIED]: 'ANN',
   [WORK_ACCIDENT]: 'ATW',
   [TRANSPORT_ACCIDENT]: 'ATR',
+};
+const FS_MV_MOTIF_S = {
+  [EMPLOYER_TRIAL_PERIOD_TERMINATION]: 34,
+  [EMPLOYEE_TRIAL_PERIOD_TERMINATION]: 35,
+  [RESIGNATION]: 59,
+  [SERIOUS_MISCONDUCT_LAYOFF]: 16,
+  [GROSS_FAULT_LAYOFF]: 17,
+  [OTHER_REASON_LAYOFF]: 20,
+  [MUTATION]: 62,
+  [CONTRACTUAL_TERMINATION]: 8,
+  [INTERNSHIP_END]: 80,
+  [CDD_END]: 31,
+  [OTHER]: 60,
 };
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
@@ -178,6 +202,30 @@ exports.exportContractVersions = async (query, credentials) => {
       ap_contrat: version.serialNumber || '',
       fs_date_avenant: moment(version.startDate).format('DD/MM/YYYY'),
       fs_horaire: version.weeklyHours * WEEKS_PER_MONTH,
+    });
+  }
+
+  return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+};
+
+exports.exportContractEnds = async (query, credntials) => {
+  const contractList = await Contract
+    .find({
+      endDate: { $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
+      company: get(credntials, 'company._id'),
+    })
+    .populate({ path: 'user', select: 'serialNumber identity' })
+    .lean();
+
+  const data = [];
+  for (const contract of contractList) {
+    data.push({
+      ap_soc: process.env.AP_SOC,
+      ap_matr: get(contract, 'user.serialNumber') || '',
+      fs_nom: get(contract, 'user.identity.lastname') || '',
+      ap_contrat: contract.serialNumber || '',
+      fs_mv_sortie: moment(contract.endDate).format('DD/MM/YYYY'),
+      fs_mv_motif_s: FS_MV_MOTIF_S[contract.endReason] || '',
     });
   }
 
