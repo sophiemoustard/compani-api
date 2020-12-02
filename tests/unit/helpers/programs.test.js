@@ -66,9 +66,11 @@ describe('listELearning', () => {
   it('should return programs with elearning subprograms', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
     const subPrograms = [new ObjectID()];
+    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = credentials.company._id;
 
     CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning' })
+      .withExactArgs({ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] })
       .chain('lean')
       .returns([{ subProgram: subPrograms[0] }]);
 
@@ -88,8 +90,7 @@ describe('listELearning', () => {
       .chain('lean')
       .once()
       .returns(programsList);
-
-    const result = await ProgramHelper.listELearning();
+    const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject(programsList);
   });
 });
