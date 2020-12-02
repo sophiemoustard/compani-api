@@ -430,7 +430,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;
-        const payload = omit({ name: 'new name', description: 'Trop top', learningGoals: 'Truc chouette' }, param);
+        const payload = { name: 'new name', description: 'Trop top', learningGoals: 'Truc chouette' };
         const response = await app.inject({
           method: 'PUT',
           url: `/programs/${programId.toHexString()}`,
