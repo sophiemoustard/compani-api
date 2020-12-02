@@ -154,6 +154,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs.length).toEqual(1);
       const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(c => c._id);
+
       const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
       expect(courses.every(c => c.format === 'strictly_e_learning')).toBeTruthy();
     });
@@ -377,8 +378,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
 describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
-
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
@@ -386,6 +385,8 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
 
     it('should update program', async () => {
       const programId = programsList[0]._id;
+      const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
+
       const response = await app.inject({
         method: 'PUT',
         url: `/programs/${programId.toHexString()}`,
@@ -402,6 +403,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
     });
 
     it('should return 404 if program does not exist', async () => {
+      const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
       const response = await app.inject({
         method: 'PUT',
         url: `/programs/${new ObjectID()}`,
@@ -428,6 +430,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;
+        const payload = { learningGoals: 'On apprend des trucs\nc\'est chouette' };
         const response = await app.inject({
           method: 'PUT',
           url: `/programs/${programId.toHexString()}`,
