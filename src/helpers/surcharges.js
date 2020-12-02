@@ -14,14 +14,19 @@ exports.delete = async surcharge => Surcharge.deleteOne({ _id: surcharge._id });
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
   if (!percentage || percentage <= 0) return null;
 
-  const formattedSurchargeStart = moment(eventStart)
+  const formattedStart = moment(eventStart)
     .hour(surchargeStart.substring(0, 2))
-    .minute(surchargeStart.substring(3));
-  let formattedSurchargeEnd = moment(eventStart).hour(surchargeEnd.substring(0, 2)).minute(surchargeEnd.substring(3));
-  if (formattedSurchargeStart.isAfter(surchargeEnd)) formattedSurchargeEnd = formattedSurchargeEnd.add(1, 'd');
+    .minute(surchargeStart.substring(3))
+    .toISOString();
+  let formattedEnd = moment(eventStart)
+    .hour(surchargeEnd.substring(0, 2))
+    .minute(surchargeEnd.substring(3))
+    .toISOString();
+
+  if (moment(formattedStart).isAfter(formattedEnd)) formattedEnd = moment(formattedEnd).add(1, 'd').toISOString();
 
   const eventRange = moment.range(eventStart, eventEnd);
-  const surchargeRange = moment.range(formattedSurchargeStart, formattedSurchargeEnd);
+  const surchargeRange = moment.range(formattedStart, formattedEnd);
 
   const intersection = eventRange.intersect(surchargeRange);
   if (!intersection) return null;

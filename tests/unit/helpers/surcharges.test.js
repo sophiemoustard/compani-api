@@ -113,6 +113,15 @@ describe('getCustomSurcharge', () => {
     });
   });
 
+  it('should return a surcharge if they intersect and surcharge start after end', () => {
+    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T23:00:00', '2018-01-02T01:00:00', '20:00', '06:00', 25);
+    expect(res).toEqual({
+      startHour: moment('2018-01-01T23:00:00').toDate(),
+      endHour: moment('2018-01-02T01:00:00').toDate(),
+      percentage: 25,
+    });
+  });
+
   it('should return a surcharge if the surcharge wraps the event', () => {
     const res = SurchargesHelper.getCustomSurcharge('2018-01-01T17:00:00', '2018-01-01T21:00:00', '09:00', '21:00', 12);
     expect(res).toEqual({
