@@ -362,7 +362,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -400,7 +400,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -1380,7 +1380,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      subProgram: { program: { description: 'Apprendre', name: 'nom du programme' } },
+      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -1388,7 +1388,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      description: course.subProgram.program.description,
+      learningGoals: 'Apprendre',
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -1450,7 +1450,6 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { program: { description: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -1461,12 +1460,15 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name description' },
+        populate: { path: 'program', select: 'name learningGoals' },
       })
       .chain('lean')
       .once()
       .returns(course);
-    formatCourseForDocx.returns(formattedCourse);
+    formatCourseForDocx.returns({
+      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+      courseDuration: '8h',
+    });
     createDocx.onCall(0).returns('1.docx');
     createDocx.onCall(1).returns('2.docx');
     createDocx.onCall(2).returns('3.docx');
@@ -1487,17 +1489,32 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledWithExactly(
       createDocx.getCall(0),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 1', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 1',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledWithExactly(
       createDocx.getCall(1),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 2', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 2',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledWithExactly(
       createDocx.getCall(2),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 3', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 3',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledOnceWithExactly(
       generateZip,

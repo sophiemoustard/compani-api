@@ -279,7 +279,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           program: {
             _id: expect.any(ObjectID),
             name: programsList[0].name,
-            description: programsList[0].description,
+            learningGoals: programsList[0].learningGoals,
             subPrograms: [expect.any(ObjectID)],
           },
           steps: [{

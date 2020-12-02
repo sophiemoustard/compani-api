@@ -88,6 +88,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             description: Joi.string(),
+            learningGoals: Joi.string(),
             image: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null),

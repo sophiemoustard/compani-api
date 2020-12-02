@@ -87,7 +87,7 @@ const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
-    description: 'on est là',
+    learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
     subPrograms: [subProgramsList[0]._id],
   },
