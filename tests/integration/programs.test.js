@@ -426,11 +426,11 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const falsyParams = ['name', 'description'];
+    const falsyParams = ['name', 'description', 'learningGoals'];
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;
-        const payload = { learningGoals: 'On apprend des trucs\nc\'est chouette' };
+        const payload = omit({ name: 'new name', description: 'Trop top', learningGoals: 'Truc chouette' }, param);
         const response = await app.inject({
           method: 'PUT',
           url: `/programs/${programId.toHexString()}`,
@@ -460,7 +460,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'PUT',
-          payload: { name: 'new name' },
+          payload: { learningGoals: 'On apprend des trucs\nc\'est chouette' },
           url: `/programs/${programId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
