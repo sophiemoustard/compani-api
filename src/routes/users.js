@@ -20,8 +20,8 @@ const {
   checkResetPasswordToken,
   updateCertificates,
   uploadFile,
-  uploadImage,
-  deleteImage,
+  uploadPicture,
+  deletePicture,
   createDriveFolder,
   updatePassword,
 } = require('../controllers/userController');
@@ -35,7 +35,7 @@ const {
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
   authorizeLearnersGet,
-  getImagePublicId,
+  getPicturePublicId,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
@@ -459,7 +459,7 @@ exports.plugin = {
     server.route({
       method: 'POST',
       path: '/{_id}/upload',
-      handler: uploadImage,
+      handler: uploadPicture,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
@@ -476,13 +476,13 @@ exports.plugin = {
     server.route({
       method: 'DELETE',
       path: '/{_id}/upload',
-      handler: deleteImage,
+      handler: deletePicture,
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: getImagePublicId, assign: 'publicId' }],
+        pre: [{ method: getPicturePublicId, assign: 'publicId' }],
       },
     });
   },

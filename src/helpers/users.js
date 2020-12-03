@@ -303,14 +303,14 @@ exports.removeHelper = async (user) => {
   await User.findOneAndUpdate({ _id: user._id }, payload);
 };
 
-exports.uploadImage = async (userId, payload) => {
+exports.uploadPicture = async (userId, payload) => {
   const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
   const picture = await GCloudStorageHelper.uploadUserMedia({ fileName, file: payload.file });
 
   await User.updateOne({ _id: userId }, { $set: flat({ picture }) });
 };
 
-exports.deleteImage = async (userId, publicId) => {
+exports.deletePicture = async (userId, publicId) => {
   if (!publicId) return;
 
   await User.updateOne({ _id: userId }, { $unset: { 'picture.publicId': '', 'picture.link': '' } });

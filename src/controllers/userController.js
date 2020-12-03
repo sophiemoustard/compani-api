@@ -248,9 +248,9 @@ const uploadFile = async (req) => {
   }
 };
 
-const uploadImage = async (req) => {
+const uploadPicture = async (req) => {
   try {
-    await UsersHelper.uploadImage(req.params._id, req.payload);
+    await UsersHelper.uploadPicture(req.params._id, req.payload);
 
     return { message: translate[language].fileCreated };
   } catch (e) {
@@ -259,9 +259,9 @@ const uploadImage = async (req) => {
   }
 };
 
-const deleteImage = async (req) => {
+const deletePicture = async (req) => {
   try {
-    await UsersHelper.deleteImage(req.params._id, req.pre.publicId);
+    await UsersHelper.deletePicture(req.params._id, req.pre.publicId);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
@@ -306,8 +306,8 @@ module.exports = {
   checkResetPasswordToken,
   updateCertificates,
   uploadFile,
-  uploadImage,
-  deleteImage,
+  uploadPicture,
+  deletePicture,
   createDriveFolder,
   updatePassword,
 };
