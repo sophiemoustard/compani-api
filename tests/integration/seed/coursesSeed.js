@@ -168,6 +168,18 @@ const coursesList = [
     format: 'strictly_e_learning',
     accessRules: [authCompany._id],
   },
+  { // course with contact
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    trainer: coachFromAuthCompany._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    contact: {
+      name: 'Romain Delenda',
+      email: 'romainlebg77@gmail.com',
+      phone: '0123456789',
+    },
+  },
 ];
 
 const courseSmsHistory = {

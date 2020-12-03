@@ -1554,3 +1554,136 @@ describe('addAccessRule', () => {
     sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $push: { accessRules: payload.company } });
   });
 });
+
+describe('formatCourseForCourseInfoPDF', () => {
+  let formatIdentity;
+  beforeEach(() => {
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+  });
+  afterEach(() => {
+    formatIdentity.restore();
+  });
+
+  it('should return formatted course', async () => {
+    const courseId = new ObjectID();
+
+    formatIdentity.returns('Ash Ketchum');
+
+    const result = await CourseHelper.formatCourseForCourseInfoPDF({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      contact: { phone: '0123456789' },
+      slots: [{
+        startDate: '2020-10-12T12:30:00.000+01:00',
+        endDate: '2020-10-12T13:30:00.000+01:00',
+        address: { fullAddress: '35B rue de la tour Malakoff' },
+      }],
+    });
+
+    expect(result).toEqual({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      trainerIdentity: 'Ash Ketchum',
+      contact: { phone: '0123456789' },
+      contactPhoneNumber: '01 23 45 67 89',
+      slots: [{
+        startDay: '12 oct. 2020',
+        hours: '13:30 - 14:30',
+        address: '35B rue de la tour Malakoff',
+        length: 1,
+        position: 1,
+      }],
+    });
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
+  });
+});
+
+describe('generatePdf', () => {
+  let getCoursePublicInfos;
+  let formatCourseForCourseInfoPDF;
+  let generatePdf;
+  beforeEach(() => {
+    getCoursePublicInfos = sinon.stub(CourseHelper, 'getCoursePublicInfos');
+    formatCourseForCourseInfoPDF = sinon.stub(CourseHelper, 'formatCourseForCourseInfoPDF');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+  afterEach(() => {
+    getCoursePublicInfos.restore();
+    formatCourseForCourseInfoPDF.restore();
+    generatePdf.restore();
+  });
+
+  it('should return pdf', async () => {
+    const courseId = new ObjectID();
+
+    getCoursePublicInfos.returns({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      contact: { phone: '0123456789' },
+      slots: [{
+        startDate: '2020-10-12T12:30:00.000+01:00',
+        endDate: '2020-10-12T13:30:00.000+01:00',
+        address: { fullAddress: '35B rue de la tour Malakoff' },
+      }],
+    });
+
+    formatCourseForCourseInfoPDF.returns({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      trainerIdentity: 'Ash Ketchum',
+      contact: { phone: '0123456789' },
+      contactPhoneNumber: '01 23 45 67 89',
+      slots: [{
+        startDay: '12 oct. 2020',
+        hours: '13:30 - 14:30',
+        address: '35B rue de la tour Malakoff',
+        length: 1,
+        position: 1,
+      }],
+    });
+
+    generatePdf.returns('pdf');
+
+    const result = await CourseHelper.generatePdf(courseId);
+
+    expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
+    sinon.assert.calledOnceWithExactly(getCoursePublicInfos, { _id: courseId });
+    sinon.assert.calledOnceWithExactly(
+      formatCourseForCourseInfoPDF,
+      {
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        contact: { phone: '0123456789' },
+        slots: [{
+          startDate: '2020-10-12T12:30:00.000+01:00',
+          endDate: '2020-10-12T13:30:00.000+01:00',
+          address: { fullAddress: '35B rue de la tour Malakoff' },
+        }],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      generatePdf,
+      {
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        trainerIdentity: 'Ash Ketchum',
+        contact: { phone: '0123456789' },
+        contactPhoneNumber: '01 23 45 67 89',
+        slots: [{
+          startDay: '12 oct. 2020',
+          hours: '13:30 - 14:30',
+          address: '35B rue de la tour Malakoff',
+          length: 1,
+          position: 1,
+        }],
+      },
+      './src/data/blendedCourseInfo.html'
+    );
+  });
+});
