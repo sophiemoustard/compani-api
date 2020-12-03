@@ -562,7 +562,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   });
 });
 
-describe('POST /programs/:id/upload', () => {
+describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
   let form;
   let uploadMedia;
@@ -649,6 +649,64 @@ describe('POST /programs/:id/upload', () => {
           url: `/programs/${program._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
+  let authToken;
+  let deleteProgramMediaStub;
+  beforeEach(() => {
+    deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
+  });
+  afterEach(() => {
+    deleteProgramMediaStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete a program media', async () => {
+      const program = programsList[0];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${program._id}/upload`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'au revoir');
+
+      const updatedProgram = await Program.findOne({ _id: program._id }).lean();
+      expect(updatedProgram.image.publicId).not.toBeDefined();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const program = programsList[0];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${program._id}/upload`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

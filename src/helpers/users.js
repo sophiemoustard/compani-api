@@ -15,7 +15,6 @@ const Company = require('../models/Company');
 const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
-const GdriveStorage = require('./gdriveStorage');
 const GCloudStorageHelper = require('./gCloudStorage');
 const AuthenticationHelper = require('./authentication');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
@@ -166,7 +165,7 @@ exports.saveFile = async (userId, administrativeKey, fileInfo) => {
 };
 
 exports.createAndSaveFile = async (params, payload) => {
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload.type.hapi.filename,
     type: payload['Content-Type'],

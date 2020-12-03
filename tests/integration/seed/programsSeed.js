@@ -57,6 +57,7 @@ const programsList = [
     description: 'Je suis un super programme',
     learningGoals: 'Tellement cool ce qu\'on va apprendre ensemble',
     subPrograms: [subProgramsList[0]._id],
+    image: { link: 'bonjour', publicId: 'au revoir' },
   },
   { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[2]._id] },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },

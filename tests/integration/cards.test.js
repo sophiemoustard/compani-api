@@ -848,12 +848,12 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
 
 describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
   let authToken;
-  let deleteMediaStub;
+  let deleteProgramMediaStub;
   beforeEach(() => {
-    deleteMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
+    deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
   });
   afterEach(() => {
-    deleteMediaStub.restore();
+    deleteProgramMediaStub.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -871,10 +871,10 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnce(deleteMediaStub);
+      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'publicId');
 
-      const cardUpdated = await Card.findOne({ _id: card._id });
-      expect(cardUpdated.media.publicId).not.toBeDefined();
+      const updatedCard = await Card.findOne({ _id: card._id });
+      expect(updatedCard.media.publicId).not.toBeDefined();
     });
   });
 
