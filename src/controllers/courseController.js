@@ -231,7 +231,7 @@ const addAccessRule = async (req) => {
 
 const generatePdf = async (req, h) => {
   try {
-    const { pdf, courseName } = await CoursesHelper.generatePdf(req.params._id);
+    const { pdf, courseName } = await CoursesHelper.generatePdf(req.pre.course._id);
 
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${courseName}.pdf`)

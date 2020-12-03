@@ -432,8 +432,12 @@ exports.addAccessRule = async (courseId, payload) => Course.updateOne(
 );
 
 exports.formatCourseForCourseInfoPDF = (course) => {
-  const trainerIdentity = UtilsHelper.formatIdentity(course.trainer.identity, 'FL');
-  const contactPhoneNumber = course.contact.phone.replace(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 $5');
+  const trainerIdentity = get(course, 'trainer.identity')
+    ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL')
+    : '';
+  const contactPhoneNumber = get(course, 'contact.phone')
+    ? get(course, 'contact.phone').replace(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 $5')
+    : '';
   const slots = course.slots.map((slot, i) => ({
     startDay: moment(slot.startDate).format('DD MMM YYYY'),
     hours: `${moment(slot.startDate).format('HH:mm')} - ${moment(slot.endDate).format('HH:mm')}`,
@@ -447,10 +451,10 @@ exports.formatCourseForCourseInfoPDF = (course) => {
 
 exports.generatePdf = async (courseId) => {
   const course = await exports.getCoursePublicInfos({ _id: courseId });
-  const courseName = get(course, 'subProgram.program.name').split(' ').join('-') || 'Formation';
+  const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
 
   return {
-    pdf: PdfHelper.generatePdf(exports.formatCourseForCourseInfoPDF(course), './src/data/blendedCourseInfo.html'),
+    pdf: await PdfHelper.generatePdf(exports.formatCourseForCourseInfoPDF(course), './src/data/blendedCourseInfo.html'),
     courseName,
   };
 };

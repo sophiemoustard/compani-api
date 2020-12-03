@@ -298,6 +298,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
+        pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: generatePdf,
     });
