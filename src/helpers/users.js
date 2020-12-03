@@ -305,9 +305,16 @@ exports.removeHelper = async (user) => {
 
 exports.uploadImage = async (userId, payload) => {
   const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
-  const picture = await GCloudStorageHelper.uploadProgramMedia({ fileName, file: payload.file });
+  const picture = await GCloudStorageHelper.uploadUserMedia({ fileName, file: payload.file });
 
   await User.updateOne({ _id: userId }, { $set: flat({ picture }) });
+};
+
+exports.deleteImage = async (userId, publicId) => {
+  if (!publicId) return;
+
+  await User.updateOne({ _id: userId }, { $unset: { 'picture.publicId': '', 'picture.link': '' } });
+  await GCloudStorageHelper.deleteUserMedia(publicId);
 };
 
 exports.createDriveFolder = async (user) => {

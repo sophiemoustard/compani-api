@@ -850,7 +850,7 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
   let authToken;
   let deleteMediaStub;
   beforeEach(() => {
-    deleteMediaStub = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+    deleteMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
   });
   afterEach(() => {
     deleteMediaStub.restore();

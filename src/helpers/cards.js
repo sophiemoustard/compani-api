@@ -38,7 +38,7 @@ exports.deleteMedia = async (cardId, publicId) => {
   if (!publicId) return;
 
   await Card.updateOne({ _id: cardId }, { $unset: { 'media.publicId': '', 'media.link': '' } });
-  await GCloudStorageHelper.deleteMedia(publicId);
+  await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
 
 exports.removeCard = async (cardId) => {

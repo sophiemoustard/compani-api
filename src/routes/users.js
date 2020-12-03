@@ -21,6 +21,7 @@ const {
   updateCertificates,
   uploadFile,
   uploadImage,
+  deleteImage,
   createDriveFolder,
   updatePassword,
 } = require('../controllers/userController');
@@ -34,6 +35,7 @@ const {
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
   authorizeLearnersGet,
+  getImagePublicId,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
@@ -468,6 +470,19 @@ exports.plugin = {
           }),
         },
         payload: formDataPayload(),
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/upload',
+      handler: deleteImage,
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: getImagePublicId, assign: 'publicId' }],
       },
     });
   },

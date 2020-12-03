@@ -178,7 +178,7 @@ describe('deleteMedia', () => {
   let deleteMedia;
   beforeEach(() => {
     updateOne = sinon.stub(Card, 'updateOne');
-    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();

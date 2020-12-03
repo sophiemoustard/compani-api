@@ -259,6 +259,19 @@ const uploadImage = async (req) => {
   }
 };
 
+const deleteImage = async (req) => {
+  try {
+    await UsersHelper.deleteImage(req.params._id, req.pre.publicId);
+
+    return { message: translate[language].cardUpdated };
+  } catch (e) {
+    if (e.upload && e.code === 404) return { message: translate[language].userUpdated };
+
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const createDriveFolder = async (req) => {
   try {
     await UsersHelper.createDriveFolder(req.pre.user);
@@ -294,6 +307,7 @@ module.exports = {
   updateCertificates,
   uploadFile,
   uploadImage,
+  deleteImage,
   createDriveFolder,
   updatePassword,
 };

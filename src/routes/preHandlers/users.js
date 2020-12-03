@@ -211,3 +211,10 @@ exports.authorizeLearnersGet = async (req) => {
 
   return null;
 };
+
+exports.getImagePublicId = async (req) => {
+  const user = await User.findOne({ _id: req.params._id }, { picture: 1 }).lean();
+  if (!user) throw Boom.notFound();
+
+  return get(user, 'picture.publicId') || '';
+};

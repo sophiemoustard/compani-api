@@ -27,8 +27,12 @@ const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject)
   file.pipe(stream);
 });
 
-exports.deleteMedia = async publicId => new Promise((resolve, reject) => {
-  getStorage().bucket(process.env.GCS_BUCKET_NAME).file(publicId).delete({}, (err, res) => {
+exports.deleteProgramMedia = async payload => deleteMedia(payload, process.env.GCS_PROGRAM_BUCKET);
+
+exports.deleteUserMedia = async payload => deleteMedia(payload, process.env.GCS_USER_BUCKET);
+
+const deleteMedia = async (publicId, bucketName) => new Promise((resolve, reject) => {
+  getStorage().bucket(bucketName).file(publicId).delete({}, (err, res) => {
     if (err) {
       // eslint-disable-next-line no-param-reassign
       err.upload = true;
