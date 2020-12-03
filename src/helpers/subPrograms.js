@@ -34,7 +34,7 @@ exports.updateSubProgram = async (subProgramId, payload) => {
 
 exports.listELearningDraft = async () => {
   const subPrograms = await SubProgram.find({ status: DRAFT })
-    .populate({ path: 'program', select: '_id name' })
+    .populate({ path: 'program', select: '_id name description' })
     .populate({ path: 'steps', select: 'type' })
     .lean({ virtuals: true });
   return subPrograms.filter(sp => sp.steps.length && sp.isStrictlyELearning);

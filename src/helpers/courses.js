@@ -67,7 +67,7 @@ exports.listUserCourses = async (traineeId) => {
       path: 'subProgram',
       select: 'program steps',
       populate: [
-        { path: 'program', select: 'name image' },
+        { path: 'program', select: 'name image description' },
         {
           path: 'steps',
           select: 'name type activities',
