@@ -167,7 +167,8 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    accessRules: [authCompany._id],
+    trainees: [coachFromAuthCompany._id, traineeFromOtherCompany],
+    accessRules: [authCompany._id, new ObjectID()],
   },
   { // course with contact
     _id: new ObjectID(),

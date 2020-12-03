@@ -227,7 +227,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
     const roles = [
@@ -507,7 +507,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expectedCode: 200,
         numberOfCourse: 0,
       },
-      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 4 },
+      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 5 },
       { name: 'client_admin', user: clientAdmin, expectedCode: 200, numberOfCourse: 3 },
       {
         name: 'training_organisation_manager',
@@ -689,6 +689,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
   let authToken = null;
   const courseId = coursesList[0]._id;
+  const eLearningCourseId = coursesList[8]._id;
   beforeEach(populateDB);
 
   it('should get course if trainee', async () => {
@@ -744,6 +745,26 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+  it('should get course if has access authorization', async () => {
+    authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+  it('should not get course if has not access authorization', async () => {
+    authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
       headers: { 'x-access-token': authToken },
     });
 
