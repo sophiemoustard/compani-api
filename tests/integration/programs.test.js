@@ -562,18 +562,15 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   });
 });
 
-describe('POST /programs/:id/upload', () => {
+describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
-  let form;
-  let uploadMedia;
+  let uploadProgramMediaStub;
   const program = programsList[0];
-  const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
-    form = generateFormData(docPayload);
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
-    uploadMedia.restore();
+    uploadProgramMediaStub.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -583,8 +580,9 @@ describe('POST /programs/:id/upload', () => {
     });
 
     it('should add a program image', async () => {
-      uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+      uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${program._id}/upload`,
@@ -599,10 +597,11 @@ describe('POST /programs/:id/upload', () => {
         ...pick(program, ['_id', 'name']),
         image: { publicId: 'abcdefgh', link: 'https://alenvi.io' },
       });
-      sinon.assert.calledOnce(uploadMedia);
+      sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'program_image_test', file: 'true' });
     });
 
     it('should return 404 if program does not exist', async () => {
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${new ObjectID()}/upload`,
@@ -616,7 +615,7 @@ describe('POST /programs/:id/upload', () => {
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const invalidForm = generateFormData(omit(docPayload, param));
+        const invalidForm = generateFormData(omit({ fileName: 'program_image_test', file: 'true' }, param));
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
@@ -641,14 +640,77 @@ describe('POST /programs/:id/upload', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
         authToken = await getToken(role.name);
-        uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+        uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
+  let authToken;
+  let deleteProgramMediaStub;
+  beforeEach(() => {
+    deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
+  });
+  afterEach(() => {
+    deleteProgramMediaStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete a program media', async () => {
+      const program = programsList[0];
+      const imageExistsBeforeUpdate = await Program
+        .countDocuments({ _id: program._id, 'image.publicId': { $exists: true } });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${program._id}/upload`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'au revoir');
+
+      const isPictureDeleted = await Program.countDocuments({ _id: program._id, 'image.publicId': { $exists: false } });
+      expect(imageExistsBeforeUpdate).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const program = programsList[0];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${program._id}/upload`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

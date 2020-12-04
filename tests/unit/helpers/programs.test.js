@@ -219,16 +219,13 @@ describe('update', () => {
 
 describe('uploadImage', () => {
   let updateOne;
-  let formatFileName;
   let uploadMedia;
   beforeEach(() => {
     updateOne = sinon.stub(Program, 'updateOne');
-    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();
-    formatFileName.restore();
     uploadMedia.restore();
   });
 
@@ -237,15 +234,13 @@ describe('uploadImage', () => {
       publicId: 'jesuisunsupernomdefichier',
       link: 'https://storage.googleapis.com/BucketKFC/myMedia',
     });
-    formatFileName.returns('jesuisunsupernomdefichier');
 
     const programId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
 
     await ProgramHelper.uploadImage(programId, payload);
 
-    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
-    sinon.assert.calledOnceWithExactly(uploadMedia, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
+    sinon.assert.calledOnceWithExactly(uploadMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: programId },
@@ -263,7 +258,7 @@ describe('deleteImage', () => {
   let deleteMedia;
   beforeEach(() => {
     updateOne = sinon.stub(Program, 'updateOne');
-    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();

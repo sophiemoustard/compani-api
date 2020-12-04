@@ -15,6 +15,7 @@ const EmailHelper = require('../../../src/helpers/email');
 const translate = require('../../../src/helpers/translate');
 const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
@@ -1400,6 +1401,75 @@ describe('generatePasswordToken', () => {
 
     expect(result).toEqual(payload.passwordToken);
     UserMock.verify();
+  });
+});
+
+describe('uploadPicture', () => {
+  let updateOneStub;
+  let uploadUserMedia;
+  beforeEach(() => {
+    updateOneStub = sinon.stub(User, 'updateOne');
+    uploadUserMedia = sinon.stub(GCloudStorageHelper, 'uploadUserMedia');
+  });
+  afterEach(() => {
+    updateOneStub.restore();
+    uploadUserMedia.restore();
+  });
+
+  it('should upload image', async () => {
+    uploadUserMedia.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
+
+    const userId = new ObjectID();
+    const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
+
+    await UsersHelper.uploadPicture(userId, payload);
+
+    sinon.assert.calledOnceWithExactly(uploadUserMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
+    sinon.assert.calledWithExactly(
+      updateOneStub,
+      { _id: userId },
+      {
+        $set: flat({
+          picture: { publicId: 'jesuisunsupernomdefichier', link: 'https://storage.googleapis.com/BucketKFC/myMedia' },
+        }),
+      }
+    );
+  });
+});
+
+describe('deleteMedia', () => {
+  let updateOne;
+  let deleteUserMedia;
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+    deleteUserMedia = sinon.stub(GCloudStorageHelper, 'deleteUserMedia');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    deleteUserMedia.restore();
+  });
+
+  it('should do nothing as publicId is not set', async () => {
+    const userId = new ObjectID();
+    await UsersHelper.deletePicture(userId, '');
+
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteUserMedia);
+  });
+
+  it('should update user and delete media', async () => {
+    const userId = new ObjectID();
+    await UsersHelper.deletePicture(userId, 'publicId');
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      { $unset: { 'picture.publicId': '', 'picture.link': '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteUserMedia, 'publicId');
   });
 });
 

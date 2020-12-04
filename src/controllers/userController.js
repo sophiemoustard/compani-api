@@ -1,6 +1,4 @@
-const flat = require('flat');
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
 const {
@@ -11,8 +9,6 @@ const {
   getUser,
   userExists,
 } = require('../helpers/users');
-const User = require('../models/User');
-const cloudinary = require('../helpers/cloudinary');
 
 const { language } = translate;
 
@@ -252,26 +248,25 @@ const uploadFile = async (req) => {
   }
 };
 
-const uploadImage = async (req) => {
+const uploadPicture = async (req) => {
   try {
-    const pictureUploaded = await cloudinary.addImage({
-      file: req.payload.picture,
-      folder: 'images/users/profile_pictures',
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
-    });
-    const payload = {
-      picture: {
-        publicId: pictureUploaded.public_id,
-        link: pictureUploaded.secure_url,
-      },
-    };
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    await UsersHelper.uploadPicture(req.params._id, req.payload);
 
-    return {
-      message: translate[language].fileCreated,
-      data: { picture: payload.picture, userUpdated },
-    };
+    return { message: translate[language].userUpdated };
   } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const deletePicture = async (req) => {
+  try {
+    await UsersHelper.deletePicture(req.params._id, req.pre.publicId);
+
+    return { message: translate[language].userUpdated };
+  } catch (e) {
+    if (e.upload && e.code === 404) return { message: translate[language].userUpdated };
+
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -311,7 +306,8 @@ module.exports = {
   checkResetPasswordToken,
   updateCertificates,
   uploadFile,
-  uploadImage,
+  uploadPicture,
+  deletePicture,
   createDriveFolder,
   updatePassword,
 };

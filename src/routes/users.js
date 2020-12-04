@@ -20,7 +20,8 @@ const {
   checkResetPasswordToken,
   updateCertificates,
   uploadFile,
-  uploadImage,
+  uploadPicture,
+  deletePicture,
   createDriveFolder,
   updatePassword,
 } = require('../controllers/userController');
@@ -34,6 +35,7 @@ const {
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
   authorizeLearnersGet,
+  getPicturePublicId,
 } = require('./preHandlers/users');
 const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
@@ -456,18 +458,31 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/cloudinary/upload',
-      handler: uploadImage,
+      path: '/{_id}/upload',
+      handler: uploadPicture,
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
-            picture: Joi.any().required(),
+            file: Joi.any().required(),
           }),
         },
         payload: formDataPayload(),
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/upload',
+      handler: deletePicture,
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        pre: [{ method: getPicturePublicId, assign: 'publicId' }],
       },
     });
   },

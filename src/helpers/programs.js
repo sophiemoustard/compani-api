@@ -73,8 +73,7 @@ exports.getProgramForUser = async (programId, credentials) => {
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 
 exports.uploadImage = async (programId, payload) => {
-  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
-  const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
+  const imageUploaded = await GCloudStorageHelper.uploadProgramMedia(payload);
 
   await Program.updateOne({ _id: programId }, { $set: flat({ image: imageUploaded }) });
 };
@@ -83,5 +82,5 @@ exports.deleteImage = async (programId, publicId) => {
   if (!publicId) return;
 
   await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
-  await GCloudStorageHelper.deleteMedia(publicId);
+  await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
