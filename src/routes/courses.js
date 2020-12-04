@@ -20,6 +20,7 @@ const {
   getSMSHistory,
   addAccessRule,
   generateConvocationPdf,
+  deleteAccessRule,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -33,7 +34,8 @@ const {
   authorizeRegisterToELearning,
   getCourse,
   authorizeAndGetTraineeId,
-  authorizeAddAccessRules,
+  authorizeAddAccessRule,
+  authorizeDeleteAccessRule,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -271,9 +273,19 @@ exports.plugin = {
           payload: Joi.object({ company: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeAddAccessRules }],
+        pre: [{ method: authorizeAddAccessRule }],
       },
       handler: addAccessRule,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/accessrules/{accessRuleId}',
+      options: {
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeDeleteAccessRule }],
+      },
+      handler: deleteAccessRule,
     });
 
     server.route({

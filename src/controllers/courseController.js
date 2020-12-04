@@ -208,7 +208,18 @@ const addAccessRule = async (req) => {
   try {
     await CoursesHelper.addAccessRule(req.params._id, req.payload);
 
-    return { message: translate[language].courseAccessRulesAdded };
+    return { message: translate[language].courseAccessRuleAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const deleteAccessRule = async (req) => {
+  try {
+    await CoursesHelper.deleteAccessRule(req.params._id, req.params.accessRuleId);
+
+    return { message: translate[language].courseAccessRuleDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -246,4 +257,5 @@ module.exports = {
   getSMSHistory,
   addAccessRule,
   generateConvocationPdf,
+  deleteAccessRule,
 };

@@ -258,7 +258,8 @@ module.exports = {
     courseTraineeRemoved: 'Course trainee removed.',
     courseTraineeAlreadyExists: 'Course trainee already added to course.',
     courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
-    courseAccessRulesAdded: 'Access rule added.',
+    courseAccessRuleAdded: 'Access rule added.',
+    courseAccessRuleDeleted: 'Access rule deleted.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -525,7 +526,8 @@ module.exports = {
     courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté à la formation.',
     courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
-    courseAccessRulesAdded: 'Règle d\'accès ajoutée.',
+    courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
+    courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

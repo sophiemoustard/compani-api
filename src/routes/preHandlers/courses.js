@@ -161,7 +161,7 @@ exports.authorizeAndGetTraineeId = async (req) => {
   return req.auth.credentials._id;
 };
 
-exports.authorizeAddAccessRules = async (req) => {
+exports.authorizeAddAccessRule = async (req) => {
   const course = await Course.findById(req.params._id, 'accessRules').lean();
 
   if (!course) throw Boom.notFound();
@@ -170,6 +170,14 @@ exports.authorizeAddAccessRules = async (req) => {
     .includes(req.payload.company);
 
   if (accessRuleAlreadyExist) throw Boom.conflict();
+
+  return null;
+};
+
+exports.authorizeDeleteAccessRule = async (req) => {
+  const course = await Course.countDocuments({ _id: req.params._id, accessRules: req.params.accessRuleId });
+
+  if (!course) throw Boom.notFound();
 
   return null;
 };
