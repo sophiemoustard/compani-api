@@ -13,6 +13,7 @@ const { HELPER, AUXILIARY, TRAINER, AUXILIARY_WITHOUT_COMPANY } = require('../..
 const {
   usersSeedList,
   userPayload,
+  userPayloadWithoutRole,
   populateDB,
   isExistingRole,
   customerFromOtherCompany,
@@ -49,6 +50,23 @@ describe('NODE ENV', () => {
 
 describe('POST /users', () => {
   let authToken;
+  beforeEach(populateDB);
+  it('should create user even if user not connected', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/users',
+      payload: userPayloadWithoutRole,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.result.data.user._id).toEqual(expect.any(Object));
+    const user = await User.findById(res.result.data.user._id);
+    expect(user.identity.firstname).toBe(userPayloadWithoutRole.identity.firstname);
+    expect(user.identity.lastname).toBe(userPayloadWithoutRole.identity.lastname);
+    expect(user.local.email).toBe(userPayloadWithoutRole.local.email);
+    expect(user.contact.phone).toBe(userPayloadWithoutRole.contact.phone);
+    expect(user).toHaveProperty('picture');
+  });
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {

@@ -216,6 +216,12 @@ const userPayload = {
   sector: userSectors[0]._id,
 };
 
+const userPayloadWithoutRole = {
+  identity: { firstname: 'Test', lastname: 'Kirk' },
+  local: { email: 'newuser@alenvi.io' },
+  contact: { phone: '0606060606' },
+};
+
 const contracts = [
   {
     _id: contractId,
@@ -292,6 +298,7 @@ const populateDB = async () => {
 module.exports = {
   usersSeedList,
   userPayload,
+  userPayloadWithoutRole,
   populateDB,
   isInList,
   isExistingRole,
