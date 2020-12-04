@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const Activity = require('../models/Activity');
 const Step = require('../models/Step');
 const Card = require('../models/Card');
-const ActivityHistory = require('../models/ActivityHistory');
 
 exports.getActivity = async activityId => Activity.findOne({ _id: activityId })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })

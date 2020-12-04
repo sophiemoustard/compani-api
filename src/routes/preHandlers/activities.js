@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const Activity = require('../../models/Activity');
 const { PUBLISHED } = require('../../helpers/constants');
-const ActivityHistory = require('../../models/ActivityHistory');
 
 exports.authorizeActivityUpdate = async (req) => {
   const activity = await Activity.findOne({ _id: req.params._id }).lean();
