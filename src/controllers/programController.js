@@ -133,6 +133,19 @@ const addCategory = async (req) => {
   }
 };
 
+const removeCategory = async (req) => {
+  try {
+    await ProgramHelper.removeCategory(req.params._id, req.params.categoryId);
+
+    return {
+      message: translate[language].categoryRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listELearning,
@@ -144,4 +157,5 @@ module.exports = {
   uploadImage,
   deleteImage,
   addCategory,
+  removeCategory,
 };

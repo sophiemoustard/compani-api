@@ -14,6 +14,7 @@ const {
   addSubProgram,
   deleteImage,
   addCategory,
+  removeCategory,
 } = require('../controllers/programController');
 const { formDataPayload } = require('./validations/utils');
 
@@ -113,9 +114,20 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        // pre: [{ method: checkProgramExists }],
       },
       handler: addCategory,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/categories/{categoryId}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), categoryId: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+      },
+      handler: removeCategory,
     });
 
     server.route({
