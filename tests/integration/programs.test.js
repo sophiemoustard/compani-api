@@ -718,3 +718,79 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
     });
   });
 });
+
+describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should remove category from program', async () => {
+      const programId = programsList[0]._id;
+      const categoryLengthBefore = programsList[0].categories.length;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      await Program.findById(programId);
+
+      expect(response.statusCode).toBe(200);
+      const programUpdated = await Program.findOne({ _id: programId }).lean();
+      expect(programUpdated.categories.length).toEqual(categoryLengthBefore - 1);
+      expect(programUpdated.categories.some(c => c._id === programsList[0].categories[0]._id)).toBeFalsy();
+    });
+
+    it('should return a 404 if program does not exist', async () => {
+      const programId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${programId}/categories/${programsList[0].categories[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if program does not contain category', async () => {
+      const categoryId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${programsList[0]._id}/steps/${categoryId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const programId = programsList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
