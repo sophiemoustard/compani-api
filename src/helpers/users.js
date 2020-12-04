@@ -303,8 +303,7 @@ exports.removeHelper = async (user) => {
 };
 
 exports.uploadPicture = async (userId, payload) => {
-  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
-  const picture = await GCloudStorageHelper.uploadUserMedia({ fileName, file: payload.file });
+  const picture = await GCloudStorageHelper.uploadUserMedia(payload);
 
   await User.updateOne({ _id: userId }, { $set: flat({ picture }) });
 };

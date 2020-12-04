@@ -751,18 +751,14 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
 
 describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   let authToken;
-  let form;
-  let uploadMediaStub;
+  let uploadProgramMediaStub;
   let momentFormat;
-  const card = cardsList[0];
-  const docPayload = { fileName: 'title_text_media', file: 'true' };
   beforeEach(() => {
-    form = generateFormData(docPayload);
-    uploadMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
+    uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
     momentFormat = sinon.stub(momentProto, 'format');
   });
   afterEach(() => {
-    uploadMediaStub.restore();
+    uploadProgramMediaStub.restore();
     momentFormat.restore();
   });
 
@@ -773,16 +769,19 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     });
 
     it('should add a card media', async () => {
+      const card = cardsList[0];
+      const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
       momentFormat.returns('20200625054512');
-      uploadMediaStub.returns({
+      uploadProgramMediaStub.returns({
         link: 'https://storage.googleapis.com/BucketKFC/myMedia',
         publicId: 'media-titletextmedia-20200625054512',
       });
 
+      const payload = await GetStream(form);
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${card._id}/upload`,
-        payload: await GetStream(form),
+        payload,
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
@@ -796,13 +795,14 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
           publicId: 'media-titletextmedia-20200625054512',
         },
       });
-      sinon.assert.calledOnce(uploadMediaStub);
+      sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'title_text_media', file: 'true' });
     });
 
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const invalidForm = generateFormData(omit(docPayload, param));
+        const card = cardsList[0];
+        const invalidForm = generateFormData(omit({ fileName: 'title_text_media', file: 'true' }, param));
         const response = await app.inject({
           method: 'POST',
           url: `/cards/${card._id}/upload`,
@@ -827,8 +827,10 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const card = cardsList[0];
+        const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
         authToken = await getToken(role.name);
-        uploadMediaStub.returns({
+        uploadProgramMediaStub.returns({
           link: 'https://storage.googleapis.com/BucketKFC/myMedia',
           publicId: 'media-titletextmedia-20200625054512',
         });

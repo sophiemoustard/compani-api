@@ -564,16 +564,13 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
 
 describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
-  let form;
-  let uploadMedia;
+  let uploadProgramMediaStub;
   const program = programsList[0];
-  const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
-    form = generateFormData(docPayload);
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
+    uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
-    uploadMedia.restore();
+    uploadProgramMediaStub.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -583,8 +580,9 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
     });
 
     it('should add a program image', async () => {
-      uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+      uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${program._id}/upload`,
@@ -599,10 +597,11 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         ...pick(program, ['_id', 'name']),
         image: { publicId: 'abcdefgh', link: 'https://alenvi.io' },
       });
-      sinon.assert.calledOnce(uploadMedia);
+      sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'program_image_test', file: 'true' });
     });
 
     it('should return 404 if program does not exist', async () => {
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${new ObjectID()}/upload`,
@@ -616,7 +615,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const invalidForm = generateFormData(omit(docPayload, param));
+        const invalidForm = generateFormData(omit({ fileName: 'program_image_test', file: 'true' }, param));
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
@@ -641,8 +640,9 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
         authToken = await getToken(role.name);
-        uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+        uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
         const response = await app.inject({
           method: 'POST',

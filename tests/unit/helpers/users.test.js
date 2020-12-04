@@ -1407,16 +1407,13 @@ describe('generatePasswordToken', () => {
 describe('uploadPicture', () => {
   let updateOneStub;
   let uploadUserMedia;
-  let formatFileName;
   beforeEach(() => {
     updateOneStub = sinon.stub(User, 'updateOne');
     uploadUserMedia = sinon.stub(GCloudStorageHelper, 'uploadUserMedia');
-    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
   });
   afterEach(() => {
     updateOneStub.restore();
     uploadUserMedia.restore();
-    formatFileName.restore();
   });
 
   it('should upload image', async () => {
@@ -1424,15 +1421,13 @@ describe('uploadPicture', () => {
       publicId: 'jesuisunsupernomdefichier',
       link: 'https://storage.googleapis.com/BucketKFC/myMedia',
     });
-    formatFileName.returns('jesuisunsupernomdefichier');
 
     const userId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
 
     await UsersHelper.uploadPicture(userId, payload);
 
-    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
-    sinon.assert.calledOnceWithExactly(uploadUserMedia, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
+    sinon.assert.calledOnceWithExactly(uploadUserMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
     sinon.assert.calledWithExactly(
       updateOneStub,
       { _id: userId },

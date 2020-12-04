@@ -1829,24 +1829,22 @@ describe('POST /users/:id/upload', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should add a user pp', async () => {
+    it('should add a user picture', async () => {
       const user = usersSeedList[0];
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
       uploadUserMediaStub.returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
       momentFormat.returns('20200625054512');
 
+      const payload = await GetStream(form);
       const response = await app.inject({
         method: 'POST',
         url: `/users/${user._id}/upload`,
-        payload: await GetStream(form),
+        payload,
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnceWithExactly(
-        uploadUserMediaStub,
-        { fileName: 'media-userimagetest-20200625054512', file: 'yoyoyo' }
-      );
+      sinon.assert.calledOnceWithExactly(uploadUserMediaStub, { fileName: 'user_image_test', file: 'yoyoyo' });
     });
 
     const wrongParams = ['file', 'fileName'];

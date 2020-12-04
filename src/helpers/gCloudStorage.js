@@ -3,15 +3,16 @@ const moment = require('moment');
 const { getStorage } = require('../models/Google/Storage');
 const { UPLOAD_DATE_FORMAT } = require('./constants');
 
-exports.formatFileName = fileName =>
-  `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
-
 exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_PROGRAM_BUCKET);
 
 exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_USER_BUCKET);
 
+const formatFileName = fileName =>
+  `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
+
 const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
-  const { fileName, file } = payload;
+  const { file } = payload;
+  const fileName = formatFileName(payload.fileName);
 
   const bucket = getStorage().bucket(bucketName);
   const stream = bucket.file(fileName)
