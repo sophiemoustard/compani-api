@@ -1922,6 +1922,7 @@ describe('DELETE /users/:id/upload', () => {
   });
 
   describe('VENDOR ROLE', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
@@ -1929,7 +1930,7 @@ describe('DELETE /users/:id/upload', () => {
     it('should delete picture', async () => {
       const user = usersSeedList[0];
       const pictureExistsBeforeUpdate = await User
-        .countDocuments({ _id: user._id, 'image.publicId': { $exists: true } });
+        .countDocuments({ _id: user._id, 'picture.publicId': { $exists: true } });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1958,6 +1959,7 @@ describe('DELETE /users/:id/upload', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     it('should delete picture if it is me', async () => {
       const user = userList[11];
       authToken = await getTokenByCredentials(user.local);
@@ -2029,6 +2031,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
