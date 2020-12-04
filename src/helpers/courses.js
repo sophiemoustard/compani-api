@@ -116,17 +116,6 @@ exports.getCourse = async (course, loggedUser) => {
     .lean();
 };
 
-exports.getCoursePublicInfos = async course => Course.findOne({ _id: course._id })
-  .populate({
-    path: 'subProgram',
-    select: 'program',
-    populate: { path: 'program', select: 'name description' },
-  })
-  .populate('slots')
-  .populate({ path: 'slotsToPlan', select: '_id' })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-  .lean();
-
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
 
@@ -430,3 +419,44 @@ exports.addAccessRule = async (courseId, payload) => Course.updateOne(
   { _id: courseId },
   { $push: { accessRules: payload.company } }
 );
+
+exports.formatCourseForConvocationPdf = (course) => {
+  const trainerIdentity = get(course, 'trainer.identity')
+    ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL')
+    : '';
+  const contactPhoneNumber = get(course, 'contact.phone')
+    ? UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'))
+    : '';
+  const slots = course.slots.map((slot, i) => ({
+    startDay: moment(slot.startDate).format('DD MMM YYYY'),
+    hours: `${moment(slot.startDate).format('HH:mm')} - ${moment(slot.endDate).format('HH:mm')}`,
+    address: get(slot, 'address.fullAddress') || 'Adresse non renseignée',
+    position: i + 1,
+    length: course.slots.length,
+  }));
+
+  return { ...course, trainerIdentity, contactPhoneNumber, slots };
+};
+
+exports.generateConvocationPdf = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'program',
+      populate: { path: 'program', select: 'name description' },
+    })
+    .populate('slots')
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+    .lean();
+
+  const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
+
+  return {
+    pdf: await PdfHelper.generatePdf(
+      exports.formatCourseForConvocationPdf(course),
+      './src/data/courseConvocation.html'
+    ),
+    courseName,
+  };
+};

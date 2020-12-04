@@ -174,7 +174,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -683,39 +683,6 @@ describe('COURSES ROUTES - GET /courses/user', () => {
     });
 
     expect(response.statusCode).toBe(401);
-  });
-});
-
-describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
-  let authToken = null;
-  const courseIdFromAuthCompany = coursesList[0]._id;
-  beforeEach(populateDB);
-
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-    });
-
-    it('should get course', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
-    });
-  });
-
-  it('should get course even if not authenticate', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
   });
 });
 
@@ -1860,6 +1827,48 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE ROUTES - GET /:_id/convocations', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[9]._id}/convocations`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doen\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectID()}/convocations`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    describe('User not authenticate', () => {
+      it('should get pdf even if not authenticate', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[9]._id}/convocations`,
+        });
+
+        expect(response.statusCode).toBe(200);
       });
     });
   });

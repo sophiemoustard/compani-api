@@ -8,7 +8,6 @@ const {
   create,
   getById,
   getFollowUp,
-  getPublicInfosById,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -20,6 +19,7 @@ const {
   sendSMS,
   getSMSHistory,
   addAccessRule,
+  generateConvocationPdf,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -111,19 +111,6 @@ exports.plugin = {
         pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getFollowUp,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/public-infos',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'optional' },
-        pre: [{ method: getCourse, assign: 'course' }],
-      },
-      handler: getPublicInfosById,
     });
 
     server.route({
@@ -287,6 +274,19 @@ exports.plugin = {
         pre: [{ method: authorizeAddAccessRules }],
       },
       handler: addAccessRule,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/convocations',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { mode: 'optional' },
+        pre: [{ method: getCourse, assign: 'course' }],
+      },
+      handler: generateConvocationPdf,
     });
   },
 };

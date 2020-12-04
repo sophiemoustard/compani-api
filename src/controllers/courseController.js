@@ -74,20 +74,6 @@ const getFollowUp = async (req) => {
   }
 };
 
-const getPublicInfosById = async (req) => {
-  try {
-    const course = await CoursesHelper.getCoursePublicInfos(req.pre.course);
-
-    return {
-      message: translate[language].courseFound,
-      data: { course },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const getTraineeCourse = async (req) => {
   try {
     const course = await CoursesHelper.getTraineeCourse(req.params._id, req.auth.credentials);
@@ -229,13 +215,25 @@ const addAccessRule = async (req) => {
   }
 };
 
+const generateConvocationPdf = async (req, h) => {
+  try {
+    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${courseName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listUserCourses,
   create,
   getById,
   getFollowUp,
-  getPublicInfosById,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -247,4 +245,5 @@ module.exports = {
   sendSMS,
   getSMSHistory,
   addAccessRule,
+  generateConvocationPdf,
 };
