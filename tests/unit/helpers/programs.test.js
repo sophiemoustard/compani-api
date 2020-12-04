@@ -287,3 +287,39 @@ describe('deleteImage', () => {
     sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
   });
 });
+
+describe('addCategory', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add category', async () => {
+    const programId = new ObjectID();
+    const payload = { categoryId: new ObjectID() };
+    await ProgramHelper.addCategory(programId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $push: { categories: payload.categoryId } });
+  });
+});
+
+describe('removeCategory', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove category', async () => {
+    const programId = new ObjectID();
+    const categoryId = new ObjectID();
+    await ProgramHelper.removeCategory(programId, categoryId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { categories: categoryId } });
+  });
+});
