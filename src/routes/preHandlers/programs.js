@@ -18,10 +18,11 @@ exports.getProgramImagePublicId = async (req) => {
 };
 
 exports.checkCategoryExists = async (req) => {
-  let categoryId = get(req, 'payload.categories[0]');
-  if (!categoryId) categoryId = get(req, 'payload.categoryId');
+  const categoryId = get(req, 'payload.categories[0]') ||
+    get(req, 'payload.categoryId') || get(req, 'params.categoryId');
   const category = await Category.countDocuments({ _id: categoryId });
 
   if (!category) throw Boom.notFound();
+
   return null;
 };

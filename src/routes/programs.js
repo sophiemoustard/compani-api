@@ -127,6 +127,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required(), categoryId: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgramExists }, { method: checkCategoryExists }],
       },
       handler: removeCategory,
     });

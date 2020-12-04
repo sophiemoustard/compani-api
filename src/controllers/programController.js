@@ -124,9 +124,7 @@ const addCategory = async (req) => {
   try {
     await ProgramHelper.addCategory(req.params._id, req.payload);
 
-    return {
-      message: translate[language].categoryAdded,
-    };
+    return { message: translate[language].categoryAdded };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -137,9 +135,7 @@ const removeCategory = async (req) => {
   try {
     await ProgramHelper.removeCategory(req.params._id, req.params.categoryId);
 
-    return {
-      message: translate[language].categoryRemoved,
-    };
+    return { message: translate[language].categoryRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
