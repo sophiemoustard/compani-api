@@ -85,3 +85,7 @@ exports.deleteImage = async (programId, publicId) => {
   await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
   await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
+
+exports.addCategory = async (programId, payload) => {
+  await Program.updateOne({ _id: programId }, { $push: { categories: payload.categoryId } });
+};

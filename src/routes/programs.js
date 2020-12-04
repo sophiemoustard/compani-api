@@ -13,6 +13,7 @@ const {
   uploadImage,
   addSubProgram,
   deleteImage,
+  addCategory,
 } = require('../controllers/programController');
 const { formDataPayload } = require('./validations/utils');
 
@@ -99,6 +100,22 @@ exports.plugin = {
         pre: [{ method: checkProgramExists }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/categories',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            categoryId: Joi.objectId().required(),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        // pre: [{ method: checkProgramExists }],
+      },
+      handler: addCategory,
     });
 
     server.route({
