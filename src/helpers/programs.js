@@ -23,11 +23,18 @@ exports.listELearning = async (credentials) => {
       path: 'subPrograms',
       select: 'name',
       match: { _id: { $in: subPrograms } },
-      populate: {
-        path: 'courses',
-        select: '_id trainees',
-        match: { format: STRICTLY_E_LEARNING },
-      },
+      populate: [
+        { path: 'courses', select: '_id trainees', match: { format: STRICTLY_E_LEARNING } },
+        {
+          path: 'steps',
+          select: 'activities',
+          populate: {
+            path: 'activities',
+            select: 'activityHistories',
+            populate: { path: 'activityHistories', match: { user: credentials._id } },
+          },
+        },
+      ],
     })
     .lean();
 };
@@ -48,31 +55,6 @@ exports.getProgram = async (programId) => {
       })),
     })),
   };
-};
-
-exports.getProgramForUser = async (programId, credentials) => {
-  const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
-  const subPrograms = eLearningCourse.map(course => course.subProgram);
-
-  return Program.findOne({ _id: programId })
-    .populate({
-      path: 'subPrograms',
-      select: 'name',
-      match: { _id: { $in: subPrograms } },
-      populate: [
-        { path: 'courses', select: '_id trainees', match: { format: STRICTLY_E_LEARNING } },
-        {
-          path: 'steps',
-          select: 'activities',
-          populate: {
-            path: 'activities',
-            select: 'activityHistories',
-            populate: { path: 'activityHistories', match: { user: credentials._id } },
-          },
-        },
-      ],
-    })
-    .lean();
 };
 
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
