@@ -31,6 +31,7 @@ exports.listELearning = async () => {
 exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({ path: 'subPrograms', populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } } })
+    .populate({ path: 'categories' })
     .lean({ virtuals: true });
 
   return {
@@ -84,3 +85,9 @@ exports.deleteImage = async (programId, publicId) => {
   await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
   await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
+
+exports.addCategory = async (programId, payload) =>
+  Program.updateOne({ _id: programId }, { $push: { categories: payload.categoryId } });
+
+exports.removeCategory = async (programId, categoryId) =>
+  Program.updateOne({ _id: programId }, { $pull: { categories: categoryId } });

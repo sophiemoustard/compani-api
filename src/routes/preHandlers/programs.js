@@ -17,8 +17,11 @@ exports.getProgramImagePublicId = async (req) => {
   return get(program, 'image.publicId') || '';
 };
 
-exports.authorizeProgramCreation = async (req) => {
-  const category = await Category.countDocuments({ _id: req.payload.categories[0] });
+exports.checkCategoryExists = async (req) => {
+  const categoryId = get(req, 'payload.categories[0]') ||
+    get(req, 'payload.categoryId') || get(req, 'params.categoryId');
+  const category = await Category.countDocuments({ _id: categoryId });
+
   if (!category) throw Boom.notFound();
 
   return null;
