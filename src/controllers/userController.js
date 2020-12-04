@@ -252,7 +252,7 @@ const uploadPicture = async (req) => {
   try {
     await UsersHelper.uploadPicture(req.params._id, req.payload);
 
-    return { message: translate[language].fileCreated };
+    return { message: translate[language].userUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -263,7 +263,7 @@ const deletePicture = async (req) => {
   try {
     await UsersHelper.deletePicture(req.params._id, req.pre.publicId);
 
-    return { message: translate[language].cardUpdated };
+    return { message: translate[language].userUpdated };
   } catch (e) {
     if (e.upload && e.code === 404) return { message: translate[language].userUpdated };
 

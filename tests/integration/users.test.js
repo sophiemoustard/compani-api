@@ -29,13 +29,12 @@ const {
 const {
   getToken,
   getUser,
-  userList,
   getTokenByCredentials,
   otherCompany,
   authCompany,
   rolesList,
 } = require('./seed/authenticationSeed');
-const { trainer, userList: userListFromGlobalSeed } = require('../seed/userSeed');
+const { trainer, userList } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -253,7 +252,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: userListFromGlobalSeed[8].local,
+      payload: userList[8].local,
     });
 
     expect(response.statusCode).toBe(200);
@@ -268,7 +267,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: userListFromGlobalSeed[10].local,
+      payload: userList[10].local,
     });
 
     expect(response.statusCode).toBe(200);
@@ -283,7 +282,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: userListFromGlobalSeed[11].local,
+      payload: userList[11].local,
     });
 
     expect(response.statusCode).toBe(200);
@@ -945,11 +944,11 @@ describe('GET /users/:id', () => {
 
   describe('Other roles', () => {
     it('should return user if it is me - no role no company', async () => {
-      authToken = await getTokenByCredentials(userListFromGlobalSeed[11].local);
+      authToken = await getTokenByCredentials(userList[11].local);
 
       const response = await app.inject({
         method: 'GET',
-        url: `/users/${userListFromGlobalSeed[11]._id.toHexString()}`,
+        url: `/users/${userList[11]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1326,11 +1325,11 @@ describe('PUT /users/:id/', () => {
     beforeEach(populateDB);
 
     it('should update user if it is me - no role no company', async () => {
-      authToken = await getTokenByCredentials(userListFromGlobalSeed[11].local);
+      authToken = await getTokenByCredentials(userList[11].local);
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userListFromGlobalSeed[11]._id.toHexString()}`,
+        url: `/users/${userList[11]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
@@ -1868,9 +1867,10 @@ describe('POST /users/:id/upload', () => {
   });
 
   describe('Other roles', () => {
-    it('should upload picture if it is me - auxiliary', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
-      const user = usersSeedList[0];
+    it('should upload picture if it is me', async () => {
+      const user = userList[11];
+      authToken = await getTokenByCredentials(user.local);
+
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
       uploadUserMediaStub.returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
 
@@ -1927,8 +1927,11 @@ describe('DELETE /users/:id/upload', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
+
     it('should delete picture', async () => {
       const user = usersSeedList[0];
+      const userBeforeUpdate = await User.findOne({ _id: user._id }, { picture: 1 }).lean();
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${user._id}/upload`,
@@ -1939,6 +1942,7 @@ describe('DELETE /users/:id/upload', () => {
       sinon.assert.calledOnceWithExactly(deleteUserMediaStub, 'a/public/id');
 
       const updatedUser = await User.findOne({ _id: user._id }, { picture: 1 }).lean();
+      expect(userBeforeUpdate.picture.publicId).toBeDefined();
       expect(updatedUser.picture.publicId).not.toBeDefined();
     });
 
@@ -1955,12 +1959,24 @@ describe('DELETE /users/:id/upload', () => {
   });
 
   describe('Other roles', () => {
+    it('should delete picture if it is me', async () => {
+      const user = userList[11];
+      authToken = await getTokenByCredentials(user.local);
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${user._id}/upload`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];

@@ -481,7 +481,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['programs:edit'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         pre: [{ method: getPicturePublicId, assign: 'publicId' }],
       },
     });
