@@ -208,11 +208,11 @@ exports.exportContractVersions = async (query, credentials) => {
   return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
 };
 
-exports.exportContractEnds = async (query, credntials) => {
+exports.exportContractEnds = async (query, credentials) => {
   const contractList = await Contract
     .find({
       endDate: { $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
-      company: get(credntials, 'company._id'),
+      company: get(credentials, 'company._id'),
     })
     .populate({ path: 'user', select: 'serialNumber identity' })
     .lean();

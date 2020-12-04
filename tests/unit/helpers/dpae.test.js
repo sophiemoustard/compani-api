@@ -342,7 +342,7 @@ describe('exportContractEnds', () => {
     exportToTxt.restore();
   });
 
-  it('should export contract version', async () => {
+  it('should export contract end', async () => {
     const query = { startDate: '2020-10-31T22:00:00', endDate: '2020-11-30T22:00:00' };
     const companyId = '1234567890';
     const contracts = [{
