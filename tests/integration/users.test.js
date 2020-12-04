@@ -1928,7 +1928,8 @@ describe('DELETE /users/:id/upload', () => {
 
     it('should delete picture', async () => {
       const user = usersSeedList[0];
-      const userBeforeUpdate = await User.findOne({ _id: user._id }, { picture: 1 }).lean();
+      const pictureExistsBeforeUpdate = await User
+        .countDocuments({ _id: user._id, 'image.publicId': { $exists: true } });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1939,9 +1940,9 @@ describe('DELETE /users/:id/upload', () => {
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteUserMediaStub, 'a/public/id');
 
-      const updatedUser = await User.findOne({ _id: user._id }, { picture: 1 }).lean();
-      expect(userBeforeUpdate.picture.publicId).toBeDefined();
-      expect(updatedUser.picture.publicId).not.toBeDefined();
+      const isPictureDeleted = await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
+      expect(pictureExistsBeforeUpdate).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
     });
 
     it('should return 404 if invalid user id', async () => {

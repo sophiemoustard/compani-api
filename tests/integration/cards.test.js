@@ -866,6 +866,9 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
 
     it('should delete a card media', async () => {
       const card = cardsList[1];
+      const imageExistsBeforeUpdate = await Card
+        .countDocuments({ _id: card._id, 'media.publicId': { $exists: true } });
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id}/upload`,
@@ -875,8 +878,9 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'publicId');
 
-      const updatedCard = await Card.findOne({ _id: card._id });
-      expect(updatedCard.media.publicId).not.toBeDefined();
+      const isPictureDeleted = await Card.countDocuments({ _id: card._id, 'media.publicId': { $exists: false } });
+      expect(imageExistsBeforeUpdate).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
     });
   });
 

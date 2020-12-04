@@ -675,6 +675,9 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
 
     it('should delete a program media', async () => {
       const program = programsList[0];
+      const imageExistsBeforeUpdate = await Program
+        .countDocuments({ _id: program._id, 'image.publicId': { $exists: true } });
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/programs/${program._id}/upload`,
@@ -684,8 +687,9 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'au revoir');
 
-      const updatedProgram = await Program.findOne({ _id: program._id }).lean();
-      expect(updatedProgram.image.publicId).not.toBeDefined();
+      const isPictureDeleted = await Program.countDocuments({ _id: program._id, 'image.publicId': { $exists: false } });
+      expect(imageExistsBeforeUpdate).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
     });
   });
 
