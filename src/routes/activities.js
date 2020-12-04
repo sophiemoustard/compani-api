@@ -2,8 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeCardAdd, authorizeActivityUpdate, authorizeGetActivityHistory } = require('./preHandlers/activities');
-const { getById, update, addCard, getActivityHistory } = require('../controllers/activityController');
+const { authorizeCardAdd, authorizeActivityUpdate } = require('./preHandlers/activities');
+const { getById, update, addCard } = require('../controllers/activityController');
 const { CARD_TEMPLATES } = require('../models/Card');
 
 exports.plugin = {
@@ -51,19 +51,6 @@ exports.plugin = {
         pre: [{ method: authorizeCardAdd }],
       },
       handler: addCard,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/activityhistory',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'required' },
-        pre: [{ method: authorizeGetActivityHistory }],
-      },
-      handler: getActivityHistory,
     });
   },
 };

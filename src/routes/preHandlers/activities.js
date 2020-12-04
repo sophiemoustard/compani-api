@@ -26,13 +26,3 @@ exports.authorizeCardAdd = async (req) => {
 
   return null;
 };
-
-exports.authorizeGetActivityHistory = async (req) => {
-  const nbActivityHistories = await ActivityHistory.countDocuments({
-    activity: req.params._id,
-    user: req.auth.credentials._id,
-  }).lean();
-  if (nbActivityHistories === 0) throw Boom.notFound();
-
-  return null;
-};

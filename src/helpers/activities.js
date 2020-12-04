@@ -33,13 +33,3 @@ exports.addActivity = async (stepId, payload) => {
 
 exports.detachActivity = async (stepId, activityId) =>
   Step.updateOne({ _id: stepId }, { $pull: { activities: activityId } });
-
-exports.getActivityHistory = async (activityId, userId) => {
-  const activityHistories = await ActivityHistory
-    .find({ activity: activityId, user: userId })
-    .sort([['date', -1]])
-    .limit(1)
-    .lean();
-
-  return activityHistories[0];
-};
