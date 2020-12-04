@@ -8,7 +8,6 @@ const {
   create,
   getById,
   getFollowUp,
-  getPublicInfosById,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -112,19 +111,6 @@ exports.plugin = {
         pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getFollowUp,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/public-infos',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'optional' },
-        pre: [{ method: getCourse, assign: 'course' }],
-      },
-      handler: getPublicInfosById,
     });
 
     server.route({

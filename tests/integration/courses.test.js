@@ -685,39 +685,6 @@ describe('COURSES ROUTES - GET /courses/user', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
-  let authToken = null;
-  const courseIdFromAuthCompany = coursesList[0]._id;
-  beforeEach(populateDB);
-
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-    });
-
-    it('should get course', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
-    });
-  });
-
-  it('should get course even if not authenticate', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
-  });
-});
-
 describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
   let authToken = null;
   const courseId = coursesList[0]._id;
