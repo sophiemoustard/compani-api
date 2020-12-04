@@ -17,22 +17,9 @@
     display: flex;
     flex-direction: row;
   }
-  .course {
-    display: flex;
-    flex-direction: column;
-    align-items: center
-  }
-  .container {
-    display:flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
   .title {
-    display: flex;
-    flex-direction: row;
-    margin: 16px 8px;
+    align-items: center;
+    margin-bottom: 16px;
   }
   .img {
     height: 110px;
@@ -56,9 +43,6 @@
   .img-explanation {
     width: 96px;
   }
-  .item-container {
-    max-width: 360px;
-  }
   .description {
     white-space: break-spaces;
     font-style: italic;
@@ -71,6 +55,12 @@
     width: 84px;
     margin-left: 16px;
     margin-right: 24px;
+  }
+  .slots {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
   }
   .slot-title {
     font-size: 16px;
@@ -87,8 +77,8 @@
   }
 </style>
 
-<div class="course">
-  <div class="container title">
+<div>
+  <div class="title">
     <img class="img img-thumb"
       src="https://res.cloudinary.com/alenvi/image/upload/v1546865717/images/business/Compani/aux-pouce.png">
     <div class="title-text">
@@ -96,7 +86,7 @@
       <h2>{{ subProgram.program.name }}<div>{{#if misc}}{{ misc }}{{/if}}</div></h2>
     </div>
   </div>
-  <div class="container">
+  <div class="slots">
     <p class="text-weight-bold">Dates de la formation</p>
     <div>
       {{#each slots}}
@@ -118,41 +108,39 @@
   </div>
   <br />
   <br />
-  <div class="container">
-    <div class="row">
+  <div class="row">
+    <div class="img-container">
+      <img class="img img-explanation"
+        src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-explication.png">
+    </div>
+    <div>
+      <div class="text-weight-bold">Programme de la formation</div>
+      <div class="description">{{ subProgram.program.description }}</div>
+    </div>
+  </div>
+  <br />
+  <br />
+  <div class="row">
+    <div class="row col-6">
       <div class="img-container">
         <img class="img img-explanation"
-          src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-explication.png">
+          src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-quizz.png">
       </div>
-      <div class="item-container">
-        <div class="text-weight-bold">Programme de la formation</div>
-        <div class="description">{{ subProgram.program.description }}</div>
+      <div>
+        <div class="text-weight-bold">Intervenant(e)</div>
+        <div>{{ trainerIdentity }}</div>
+        <div class="description">{{#if trainer.biography }}{{ trainer.biography }}{{/if}}</div>
       </div>
     </div>
-    <br />
-    <br />
-    <div class="row">
-      <div class="row col-6">
-        <div class="img-container">
-          <img class="img img-explanation"
-            src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-quizz.png">
-        </div>
-        <div class="item-container">
-          <div class="text-weight-bold">Intervenant(e)</div>
-          <div>{{ trainerIdentity }}</div>
-          <div class="description">{{#if trainer.biography }}{{ trainer.biography }}{{/if}}</div>
-        </div>
+    <div class="row col-6">
+      <div class="img-container">
+        <img class="img img-contact"
+          src="https://res.cloudinary.com/alenvi/image/upload/v1587373654/images/business/Compani/aux-perplexite.png">
       </div>
-      <div class="row col-6">
-        <div class="img-container">
-          <img class="img img-contact"
-            src="https://res.cloudinary.com/alenvi/image/upload/v1587373654/images/business/Compani/aux-perplexite.png">
-        </div>
-        <div class="item-container">
-          <div class="text-weight-bold">Votre contact pour la formation</div>
-          <div class="pink-text">{{ contactPhoneNumber }}</div>
-          <div class="pink-text">{{ contact.email }}</div>
-        </div>
+      <div>
+        <div class="text-weight-bold">Votre contact pour la formation</div>
+        <div class="pink-text">{{ contactPhoneNumber }}</div>
+        <div class="pink-text">{{ contact.email }}</div>
       </div>
     </div>
   </div>

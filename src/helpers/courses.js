@@ -116,17 +116,6 @@ exports.getCourse = async (course, loggedUser) => {
     .lean();
 };
 
-exports.getCoursePublicInfos = async course => Course.findOne({ _id: course._id })
-  .populate({
-    path: 'subProgram',
-    select: 'program',
-    populate: { path: 'program', select: 'name description' },
-  })
-  .populate('slots')
-  .populate({ path: 'slotsToPlan', select: '_id' })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-  .lean();
-
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
 
@@ -450,7 +439,17 @@ exports.formatCourseForConvocationPdf = (course) => {
 };
 
 exports.generateConvocationPdf = async (courseId) => {
-  const course = await exports.getCoursePublicInfos({ _id: courseId });
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'program',
+      populate: { path: 'program', select: 'name description' },
+    })
+    .populate('slots')
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+    .lean();
+
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
 
   return {

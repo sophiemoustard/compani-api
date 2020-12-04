@@ -427,41 +427,6 @@ describe('getCourse', () => {
   });
 });
 
-describe('getCoursePublicInfos', () => {
-  let CourseMock;
-  beforeEach(() => {
-    CourseMock = sinon.mock(Course);
-  });
-  afterEach(() => {
-    CourseMock.restore();
-  });
-
-  it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
-
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: course._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program',
-        populate: { path: 'program', select: 'name description' },
-      })
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-      .chain('lean')
-      .once()
-      .returns(course);
-
-    const result = await CourseHelper.getCoursePublicInfos(course);
-    expect(result).toMatchObject(course);
-  });
-});
-
 describe('selectUserHistory', () => {
   it('should return only the last history for each user', () => {
     const user1 = new ObjectID();
@@ -1601,34 +1566,50 @@ describe('formatCourseForConvocationPdf', () => {
 });
 
 describe('generateConvocationPdf', () => {
-  let getCoursePublicInfos;
   let formatCourseForConvocationPdf;
   let generatePdf;
+  let CourseMock;
   beforeEach(() => {
-    getCoursePublicInfos = sinon.stub(CourseHelper, 'getCoursePublicInfos');
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
-    getCoursePublicInfos.restore();
     formatCourseForConvocationPdf.restore();
     generatePdf.restore();
+    CourseMock.restore();
   });
 
   it('should return pdf', async () => {
     const courseId = new ObjectID();
 
-    getCoursePublicInfos.returns({
-      _id: courseId,
-      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-      contact: { phone: '0123456789' },
-      slots: [{
-        startDate: '2020-10-12T12:30:00.000+01:00',
-        endDate: '2020-10-12T13:30:00.000+01:00',
-        address: { fullAddress: '35B rue de la tour Malakoff' },
-      }],
-    });
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name description' },
+      })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+      .chain('lean')
+      .once()
+      .returns({
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        contact: { phone: '0123456789' },
+        slots: [{
+          startDate: '2020-10-12T12:30:00.000+01:00',
+          endDate: '2020-10-12T13:30:00.000+01:00',
+          address: { fullAddress: '35B rue de la tour Malakoff' },
+        }],
+      });
 
     formatCourseForConvocationPdf.returns({
       _id: courseId,
@@ -1651,7 +1632,7 @@ describe('generateConvocationPdf', () => {
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
     expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
-    sinon.assert.calledOnceWithExactly(getCoursePublicInfos, { _id: courseId });
+    CourseMock.verify();
     sinon.assert.calledOnceWithExactly(
       formatCourseForConvocationPdf,
       {
