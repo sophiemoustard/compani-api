@@ -750,6 +750,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
 
     expect(response.statusCode).toBe(403);
   });
+
   it('should get course if has access authorization', async () => {
     authToken = await getTokenByCredentials(coachFromAuthCompany.local);
     const response = await app.inject({
@@ -760,6 +761,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
 
     expect(response.statusCode).toBe(200);
   });
+
   it('should not get course if has not access authorization', async () => {
     authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
     const response = await app.inject({

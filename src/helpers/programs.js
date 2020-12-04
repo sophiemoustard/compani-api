@@ -1,4 +1,5 @@
 const flat = require('flat');
+const { get } = require('lodash');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
 const GCloudStorageHelper = require('./gCloudStorage');
@@ -11,9 +12,8 @@ exports.list = async () => Program.find({})
   .lean();
 
 exports.listELearning = async (credentials) => {
-  const companyId = credentials.company ? credentials.company._id : null;
   const eLearningCourse = await Course.find(
-    { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: companyId }] }
+    { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] }
   )
     .lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
