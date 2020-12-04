@@ -1864,7 +1864,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
   });
 });
 
-describe('COURSE ROUTES - GET /:_id/pdfs', () => {
+describe('COURSE ROUTES - GET /:_id/convocations', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -1876,8 +1876,17 @@ describe('COURSE ROUTES - GET /:_id/pdfs', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[9]._id}/pdfs`,
+        url: `/courses/${coursesList[9]._id}/convocations`,
         headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should get pdf even if not authenticate', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[9]._id}/convocations`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -1886,7 +1895,7 @@ describe('COURSE ROUTES - GET /:_id/pdfs', () => {
     it('should return 404 if course doen\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${new ObjectID()}/pdfs`,
+        url: `/courses/${new ObjectID()}/convocations`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1895,9 +1904,9 @@ describe('COURSE ROUTES - GET /:_id/pdfs', () => {
 
     describe('Other roles', () => {
       const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'helper', expectedCode: 200 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
         { name: 'client_admin', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
@@ -1908,7 +1917,7 @@ describe('COURSE ROUTES - GET /:_id/pdfs', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/courses/${coursesList[9]._id}/pdfs`,
+            url: `/courses/${coursesList[9]._id}/convocations`,
             headers: { 'x-access-token': authToken },
           });
 

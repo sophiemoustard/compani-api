@@ -20,7 +20,7 @@ const {
   sendSMS,
   getSMSHistory,
   addAccessRule,
-  generatePdf,
+  generateConvocationPdf,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -292,15 +292,15 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/pdfs',
+      path: '/{_id}/convocations',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['courses:read'] },
+        auth: { mode: 'optional' },
         pre: [{ method: getCourse, assign: 'course' }],
       },
-      handler: generatePdf,
+      handler: generateConvocationPdf,
     });
   },
 };

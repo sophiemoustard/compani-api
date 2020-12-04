@@ -229,9 +229,9 @@ const addAccessRule = async (req) => {
   }
 };
 
-const generatePdf = async (req, h) => {
+const generateConvocationPdf = async (req, h) => {
   try {
-    const { pdf, courseName } = await CoursesHelper.generatePdf(req.pre.course._id);
+    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
 
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${courseName}.pdf`)
@@ -260,5 +260,5 @@ module.exports = {
   sendSMS,
   getSMSHistory,
   addAccessRule,
-  generatePdf,
+  generateConvocationPdf,
 };

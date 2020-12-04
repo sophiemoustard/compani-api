@@ -1555,7 +1555,7 @@ describe('addAccessRule', () => {
   });
 });
 
-describe('formatCourseForCourseInfoPDF', () => {
+describe('formatCourseForConvocationPdf', () => {
   let formatIdentity;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
@@ -1569,7 +1569,7 @@ describe('formatCourseForCourseInfoPDF', () => {
 
     formatIdentity.returns('Ash Ketchum');
 
-    const result = await CourseHelper.formatCourseForCourseInfoPDF({
+    const result = await CourseHelper.formatCourseForConvocationPdf({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
@@ -1600,18 +1600,18 @@ describe('formatCourseForCourseInfoPDF', () => {
   });
 });
 
-describe('generatePdf', () => {
+describe('generateConvocationPdf', () => {
   let getCoursePublicInfos;
-  let formatCourseForCourseInfoPDF;
+  let formatCourseForConvocationPdf;
   let generatePdf;
   beforeEach(() => {
     getCoursePublicInfos = sinon.stub(CourseHelper, 'getCoursePublicInfos');
-    formatCourseForCourseInfoPDF = sinon.stub(CourseHelper, 'formatCourseForCourseInfoPDF');
+    formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
   afterEach(() => {
     getCoursePublicInfos.restore();
-    formatCourseForCourseInfoPDF.restore();
+    formatCourseForConvocationPdf.restore();
     generatePdf.restore();
   });
 
@@ -1630,7 +1630,7 @@ describe('generatePdf', () => {
       }],
     });
 
-    formatCourseForCourseInfoPDF.returns({
+    formatCourseForConvocationPdf.returns({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
@@ -1648,12 +1648,12 @@ describe('generatePdf', () => {
 
     generatePdf.returns('pdf');
 
-    const result = await CourseHelper.generatePdf(courseId);
+    const result = await CourseHelper.generateConvocationPdf(courseId);
 
     expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
     sinon.assert.calledOnceWithExactly(getCoursePublicInfos, { _id: courseId });
     sinon.assert.calledOnceWithExactly(
-      formatCourseForCourseInfoPDF,
+      formatCourseForConvocationPdf,
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
@@ -1683,7 +1683,7 @@ describe('generatePdf', () => {
           position: 1,
         }],
       },
-      './src/data/blendedCourseInfo.html'
+      './src/data/courseConvocation.html'
     );
   });
 });

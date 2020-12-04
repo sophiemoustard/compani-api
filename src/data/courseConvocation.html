@@ -7,17 +7,6 @@
     size: A4 portrait;
     margin: 1.5cm;
   }
-  table {
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  table, th, td {
-    border: 1px solid rgba(0, 0, 0, 0.12);
-  }
-  th, td {
-    padding: 5px;
-    vertical-align: top;
-  }
   h2 {
     color: #E2007A;
     font-weight: bold;
@@ -60,15 +49,12 @@
   .text-weight-bold {
     font-weight: bold;
   }
-  .items-container {
-    align-items: center;
-  }
   .img-container {
     display: flex;
     justify-content: flex-start;
   }
   .img-explanation {
-    width: 110px;
+    width: 96px;
   }
   .item-container {
     max-width: 360px;
@@ -76,30 +62,28 @@
   .description {
     white-space: break-spaces;
     font-style: italic;
-    font-size: 14px;
+    font-size: 12px;
   }
-  .item-trainer {
-    margin-right: 60px;
+  .col-6 {
+    width: 50%;
   }
   .img-contact {
     width: 84px;
-    margin-left: 13px;
-    margin-right: 23px;
-  }
-  .item-contact {
-    width: 145px;
+    margin-left: 16px;
+    margin-right: 24px;
   }
   .slot-title {
-    font-size: 18px;
+    font-size: 16px;
     color: #9B9B9B;
   }
   .slot-infos {
-    font-size: 14px;
+    font-size: 12px;
     color: #757575;
-    margin-left: 15px;
+    margin-left: 16px;
   }
   .pink-text {
     color: #E2007A;
+    font-size: 12px;
   }
 </style>
 
@@ -135,10 +119,10 @@
   <br />
   <br />
   <div class="container">
-    <div class="row items-container">
+    <div class="row">
       <div class="img-container">
-          <img class="img img-explanation"
-            src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-explication.png">
+        <img class="img img-explanation"
+          src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-explication.png">
       </div>
       <div class="item-container">
         <div class="text-weight-bold">Programme de la formation</div>
@@ -148,23 +132,23 @@
     <br />
     <br />
     <div class="row">
-      <div class="row items-container">
+      <div class="row col-6">
         <div class="img-container">
-            <img class="img img-explanation"
-              src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-quizz.png">
+          <img class="img img-explanation"
+            src="https://res.cloudinary.com/alenvi/image/upload/v1587048743/images/business/Compani/doct-quizz.png">
         </div>
-        <div class="item-container item-trainer">
+        <div class="item-container">
           <div class="text-weight-bold">Intervenant(e)</div>
           <div>{{ trainerIdentity }}</div>
           <div class="description">{{#if trainer.biography }}{{ trainer.biography }}{{/if}}</div>
         </div>
       </div>
-      <div class="row items-container">
+      <div class="row col-6">
         <div class="img-container">
-            <img class="img img-contact"
-              src="https://res.cloudinary.com/alenvi/image/upload/v1587373654/images/business/Compani/aux-perplexite.png">
+          <img class="img img-contact"
+            src="https://res.cloudinary.com/alenvi/image/upload/v1587373654/images/business/Compani/aux-perplexite.png">
         </div>
-        <div class="item-container item-contact">
+        <div class="item-container">
           <div class="text-weight-bold">Votre contact pour la formation</div>
           <div class="pink-text">{{ contactPhoneNumber }}</div>
           <div class="pink-text">{{ contact.email }}</div>
