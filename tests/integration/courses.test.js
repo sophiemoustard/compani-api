@@ -542,6 +542,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
                 _id: expect.any(ObjectID),
                 name: programsList[0].name,
                 image: programsList[0].image,
+                description: programsList[0].description,
                 subPrograms: [expect.any(ObjectID)],
               },
               steps: expect.arrayContaining([
