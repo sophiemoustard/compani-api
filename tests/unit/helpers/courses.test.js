@@ -1520,6 +1520,25 @@ describe('addAccessRule', () => {
   });
 });
 
+describe('deleteAccessRule', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add access rule to course', async () => {
+    const courseId = new ObjectID();
+    const accessRuleId = new ObjectID();
+
+    await CourseHelper.deleteAccessRule(courseId, accessRuleId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $pull: { accessRules: accessRuleId } });
+  });
+});
+
 describe('formatCourseForConvocationPdf', () => {
   let formatIdentity;
   beforeEach(() => {

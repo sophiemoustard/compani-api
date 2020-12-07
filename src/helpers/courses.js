@@ -420,6 +420,11 @@ exports.addAccessRule = async (courseId, payload) => Course.updateOne(
   { $push: { accessRules: payload.company } }
 );
 
+exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
+  { _id: courseId },
+  { $pull: { accessRules: accessRuleId } }
+);
+
 exports.formatCourseForConvocationPdf = (course) => {
   const trainerIdentity = get(course, 'trainer.identity')
     ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL')
