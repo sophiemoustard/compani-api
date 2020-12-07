@@ -1092,18 +1092,48 @@ describe('getCourseDuration', () => {
   });
 });
 
+describe('groupSlotsByDate', () => {
+  it('should group slots by date', () => {
+    const slots = [
+      {
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ];
+
+    const result = CourseHelper.groupSlotsByDate(slots);
+
+    expect(result).toEqual([
+      [{
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      }], [
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+      ],
+    ]);
+  });
+});
+
 describe('formatIntraCourseForPdf', () => {
   let formatIdentity;
   let getCourseDuration;
+  let groupSlotsByDate;
   let formatIntraCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     formatIntraCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatIntraCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
     getCourseDuration.restore();
+    groupSlotsByDate.restore();
     formatIntraCourseSlotsForPdf.restore();
   });
 
@@ -1111,7 +1141,7 @@ describe('formatIntraCourseForPdf', () => {
     const course = {
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
-      subProgram: { program: { name: 'programme de formation' } },
+      subProgram: { program: { name: 'programme' } },
       slots: [
         {
           startDate: '2020-03-20T09:00:00',
@@ -1126,6 +1156,14 @@ describe('formatIntraCourseForPdf', () => {
 
     getCourseDuration.returns('8h');
     formatIdentity.returns('MasterClass');
+    groupSlotsByDate.returns([[{
+      startDate: '2020-03-20T09:00:00',
+      endDate: '2020-03-20T11:00:00',
+      address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+    }], [
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ]]);
     formatIntraCourseSlotsForPdf.onCall(0).returns({ startHour: 'slot1' });
     formatIntraCourseSlotsForPdf.onCall(1).returns({ startHour: 'slot2' });
     formatIntraCourseSlotsForPdf.onCall(2).returns({ startHour: 'slot3' });
@@ -1133,33 +1171,29 @@ describe('formatIntraCourseForPdf', () => {
     const result = CourseHelper.formatIntraCourseForPdf(course);
 
     expect(result).toEqual({
-      dates: [
-        {
-          course: {
-            name: 'programme de formation - des infos en plus',
-            duration: '8h',
-            company: 'alenvi',
-            trainer: 'MasterClass',
-          },
-          address: '37 rue de Ponthieu 75008 Paris',
-          slots: [{ startHour: 'slot1' }],
-          date: '20/03/2020',
-        },
-        {
-          course: {
-            name: 'programme de formation - des infos en plus',
-            duration: '8h',
-            company: 'alenvi',
-            trainer: 'MasterClass',
-          },
-          address: '',
-          slots: [{ startHour: 'slot2' }, { startHour: 'slot3' }],
-          date: '12/04/2020',
-        },
-      ],
+      dates: [{
+        course: { name: 'programme - des infos en plus', duration: '8h', company: 'alenvi', trainer: 'MasterClass' },
+        address: '37 rue de Ponthieu 75008 Paris',
+        slots: [{ startHour: 'slot1' }],
+        date: '20/03/2020',
+      }, {
+        course: { name: 'programme - des infos en plus', duration: '8h', company: 'alenvi', trainer: 'MasterClass' },
+        address: '',
+        slots: [{ startHour: 'slot2' }, { startHour: 'slot3' }],
+        date: '12/04/2020',
+      }],
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
+      {
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(0), course.slots[0]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(2), course.slots[2]);
@@ -1539,31 +1573,65 @@ describe('deleteAccessRule', () => {
   });
 });
 
+describe('formatHoursForConvocation', () => {
+  it('should format hours for convocation for 1 slot', () => {
+    const slots = [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T14:30:00' }];
+
+    const result = CourseHelper.formatHoursForConvocation(slots);
+
+    expect(result).toEqual('12h30 - 14h30');
+  });
+
+  it('should format hours for convocation for 2 slots', () => {
+    const slots = [
+      { startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T14:30:00' },
+      { startDate: '2020-10-12T15:30:00', endDate: '2020-10-12T17:30:00' },
+    ];
+
+    const result = CourseHelper.formatHoursForConvocation(slots);
+
+    expect(result).toEqual('12h30 - 14h30 / 15h30 - 17h30');
+  });
+});
+
 describe('formatCourseForConvocationPdf', () => {
   let formatIdentity;
+  let formatHoursForConvocation;
+  let groupSlotsByDate;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    formatHoursForConvocation = sinon.stub(CourseHelper, 'formatHoursForConvocation');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
   });
   afterEach(() => {
     formatIdentity.restore();
+    formatHoursForConvocation.restore();
+    groupSlotsByDate.restore();
   });
 
   it('should return formatted course', async () => {
     const courseId = new ObjectID();
-
-    formatIdentity.returns('Ash Ketchum');
-
-    const result = await CourseHelper.formatCourseForConvocationPdf({
+    const course = {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
       contact: { phone: '0123456789' },
       slots: [{
-        startDate: '2020-10-12T12:30:00.000+01:00',
-        endDate: '2020-10-12T13:30:00.000+01:00',
-        address: { fullAddress: '35B rue de la tour Malakoff' },
+        startDate: '2020-10-12T12:30:00',
+        endDate: '2020-10-12T13:30:00',
+        address: { fullAddress: '3 rue T' },
       }],
-    });
+    };
+
+    formatIdentity.returns('Ash Ketchum');
+    formatHoursForConvocation.returns('13:30 - 14:30');
+    groupSlotsByDate.returns([[{
+      startDate: '2020-10-12T12:30:00',
+      endDate: '2020-10-12T13:30:00',
+      address: { fullAddress: '3 rue T' },
+    }]]);
+
+    const result = await CourseHelper.formatCourseForConvocationPdf(course);
 
     expect(result).toEqual({
       _id: courseId,
@@ -1572,15 +1640,18 @@ describe('formatCourseForConvocationPdf', () => {
       trainerIdentity: 'Ash Ketchum',
       contact: { phone: '0123456789' },
       contactPhoneNumber: '01 23 45 67 89',
-      slots: [{
-        startDay: '12 oct. 2020',
-        hours: '13:30 - 14:30',
-        address: '35B rue de la tour Malakoff',
-        length: 1,
-        position: 1,
-      }],
+      slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
     });
+
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
+    sinon.assert.calledOnceWithExactly(
+      formatHoursForConvocation,
+      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatHoursForConvocation,
+      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    );
   });
 });
 

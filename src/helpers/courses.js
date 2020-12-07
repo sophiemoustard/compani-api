@@ -318,6 +318,12 @@ exports.getCourseDuration = (slots) => {
   return UtilsHelper.formatDuration(duration);
 };
 
+exports.groupSlotsByDate = (slots) => {
+  const group = groupBy(slots, slot => moment(slot.startDate).format('DD/MM/YYYY'));
+
+  return Object.values(group).sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+};
+
 exports.formatIntraCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
@@ -328,8 +334,7 @@ exports.formatIntraCourseForPdf = (course) => {
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
-  const slotsGroupedByDate = Object.values(groupBy(course.slots, slot => moment(slot.startDate).format('DD/MM/YYYY')))
-    .sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+  const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   return {
     dates: slotsGroupedByDate.map(groupedSlots => ({
@@ -425,19 +430,22 @@ exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
   { $pull: { accessRules: accessRuleId } }
 );
 
+exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
+  const slotHours =
+    `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+
+  return acc === '' ? slotHours : `${acc} / ${slotHours}`;
+}, '');
+
 exports.formatCourseForConvocationPdf = (course) => {
-  const trainerIdentity = get(course, 'trainer.identity')
-    ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL')
-    : '';
-  const contactPhoneNumber = get(course, 'contact.phone')
-    ? UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'))
-    : '';
-  const slots = course.slots.map((slot, i) => ({
-    startDay: moment(slot.startDate).format('DD MMM YYYY'),
-    hours: `${moment(slot.startDate).format('HH:mm')} - ${moment(slot.endDate).format('HH:mm')}`,
-    address: get(slot, 'address.fullAddress') || 'Adresse non renseignée',
-    position: i + 1,
-    length: course.slots.length,
+  const trainerIdentity = UtilsHelper.formatIdentity(course.trainer.identity, 'FL');
+  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'));
+  const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
+
+  const slots = slotsGroupedByDate.map(groupedSlots => ({
+    address: get(groupedSlots[0], 'address.fullAddress') || '',
+    hours: exports.formatHoursForConvocation(groupedSlots),
+    date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
 
   return { ...course, trainerIdentity, contactPhoneNumber, slots };
