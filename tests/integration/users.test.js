@@ -13,7 +13,6 @@ const { HELPER, AUXILIARY, TRAINER, AUXILIARY_WITHOUT_COMPANY } = require('../..
 const {
   usersSeedList,
   userPayload,
-  userPayloadWithoutRole,
   populateDB,
   isExistingRole,
   customerFromOtherCompany,
@@ -50,23 +49,32 @@ describe('NODE ENV', () => {
 
 describe('POST /users', () => {
   let authToken;
-  beforeEach(populateDB);
-  it('should create user even if user not connected', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users',
-      payload: userPayloadWithoutRole,
-    });
+  describe('NOT_CONNECTED', () => {
+    beforeEach(populateDB);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.result.data.user._id).toEqual(expect.any(Object));
-    const user = await User.findById(res.result.data.user._id);
-    expect(user.identity.firstname).toBe(userPayloadWithoutRole.identity.firstname);
-    expect(user.identity.lastname).toBe(userPayloadWithoutRole.identity.lastname);
-    expect(user.local.email).toBe(userPayloadWithoutRole.local.email);
-    expect(user.contact.phone).toBe(userPayloadWithoutRole.contact.phone);
-    expect(user).toHaveProperty('picture');
+    it('should create user even if user not connected', async () => {
+      const userPayloadWithoutRole = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io' },
+        contact: { phone: '0606060606' },
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: userPayloadWithoutRole,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user._id).toEqual(expect.any(Object));
+
+      const user = await User.findById(res.result.data.user._id).lean();
+      expect(user.identity.firstname).toBe('Test');
+      expect(user.identity.lastname).toBe('Kirk');
+      expect(user.local.email).toBe('newuser@alenvi.io');
+      expect(user.contact.phone).toBe('0606060606');
+    });
   });
+
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -87,12 +95,11 @@ describe('POST /users', () => {
       expect(res.result.data.user.role.client).toMatchObject({
         name: 'auxiliary',
       });
-      const user = await User.findById(res.result.data.user._id);
+      const user = await User.findById(res.result.data.user._id).lean();
       expect(user.identity.firstname).toBe(userPayload.identity.firstname);
       expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.serialNumber).toEqual(expect.any(String));
-      expect(user).toHaveProperty('picture');
 
       const userSectorHistory = await SectorHistory
         .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
