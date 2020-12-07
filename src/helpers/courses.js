@@ -438,7 +438,7 @@ exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
 }, '');
 
 exports.formatCourseForConvocationPdf = (course) => {
-  const trainerIdentity = UtilsHelper.formatIdentity(course.trainer.identity, 'FL');
+  const trainerIdentity = UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL');
   const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'));
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
