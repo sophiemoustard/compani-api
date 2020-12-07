@@ -36,7 +36,7 @@ const coachFromAuthCompany = userList
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
-  local: { email: 'traineeAuthCompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
@@ -167,7 +167,17 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    accessRules: [authCompany._id],
+    trainees: [coachFromAuthCompany._id],
+    accessRules: [authCompany._id, new ObjectID()],
+  },
+  { // course with access rules and trainee that can't have access to the course but has already suscribed
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    trainees: [coachFromAuthCompany._id, traineeFromOtherCompany._id],
+    accessRules: [authCompany._id, new ObjectID()],
   },
   { // course with contact
     _id: new ObjectID(),

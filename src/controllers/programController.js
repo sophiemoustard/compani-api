@@ -21,7 +21,7 @@ const list = async (req) => {
 
 const listELearning = async (req) => {
   try {
-    const programs = await ProgramHelper.listELearning();
+    const programs = await ProgramHelper.listELearning(req.auth.credentials);
 
     return {
       message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,

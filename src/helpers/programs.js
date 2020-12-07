@@ -1,4 +1,5 @@
 const flat = require('flat');
+const { get } = require('lodash');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
 const GCloudStorageHelper = require('./gCloudStorage');
@@ -10,8 +11,11 @@ exports.list = async () => Program.find({})
   .populate({ path: 'subPrograms', select: 'name' })
   .lean();
 
-exports.listELearning = async () => {
-  const eLearningCourse = await Course.find({ format: STRICTLY_E_LEARNING }).lean();
+exports.listELearning = async (credentials) => {
+  const eLearningCourse = await Course.find(
+    { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] }
+  )
+    .lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
 
   return Program.find({ subPrograms: { $in: subPrograms } })

@@ -223,6 +223,7 @@ describe('listUserCourses', () => {
   });
 
   it('should return courses', async () => {
+    const trainee = { _id: new ObjectID(), company: new ObjectID() };
     const stepId = new ObjectID();
     const coursesList = [
       {
@@ -278,7 +279,13 @@ describe('listUserCourses', () => {
     ];
 
     CourseMock.expects('find')
-      .withExactArgs({ trainees: '1234567890abcdef12345678' }, { format: 1 })
+      .withExactArgs(
+        {
+          trainees: trainee._id,
+          $or: [{ accessRules: [] }, { accessRules: trainee.company }],
+        },
+        { format: 1 }
+      )
       .chain('populate')
       .withExactArgs({
         path: 'subProgram',
@@ -292,7 +299,7 @@ describe('listUserCourses', () => {
               path: 'activities',
               select: 'name type cards activityHistories',
               populate: [
-                { path: 'activityHistories', match: { user: '1234567890abcdef12345678' } },
+                { path: 'activityHistories', match: { user: trainee._id } },
                 { path: 'cards', select: 'template' },
               ],
             },
@@ -322,7 +329,8 @@ describe('listUserCourses', () => {
       progress: 1,
     });
 
-    const result = await CourseHelper.listUserCourses('1234567890abcdef12345678');
+    const result = await CourseHelper.listUserCourses(trainee);
+
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
