@@ -62,10 +62,8 @@ exports.formatCourseWithProgress = (course) => {
 };
 
 exports.listUserCourses = async (trainee) => {
-  const traineeId = trainee._id;
-
   const courses = await Course.find(
-    { trainees: traineeId, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
     { format: 1 }
   )
     .populate({
@@ -80,7 +78,7 @@ exports.listUserCourses = async (trainee) => {
             path: 'activities',
             select: 'name type cards activityHistories',
             populate: [
-              { path: 'activityHistories', match: { user: traineeId } },
+              { path: 'activityHistories', match: { user: trainee._id } },
               { path: 'cards', select: 'template' },
             ],
           },

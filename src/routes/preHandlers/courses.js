@@ -141,12 +141,13 @@ exports.authorizeRegisterToELearning = async (req) => {
   if (course.format !== STRICTLY_E_LEARNING) throw Boom.forbidden();
 
   const credentials = get(req, 'auth.credentials');
-  if (course.trainees.map(trainee => trainee.toHexString()).includes(get(credentials, '_id'))) throw Boom.forbidden();
-  const { accessRules } = course;
+  if (course.trainees.some(trainee =>
+    UtilsHelper.areObjectIdsEquals(trainee, get(credentials, '_id')))) throw Boom.forbidden();
 
+  const { accessRules } = course;
   const companyId = get(credentials, 'company._id');
   if (accessRules.length &&
-    (!companyId || !accessRules.map(id => id.toHexString()).includes(companyId.toHexString()))) throw Boom.forbidden();
+    (!companyId || !accessRules.some(id => UtilsHelper.areObjectIdsEquals(id, companyId)))) throw Boom.forbidden();
 
   return null;
 };
@@ -163,23 +164,21 @@ exports.authorizeAndGetTrainee = async (req) => {
   const traineeId = get(req, 'query.traineeId');
   const credentials = get(req, 'auth.credentials');
 
-  if (traineeId) {
-    const user = await User.findOne({ _id: traineeId }, { company: 1 }).lean();
-    if (!user) return Boom.forbidden();
+  if (!traineeId) return { _id: get(credentials, '_id'), company: get(credentials, 'company._id') };
 
-    const trainee = { _id: traineeId, company: user.company };
+  const user = await User.findOne({ _id: traineeId }, { company: 1 }).lean();
+  if (!user) return Boom.forbidden();
 
-    const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-    if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return trainee;
+  const trainee = { _id: traineeId, company: user.company };
 
-    const loggedUserClientRole = get(credentials, 'role.client.name');
-    const isSameCompany = UtilsHelper.areObjectIdsEquals(user.company, get(credentials, 'company._id'));
-    if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && isSameCompany) return trainee;
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return trainee;
 
-    return Boom.forbidden();
-  }
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+  const isSameCompany = UtilsHelper.areObjectIdsEquals(user.company, get(credentials, 'company._id'));
+  if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && isSameCompany) return trainee;
 
-  return { _id: get(credentials, '_id'), company: get(credentials, 'company._id') };
+  return Boom.forbidden();
 };
 
 exports.authorizeAccessRuleAddition = async (req) => {
