@@ -154,6 +154,10 @@ exports.authorizeUserUpdateWithoutCompany = (req) => {
 
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
+  if (!credentials) checkUpdateRestrictions(req.payload);
+
+  const scope = get(credentials, 'scope');
+  if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
 
   if (req.payload.customers && req.payload.customers.length) {
     const { customers } = req.payload;
@@ -210,4 +214,11 @@ exports.authorizeLearnersGet = async (req) => {
   if (!isClientRoleAllowed && !isVendorRoleAllowed) throw Boom.forbidden();
 
   return null;
+};
+
+exports.getPicturePublicId = async (req) => {
+  const user = await User.findOne({ _id: req.params._id }, { picture: 1 }).lean();
+  if (!user) throw Boom.notFound();
+
+  return get(user, 'picture.publicId') || '';
 };

@@ -125,10 +125,7 @@ const usersSeedList = [
     inactivityDate: null,
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,
-    picture: {
-      publicId: 'a/public/id',
-      link: 'https://the.complete.com/link/to/the/picture/storage/location',
-    },
+    picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
   },
   {
     _id: new ObjectID(),

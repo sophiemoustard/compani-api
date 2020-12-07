@@ -87,8 +87,9 @@ const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
-    description: 'on est là',
+    learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
+    description: 'Ceci est une description',
     subPrograms: [subProgramsList[0]._id],
   },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
@@ -159,6 +160,26 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
+  },
+  { // course with access rules
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    accessRules: [authCompany._id],
+  },
+  { // course with contact
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    trainer: coachFromAuthCompany._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    contact: {
+      name: 'Romain Delenda',
+      email: 'romainlebg77@gmail.com',
+      phone: '0123456789',
+    },
   },
 ];
 

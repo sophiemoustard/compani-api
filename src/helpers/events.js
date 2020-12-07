@@ -188,11 +188,6 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) => Event.updateMany(
-  { type: INTERNAL_HOUR, internalHour: oldInternalHourId, startDate: { $gte: eventsStartDate } },
-  { $set: { internalHour: internalHourId } }
-);
-
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(
     event,

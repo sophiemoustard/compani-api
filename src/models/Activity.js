@@ -45,12 +45,10 @@ ActivitySchema.virtual('quizCount').get(setQuizCount);
 
 // eslint-disable-next-line consistent-return
 function setAreCardsValid() {
+  if (this.cards && this.cards.length === 0) return true;
+
   if (this.cards && this.cards.length && this.cards[0].template) { // if card is populated, template exists
     return this.cards.every(card => card.isValid);
-  }
-
-  if (this.cards && this.cards.length === 0) {
-    return true;
   }
 }
 

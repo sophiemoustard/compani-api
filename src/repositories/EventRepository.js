@@ -315,7 +315,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
           week: { $week: '$startDate' },
           day: { $dayOfWeek: '$startDate' },
         },
-        eventsPerDay: { $push: { $cond: [{ $in: ['$type', ['internalHour', 'intervention']] }, '$$ROOT', null] } },
+        eventsPerDay: { $push: { $cond: [{ $in: ['$type', [INTERNAL_HOUR, INTERVENTION]] }, '$$ROOT', null] } },
         absences: { $push: { $cond: [{ $eq: ['$type', 'absence'] }, '$$ROOT', null] } },
         auxiliary: { $first: '$auxiliary' },
       },

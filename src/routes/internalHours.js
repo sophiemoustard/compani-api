@@ -2,10 +2,13 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeInternalHourUpdate, getInternalHour } = require('./preHandlers/internalHours');
+const {
+  authorizeInternalHourDeletion,
+  getInternalHour,
+  authorizeInternalHourCreation,
+} = require('./preHandlers/internalHours');
 const {
   create,
-  update,
   list,
   remove,
 } = require('../controllers/internalHourController');
@@ -19,30 +22,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-            default: Joi.boolean(),
-          }),
+          payload: Joi.object().keys({ name: Joi.string().required() }),
         },
+        pre: [{ method: authorizeInternalHourCreation }],
       },
       handler: create,
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}',
-      options: {
-        auth: { scope: ['config:edit'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({ default: Joi.boolean() }),
-        },
-        pre: [
-          { method: getInternalHour, assign: 'internalHour' },
-          { method: authorizeInternalHourUpdate },
-        ],
-      },
-      handler: update,
     });
 
     server.route({
@@ -64,7 +48,7 @@ exports.plugin = {
         },
         pre: [
           { method: getInternalHour, assign: 'internalHour' },
-          { method: authorizeInternalHourUpdate },
+          { method: authorizeInternalHourDeletion },
         ],
       },
       handler: remove,
