@@ -139,8 +139,14 @@ exports.authorizeRegisterToELearning = async (req) => {
 
   if (!course) throw Boom.notFound();
   if (course.format !== STRICTLY_E_LEARNING) throw Boom.forbidden();
-  const userId = get(req, 'auth.credentials._id');
-  if (course.trainees.map(trainee => trainee.toHexString()).includes(userId)) throw Boom.forbidden();
+
+  const credentials = get(req, 'auth.credentials');
+  if (course.trainees.map(trainee => trainee.toHexString()).includes(get(credentials, '_id'))) throw Boom.forbidden();
+  const { accessRules } = course;
+
+  const companyId = get(credentials, 'company._id');
+  if (accessRules.length &&
+    (!companyId || !accessRules.map(id => id.toHexString()).includes(companyId.toHexString()))) throw Boom.forbidden();
 
   return null;
 };
