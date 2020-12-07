@@ -1864,7 +1864,7 @@ describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
     it('should return 404 if accessRules doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[8]._id}/accessrules/${new ObjectID()}`,
+        url: `/courses/${coursesList[8]._id}/accessrules/${otherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 

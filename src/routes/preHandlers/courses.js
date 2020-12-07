@@ -161,7 +161,7 @@ exports.authorizeAndGetTraineeId = async (req) => {
   return req.auth.credentials._id;
 };
 
-exports.authorizeAddAccessRule = async (req) => {
+exports.authorizeAccessRuleAddition = async (req) => {
   const course = await Course.findById(req.params._id, 'accessRules').lean();
 
   if (!course) throw Boom.notFound();
@@ -174,7 +174,7 @@ exports.authorizeAddAccessRule = async (req) => {
   return null;
 };
 
-exports.authorizeDeleteAccessRule = async (req) => {
+exports.authorizeAccessRuleDeletion = async (req) => {
   const course = await Course.countDocuments({ _id: req.params._id, accessRules: req.params.accessRuleId });
 
   if (!course) throw Boom.notFound();

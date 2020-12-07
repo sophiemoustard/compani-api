@@ -34,8 +34,8 @@ const {
   authorizeRegisterToELearning,
   getCourse,
   authorizeAndGetTraineeId,
-  authorizeAddAccessRule,
-  authorizeDeleteAccessRule,
+  authorizeAccessRuleAddition,
+  authorizeAccessRuleDeletion,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -273,7 +273,7 @@ exports.plugin = {
           payload: Joi.object({ company: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeAddAccessRule }],
+        pre: [{ method: authorizeAccessRuleAddition }],
       },
       handler: addAccessRule,
     });
@@ -283,7 +283,7 @@ exports.plugin = {
       path: '/{_id}/accessrules/{accessRuleId}',
       options: {
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeDeleteAccessRule }],
+        pre: [{ method: authorizeAccessRuleDeletion }],
       },
       handler: deleteAccessRule,
     });
