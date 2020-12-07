@@ -78,7 +78,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['users:edit'] },
+        auth: { mode: 'optional' },
         validate: {
           payload: Joi.object().keys({
             company: Joi.objectId(),

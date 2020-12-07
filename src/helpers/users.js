@@ -189,7 +189,7 @@ exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  if (!roleId) return User.create({ ...payload, refreshToken: uuidv4() });
+  if (!roleId || !credentials) return User.create({ ...payload, refreshToken: uuidv4() });
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);

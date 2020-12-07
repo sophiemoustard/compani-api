@@ -937,6 +937,31 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
+  it('should create a user if not connected', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      contact: { phone: '0606060606' },
+      role: { client: roleId },
+    };
+    const newUser = { identity: payload.identity, local: payload.local, contact: payload.contact };
+
+    RoleMock.expects('findById').never();
+
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({ ...newUser, refreshToken: sinon.match.string })
+      .once()
+      .returns(newUser);
+
+    const result = await UsersHelper.createUser(payload, null);
+    expect(result).toEqual(newUser);
+
+    RoleMock.verify();
+    UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
   it('should return an error 409 if user already exist', async () => {
     try {
       const payload = {
