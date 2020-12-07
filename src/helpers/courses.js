@@ -61,8 +61,13 @@ exports.formatCourseWithProgress = (course) => {
   };
 };
 
-exports.listUserCourses = async (traineeId) => {
-  const courses = await Course.find({ trainees: traineeId }, { format: 1 })
+exports.listUserCourses = async (trainee) => {
+  const traineeId = trainee._id;
+
+  const courses = await Course.find(
+    { trainees: traineeId, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    { format: 1 }
+  )
     .populate({
       path: 'subProgram',
       select: 'program steps',
