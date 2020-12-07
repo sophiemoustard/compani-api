@@ -3,13 +3,18 @@ const moment = require('moment');
 const { getStorage } = require('../models/Google/Storage');
 const { UPLOAD_DATE_FORMAT } = require('./constants');
 
-exports.formatFileName = fileName =>
+exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.GCS_PROGRAM_BUCKET);
+
+exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_USER_BUCKET);
+
+const formatFileName = fileName =>
   `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
 
-exports.uploadMedia = async payload => new Promise((resolve, reject) => {
-  const { fileName, file } = payload;
+const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject) => {
+  const { file } = payload;
+  const fileName = formatFileName(payload.fileName);
 
-  const bucket = getStorage().bucket(process.env.GCS_BUCKET_NAME);
+  const bucket = getStorage().bucket(bucketName);
   const stream = bucket.file(fileName)
     .createWriteStream({ metadata: { contentType: get(file, 'hapi.headers.content-type') } })
     .on('finish', () => {
@@ -23,8 +28,12 @@ exports.uploadMedia = async payload => new Promise((resolve, reject) => {
   file.pipe(stream);
 });
 
-exports.deleteMedia = async publicId => new Promise((resolve, reject) => {
-  getStorage().bucket(process.env.GCS_BUCKET_NAME).file(publicId).delete({}, (err, res) => {
+exports.deleteProgramMedia = async payload => deleteMedia(payload, process.env.GCS_PROGRAM_BUCKET);
+
+exports.deleteUserMedia = async payload => deleteMedia(payload, process.env.GCS_USER_BUCKET);
+
+const deleteMedia = async (publicId, bucketName) => new Promise((resolve, reject) => {
+  getStorage().bucket(bucketName).file(publicId).delete({}, (err, res) => {
     if (err) {
       // eslint-disable-next-line no-param-reassign
       err.upload = true;

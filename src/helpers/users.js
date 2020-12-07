@@ -11,14 +11,16 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const Company = require('../models/Company');
 const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
-const GdriveStorage = require('./gdriveStorage');
+const GCloudStorageHelper = require('./gCloudStorage');
 const AuthenticationHelper = require('./authentication');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
+const GdriveStorageHelper = require('./gdriveStorage');
 const UtilsHelper = require('./utils');
 
 const { language } = translate;
@@ -131,8 +133,9 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }).lean();
+  const targetUser = await User.findOne({ 'local.email': email }, { role: 1, company: 1 }).lean();
   if (!targetUser) return { exists: false, user: {} };
+  if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
   const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
@@ -162,7 +165,7 @@ exports.saveFile = async (userId, administrativeKey, fileInfo) => {
 };
 
 exports.createAndSaveFile = async (params, payload) => {
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload.type.hapi.filename,
     type: payload['Content-Type'],
@@ -186,7 +189,7 @@ exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
   const companyId = payload.company || get(credentials, 'company._id', null);
 
-  if (!roleId) return User.create({ ...payload, refreshToken: uuidv4() });
+  if (!roleId || !credentials) return User.create({ ...payload, refreshToken: uuidv4() });
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
@@ -297,4 +300,28 @@ exports.removeHelper = async (user) => {
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
 
   await User.findOneAndUpdate({ _id: user._id }, payload);
+};
+
+exports.uploadPicture = async (userId, payload) => {
+  const picture = await GCloudStorageHelper.uploadUserMedia(payload);
+
+  await User.updateOne({ _id: userId }, { $set: flat({ picture }) });
+};
+
+exports.deletePicture = async (userId, publicId) => {
+  if (!publicId) return;
+
+  await User.updateOne({ _id: userId }, { $unset: { 'picture.publicId': '', 'picture.link': '' } });
+  await GCloudStorageHelper.deleteUserMedia(publicId);
+};
+
+exports.createDriveFolder = async (user) => {
+  const userCompany = await Company.findOne({ _id: user.company }, { auxiliariesFolderId: 1 }).lean();
+  if (!userCompany || !userCompany.auxiliariesFolderId) throw Boom.badData();
+
+  const folder = await GdriveStorageHelper.createFolder(user.identity, userCompany.auxiliariesFolderId);
+
+  const administrative = { driveFolder: { link: folder.webViewLink, driveId: folder.id } };
+
+  await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
 };

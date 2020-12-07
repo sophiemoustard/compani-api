@@ -54,15 +54,8 @@ exports.authorizeGetCourseList = async (req) => {
 
   const courseTrainerId = get(req, 'query.trainer');
   const courseCompanyId = get(req, 'query.company');
-  const traineeId = get(req, 'query.trainees');
 
-  let traineeCompanyId = null;
-  if (traineeId) {
-    const trainee = await User.findOne({ _id: traineeId }).lean();
-    if (trainee.company) traineeCompanyId = trainee.company.toHexString();
-  }
-
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, traineeCompanyId);
+  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
   return null;
 };
@@ -166,4 +159,25 @@ exports.authorizeAndGetTraineeId = async (req) => {
   }
 
   return req.auth.credentials._id;
+};
+
+exports.authorizeAccessRuleAddition = async (req) => {
+  const course = await Course.findById(req.params._id, 'accessRules').lean();
+
+  if (!course) throw Boom.notFound();
+
+  const accessRuleAlreadyExist = course.accessRules.map(c => c.toHexString())
+    .includes(req.payload.company);
+
+  if (accessRuleAlreadyExist) throw Boom.conflict();
+
+  return null;
+};
+
+exports.authorizeAccessRuleDeletion = async (req) => {
+  const course = await Course.countDocuments({ _id: req.params._id, accessRules: req.params.accessRuleId });
+
+  if (!course) throw Boom.notFound();
+
+  return null;
 };

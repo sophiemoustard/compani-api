@@ -4,7 +4,7 @@ const Program = require('../models/Program');
 const GCloudStorageHelper = require('./gCloudStorage');
 const { STRICTLY_E_LEARNING } = require('./constants');
 
-exports.createProgram = payload => (new Program(payload)).save();
+exports.createProgram = async payload => Program.create(payload);
 
 exports.list = async () => Program.find({})
   .populate({ path: 'subPrograms', select: 'name' })
@@ -31,6 +31,7 @@ exports.listELearning = async () => {
 exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({ path: 'subPrograms', populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } } })
+    .populate({ path: 'categories' })
     .lean({ virtuals: true });
 
   return {
@@ -73,8 +74,7 @@ exports.getProgramForUser = async (programId, credentials) => {
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });
 
 exports.uploadImage = async (programId, payload) => {
-  const fileName = GCloudStorageHelper.formatFileName(payload.fileName);
-  const imageUploaded = await GCloudStorageHelper.uploadMedia({ fileName, file: payload.file });
+  const imageUploaded = await GCloudStorageHelper.uploadProgramMedia(payload);
 
   await Program.updateOne({ _id: programId }, { $set: flat({ image: imageUploaded }) });
 };
@@ -83,5 +83,11 @@ exports.deleteImage = async (programId, publicId) => {
   if (!publicId) return;
 
   await Program.updateOne({ _id: programId }, { $unset: { 'image.publicId': '', 'image.link': '' } });
-  await GCloudStorageHelper.deleteMedia(publicId);
+  await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
+
+exports.addCategory = async (programId, payload) =>
+  Program.updateOne({ _id: programId }, { $push: { categories: payload.categoryId } });
+
+exports.removeCategory = async (programId, categoryId) =>
+  Program.updateOne({ _id: programId }, { $pull: { categories: categoryId } });

@@ -15,10 +15,12 @@ const EmailHelper = require('../../../src/helpers/email');
 const translate = require('../../../src/helpers/translate');
 const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
+const Company = require('../../../src/models/Company');
 
 require('sinon-mongoose');
 
@@ -606,40 +608,59 @@ describe('userExists', () => {
     userMock.restore();
   });
 
-  it('should find a user', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+  it('should find a user if credentials', async () => {
+    userMock.expects('findOne')
+      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
+      .chain('lean').returns(user);
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
-    expect(rep.exists).toBeTruthy();
+    expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(user, 'local'));
   });
 
   it('should not find as email does not exist', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': nonExistantEmail }).chain('lean').returns(null);
+    userMock.expects('findOne')
+      .withExactArgs({ 'local.email': nonExistantEmail }, { company: 1, role: 1 })
+      .chain('lean').returns(null);
 
     const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
-    expect(rep.exists).toBeFalsy();
+    expect(rep.exists).toBe(false);
     expect(rep.user).toEqual({});
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(user);
+    userMock.expects('findOne')
+      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
+      .chain('lean').returns(user);
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBeTruthy();
+    expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
-    userMock.expects('findOne').withExactArgs({ 'local.email': email }).chain('lean').returns(userWithoutCompany);
+    userMock.expects('findOne')
+      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
+      .chain('lean').returns(userWithoutCompany);
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
-    expect(rep.exists).toBeTruthy();
+    expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+  });
+
+  it('should find an email but no user if no credentials', async () => {
+    userMock.expects('findOne')
+      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
+      .chain('lean').returns(user);
+
+    const rep = await UsersHelper.userExists(email);
+
+    expect(rep.exists).toBe(true);
+    expect(rep.user).toEqual({});
   });
 });
 
@@ -909,6 +930,31 @@ describe('createUser', () => {
       .returns(newUser);
 
     const result = await UsersHelper.createUser(payload, credentials);
+    expect(result).toEqual(newUser);
+
+    RoleMock.verify();
+    UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should create a user if not connected', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      contact: { phone: '0606060606' },
+      role: { client: roleId },
+    };
+    const newUser = { identity: payload.identity, local: payload.local, contact: payload.contact };
+
+    RoleMock.expects('findById').never();
+
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({ ...newUser, refreshToken: sinon.match.string })
+      .once()
+      .returns(newUser);
+
+    const result = await UsersHelper.createUser(payload, null);
     expect(result).toEqual(newUser);
 
     RoleMock.verify();
@@ -1380,5 +1426,152 @@ describe('generatePasswordToken', () => {
 
     expect(result).toEqual(payload.passwordToken);
     UserMock.verify();
+  });
+});
+
+describe('uploadPicture', () => {
+  let updateOneStub;
+  let uploadUserMedia;
+  beforeEach(() => {
+    updateOneStub = sinon.stub(User, 'updateOne');
+    uploadUserMedia = sinon.stub(GCloudStorageHelper, 'uploadUserMedia');
+  });
+  afterEach(() => {
+    updateOneStub.restore();
+    uploadUserMedia.restore();
+  });
+
+  it('should upload image', async () => {
+    uploadUserMedia.returns({
+      publicId: 'jesuisunsupernomdefichier',
+      link: 'https://storage.googleapis.com/BucketKFC/myMedia',
+    });
+
+    const userId = new ObjectID();
+    const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
+
+    await UsersHelper.uploadPicture(userId, payload);
+
+    sinon.assert.calledOnceWithExactly(uploadUserMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
+    sinon.assert.calledWithExactly(
+      updateOneStub,
+      { _id: userId },
+      {
+        $set: flat({
+          picture: { publicId: 'jesuisunsupernomdefichier', link: 'https://storage.googleapis.com/BucketKFC/myMedia' },
+        }),
+      }
+    );
+  });
+});
+
+describe('deleteMedia', () => {
+  let updateOne;
+  let deleteUserMedia;
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+    deleteUserMedia = sinon.stub(GCloudStorageHelper, 'deleteUserMedia');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    deleteUserMedia.restore();
+  });
+
+  it('should do nothing as publicId is not set', async () => {
+    const userId = new ObjectID();
+    await UsersHelper.deletePicture(userId, '');
+
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteUserMedia);
+  });
+
+  it('should update user and delete media', async () => {
+    const userId = new ObjectID();
+    await UsersHelper.deletePicture(userId, 'publicId');
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      { $unset: { 'picture.publicId': '', 'picture.link': '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteUserMedia, 'publicId');
+  });
+});
+
+describe('createDriveFolder', () => {
+  let CompanyMock;
+  let createFolder;
+  let updateOne;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+    createFolder.restore();
+    updateOne.restore();
+  });
+
+  it('should create a google drive folder and update user', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID(), identity: { lastname: 'Delenda' } };
+
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+      .chain('lean')
+      .once()
+      .returns({ auxiliariesFolderId: 'auxiliariesFolderId' });
+
+    createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
+
+    await UsersHelper.createDriveFolder(user);
+
+    CompanyMock.verify();
+    sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: user._id },
+      { $set: { 'administrative.driveFolder.link': 'webViewLink', 'administrative.driveFolder.driveId': 'folderId' } }
+    );
+  });
+
+  it('should return a 422 if user has no company', async () => {
+    try {
+      const user = { _id: new ObjectID(), company: new ObjectID() };
+
+      CompanyMock.expects('findOne')
+        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+        .chain('lean')
+        .once()
+        .returns(null);
+
+      await UsersHelper.createDriveFolder(user);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      CompanyMock.verify();
+      sinon.assert.notCalled(createFolder);
+      sinon.assert.notCalled(updateOne);
+    }
+  });
+
+  it('should return a 422 if user company has no auxialiaries folder Id', async () => {
+    try {
+      const user = { _id: new ObjectID(), company: new ObjectID() };
+
+      CompanyMock.expects('findOne')
+        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
+        .chain('lean')
+        .once()
+        .returns({ _id: user.company });
+
+      await UsersHelper.createDriveFolder(user);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      CompanyMock.verify();
+      sinon.assert.notCalled(createFolder);
+      sinon.assert.notCalled(updateOne);
+    }
   });
 });

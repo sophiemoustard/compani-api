@@ -14,7 +14,15 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
-const { EVERY_WEEK, NEVER, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const {
+  EVERY_WEEK,
+  NEVER,
+  DAILY,
+  PAID_LEAVE,
+  INTERNAL_HOUR,
+  ABSENCE,
+  INTERVENTION,
+} = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -245,17 +253,14 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
     auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliary._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    internalHour: {
-      _id: new ObjectID(),
-      name: 'Formation',
-    },
+    internalHour: new ObjectID(),
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -268,7 +273,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     repetition: { frequency: NEVER },
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
@@ -279,7 +284,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     repetition: { frequency: NEVER },
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
@@ -298,7 +303,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
@@ -317,7 +322,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: auxiliaries[0]._id,
@@ -347,7 +352,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T16:30:19.543Z',
     endDate: '2019-01-17T18:30:19.543Z',
@@ -371,7 +376,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'absence',
+    type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
     startDate: '2019-07-19T14:00:18.653Z',
@@ -383,7 +388,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-10-17T14:30:19.543Z',
     endDate: '2019-10-17T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
@@ -407,7 +412,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-10-15T14:30:19.543Z',
     endDate: '2019-10-15T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
@@ -431,7 +436,7 @@ const eventsList = [
   {
     _id: repetitionParentId,
     company: authCompany._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-10-16T14:30:19.543Z',
     endDate: '2019-10-16T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
@@ -456,7 +461,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[0]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-01-16T14:30:19.543Z',
     endDate: '2020-01-16T16:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -480,7 +485,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[0]._id,
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     internalHour: internalHour._id,
     startDate: '2020-01-16T17:00:19.543Z',
     endDate: '2020-01-16T18:00:19.543Z',
@@ -497,7 +502,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[1]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-01-18T15:30:19.543Z',
     endDate: '2020-01-18T16:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -521,7 +526,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[1]._id,
-    type: 'internalHour',
+    type: INTERNAL_HOUR,
     internalHour: internalHour._id,
     startDate: '2020-01-18T17:00:19.543Z',
     endDate: '2020-01-18T20:00:19.543Z',
@@ -538,7 +543,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-01-12T15:30:19.543Z',
     endDate: '2020-01-12T16:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -562,7 +567,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-01-20T09:30:19.543Z',
     endDate: '2020-01-20T13:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -586,7 +591,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[1]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-01-02T10:00:19.543Z',
     endDate: '2020-01-02T11:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -610,7 +615,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[1]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-12-30T10:00:19.543Z',
     endDate: '2019-12-30T11:30:19.543Z',
     customer: customerAuxiliary._id,
@@ -634,7 +639,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2019-10-23T14:30:19.543Z',
     endDate: '2019-10-23T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
@@ -659,7 +664,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2020-10-23T14:30:19.543Z',
     endDate: '2020-10-23T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
@@ -680,7 +685,7 @@ const eventsList = [
 const eventFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  type: 'intervention',
+  type: INTERVENTION,
   startDate: '2019-10-23T14:30:19.543Z',
   endDate: '2019-10-23T16:30:19.543Z',
   auxiliary: auxiliaryFromOtherCompany._id,

@@ -1,16 +1,32 @@
+const get = require('lodash/get');
 const moment = require('../extensions/moment');
+const Surcharge = require('../models/Surcharge');
+
+exports.list = async credentials => Surcharge.find({ company: get(credentials, 'company._id') }).lean();
+
+exports.create = async (payload, credentials) =>
+  Surcharge.create({ ...payload, company: get(credentials, 'company._id') });
+
+exports.update = async (surcharge, payload) => Surcharge.updateOne({ _id: surcharge._id }, { $set: payload });
+
+exports.delete = async surcharge => Surcharge.deleteOne({ _id: surcharge._id });
 
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
   if (!percentage || percentage <= 0) return null;
 
-  const formattedSurchargeStart = moment(eventStart)
+  const formattedStart = moment(eventStart)
     .hour(surchargeStart.substring(0, 2))
-    .minute(surchargeStart.substring(3));
-  let formattedSurchargeEnd = moment(eventStart).hour(surchargeEnd.substring(0, 2)).minute(surchargeEnd.substring(3));
-  if (formattedSurchargeStart.isAfter(surchargeEnd)) formattedSurchargeEnd = formattedSurchargeEnd.add(1, 'd');
+    .minute(surchargeStart.substring(3))
+    .toISOString();
+  let formattedEnd = moment(eventStart)
+    .hour(surchargeEnd.substring(0, 2))
+    .minute(surchargeEnd.substring(3))
+    .toISOString();
+
+  if (moment(formattedStart).isAfter(formattedEnd)) formattedEnd = moment(formattedEnd).add(1, 'd').toISOString();
 
   const eventRange = moment.range(eventStart, eventEnd);
-  const surchargeRange = moment.range(formattedSurchargeStart, formattedSurchargeEnd);
+  const surchargeRange = moment.range(formattedStart, formattedEnd);
 
   const intersection = eventRange.intersect(surchargeRange);
   if (!intersection) return null;

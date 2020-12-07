@@ -418,10 +418,40 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should export contract for pay', async () => {
+    it('should export identification for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should export contract versions for pay', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/contract_version?startDate=2019-10-01T00:00:00&endDate=2019-10-31T23:59:59',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should export absences for pay', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/absence?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should export contract ends for pay', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/contract_end?startDate=2019-10-01T00:00:00&endDate=2019-10-31T23:59:59',
         headers: { 'x-access-token': authToken },
       });
 
@@ -441,7 +471,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract?startDate=2020-11-01T00:00:00',
+        url: '/pay/export/identification?startDate=2020-11-01T00:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -451,7 +481,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if missing startDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/toto?endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -461,7 +491,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should return 400 if startDate after endDate', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/toto?startDate=2020-12-01T00:00:00&endDate=2020-11-30T23:00:00',
+        url: '/pay/export/identification?startDate=2020-12-01T00:00:00&endDate=2020-11-30T23:00:00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -482,7 +512,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/pay/export/contract?endDate=2020-11-30T23:00:00',
+          url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
           headers: { 'x-access-token': authToken },
         });
 
