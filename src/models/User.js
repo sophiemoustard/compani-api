@@ -133,7 +133,7 @@ const UserSchema = mongoose.Schema({
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
   biography: { type: String },
-  firstMobileConnection: { type: Date, enum: ORIGIN_OPTIONS },
+  firstMobileConnection: { type: Date },
 }, {
   timestamps: true,
   toObject: { virtuals: true },
