@@ -45,37 +45,7 @@ describe('authenticate', () => {
     momentToDate.restore();
   });
 
-  it('should return authentication data', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
-    const user = {
-      _id: new ObjectID(),
-      refreshToken: 'token',
-      local: { password: 'toto' },
-    };
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-      .chain('select')
-      .withExactArgs('local refreshToken')
-      .chain('lean')
-      .once()
-      .returns(user);
-    compare.returns(true);
-    encode.returns('token');
-    UserMock.expects('updateOne').never();
-
-    const result = await UsersHelper.authenticate(payload);
-
-    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
-    UserMock.verify();
-    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledOnceWithExactly(
-      encode,
-      { _id: user._id.toHexString() },
-      TOKEN_EXPIRE_TIME
-    );
-  });
-
-  it('should create the field firstMobileConnection for user', async () => {
+  it('should authenticate user and set firstMobileConnection', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
@@ -111,7 +81,37 @@ describe('authenticate', () => {
     );
   });
 
-  it('should not create the field firstMobileConnection if already exists', async () => {
+  it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+    };
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne').never();
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    UserMock.verify();
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(
+      encode,
+      { _id: user._id.toHexString() },
+      TOKEN_EXPIRE_TIME
+    );
+  });
+
+  it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
