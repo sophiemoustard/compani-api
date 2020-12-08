@@ -54,18 +54,14 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            qcmAnswers: Joi.array().items(Joi.object({
-              label: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
-              correct: Joi.boolean().required(),
-            })).min(1).max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
+            qAnswers: Joi.array().items(Joi.object({
+              text: Joi.string().required(),
+              correct: Joi.boolean(),
+            })).min(1),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
-            qcuFalsyAnswers: Joi.array().items(
-              Joi.string().max(QC_ANSWER_MAX_LENGTH)
-            ).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
             falsyGapAnswers: Joi.array().items(
               Joi.string().max(GAP_ANSWER_MAX_LENGTH)
             ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
-            questionAnswers: Joi.array().items(Joi.string()).min(1).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             label: Joi.object().keys({
