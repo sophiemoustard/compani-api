@@ -8,7 +8,6 @@ const {
   listELearning,
   create,
   getById,
-  getProgramForUser,
   update,
   uploadImage,
   addSubProgram,
@@ -66,19 +65,6 @@ exports.plugin = {
         pre: [{ method: checkProgramExists }],
       },
       handler: getById,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/user',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'required' },
-        pre: [{ method: checkProgramExists }],
-      },
-      handler: getProgramForUser,
     });
 
     server.route({

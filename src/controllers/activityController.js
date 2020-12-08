@@ -41,23 +41,8 @@ const addCard = async (req) => {
   }
 };
 
-const getActivityHistory = async (req) => {
-  try {
-    const activityHistory = await ActivityHelper.getActivityHistory(req.params._id, req.auth.credentials._id);
-
-    return {
-      message: translate[language].activityHistoryFound,
-      data: { activityHistory },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   getById,
   update,
   addCard,
-  getActivityHistory,
 };

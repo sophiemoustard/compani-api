@@ -5,7 +5,6 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-const ActivityHistory = require('../../../src/models/ActivityHistory');
 require('sinon-mongoose');
 
 describe('getActivity', () => {
@@ -157,38 +156,5 @@ describe('detachActivity', () => {
     await ActivityHelper.detachActivity(stepId, activityId);
 
     StepMock.verify();
-  });
-});
-
-describe('getActivityHistory', () => {
-  let ActivityHistoryMock;
-
-  beforeEach(() => {
-    ActivityHistoryMock = sinon.mock(ActivityHistory);
-  });
-
-  afterEach(() => {
-    ActivityHistoryMock.restore();
-  });
-
-  it('should return the requested activity history', async () => {
-    const activity = { _id: new ObjectID() };
-    const user = { _id: new ObjectID() };
-    const returnedActivityHistory = { activity: activity._id, user: user._id };
-
-    ActivityHistoryMock
-      .expects('find')
-      .withExactArgs({ activity: activity._id, user: user._id })
-      .chain('sort')
-      .withExactArgs([['date', -1]])
-      .chain('limit')
-      .withExactArgs(1)
-      .chain('lean')
-      .returns([returnedActivityHistory]);
-
-    const result = await ActivityHelper.getActivityHistory(activity._id, user._id);
-
-    expect(result).toMatchObject(returnedActivityHistory);
-    ActivityHistoryMock.verify();
   });
 });
