@@ -185,7 +185,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(5);
+      expect(response.result.data.courses.length).toEqual(6);
     });
   });
 
@@ -227,7 +227,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     const roles = [
@@ -507,7 +507,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expectedCode: 200,
         numberOfCourse: 0,
       },
-      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 4 },
+      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 6 },
       { name: 'client_admin', user: clientAdmin, expectedCode: 200, numberOfCourse: 3 },
       {
         name: 'training_organisation_manager',
@@ -594,6 +594,23 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         });
 
         expect(response.statusCode).toBe(200);
+      });
+
+      it('should return only the courses that the trainee has the right to access', async () => {
+        authToken = await getToken('vendor_admin');
+        const courseWithAccessRules = coursesList[9];
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(courseWithAccessRules.trainees.includes(traineeFromOtherCompany._id)).toBe(true);
+        expect(response.result.data.courses.every(course =>
+          !areObjectIdsEquals(course._id, courseWithAccessRules._id_)))
+          .toBe(true);
       });
 
       it('should throw 403 if invalid traineeId', async () => {
@@ -689,6 +706,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
   let authToken = null;
   const courseId = coursesList[0]._id;
+  const eLearningCourseId = coursesList[8]._id;
   beforeEach(populateDB);
 
   it('should get course if trainee', async () => {
@@ -744,6 +762,28 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should get course if has access authorization', async () => {
+    authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('should not get course if has not access authorization', async () => {
+    authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
       headers: { 'x-access-token': authToken },
     });
 
@@ -1447,6 +1487,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${course._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if the course has accessRules and user not from a company with access', async () => {
+      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[8]._id}/register-e-learning`,
         headers: { 'x-access-token': token },
       });
 

@@ -33,9 +33,9 @@ const {
   authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
   getCourse,
-  authorizeAndGetTraineeId,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
+  authorizeAndGetTrainee,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -64,7 +64,7 @@ exports.plugin = {
       path: '/user',
       options: {
         auth: { mode: 'required' },
-        pre: [{ method: authorizeAndGetTraineeId, assign: 'traineeId' }],
+        pre: [{ method: authorizeAndGetTrainee, assign: 'trainee' }],
         validate: {
           query: Joi.object({ traineeId: Joi.objectId() }),
         },

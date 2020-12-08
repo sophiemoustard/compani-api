@@ -66,59 +66,16 @@ describe('listELearning', () => {
   it('should return programs with elearning subprograms', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
     const subPrograms = [new ObjectID()];
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
 
     CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning' })
+      .withExactArgs({ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] })
       .chain('lean')
       .returns([{ subProgram: subPrograms[0] }]);
 
     ProgramMock.expects('find')
       .withExactArgs({ subPrograms: { $in: subPrograms } })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subPrograms',
-        select: 'name',
-        match: { _id: { $in: subPrograms } },
-        populate: {
-          path: 'courses',
-          select: '_id trainees',
-          match: { format: 'strictly_e_learning' },
-        },
-      })
-      .chain('lean')
-      .once()
-      .returns(programsList);
-
-    const result = await ProgramHelper.listELearning();
-    expect(result).toMatchObject(programsList);
-  });
-});
-
-describe('getProgramForUser', () => {
-  let ProgramMock;
-  let CourseMock;
-  beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    CourseMock = sinon.mock(Course);
-  });
-  afterEach(() => {
-    ProgramMock.restore();
-    CourseMock.restore();
-  });
-
-  it('should return programs with elearning subprograms', async () => {
-    const programId = new ObjectID();
-    const programsList = [{ name: 'name' }, { name: 'program' }];
-    const subPrograms = [new ObjectID()];
-    const credentials = { _id: new ObjectID() };
-
-    CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning' })
-      .chain('lean')
-      .returns([{ subProgram: subPrograms[0] }]);
-
-    ProgramMock.expects('findOne')
-      .withExactArgs({ _id: programId })
       .chain('populate')
       .withExactArgs({
         path: 'subPrograms',
@@ -141,7 +98,7 @@ describe('getProgramForUser', () => {
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.getProgramForUser(programId, credentials);
+    const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject(programsList);
   });
 });

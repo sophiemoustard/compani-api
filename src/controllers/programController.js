@@ -21,7 +21,7 @@ const list = async (req) => {
 
 const listELearning = async (req) => {
   try {
-    const programs = await ProgramHelper.listELearning();
+    const programs = await ProgramHelper.listELearning(req.auth.credentials);
 
     return {
       message: programs.length ? translate[language].programsFound : translate[language].programsNotFound,
@@ -49,20 +49,6 @@ const create = async (req) => {
 const getById = async (req) => {
   try {
     const program = await ProgramHelper.getProgram(req.params._id);
-
-    return {
-      message: translate[language].programFound,
-      data: { program },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const getProgramForUser = async (req) => {
-  try {
-    const program = await ProgramHelper.getProgramForUser(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].programFound,
@@ -147,7 +133,6 @@ module.exports = {
   listELearning,
   create,
   getById,
-  getProgramForUser,
   update,
   addSubProgram,
   uploadImage,
