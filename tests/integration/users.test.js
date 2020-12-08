@@ -274,17 +274,19 @@ describe('POST /users/authenticate', () => {
   });
 
   it('should authenticate a user and set firstMobileConnection', async () => {
+    const momentToDate = sinon.stub(momentProto, 'toDate');
+    momentToDate.returns('2020-12-08T13:45:25.437Z');
+
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
       payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'mobile' },
     });
+
     expect(response.statusCode).toBe(200);
-    const user = await User.countDocuments({
-      _id: response.result.data.user._id,
-      firstMobileConnection: { $exists: true },
-    });
-    expect(user).toBe(1);
+    const user = await User.findOne({ _id: response.result.data.user._id }).lean();
+    expect(user.firstMobileConnection).toEqual(new Date('2020-12-08T13:45:25.437Z'));
+    momentToDate.restore();
   });
 
   it('should authenticate a user without company', async () => {
