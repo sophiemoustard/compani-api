@@ -17,7 +17,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const AuthenticationHelper = require('./authentication');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, MOBILE } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 const GdriveStorageHelper = require('./gdriveStorage');
@@ -36,6 +36,13 @@ exports.authenticate = async (payload) => {
 
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  if (payload.origin === MOBILE && !user.firstMobileConnection) {
+    await User.updateOne(
+      { _id: user._id, firstMobileConnection: { $exists: false } },
+      { $set: { firstMobileConnection: moment().toDate() } }
+    );
+  }
 
   return { token, refreshToken: user.refreshToken, user: tokenPayload };
 };
