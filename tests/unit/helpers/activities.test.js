@@ -8,40 +8,101 @@ const ActivityHelper = require('../../../src/helpers/activities');
 require('sinon-mongoose');
 
 describe('getActivity', () => {
-  let ActivityMock;
+  // let ActivityMock;
 
-  beforeEach(() => {
-    ActivityMock = sinon.mock(Activity);
-  });
+  // beforeEach(() => {
+  //   ActivityMock = sinon.mock(Activity);
+  // });
 
-  afterEach(() => {
-    ActivityMock.restore();
-  });
+  // afterEach(() => {
+  //   ActivityMock.restore();
+  // });
 
-  it('should return the requested activity', async () => {
-    const activity = { _id: new ObjectID() };
+  // it('should return the requested activity', async () => {
+  //   const activity = { _id: new ObjectID() };
 
-    ActivityMock.expects('findOne')
-      .withExactArgs({ _id: activity._id })
-      .chain('populate')
-      .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'steps',
-        select: '_id -activities',
-        populate: {
-          path: 'subProgram',
-          select: '_id -steps',
-          populate: { path: 'program', select: 'name -subPrograms' },
-        },
-      })
-      .chain('lean')
-      .once()
-      .returns(activity);
+  //   ActivityMock.expects('findOne')
+  //     .withExactArgs({ _id: activity._id })
+  //     .chain('populate')
+  //     .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+  //     .chain('populate')
+  //     .withExactArgs({
+  //       path: 'steps',
+  //       select: '_id -activities',
+  //       populate: {
+  //         path: 'subProgram',
+  //         select: '_id -steps',
+  //         populate: { path: 'program', select: 'name -subPrograms' },
+  //       },
+  //     })
+  //     .chain('lean')
+  //     .once()
+  //     .returns(activity);
 
-    const result = await ActivityHelper.getActivity(activity._id);
-    expect(result).toMatchObject(activity);
-  });
+  //   const result = await ActivityHelper.getActivity(activity._id);
+  //   expect(result).toMatchObject(activity);
+  // });
+
+  // ------- STACKOVERFLOW -------
+  // https://stackoverflow.com/questions/37948135/how-do-i-stub-a-chain-of-methods-in-sinon
+  // let ActivityMock;
+
+  // beforeEach(() => {
+  //   ActivityMock = sinon.stub(Activity, 'findOne').returns({
+  //     populate: sinon.stub().returnsThis(),
+  //     lean: sinon.stub().returns({ _id: 'skusku' }),
+  //   });
+  // });
+
+  // afterEach(() => {
+  //   ActivityMock.restore();
+  // });
+
+  // it('should return the requested activity', async () => {
+  //   const activity = { _id: new ObjectID() };
+
+  //   const result = await ActivityHelper.getActivity(activity._id);
+
+  //   console.log('result', result);
+  //   expect(result).toMatchObject({ _id: 'skusku' });
+  // });
+
+  // ------- MEDIUM -------
+  // https://medium.com/@tehvicke/integration-and-unit-testing-with-jest-in-nodejs-and-mongoose-bd41c61c9fbc
+  // let ActivityMock;
+
+  // beforeEach(() => {
+  //   ActivityMock = sinon.stub(Activity, 'findOne').callsFake(() => ({
+  //     populate: sinon.stub().callsFake(() => ({
+  //       populate: sinon.stub().callsFake(() => ({
+  //         lean: sinon.stub().returns({ _id: 'skusku' }),
+  //       })),
+  //     })),
+  //   }));
+  // });
+
+  // afterEach(() => {
+  //   ActivityMock.restore();
+  // });
+
+  // it('should return the requested activity', async () => {
+  //   const activity = { _id: new ObjectID() };
+
+  //   const result = await ActivityHelper.getActivity(activity._id);
+
+  //   expect(result).toMatchObject({ _id: 'skusku' });
+  //   console.log(Activity.findOne().populate().populate().lean());
+  // });
+
+  // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
+  // NE FONCTIONNE PAS, PARCEQUE 2 APPELS A POPULATE
+
+  // https://github.com/sinonjs/sinon/issues/92
+  // NE FONCTIONNE PAS, PARCEQUE NE STUB PAS findOne().populate() MAIS JUSTE populate()
+  // A CREUSER
+
+  // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
+  // PREMIERE SOLUTION + CALLEDRIGHTAFTER ?
 });
 
 describe('updateActivity', () => {
