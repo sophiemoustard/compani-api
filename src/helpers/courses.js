@@ -24,14 +24,6 @@ const CourseHistoriesHelper = require('./courseHistories');
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
-  if (query.trainees) {
-    return Course.find(query, { misc: 1, format: 1 })
-      .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .populate({ path: 'slots', select: 'startDate endDate' })
-      .populate({ path: 'slotsToPlan', select: '_id' })
-      .lean();
-  }
-
   if (query.company) {
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
@@ -52,13 +44,33 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.listUserCourses = async (traineeId) => {
-  const courses = await Course.find({ trainees: traineeId })
+exports.getCourseProgress = (steps) => {
+  if (!steps || !steps.length) return 0;
+
+  return steps.map(step => step.progress).reduce((acc, value) => acc + value, 0) / steps.length;
+};
+
+exports.formatCourseWithProgress = (course) => {
+  const steps = course.subProgram.steps
+    .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) }));
+
+  return {
+    ...course,
+    subProgram: { ...course.subProgram, steps },
+    progress: exports.getCourseProgress(steps),
+  };
+};
+
+exports.listUserCourses = async (trainee) => {
+  const courses = await Course.find(
+    { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+    { format: 1 }
+  )
     .populate({
       path: 'subProgram',
       select: 'program steps',
       populate: [
-        { path: 'program', select: 'name image' },
+        { path: 'program', select: 'name image description' },
         {
           path: 'steps',
           select: 'name type activities',
@@ -66,7 +78,7 @@ exports.listUserCourses = async (traineeId) => {
             path: 'activities',
             select: 'name type cards activityHistories',
             populate: [
-              { path: 'activityHistories', match: { user: traineeId } },
+              { path: 'activityHistories', match: { user: trainee._id } },
               { path: 'cards', select: 'template' },
             ],
           },
@@ -77,13 +89,7 @@ exports.listUserCourses = async (traineeId) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return courses.map(course => ({
-    ...course,
-    subProgram: {
-      ...course.subProgram,
-      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    },
-  }));
+  return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
 exports.getCourse = async (course, loggedUser) => {
@@ -98,7 +104,7 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({
       path: 'subProgram',
       select: 'program steps',
-      populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
+      populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
     })
     .populate({ path: 'slots', populate: { path: 'step', select: 'name' } })
     .populate({ path: 'slotsToPlan', select: '_id' })
@@ -109,19 +115,9 @@ exports.getCourse = async (course, loggedUser) => {
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'accessRules', select: 'name' })
     .lean();
 };
-
-exports.getCoursePublicInfos = async course => Course.findOne({ _id: course._id })
-  .populate({
-    path: 'subProgram',
-    select: 'program',
-    populate: { path: 'program', select: 'name description' },
-  })
-  .populate('slots')
-  .populate({ path: 'slotsToPlan', select: '_id' })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-  .lean();
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
@@ -185,22 +181,26 @@ exports.getCourseFollowUp = async (course) => {
     },
     trainees: courseFollowUp.trainees.map(t => ({
       ...t,
-      steps: exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+      ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
     })),
   };
 };
 
-exports.getTraineeProgress = (traineeId, steps, slots) => steps.map((s) => {
-  const traineeStep = {
-    ...s,
-    activities: s.activities.map(a => ({
-      ...a,
-      activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
-    })),
-  };
+exports.getTraineeProgress = (traineeId, steps, slots) => {
+  const formattedSteps = steps.map((s) => {
+    const traineeStep = {
+      ...s,
+      activities: s.activities.map(a => ({
+        ...a,
+        activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+      })),
+    };
 
-  return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
-});
+    return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+  });
+
+  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
+};
 
 exports.getTraineeCourse = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
@@ -227,13 +227,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return {
-    ...course,
-    subProgram: {
-      ...course.subProgram,
-      steps: course.subProgram.steps.map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) })),
-    },
-  };
+  return exports.formatCourseWithProgress(course);
 };
 
 exports.updateCourse = async (courseId, payload) =>
@@ -327,6 +321,12 @@ exports.getCourseDuration = (slots) => {
   return UtilsHelper.formatDuration(duration);
 };
 
+exports.groupSlotsByDate = (slots) => {
+  const group = groupBy(slots, slot => moment(slot.startDate).format('DD/MM/YYYY'));
+
+  return Object.values(group).sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+};
+
 exports.formatIntraCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
@@ -337,8 +337,7 @@ exports.formatIntraCourseForPdf = (course) => {
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
-  const slotsGroupedByDate = Object.values(groupBy(course.slots, slot => moment(slot.startDate).format('DD/MM/YYYY')))
-    .sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+  const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   return {
     dates: slotsGroupedByDate.map(groupedSlots => ({
@@ -391,7 +390,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 
 exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
-  description: get(course, 'subProgram.program.description') || '',
+  learningGoals: get(course, 'subProgram.program.learningGoals') || '',
   programName: get(course, 'subProgram.program.name').toUpperCase() || '',
   startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
   endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
@@ -401,7 +400,7 @@ exports.generateCompletionCertificates = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
     .populate('trainees')
-    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name description' } })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
   const courseData = exports.formatCourseForDocx(course);
@@ -422,4 +421,58 @@ exports.generateCompletionCertificates = async (courseId) => {
   });
 
   return ZipHelper.generateZip('attestations.zip', await Promise.all(fileListPromises));
+};
+
+exports.addAccessRule = async (courseId, payload) => Course.updateOne(
+  { _id: courseId },
+  { $push: { accessRules: payload.company } }
+);
+
+exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
+  { _id: courseId },
+  { $pull: { accessRules: accessRuleId } }
+);
+
+exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
+  const slotHours =
+    `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+
+  return acc === '' ? slotHours : `${acc} / ${slotHours}`;
+}, '');
+
+exports.formatCourseForConvocationPdf = (course) => {
+  const trainerIdentity = UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL');
+  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'));
+  const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
+
+  const slots = slotsGroupedByDate.map(groupedSlots => ({
+    address: get(groupedSlots[0], 'address.fullAddress') || '',
+    hours: exports.formatHoursForConvocation(groupedSlots),
+    date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+  }));
+
+  return { ...course, trainerIdentity, contactPhoneNumber, slots };
+};
+
+exports.generateConvocationPdf = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'program',
+      populate: { path: 'program', select: 'name description' },
+    })
+    .populate('slots')
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+    .lean();
+
+  const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
+
+  return {
+    pdf: await PdfHelper.generatePdf(
+      exports.formatCourseForConvocationPdf(course),
+      './src/data/courseConvocation.html'
+    ),
+    courseName,
+  };
 };

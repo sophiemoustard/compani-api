@@ -1,14 +1,17 @@
 const Boom = require('@hapi/boom');
-const SurchargeHelper = require('../helpers/surcharges');
+const CategoryHelper = require('../helpers/categories');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const surcharges = await SurchargeHelper.list(req.auth.credentials);
+    const categories = await CategoryHelper.list();
 
-    return { message: translate[language].surchargesFound, data: { surcharges } };
+    return {
+      message: categories.length ? translate[language].categoriesFound : translate[language].categoriesNotFound,
+      data: { categories },
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -17,9 +20,9 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await SurchargeHelper.create(req.payload, req.auth.credentials);
+    await CategoryHelper.create(req.payload);
 
-    return { message: translate[language].surchargeCreated };
+    return { message: translate[language].categoryCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -28,20 +31,20 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    await SurchargeHelper.update(req.pre.surcharge, req.payload);
+    await CategoryHelper.update(req.params._id, req.payload);
 
-    return { message: translate[language].surchargeUpdated };
+    return { message: translate[language].categoryUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
-const remove = async (req) => {
+const deleteCategory = async (req) => {
   try {
-    await SurchargeHelper.delete(req.pre.surcharge);
+    await CategoryHelper.delete(req.params._id);
 
-    return { message: translate[language].surchargeDeleted };
+    return { message: translate[language].categoryDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -52,5 +55,5 @@ module.exports = {
   list,
   create,
   update,
-  remove,
+  deleteCategory,
 };

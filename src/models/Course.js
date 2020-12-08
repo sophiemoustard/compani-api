@@ -19,6 +19,7 @@ const CourseSchema = mongoose.Schema({
     email: { type: String },
     phone: { type: String, validate: PHONE_VALIDATION },
   },
+  accessRules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
 }, { timestamps: true });
 
 // eslint-disable-next-line consistent-return

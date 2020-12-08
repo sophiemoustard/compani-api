@@ -6,6 +6,7 @@ const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
 const EventHistory = require('../../../src/models/EventHistory');
 const User = require('../../../src/models/User');
+const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -506,7 +507,7 @@ describe('createEventHistoryOnUpdate', () => {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
       internalHour: { name: 'meeting' },
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -520,7 +521,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
-          type: 'internalHour',
+          type: INTERNAL_HOUR,
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
           customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),

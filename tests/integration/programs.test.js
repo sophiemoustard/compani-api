@@ -11,10 +11,7 @@ const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const {
   populateDB,
   programsList,
-  subProgramsList,
-  course,
-  activitiesList,
-  activityHistoriesList,
+  categoriesList,
 } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -35,14 +32,26 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     });
 
     it('should create program', async () => {
+      const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'POST',
         url: '/programs',
         headers: { 'x-access-token': token },
-        payload: { name: 'program' },
+        payload: { name: 'program', categories: [categoryId] },
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if wrong category id', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/programs',
+        headers: { 'x-access-token': token },
+        payload: { name: 'program', categories: [new ObjectID()] },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -60,11 +69,12 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         token = await getToken(role.name);
+        const categoryId = categoriesList[0]._id;
         const response = await app.inject({
           method: 'POST',
           url: '/programs',
           headers: { 'x-access-token': token },
-          payload: { name: 'program' },
+          payload: { name: 'program', categories: [categoryId] },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -140,6 +150,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs.length).toEqual(1);
       const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(c => c._id);
+
       const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
       expect(courses.every(c => c.format === 'strictly_e_learning')).toBeTruthy();
     });
@@ -148,86 +159,6 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/programs/e-learning',
-        headers: { 'x-access-token': '' },
-      });
-
-      expect(response.statusCode).toBe(401);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/programs/e-learning',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('PROGRAMS ROUTES - GET /programs/{_id}/user', () => {
-  let authToken = null;
-  beforeEach(populateDB);
-
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-    });
-
-    it('should get a program', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${programsList[1]._id}/user`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.program).toMatchObject({
-        _id: programsList[1]._id,
-        name: 'training program',
-        subPrograms: [{
-          _id: subProgramsList[2]._id,
-          name: 'c\'est un sous-programme elearning',
-          courses: [{
-            _id: course._id,
-            trainees: course.trainees,
-            subProgram: subProgramsList[2]._id,
-          }],
-          steps: [{ activities: [{ _id: activitiesList[0]._id, activityHistories: [activityHistoriesList[0]] }] }],
-        }],
-      });
-    });
-
-    it('should return 404 if program does not exists', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${new ObjectID()}/user`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 401 if user is not connected', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${programsList[1]._id}/user`,
         headers: { 'x-access-token': '' },
       });
 
@@ -363,8 +294,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
 describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
-
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
@@ -372,6 +301,8 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
 
     it('should update program', async () => {
       const programId = programsList[0]._id;
+      const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
+
       const response = await app.inject({
         method: 'PUT',
         url: `/programs/${programId.toHexString()}`,
@@ -388,6 +319,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
     });
 
     it('should return 404 if program does not exist', async () => {
+      const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
       const response = await app.inject({
         method: 'PUT',
         url: `/programs/${new ObjectID()}`,
@@ -410,10 +342,11 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const falsyParams = ['name', 'description'];
+    const falsyParams = ['name', 'description', 'learningGoals'];
     falsyParams.forEach((param) => {
       it(`should return a 400 if ${param} is equal to '' `, async () => {
         const programId = programsList[0]._id;
+        const payload = { name: 'new name', description: 'Trop top', learningGoals: 'Truc chouette' };
         const response = await app.inject({
           method: 'PUT',
           url: `/programs/${programId.toHexString()}`,
@@ -443,7 +376,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'PUT',
-          payload: { name: 'new name' },
+          payload: { learningGoals: 'On apprend des trucs\nc\'est chouette' },
           url: `/programs/${programId.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
@@ -545,18 +478,15 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
   });
 });
 
-describe('POST /programs/:id/upload', () => {
+describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
-  let form;
-  let uploadMedia;
+  let uploadProgramMediaStub;
   const program = programsList[0];
-  const docPayload = { fileName: 'program_image_test', file: 'true' };
   beforeEach(() => {
-    form = generateFormData(docPayload);
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
-    uploadMedia.restore();
+    uploadProgramMediaStub.restore();
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -566,8 +496,9 @@ describe('POST /programs/:id/upload', () => {
     });
 
     it('should add a program image', async () => {
-      uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+      uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${program._id}/upload`,
@@ -582,10 +513,11 @@ describe('POST /programs/:id/upload', () => {
         ...pick(program, ['_id', 'name']),
         image: { publicId: 'abcdefgh', link: 'https://alenvi.io' },
       });
-      sinon.assert.calledOnce(uploadMedia);
+      sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'program_image_test', file: 'true' });
     });
 
     it('should return 404 if program does not exist', async () => {
+      const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${new ObjectID()}/upload`,
@@ -599,7 +531,7 @@ describe('POST /programs/:id/upload', () => {
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const invalidForm = generateFormData(omit(docPayload, param));
+        const invalidForm = generateFormData(omit({ fileName: 'program_image_test', file: 'true' }, param));
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
@@ -624,14 +556,230 @@ describe('POST /programs/:id/upload', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
         authToken = await getToken(role.name);
-        uploadMedia.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
+        uploadProgramMediaStub.returns({ publicId: 'abcdefgh', link: 'https://alenvi.io' });
 
         const response = await app.inject({
           method: 'POST',
           url: `/programs/${program._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
+  let authToken;
+  let deleteProgramMediaStub;
+  beforeEach(() => {
+    deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
+  });
+  afterEach(() => {
+    deleteProgramMediaStub.restore();
+  });
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete a program media', async () => {
+      const program = programsList[0];
+      const imageExistsBeforeUpdate = await Program
+        .countDocuments({ _id: program._id, 'image.publicId': { $exists: true } });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${program._id}/upload`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'au revoir');
+
+      const isPictureDeleted = await Program.countDocuments({ _id: program._id, 'image.publicId': { $exists: false } });
+      expect(imageExistsBeforeUpdate).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const program = programsList[0];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${program._id}/upload`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const programId = programsList[0]._id;
+  const payload = { categoryId: categoriesList[1]._id };
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should add category', async () => {
+      const categoryLengthBefore = programsList[0].categories.length;
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/categories`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const programUpdated = await Program.findById(programId);
+
+      expect(response.statusCode).toBe(200);
+      expect(programUpdated._id).toEqual(programId);
+      expect(programUpdated.categories.length).toEqual(categoryLengthBefore + 1);
+    });
+
+    it('should return 404 if program does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${new ObjectID()}/categories`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if category does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/categories`,
+        payload: { categoryId: new ObjectID() },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          payload,
+          url: `/programs/${programId.toHexString()}/categories`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should remove category from program', async () => {
+      const programId = programsList[0]._id;
+      const categoryLengthBefore = programsList[0].categories.length;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      await Program.findById(programId);
+
+      expect(response.statusCode).toBe(200);
+      const programUpdated = await Program.findOne({ _id: programId }).lean();
+      expect(programUpdated.categories.length).toEqual(categoryLengthBefore - 1);
+      expect(programUpdated.categories.some(c => c._id === programsList[0].categories[0]._id)).toBeFalsy();
+    });
+
+    it('should return a 404 if program does not exist', async () => {
+      const programId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programId}/categories/${programsList[0].categories[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if program does not contain category', async () => {
+      const categoryId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programsList[0]._id}/categories/${categoryId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const programId = programsList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

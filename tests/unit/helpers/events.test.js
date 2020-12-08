@@ -1415,35 +1415,6 @@ describe('isMiscOnlyUpdated', () => {
   });
 });
 
-describe('updateEventsInternalHourType', () => {
-  let updateMany;
-  beforeEach(() => {
-    updateMany = sinon.stub(Event, 'updateMany');
-  });
-  afterEach(() => {
-    updateMany.restore();
-  });
-
-  it('should update internal hours events', async () => {
-    const internalHour = { _id: new ObjectID() };
-    const defaultInternalHourId = new ObjectID();
-    const eventsStartDate = '2019-01-21T09:30:00';
-
-    await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, defaultInternalHourId);
-
-    sinon.assert.calledOnce(updateMany);
-    sinon.assert.calledWithExactly(
-      updateMany,
-      {
-        type: INTERNAL_HOUR,
-        internalHour: internalHour._id,
-        startDate: { $gte: eventsStartDate },
-      },
-      { $set: { internalHour: defaultInternalHourId } }
-    );
-  });
-});
-
 describe('getContractWeekInfo', () => {
   let getDaysRatioBetweenTwoDates;
   let getContractInfo;

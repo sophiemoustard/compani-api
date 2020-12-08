@@ -20,7 +20,7 @@ const list = async (req) => {
 
 const listUserCourses = async (req) => {
   try {
-    const courses = await CoursesHelper.listUserCourses(req.pre.traineeId);
+    const courses = await CoursesHelper.listUserCourses(req.pre.trainee);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
@@ -67,20 +67,6 @@ const getFollowUp = async (req) => {
     return {
       message: translate[language].courseFound,
       data: { followUp },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const getPublicInfosById = async (req) => {
-  try {
-    const course = await CoursesHelper.getCoursePublicInfos(req.pre.course);
-
-    return {
-      message: translate[language].courseFound,
-      data: { course },
     };
   } catch (e) {
     req.log('error', e);
@@ -218,13 +204,47 @@ const downloadCompletionCertificates = async (req, h) => {
   }
 };
 
+const addAccessRule = async (req) => {
+  try {
+    await CoursesHelper.addAccessRule(req.params._id, req.payload);
+
+    return { message: translate[language].courseAccessRuleAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const deleteAccessRule = async (req) => {
+  try {
+    await CoursesHelper.deleteAccessRule(req.params._id, req.params.accessRuleId);
+
+    return { message: translate[language].courseAccessRuleDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const generateConvocationPdf = async (req, h) => {
+  try {
+    const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${courseName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listUserCourses,
   create,
   getById,
   getFollowUp,
-  getPublicInfosById,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -235,4 +255,7 @@ module.exports = {
   downloadCompletionCertificates,
   sendSMS,
   getSMSHistory,
+  addAccessRule,
+  generateConvocationPdf,
+  deleteAccessRule,
 };

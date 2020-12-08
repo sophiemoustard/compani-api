@@ -36,7 +36,7 @@ const coachFromAuthCompany = userList
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
-  local: { email: 'traineeAuthCompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
@@ -87,8 +87,9 @@ const programsList = [
   {
     _id: new ObjectID(),
     name: 'program',
-    description: 'on est là',
+    learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
+    description: 'Ceci est une description',
     subPrograms: [subProgramsList[0]._id],
   },
   { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
@@ -159,6 +160,36 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
+  },
+  { // course with access rules
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    trainees: [coachFromAuthCompany._id],
+    accessRules: [authCompany._id, new ObjectID()],
+  },
+  { // course with access rules and trainee that can't have access to the course but has already suscribed
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    trainees: [coachFromAuthCompany._id, traineeFromOtherCompany._id],
+    accessRules: [authCompany._id, new ObjectID()],
+  },
+  { // course with contact
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    trainer: coachFromAuthCompany._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    contact: {
+      name: 'Romain Delenda',
+      email: 'romainlebg77@gmail.com',
+      phone: '0123456789',
+    },
   },
 ];
 

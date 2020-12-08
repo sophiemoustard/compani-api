@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { E_LEARNING, ON_SITE, DRAFT } = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
@@ -21,12 +22,10 @@ StepSchema.virtual('subProgram', {
 
 // eslint-disable-next-line consistent-return
 function setAreActivitiesValid() {
-  if (this.activities && this.activities.length && this.activities[0].type) {
-    return this.activities.every(activity => activity.areCardsValid);
-  }
+  if (this.activities && this.activities.length === 0) return true;
 
-  if (this.activities && this.activities.length === 0) {
-    return true;
+  if (this.activities && this.activities.length && has(this.activities[0], 'areCardsValid')) {
+    return this.activities.every(activity => activity.areCardsValid);
   }
 }
 

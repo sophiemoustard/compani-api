@@ -67,7 +67,6 @@ module.exports = {
     companyExists: 'Company already exists.',
     companyInternalHourCreated: 'Company internal hour created',
     companyInternalHourNotFound: 'Company internal hour not found.',
-    companyInternalHourUpdated: 'Company internal hour updated.',
     companyInternalHoursNotFound: 'Company internal hours not found.',
     companyInternalHoursFound: 'Company internal hours found.',
     companyInternalHourRemoved: 'Company internal hour removed.',
@@ -156,9 +155,8 @@ module.exports = {
     surchargesFound: 'Surcharges found.',
     surchargeCreated: 'Surcharge created.',
     surchargeDeleted: 'Surcharge deleted.',
-    surchargesNotFound: 'Surcharges not found.',
     surchargeNotFound: 'Surcharge not found.',
-    surchargesUpdated: 'Surcharges updated.',
+    surchargeUpdated: 'Surcharge updated.',
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
@@ -224,6 +222,14 @@ module.exports = {
     programCreated: 'Program created.',
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
+    /* Categories */
+    categoriesFound: 'Categories found.',
+    categoriesNotFound: 'Categories not found.',
+    categoryCreated: 'Category created.',
+    categoryUpdated: 'Category updated.',
+    categoryDeleted: 'Category deleted.',
+    categoryAdded: 'Category added.',
+    categoryRemoved: 'Category removed.',
     /* SubPrograms */
     subProgramsFound: 'Sub-programs found.',
     subProgramFound: 'Sub-program found.',
@@ -252,6 +258,8 @@ module.exports = {
     courseTraineeRemoved: 'Course trainee removed.',
     courseTraineeAlreadyExists: 'Course trainee already added to course.',
     courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
+    courseAccessRuleAdded: 'Access rule added.',
+    courseAccessRuleDeleted: 'Access rule deleted.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -327,7 +335,6 @@ module.exports = {
     companyExists: 'Entreprise déjà existante.',
     companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
     companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',
-    companyInternalHourUpdated: 'Heure interne de l\'entreprise modifiée.',
     companyInternalHoursNotFound: 'Heures internes de l\'entreprise non trouvées.',
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
@@ -416,7 +423,6 @@ module.exports = {
     surchargesFound: 'Plans de majorations trouvés.',
     surchargeCreated: 'Plan de majoration créé.',
     surchargeDeleted: 'Plan de majoration supprimé.',
-    surchargesNotFound: 'Plans de majorations non trouvés.',
     surchargeNotFound: 'Plan de majoration non trouvé.',
     surchargeUpdated: 'Plan de majoration modifié.',
     /* Third party payers */
@@ -484,6 +490,14 @@ module.exports = {
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
+    /* Categories */
+    categoriesFound: 'Catégories trouvées.',
+    categoriesNotFound: 'Catégories non trouvées.',
+    categoryCreated: 'Catégorie créée.',
+    categoryUpdated: 'Catégorie mise à jour.',
+    categoryDeleted: 'Catégorie supprimée.',
+    categoryAdded: 'Catégorie ajoutée.',
+    categoryRemoved: 'Catégorie retirée.',
     /* SubPrograms */
     subProgramUpdated: 'Sous-Programme mis à jour.',
     subProgramsFound: 'Sous-Programmes trouvés.',
@@ -512,6 +526,8 @@ module.exports = {
     courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté à la formation.',
     courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
+    courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
+    courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

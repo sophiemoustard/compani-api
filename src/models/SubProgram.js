@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { DRAFT, PUBLISHED, E_LEARNING } = require('../helpers/constants');
 
@@ -30,6 +31,17 @@ function setIsStrictlyELearning() {
 
   return false;
 }
+
+// eslint-disable-next-line consistent-return
+function setAreStepsValid() {
+  if (this.steps && this.steps.length === 0) return false;
+
+  if (this.steps && this.steps.length && has(this.steps[0], 'areActivitiesValid')) {
+    return this.steps.every(step => step.areActivitiesValid);
+  }
+}
+
+SubProgramSchema.virtual('areStepsValid').get(setAreStepsValid);
 
 SubProgramSchema.virtual('isStrictlyELearning').get(setIsStrictlyELearning);
 

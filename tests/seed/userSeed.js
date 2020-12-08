@@ -112,6 +112,7 @@ const userList = [
     refreshToken: uuidv4(),
     local: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D' },
     contact: { phone: '0798640728' },
+    picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
   },
 ];
 

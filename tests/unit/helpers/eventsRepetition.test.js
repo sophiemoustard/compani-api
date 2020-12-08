@@ -16,6 +16,7 @@ const {
   ABSENCE,
   NEVER,
   EVERY_WEEK,
+  INTERNAL_HOUR,
 } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
@@ -95,7 +96,7 @@ describe('formatRepeatedPayload', () => {
       startDate: moment('2019-07-14').startOf('d'),
       endDate: moment('2019-07-15').startOf('d'),
       auxiliary: auxiliaryId,
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
@@ -163,7 +164,7 @@ describe('formatRepeatedPayload', () => {
       _id: new ObjectID(),
       startDate: moment('2019-07-14').startOf('d'),
       endDate: moment('2019-07-15').startOf('d'),
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {

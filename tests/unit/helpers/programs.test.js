@@ -10,19 +10,19 @@ const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 require('sinon-mongoose');
 
 describe('createProgram', () => {
-  let save;
+  let create;
   beforeEach(() => {
-    save = sinon.stub(Program.prototype, 'save').returnsThis();
+    create = sinon.stub(Program, 'create');
   });
   afterEach(() => {
-    save.restore();
+    create.restore();
   });
 
-  it('should create a program', async () => {
-    const newProgram = { name: 'name' };
+  it('should create program', async () => {
+    const newProgram = { name: 'name', categories: [new ObjectID()] };
+    await ProgramHelper.createProgram(newProgram);
 
-    const result = await ProgramHelper.createProgram(newProgram);
-    expect(result).toMatchObject(newProgram);
+    sinon.assert.calledOnceWithExactly(create, newProgram);
   });
 });
 
@@ -66,59 +66,16 @@ describe('listELearning', () => {
   it('should return programs with elearning subprograms', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
     const subPrograms = [new ObjectID()];
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
 
     CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning' })
+      .withExactArgs({ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] })
       .chain('lean')
       .returns([{ subProgram: subPrograms[0] }]);
 
     ProgramMock.expects('find')
       .withExactArgs({ subPrograms: { $in: subPrograms } })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subPrograms',
-        select: 'name',
-        match: { _id: { $in: subPrograms } },
-        populate: {
-          path: 'courses',
-          select: '_id trainees',
-          match: { format: 'strictly_e_learning' },
-        },
-      })
-      .chain('lean')
-      .once()
-      .returns(programsList);
-
-    const result = await ProgramHelper.listELearning();
-    expect(result).toMatchObject(programsList);
-  });
-});
-
-describe('getProgramForUser', () => {
-  let ProgramMock;
-  let CourseMock;
-  beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    CourseMock = sinon.mock(Course);
-  });
-  afterEach(() => {
-    ProgramMock.restore();
-    CourseMock.restore();
-  });
-
-  it('should return programs with elearning subprograms', async () => {
-    const programId = new ObjectID();
-    const programsList = [{ name: 'name' }, { name: 'program' }];
-    const subPrograms = [new ObjectID()];
-    const credentials = { _id: new ObjectID() };
-
-    CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning' })
-      .chain('lean')
-      .returns([{ subProgram: subPrograms[0] }]);
-
-    ProgramMock.expects('findOne')
-      .withExactArgs({ _id: programId })
       .chain('populate')
       .withExactArgs({
         path: 'subPrograms',
@@ -141,7 +98,7 @@ describe('getProgramForUser', () => {
       .once()
       .returns(programsList);
 
-    const result = await ProgramHelper.getProgramForUser(programId, credentials);
+    const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject(programsList);
   });
 });
@@ -174,6 +131,8 @@ describe('getProgram', () => {
         path: 'subPrograms',
         populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
       })
+      .chain('populate')
+      .withExactArgs({ path: 'categories' })
       .chain('lean')
       .once()
       .returns(program);
@@ -219,16 +178,13 @@ describe('update', () => {
 
 describe('uploadImage', () => {
   let updateOne;
-  let formatFileName;
   let uploadMedia;
   beforeEach(() => {
     updateOne = sinon.stub(Program, 'updateOne');
-    formatFileName = sinon.stub(GCloudStorageHelper, 'formatFileName');
-    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadMedia');
+    uploadMedia = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();
-    formatFileName.restore();
     uploadMedia.restore();
   });
 
@@ -237,15 +193,13 @@ describe('uploadImage', () => {
       publicId: 'jesuisunsupernomdefichier',
       link: 'https://storage.googleapis.com/BucketKFC/myMedia',
     });
-    formatFileName.returns('jesuisunsupernomdefichier');
 
     const programId = new ObjectID();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
 
     await ProgramHelper.uploadImage(programId, payload);
 
-    sinon.assert.calledOnceWithExactly(formatFileName, 'illustration');
-    sinon.assert.calledOnceWithExactly(uploadMedia, { fileName: 'jesuisunsupernomdefichier', file: payload.file });
+    sinon.assert.calledOnceWithExactly(uploadMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: programId },
@@ -263,7 +217,7 @@ describe('deleteImage', () => {
   let deleteMedia;
   beforeEach(() => {
     updateOne = sinon.stub(Program, 'updateOne');
-    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteMedia');
+    deleteMedia = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
   });
   afterEach(() => {
     updateOne.restore();
@@ -288,5 +242,41 @@ describe('deleteImage', () => {
       { $unset: { 'image.publicId': '', 'image.link': '' } }
     );
     sinon.assert.calledOnceWithExactly(deleteMedia, 'publicId');
+  });
+});
+
+describe('addCategory', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add category', async () => {
+    const programId = new ObjectID();
+    const payload = { categoryId: new ObjectID() };
+    await ProgramHelper.addCategory(programId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $push: { categories: payload.categoryId } });
+  });
+});
+
+describe('removeCategory', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove category', async () => {
+    const programId = new ObjectID();
+    const categoryId = new ObjectID();
+    await ProgramHelper.removeCategory(programId, categoryId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { categories: categoryId } });
   });
 });

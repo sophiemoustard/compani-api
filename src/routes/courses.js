@@ -8,7 +8,6 @@ const {
   create,
   getById,
   getFollowUp,
-  getPublicInfosById,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -19,6 +18,9 @@ const {
   downloadCompletionCertificates,
   sendSMS,
   getSMSHistory,
+  addAccessRule,
+  generateConvocationPdf,
+  deleteAccessRule,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -31,7 +33,9 @@ const {
   authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
   getCourse,
-  authorizeAndGetTraineeId,
+  authorizeAccessRuleAddition,
+  authorizeAccessRuleDeletion,
+  authorizeAndGetTrainee,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -47,7 +51,6 @@ exports.plugin = {
           query: Joi.object({
             trainer: Joi.objectId(),
             company: Joi.objectId(),
-            trainees: Joi.objectId(),
             format: Joi.string().valid(...COURSE_FORMATS),
           }),
         },
@@ -61,7 +64,7 @@ exports.plugin = {
       path: '/user',
       options: {
         auth: { mode: 'required' },
-        pre: [{ method: authorizeAndGetTraineeId, assign: 'traineeId' }],
+        pre: [{ method: authorizeAndGetTrainee, assign: 'trainee' }],
         validate: {
           query: Joi.object({ traineeId: Joi.objectId() }),
         },
@@ -110,19 +113,6 @@ exports.plugin = {
         pre: [{ method: getCourse, assign: 'course' }],
       },
       handler: getFollowUp,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/public-infos',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { mode: 'optional' },
-        pre: [{ method: getCourse, assign: 'course' }],
-      },
-      handler: getPublicInfosById,
     });
 
     server.route({
@@ -273,6 +263,42 @@ exports.plugin = {
         pre: [{ method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/accessrules',
+      options: {
+        validate: {
+          payload: Joi.object({ company: Joi.string().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeAccessRuleAddition }],
+      },
+      handler: addAccessRule,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/accessrules/{accessRuleId}',
+      options: {
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeAccessRuleDeletion }],
+      },
+      handler: deleteAccessRule,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/convocations',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { mode: 'optional' },
+        pre: [{ method: getCourse, assign: 'course' }],
+      },
+      handler: generateConvocationPdf,
     });
   },
 };

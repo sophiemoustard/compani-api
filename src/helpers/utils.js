@@ -169,3 +169,7 @@ exports.formatDuration = (duration) => {
 };
 
 exports.areObjectIdsEquals = (id1, id2) => new ObjectID(id1).toHexString() === new ObjectID(id2).toHexString();
+
+exports.formatPhoneNumber = phoneNumber => (phoneNumber
+  ? phoneNumber.replace(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 $5')
+  : '');

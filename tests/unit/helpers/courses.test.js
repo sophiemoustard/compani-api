@@ -19,9 +19,11 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
-const { COURSE_SMS } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
+const { E_LEARNING, ON_SITE } = require('../../../src/helpers/constants');
+
 require('sinon-mongoose');
 
 describe('createCourse', () => {
@@ -67,33 +69,6 @@ describe('list', () => {
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
-    CourseMock.verify();
-  });
-
-  it('should return trainee courses', async () => {
-    const query = { trainees: '1234567890abcdef12345612' };
-    const coursesList = [
-      {
-        misc: 'Groupe 2',
-        trainees: [{ identity: { firstname: 'Shalom' }, company: { _id: authCompany } }],
-      },
-    ];
-
-    CourseMock.expects('find')
-      .withExactArgs(query, { misc: 1, format: 1 })
-      .chain('populate')
-      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('lean')
-      .once()
-      .returns(coursesList);
-
-    const result = await CourseHelper.list(query);
-    expect(result).toMatchObject(coursesList);
-    sinon.assert.notCalled(findCourseAndPopulate);
     CourseMock.verify();
   });
 
@@ -145,24 +120,116 @@ describe('list', () => {
   });
 });
 
-describe('listUserCourses', () => {
-  let CourseMock;
+describe('getCourseProgress', () => {
+  it('should get progress for course', async () => {
+    const steps = [{
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+      progress: 1,
+    },
+    {
+      _id: new ObjectID(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: 1,
+    }];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toBe(1);
+  });
+
+  it('should return 0 if no steps', async () => {
+    const steps = [];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toBe(0);
+  });
+});
+
+describe('formatCourseWithProgress', () => {
   let getProgress;
+  let getCourseProgress;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
     getProgress = sinon.stub(StepHelper, 'getProgress');
   });
   afterEach(() => {
-    CourseMock.restore();
+    getCourseProgress.restore();
     getProgress.restore();
+  });
+  it('should format course', async () => {
+    const stepId = new ObjectID();
+    const course = {
+      misc: 'name',
+      _id: new ObjectID(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectID(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
+        { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      ],
+    };
+    getProgress.returns(1);
+    getCourseProgress.returns(1);
+
+    const result = await CourseHelper.formatCourseWithProgress(course);
+    expect(result).toMatchObject({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+    sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
+      { ...course.subProgram.steps[0], progress: 1 },
+      { ...course.subProgram.steps[1], progress: 1 },
+    ]);
+  });
+});
+
+describe('listUserCourses', () => {
+  let CourseMock;
+  let formatCourseWithProgress;
+  beforeEach(() => {
+    CourseMock = sinon.mock(Course);
+    formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
+  });
+  afterEach(() => {
+    CourseMock.restore();
+    formatCourseWithProgress.restore();
   });
 
   it('should return courses', async () => {
+    const trainee = { _id: new ObjectID(), company: new ObjectID() };
     const stepId = new ObjectID();
     const coursesList = [
       {
         misc: 'name',
         _id: new ObjectID(),
+        format: BLENDED,
         subProgram: {
           steps: [{
             _id: new ObjectID(),
@@ -188,6 +255,7 @@ describe('listUserCourses', () => {
       {
         misc: 'program',
         _id: new ObjectID(),
+        format: BLENDED,
         subProgram: {
           steps: [{
             _id: new ObjectID(),
@@ -211,13 +279,19 @@ describe('listUserCourses', () => {
     ];
 
     CourseMock.expects('find')
-      .withExactArgs({ trainees: '1234567890abcdef12345678' })
+      .withExactArgs(
+        {
+          trainees: trainee._id,
+          $or: [{ accessRules: [] }, { accessRules: trainee.company }],
+        },
+        { format: 1 }
+      )
       .chain('populate')
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
         populate: [
-          { path: 'program', select: 'name image' },
+          { path: 'program', select: 'name image description' },
           {
             path: 'steps',
             select: 'name type activities',
@@ -225,7 +299,7 @@ describe('listUserCourses', () => {
               path: 'activities',
               select: 'name type cards activityHistories',
               populate: [
-                { path: 'activityHistories', match: { user: '1234567890abcdef12345678' } },
+                { path: 'activityHistories', match: { user: trainee._id } },
                 { path: 'cards', select: 'template' },
               ],
             },
@@ -238,18 +312,34 @@ describe('listUserCourses', () => {
       .withExactArgs('_id misc')
       .chain('lean')
       .returns(coursesList);
-    getProgress.returns(1);
+    formatCourseWithProgress.onCall(0).returns({
+      ...coursesList[0],
+      subProgram: {
+        ...coursesList[0].subProgram,
+        steps: coursesList[0].subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
+    formatCourseWithProgress.onCall(1).returns({
+      ...coursesList[1],
+      subProgram: {
+        ...coursesList[1].subProgram,
+        steps: coursesList[1].subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
 
-    const result = await CourseHelper.listUserCourses('1234567890abcdef12345678');
+    const result = await CourseHelper.listUserCourses(trainee);
+
     expect(result).toMatchObject(coursesList.map(course => ({ ...course,
       subProgram: {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
-      } })));
-    sinon.assert.calledWithExactly(getProgress.getCall(0), coursesList[0].subProgram.steps[0], coursesList[0].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), coursesList[0].subProgram.steps[1], coursesList[0].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(2), coursesList[1].subProgram.steps[0], coursesList[1].slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(3), coursesList[1].subProgram.steps[1], coursesList[1].slots);
+      },
+      progress: 1 })));
+
+    sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
+    sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
   });
 });
 
@@ -280,7 +370,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -295,6 +385,8 @@ describe('getCourse', () => {
       })
       .chain('populate')
       .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname' })
+      .chain('populate')
+      .withExactArgs({ path: 'accessRules', select: 'name' })
       .chain('lean')
       .once()
       .returns(course);
@@ -316,7 +408,7 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name description' }, { path: 'steps', select: 'name type' }],
+        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -340,41 +432,6 @@ describe('getCourse', () => {
       { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
     );
     expect(result.trainees.length).toEqual(1);
-  });
-});
-
-describe('getCoursePublicInfos', () => {
-  let CourseMock;
-  beforeEach(() => {
-    CourseMock = sinon.mock(Course);
-  });
-  afterEach(() => {
-    CourseMock.restore();
-  });
-
-  it('should return courses', async () => {
-    const course = { _id: new ObjectID() };
-
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: course._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program',
-        populate: { path: 'program', select: 'name description' },
-      })
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-      .chain('lean')
-      .once()
-      .returns(course);
-
-    const result = await CourseHelper.getCoursePublicInfos(course);
-    expect(result).toMatchObject(course);
   });
 });
 
@@ -496,7 +553,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 } }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -541,7 +598,7 @@ describe('getCourseFollowUp', () => {
       .returns(course);
 
     formatStep.callsFake(s => s);
-    getTraineeProgress.returns({ progress: 1 });
+    getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
     const result = await CourseHelper.getCourseFollowUp(course);
 
     expect(result).toEqual(course);
@@ -549,16 +606,68 @@ describe('getCourseFollowUp', () => {
   });
 });
 
+describe('getTraineeProgress', () => {
+  let areObjectIdsEquals;
+  let getProgress;
+  let getCourseProgress;
+  beforeEach(() => {
+    areObjectIdsEquals = sinon.stub(UtilsHelper, 'areObjectIdsEquals');
+    getProgress = sinon.stub(StepHelper, 'getProgress');
+    getCourseProgress = sinon.stub(CourseHelper, 'getCourseProgress');
+  });
+  afterEach(() => {
+    areObjectIdsEquals.restore();
+    getProgress.restore();
+    getCourseProgress.restore();
+  });
+
+  it('should return formatted steps and course progress', () => {
+    const traineeId = new ObjectID();
+    const otherTraineeId = new ObjectID();
+    const steps = [{
+      activities: [{ activityHistories: [{ user: traineeId }, { user: otherTraineeId }] }],
+      type: ON_SITE,
+    }];
+    const slots = [{ endDate: '2020-11-03T09:00:00.000Z' }];
+
+    const formattedSteps = [{
+      activities: [{ activityHistories: [{ user: traineeId }] }],
+      type: ON_SITE,
+      progress: 1,
+    }];
+
+    areObjectIdsEquals.onCall(0).returns(true);
+    areObjectIdsEquals.onCall(1).returns(false);
+    getProgress.returns(1);
+    getCourseProgress.returns(1);
+
+    const result = CourseHelper.getTraineeProgress(traineeId, steps, slots);
+
+    expect(result).toEqual({
+      steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE, progress: 1 }],
+      progress: 1,
+    });
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
+    sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
+    sinon.assert.calledOnceWithExactly(
+      getProgress,
+      { activities: [{ activityHistories: [{ user: traineeId }] }], type: ON_SITE },
+      slots
+    );
+    sinon.assert.calledOnceWithExactly(getCourseProgress, formattedSteps);
+  });
+});
+
 describe('getTraineeCourse', () => {
   let CourseMock;
-  let getProgress;
+  let formatCourseWithProgress;
   beforeEach(() => {
     CourseMock = sinon.mock(Course);
-    getProgress = sinon.stub(StepHelper, 'getProgress');
+    formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
   });
   afterEach(() => {
     CourseMock.restore();
-    getProgress.restore();
+    formatCourseWithProgress.restore();
   });
 
   it('should return courses', async () => {
@@ -618,7 +727,14 @@ describe('getTraineeCourse', () => {
       .chain('lean')
       .once()
       .returns(course);
-    getProgress.returns(1);
+    formatCourseWithProgress.returns({
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
+      },
+      progress: 1,
+    });
 
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
     expect(result).toMatchObject({
@@ -627,9 +743,10 @@ describe('getTraineeCourse', () => {
         ...course.subProgram,
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       },
+      progress: 1,
     });
-    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
-    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+
+    sinon.assert.calledWithExactly(formatCourseWithProgress, course);
   });
 });
 
@@ -983,18 +1100,48 @@ describe('getCourseDuration', () => {
   });
 });
 
+describe('groupSlotsByDate', () => {
+  it('should group slots by date', () => {
+    const slots = [
+      {
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ];
+
+    const result = CourseHelper.groupSlotsByDate(slots);
+
+    expect(result).toEqual([
+      [{
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      }], [
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+      ],
+    ]);
+  });
+});
+
 describe('formatIntraCourseForPdf', () => {
   let formatIdentity;
   let getCourseDuration;
+  let groupSlotsByDate;
   let formatIntraCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     formatIntraCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatIntraCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
     getCourseDuration.restore();
+    groupSlotsByDate.restore();
     formatIntraCourseSlotsForPdf.restore();
   });
 
@@ -1002,7 +1149,7 @@ describe('formatIntraCourseForPdf', () => {
     const course = {
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
-      subProgram: { program: { name: 'programme de formation' } },
+      subProgram: { program: { name: 'programme' } },
       slots: [
         {
           startDate: '2020-03-20T09:00:00',
@@ -1017,6 +1164,14 @@ describe('formatIntraCourseForPdf', () => {
 
     getCourseDuration.returns('8h');
     formatIdentity.returns('MasterClass');
+    groupSlotsByDate.returns([[{
+      startDate: '2020-03-20T09:00:00',
+      endDate: '2020-03-20T11:00:00',
+      address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+    }], [
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ]]);
     formatIntraCourseSlotsForPdf.onCall(0).returns({ startHour: 'slot1' });
     formatIntraCourseSlotsForPdf.onCall(1).returns({ startHour: 'slot2' });
     formatIntraCourseSlotsForPdf.onCall(2).returns({ startHour: 'slot3' });
@@ -1024,33 +1179,29 @@ describe('formatIntraCourseForPdf', () => {
     const result = CourseHelper.formatIntraCourseForPdf(course);
 
     expect(result).toEqual({
-      dates: [
-        {
-          course: {
-            name: 'programme de formation - des infos en plus',
-            duration: '8h',
-            company: 'alenvi',
-            trainer: 'MasterClass',
-          },
-          address: '37 rue de Ponthieu 75008 Paris',
-          slots: [{ startHour: 'slot1' }],
-          date: '20/03/2020',
-        },
-        {
-          course: {
-            name: 'programme de formation - des infos en plus',
-            duration: '8h',
-            company: 'alenvi',
-            trainer: 'MasterClass',
-          },
-          address: '',
-          slots: [{ startHour: 'slot2' }, { startHour: 'slot3' }],
-          date: '12/04/2020',
-        },
-      ],
+      dates: [{
+        course: { name: 'programme - des infos en plus', duration: '8h', company: 'alenvi', trainer: 'MasterClass' },
+        address: '37 rue de Ponthieu 75008 Paris',
+        slots: [{ startHour: 'slot1' }],
+        date: '20/03/2020',
+      }, {
+        course: { name: 'programme - des infos en plus', duration: '8h', company: 'alenvi', trainer: 'MasterClass' },
+        address: '',
+        slots: [{ startHour: 'slot2' }, { startHour: 'slot3' }],
+        date: '12/04/2020',
+      }],
     });
     sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
+    sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
+      {
+        startDate: '2020-03-20T09:00:00',
+        endDate: '2020-03-20T11:00:00',
+        address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+    ]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(0), course.slots[0]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(2), course.slots[2]);
@@ -1236,7 +1387,7 @@ describe('formatCourseForDocx', () => {
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
         { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
       ],
-      subProgram: { program: { description: 'Apprendre', name: 'nom du programme' } },
+      subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
     getCourseDuration.returns('7h');
 
@@ -1244,7 +1395,7 @@ describe('formatCourseForDocx', () => {
 
     expect(result).toEqual({
       duration: '7h',
-      description: course.subProgram.program.description,
+      learningGoals: 'Apprendre',
       startDate: '20/03/2020',
       endDate: '21/04/2020',
       programName: 'NOM DU PROGRAMME',
@@ -1306,7 +1457,6 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
     };
-    const formattedCourse = { program: { description: 'Apprendre', name: 'nom du programme' }, courseDuration: '8h' };
     CourseMock.expects('findOne')
       .withExactArgs({ _id: courseId })
       .chain('populate')
@@ -1317,12 +1467,15 @@ describe('generateCompletionCertificate', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program',
-        populate: { path: 'program', select: 'name description' },
+        populate: { path: 'program', select: 'name learningGoals' },
       })
       .chain('lean')
       .once()
       .returns(course);
-    formatCourseForDocx.returns(formattedCourse);
+    formatCourseForDocx.returns({
+      program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+      courseDuration: '8h',
+    });
     createDocx.onCall(0).returns('1.docx');
     createDocx.onCall(1).returns('2.docx');
     createDocx.onCall(2).returns('3.docx');
@@ -1343,17 +1496,32 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledWithExactly(
       createDocx.getCall(0),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 1', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 1',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledWithExactly(
       createDocx.getCall(1),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 2', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 2',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledWithExactly(
       createDocx.getCall(2),
       '/path/certificate_template.docx',
-      { ...formattedCourse, traineeIdentity: 'trainee 3', date: '20/01/2020' }
+      {
+        program: { learningGoals: 'Apprendre', name: 'nom du programme' },
+        courseDuration: '8h',
+        traineeIdentity: 'trainee 3',
+        date: '20/01/2020',
+      }
     );
     sinon.assert.calledOnceWithExactly(
       generateZip,
@@ -1372,5 +1540,229 @@ describe('generateCompletionCertificate', () => {
       tmpFilePath: '/path/certificate_template.docx',
     });
     CourseMock.verify();
+  });
+});
+
+describe('addAccessRule', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add access rule to course', async () => {
+    const courseId = new ObjectID();
+    const payload = { company: new ObjectID() };
+
+    await CourseHelper.addAccessRule(courseId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $push: { accessRules: payload.company } });
+  });
+});
+
+describe('deleteAccessRule', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Course, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add access rule to course', async () => {
+    const courseId = new ObjectID();
+    const accessRuleId = new ObjectID();
+
+    await CourseHelper.deleteAccessRule(courseId, accessRuleId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseId }, { $pull: { accessRules: accessRuleId } });
+  });
+});
+
+describe('formatHoursForConvocation', () => {
+  it('should format hours for convocation for 1 slot', () => {
+    const slots = [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T14:30:00' }];
+
+    const result = CourseHelper.formatHoursForConvocation(slots);
+
+    expect(result).toEqual('12h30 - 14h30');
+  });
+
+  it('should format hours for convocation for 2 slots', () => {
+    const slots = [
+      { startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T14:30:00' },
+      { startDate: '2020-10-12T15:30:00', endDate: '2020-10-12T17:30:00' },
+    ];
+
+    const result = CourseHelper.formatHoursForConvocation(slots);
+
+    expect(result).toEqual('12h30 - 14h30 / 15h30 - 17h30');
+  });
+});
+
+describe('formatCourseForConvocationPdf', () => {
+  let formatIdentity;
+  let formatHoursForConvocation;
+  let groupSlotsByDate;
+  beforeEach(() => {
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
+    formatHoursForConvocation = sinon.stub(CourseHelper, 'formatHoursForConvocation');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
+  });
+  afterEach(() => {
+    formatIdentity.restore();
+    formatHoursForConvocation.restore();
+    groupSlotsByDate.restore();
+  });
+
+  it('should return formatted course', async () => {
+    const courseId = new ObjectID();
+    const course = {
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      contact: { phone: '0123456789' },
+      slots: [{
+        startDate: '2020-10-12T12:30:00',
+        endDate: '2020-10-12T13:30:00',
+        address: { fullAddress: '3 rue T' },
+      }],
+    };
+
+    formatIdentity.returns('Ash Ketchum');
+    formatHoursForConvocation.returns('13:30 - 14:30');
+    groupSlotsByDate.returns([[{
+      startDate: '2020-10-12T12:30:00',
+      endDate: '2020-10-12T13:30:00',
+      address: { fullAddress: '3 rue T' },
+    }]]);
+
+    const result = await CourseHelper.formatCourseForConvocationPdf(course);
+
+    expect(result).toEqual({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      trainerIdentity: 'Ash Ketchum',
+      contact: { phone: '0123456789' },
+      contactPhoneNumber: '01 23 45 67 89',
+      slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
+    });
+
+    sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
+    sinon.assert.calledOnceWithExactly(
+      formatHoursForConvocation,
+      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatHoursForConvocation,
+      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    );
+  });
+});
+
+describe('generateConvocationPdf', () => {
+  let formatCourseForConvocationPdf;
+  let generatePdf;
+  let CourseMock;
+  beforeEach(() => {
+    formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    CourseMock = sinon.mock(Course);
+  });
+  afterEach(() => {
+    formatCourseForConvocationPdf.restore();
+    generatePdf.restore();
+    CourseMock.restore();
+  });
+
+  it('should return pdf', async () => {
+    const courseId = new ObjectID();
+
+    CourseMock.expects('findOne')
+      .withExactArgs({ _id: courseId })
+      .chain('populate')
+      .withExactArgs({
+        path: 'subProgram',
+        select: 'program',
+        populate: { path: 'program', select: 'name description' },
+      })
+      .chain('populate')
+      .withExactArgs('slots')
+      .chain('populate')
+      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
+      .chain('populate')
+      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
+      .chain('lean')
+      .once()
+      .returns({
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        contact: { phone: '0123456789' },
+        slots: [{
+          startDate: '2020-10-12T12:30:00.000+01:00',
+          endDate: '2020-10-12T13:30:00.000+01:00',
+          address: { fullAddress: '35B rue de la tour Malakoff' },
+        }],
+      });
+
+    formatCourseForConvocationPdf.returns({
+      _id: courseId,
+      subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+      trainerIdentity: 'Ash Ketchum',
+      contact: { phone: '0123456789' },
+      contactPhoneNumber: '01 23 45 67 89',
+      slots: [{
+        startDay: '12 oct. 2020',
+        hours: '13:30 - 14:30',
+        address: '35B rue de la tour Malakoff',
+        length: 1,
+        position: 1,
+      }],
+    });
+
+    generatePdf.returns('pdf');
+
+    const result = await CourseHelper.generateConvocationPdf(courseId);
+
+    expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
+    CourseMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      formatCourseForConvocationPdf,
+      {
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        contact: { phone: '0123456789' },
+        slots: [{
+          startDate: '2020-10-12T12:30:00.000+01:00',
+          endDate: '2020-10-12T13:30:00.000+01:00',
+          address: { fullAddress: '35B rue de la tour Malakoff' },
+        }],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      generatePdf,
+      {
+        _id: courseId,
+        subProgram: { program: { name: 'Comment attraper des Pokemons' } },
+        trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
+        trainerIdentity: 'Ash Ketchum',
+        contact: { phone: '0123456789' },
+        contactPhoneNumber: '01 23 45 67 89',
+        slots: [{
+          startDay: '12 oct. 2020',
+          hours: '13:30 - 14:30',
+          address: '35B rue de la tour Malakoff',
+          length: 1,
+          position: 1,
+        }],
+      },
+      './src/data/courseConvocation.html'
+    );
   });
 });

@@ -4,6 +4,8 @@ const InternalHour = require('../../../src/models/InternalHour');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
 const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
+const { userList } = require('../../seed/userSeed');
+const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 
 const internalHourUsers = [{
   _id: new ObjectID(),
@@ -22,21 +24,42 @@ const internalHourUsers = [{
 }];
 
 const authInternalHoursList = [
-  { default: true, _id: new ObjectID(), name: 'Planning', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Intégration', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Réunion', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Visite', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Prospection', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Recrutement', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Formation', company: authCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Autre', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Planning', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Intégration', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Réunion', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Visite', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Prospection', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Recrutement', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Formation', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Autre', company: authCompany._id },
 ];
 
 const internalHoursList = [
-  { default: true, _id: new ObjectID(), name: 'Tutu', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Toto', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Tata', company: otherCompany._id },
-  { default: false, _id: new ObjectID(), name: 'Titi', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Toto', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Tata', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'Titi', company: otherCompany._id },
+];
+
+const eventList = [
+  {
+    _id: new ObjectID(),
+    type: INTERNAL_HOUR,
+    company: authCompany._id,
+    startDate: '2019-01-16T09:00:00.543Z',
+    endDate: '2019-01-16T10:00:00.653Z',
+    auxiliary: userList[2]._id,
+    internalHour: authInternalHoursList[0]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: INTERNAL_HOUR,
+    company: otherCompany._id,
+    startDate: '2019-01-16T09:00:00.543Z',
+    endDate: '2019-01-16T10:00:00.653Z',
+    auxiliary: internalHourUsers[0]._id,
+    internalHour: internalHoursList[0]._id,
+  },
 ];
 
 const populateDB = async () => {
@@ -45,6 +68,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
+  await Event.insertMany(eventList);
   await InternalHour.insertMany([...internalHoursList, ...authInternalHoursList]);
   await User.create(internalHourUsers);
 };
@@ -54,4 +78,5 @@ module.exports = {
   internalHoursList,
   authInternalHoursList,
   internalHourUsers,
+  eventList,
 };

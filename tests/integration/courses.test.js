@@ -166,28 +166,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
     });
 
-    it('should get courses for a specific trainee', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
-    });
-
-    it('should return 200 for a specific trainee without company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeWithoutCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(0);
-    });
-
     it('should get blended courses', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -196,7 +174,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -207,7 +185,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(6);
     });
   });
 
@@ -220,29 +198,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should get course if trainee from same company', async () => {
-      authToken = await getToken('client_admin');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${helper._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
-    });
-
-    it('should not get course if trainee from different company', async () => {
-      authToken = await getToken('client_admin');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses?trainees=${traineeFromOtherCompany._id}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -272,7 +227,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     const roles = [
@@ -324,7 +279,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
           program: {
             _id: expect.any(ObjectID),
             name: programsList[0].name,
-            description: programsList[0].description,
+            learningGoals: programsList[0].learningGoals,
             subPrograms: [expect.any(ObjectID)],
           },
           steps: [{
@@ -552,7 +507,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expectedCode: 200,
         numberOfCourse: 0,
       },
-      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 4 },
+      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 6 },
       { name: 'client_admin', user: clientAdmin, expectedCode: 200, numberOfCourse: 3 },
       {
         name: 'training_organisation_manager',
@@ -587,6 +542,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
                 _id: expect.any(ObjectID),
                 name: programsList[0].name,
                 image: programsList[0].image,
+                description: programsList[0].description,
                 subPrograms: [expect.any(ObjectID)],
               },
               steps: expect.arrayContaining([
@@ -638,6 +594,23 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         });
 
         expect(response.statusCode).toBe(200);
+      });
+
+      it('should return only the courses that the trainee has the right to access', async () => {
+        authToken = await getToken('vendor_admin');
+        const courseWithAccessRules = coursesList[9];
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(courseWithAccessRules.trainees.includes(traineeFromOtherCompany._id)).toBe(true);
+        expect(response.result.data.courses.every(course =>
+          !areObjectIdsEquals(course._id, courseWithAccessRules._id_)))
+          .toBe(true);
       });
 
       it('should throw 403 if invalid traineeId', async () => {
@@ -730,42 +703,10 @@ describe('COURSES ROUTES - GET /courses/user', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/{_id}/public-infos', () => {
-  let authToken = null;
-  const courseIdFromAuthCompany = coursesList[0]._id;
-  beforeEach(populateDB);
-
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-    });
-
-    it('should get course', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
-    });
-  });
-
-  it('should get course even if not authenticate', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/courses/${courseIdFromAuthCompany.toHexString()}/public-infos`,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.course._id).toEqual(courseIdFromAuthCompany);
-  });
-});
-
 describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
   let authToken = null;
   const courseId = coursesList[0]._id;
+  const eLearningCourseId = coursesList[8]._id;
   beforeEach(populateDB);
 
   it('should get course if trainee', async () => {
@@ -821,6 +762,28 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('should get course if has access authorization', async () => {
+    authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('should not get course if has not access authorization', async () => {
+    authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/courses/${eLearningCourseId.toHexString()}/user`,
       headers: { 'x-access-token': authToken },
     });
 
@@ -1529,6 +1492,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if the course has accessRules and user not from a company with access', async () => {
+      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[8]._id}/register-e-learning`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -1827,6 +1802,190 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+  });
+});
+
+describe('COURSE ROUTES - POST /:_id/accessrules', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[8]._id}/accessrules`,
+        headers: { 'x-access-token': authToken },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doen\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${new ObjectID()}/accessrules`,
+        headers: { 'x-access-token': authToken },
+        payload: { company: otherCompany._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if accessRules already exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[8]._id}/accessrules`,
+        headers: { 'x-access-token': authToken },
+        payload: { company: authCompany._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 if no accessRules in payload', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${coursesList[8]._id}/accessrules`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${coursesList[8]._id}/accessrules`,
+          headers: { 'x-access-token': authToken },
+          payload: { company: otherCompany._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[8]._id}/accessrules/${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doen\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${new ObjectID()}/accessrules/${authCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if accessRules doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[8]._id}/accessrules/${otherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/courses/${coursesList[8]._id}/accessrules/${authCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE ROUTES - GET /:_id/convocations', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should return 200', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[9]._id}/convocations`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doen\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectID()}/convocations`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    describe('User not authenticate', () => {
+      it('should get pdf even if not authenticate', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[9]._id}/convocations`,
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
     });
   });
 });

@@ -4,6 +4,15 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const EventHistory = require('../../../src/models/EventHistory');
+const {
+  INTERNAL_HOUR,
+  INTERVENTION,
+  ABSENCE,
+  PAID_LEAVE,
+  EVENT_UPDATE,
+  EVENT_DELETION,
+  EVENT_CREATION,
+} = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const user = {
@@ -64,12 +73,12 @@ const eventHistoryList = [
   {
     _id: ObjectID(),
     company: authCompany._id,
-    action: 'event_creation',
+    action: EVENT_CREATION,
     createdBy: user._id,
     sectors: [sectors[0]._id],
     auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
-      type: 'intervention',
+      type: INTERVENTION,
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
       customer: customer._id,
@@ -79,12 +88,12 @@ const eventHistoryList = [
   {
     _id: ObjectID(),
     company: authCompany._id,
-    action: 'event_deletion',
+    action: EVENT_DELETION,
     createdBy: user._id,
     sectors: [sectors[0]._id],
     auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
-      type: 'internalHour',
+      type: INTERNAL_HOUR,
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
       internalHour: {
@@ -98,15 +107,15 @@ const eventHistoryList = [
   {
     _id: ObjectID(),
     company: authCompany._id,
-    action: 'event_update',
+    action: EVENT_UPDATE,
     createdBy: user._id,
     sectors: [sectors[0]._id],
     auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
-      type: 'absence',
+      type: ABSENCE,
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
-      absence: 'leave',
+      absence: PAID_LEAVE,
       auxiliary: eventHistoryAuxiliaries[0]._id,
       misc: 'Je suis une note',
     },
