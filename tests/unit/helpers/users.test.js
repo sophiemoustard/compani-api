@@ -61,6 +61,7 @@ describe('authenticate', () => {
       sinon.assert.notCalled(encode);
     }
   });
+
   it('should throw an error if refresh token does not exist', async () => {
     try {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
@@ -81,6 +82,7 @@ describe('authenticate', () => {
       sinon.assert.notCalled(encode);
     }
   });
+
   it('should throw an error if wrong password', async () => {
     const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
@@ -102,8 +104,9 @@ describe('authenticate', () => {
       sinon.assert.notCalled(encode);
     }
   });
+
   it('should return authentication data', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto' };
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
     const user = {
       _id: new ObjectID(),
       refreshToken: 'token',
@@ -118,6 +121,37 @@ describe('authenticate', () => {
       .returns(user);
     compare.returns(true);
     encode.returns('token');
+    UserMock.expects('updateOne').never();
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledWithExactly(
+      encode,
+      { _id: user._id.toHexString() },
+      TOKEN_EXPIRE_TIME
+    );
+  });
+
+  it('should create the field firstConnectionMobile for user', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+    };
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne');
 
     const result = await UsersHelper.authenticate(payload);
 
