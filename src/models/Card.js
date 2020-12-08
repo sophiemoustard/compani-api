@@ -80,17 +80,17 @@ function save(next) {
         this.falsyGapAnswers = [];
         break;
       case SINGLE_CHOICE_QUESTION:
-        this.qcuFalsyAnswers = [];
+        this.qAnswers = [{ text: '' }];
         break;
       case QUESTION_ANSWER:
-        this.questionAnswers = [{ text: '' }, { text: '' }];
+        this.qAnswers = [{ text: '' }, { text: '' }];
         this.isQuestionAnswerMultipleChoiced = false;
         break;
       case ORDER_THE_SEQUENCE:
         this.orderedAnswers = [];
         break;
       case MULTIPLE_CHOICE_QUESTION:
-        this.qcmAnswers = [];
+        this.qAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
         this.label = {};

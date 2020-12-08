@@ -69,9 +69,9 @@ exports.cardValidationByTemplate = (template) => {
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         qcuGoodAnswer: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
-        qcuFalsyAnswers: Joi.array().items(
-          Joi.string().max(QC_ANSWER_MAX_LENGTH)
-        ).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
+        qAnswers: Joi.array().items(Joi.object({
+          text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
+        })).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case ORDER_THE_SEQUENCE:
@@ -83,9 +83,9 @@ exports.cardValidationByTemplate = (template) => {
     case MULTIPLE_CHOICE_QUESTION:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        qcmAnswers: Joi.array()
+        qAnswers: Joi.array()
           .items(Joi.object({
-            label: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
+            text: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
             correct: Joi.boolean().required(),
           }))
           .has(Joi.object({ correct: true }))
@@ -114,9 +114,9 @@ exports.cardValidationByTemplate = (template) => {
     case QUESTION_ANSWER:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        questionAnswers: Joi.array().items({
+        qAnswers: Joi.array().items(Joi.object({
           text: Joi.string().required(),
-        }).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
+        })).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
       });
     default:
       return Joi.object().keys();
