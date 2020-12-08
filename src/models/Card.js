@@ -53,19 +53,11 @@ const CardSchema = mongoose.Schema({
     type: [String],
     default: undefined,
   },
-  qcuFalsyAnswers: {
-    type: [String],
-    default: undefined,
-  },
-  questionAnswers: {
-    type: [mongoose.Schema({ text: { type: String } }, { id: false })],
+  qAnswers: {
+    type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
     default: undefined,
   },
   isQuestionAnswerMultipleChoiced: { type: Boolean },
-  qcmAnswers: {
-    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false, id: false })],
-    default: undefined,
-  },
   explanation: { type: String },
   orderedAnswers: {
     type: [String],
