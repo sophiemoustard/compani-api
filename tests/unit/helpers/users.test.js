@@ -67,8 +67,8 @@ describe('authenticate', () => {
 
     expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
     UserMock.verify();
-    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(
       encode,
       { _id: user._id.toHexString() },
       TOKEN_EXPIRE_TIME
@@ -103,8 +103,8 @@ describe('authenticate', () => {
 
     expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
     UserMock.verify();
-    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(
       encode,
       { _id: user._id.toHexString() },
       TOKEN_EXPIRE_TIME
@@ -136,8 +136,8 @@ describe('authenticate', () => {
 
     expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
     UserMock.verify();
-    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(
       encode,
       { _id: user._id.toHexString() },
       TOKEN_EXPIRE_TIME
@@ -208,7 +208,7 @@ describe('authenticate', () => {
       expect(e.output.statusCode).toEqual(401);
     } finally {
       UserMock.verify();
-      sinon.assert.calledWithExactly(compare, payload.password, 'password_hash');
+      sinon.assert.calledOnceWithExactly(compare, payload.password, 'password_hash');
       sinon.assert.notCalled(encode);
     }
   });
