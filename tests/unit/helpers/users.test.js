@@ -111,7 +111,7 @@ describe('authenticate', () => {
     );
   });
 
-  it('should create the field firstMobileConnection for user', async () => {
+  it('should not create the field firstMobileConnection if already exists', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
