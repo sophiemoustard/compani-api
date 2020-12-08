@@ -17,7 +17,7 @@ const {
   BLENDED,
   STRICTLY_E_LEARNING,
   MOBILE,
-  WEBAPP
+  WEBAPP,
 } = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 

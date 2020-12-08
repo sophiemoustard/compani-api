@@ -75,7 +75,7 @@ describe('authenticate', () => {
     );
   });
 
-  it('should create the field firstConnectionMobile for user', async () => {
+  it('should create the field firstMobileConnection for user', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
@@ -98,6 +98,39 @@ describe('authenticate', () => {
         { _id: user._id, firstMobileConnection: { $exists: false } },
         { $set: { firstMobileConnection: '2020-12-08T13:45:25.437Z' } }
       );
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledWithExactly(
+      encode,
+      { _id: user._id.toHexString() },
+      TOKEN_EXPIRE_TIME
+    );
+  });
+
+  it('should create the field firstMobileConnection for user', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+      firstMobileConnection: '2020-12-08T13:45:25.437Z',
+    };
+    momentToDate.returns('2020-12-08T13:45:25.437Z');
+
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne').never();
 
     const result = await UsersHelper.authenticate(payload);
 
