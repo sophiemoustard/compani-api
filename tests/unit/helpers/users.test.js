@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const get = require('lodash/get');
 const expect = require('expect');
 const moment = require('moment');
+const { fn: momentProto } = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
@@ -30,79 +31,18 @@ describe('authenticate', () => {
   let UserMock;
   let compare;
   let encode;
+  let momentToDate;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     compare = sinon.stub(bcrypt, 'compare');
     encode = sinon.stub(AuthenticationHelper, 'encode');
+    momentToDate = sinon.stub(momentProto, 'toDate');
   });
   afterEach(() => {
     UserMock.restore();
     compare.restore();
     encode.restore();
-  });
-
-  it('should throw an error if user does not exist', async () => {
-    try {
-      const payload = { email: 'toto@email.com', password: '123456!eR' };
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns(null);
-
-      await UsersHelper.authenticate(payload);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(401);
-    } finally {
-      UserMock.verify();
-      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
-      sinon.assert.notCalled(encode);
-    }
-  });
-
-  it('should throw an error if refresh token does not exist', async () => {
-    try {
-      const payload = { email: 'toto@email.com', password: '123456!eR' };
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns({ _id: new ObjectID() });
-
-      await UsersHelper.authenticate(payload);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(401);
-    } finally {
-      UserMock.verify();
-      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
-      sinon.assert.notCalled(encode);
-    }
-  });
-
-  it('should throw an error if wrong password', async () => {
-    const payload = { email: 'toto@email.com', password: '123456!eR' };
-    try {
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
-      compare.returns(false);
-
-      await UsersHelper.authenticate(payload);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(401);
-    } finally {
-      UserMock.verify();
-      sinon.assert.calledWithExactly(compare, payload.password, 'password_hash');
-      sinon.assert.notCalled(encode);
-    }
+    momentToDate.restore();
   });
 
   it('should return authentication data', async () => {
@@ -142,6 +82,8 @@ describe('authenticate', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
+    momentToDate.returns('2020-12-08T13:45:25.437Z');
+
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
       .chain('select')
@@ -151,7 +93,11 @@ describe('authenticate', () => {
       .returns(user);
     compare.returns(true);
     encode.returns('token');
-    UserMock.expects('updateOne');
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: user._id, firstMobileConnection: { $exists: false } },
+        { $set: { firstMobileConnection: '2020-12-08T13:45:25.437Z' } }
+      );
 
     const result = await UsersHelper.authenticate(payload);
 
@@ -163,6 +109,75 @@ describe('authenticate', () => {
       { _id: user._id.toHexString() },
       TOKEN_EXPIRE_TIME
     );
+  });
+
+  it('should throw an error if user does not exist', async () => {
+    try {
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
+        .chain('lean')
+        .once()
+        .returns(null);
+
+      UserMock.expects('updateOne').never();
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
+      sinon.assert.notCalled(encode);
+    }
+  });
+
+  it('should throw an error if refresh token does not exist', async () => {
+    try {
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
+        .chain('lean')
+        .once()
+        .returns({ _id: new ObjectID() });
+
+      UserMock.expects('updateOne').never();
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
+      sinon.assert.notCalled(encode);
+    }
+  });
+
+  it('should throw an error if wrong password', async () => {
+    const payload = { email: 'toto@email.com', password: '123456!eR' };
+    try {
+      UserMock.expects('findOne')
+        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+        .chain('select')
+        .withExactArgs('local refreshToken')
+        .chain('lean')
+        .once()
+        .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
+      compare.returns(false);
+      UserMock.expects('updateOne').never();
+
+      await UsersHelper.authenticate(payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(401);
+    } finally {
+      UserMock.verify();
+      sinon.assert.calledWithExactly(compare, payload.password, 'password_hash');
+      sinon.assert.notCalled(encode);
+    }
   });
 });
 
