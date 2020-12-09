@@ -21,15 +21,12 @@ const {
   getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
-  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
-  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
-  QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../helpers/constants');
 
@@ -55,6 +52,7 @@ exports.plugin = {
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
             qAnswers: Joi.array().items(Joi.object({
+              _id: Joi.objectId(),
               text: Joi.string().required(),
               correct: Joi.boolean(),
             })).min(1),
