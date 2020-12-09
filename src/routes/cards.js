@@ -91,10 +91,11 @@ exports.plugin = {
           }),
           payload: Joi.object({
             text: Joi.string().required(),
+            correct: Joi.string(),
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardAnswerUpdate }],
+        pre: [{ method: authorizeCardAnswerUpdate, assign: 'card' }],
       },
       handler: updateAnswer,
     });
