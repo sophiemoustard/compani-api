@@ -90,9 +90,9 @@ exports.plugin = {
             answerId: Joi.objectId().required(),
           }),
           payload: Joi.object({
-            text: Joi.string().required(),
-            correct: Joi.string(),
-          }),
+            text: Joi.string(),
+            correct: Joi.boolean(),
+          }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeCardAnswerUpdate, assign: 'card' }],
