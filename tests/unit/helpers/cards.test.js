@@ -68,7 +68,7 @@ describe('addCardAnswer', () => {
   it('should add card answer', async () => {
     const cardId = new ObjectID();
     await CardHelper.addCardAnswer(cardId);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $push: { questionAnswers: { text: '' } } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $push: { qAnswers: { text: '' } } });
   });
 });
 
@@ -86,8 +86,8 @@ describe('updateCardAnswer', () => {
     await CardHelper.updateCardAnswer(params, { text: 'test text' });
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: params._id, 'questionAnswers._id': params.answerId },
-      { $set: { 'questionAnswers.$.text': 'test text' } }
+      { _id: params._id, 'qAnswers._id': params.answerId },
+      { $set: { 'qAnswers.$.text': 'test text' } }
     );
   });
 });
@@ -107,7 +107,7 @@ describe('deleteCardAnswer', () => {
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: params._id },
-      { $pull: { questionAnswers: { _id: params.answerId } } }
+      { $pull: { qAnswers: { _id: params.answerId } } }
     );
   });
 });
