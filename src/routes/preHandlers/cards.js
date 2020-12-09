@@ -9,6 +9,7 @@ const {
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
+  MULTIPLE_CHOICE_QUESTION,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -83,7 +84,7 @@ exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
 
-  return null;
+  return card;
 };
 
 exports.authorizeCardAnswerDeletion = async (req) => {

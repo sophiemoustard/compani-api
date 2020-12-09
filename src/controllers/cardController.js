@@ -28,7 +28,7 @@ const addAnswer = async (req) => {
 
 const updateAnswer = async (req) => {
   try {
-    await CardHelper.updateCardAnswer(req.params, req.payload);
+    await CardHelper.updateCardAnswer(req.pre.card, req.params, req.payload);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
