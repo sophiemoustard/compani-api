@@ -51,7 +51,7 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            qAnswers: Joi.array().items(Joi.object({
+            qcAnswers: Joi.array().items(Joi.object({
               _id: Joi.objectId(),
               text: Joi.string().required(),
               correct: Joi.boolean(),

@@ -48,8 +48,8 @@ const checkOrderTheSequence = (payload, card) => {
 };
 
 const checkQuestionAnswer = (payload, card) => {
-  const { qAnswers } = payload;
-  if (qAnswers && qAnswers.length === 1 && card.qAnswers.length > 1) return Boom.badRequest();
+  const { qcAnswers } = payload;
+  if (qcAnswers && qcAnswers.length === 1 && card.qcAnswers.length > 1) return Boom.badRequest();
 
   return null;
 };
@@ -62,11 +62,11 @@ const checkFlashCard = (payload) => {
 };
 
 const checkMultipleChoiceQuestion = (payload, card) => {
-  const { qAnswers } = payload;
+  const { qcAnswers } = payload;
 
-  if (qAnswers) {
-    const noCorrectAnswer = !qAnswers.find(ans => ans.correct);
-    const removeRequiredAnswer = qAnswers.length === 1 && card.qAnswers.length > 1;
+  if (qcAnswers) {
+    const noCorrectAnswer = !qcAnswers.find(ans => ans.correct);
+    const removeRequiredAnswer = qcAnswers.length === 1 && card.qcAnswers.length > 1;
     if (removeRequiredAnswer || noCorrectAnswer) return Boom.badRequest();
   }
 
@@ -96,7 +96,7 @@ exports.authorizeCardUpdate = async (req) => {
 exports.authorizeCardAnswerCreation = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
-  if (card.qAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
+  if (card.qcAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
 
   const activity = await Activity.findOne({ cards: req.params._id }).lean();
   if (activity.status === PUBLISHED) throw Boom.forbidden();
@@ -105,16 +105,16 @@ exports.authorizeCardAnswerCreation = async (req) => {
 };
 
 exports.authorizeCardAnswerUpdate = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id, 'qAnswers._id': req.params.answerId }).lean();
+  const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
 
   return null;
 };
 
 exports.authorizeCardAnswerDeletion = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id, 'qAnswers._id': req.params.answerId }).lean();
+  const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
-  if (card.qAnswers.length <= QUESTION_ANSWER_MIN_ANSWERS_COUNT) return Boom.forbidden();
+  if (card.qcAnswers.length <= QUESTION_ANSWER_MIN_ANSWERS_COUNT) return Boom.forbidden();
 
   const activity = await Activity.findOne({ cards: req.params._id }).lean();
   if (activity.status === PUBLISHED) throw Boom.forbidden();
