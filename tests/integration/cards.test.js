@@ -79,7 +79,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
-          qAnswers: [
+          qcAnswers: [
             { _id: new ObjectID(), text: 'rien' },
             { _id: new ObjectID(), text: 'des trucs' },
             { _id: new ObjectID(), text: 'ou pas' },
@@ -92,7 +92,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'multiple_choice_question',
         payload: {
           question: 'Que faire dans cette situation ?',
-          qAnswers: [
+          qcAnswers: [
             { _id: new ObjectID(), text: 'un truc', correct: true },
             { _id: new ObjectID(), text: 'rien', correct: false },
           ],
@@ -224,14 +224,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       const requests = [
         {
           msg: 'valid answers',
-          payload: { qAnswers: [{ text: 'toto' }], qcuGoodAnswer: 'c\'est le S' },
+          payload: { qcAnswers: [{ text: 'toto' }], qcuGoodAnswer: 'c\'est le S' },
           code: 200,
         },
-        { msg: 'missing qAnswers', payload: { qAnswers: [{ text: '' }] }, code: 400 },
+        { msg: 'missing qcAnswers', payload: { qcAnswers: [{ text: '' }] }, code: 400 },
         {
           msg: 'too many chars in falsy answers',
           payload: {
-            qAnswers: [{ text: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz' }],
+            qcAnswers: [{ text: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz' }],
           },
           code: 200, // A GÉRER ?
         },
@@ -265,20 +265,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       const requests = [
         {
           msg: 'valid answers',
-          payload: { qAnswers: [{ text: 'vie', correct: true }, { text: 'gique', correct: false }] },
+          payload: { qcAnswers: [{ text: 'vie', correct: true }, { text: 'gique', correct: false }] },
           code: 200,
         },
-        { msg: 'missing label', payload: { qAnswers: [{ correct: true }] }, code: 400 },
-        { msg: 'missing correct', payload: { qAnswers: [{ text: 'et la bête' }] }, code: 400 },
+        { msg: 'missing label', payload: { qcAnswers: [{ correct: true }] }, code: 400 },
+        { msg: 'missing correct', payload: { qcAnswers: [{ text: 'et la bête' }] }, code: 400 },
         {
           msg: 'missing correct answer',
-          payload: { qAnswers: [{ text: 'époque', correct: false }, { text: 'et le clochard', correct: false }] },
+          payload: { qcAnswers: [{ text: 'époque', correct: false }, { text: 'et le clochard', correct: false }] },
           code: 400,
         },
         {
           msg: 'too many chars in answer',
           payload: {
-            qAnswers: [
+            qcAnswers: [
               {
                 text: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
                 correct: true,
@@ -406,7 +406,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(response.statusCode).toBe(200);
 
       const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated.qAnswers.length).toEqual(card.qAnswers.length + 1);
+      expect(cardUpdated.qcAnswers.length).toEqual(card.qcAnswers.length + 1);
     });
 
     it('should return 404 if invalid card id', async () => {
@@ -473,7 +473,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const card = cardsList[11];
-  const answer = card.qAnswers[0];
+  const answer = card.qcAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -493,9 +493,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       const cardUpdated = await Card.findById(card._id).lean();
       expect(cardUpdated).toEqual(expect.objectContaining({
         ...card,
-        qAnswers: [
-          { _id: card.qAnswers[0]._id, text: 'je suis un texte' },
-          card.qAnswers[1],
+        qcAnswers: [
+          { _id: card.qcAnswers[0]._id, text: 'je suis un texte' },
+          card.qcAnswers[1],
         ],
       }));
     });
@@ -526,7 +526,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       const otherQACard = cardsList[12];
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qAnswers[0]._id.toHexString()}`,
+        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
         payload: { text: 'je suis un texte' },
         headers: { 'x-access-token': authToken },
       });
@@ -566,7 +566,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const card = cardsList[12];
-  const answer = card.qAnswers[0];
+  const answer = card.qcAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -585,10 +585,10 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const cardUpdated = await Card.findById(card._id).lean();
       expect(cardUpdated).toEqual(expect.objectContaining({
         ...card,
-        qAnswers: [
-          card.qAnswers[1],
-          card.qAnswers[2],
-          card.qAnswers[3],
+        qcAnswers: [
+          card.qcAnswers[1],
+          card.qcAnswers[2],
+          card.qcAnswers[3],
         ],
       }));
     });
@@ -627,7 +627,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const otherQACard = cardsList[11];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qAnswers[0]._id.toHexString()}`,
+        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -638,7 +638,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const publishedCard = cardsList[13];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qAnswers[0]._id.toHexString()}`,
+        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -650,7 +650,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${oneQuestionCard._id.toHexString()}
-          /answers/${oneQuestionCard.qAnswers[0]._id.toHexString()}`,
+          /answers/${oneQuestionCard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
