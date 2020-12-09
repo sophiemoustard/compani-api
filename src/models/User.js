@@ -134,6 +134,7 @@ const UserSchema = mongoose.Schema({
   inactivityDate: { type: Date, default: null },
   biography: { type: String },
   firstMobileConnection: { type: Date },
+  origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
 }, {
   timestamps: true,
   toObject: { virtuals: true },

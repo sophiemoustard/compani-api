@@ -83,6 +83,7 @@ exports.plugin = {
         auth: { mode: 'optional' },
         validate: {
           payload: Joi.object().keys({
+            origin: Joi.string().valid(...ORIGIN_OPTIONS).required(),
             company: Joi.objectId(),
             sector: Joi.objectId(),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
