@@ -51,11 +51,6 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            qcAnswers: Joi.array().items(Joi.object({
-              _id: Joi.objectId(),
-              text: Joi.string().required(),
-              correct: Joi.boolean(),
-            })).min(1),
             orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
             falsyGapAnswers: Joi.array().items(
               Joi.string().max(GAP_ANSWER_MAX_LENGTH)

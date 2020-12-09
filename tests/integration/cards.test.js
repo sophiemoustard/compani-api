@@ -79,11 +79,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
-          qcAnswers: [
-            { _id: new ObjectID(), text: 'rien' },
-            { _id: new ObjectID(), text: 'des trucs' },
-            { _id: new ObjectID(), text: 'ou pas' },
-          ],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -92,10 +87,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'multiple_choice_question',
         payload: {
           question: 'Que faire dans cette situation ?',
-          qcAnswers: [
-            { _id: new ObjectID(), text: 'un truc', correct: true },
-            { _id: new ObjectID(), text: 'rien', correct: false },
-          ],
           explanation: 'en fait on doit faire ça',
         },
         id: multipleChoiceQuestionId,
@@ -223,17 +214,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     describe('Single choice question', () => {
       const requests = [
         {
-          msg: 'valid answers',
-          payload: { qcAnswers: [{ text: 'toto' }], qcuGoodAnswer: 'c\'est le S' },
+          msg: 'valid good answer',
+          payload: { qcuGoodAnswer: 'c\'est le S' },
           code: 200,
         },
-        { msg: 'missing qcAnswers', payload: { qcAnswers: [{ text: '' }] }, code: 400 },
         {
-          msg: 'too many chars in falsy answers',
-          payload: {
-            qcAnswers: [{ text: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz' }],
-          },
-          code: 200, // A GÉRER ?
+          msg: 'missing good answer',
+          payload: { qcuGoodAnswer: '' },
+          code: 400,
         },
         {
           msg: 'too many chars in good answer',
@@ -254,52 +242,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           });
 
           const cardUpdated = await Card.findById(singleChoiceQuestionId).lean({ virtuals: true });
-
-          expect(response.statusCode).toBe(request.code);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
-        });
-      });
-    });
-
-    describe('Multiple choice question', () => {
-      const requests = [
-        {
-          msg: 'valid answers',
-          payload: { qcAnswers: [{ text: 'vie', correct: true }, { text: 'gique', correct: false }] },
-          code: 200,
-        },
-        { msg: 'missing label', payload: { qcAnswers: [{ correct: true }] }, code: 400 },
-        { msg: 'missing correct', payload: { qcAnswers: [{ text: 'et la bête' }] }, code: 400 },
-        {
-          msg: 'missing correct answer',
-          payload: { qcAnswers: [{ text: 'époque', correct: false }, { text: 'et le clochard', correct: false }] },
-          code: 400,
-        },
-        {
-          msg: 'too many chars in answer',
-          payload: {
-            qcAnswers: [
-              {
-                text: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
-                correct: true,
-              },
-              { text: 'bleue', correct: false },
-            ],
-          },
-          code: 200, // A GÉRER ?
-        },
-      ];
-
-      requests.forEach((request) => {
-        it(`should return a ${request.code} if ${request.msg}`, async () => {
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/cards/${multipleChoiceQuestionId.toHexString()}`,
-            payload: request.payload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          const cardUpdated = await Card.findById(multipleChoiceQuestionId).lean({ virtuals: true });
 
           expect(response.statusCode).toBe(request.code);
           expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
