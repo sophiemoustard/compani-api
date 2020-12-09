@@ -263,7 +263,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '123456!eR' },
+      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'webapp' },
     });
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
@@ -271,6 +271,22 @@ describe('POST /users/authenticate', () => {
       refreshToken: expect.any(String),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
+  });
+
+  it('should authenticate a user and set firstMobileConnection', async () => {
+    const momentToDate = sinon.stub(momentProto, 'toDate');
+    momentToDate.returns('2020-12-08T13:45:25.437Z');
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'mobile' },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const user = await User.findOne({ _id: response.result.data.user._id }).lean();
+    expect(user.firstMobileConnection).toEqual(new Date('2020-12-08T13:45:25.437Z'));
+    momentToDate.restore();
   });
 
   it('should authenticate a user without company', async () => {

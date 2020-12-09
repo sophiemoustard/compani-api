@@ -16,6 +16,8 @@ const {
   AUXILIARY_WITHOUT_COMPANY,
   BLENDED,
   STRICTLY_E_LEARNING,
+  MOBILE,
+  WEBAPP,
 } = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
@@ -27,6 +29,8 @@ const roleSchemaDefinition = {
   ref: 'Role',
   autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
 };
+
+const ORIGIN_OPTIONS = [WEBAPP, MOBILE];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -65,11 +69,11 @@ const UserSchema = mongoose.Schema({
   identity: {
     type: mongoose.Schema({
       ...identitySchemaDefinition,
-      nationality: String,
-      birthCountry: String,
-      birthState: String,
-      birthCity: String,
-      socialSecurityNumber: Number,
+      nationality: { type: String },
+      birthCountry: { type: String },
+      birthState: { type: String },
+      birthCity: { type: String },
+      socialSecurityNumber: { type: Number },
     }, { _id: false, id: false }),
     required: true,
   },
@@ -77,21 +81,21 @@ const UserSchema = mongoose.Schema({
     address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
     phone: { type: String, validate: PHONE_VALIDATION },
   },
-  emergencyPhone: String,
-  mentor: String,
+  emergencyPhone: { type: String },
+  mentor: { type: String },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
     driveFolder: driveResourceSchemaDefinition,
     signup: {
-      firstSmsDate: Date,
-      secondSmsDate: Date,
+      firstSmsDate: { type: Date },
+      secondSmsDate: { type: Date },
       step: { type: String, default: 'first' },
       complete: { type: Boolean, default: false },
     },
     payment: {
       rib: {
-        iban: String,
-        bic: String,
+        iban: { type: String },
+        bic: { type: String },
       },
     },
     idCardRecto: driveResourceSchemaDefinition,
@@ -101,13 +105,13 @@ const UserSchema = mongoose.Schema({
     residencePermitVerso: driveResourceSchemaDefinition,
     healthAttest: driveResourceSchemaDefinition,
     vitalCard: driveResourceSchemaDefinition,
-    identityDocs: String,
+    identityDocs: { type: String },
     certificates: [driveResourceSchemaDefinition],
     phoneInvoice: driveResourceSchemaDefinition,
     navigoInvoice: driveResourceSchemaDefinition,
     transportInvoice: {
       ...driveResourceSchemaDefinition,
-      transportType: String,
+      transportType: { type: String },
     },
     mutualFund: {
       ...driveResourceSchemaDefinition,
@@ -115,8 +119,8 @@ const UserSchema = mongoose.Schema({
     },
     medicalCertificate: driveResourceSchemaDefinition,
     emergencyContact: {
-      name: String,
-      phoneNumber: String,
+      name: { type: String },
+      phoneNumber: { type: String },
     },
   },
   isConfirmed: { type: Boolean, default: false },
@@ -128,7 +132,8 @@ const UserSchema = mongoose.Schema({
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
-  biography: String,
+  biography: { type: String },
+  firstMobileConnection: { type: Date },
 }, {
   timestamps: true,
   toObject: { virtuals: true },
@@ -316,3 +321,4 @@ UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
 module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
+module.exports.ORIGIN_OPTIONS = ORIGIN_OPTIONS;

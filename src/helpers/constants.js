@@ -335,4 +335,7 @@ module.exports = {
   UPLOAD_VIDEO: 'video',
   UPLOAD_AUDIO: 'audio',
   UPLOAD_DATE_FORMAT: 'YYYYMMDDHHmmss',
+  // ORIGIN
+  MOBILE: 'mobile',
+  WEBAPP: 'webapp',
 };
