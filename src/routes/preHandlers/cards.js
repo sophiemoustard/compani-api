@@ -4,10 +4,8 @@ const Card = require('../../models/Card');
 const {
   FILL_THE_GAPS,
   ORDER_THE_SEQUENCE,
-  MULTIPLE_CHOICE_QUESTION,
   FLASHCARD,
   PUBLISHED,
-  QUESTION_ANSWER,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
@@ -47,28 +45,9 @@ const checkOrderTheSequence = (payload, card) => {
   return null;
 };
 
-const checkQuestionAnswer = (payload, card) => {
-  const { qcAnswers } = payload;
-  if (qcAnswers && qcAnswers.length === 1 && card.qcAnswers.length > 1) return Boom.badRequest();
-
-  return null;
-};
-
 const checkFlashCard = (payload) => {
   const { text } = payload;
   if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
-
-  return null;
-};
-
-const checkMultipleChoiceQuestion = (payload, card) => {
-  const { qcAnswers } = payload;
-
-  if (qcAnswers) {
-    const noCorrectAnswer = !qcAnswers.find(ans => ans.correct);
-    const removeRequiredAnswer = qcAnswers.length === 1 && card.qcAnswers.length > 1;
-    if (removeRequiredAnswer || noCorrectAnswer) return Boom.badRequest();
-  }
 
   return null;
 };
@@ -82,10 +61,6 @@ exports.authorizeCardUpdate = async (req) => {
       return checkFillTheGap(req.payload, card);
     case ORDER_THE_SEQUENCE:
       return checkOrderTheSequence(req.payload, card);
-    case MULTIPLE_CHOICE_QUESTION:
-      return checkMultipleChoiceQuestion(req.payload, card);
-    case QUESTION_ANSWER:
-      return checkQuestionAnswer(req.payload, card);
     case FLASHCARD:
       return checkFlashCard(req.payload);
     default:
