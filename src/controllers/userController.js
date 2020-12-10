@@ -20,7 +20,8 @@ const authenticate = async (req, h) => {
     return h.response({
       message: translate[language].userAuthentified,
       data: { ...authentication },
-    }).state('token', authentication.token);
+    }).state('token', authentication.token)
+      .state('refresh_token', authentication.refreshToken);
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
