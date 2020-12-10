@@ -5,6 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
+const { checkSinon } = require('../utils');
 require('sinon-mongoose');
 
 describe('getActivity', () => {
@@ -63,24 +64,7 @@ describe('getActivity', () => {
 
     const result = await ActivityHelper.getActivity(activity._id);
 
-    sinon.assert.calledWithExactly(ActivityStub, { _id: activity._id });
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate,
-      { path: 'cards', select: '-__v -createdAt -updatedAt' }
-    );
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
-      {
-        path: 'steps',
-        select: '_id -activities',
-        populate:
-          { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
-      }
-    );
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
-      { virtuals: true }
-    );
+    checkSinon(ActivityStub, activity._id);
     expect(result).toMatchObject({ _id: 'skusku' });
   });
 
