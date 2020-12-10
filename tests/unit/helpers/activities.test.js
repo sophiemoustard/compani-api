@@ -5,7 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-const { checkSinon } = require('../utils');
+const { checkSinon, chainedMongoose } = require('../utils');
 require('sinon-mongoose');
 
 describe('getActivity', () => {
@@ -49,10 +49,7 @@ describe('getActivity', () => {
   let ActivityStub;
 
   beforeEach(() => {
-    ActivityStub = sinon.stub(Activity, 'findOne').returns({
-      populate: sinon.stub().returnsThis(),
-      lean: sinon.stub().returns({ _id: 'skusku' }),
-    });
+    ActivityStub = sinon.stub(Activity, 'findOne').returns(chainedMongoose([{ _id: 'skusku' }, { _id: 'okok' }]));
   });
 
   afterEach(() => {
@@ -65,7 +62,7 @@ describe('getActivity', () => {
     const result = await ActivityHelper.getActivity(activity._id);
 
     checkSinon(ActivityStub, activity._id);
-    expect(result).toMatchObject({ _id: 'skusku' });
+    expect(result).toMatchObject({ _id: 'okok' });
   });
 
   // ------- MEDIUM -------
@@ -114,14 +111,12 @@ describe('getActivity', () => {
   // });
 
   // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
-  // NE FONCTIONNE PAS, PARCEQUE 2 APPELS A POPULATE
+  // 3ème commentaire -> ne donne rien
+  // 1er commentaire -> même code que notre solution mais en moins lisible
 
   // https://github.com/sinonjs/sinon/issues/92
-  // NE FONCTIONNE PAS, PARCEQUE NE STUB PAS findOne().populate() MAIS JUSTE populate()
-  // A CREUSER
-
-  // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
-  // PREMIERE SOLUTION + CALLEDRIGHTAFTER ?
+  // NECECSSITE DE STUB CHAQUE FONCTION (FINDONE, POPULATE, LEAN) PUIS DE FAIRE UN CALLRIGHTAFTER + CALLEDWITHEXACTLY
+  // JE N'AI PAS REUSSI A STUB POPULATE NI LEAN
 });
 
 describe('updateActivity', () => {
