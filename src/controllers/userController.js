@@ -12,15 +12,15 @@ const {
 
 const { language } = translate;
 
-const authenticate = async (req) => {
+const authenticate = async (req, h) => {
   try {
     const authentication = await UsersHelper.authenticate(req.payload);
     req.log('info', `${req.payload.email} connected`);
 
-    return {
+    return h.response({
       message: translate[language].userAuthentified,
       data: { ...authentication },
-    };
+    }).state('token', authentication.token);
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
