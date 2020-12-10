@@ -21,6 +21,19 @@ const checkSinon = (ActivityStub, id) => {
   );
 };
 
+const chainedMongoose = (returnedValues) => {
+  let previousReturned = sinon.stub().onCall(0).returns(returnedValues[0]);
+  for (let i = 1; i < returnedValues.length; i++) {
+    previousReturned = previousReturned.onCall(i).returns(returnedValues[i]);
+  }
+
+  return {
+    populate: sinon.stub().returnsThis(),
+    lean: previousReturned,
+  };
+};
+
 module.exports = {
   checkSinon,
+  chainedMongoose,
 };
