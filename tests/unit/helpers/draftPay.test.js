@@ -1339,7 +1339,7 @@ describe('computeBalance', () => {
       contracts: [contract],
       administrative: {
         mutualFund: { has: true },
-        phoneInvoice: { driveId: '15FWRBXbYnKBu7AGNUAr6be3kThDR2ed5', link: 'skusku' },
+        phoneInvoice: { driveId: '123456', link: 'skusku' },
       },
     };
     const events = {

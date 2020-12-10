@@ -1705,7 +1705,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
           endDate: '2020-10-12T13:30:00.000+01:00',
-          address: { fullAddress: '35B rue de la tour Malakoff' },
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
       });
 
@@ -1719,7 +1719,7 @@ describe('generateConvocationPdf', () => {
       slots: [{
         startDay: '12 oct. 2020',
         hours: '13:30 - 14:30',
-        address: '35B rue de la tour Malakoff',
+        address: '37 rue de Ponthieu 75005 Paris',
         length: 1,
         position: 1,
       }],
@@ -1741,7 +1741,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
           endDate: '2020-10-12T13:30:00.000+01:00',
-          address: { fullAddress: '35B rue de la tour Malakoff' },
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
       }
     );
@@ -1757,7 +1757,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDay: '12 oct. 2020',
           hours: '13:30 - 14:30',
-          address: '35B rue de la tour Malakoff',
+          address: '37 rue de Ponthieu 75005 Paris',
           length: 1,
           position: 1,
         }],
