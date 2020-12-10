@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, authCompany, getUser } = require('./authenticationSeed');
-const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants');
+const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
 
 const payDocumentUser = {
   _id: new ObjectID(),
@@ -12,6 +12,7 @@ const payDocumentUser = {
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const otherCompanyId = new ObjectID();
@@ -26,6 +27,7 @@ const userFromOtherCompany = {
   local: { email: 'test@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
+  origin: WEBAPP,
 };
 
 const payDocumentsList = [{

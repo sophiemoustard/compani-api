@@ -5,6 +5,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const Payment = require('../../../src/models/Payment');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
 const customersList = [
   {
@@ -44,6 +45,7 @@ const helper = {
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [customersList[0]._id],
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const taxCertificatesList = [

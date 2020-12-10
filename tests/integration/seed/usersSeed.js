@@ -10,6 +10,7 @@ const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
 const establishmentList = [
   {
@@ -72,6 +73,7 @@ const helperFromOtherCompany = {
   company: otherCompany._id,
   inactivityDate: null,
   customers: [customerFromOtherCompany._id],
+  origin: WEBAPP,
 };
 
 const coachFromOtherCompany = {
@@ -82,6 +84,7 @@ const coachFromOtherCompany = {
   refreshToken: uuidv4(),
   company: otherCompany._id,
   inactivityDate: null,
+  origin: WEBAPP,
 };
 
 const auxiliaryFromOtherCompany = {
@@ -92,6 +95,7 @@ const auxiliaryFromOtherCompany = {
   refreshToken: uuidv4(),
   company: otherCompany._id,
   inactivityDate: null,
+  origin: WEBAPP,
 };
 
 const coachAndTrainer = {
@@ -105,6 +109,7 @@ const coachAndTrainer = {
   refreshToken: uuidv4(),
   company: otherCompany._id,
   inactivityDate: null,
+  origin: WEBAPP,
 };
 
 const contractId = new ObjectID();
@@ -126,6 +131,7 @@ const usersSeedList = [
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -140,6 +146,7 @@ const usersSeedList = [
       driveFolder: { driveId: '0987654321' },
     },
     inactivityDate: null,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -149,6 +156,7 @@ const usersSeedList = [
     company: authCompany._id,
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     inactivityDate: '2018-11-01T12:52:27.461Z',
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -160,6 +168,7 @@ const usersSeedList = [
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     contracts: [new ObjectID()],
     passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -174,6 +183,7 @@ const usersSeedList = [
       driveFolder: { driveId: '0987654321' },
     },
     inactivityDate: null,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -188,6 +198,7 @@ const usersSeedList = [
       driveFolder: { driveId: '0987654321' },
     },
     inactivityDate: null,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -197,6 +208,7 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     company: authCompany._id,
     inactivityDate: null,
+    origin: WEBAPP,
   },
 ];
 
@@ -205,13 +217,6 @@ const userSectors = [
   { _id: new ObjectID(), name: 'Lune', company: authCompany._id },
   { _id: new ObjectID(), name: 'Soleil', company: authCompany._id },
 ];
-
-const userPayload = {
-  identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-  local: { email: 'kirk@alenvi.io' },
-  role: rolesList.find(role => role.name === 'auxiliary')._id,
-  sector: userSectors[0]._id,
-};
 
 const contracts = [
   {
@@ -288,7 +293,6 @@ const populateDB = async () => {
 
 module.exports = {
   usersSeedList,
-  userPayload,
   populateDB,
   isInList,
   isExistingRole,

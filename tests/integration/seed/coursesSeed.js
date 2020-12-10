@@ -20,6 +20,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   COACH,
   VIDEO,
+  WEBAPP,
 } = require('../../../src/helpers/constants.js');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
@@ -42,6 +43,7 @@ const traineeFromOtherCompany = {
   refreshToken: uuidv4(),
   company: otherCompany._id,
   inactivityDate: null,
+  origin: WEBAPP,
 };
 
 const traineeWithoutCompany = {
@@ -51,6 +53,7 @@ const traineeWithoutCompany = {
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
   refreshToken: uuidv4(),
   inactivityDate: null,
+  origin: WEBAPP,
 };
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);

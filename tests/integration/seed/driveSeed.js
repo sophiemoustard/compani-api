@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
+const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
@@ -14,6 +15,7 @@ const auxiliary = {
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const populateDB = async () => {

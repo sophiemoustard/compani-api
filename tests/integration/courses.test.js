@@ -9,7 +9,7 @@ const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -1206,13 +1206,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
-  const payload = {
-    identity: { firstname: 'Coco', lastname: 'Bongo' },
-    local: { email: 'coco_bongo@alenvi.io' },
-    contact: { phone: '0689320234' },
-    company: authCompany._id,
-  };
-  const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
 
   beforeEach(populateDB);
 
@@ -1223,6 +1216,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should add existing user to course trainees', async () => {
+        const existingUserPayload = {
+          local: { email: auxiliary.local.email },
+          company: authCompany._id,
+        };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1242,6 +1240,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should add new user to course trainees', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          contact: { phone: '0689320234' },
+          company: authCompany._id,
+        };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1254,6 +1259,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(newUser).toBeDefined();
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
+        expect(newUser.origin).toEqual(WEBAPP);
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
@@ -1282,6 +1288,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return a 409 error if user is not from the course company', async () => {
+        const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
@@ -1306,21 +1314,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(409);
       });
 
-      it('should return a 400 error if missing email parameter', async () => {
-        const falsyPayload = omit(payload, 'local.email');
-        const response = await app.inject({
-          method: 'POST',
-          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-          payload: falsyPayload,
-          headers: { 'x-access-token': token },
-        });
-
-        expect(response.statusCode).toBe(400);
-      });
-
-      const missingParams = ['identity.lastname', 'company'];
+      const missingParams = ['identity.lastname', 'company', 'local.email'];
       missingParams.forEach((path) => {
         it(`should return a 400 error if user has to be created, and missing '${path}' parameter`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
+
           const falsyPayload = omit(payload, path);
           const response = await app.inject({
             method: 'POST',
@@ -1345,6 +1347,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       ];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
+
           token = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
@@ -1358,6 +1366,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return 403 as user is trainer if not one of his courses', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          company: authCompany._id,
+        };
+
         token = await getToken('trainer');
         const response = await app.inject({
           method: 'POST',
@@ -1371,6 +1385,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
       ['coach', 'client_admin'].forEach((role) => {
         it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
+
           token = await getToken(role);
           const response = await app.inject({
             method: 'POST',
@@ -1384,6 +1404,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return a 200 as user is course trainer', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          company: authCompany._id,
+        };
+
         token = await getTokenByCredentials(courseTrainer.local);
         const response = await app.inject({
           method: 'POST',
@@ -1403,6 +1429,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     });
 
     it('should add user to inter b2b course', async () => {
+      const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
+
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,

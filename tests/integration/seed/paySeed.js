@@ -10,6 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -33,6 +34,7 @@ const user = {
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   inactivityDate: '2018-11-01T12:52:27.461Z',
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const auxiliaries = [{
@@ -44,6 +46,7 @@ const auxiliaries = [{
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId1],
   company: authCompany._id,
+  origin: WEBAPP,
 }, {
   _id: auxiliaryId2,
   identity: { firstname: 'OtherTest', lastname: 'Test8' },
@@ -53,6 +56,7 @@ const auxiliaries = [{
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId2],
   company: authCompany._id,
+  origin: WEBAPP,
 }];
 
 const auxiliaryFromOtherCompany = {
@@ -65,6 +69,7 @@ const auxiliaryFromOtherCompany = {
   contracts: [contractId2],
   sector: sectorFromOtherCompany._id,
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const contracts = [{

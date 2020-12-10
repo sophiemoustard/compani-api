@@ -22,6 +22,7 @@ const {
   CUSTOMER_INITIATIVE,
   INTERNAL_HOUR,
   INTERVENTION,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 
 const sectorList = [
@@ -70,6 +71,7 @@ const userList = [
     contracts: [contractList[0]._id],
     company: authCompany._id,
     refreshToken: uuidv4(),
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -79,6 +81,7 @@ const userList = [
     inactivityDate: '2019-01-01T23:59:59',
     company: authCompany._id,
     refreshToken: uuidv4(),
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -88,6 +91,7 @@ const userList = [
     inactivityDate: '2019-01-01T23:59:59',
     company: otherCompany._id,
     refreshToken: uuidv4(),
+    origin: WEBAPP,
   },
 ];
 

@@ -14,7 +14,7 @@ const { authCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
-const { NEVER, INTERVENTION, HOURLY, AUXILIARY } = require('../../../src/helpers/constants');
+const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();
 const loggedAuxiliary = userList[2];
@@ -67,6 +67,7 @@ const secondAuxiliary = {
   company: authCompany._id,
   contact: { phone: '0987654321' },
   contracts: [new ObjectID()],
+  origin: WEBAPP,
 };
 
 const contracts = [

@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION } = require('../../../src/helpers/constants');
+const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION, WEBAPP } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -58,6 +58,7 @@ const otherContractUser = {
   contracts: [new ObjectID()],
   company: otherCompany._id,
   prefixNumber: 103,
+  origin: WEBAPP,
 };
 
 const sector = { _id: new ObjectID(), company: authCompany._id };
@@ -111,6 +112,7 @@ const contractUsers = [{
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  origin: WEBAPP,
 },
 {
   _id: new ObjectID(),
@@ -141,6 +143,7 @@ const contractUsers = [{
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  origin: WEBAPP,
 },
 {
   _id: new ObjectID(),
@@ -171,6 +174,7 @@ const contractUsers = [{
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  origin: WEBAPP,
 },
 {
   _id: new ObjectID(),
@@ -183,6 +187,7 @@ const contractUsers = [{
   contracts: [new ObjectID()],
   company: authCompany._id,
   sector: sector._id,
+  origin: WEBAPP,
 }];
 
 const sectorHistories = [
@@ -254,6 +259,7 @@ const userFromOtherCompany = {
   role: { client: rolesList[0]._id },
   contracts: [new ObjectID()],
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const contractsList = [

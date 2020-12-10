@@ -22,7 +22,7 @@ const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-const { E_LEARNING, ON_SITE } = require('../../../src/helpers/constants');
+const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -959,7 +959,7 @@ describe('addCourseTrainee', () => {
       { course: course._id, traineeId: user._id },
       addedBy._id
     );
-    sinon.assert.calledWithExactly(createUserStub, payload);
+    sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP });
     sinon.assert.notCalled(updateUserStub);
   });
 

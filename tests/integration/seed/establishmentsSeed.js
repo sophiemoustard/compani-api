@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
+const { WEBAPP } = require('../../../src/helpers/constants');
 const Establishment = require('../../../src/models/Establishment');
 const User = require('../../../src/models/User');
 const {
@@ -77,6 +78,7 @@ const userFromOtherCompany = {
   local: { email: 'other_admin@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const user = {
@@ -87,6 +89,7 @@ const user = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   company: authCompany._id,
   establishment: establishmentsList[1]._id,
+  origin: WEBAPP,
 };
 
 const populateDB = async () => {
