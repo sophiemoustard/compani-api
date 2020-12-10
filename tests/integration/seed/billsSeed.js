@@ -1,7 +1,15 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
-const { HOURLY, DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION } = require('../../../src/helpers/constants');
+const {
+  HOURLY,
+  DAILY,
+  PAID_LEAVE,
+  INTERNAL_HOUR,
+  ABSENCE,
+  INTERVENTION,
+  WEBAPP,
+} = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
@@ -156,6 +164,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [billCustomerList[0]._id],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -165,6 +174,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
     contracts: [new ObjectID()],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -174,6 +184,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: otherCompany._id,
     contracts: [new ObjectID()],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -183,6 +194,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
     contracts: [new ObjectID()],
+    origin: WEBAPP,
   },
 ];
 

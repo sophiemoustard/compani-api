@@ -5,7 +5,7 @@ const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const { rolesList } = require('../../seed/roleSeed');
-const { INTERVENTION, CLIENT_ADMIN } = require('../../../src/helpers/constants');
+const { INTERVENTION, CLIENT_ADMIN, MOBILE } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -53,6 +53,7 @@ const companyClientAdmin = {
   local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
   company: company._id,
+  origin: MOBILE,
 };
 
 const populateDB = async () => {

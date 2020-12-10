@@ -90,7 +90,7 @@ exports.plugin = {
             role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
-              lastname: Joi.string(),
+              lastname: Joi.string().required(),
               title: Joi.string().valid(...CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({

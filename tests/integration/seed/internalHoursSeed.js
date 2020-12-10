@@ -5,7 +5,7 @@ const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
 const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
-const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, WEBAPP } = require('../../../src/helpers/constants');
 
 const internalHourUsers = [{
   _id: new ObjectID(),
@@ -14,6 +14,7 @@ const internalHourUsers = [{
   local: { email: 'admin_internal_hour@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,
+  origin: WEBAPP,
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'internal', lastname: 'Test' },
@@ -21,6 +22,7 @@ const internalHourUsers = [{
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   company: otherCompany._id,
+  origin: WEBAPP,
 }];
 
 const authInternalHoursList = [

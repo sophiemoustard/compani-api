@@ -10,6 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -26,6 +27,7 @@ const user = {
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   inactivityDate: '2018-11-01T12:52:27.461Z',
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const auxiliary = {
@@ -39,6 +41,7 @@ const auxiliary = {
   contracts: contractId,
   sector: sectorId,
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const auxiliaryFromOtherCompany = {
@@ -51,6 +54,7 @@ const auxiliaryFromOtherCompany = {
   contracts: contractId,
   sector: sectorId,
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const contract = {

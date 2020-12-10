@@ -37,6 +37,7 @@ const {
   MISTER,
   MONTHLY,
   ONCE,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -137,6 +138,7 @@ const auxiliaryList = [{
   refreshToken: uuidv4(),
   company: authCompany._id,
   contracts: [contract1Id, contract2Id],
+  origin: WEBAPP,
 }, {
   _id: new ObjectID(),
   establishment: establishment._id,
@@ -166,6 +168,7 @@ const auxiliaryList = [{
   refreshToken: uuidv4(),
   company: authCompany._id,
   contracts: [contract3Id],
+  origin: WEBAPP,
 }];
 
 const contractList = [{
@@ -816,6 +819,7 @@ const user = {
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   company: authCompany._id,
   customers: [customersList[0]._id],
+  origin: WEBAPP,
 };
 
 const populateEvents = async () => {
