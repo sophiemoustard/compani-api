@@ -27,21 +27,21 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: MULTIPLE_CHOICE_QUESTION,
-    qcmAnswers: [{ correct: false, label: 'au bois dormant' }, { correct: true, label: 'et le clochard' }],
+    qcAnswers: [{ correct: false, text: 'au bois dormant' }, { correct: true, text: 'et le clochard' }],
   },
-  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcuFalsyAnswers: ['le papa', 'la maman'] },
+  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ text: 'le papa' }, { text: 'la maman' }] },
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
   },
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [
+    qcAnswers: [
       { text: 'bye bye', _id: new ObjectID() },
       { text: 'bye bye', _id: new ObjectID() },
       { text: 'bye bye', _id: new ObjectID() },
@@ -51,7 +51,7 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
   },
 ];
 

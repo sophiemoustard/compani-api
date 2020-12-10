@@ -13,15 +13,15 @@ exports.updateCard = async (cardId, payload) => Card.updateOne(
   { $set: flat(payload, { safe: true }) }
 );
 
-exports.addCardAnswer = async cardId => Card.updateOne({ _id: cardId }, { $push: { questionAnswers: { text: '' } } });
+exports.addCardAnswer = async cardId => Card.updateOne({ _id: cardId }, { $push: { qcAnswers: { text: '' } } });
 
 exports.updateCardAnswer = async (params, payload) => Card.updateOne(
-  { _id: params._id, 'questionAnswers._id': params.answerId },
-  { $set: { 'questionAnswers.$.text': payload.text } }
+  { _id: params._id, 'qcAnswers._id': params.answerId },
+  { $set: { 'qcAnswers.$.text': payload.text } }
 );
 
 exports.deleteCardAnswer = async params => Card.updateOne(
-  { _id: params._id }, { $pull: { questionAnswers: { _id: params.answerId } } }
+  { _id: params._id }, { $pull: { qcAnswers: { _id: params.answerId } } }
 );
 
 exports.uploadMedia = async (cardId, payload) => {
