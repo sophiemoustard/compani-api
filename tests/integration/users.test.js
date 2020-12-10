@@ -138,7 +138,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'user', lastname: 'Kirk' },
         origin: WEBAPP,
-        local: { email: 'kitty@alenvi.io' },
+        local: { email: usersSeedList[0].local.email },
       };
 
       const response = await app.inject({
