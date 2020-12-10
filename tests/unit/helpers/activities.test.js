@@ -45,27 +45,44 @@ describe('getActivity', () => {
 
   // ------- STACKOVERFLOW -------
   // https://stackoverflow.com/questions/37948135/how-do-i-stub-a-chain-of-methods-in-sinon
-  // let ActivityMock;
+  let ActivityStub;
 
-  // beforeEach(() => {
-  //   ActivityMock = sinon.stub(Activity, 'findOne').returns({
-  //     populate: sinon.stub().returnsThis(),
-  //     lean: sinon.stub().returns({ _id: 'skusku' }),
-  //   });
-  // });
+  beforeEach(() => {
+    ActivityStub = sinon.stub(Activity, 'findOne').returns({
+      populate: sinon.stub().returnsThis(),
+      lean: sinon.stub().returns({ _id: 'skusku' }),
+    });
+  });
 
-  // afterEach(() => {
-  //   ActivityMock.restore();
-  // });
+  afterEach(() => {
+    ActivityStub.restore();
+  });
 
-  // it('should return the requested activity', async () => {
-  //   const activity = { _id: new ObjectID() };
+  it('should return the requested activity', async () => {
+    const activity = { _id: new ObjectID() };
 
-  //   const result = await ActivityHelper.getActivity(activity._id);
+    const result = await ActivityHelper.getActivity(activity._id);
 
-  //   console.log('result', result);
-  //   expect(result).toMatchObject({ _id: 'skusku' });
-  // });
+    sinon.assert.calledWithExactly(ActivityStub, { _id: activity._id });
+    sinon.assert.calledWithExactly(
+      ActivityStub.getCall(0).returnValue.populate,
+      { path: 'cards', select: '-__v -createdAt -updatedAt' }
+    );
+    sinon.assert.calledWithExactly(
+      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
+      {
+        path: 'steps',
+        select: '_id -activities',
+        populate:
+          { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+      }
+    );
+    sinon.assert.calledWithExactly(
+      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
+      { virtuals: true }
+    );
+    expect(result).toMatchObject({ _id: 'skusku' });
+  });
 
   // ------- MEDIUM -------
   // https://medium.com/@tehvicke/integration-and-unit-testing-with-jest-in-nodejs-and-mongoose-bd41c61c9fbc
@@ -90,8 +107,26 @@ describe('getActivity', () => {
 
   //   const result = await ActivityHelper.getActivity(activity._id);
 
+  //   console.log(ActivityMock.getCall(0).returnValue.populate());
   //   expect(result).toMatchObject({ _id: 'skusku' });
-  //   console.log(Activity.findOne().populate().populate().lean());
+  //   sinon.assert.calledWithExactly(ActivityMock, { _id: activity._id });
+  //   sinon.assert.calledWithExactly(
+  //     ActivityMock.getCall(0).returnValue.populate,
+  //     { path: 'cards', select: '-__v -createdAt -updatedAt' }
+  //   );
+  //   sinon.assert.calledWithExactly(
+  //     ActivityMock.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
+  //     {
+  //       path: 'steps',
+  //       select: '_id -activities',
+  //       populate:
+  //         { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+  //     }
+  //   );
+  //   sinon.assert.calledWithExactly(
+  //     ActivityMock.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
+  //     { virtuals: true }
+  //   );
   // });
 
   // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
