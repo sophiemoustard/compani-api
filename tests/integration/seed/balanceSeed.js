@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
-const { HOURLY } = require('../../../src/helpers/constants');
+const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
@@ -200,6 +200,7 @@ const balanceUserList = [{
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [balanceCustomerList[0]._id],
   company: authCompany._id,
+  origin: WEBAPP,
 }];
 
 const customerFromOtherCompany = {

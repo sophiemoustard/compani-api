@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
-const { HOURLY } = require('../../../src/helpers/constants');
+const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
@@ -75,6 +75,7 @@ const creditNoteUserList = [
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [creditNoteCustomer._id],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -83,6 +84,7 @@ const creditNoteUserList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 
@@ -283,6 +285,7 @@ const otherCompanyUser = {
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const otherCompanyEvent = {

@@ -13,6 +13,8 @@ const {
   AUXILIARY_WITHOUT_COMPANY,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
+  WEBAPP,
+  MOBILE,
 } = require('../../src/helpers/constants');
 
 const userList = [
@@ -23,6 +25,7 @@ const userList = [
     local: { email: 'client-admin@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -32,6 +35,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === COACH)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -40,6 +44,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
+    origin: WEBAPP,
     contracts: [new ObjectID()],
   },
   {
@@ -49,6 +54,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -57,6 +63,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === PLANNING_REFERENT)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -65,6 +72,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === HELPER)._id },
     company: authCompany._id,
+    origin: WEBAPP,
     customers: [authCustomer._id],
   },
   {
@@ -74,6 +82,7 @@ const userList = [
     local: { email: 'vendor-admin@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === VENDOR_ADMIN)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -82,6 +91,7 @@ const userList = [
     local: { email: 'training-organisation-manager@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -89,6 +99,7 @@ const userList = [
     refreshToken: uuidv4(),
     local: { email: 'trainer@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -97,6 +108,7 @@ const userList = [
     local: { email: 'client-admin-company-without-erp@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
     company: companyWithoutSubscription._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -105,6 +117,7 @@ const userList = [
     local: { email: 'norole@alenvi.io', password: 'fdsf5P56D' },
     contact: { phone: '0798640728' },
     company: companyWithoutSubscription._id,
+    origin: MOBILE,
   },
   {
     _id: new ObjectID(),
@@ -113,6 +126,7 @@ const userList = [
     local: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D' },
     contact: { phone: '0798640728' },
     picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
+    origin: MOBILE,
   },
 ];
 

@@ -6,7 +6,7 @@ const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
-const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
+const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
@@ -129,6 +129,7 @@ const paymentUser = {
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   customers: [paymentCustomerList[0]._id],
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const userFromOtherCompany = {
@@ -138,6 +139,7 @@ const userFromOtherCompany = {
   identity: { firstname: 'toto', lastname: 'toto' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
   local: { email: 'test_other_company@alenvi.io', password: '123456!eR' },
+  origin: WEBAPP,
 };
 
 const customerFromOtherCompany = {

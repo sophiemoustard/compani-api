@@ -22,6 +22,7 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   INTERVENTION,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
@@ -77,6 +78,7 @@ const auxiliaries = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -87,6 +89,7 @@ const auxiliaries = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[0]._id],
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 
@@ -113,6 +116,7 @@ const auxiliaryFromOtherCompany = {
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const sectorHistoryFromOtherCompany = {
@@ -236,6 +240,7 @@ const helpersCustomer = {
   customers: [customerAuxiliary._id],
   role: { client: rolesList[4]._id },
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const internalHour = { _id: new ObjectID(), name: 'test', company: authCompany._id };

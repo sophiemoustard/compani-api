@@ -83,13 +83,14 @@ exports.plugin = {
         auth: { mode: 'optional' },
         validate: {
           payload: Joi.object().keys({
+            origin: Joi.string().valid(...ORIGIN_OPTIONS).required(),
             company: Joi.objectId(),
             sector: Joi.objectId(),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
-              lastname: Joi.string(),
+              lastname: Joi.string().required(),
               title: Joi.string().valid(...CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({

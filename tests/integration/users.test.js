@@ -10,10 +10,16 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
-const { HELPER, AUXILIARY, TRAINER, AUXILIARY_WITHOUT_COMPANY } = require('../../src/helpers/constants');
+const {
+  HELPER,
+  AUXILIARY,
+  TRAINER,
+  AUXILIARY_WITHOUT_COMPANY,
+  MOBILE,
+  WEBAPP,
+} = require('../../src/helpers/constants');
 const {
   usersSeedList,
-  userPayload,
   populateDB,
   isExistingRole,
   customerFromOtherCompany,
@@ -53,16 +59,14 @@ describe('POST /users', () => {
     beforeEach(populateDB);
 
     it('should create user even if user not connected', async () => {
-      const userPayloadWithoutRole = {
+      const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
         local: { email: 'newuser@alenvi.io' },
         contact: { phone: '0606060606' },
+        origin: MOBILE,
       };
-      const res = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload: userPayloadWithoutRole,
-      });
+
+      const res = await app.inject({ method: 'POST', url: '/users', payload });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user._id).toEqual(expect.any(Object));
@@ -82,33 +86,44 @@ describe('POST /users', () => {
     });
 
     it('should create a user', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        role: rolesList.find(role => role.name === AUXILIARY)._id,
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+      };
       const res = await app.inject({
         method: 'POST',
         url: '/users',
-        payload: userPayload,
+        payload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user._id).toEqual(expect.any(Object));
       expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
-      expect(res.result.data.user.role.client).toMatchObject({
-        name: 'auxiliary',
-      });
-      const user = await User.findById(res.result.data.user._id).lean();
-      expect(user.identity.firstname).toBe(userPayload.identity.firstname);
-      expect(user.identity.lastname).toBe(userPayload.identity.lastname);
-      expect(user.local.email).toBe(userPayload.local.email);
-      expect(user.serialNumber).toEqual(expect.any(String));
+      expect(res.result.data.user.role.client).toMatchObject({ name: AUXILIARY });
+
+      expect(res.result.data.user.identity.firstname).toBe(payload.identity.firstname);
+      expect(res.result.data.user.identity.lastname).toBe(payload.identity.lastname);
+      expect(res.result.data.user.local.email).toBe(payload.local.email);
+      expect(res.result.data.user.serialNumber).toEqual(expect.any(String));
 
       const userSectorHistory = await SectorHistory
-        .findOne({ auxiliary: user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
+        .findOne({ auxiliary: res.result.data.user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
         .lean();
       expect(userSectorHistory).toBeDefined();
     });
 
     it('should not create a user if role provided does not exist', async () => {
-      const payload = { ...userPayload, role: new ObjectID() };
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+        role: new ObjectID(),
+      };
       const response = await app.inject({
         method: 'POST',
         url: '/users',
@@ -120,7 +135,11 @@ describe('POST /users', () => {
     });
 
     it('should not create a user if email provided already exists', async () => {
-      const payload = { ...userPayload, local: { email: 'kitty@alenvi.io' } };
+      const payload = {
+        identity: { firstname: 'user', lastname: 'Kirk' },
+        origin: WEBAPP,
+        local: { email: usersSeedList[0].local.email },
+      };
 
       const response = await app.inject({
         method: 'POST',
@@ -133,7 +152,12 @@ describe('POST /users', () => {
     });
 
     it('should not create a user if phone number is not correct', async () => {
-      const payload = { ...userPayload, contact: { phone: '023' } };
+      const payload = {
+        identity: { firstname: 'Bonjour', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        contact: { phone: '023' },
+      };
 
       const response = await app.inject({
         method: 'POST',
@@ -146,43 +170,35 @@ describe('POST /users', () => {
     });
 
     it('should return a 403 if customer is not from the same company', async () => {
-      const payload = { ...userPayload, customers: [customerFromOtherCompany] };
+      const payload = {
+        identity: { firstname: 'coucou', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        customers: [customerFromOtherCompany],
+      };
+
       const response = await app.inject({
         method: 'POST',
         url: '/users',
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return an error 409 if user already exist', async () => {
-      const roleAuxiliary = await Role.findOne({ name: 'auxiliary' }).lean();
-      const auxiliaryPayload = {
-        identity: { lastname: 'Auxiliary' },
-        local: { email: usersSeedList[0].local.email },
-        role: roleAuxiliary._id,
-        sector: userSectors[0]._id,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload: auxiliaryPayload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(409);
-      expect(response.result.message).toBe('Cet email est déjà pris par un autre utilisateur.');
-    });
-
-    const missingParams = ['local.email'];
+    const missingParams = ['local.email', 'identity.lastname', 'origin'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' payload is missing`, async () => {
+        const payload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: 'kirk@alenvi.io' },
+          origin: WEBAPP,
+        };
         const res = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: omit(userPayload, param),
+          payload: omit(payload, param),
           headers: { 'x-access-token': authToken },
         });
 
@@ -192,7 +208,6 @@ describe('POST /users', () => {
   });
 
   describe('VENDOR_ADMIN', () => {
-    const payload = { ...userPayload, company: otherCompany._id };
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
@@ -200,6 +215,15 @@ describe('POST /users', () => {
 
     it('should create a user for another company', async () => {
       const usersCountBefore = await User.countDocuments({ company: otherCompany._id });
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        role: rolesList.find(role => role.name === AUXILIARY)._id,
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+        company: otherCompany._id,
+      };
+
       const response = await app.inject({
         method: 'POST',
         url: '/users',
@@ -210,19 +234,27 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.user.company).toBeDefined();
       expect(response.result.data.user.company._id).toEqual(otherCompany._id);
+
       const usersCount = await User.countDocuments({ company: otherCompany._id });
       expect(usersCount).toBe(usersCountBefore + 1);
     });
 
     it('should create a trainer', async () => {
       const usersCountBefore = await User.countDocuments({});
-      const roleTrainer = await Role.findOne({ name: 'trainer' }).lean();
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        role: rolesList.find(role => role.name === TRAINER)._id,
+        origin: WEBAPP,
+      };
+
       const response = await app.inject({
         method: 'POST',
         url: '/users',
-        payload: { ...userPayload, role: roleTrainer._id },
+        payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(200);
       const usersCountAfter = await User.countDocuments({});
       expect(usersCountAfter).toEqual(usersCountBefore + 1);
@@ -243,10 +275,16 @@ describe('POST /users', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        const payload = {
+          identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+          local: { email: 'kirk@alenvi.io' },
+          origin: MOBILE,
+        };
+
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: { ...userPayload },
+          payload,
           headers: { 'x-access-token': authToken },
         });
 

@@ -7,6 +7,7 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 const SubProgram = require('../../../src/models/SubProgram');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
 const trainer = {
   _id: new ObjectID(),
@@ -15,6 +16,7 @@ const trainer = {
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const stepsList = [
