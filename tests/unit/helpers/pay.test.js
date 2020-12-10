@@ -843,7 +843,7 @@ describe('getHoursToWorkBySector', () => {
   });
 
   it('should return hours to work by sector (sectors as array + absences)', async () => {
-    const query = { sector: ['507f191e810c19729de860ea', '507f1f77bcf86cd799439011'], month: '122019' };
+    const query = { sector: [new ObjectID(), new ObjectID()], month: '122019' };
     const contractAndAbsences = [
       {
         _id: query.sector[0],
@@ -872,7 +872,7 @@ describe('getHoursToWorkBySector', () => {
   });
 
   it('should return hours to work by sector (sectors as string + no absences)', async () => {
-    const query = { sector: '507f191e810c19729de860ea', month: '122019' };
+    const query = { sector: new ObjectID(), month: '122019' };
     const contractAndAbsences = [
       {
         _id: query.sector,

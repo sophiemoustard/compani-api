@@ -212,6 +212,7 @@ describe('createEventHistoryOnDelete', () => {
 });
 
 describe('createEventHistoryOnUpdate', () => {
+  const customerId = new ObjectID();
   let formatHistoryForAuxiliaryUpdate;
   let formatHistoryForDatesUpdate;
   let formatHistoryForCancelUpdate;
@@ -242,7 +243,7 @@ describe('createEventHistoryOnUpdate', () => {
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -259,7 +260,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -282,7 +283,7 @@ describe('createEventHistoryOnUpdate', () => {
     const event = {
       startDate: '2019-01-22T09:38:18',
       endDate: '2019-01-22T09:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -299,7 +300,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -324,7 +325,7 @@ describe('createEventHistoryOnUpdate', () => {
     const event = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -341,7 +342,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -363,7 +364,7 @@ describe('createEventHistoryOnUpdate', () => {
     const event = {
       startDate: '2019-01-21T10:38:18',
       endDate: '2019-01-21T11:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -380,7 +381,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -405,7 +406,7 @@ describe('createEventHistoryOnUpdate', () => {
     const event = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
     };
     const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
@@ -422,7 +423,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -441,7 +442,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
         },
       },
@@ -463,7 +464,7 @@ describe('createEventHistoryOnUpdate', () => {
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'intervention',
       repetition: { frequency: 'every_two_weeks' },
     };
@@ -481,7 +482,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
           repetition: { frequency: 'every_two_weeks' },
         },
@@ -506,7 +507,7 @@ describe('createEventHistoryOnUpdate', () => {
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: INTERNAL_HOUR,
       internalHour: { name: 'meeting' },
     };
@@ -524,7 +525,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: INTERNAL_HOUR,
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
           internalHour: { name: 'meeting' },
         },
@@ -549,7 +550,7 @@ describe('createEventHistoryOnUpdate', () => {
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
-      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      customer: customerId,
       type: 'absence',
       absence: 'leave',
     };
@@ -567,7 +568,7 @@ describe('createEventHistoryOnUpdate', () => {
           type: 'absence',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
-          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          customer: customerId,
           misc: 'Toto',
           absence: 'leave',
         },
@@ -751,6 +752,7 @@ describe('formatHistoryForCancelUpdate', () => {
   });
 
   it('should format event history without auxiliary', async () => {
+    const sectorId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -758,7 +760,7 @@ describe('formatHistoryForCancelUpdate', () => {
     };
     const payload = {
       cancel: { reason: 'toto', condition: 'tata' },
-      sector: '5d3aba5866ec0f0e97cd0320',
+      sector: sectorId,
     };
 
     UserMock.expects('findOne').never();
@@ -769,7 +771,7 @@ describe('formatHistoryForCancelUpdate', () => {
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
-      sectors: ['5d3aba5866ec0f0e97cd0320'],
+      sectors: [sectorId],
       event: { type: 'intervention' },
       update: {
         cancel: { reason: 'toto', condition: 'tata' },
@@ -780,6 +782,7 @@ describe('formatHistoryForCancelUpdate', () => {
 });
 
 describe('formatHistoryForDatesUpdate', () => {
+  const sectorId = new ObjectID();
   let UserMock;
   beforeEach(() => {
     UserMock = sinon.mock(User);
@@ -789,7 +792,6 @@ describe('formatHistoryForDatesUpdate', () => {
   });
 
   it('should format event history with one auxiliary', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
     const mainInfo = {
@@ -838,7 +840,7 @@ describe('formatHistoryForDatesUpdate', () => {
     const payload = {
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
-      sector: '5d3aba5866ec0f0e97cd031f',
+      sector: sectorId,
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
 
@@ -850,7 +852,7 @@ describe('formatHistoryForDatesUpdate', () => {
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
-      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      sectors: [sectorId],
       event: { type: 'intervention' },
       update: {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
@@ -867,7 +869,7 @@ describe('formatHistoryForDatesUpdate', () => {
     const payload = {
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-21T11:38:18',
-      sector: '5d3aba5866ec0f0e97cd031f',
+      sector: sectorId,
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-22T10:38:18' };
 
@@ -879,7 +881,7 @@ describe('formatHistoryForDatesUpdate', () => {
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
-      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      sectors: [sectorId],
       event: { type: 'intervention' },
       update: {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
