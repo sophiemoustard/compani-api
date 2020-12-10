@@ -29,14 +29,16 @@ const authenticate = async (req, h) => {
   }
 };
 
-const refreshToken = async (req) => {
+const refreshToken = async (req, h) => {
   try {
-    const token = await UsersHelper.refreshToken(req.payload);
+    const token = await UsersHelper.refreshToken(req.state);
 
-    return {
+    return h.response({
       message: translate[language].userAuthentified,
       data: { ...token },
-    };
+    }).state('alenvi_token', token.token)
+      .state('refresh_token', token.refreshToken)
+      .state('user_id', token.user._id);
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

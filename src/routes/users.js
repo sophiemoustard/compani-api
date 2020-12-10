@@ -386,10 +386,8 @@ exports.plugin = {
       method: 'POST',
       path: '/refreshToken',
       options: {
-        validate: {
-          payload: Joi.object({ refreshToken: Joi.string().required() }),
-        },
         auth: false,
+        state: { parse: true, failAction: 'error' },
       },
       handler: refreshToken,
     });
