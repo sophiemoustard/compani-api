@@ -34,7 +34,7 @@ const server = Hapi.server({
 const init = async () => {
   await server.register([...plugins]);
   await server.register([...routes]);
-  server.state('token', {
+  server.state('alenvi_token', {
     isHttpOnly: true,
     ttl: 24 * 60 * 60 * 1000,
     isSecure: process.env.NODE_ENV !== 'development',
@@ -46,6 +46,15 @@ const init = async () => {
   server.state('refresh_token', {
     isHttpOnly: true,
     ttl: 365 * 24 * 60 * 60 * 1000,
+    isSecure: process.env.NODE_ENV !== 'development',
+    isSameSite: 'Strict',
+    path: '/',
+    domain: process.env.TOKEN_DOMAIN,
+  });
+
+  server.state('user_id', {
+    isHttpOnly: false,
+    ttl: 24 * 60 * 60 * 1000,
     isSecure: process.env.NODE_ENV !== 'development',
     isSameSite: 'Strict',
     path: '/',
