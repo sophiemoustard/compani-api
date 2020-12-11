@@ -28,14 +28,20 @@ const cardsList = [
     _id: new ObjectID(),
     template: MULTIPLE_CHOICE_QUESTION,
     qcAnswers: [
-      { _id: new ObjectID(), correct: false, text: 'au bois dormant' },
-      { _id: new ObjectID(), correct: true, text: 'et le clochard' },
+      { _id: new ObjectID(), correct: false, text: 'mex' },
+      { _id: new ObjectID(), correct: true, text: 'Avery' },
+      { _id: new ObjectID(), correct: true, text: 'erne' },
+      { _id: new ObjectID(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
     ],
   },
   {
     _id: new ObjectID(),
     template: SINGLE_CHOICE_QUESTION,
-    qcAnswers: [{ _id: new ObjectID(), text: 'le papa' }, { _id: new ObjectID(), text: 'la maman' }],
+    qcAnswers: [
+      { _id: new ObjectID(), text: 'uel' },
+      { _id: new ObjectID(), text: 'ile' },
+      { _id: new ObjectID(), text: 'o' },
+    ],
   },
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
   { _id: new ObjectID(), template: SURVEY },

@@ -65,17 +65,35 @@ describe('updateCard', () => {
 
 describe('addCardAnswer', () => {
   let updateOne;
+  let getAnswerKeyToUpdate;
   beforeEach(() => {
     updateOne = sinon.stub(Card, 'updateOne');
+    getAnswerKeyToUpdate = sinon.stub(CardHelper, 'getAnswerKeyToUpdate');
   });
   afterEach(() => {
     updateOne.restore();
+    getAnswerKeyToUpdate.restore();
   });
 
-  it('should add card answer', async () => {
-    const cardId = new ObjectID();
-    await CardHelper.addCardAnswer(cardId);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: cardId }, { $push: { qcAnswers: { text: '' } } });
+  it('should add card answer without correct', async () => {
+    const card = { _id: new ObjectID(), template: QUESTION_ANSWER };
+    getAnswerKeyToUpdate.returns('qcAnswers');
+
+    await CardHelper.addCardAnswer(card);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: card._id }, { $push: { qcAnswers: { text: '' } } });
+  });
+
+  it('should add card answer with correct', async () => {
+    const card = { _id: new ObjectID(), template: MULTIPLE_CHOICE_QUESTION };
+    getAnswerKeyToUpdate.returns('qcAnswers');
+
+    await CardHelper.addCardAnswer(card);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: card._id }, { $push: { qcAnswers: { text: '', correct: false } } }
+    );
   });
 });
 

@@ -361,8 +361,30 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if too many answers', async () => {
+    it('should return 403 if question answer with already max answers', async () => {
       const card = cardsList[12];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if qcu with already max answers', async () => {
+      const card = cardsList[7];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if qcm with already max answers', async () => {
+      const card = cardsList[6];
       const response = await app.inject({
         method: 'POST',
         url: `/cards/${card._id.toHexString()}/answers`,
