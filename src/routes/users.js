@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   authenticate,
+  logout,
   create,
   createPasswordToken,
   list,
@@ -390,6 +391,13 @@ exports.plugin = {
         state: { parse: true, failAction: 'error' },
       },
       handler: refreshToken,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/logout',
+      options: { auth: false },
+      handler: logout,
     });
 
     server.route({

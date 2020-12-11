@@ -45,6 +45,18 @@ const refreshToken = async (req, h) => {
   }
 };
 
+const logout = async (req, h) => {
+  try {
+    return h.response({ message: translate[language].userAuthentified })
+      .unstate('alenvi_token')
+      .unstate('refresh_token')
+      .unstate('user_id');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const create = async (req) => {
   try {
     const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials);
@@ -295,6 +307,7 @@ const createDriveFolder = async (req) => {
 
 module.exports = {
   authenticate,
+  logout,
   create,
   createPasswordToken,
   list,
