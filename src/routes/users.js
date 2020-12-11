@@ -119,7 +119,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
-            email: Joi.string().email(),
             customers: objectIdOrArray,
             company: Joi.objectId(),
           }),

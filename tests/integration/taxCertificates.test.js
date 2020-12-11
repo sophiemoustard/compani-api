@@ -31,7 +31,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -39,11 +39,12 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
         .filter(tc => tc.customer.toHexString() === customersList[0]._id.toHexString());
       expect(response.result.data.taxCertificates.length).toEqual(customerCertificates.length);
     });
+
     it('should return 403 if customer from another organisation', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[1]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -52,11 +53,11 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
 
   describe('Other roles', () => {
     it('should return customer tax certificates pdf if I am its helper', async () => {
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[0]._id}`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
     });
@@ -73,7 +74,7 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/taxcertificates?customer=${customersList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -94,25 +95,27 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
     });
+
     it('should should return 404 if tax certificate from another organisation', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates/${taxCertificatesList[2]._id}/pdfs`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
     });
+
     it('should should return 404 if tax certificate does not exists', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates/${(new ObjectID()).toHexString()}/pdfs`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -121,11 +124,11 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 
   describe('Other roles', () => {
     it('should return tax certificates pdf if I am its helper', async () => {
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
     });
@@ -142,7 +145,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/taxcertificates/${taxCertificatesList[0]._id}/pdfs`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -182,14 +185,12 @@ describe('TAX CERTIFICATES - POST /', () => {
       };
 
       const form = generateFormData(docPayload);
-      const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
-      const payload = await GetStream(form);
 
       const response = await app.inject({
         method: 'POST',
         url: '/taxcertificates',
-        payload,
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -200,8 +201,6 @@ describe('TAX CERTIFICATES - POST /', () => {
         customer: customersList[0]._id,
         driveFile: { driveId: '1234567890', link: 'http://test.com/file.pdf' },
       });
-      const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
-      expect(taxCertificatesCount).toBe(taxCertificateCountBefore + 1);
       sinon.assert.calledWithExactly(
         addFileStub,
         {
@@ -231,7 +230,7 @@ describe('TAX CERTIFICATES - POST /', () => {
           method: 'POST',
           url: '/taxcertificates',
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -255,7 +254,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         method: 'POST',
         url: '/taxcertificates',
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -278,7 +277,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         method: 'POST',
         url: '/taxcertificates',
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -327,7 +326,7 @@ describe('TAX CERTIFICATES - POST /', () => {
           method: 'POST',
           url: '/taxcertificates',
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -346,17 +345,16 @@ describe('TAX CERTIFICATES - DELETE /', () => {
 
     it('should delete new tax certificate', async () => {
       const taxCertificateId = taxCertificatesList[0]._id;
-      const taxCertificateCountBefore = await TaxCertificate.countDocuments({ company: authCompany._id });
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/taxcertificates/${taxCertificateId}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       const taxCertificatesCount = await TaxCertificate.countDocuments({ company: authCompany._id });
-      expect(taxCertificatesCount).toBe(taxCertificateCountBefore - 1);
+      expect(taxCertificatesCount).toBe(1);
     });
 
     it('should throw an error if tax certificate does not exist', async () => {
@@ -364,7 +362,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/taxcertificates/${taxCertificateId}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -387,7 +385,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/taxcertificates/${taxCertificateId}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

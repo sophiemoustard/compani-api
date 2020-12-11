@@ -48,13 +48,14 @@ describe('EVENTS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('client_admin');
       });
+
       it('should return a list of events', async () => {
         const startDate = moment('2019-01-18');
         const endDate = moment('2019-01-20');
         const response = await app.inject({
           method: 'GET',
           url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -72,7 +73,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events?groupBy=customer&type=intervention',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -88,7 +89,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events?groupBy=auxiliary',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -105,7 +106,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events?customer=${customerFromOtherCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -115,7 +116,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events?auxiliary=${auxiliaryFromOtherCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -125,7 +126,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events?sector=${sectors[2]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -155,7 +156,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: role.url || '/events',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -182,7 +183,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/credit-notes?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -203,13 +204,10 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/credit-notes?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
-        expect(response.result.data.events).toBeDefined();
-        const filteredEvents = eventsList.filter(ev => ev.isBilled && ev.bills.inclTaxesTpp);
-        expect(response.result.data.events.length).toBe(filteredEvents.length);
       });
 
       const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
@@ -226,7 +224,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/credit-notes?${qs.stringify(wrongQuery)}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(400);
@@ -245,7 +243,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/credit-notes?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -263,7 +261,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/credit-notes?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -292,7 +290,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/credit-notes?${qs.stringify(query)}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -314,7 +312,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -327,7 +325,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?startDate=${startDate}&endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -338,7 +336,7 @@ describe('EVENTS ROUTES', () => {
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate}
             &endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -362,7 +360,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -382,7 +380,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/paid-transport?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -399,7 +397,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/paid-transport?sector=${sectors[2]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -409,7 +407,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events/paid-transport?month=01-2020',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -419,7 +417,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/paid-transport?sector=${sectors[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -429,7 +427,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events/paid-transport?month=012020',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -453,7 +451,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -473,7 +471,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=02-2020`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -484,7 +482,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -501,7 +499,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[2]._id}&month=01-2020`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -511,7 +509,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events/unassigned-hours?month=01-2020',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -521,7 +519,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -531,7 +529,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/events/unassigned-hours?month=012020',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -554,7 +552,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -572,8 +570,8 @@ describe('EVENTS ROUTES', () => {
       it('should create an internal hour', async () => {
         const payload = {
           type: INTERNAL_HOUR,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           internalHour: internalHour._id,
           address: {
@@ -589,7 +587,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -599,8 +597,8 @@ describe('EVENTS ROUTES', () => {
       it('should create an intervention with auxiliary', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -617,7 +615,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -627,8 +625,8 @@ describe('EVENTS ROUTES', () => {
       it('should create an intervention with sector', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           sector: sectors[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -645,7 +643,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -656,8 +654,8 @@ describe('EVENTS ROUTES', () => {
         const auxiliary = auxiliaries[0];
         const payload = {
           type: ABSENCE,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliary._id.toHexString(),
           absence: ILLNESS,
           absenceNature: DAILY,
@@ -668,7 +666,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -678,8 +676,8 @@ describe('EVENTS ROUTES', () => {
       it('should create an unavailability', async () => {
         const payload = {
           type: UNAVAILABILITY,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id,
         };
 
@@ -687,7 +685,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -697,8 +695,8 @@ describe('EVENTS ROUTES', () => {
       it('should create a repetition', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -716,7 +714,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(200);
@@ -732,8 +730,8 @@ describe('EVENTS ROUTES', () => {
 
       const baseInterventionPayload = {
         type: INTERVENTION,
-        startDate: '2019-01-23T10:00:00.000+01:00',
-        endDate: '2019-01-23T12:30:00.000+01:00',
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -772,7 +770,7 @@ describe('EVENTS ROUTES', () => {
             method: 'POST',
             url: '/events',
             payload: test.payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
           expect(response.statusCode).toEqual(400);
         });
@@ -780,8 +778,8 @@ describe('EVENTS ROUTES', () => {
 
       const baseInternalHourPayload = {
         type: INTERNAL_HOUR,
-        startDate: '2019-01-23T10:00:00.000+01:00',
-        endDate: '2019-01-23T12:30:00.000+01:00',
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
         internalHour: internalHour._id,
       };
@@ -797,7 +795,7 @@ describe('EVENTS ROUTES', () => {
             method: 'POST',
             url: '/events',
             payload: test.payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
           expect(response.statusCode).toEqual(400);
         });
@@ -805,8 +803,8 @@ describe('EVENTS ROUTES', () => {
 
       const baseAbsencePayload = {
         type: ABSENCE,
-        startDate: '2019-01-23T10:00:00.000+01:00',
-        endDate: '2019-01-23T12:30:00.000+01:00',
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
         absence: ILLNESS,
         absenceNature: DAILY,
@@ -826,7 +824,7 @@ describe('EVENTS ROUTES', () => {
             method: 'POST',
             url: '/events',
             payload: test.payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
           expect(response.statusCode).toEqual(400);
         });
@@ -834,8 +832,8 @@ describe('EVENTS ROUTES', () => {
 
       const baseUnavailabilityPayload = {
         type: UNAVAILABILITY,
-        startDate: '2019-01-23T10:00:00.000+01:00',
-        endDate: '2019-01-23T12:30:00.000+01:00',
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
       };
       const unavailabilityMissingParams = [
@@ -849,7 +847,7 @@ describe('EVENTS ROUTES', () => {
             method: 'POST',
             url: '/events',
             payload: test.payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
           expect(response.statusCode).toEqual(400);
         });
@@ -858,8 +856,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 400 error as payload contains auxiliary and sector', async () => {
         const payload = {
           type: 'intervention',
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: new ObjectID(),
           customer: new ObjectID(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -877,7 +875,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toEqual(400);
       });
@@ -885,8 +883,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if customer is not from the same company', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
@@ -903,7 +901,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -912,8 +910,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if the subscription is not for the customer', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
@@ -930,7 +928,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -939,8 +937,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if auxiliary is not from the same company', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -957,7 +955,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -967,8 +965,8 @@ describe('EVENTS ROUTES', () => {
         const payload = {
           type: INTERNAL_HOUR,
           internalHour: internalHourFromOtherCompany._id,
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           address: {
@@ -984,7 +982,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -993,8 +991,8 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if service is archived', async () => {
         const payload = {
           type: INTERVENTION,
-          startDate: '2020-09-23T10:00:00.000+01:00',
-          endDate: '2020-09-23T12:30:00.000+01:00',
+          startDate: '2020-09-23T10:00:00',
+          endDate: '2020-09-23T12:30:00',
           auxiliary: auxiliaries[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
@@ -1011,7 +1009,7 @@ describe('EVENTS ROUTES', () => {
           method: 'POST',
           url: '/events',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1023,8 +1021,8 @@ describe('EVENTS ROUTES', () => {
 
       const payload = {
         type: INTERVENTION,
-        startDate: '2019-01-23T10:00:00.000+01:00',
-        endDate: '2019-01-23T12:30:00.000+01:00',
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
@@ -1068,7 +1066,7 @@ describe('EVENTS ROUTES', () => {
             method: 'POST',
             url: '/events',
             payload: role.customPayload || payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1096,7 +1094,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1118,7 +1116,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1140,7 +1138,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1159,7 +1157,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1178,7 +1176,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1192,7 +1190,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1207,7 +1205,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -1221,7 +1219,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -1239,7 +1237,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -1257,7 +1255,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -1275,7 +1273,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${invalidId.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(404);
@@ -1292,7 +1290,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1309,7 +1307,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -1323,7 +1321,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(400);
@@ -1340,7 +1338,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1356,7 +1354,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1374,7 +1372,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${event._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1392,7 +1390,7 @@ describe('EVENTS ROUTES', () => {
           method: 'PUT',
           url: `/events/${eventsList[0]._id}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1413,11 +1411,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'planning_referent', expectedCode: 200 },
-        {
-          name: 'auxiliary event',
-          expectedCode: 200,
-          customCredentials: auxiliaries[0].local,
-        },
+        { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1428,7 +1422,7 @@ describe('EVENTS ROUTES', () => {
             method: 'PUT',
             url: `/events/${eventsList[2]._id.toHexString()}`,
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1450,7 +1444,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(200);
       });
@@ -1461,7 +1455,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${invalidId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(404);
@@ -1473,7 +1467,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toEqual(403);
@@ -1488,11 +1482,7 @@ describe('EVENTS ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'planning_referent', expectedCode: 200 },
-        {
-          name: 'auxiliary event',
-          expectedCode: 200,
-          customCredentials: auxiliaries[0].local,
-        },
+        { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
         { name: 'coach', expectedCode: 200 },
       ];
 
@@ -1503,7 +1493,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'DELETE',
             url: `/events/${eventsList[2]._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1525,11 +1515,11 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customer}&startDate=${startDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
-        expect(await Repetition.find({ company: authCompany._id })).toHaveLength(0);
+        expect(await Repetition.find({ company: authCompany._id }).lean()).toHaveLength(0);
       });
 
       it('should delete all events from startDate to endDate', async () => {
@@ -1540,7 +1530,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(200);
       });
@@ -1553,7 +1543,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(409);
       });
@@ -1563,7 +1553,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customerFromOtherCompany._id}&startDate=${startDate}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(403);
       });
@@ -1590,7 +1580,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'DELETE',
             url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1611,7 +1601,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}/repetition`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1642,7 +1632,7 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'DELETE',
             url: `/events/${event._id.toHexString()}/repetition`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

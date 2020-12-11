@@ -29,7 +29,7 @@ describe('POST /internalhours', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/internalhours',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'Test3' },
       });
 
@@ -47,7 +47,7 @@ describe('POST /internalhours', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/internalhours',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'Test3' },
       });
 
@@ -58,7 +58,7 @@ describe('POST /internalhours', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/internalhours',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {},
       });
 
@@ -80,7 +80,7 @@ describe('POST /internalhours', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/internalhours',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { name: 'Test3' },
         });
 
@@ -102,7 +102,7 @@ describe('GET /internalhours', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/internalhours',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -114,7 +114,7 @@ describe('GET /internalhours', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/internalhours',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -137,7 +137,7 @@ describe('GET /internalhours', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/internalhours',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -159,7 +159,7 @@ describe('DELETE /internalhours/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/internalhours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -175,19 +175,20 @@ describe('DELETE /internalhours/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/internalhours/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if not in same company', async () => {
+      authToken = await getToken('client_admin');
       const internalHour = internalHoursList[0];
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/internalhours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': await getToken('client_admin') },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -198,7 +199,7 @@ describe('DELETE /internalhours/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/internalhours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -221,7 +222,7 @@ describe('DELETE /internalhours/:id', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/internalhours/${internalHour._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

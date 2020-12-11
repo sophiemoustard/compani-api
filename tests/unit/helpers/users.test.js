@@ -247,9 +247,9 @@ describe('refreshToken', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      const payload = { refreshToken: 'token' };
+      const payload = { refresh_token: 'token' };
       UserMock.expects('findOne')
-        .withExactArgs({ refreshToken: payload.refreshToken })
+        .withExactArgs({ refreshToken: payload.refresh_token })
         .chain('lean')
         .once()
         .returns(null);
@@ -265,7 +265,7 @@ describe('refreshToken', () => {
   });
 
   it('should return refresh token', async () => {
-    const payload = { refreshToken: 'token' };
+    const payload = { refresh_token: 'token' };
     const user = {
       _id: new ObjectID(),
       refreshToken: 'token',
@@ -273,7 +273,7 @@ describe('refreshToken', () => {
     };
 
     UserMock.expects('findOne')
-      .withExactArgs({ refreshToken: payload.refreshToken })
+      .withExactArgs({ refreshToken: payload.refresh_token })
       .chain('lean')
       .once()
       .returns(user);

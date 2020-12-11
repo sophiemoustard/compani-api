@@ -23,7 +23,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/billslips',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -74,7 +74,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/billslips',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -96,7 +96,7 @@ describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/billslips/${billSlipList[0]._id}/docx`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -106,7 +106,7 @@ describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/billslips/${billSlipFromAnotherCompany._id}/docx`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -116,7 +116,7 @@ describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/billslips/${new ObjectID()}/docx`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -137,7 +137,7 @@ describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/billslips/${billSlipList[0]._id}/docx`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
