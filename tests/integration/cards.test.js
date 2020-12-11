@@ -361,37 +361,21 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if question answer with already max answers', async () => {
-      const card = cardsList[12];
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
-        headers: { 'x-access-token': authToken },
+    const templates = [
+      { name: 'question_answer', card: cardsList[12] },
+      { name: 'single_choice_question', card: cardsList[7] },
+      { name: 'multiple_choice_question', card: cardsList[6] },
+    ];
+    templates.forEach((template) => {
+      it(`should return 403 if ${template.name} with already max answers`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/cards/${template.card._id.toHexString()}/answers`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if qcu with already max answers', async () => {
-      const card = cardsList[7];
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if qcm with already max answers', async () => {
-      const card = cardsList[6];
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if card activity is published', async () => {

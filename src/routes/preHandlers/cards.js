@@ -90,8 +90,6 @@ exports.authorizeCardAnswerCreation = async (req) => {
       break;
   }
 
-  if (card.qcAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
-
   const activity = await Activity.findOne({ cards: req.params._id }).lean();
   if (activity.status === PUBLISHED) throw Boom.forbidden();
 
