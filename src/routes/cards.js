@@ -75,7 +75,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardAnswerCreation }],
+        pre: [{ method: authorizeCardAnswerCreation, assign: 'card' }],
       },
       handler: addAnswer,
     });
