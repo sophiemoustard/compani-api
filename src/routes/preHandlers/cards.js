@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const Card = require('../../models/Card');
 const {
   FILL_THE_GAPS,
@@ -9,6 +10,7 @@ const {
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
+  MULTIPLE_CHOICE_QUESTION,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -83,7 +85,9 @@ exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
 
-  return null;
+  if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
+
+  return card;
 };
 
 exports.authorizeCardAnswerDeletion = async (req) => {

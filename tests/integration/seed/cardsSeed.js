@@ -27,9 +27,16 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: MULTIPLE_CHOICE_QUESTION,
-    qcAnswers: [{ correct: false, text: 'au bois dormant' }, { correct: true, text: 'et le clochard' }],
+    qcAnswers: [
+      { _id: new ObjectID(), correct: false, text: 'au bois dormant' },
+      { _id: new ObjectID(), correct: true, text: 'et le clochard' },
+    ],
   },
-  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ text: 'le papa' }, { text: 'la maman' }] },
+  {
+    _id: new ObjectID(),
+    template: SINGLE_CHOICE_QUESTION,
+    qcAnswers: [{ _id: new ObjectID(), text: 'le papa' }, { _id: new ObjectID(), text: 'la maman' }],
+  },
   { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
