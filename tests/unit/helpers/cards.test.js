@@ -143,16 +143,23 @@ describe('updateCardAnswer', () => {
 
 describe('deleteCardAnswer', () => {
   let updateOne;
+  let getAnswerKeyToUpdate;
   beforeEach(() => {
     updateOne = sinon.stub(Card, 'updateOne');
+    getAnswerKeyToUpdate = sinon.stub(CardHelper, 'getAnswerKeyToUpdate');
   });
   afterEach(() => {
     updateOne.restore();
+    getAnswerKeyToUpdate.restore();
   });
 
-  it('should add card answer', async () => {
+  it('should delete card answer', async () => {
+    const card = { template: 'multiple_choice_question' };
     const params = { _id: new ObjectID(), answerId: new ObjectID() };
-    await CardHelper.deleteCardAnswer(params);
+    getAnswerKeyToUpdate.returns('qcAnswers');
+
+    await CardHelper.deleteCardAnswer(card, params);
+
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: params._id },
