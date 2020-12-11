@@ -1719,7 +1719,7 @@ describe('generateConvocationPdf', () => {
       slots: [{
         startDay: '12 oct. 2020',
         hours: '13:30 - 14:30',
-        address: '37 rue de Ponthieu 75005 Paris',
+        address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         length: 1,
         position: 1,
       }],
@@ -1757,7 +1757,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDay: '12 oct. 2020',
           hours: '13:30 - 14:30',
-          address: '37 rue de Ponthieu 75005 Paris',
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
           length: 1,
           position: 1,
         }],

@@ -20,7 +20,7 @@ describe('populateService', () => {
       isArchived: true,
       versions: [
         {
-          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          _id: new ObjectID(),
           startDate: '2019-01-18T15:46:30.636Z',
           createdAt: '2019-01-18T15:46:30.636Z',
           unitTTCRate: 13,
@@ -28,7 +28,7 @@ describe('populateService', () => {
           sundays: 2,
         },
         {
-          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          _id: new ObjectID(),
           startDate: '2020-01-18T15:46:30.636Z',
           createdAt: '2019-12-17T15:46:30.636Z',
           unitTTCRate: 1,
@@ -62,28 +62,29 @@ describe('subscriptionsAccepted', () => {
   });
 
   it('should set subscriptionsAccepted to true', async () => {
+    const subId = new ObjectID();
     const customer = {
       subscriptions: [{
         versions: [{
           startDate: '2019-01-18T15:46:30.636Z',
           createdAt: '2019-01-18T15:46:30.636Z',
-          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          _id: new ObjectID(),
           unitTTCRate: 13,
           estimatedWeeklyVolume: 12,
           sundays: 2,
         }, {
           startDate: '2019-01-27T23:00:00.000Z',
           createdAt: '2019-01-18T15:46:37.471Z',
-          _id: new ObjectID('5c41f4dd2fc4d8780f0628eb'),
+          _id: new ObjectID(),
           unitTTCRate: 24,
           estimatedWeeklyVolume: 12,
           sundays: 2,
           evenings: 3,
         }],
         createdAt: '2019-01-18T15:46:30.637Z',
-        _id: new ObjectID('5c41f4d62fc4d8780f0628e9'),
+        _id: subId,
         service: {
-          _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
+          _id: new ObjectID(),
           nature: 'Horaire',
           defaultUnitAmount: 25,
           vat: 5.5,
@@ -100,23 +101,24 @@ describe('subscriptionsAccepted', () => {
           title: '',
         },
         subscriptions: [{
-          _id: new ObjectID('5c45a98fa2e4e133a6774e47'),
+          _id: new ObjectID(),
           service: 'Temps de qualité - Autonomie',
           unitTTCRate: 24,
           estimatedWeeklyVolume: 12,
           startDate: '2019-01-27T23:00:00.000Z',
           evenings: 3,
           sundays: 2,
-          subscriptionId: new ObjectID('5c41f4d62fc4d8780f0628e9'),
+          subscriptionId: subId,
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
+        _id: new ObjectID(),
       }],
     };
+
     findOne.returns({
       customersConfig: {
         services: [{
-          _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
+          _id: new ObjectID(),
           nature: 'Horaire',
           versions: [{
             defaultUnitAmount: 25,
@@ -127,7 +129,7 @@ describe('subscriptionsAccepted', () => {
             startDate: '2019-01-18T15:37:30.636Z',
           }],
         }, {
-          _id: new ObjectID('5c41f4e42fc4d8780f0628ec'),
+          _id: new ObjectID(),
           versions: [{
             name: 'Nuit',
             defaultUnitAmount: 175,
@@ -150,22 +152,22 @@ describe('subscriptionsAccepted', () => {
         versions: [{
           startDate: '2019-01-18T15:46:30.636Z',
           createdAt: '2019-01-18T15:46:30.636Z',
-          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
+          _id: new ObjectID(),
           unitTTCRate: 13,
           estimatedWeeklyVolume: 12,
           sundays: 2,
         }, {
           startDate: '2019-01-27T23:00:00.000Z',
           createdAt: '2019-01-18T15:46:37.471Z',
-          _id: new ObjectID('5c41f4dd2fc4d8780f0628eb'),
+          _id: new ObjectID(),
           unitTTCRate: 24,
           estimatedWeeklyVolume: 12,
           sundays: 2,
           evenings: 3,
         }],
         createdAt: '2019-01-18T15:46:30.637Z',
-        _id: new ObjectID('5c41f4d62fc4d8780f0628e9'),
-        service: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
+        _id: new ObjectID(),
+        service: new ObjectID(),
       }],
       subscriptionsHistory: [{
         helper: {
@@ -174,21 +176,22 @@ describe('subscriptionsAccepted', () => {
           title: '',
         },
         subscriptions: [{
-          _id: new ObjectID('5c45a98fa2e4e133a6774e47'),
+          _id: new ObjectID(),
           service: 'Temps de qualité - Autonomie',
           unitTTCRate: 35,
           estimatedWeeklyVolume: 12,
           startDate: '2019-01-27T23:00:00.000Z',
-          subscriptionId: new ObjectID('5c41f4d62fc4d8780f0628e9'),
+          subscriptionId: new ObjectID(),
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
+        _id: new ObjectID(),
       }],
     };
+
     findOne.returns({
       customersConfig: {
         services: [{
-          _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
+          _id: new ObjectID(),
           nature: 'Horaire',
           versions: [{
             defaultUnitAmount: 25,
