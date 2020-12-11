@@ -1,24 +1,15 @@
 const sinon = require('sinon');
+const get = require('lodash/get');
 
-const checkSinon = (ActivityStub, id) => {
-  sinon.assert.calledWithExactly(ActivityStub, { _id: id });
-  sinon.assert.calledWithExactly(
-    ActivityStub.getCall(0).returnValue.populate,
-    { path: 'cards', select: '-__v -createdAt -updatedAt' }
-  );
-  sinon.assert.calledWithExactly(
-    ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
-    {
-      path: 'steps',
-      select: '_id -activities',
-      populate:
-        { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
-    }
-  );
-  sinon.assert.calledWithExactly(
-    ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
-    { virtuals: true }
-  );
+const checkSinon = (Stub, skusku) => {
+  let { query } = skusku[0];
+  sinon.assert.calledWithExactly(Stub, skusku[0].arg);
+
+  for (let i = 1; i < skusku.length; i++) {
+    query = `${query}.getCall(0).returnValue.${skusku[i].query}`;
+
+    sinon.assert.calledWithExactly(get(Stub, query), skusku[i].arg); // ne marche pas
+  }
 };
 
 const chainedMongoose = (returnedValues) => {

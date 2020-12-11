@@ -80,7 +80,7 @@
     "form-data": "^3.0.0",
     "get-stream": "^6.0.0",
     "mocha": "^8.2.1",
-    "sinon": "^7.5.0",
+    "sinon": "^9.2.2",
     "sinon-mongoose": "^2.3.0"
   }
 }
