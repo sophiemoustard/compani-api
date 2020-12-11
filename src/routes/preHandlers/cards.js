@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const Card = require('../../models/Card');
 const {
   FILL_THE_GAPS,
@@ -84,7 +85,7 @@ exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
   if (!card) throw Boom.notFound();
 
-  if ('correct' in req.payload && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
+  if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
 
   return card;
 };
