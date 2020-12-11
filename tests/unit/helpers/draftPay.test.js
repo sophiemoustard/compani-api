@@ -116,37 +116,39 @@ describe('applyCustomSurcharge', () => {
 });
 
 describe('getSurchargeDetails', () => {
+  const surchargeId = new ObjectID();
   it('Case 1. surcharge plan and type included in details', () => {
-    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Super Mario', Noel: 35 };
-    const details = { '5d021ac76740b60f42af845b': { Noel: { hours: 3 } } };
+    const surcharge = { _id: surchargeId, name: 'Super Mario', Noel: 35 };
+    const details = { [surchargeId]: { Noel: { hours: 3 } } };
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
-      '5d021ac76740b60f42af845b': { planName: 'Super Mario', Noel: { hours: 5, percentage: 35 } },
+      [surchargeId]: { planName: 'Super Mario', Noel: { hours: 5, percentage: 35 } },
     });
   });
 
   it('Case 2. surcharge plan included in details but not surcharge type', () => {
-    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Super Mario', Noel: 35 };
-    const details = { '5d021ac76740b60f42af845b': { 10: { hours: 3 } } };
+    const surcharge = { _id: surchargeId, name: 'Super Mario', Noel: 35 };
+    const details = { [surchargeId]: { 10: { hours: 3 } } };
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
-      '5d021ac76740b60f42af845b': { planName: 'Super Mario', 10: { hours: 3 }, Noel: { hours: 2, percentage: 35 } },
+      [surchargeId]: { planName: 'Super Mario', 10: { hours: 3 }, Noel: { hours: 2, percentage: 35 } },
     });
   });
 
   it('Case 3. surcharge plan and type not included in details', () => {
-    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Luigi', Noel: 35 };
-    const details = { '5d021ac76385b60f22af644c': { 10: { hours: 3 } } };
+    const detailsId = new ObjectID();
+    const surcharge = { _id: surchargeId, name: 'Luigi', Noel: 35 };
+    const details = { [detailsId]: { 10: { hours: 3 } } };
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
-      '5d021ac76385b60f22af644c': { 10: { hours: 3 } },
-      '5d021ac76740b60f42af845b': { planName: 'Luigi', Noel: { hours: 2, percentage: 35 } },
+      [detailsId]: { 10: { hours: 3 } },
+      [surchargeId]: { planName: 'Luigi', Noel: { hours: 2, percentage: 35 } },
     });
   });
 });
