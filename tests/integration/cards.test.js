@@ -414,8 +414,6 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const card = cardsList[11];
-  const answer = card.qcAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -423,6 +421,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should update an answer', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
@@ -442,11 +443,42 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       }));
     });
 
-    it('should return 400 if text is missing', async () => {
+    it('should return 400 if text is null', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { text: '' },
+        payload: { text: '', correct: true },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if correct is null', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { correct: null, text: 'Avery' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if payload is empty', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: {},
         headers: { 'x-access-token': authToken },
       });
 
@@ -454,6 +486,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if invalid card id', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
@@ -465,7 +500,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if answer is not in card', async () => {
+      const card = cardsList[11];
       const otherQACard = cardsList[12];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
@@ -475,9 +512,25 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 400 if field correct is given and template isn\'t qcm', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { correct: false },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
+    const card = cardsList[11];
+    const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

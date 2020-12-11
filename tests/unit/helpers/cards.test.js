@@ -1,10 +1,17 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const CardHelper = require('../../../src/helpers/cards');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
+const {
+  QUESTION_ANSWER,
+  SINGLE_CHOICE_QUESTION,
+  MULTIPLE_CHOICE_QUESTION,
+  FILL_THE_GAPS,
+} = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('addCard', () => {
@@ -72,22 +79,46 @@ describe('addCardAnswer', () => {
   });
 });
 
+describe('getAnswerKeyToUpdate', () => {
+  it('should return qcAnswers if template is qcm, qcu or qa', async () => {
+    const templateList = [
+      { name: MULTIPLE_CHOICE_QUESTION, rep: 'qcAnswers' },
+      { name: SINGLE_CHOICE_QUESTION, rep: 'qcAnswers' },
+      { name: QUESTION_ANSWER, rep: 'qcAnswers' },
+      { name: FILL_THE_GAPS, rep: '' },
+    ];
+
+    for (const template of templateList) {
+      const rep = CardHelper.getAnswerKeyToUpdate(template.name);
+
+      expect(rep).toEqual(template.rep);
+    }
+  });
+});
+
 describe('updateCardAnswer', () => {
   let updateOne;
+  let getAnswerKeyToUpdate;
   beforeEach(() => {
     updateOne = sinon.stub(Card, 'updateOne');
+    getAnswerKeyToUpdate = sinon.stub(CardHelper, 'getAnswerKeyToUpdate');
   });
   afterEach(() => {
     updateOne.restore();
+    getAnswerKeyToUpdate.restore();
   });
 
   it('should update card answer', async () => {
-    const params = { _id: new ObjectID(), answerId: new ObjectID() };
-    await CardHelper.updateCardAnswer(params, { text: 'test text' });
+    const card = { _id: new ObjectID() };
+    const params = { answerId: new ObjectID() };
+    getAnswerKeyToUpdate.returns('qcAnswers');
+
+    await CardHelper.updateCardAnswer(card, params, { text: 'test text' });
+
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: params._id, 'qcAnswers._id': params.answerId },
-      { $set: { 'qcAnswers.$.text': 'test text' } }
+      { _id: card._id, 'qcAnswers._id': params.answerId },
+      { $set: flat({ 'qcAnswers.$': { text: 'test text' } }) }
     );
   });
 });
