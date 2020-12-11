@@ -646,6 +646,23 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    const templates = [
+      { name: 'question_answer', card: cardsList[11] },
+      { name: 'single_choice_question', card: cardsList[14] },
+      { name: 'multiple_choice_question', card: cardsList[15] },
+    ];
+    templates.forEach((template) => {
+      it(`should return 403 if ${template.name} with already min answers`, async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${template.card._id.toHexString()}/answers/${template.card.qcAnswers[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+    });
+
     it('should return 400 if card has 2 or less answers', async () => {
       const oneQuestionCard = cardsList[11];
       const response = await app.inject({
