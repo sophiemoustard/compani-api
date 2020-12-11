@@ -38,9 +38,13 @@ exports.updateCardAnswer = async (card, params, payload) => {
   );
 };
 
-exports.deleteCardAnswer = async params => Card.updateOne(
-  { _id: params._id }, { $pull: { qcAnswers: { _id: params.answerId } } }
-);
+exports.deleteCardAnswer = async (card, params) => {
+  const key = exports.getAnswerKeyToUpdate(card.template);
+
+  return Card.updateOne(
+    { _id: params._id }, { $pull: { [`${key}`]: { _id: params.answerId } } }
+  );
+};
 
 exports.uploadMedia = async (cardId, payload) => {
   const mediaUploaded = await GCloudStorageHelper.uploadProgramMedia(payload);
