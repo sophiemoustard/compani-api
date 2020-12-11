@@ -1042,9 +1042,7 @@ describe('getContractInfo', () => {
     expect(result).toBeDefined();
     sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
-      moment('2019-06-03')
-        .startOf('d')
-        .toDate(),
+      moment('2019-06-03').startOf('d').toDate(),
       moment('2019-06-09').toDate()
     );
   });

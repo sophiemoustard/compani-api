@@ -130,13 +130,13 @@ describe('BILL ROUTES - POST /bills', () => {
       customerBills: {
         bills: [
           {
-            _id: '5ccbfcf4bffe7646a387b470',
+            _id: new ObjectID(),
             subscription: {
               _id: billCustomerList[0].subscriptions[0]._id,
               service: billServices[0],
               versions: [
                 {
-                  _id: '5ccbfcf4bffe7646a387b456',
+                  _id: new ObjectID(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -175,13 +175,13 @@ describe('BILL ROUTES - POST /bills', () => {
         {
           bills: [
             {
-              _id: '5ccbfcf4bffe7646a387b472',
+              _id: new ObjectID(),
               subscription: {
                 _id: billCustomerList[0].subscriptions[0]._id,
                 service: billServices[0],
                 versions: [
                   {
-                    _id: '5ccbfcf4bffe7646a387b456',
+                    _id: new ObjectID(),
                     unitTTCRate: 12,
                     estimatedWeeklyVolume: 12,
                     evenings: 2,
@@ -233,13 +233,13 @@ describe('BILL ROUTES - POST /bills', () => {
       customerBills: {
         bills: [
           {
-            _id: '5ccbfcf4bffe7646a387b470',
+            _id: new ObjectID(),
             subscription: {
               _id: billCustomerList[0].subscriptions[1]._id,
               service: billServices[1],
               versions: [
                 {
-                  _id: '5ccbfcf4bffe7646a387b456',
+                  _id: new ObjectID(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -272,13 +272,13 @@ describe('BILL ROUTES - POST /bills', () => {
             inclTaxes: 24,
           },
           {
-            _id: '5ccbfcf4bffe7646a387b470',
+            _id: new ObjectID(),
             subscription: {
               _id: billCustomerList[0].subscriptions[0]._id,
               service: billServices[0],
               versions: [
                 {
-                  _id: '5ccbfcf4bffe7646a387b456',
+                  _id: new ObjectID(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -389,7 +389,7 @@ describe('BILL ROUTES - POST /bills', () => {
           customerBills: {
             bills: [
               {
-                _id: '5ccbfcf4bffe7646a387b470',
+                _id: new ObjectID(),
                 subscription: {
                   _id: billCustomerList[0].subscriptions[0]._id,
                   service: {
@@ -403,7 +403,7 @@ describe('BILL ROUTES - POST /bills', () => {
                   },
                   versions: [
                     {
-                      _id: '5ccbfcf4bffe7646a387b456',
+                      _id: new ObjectID(),
                       unitTTCRate: 12,
                       estimatedWeeklyVolume: 12,
                       evenings: 2,
@@ -453,6 +453,7 @@ describe('BILL ROUTES - POST /bills', () => {
     });
 
     it('should create a new external bill', async () => {
+      const fundingId = new ObjectID();
       const draftBillPayload = [
         {
           customer: {
@@ -465,13 +466,13 @@ describe('BILL ROUTES - POST /bills', () => {
             {
               bills: [
                 {
-                  _id: '5ccbfcf4bffe7646a387b472',
+                  _id: new ObjectID(),
                   subscription: {
                     _id: billCustomerList[0].subscriptions[0]._id,
                     service: billServices[0],
                     versions: [
                       {
-                        _id: '5ccbfcf4bffe7646a387b456',
+                        _id: new ObjectID(),
                         unitTTCRate: 12,
                         estimatedWeeklyVolume: 12,
                         evenings: 2,
@@ -504,10 +505,10 @@ describe('BILL ROUTES - POST /bills', () => {
                       exclTaxesCustomer: 0,
                       history: {
                         amountTTC: 24,
-                        fundingId: '5ccbfcf4bffe7646a387b45a',
+                        fundingId,
                         nature: 'fixed',
                       },
-                      fundingId: '5ccbfcf4bffe7646a387b45a',
+                      fundingId,
                       nature: 'fixed',
                     },
                   ],
@@ -614,7 +615,7 @@ describe('BILL ROUTES - POST /bills', () => {
                   service: billServices[1],
                   versions: [
                     {
-                      _id: '5ccbfcf4bffe7646a387b456',
+                      _id: new ObjectID(),
                       unitTTCRate: 12,
                       estimatedWeeklyVolume: 12,
                       evenings: 2,

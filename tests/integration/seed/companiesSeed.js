@@ -8,7 +8,7 @@ const { rolesList } = require('../../seed/roleSeed');
 const { INTERVENTION, CLIENT_ADMIN, MOBILE } = require('../../../src/helpers/constants');
 
 const company = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
+  _id: new ObjectID(),
   rcs: '1234567890',
   siren: '1234567890',
   name: 'Test',

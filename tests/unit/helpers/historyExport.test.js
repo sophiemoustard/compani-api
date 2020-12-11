@@ -507,7 +507,8 @@ describe('exportAbsencesHistory', () => {
       endDate: '2019-05-21T10:00:00',
     };
     const credentials = { company: { _id: '1234567890' } };
-    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée', 'Horaire',
+    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
+      'Horaire',
       '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''];
 
     getAbsencesForExport.returns([event]);
@@ -541,12 +542,12 @@ describe('exportAbsencesHistory', () => {
       misc: 'brbr',
     };
     const credentials = { company: { _id: '1234567890' } };
-    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-      '31/05/2019', '40,00', 'brbr'];
-    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
-      '30/06/2019', '96,00', 'brbr'];
-    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
-      '20/07/2019', '72,00', 'brbr'];
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière',
+      '20/05/2019', '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
+      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
+      'Journalière', '01/07/2019', '20/07/2019', '72,00', 'brbr'];
 
     getAbsencesForExport.returns([event]);
     formatAbsence.onCall(0).returns(formattedAbsenceRow);
@@ -555,14 +556,12 @@ describe('exportAbsencesHistory', () => {
 
     const exportArray = await ExportHelper.exportAbsencesHistory(start, end, credentials);
 
-    expect(exportArray).toEqual([
-      header,
-      formattedAbsenceRow,
-      formattedAbsenceRow2,
-      formattedAbsenceRow3,
-    ]);
+    expect(exportArray).toEqual([header, formattedAbsenceRow, formattedAbsenceRow2, formattedAbsenceRow3]);
     sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
-    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(
+      formatAbsence.getCall(1),
+      { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' }
+    );
     sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
     sinon.assert.callCount(formatAbsence, 3);
   });
@@ -586,12 +585,12 @@ describe('exportAbsencesHistory', () => {
       misc: 'brbr',
     };
     const credentials = { company: { _id: '1234567890' } };
-    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '20/05/2019',
-      '31/05/2019', '40,00', 'brbr'];
-    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/06/2019',
-      '30/06/2019', '96,00', 'brbr'];
-    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière', '01/07/2019',
-      '01/07/2019', '4,00', 'brbr'];
+    const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
+      'Journalière', '20/05/2019', '31/05/2019', '40,00', 'brbr'];
+    const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
+      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'brbr'];
+    const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
+      'Journalière', '01/07/2019', '01/07/2019', '4,00', 'brbr'];
 
     getAbsencesForExport.returns([event]);
     formatAbsence.onCall(0).returns(formattedAbsenceRow);
@@ -607,7 +606,10 @@ describe('exportAbsencesHistory', () => {
       formattedAbsenceRow3,
     ]);
     sinon.assert.calledWithExactly(formatAbsence.getCall(0), { ...event, endDate: '2019-05-31T21:59:59.999Z' });
-    sinon.assert.calledWithExactly(formatAbsence.getCall(1), { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' });
+    sinon.assert.calledWithExactly(
+      formatAbsence.getCall(1),
+      { ...event, startDate: '2019-05-31T22:00:00.000Z', endDate: '2019-06-30T21:59:59.999Z' }
+    );
     sinon.assert.calledWithExactly(formatAbsence.getCall(2), { ...event, startDate: '2019-06-30T22:00:00.000Z' });
     sinon.assert.callCount(formatAbsence, 3);
   });
@@ -630,15 +632,18 @@ describe('exportBillsAndCreditNotesHistory', () => {
     'Services',
     'Date de création',
   ];
+  const customerIdList = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
+  const tppIdList = [new ObjectID(), new ObjectID(), new ObjectID()];
+
   const bills = [
     {
       number: 'FACT-0549236',
       date: '2019-05-20T06:00:00.000+00:00',
       customer: {
-        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
+        _id: customerIdList[0],
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
-      thirdPartyPayer: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      thirdPartyPayer: { _id: tppIdList[0], name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [
         {
@@ -654,14 +659,14 @@ describe('exportBillsAndCreditNotesHistory', () => {
       number: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
       customer: {
-        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
+        _id: customerIdList[1],
         identity: {
           title: 'mr',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
       },
-      thirdPartyPayer: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [
         {
@@ -683,10 +688,10 @@ describe('exportBillsAndCreditNotesHistory', () => {
   const creditNotes = [
     {
       number: 'F1501231',
-      thirdPartyPayer: { _id: new ObjectID('5d761ad7ffd1dc0d39dadd7e'), name: 'SW' },
+      thirdPartyPayer: { _id: tppIdList[2], name: 'SW' },
       date: '2019-05-21T01:00:00.000+00:00',
       customer: {
-        _id: new ObjectID('5d761a8f6f6cba0d259b17eb'),
+        _id: customerIdList[2],
         identity: { firstname: 'Jar jar', lastname: 'Binks' },
       },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
@@ -700,7 +705,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       number: 'F6473250',
       date: '2019-05-25T02:00:00.000+00:00',
       customer: {
-        _id: new ObjectID('5d761a8f6f8eba0d259b173f'),
+        _id: customerIdList[3],
         identity: { lastname: 'R2D2' },
       },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
@@ -843,11 +848,11 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Facture',
         'FACT-0549236',
         '20/05/2019',
-        '5c35b5eb1a4fb00997363eb3',
+        customerIdList[0].toHexString(),
         'Mme',
         'MATHY',
         'Mimi',
-        '5c35b5eb7e0fb87297363eb2',
+        tppIdList[0].toHexString(),
         'TF1',
         'F-389276.0208',
         'F-389276.023',
@@ -859,11 +864,11 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Facture',
         'FACT-0419457',
         '22/05/2019',
-        '5c35b5eb1a6fb02397363eb1',
+        customerIdList[1].toHexString(),
         'M.',
         'HORSEMAN',
         'Bojack',
-        '5c35b5eb1a6fb87297363eb2',
+        tppIdList[1].toHexString(),
         'The Sherif',
         'F-1018.6307999',
         'F-1057.1319439',
@@ -875,11 +880,11 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Avoir',
         'F1501231',
         '21/05/2019',
-        '5d761a8f6f6cba0d259b17eb',
+        customerIdList[2].toHexString(),
         '',
         'BINKS',
         'Jar jar',
-        '5d761ad7ffd1dc0d39dadd7e',
+        tppIdList[2].toHexString(),
         'SW',
         'F-18.5',
         'F-8.5',
@@ -891,7 +896,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Avoir',
         'F6473250',
         '25/05/2019',
-        '5d761a8f6f8eba0d259b173f',
+        customerIdList[3].toHexString(),
         '',
         'R2D2',
         '',
@@ -1458,6 +1463,9 @@ describe('exportPaymentsHistory', () => {
     'Moyen de paiement',
     'Montant TTC en €',
   ];
+  const customerIdList = [new ObjectID(), new ObjectID()];
+  const tppIdList = [new ObjectID(), new ObjectID()];
+
   const paymentsList = [
     {
       number: 'REG-101051900562',
@@ -1465,14 +1473,14 @@ describe('exportPaymentsHistory', () => {
       nature: 'payment',
       date: '2019-05-20T06:00:00.000+00:00',
       customer: {
-        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
+        _id: customerIdList[0],
         identity: {
           title: 'mrs',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
       },
-      thirdPartyPayer: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
+      thirdPartyPayer: { _id: tppIdList[0], name: 'TF1' },
       netInclTaxes: 389276.023,
     }, {
       number: 'REG-101051900342',
@@ -1480,14 +1488,14 @@ describe('exportPaymentsHistory', () => {
       nature: 'refund',
       date: '2019-05-22T06:00:00.000+00:00',
       customer: {
-        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
+        _id: customerIdList[1],
         identity: {
           title: 'mr',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
       },
-      thirdPartyPayer: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
       netInclTaxes: 1002.4,
     },
   ];
@@ -1536,11 +1544,11 @@ describe('exportPaymentsHistory', () => {
         'Paiement',
         'REG-101051900562',
         '20/05/2019',
-        '5c35b5eb1a4fb00997363eb3',
+        customerIdList[0].toHexString(),
         'Mme',
         'MATHY',
         'Mimi',
-        '5c35b5eb7e0fb87297363eb2',
+        tppIdList[0].toHexString(),
         'TF1',
         'Virement',
         '389276,02',
@@ -1549,11 +1557,11 @@ describe('exportPaymentsHistory', () => {
         'Remboursement',
         'REG-101051900342',
         '22/05/2019',
-        '5c35b5eb1a6fb02397363eb1',
+        customerIdList[1].toHexString(),
         'M.',
         'HORSEMAN',
         'Bojack',
-        '5c35b5eb1a6fb87297363eb2',
+        tppIdList[1].toHexString(),
         'The Sherif',
         'Prélèvement',
         '1002,40',

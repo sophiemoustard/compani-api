@@ -401,6 +401,7 @@ describe('getAbsences', () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+
     PayMock.expects('find')
       .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
       .chain('sort')
@@ -410,6 +411,7 @@ describe('getAbsences', () => {
       .chain('lean')
       .once()
       .returns([{ createdAt: '2020-10-29T10:31:00' }]);
+
     EventMock.expects('find')
       .withExactArgs({
         type: 'absence',
@@ -439,6 +441,7 @@ describe('getAbsences', () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+
     PayMock.expects('find')
       .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
       .chain('sort')
@@ -448,6 +451,7 @@ describe('getAbsences', () => {
       .chain('lean')
       .once()
       .returns([]);
+
     EventMock.expects('find')
       .withExactArgs({
         type: 'absence',
