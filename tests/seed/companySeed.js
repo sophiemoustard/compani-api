@@ -13,7 +13,7 @@ const authCompany = {
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'iuytre',
   customersConfig: {
-    templates: { debitMandate: { driveId: process.env.ESIGN_TEST_DOC_DRIVEID } },
+    templates: { debitMandate: { driveId: '12345' } },
     billingPeriod: 'two_weeks',
   },
   address: {
@@ -40,7 +40,7 @@ const otherCompany = {
   customersFolderId: 'zxcvbnm',
   auxiliariesFolderId: 'ijnuhb',
   customersConfig: {
-    templates: { debitMandate: { driveId: process.env.ESIGN_TEST_DOC_DRIVEID } },
+    templates: { debitMandate: { driveId: '12345' } },
     billingPeriod: 'two_weeks',
   },
   address: {
