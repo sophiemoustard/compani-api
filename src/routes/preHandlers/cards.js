@@ -11,6 +11,10 @@ const {
   QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
   MULTIPLE_CHOICE_QUESTION,
+  QUESTION_ANSWER,
+  SINGLE_CHOICE_QUESTION,
+  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -73,12 +77,23 @@ exports.authorizeCardUpdate = async (req) => {
 exports.authorizeCardAnswerCreation = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
-  if (card.qcAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
+
+  switch (card.template) {
+    case QUESTION_ANSWER:
+      if (card.qcAnswers.length >= QUESTION_ANSWER_MAX_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case SINGLE_CHOICE_QUESTION:
+      if (card.qcAnswers.length >= SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case MULTIPLE_CHOICE_QUESTION:
+      if (card.qcAnswers.length >= MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+  }
 
   const activity = await Activity.findOne({ cards: req.params._id }).lean();
   if (activity.status === PUBLISHED) throw Boom.forbidden();
 
-  return null;
+  return card;
 };
 
 exports.authorizeCardAnswerUpdate = async (req) => {

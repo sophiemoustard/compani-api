@@ -14,7 +14,14 @@ exports.updateCard = async (cardId, payload) => Card.updateOne(
   { $set: flat(payload, { safe: true }) }
 );
 
-exports.addCardAnswer = async cardId => Card.updateOne({ _id: cardId }, { $push: { qcAnswers: { text: '' } } });
+exports.addCardAnswer = async (card) => {
+  const key = exports.getAnswerKeyToUpdate(card.template);
+  const payload = card.template === MULTIPLE_CHOICE_QUESTION
+    ? { text: '', correct: false }
+    : { text: '' };
+
+  return Card.updateOne({ _id: card._id }, { $push: { [key]: payload } });
+};
 
 exports.getAnswerKeyToUpdate = (template) => {
   if ([MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(template)) return 'qcAnswers';

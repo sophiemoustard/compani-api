@@ -17,7 +17,7 @@ const update = async (req) => {
 
 const addAnswer = async (req) => {
   try {
-    await CardHelper.addCardAnswer(req.params._id);
+    await CardHelper.addCardAnswer(req.pre.card);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
