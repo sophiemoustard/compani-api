@@ -57,6 +57,43 @@ const logout = async (req, h) => {
   }
 };
 
+const createPasswordToken = async (req) => {
+  try {
+    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
+
+    return {
+      message: translate[language].resetPasswordTokenFound,
+      data: { passwordToken },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const forgotPassword = async (req) => {
+  try {
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
+
+    return { message: translate[language].emailSent, data: { mailInfo } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const checkResetPasswordToken = async (req, h) => {
+  try {
+    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
+
+    return h.response({ message: translate[language].resetPasswordTokenFound, data: { ...token } })
+      .state('alenvi_token', token.token);
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const create = async (req) => {
   try {
     const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials);
@@ -71,20 +108,6 @@ const create = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
     }
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const createPasswordToken = async (req) => {
-  try {
-    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
-
-    return {
-      message: translate[language].resetPasswordTokenFound,
-      data: { passwordToken },
-    };
-  } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -226,28 +249,6 @@ const removeHelper = async (req) => {
     await UsersHelper.removeHelper(req.pre.user);
 
     return { message: translate[language].userRemoved };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const forgotPassword = async (req) => {
-  try {
-    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
-
-    return { message: translate[language].emailSent, data: { mailInfo } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const checkResetPasswordToken = async (req) => {
-  try {
-    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
-
-    return { message: translate[language].resetPasswordTokenFound, data: { ...token } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
