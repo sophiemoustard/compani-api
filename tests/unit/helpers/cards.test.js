@@ -11,6 +11,7 @@ const {
   SINGLE_CHOICE_QUESTION,
   MULTIPLE_CHOICE_QUESTION,
   FILL_THE_GAPS,
+  ORDER_THE_SEQUENCE,
 } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
@@ -103,6 +104,7 @@ describe('getAnswerKeyToUpdate', () => {
       { name: MULTIPLE_CHOICE_QUESTION, rep: 'qcAnswers' },
       { name: SINGLE_CHOICE_QUESTION, rep: 'qcAnswers' },
       { name: QUESTION_ANSWER, rep: 'qcAnswers' },
+      { name: ORDER_THE_SEQUENCE, rep: 'orderedAnswers' },
       { name: FILL_THE_GAPS, rep: '' },
     ];
 

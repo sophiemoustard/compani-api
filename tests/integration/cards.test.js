@@ -419,7 +419,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update an answer', async () => {
+    it('should update a qc answer', async () => {
       const card = cardsList[11];
       const answer = card.qcAnswers[0];
 
@@ -438,6 +438,29 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
         qcAnswers: [
           { _id: card.qcAnswers[0]._id, text: 'je suis un texte' },
           card.qcAnswers[1],
+        ],
+      }));
+    });
+
+    it('should update an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: 'je suis un texte' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        ...card,
+        orderedAnswers: [
+          { _id: card.orderedAnswers[0]._id, text: 'je suis un texte' },
+          card.orderedAnswers[1],
         ],
       }));
     });
