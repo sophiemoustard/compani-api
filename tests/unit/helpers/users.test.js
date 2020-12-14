@@ -820,6 +820,7 @@ describe('createUser', () => {
   let RoleMock;
   let objectIdStub;
   let createHistoryStub;
+  let momentToDate;
   const userId = new ObjectID();
   const roleId = new ObjectID();
   const credentials = { company: { _id: new ObjectID() } };
@@ -829,6 +830,7 @@ describe('createUser', () => {
     RoleMock = sinon.mock(Role);
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
     createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
+    momentToDate = sinon.stub(momentProto, 'toDate');
   });
 
   afterEach(() => {
@@ -836,6 +838,7 @@ describe('createUser', () => {
     RoleMock.restore();
     objectIdStub.restore();
     createHistoryStub.restore();
+    momentToDate.restore();
   });
 
   it('should create an auxiliary', async () => {
@@ -1041,6 +1044,33 @@ describe('createUser', () => {
 
     RoleMock.verify();
     UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should set firstMobileConnection if origin is mobile', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      contact: { phone: '0606060606' },
+      origin: 'mobile',
+    };
+    const date = '2020-12-08T13:45:25.437Z';
+
+    momentToDate.returns(date);
+    RoleMock.expects('findById').never();
+
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({ ...payload, refreshToken: sinon.match.string, firstMobileConnection: date })
+      .once()
+      .returns(payload);
+
+    const result = await UsersHelper.createUser(payload, null);
+    expect(result).toEqual(payload);
+
+    RoleMock.verify();
+    UserMock.verify();
+    sinon.assert.calledOnceWithExactly(momentToDate);
     sinon.assert.notCalled(createHistoryStub);
   });
 

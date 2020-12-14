@@ -196,6 +196,7 @@ exports.createUser = async (userPayload, credentials) => {
   const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
   const companyId = payload.company || get(credentials, 'company._id', null);
 
+  if (userPayload.origin === MOBILE) payload.firstMobileConnection = moment().toDate();
   if (!roleId || !credentials) return User.create({ ...payload, refreshToken: uuidv4() });
 
   const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
