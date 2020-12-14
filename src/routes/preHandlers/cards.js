@@ -89,7 +89,10 @@ exports.authorizeCardAnswerCreation = async (req) => {
 };
 
 exports.authorizeCardAnswerUpdate = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
+  const card = await Card.findOne({
+    _id: req.params._id,
+    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+  }).lean();
   if (!card) throw Boom.notFound();
 
   if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();

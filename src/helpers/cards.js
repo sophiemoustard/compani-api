@@ -2,7 +2,12 @@ const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, QUESTION_ANSWER } = require('./constants');
+const {
+  MULTIPLE_CHOICE_QUESTION,
+  SINGLE_CHOICE_QUESTION,
+  QUESTION_ANSWER,
+  ORDER_THE_SEQUENCE,
+} = require('./constants');
 
 exports.addCard = async (activityId, payload) => {
   const card = await Card.create(payload);
@@ -25,6 +30,7 @@ exports.addCardAnswer = async (card) => {
 
 exports.getAnswerKeyToUpdate = (template) => {
   if ([MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(template)) return 'qcAnswers';
+  if (template === ORDER_THE_SEQUENCE) return 'orderedAnswers';
 
   return '';
 };
