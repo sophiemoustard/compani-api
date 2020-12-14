@@ -72,9 +72,11 @@ describe('formatIdentificationInfo', () => {
   let formatAddress;
   beforeEach(() => {
     formatAddress = sinon.stub(DpaeHelper, 'formatAddress');
+    process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
     formatAddress.restore();
+    process.env.AP_SOC = '';
   });
 
   it('should format identification info', async () => {
@@ -99,7 +101,7 @@ describe('formatIdentificationInfo', () => {
     const result = await DpaeHelper.formatIdentificationInfo(auxiliary);
 
     expect(result).toEqual({
-      ap_soc: process.env.AP_SOC,
+      ap_soc: 'ap_soc',
       ap_etab: '67890',
       ap_matr: 'serialNumber',
       fs_titre: 1,
@@ -280,11 +282,13 @@ describe('exportsContractVersions', () => {
     ContractMock = sinon.mock(Contract);
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     getQuery = sinon.stub(ContractHelper, 'getQuery');
+    process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
     ContractMock.restore();
     exportToTxt.restore();
     getQuery.restore();
+    process.env.AP_SOC = '';
   });
 
   it('should export contract version', async () => {
@@ -324,8 +328,8 @@ describe('exportsContractVersions', () => {
       exportToTxt,
       [
         ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire', 'fs_sal_forfait_montant'],
-        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78, 780],
-        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26, 260],
+        ['ap_soc', 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78, 780],
+        ['ap_soc', 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26, 260],
       ]
     );
   });
@@ -337,10 +341,12 @@ describe('exportContractEnds', () => {
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
+    process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
     ContractMock.restore();
     exportToTxt.restore();
+    process.env.AP_SOC = '';
   });
 
   it('should export contract end', async () => {
@@ -379,8 +385,8 @@ describe('exportContractEnds', () => {
       exportToTxt,
       [
         ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_mv_sortie', 'fs_mv_motif_s'],
-        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '04/11/2020', 8],
-        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '07/11/2020', 16],
+        ['ap_soc', 'serialNumber', 'Rougé', 'contractNumber', '04/11/2020', 8],
+        ['ap_soc', 'userNumber', 'Gallier', 'titotu', '07/11/2020', 16],
       ]
     );
   });
@@ -424,7 +430,7 @@ describe('getAbsences', () => {
       .chain('populate')
       .withExactArgs({
         path: 'auxiliary',
-        select: 'serialNumber',
+        select: 'serialNumber identity',
         populate: [{ path: 'contracts' }, { path: 'establishment' }],
       })
       .chain('lean')
@@ -464,7 +470,7 @@ describe('getAbsences', () => {
       .chain('populate')
       .withExactArgs({
         path: 'auxiliary',
-        select: 'serialNumber',
+        select: 'serialNumber identity',
         populate: [{ path: 'contracts' }, { path: 'establishment' }],
       })
       .chain('lean')
@@ -493,6 +499,7 @@ describe('exportsAbsence', () => {
     getAbsences.restore();
     getAbsenceHours.restore();
     exportToTxt.restore();
+    process.env.AP_SOC = '';
   });
 
   it('should export daily absence for auxiliary with contract', async () => {
@@ -509,6 +516,7 @@ describe('exportsAbsence', () => {
           { startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }],
         establishment: { siret: '100009876' },
         serialNumber: '0987654321',
+        identity: { lastname: 'Compani' },
       },
     }];
     getAbsences.returns(absences);
@@ -523,10 +531,10 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '21/11/2020', 0, 1, 1, 5],
-        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '22/11/2020', 0, 0, 1, 0],
-        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '23/11/2020', '23/11/2020', 1, 1, 1, 4],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '21/11/2020', 0, 1, 1, 5],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '22/11/2020', 0, 0, 1, 0],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '23/11/2020', 1, 1, 1, 4],
       ]
     );
     sinon.assert.calledWithExactly(
@@ -561,6 +569,7 @@ describe('exportsAbsence', () => {
           { startDate: '2020-09-21T00:00:00', serialNumber: 'contract' }],
         establishment: { siret: '100009876' },
         serialNumber: '0987654321',
+        identity: { lastname: 'Toto' },
       },
     }];
     getAbsences.returns(absences);
@@ -573,8 +582,8 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Toto', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
       ]
     );
     sinon.assert.calledOnceWithExactly(

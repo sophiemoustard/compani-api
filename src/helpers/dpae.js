@@ -207,7 +207,9 @@ exports.exportContractVersions = async (query, credentials) => {
     });
   }
 
-  return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+  return data.length
+    ? FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
+    : FileHelper.exportToTxt([]);
 };
 
 exports.exportContractEnds = async (query, credentials) => {
@@ -231,23 +233,10 @@ exports.exportContractEnds = async (query, credentials) => {
     });
   }
 
-  return FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))]);
+  return data.length
+    ? FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
+    : FileHelper.exportToTxt([]);
 };
-
-const exportHeader = [
-  'ap_soc',
-  'ap_etab',
-  'ap_matr',
-  'ap_contrat',
-  'va_abs_code',
-  'va_abs_deb',
-  'va_abs_fin',
-  'va_abs_date',
-  'va_abs_nb22',
-  'va_abs_nb26',
-  'va_abs_nb30',
-  'va_abs_nbh',
-];
 
 exports.getAbsences = async (query, credentials) => {
   const companyId = get(credentials, 'company._id') || '';
@@ -272,7 +261,7 @@ exports.getAbsences = async (query, credentials) => {
     })
     .populate({
       path: 'auxiliary',
-      select: 'serialNumber',
+      select: 'serialNumber identity',
       populate: [{ path: 'contracts' }, { path: 'establishment' }],
     })
     .lean();
@@ -281,7 +270,7 @@ exports.getAbsences = async (query, credentials) => {
 exports.exportAbsences = async (query, credentials) => {
   const absences = await exports.getAbsences(query, credentials);
 
-  const data = [exportHeader];
+  const data = [];
   for (const abs of absences) {
     const matchingContract = abs.auxiliary.contracts.find((c) => {
       if (c.endDate) return moment(abs.startDate).isBetween(c.startDate, c.endDate, 'd', '[]');
@@ -292,6 +281,7 @@ exports.exportAbsences = async (query, credentials) => {
       ap_soc: process.env.AP_SOC,
       ap_etab: (get(abs, 'auxiliary.establishment.siret') || '').slice(-NIC_LENGHT),
       ap_matr: abs.auxiliary.serialNumber || '',
+      fs_nom: get(abs, 'auxiliary.identity.lastname') || '',
       ap_contrat: matchingContract.serialNumber || '',
       va_abs_code: VA_ABS_CODE[abs.absence],
       va_abs_deb: moment(abs.startDate).format('DD/MM/YYYY'),
@@ -307,16 +297,18 @@ exports.exportAbsences = async (query, credentials) => {
           startDate: moment(day).startOf('d').toISOString(),
           endDate: moment(day).endOf('d').toISOString(),
         };
-      data.push(Object.values({
+      data.push({
         ...absenceInfo,
         va_abs_date: moment(day).format('DD/MM/YYYY'),
         va_abs_nb22: [1, 2, 3, 4, 5].includes(moment(day).isoWeekday()) ? 1 : 0,
         va_abs_nb26: [1, 2, 3, 4, 5, 6].includes(moment(day).isoWeekday()) ? 1 : 0,
         va_abs_nb30: 1,
         va_abs_nbh: HistoryExportHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
-      }));
+      });
     }
   }
 
-  return FileHelper.exportToTxt(data);
+  return data.length
+    ? FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
+    : FileHelper.exportToTxt([]);
 };
