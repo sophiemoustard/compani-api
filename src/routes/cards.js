@@ -22,7 +22,6 @@ const {
 } = require('./preHandlers/cards');
 const {
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
@@ -51,7 +50,6 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
             falsyGapAnswers: Joi.array().items(
               Joi.string().max(GAP_ANSWER_MAX_LENGTH)
             ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),

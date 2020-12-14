@@ -43,7 +43,7 @@ const cardsList = [
       { _id: new ObjectID(), text: 'o' },
     ],
   },
-  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
+  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: [{ text: 'rien' }, { text: 'des trucs' }] },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
   {

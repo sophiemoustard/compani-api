@@ -13,10 +13,14 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
+  SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT,
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
+  MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+  QUESTION_ANSWER_MIN_ANSWERS_COUNT,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
@@ -71,13 +75,15 @@ exports.cardValidationByTemplate = (template) => {
         qcuGoodAnswer: Joi.string().required().max(QC_ANSWER_MAX_LENGTH),
         qcAnswers: Joi.array().items(Joi.object({
           text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
-        })).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
+        })).min(SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case ORDER_THE_SEQUENCE:
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
-        orderedAnswers: Joi.array().items(Joi.string()).min(2).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
+        orderedAnswers: Joi.array().items(Joi.object({
+          text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
+        })).min(ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case MULTIPLE_CHOICE_QUESTION:
@@ -89,7 +95,7 @@ exports.cardValidationByTemplate = (template) => {
             correct: Joi.boolean().required(),
           }))
           .has(Joi.object({ correct: true }))
-          .min(2)
+          .min(MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT)
           .max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
@@ -116,7 +122,7 @@ exports.cardValidationByTemplate = (template) => {
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         qcAnswers: Joi.array().items(Joi.object({
           text: Joi.string().required(),
-        })).min(2).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
+        })).min(QUESTION_ANSWER_MIN_ANSWERS_COUNT).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
       });
     default:
       return Joi.object().keys();
