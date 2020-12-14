@@ -137,6 +137,7 @@ exports.formatContractInfo = contract => ({
   fs_mv_entree: moment(contract.startDate).format('DD/MM/YYYY'),
   fs_date_avenant: moment(contract.startDate).format('DD/MM/YYYY'),
   fs_horaire: contract.versions[0].weeklyHours * WEEKS_PER_MONTH,
+  fs_sal_forfait_montant: contract.versions[0].weeklyHours * contract.versions[0].grossHourlyRate * WEEKS_PER_MONTH,
 });
 
 exports.exportDpae = async (contract) => {
@@ -202,6 +203,7 @@ exports.exportContractVersions = async (query, credentials) => {
       ap_contrat: version.serialNumber || '',
       fs_date_avenant: moment(version.startDate).format('DD/MM/YYYY'),
       fs_horaire: version.weeklyHours * WEEKS_PER_MONTH,
+      fs_sal_forfait_montant: version.weeklyHours * version.grossHourlyRate * WEEKS_PER_MONTH,
     });
   }
 
