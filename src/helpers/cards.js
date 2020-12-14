@@ -20,7 +20,7 @@ exports.addCardAnswer = async (card) => {
     ? { text: '', correct: false }
     : { text: '' };
 
-  return Card.updateOne({ _id: card._id }, { $push: { [`${key}`]: payload } });
+  return Card.updateOne({ _id: card._id }, { $push: { [key]: payload } });
 };
 
 exports.getAnswerKeyToUpdate = (template) => {
