@@ -69,7 +69,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'order_the_sequence',
         payload: {
           question: 'Que faire dans cette situation ?',
-          orderedAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: orderTheSequenceId,
@@ -178,12 +177,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Order the sequence', () => {
       const requests = [
-        {
-          msg: 'valid ordered answers',
-          payload: { orderedAnswers: ['en fait si', 'a ouai, non'], question: 'ya quoi ???' },
-          passing: true,
-        },
-        { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
         {
           msg: 'too many chars in question',
           payload: {

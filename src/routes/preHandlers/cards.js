@@ -4,7 +4,6 @@ const has = require('lodash/has');
 const Card = require('../../models/Card');
 const {
   FILL_THE_GAPS,
-  ORDER_THE_SEQUENCE,
   FLASHCARD,
   PUBLISHED,
   QUESTION_ANSWER_MAX_ANSWERS_COUNT,
@@ -46,13 +45,6 @@ const checkFillTheGap = (payload, card) => {
   return null;
 };
 
-const checkOrderTheSequence = (payload, card) => {
-  const { orderedAnswers } = payload;
-  if (orderedAnswers && orderedAnswers.length === 1 && card.orderedAnswers.length > 1) return Boom.badRequest();
-
-  return null;
-};
-
 const checkFlashCard = (payload) => {
   const { text } = payload;
   if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
@@ -67,8 +59,6 @@ exports.authorizeCardUpdate = async (req) => {
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload, card);
-    case ORDER_THE_SEQUENCE:
-      return checkOrderTheSequence(req.payload, card);
     case FLASHCARD:
       return checkFlashCard(req.payload);
     default:
