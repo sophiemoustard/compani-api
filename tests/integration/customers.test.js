@@ -1268,7 +1268,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     const payload = {
-      fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
+      fileId: '1234567',
       customer: {
         name: 'Test',
         email: 'test@test.com',
