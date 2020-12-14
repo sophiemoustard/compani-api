@@ -143,7 +143,7 @@ describe('formatContractInfo', () => {
       startDate: '2020-10-03T00:00:00',
       user: 'mon auxiliaire',
       serialNumber: '1234567890',
-      versions: [{ weeklyHours: 24 }],
+      versions: [{ weeklyHours: 24, grossHourlyRate: 10 }],
     };
 
     const result = await DpaeHelper.formatContractInfo(contract);
@@ -160,6 +160,7 @@ describe('formatContractInfo', () => {
       fs_mv_entree: '03/10/2020',
       fs_date_avenant: '03/10/2020',
       fs_horaire: 104,
+      fs_sal_forfait_montant: 1040,
     });
   });
 });
@@ -293,16 +294,16 @@ describe('exportsContractVersions', () => {
       user: { serialNumber: 'serialNumber', identity: { lastname: 'Rougé' } },
       serialNumber: 'contractNumber',
       versions: [
-        { weeklyHours: 18, startDate: '2020-09-01T22:00:00', endDate: '2020-10-01T21:59:59' },
-        { weeklyHours: 24, startDate: '2020-10-01T22:00:00', endDate: '2020-11-09T21:59:59' },
-        { weeklyHours: 18, startDate: '2020-11-10T22:00:00' },
+        { weeklyHours: 18, grossHourlyRate: 10, startDate: '2020-09-01T22:00:00', endDate: '2020-10-01T21:59:59' },
+        { weeklyHours: 24, grossHourlyRate: 10, startDate: '2020-10-01T22:00:00', endDate: '2020-11-09T21:59:59' },
+        { weeklyHours: 18, grossHourlyRate: 10, startDate: '2020-11-10T22:00:00' },
       ],
     }, {
       user: { serialNumber: 'userNumber', identity: { lastname: 'Gallier' } },
       serialNumber: 'titotu',
       versions: [
-        { weeklyHours: 12, startDate: '2020-07-01T22:00:00', endDate: '2020-11-02T21:59:59' },
-        { weeklyHours: 6, startDate: '2020-11-02T22:00:00' },
+        { weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-07-01T22:00:00', endDate: '2020-11-02T21:59:59' },
+        { weeklyHours: 6, grossHourlyRate: 10, startDate: '2020-11-02T22:00:00' },
       ],
     }];
     getQuery.returns([{ endDate: null }, { endDate: { $exists: false } }]);
@@ -322,9 +323,9 @@ describe('exportsContractVersions', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire'],
-        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78],
-        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26],
+        ['ap_soc', 'ap_matr', 'fs_nom', 'ap_contrat', 'fs_date_avenant', 'fs_horaire', 'fs_sal_forfait_montant'],
+        [process.env.AP_SOC, 'serialNumber', 'Rougé', 'contractNumber', '10/11/2020', 78, 780],
+        [process.env.AP_SOC, 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26, 260],
       ]
     );
   });
