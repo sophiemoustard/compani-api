@@ -239,20 +239,20 @@ describe('COMPANIES ROUTES', () => {
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('VENDOR_ADMIN', () => {
-      let createFolderForCompany;
-      let createFolder;
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('vendor_admin');
-        createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
-        createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
-      });
-      afterEach(() => {
-        createFolderForCompany.restore();
-        createFolder.restore();
-      });
+    let createFolderForCompany;
+    let createFolder;
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
+      createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    });
+    afterEach(() => {
+      createFolderForCompany.restore();
+      createFolder.restore();
+    });
 
+    describe('VENDOR_ADMIN', () => {
       it('should create a new company', async () => {
         const companiesBefore = await Company.find().lean();
         createFolderForCompany.returns({ id: '1234567890' });
@@ -352,6 +352,11 @@ describe('COMPANIES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          createFolderForCompany.returns({ id: '1234567890' });
+          createFolder.onCall(0).returns({ id: '0987654321' });
+          createFolder.onCall(1).returns({ id: 'qwerty' });
+          createFolder.onCall(2).returns({ id: 'asdfgh' });
+
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
