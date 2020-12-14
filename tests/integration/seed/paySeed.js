@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -147,6 +147,17 @@ const event = {
   },
 };
 
+const absence = {
+  _id: new ObjectID(),
+  type: ABSENCE,
+  company: authCompany._id,
+  auxiliary: auxiliaries[0],
+  absence: UNPAID_LEAVE,
+  absenceNature: DAILY,
+  startDate: '2020-11-12T09:00:00',
+  endDate: '2020-11-16T21:29:29',
+};
+
 const customer = {
   _id: customerId,
   company: authCompany._id,
@@ -231,7 +242,7 @@ const populateDB = async () => {
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
-  await (new Event(event)).save();
+  await Event.create([event, absence]);
   await Contract.insertMany(contracts);
 };
 
