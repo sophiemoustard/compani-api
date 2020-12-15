@@ -16,6 +16,9 @@ const {
   MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT,
   SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
   SINGLE_CHOICE_QUESTION_MIN_FALSY_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE,
+  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
+  ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -67,7 +70,10 @@ exports.authorizeCardUpdate = async (req) => {
 };
 
 exports.authorizeCardAnswerCreation = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id }).lean();
+  const card = await Card.findOne({
+    _id: req.params._id,
+    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+  }).lean();
   if (!card) throw Boom.notFound();
 
   switch (card.template) {
@@ -79,6 +85,9 @@ exports.authorizeCardAnswerCreation = async (req) => {
       break;
     case MULTIPLE_CHOICE_QUESTION:
       if (card.qcAnswers.length >= MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case ORDER_THE_SEQUENCE:
+      if (card.orderedAnswers.length >= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
   }
 
@@ -101,7 +110,10 @@ exports.authorizeCardAnswerUpdate = async (req) => {
 };
 
 exports.authorizeCardAnswerDeletion = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id, 'qcAnswers._id': req.params.answerId }).lean();
+  const card = await Card.findOne({
+    _id: req.params._id,
+    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+  }).lean();
   if (!card) throw Boom.notFound();
 
   switch (card.template) {
@@ -113,6 +125,9 @@ exports.authorizeCardAnswerDeletion = async (req) => {
       break;
     case MULTIPLE_CHOICE_QUESTION:
       if (card.qcAnswers.length <= MULTIPLE_CHOICE_QUESTION_MIN_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case ORDER_THE_SEQUENCE:
+      if (card.orderedAnswers.length <= ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT) return Boom.forbidden();
       break;
   }
 
