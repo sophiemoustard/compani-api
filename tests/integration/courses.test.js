@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const path = require('path');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
@@ -7,6 +8,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
+const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
 const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = require('../../src/helpers/constants');
@@ -30,6 +32,7 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const DocxHelper = require('../../src/helpers/docx');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -1315,15 +1318,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       const missingParams = ['identity.lastname', 'company', 'local.email'];
-      missingParams.forEach((path) => {
-        it(`should return a 400 error if user has to be created, and missing '${path}' parameter`, async () => {
+      missingParams.forEach((param) => {
+        it(`should return a 400 error if user has to be created, and missing '${param}' parameter`, async () => {
           const payload = {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
           };
 
-          const falsyPayload = omit(payload, path);
+          const falsyPayload = omit(payload, param);
           const response = await app.inject({
             method: 'POST',
             url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1746,11 +1749,25 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
     beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+
       authToken = await getToken('vendor_admin');
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
     });
 
     it('should return 200', async () => {
@@ -1776,6 +1793,23 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

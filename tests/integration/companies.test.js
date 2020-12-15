@@ -225,21 +225,21 @@ describe('COMPANIES ROUTES', () => {
   });
 
   describe('POST /companies', () => {
-    const payload = {
-      name: 'Test SARL',
-      tradeName: 'Test',
-      type: 'company',
-      rcs: '1234567890',
-      rna: '1234567890098765444',
-      ics: '12345678900000',
-      iban: '0987654321234567890987654',
-      bic: 'BR12345678',
-      billingAssistance: 'test@alenvi.io',
-      rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
-      customersConfig: { billingPeriod: MONTH },
-    };
-
     describe('VENDOR_ADMIN', () => {
+      const payload = {
+        name: 'Test SARL',
+        tradeName: 'Test',
+        type: 'company',
+        rcs: '1234567890',
+        rna: '1234567890098765444',
+        ics: '12345678900000',
+        iban: '0987654321234567890987654',
+        bic: 'BR12345678',
+        billingAssistance: 'test@alenvi.io',
+        rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
+        customersConfig: { billingPeriod: MONTH },
+      };
+
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
@@ -340,6 +340,35 @@ describe('COMPANIES ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      const payload = {
+        name: 'Test SARL',
+        tradeName: 'Test',
+        type: 'company',
+        rcs: '1234567890',
+        rna: '1234567890098765444',
+        ics: '12345678900000',
+        iban: '0987654321234567890987654',
+        bic: 'BR12345678',
+        billingAssistance: 'test@alenvi.io',
+        rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
+        customersConfig: { billingPeriod: MONTH },
+      };
+
+      let createFolderForCompany;
+      let createFolder;
+      beforeEach(populateDB);
+
+      beforeEach(async () => {
+        authToken = await getToken('vendor_admin');
+        createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
+        createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+      });
+
+      afterEach(() => {
+        createFolderForCompany.restore();
+        createFolder.restore();
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
@@ -352,6 +381,11 @@ describe('COMPANIES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          createFolderForCompany.returns({ id: '1234567890' });
+          createFolder.onCall(0).returns({ id: '0987654321' });
+          createFolder.onCall(1).returns({ id: 'qwerty' });
+          createFolder.onCall(2).returns({ id: 'asdfgh' });
+
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
