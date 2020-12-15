@@ -23,7 +23,11 @@ const cardsList = [
   { _id: new ObjectID(), template: TITLE_TEXT },
   { _id: new ObjectID(), template: TEXT_MEDIA },
   { _id: new ObjectID(), template: FLASHCARD },
-  { _id: new ObjectID(), template: FILL_THE_GAPS, falsyGapAnswers: ['le papa', 'la maman'] },
+  {
+    _id: new ObjectID(),
+    template: FILL_THE_GAPS,
+    falsyGapAnswers: [{ _id: new ObjectID(), text: 'ase' }, { _id: new ObjectID(), text: 'énué' }],
+  },
   {
     _id: new ObjectID(),
     template: MULTIPLE_CHOICE_QUESTION,

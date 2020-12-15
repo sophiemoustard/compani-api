@@ -21,11 +21,9 @@ const {
   getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
-  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
-  GAP_ANSWER_MAX_LENGTH,
   FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../helpers/constants');
 
@@ -50,9 +48,6 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            falsyGapAnswers: Joi.array().items(
-              Joi.string().max(GAP_ANSWER_MAX_LENGTH)
-            ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             label: Joi.object().keys({
