@@ -39,7 +39,7 @@ const updateAnswer = async (req) => {
 
 const deleteAnswer = async (req) => {
   try {
-    await CardHelper.deleteCardAnswer(req.params);
+    await CardHelper.deleteCardAnswer(req.pre.card, req.params);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {

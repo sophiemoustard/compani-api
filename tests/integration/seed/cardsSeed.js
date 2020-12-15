@@ -66,6 +66,15 @@ const cardsList = [
     template: QUESTION_ANSWER,
     qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
   },
+  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectID(), text: 'uel' }] },
+  {
+    _id: new ObjectID(),
+    template: MULTIPLE_CHOICE_QUESTION,
+    qcAnswers: [
+      { _id: new ObjectID(), correct: false, text: 'mex' },
+      { _id: new ObjectID(), correct: true, text: 'Avery' },
+    ],
+  },
 ];
 
 const activitiesList = [
