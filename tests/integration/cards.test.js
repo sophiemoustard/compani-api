@@ -432,14 +432,11 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        ...card,
-        qcAnswers: [
-          { _id: card.qcAnswers[0]._id, text: 'je suis un texte' },
-          card.qcAnswers[1],
-        ],
-      }));
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        qcAnswers: { _id: card.qcAnswers[0]._id, text: 'je suis un texte' },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should update an ordered answer', async () => {
@@ -455,14 +452,11 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        ...card,
-        orderedAnswers: [
-          { _id: card.orderedAnswers[0]._id, text: 'je suis un texte' },
-          card.orderedAnswers[1],
-        ],
-      }));
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        orderedAnswers: { _id: card.orderedAnswers[0]._id, text: 'je suis un texte' },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should return 400 if text is null', async () => {
