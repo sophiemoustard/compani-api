@@ -95,6 +95,18 @@ const cardsList = [
       { _id: new ObjectID(), text: 'des trucs' },
     ],
   },
+  {
+    _id: new ObjectID(),
+    template: FILL_THE_GAPS,
+    falsyGapAnswers: [
+      { _id: new ObjectID(), text: 'ase' },
+      { _id: new ObjectID(), text: 'énué' },
+      { _id: new ObjectID(), text: 'olard' },
+      { _id: new ObjectID(), text: 'ension' },
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+    ],
+  },
 ];
 
 const activitiesList = [
@@ -108,6 +120,8 @@ const activitiesList = [
       cardsList[12]._id,
       cardsList[8]._id,
       cardsList[16]._id,
+      cardsList[5]._id,
+      cardsList[17]._id,
     ],
     type: 'video',
     status: 'draft',
@@ -115,7 +129,7 @@ const activitiesList = [
   {
     _id: new ObjectID(),
     name: 'la peche',
-    cards: [cardsList[4]._id, cardsList[5]._id, cardsList[13]._id],
+    cards: [cardsList[4]._id, cardsList[13]._id],
     type: 'quiz',
     status: 'published',
   },
