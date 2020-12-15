@@ -38,7 +38,7 @@ const checkFillTheGap = (payload) => {
 
   const validTagging = isValidTagging(outerAcc, gapAcc);
   const validAnswerInTag = isValidAnswerInTag(gapAcc);
-  const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
+  const validAnswersCaracters = gapAcc.every(answer => isValidAnswerCaracters(answer));
   const validAnswersLength = isValidAnswersLength(gapAcc);
   const validTagsCount = isValidTagsCount(gapAcc);
 
@@ -172,8 +172,6 @@ const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !an
 const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
 
 const isValidAnswerCaracters = answer => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(answer);
-
-const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(v));
 
 const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
 
