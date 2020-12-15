@@ -1749,26 +1749,25 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  beforeEach(populateDB);
-
-  let downloadFileByIdStub;
-  let createDocxStub;
-  beforeEach(() => {
-    downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-    createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-    createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
-    process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
-  });
-
-  afterEach(() => {
-    downloadFileByIdStub.restore();
-    createDocxStub.restore();
-    process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
-  });
 
   describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
     beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+
       authToken = await getToken('vendor_admin');
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
     });
 
     it('should return 200', async () => {
@@ -1794,6 +1793,23 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
