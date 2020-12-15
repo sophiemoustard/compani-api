@@ -19,6 +19,7 @@ const {
   ORDER_THE_SEQUENCE,
   ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
+  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -65,7 +66,11 @@ exports.authorizeCardUpdate = async (req) => {
 exports.authorizeCardAnswerCreation = async (req) => {
   const card = await Card.findOne({
     _id: req.params._id,
-    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+    $or: [
+      { 'qcAnswers._id': req.params.answerId },
+      { 'orderedAnswers._id': req.params.answerId },
+      { 'falsyGapAnswer._id': req.params.answerId },
+    ],
   }).lean();
   if (!card) throw Boom.notFound();
 
@@ -81,6 +86,9 @@ exports.authorizeCardAnswerCreation = async (req) => {
       break;
     case ORDER_THE_SEQUENCE:
       if (card.orderedAnswers.length >= ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT) return Boom.forbidden();
+      break;
+    case FILL_THE_GAPS:
+      if (card.falsyGapAnswers.length >= FILL_THE_GAPS_MAX_ANSWERS_COUNT) return Boom.forbidden();
       break;
   }
 
