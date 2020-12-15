@@ -93,11 +93,17 @@ exports.authorizeCardAnswerCreation = async (req) => {
 exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({
     _id: req.params._id,
-    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+    $or: [
+      { 'qcAnswers._id': req.params.answerId },
+      { 'orderedAnswers._id': req.params.answerId },
+      { 'falsyGapAnswers._id': req.params.answerId },
+    ],
   }).lean();
   if (!card) throw Boom.notFound();
 
   if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
+
+  if (card.template === FILL_THE_GAPS && !isValidAnswerCaracters(req.payload.text)) throw Boom.badRequest();
 
   return card;
 };
@@ -164,6 +170,8 @@ const containLonelyTag = value => /<trou>|<\/trou>/g.test(value);
 const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !answers.some(v => containLonelyTag(v));
 
 const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
+
+const isValidAnswerCaracters = answer => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(answer);
 
 const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(v));
 
