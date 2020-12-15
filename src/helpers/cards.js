@@ -7,6 +7,7 @@ const {
   SINGLE_CHOICE_QUESTION,
   QUESTION_ANSWER,
   ORDER_THE_SEQUENCE,
+  FILL_THE_GAPS,
 } = require('./constants');
 
 exports.addCard = async (activityId, payload) => {
@@ -31,6 +32,7 @@ exports.addCardAnswer = async (card) => {
 exports.getAnswerKeyToUpdate = (template) => {
   if ([MULTIPLE_CHOICE_QUESTION, SINGLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(template)) return 'qcAnswers';
   if (template === ORDER_THE_SEQUENCE) return 'orderedAnswers';
+  if (template === FILL_THE_GAPS) return 'falsyGapAnswers';
 
   return '';
 };

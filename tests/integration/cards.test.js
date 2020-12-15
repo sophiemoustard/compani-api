@@ -557,6 +557,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 400 if fill the gaps and text has invalid char', async () => {
+      const card = cardsList[5];
+      const answer = card.falsyGapAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: 'invalid char: c\'est tout' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
