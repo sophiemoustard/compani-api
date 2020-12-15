@@ -358,6 +358,23 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(cardUpdated).toEqual(1);
     });
 
+    it('should add an falsy gap answer', async () => {
+      const card = cardsList[5];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        falsyGapAnswers: { $size: card.falsyGapAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
+    });
+
     it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -373,6 +390,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       { name: 'single_choice_question', card: cardsList[7] },
       { name: 'multiple_choice_question', card: cardsList[6] },
       { name: 'order_the_sequence', card: cardsList[8] },
+      { name: 'fill_the_gaps', card: cardsList[17] },
     ];
     templates.forEach((template) => {
       it(`should return 403 if ${template.name} with already max answers`, async () => {
@@ -655,6 +673,30 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       }));
     });
 
+    it('should delete a falsy gap answer', async () => {
+      const card = cardsList[17];
+      const answer = card.falsyGapAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        falsyGapAnswers: [
+          card.falsyGapAnswers[1],
+          card.falsyGapAnswers[2],
+          card.falsyGapAnswers[3],
+          card.falsyGapAnswers[4],
+          card.falsyGapAnswers[5],
+        ],
+      }));
+    });
+
     it('should return 400 if cardId is missing', async () => {
       const card = cardsList[12];
       const answer = card.qcAnswers[0];
@@ -722,6 +764,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       { name: 'single_choice_question', card: cardsList[14], key: 'qcAnswers' },
       { name: 'multiple_choice_question', card: cardsList[15], key: 'qcAnswers' },
       { name: 'order_the_sequence', card: cardsList[16], key: 'orderedAnswers' },
+      { name: 'fill_the_gaps', card: cardsList[5], key: 'falsyGapAnswers' },
     ];
     templates.forEach((template) => {
       it(`should return 403 if ${template.name} with already min answers`, async () => {
