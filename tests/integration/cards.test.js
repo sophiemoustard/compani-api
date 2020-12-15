@@ -330,7 +330,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should add an answer', async () => {
+    it('should add a qcAnswer', async () => {
       const card = cardsList[11];
       const response = await app.inject({
         method: 'POST',
@@ -342,6 +342,20 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       const cardUpdated = await Card.findById(card._id).lean();
       expect(cardUpdated.qcAnswers.length).toEqual(card.qcAnswers.length + 1);
+    });
+
+    it('should add an ordered answer', async () => {
+      const card = cardsList[16];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated.orderedAnswers.length).toEqual(card.orderedAnswers.length + 1);
     });
 
     it('should return 404 if invalid card id', async () => {
@@ -358,6 +372,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       { name: 'question_answer', card: cardsList[12] },
       { name: 'single_choice_question', card: cardsList[7] },
       { name: 'multiple_choice_question', card: cardsList[6] },
+      { name: 'order_the_sequence', card: cardsList[8] },
     ];
     templates.forEach((template) => {
       it(`should return 403 if ${template.name} with already max answers`, async () => {
@@ -576,15 +591,16 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const card = cardsList[12];
-  const answer = card.qcAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should delete an answer', async () => {
+    it('should delete a qcAnswer', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
@@ -604,7 +620,31 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       }));
     });
 
+    it('should delete an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        orderedAnswers: [
+          card.orderedAnswers[1],
+          card.orderedAnswers[2],
+        ],
+      }));
+    });
+
     it('should return 400 if cardId is missing', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${null}/answers/${answer._id.toHexString()}`,
@@ -615,6 +655,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 400 if answerId is missing', async () => {
+      const card = cardsList[12];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${null}`,
@@ -625,6 +667,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if invalid card id', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
@@ -635,6 +680,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if answer is not in card', async () => {
+      const card = cardsList[12];
+
       const otherQACard = cardsList[11];
       const response = await app.inject({
         method: 'DELETE',
@@ -657,15 +704,17 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     const templates = [
-      { name: 'question_answer', card: cardsList[11] },
-      { name: 'single_choice_question', card: cardsList[14] },
-      { name: 'multiple_choice_question', card: cardsList[15] },
+      { name: 'question_answer', card: cardsList[11], key: 'qcAnswers' },
+      { name: 'single_choice_question', card: cardsList[14], key: 'qcAnswers' },
+      { name: 'multiple_choice_question', card: cardsList[15], key: 'qcAnswers' },
+      { name: 'order_the_sequence', card: cardsList[16], key: 'orderedAnswers' },
     ];
     templates.forEach((template) => {
       it(`should return 403 if ${template.name} with already min answers`, async () => {
+        const answers = template.card[`${template.key}`];
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${template.card._id.toHexString()}/answers/${template.card.qcAnswers[0]._id.toHexString()}`,
+          url: `/cards/${template.card._id.toHexString()}/answers/${answers[0]._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -687,6 +736,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   });
 
   describe('Other roles', () => {
+    const card = cardsList[12];
+    const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
