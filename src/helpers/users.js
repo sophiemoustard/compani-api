@@ -5,7 +5,6 @@ const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
-const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
@@ -192,23 +191,35 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
+/**
+ * 1st case : User creates his account => no credentials => handle payload as given
+ * 2nd case : Client role creates user for his organization => set company with the one in credentials
+ * + role (if needed)
+ *  - if sector is given => add sector history (for auxiliary and planning referent)
+ * 3rd case : Vendor role creates user for one organization => set company with the one in payload + role (if needed)
+ * 4th case : Vendor role creates trainer => do no set company
+ */
 exports.createUser = async (userPayload, credentials) => {
-  const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
+  const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
+
+  if (!credentials) {
+    if (userPayload.origin !== MOBILE) return User.create(payload);
+    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
+  }
+
   const companyId = payload.company || get(credentials, 'company._id', null);
+  if (!userPayload.role) return User.create({ ...payload, company: companyId });
 
-  if (userPayload.origin === MOBILE) payload.firstMobileConnection = moment().toDate();
-  if (!roleId || !credentials) return User.create({ ...payload, refreshToken: uuidv4() });
-
-  const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
+  const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
-  payload.role = { [role.interface]: role._id };
+  const user = role.name !== TRAINER
+    ? await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId })
+    : await User.create({ ...payload, role: { [role.interface]: role._id } });
 
-  if (role.name !== TRAINER) payload.company = companyId;
-
-  const user = await User.create({ ...payload, refreshToken: uuidv4() });
-
-  if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
+  if (userPayload.sector) {
+    await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);
+  }
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
