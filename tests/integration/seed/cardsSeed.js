@@ -46,7 +46,11 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: ORDER_THE_SEQUENCE,
-    orderedAnswers: [{ _id: new ObjectID(), text: 'rien' }, { _id: new ObjectID(), text: 'des trucs' }],
+    orderedAnswers: [
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+      { _id: new ObjectID(), text: 'encore des trucs' },
+    ],
   },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
@@ -79,13 +83,28 @@ const cardsList = [
       { _id: new ObjectID(), correct: true, text: 'Avery' },
     ],
   },
+  {
+    _id: new ObjectID(),
+    template: ORDER_THE_SEQUENCE,
+    orderedAnswers: [
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+    ],
+  },
 ];
 
 const activitiesList = [
   {
     _id: new ObjectID(),
     name: 'Coucou toi',
-    cards: [cardsList[0]._id, cardsList[1]._id, cardsList[11]._id, cardsList[12]._id],
+    cards: [
+      cardsList[0]._id,
+      cardsList[1]._id,
+      cardsList[11]._id,
+      cardsList[12]._id,
+      cardsList[8]._id,
+      cardsList[16]._id,
+    ],
     type: 'video',
     status: 'draft',
   },
