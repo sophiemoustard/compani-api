@@ -22,35 +22,28 @@ const {
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
-const checkFillTheGap = (payload, card) => {
-  const { gappedText, falsyGapAnswers } = payload;
-
-  if (gappedText) {
-    const { outerAcc, gapAcc } = parseTagCode(gappedText);
-
-    const validTagging = isValidTagging(outerAcc, gapAcc);
-    const validAnswerInTag = isValidAnswerInTag(gapAcc);
-    const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
-    const validAnswersLength = isValidAnswersLength(gapAcc);
-    const validTagsCount = isValidTagsCount(gapAcc);
-
-    if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
-      !validAnswerInTag) return Boom.badRequest();
-  } else if (falsyGapAnswers) {
-    if (falsyGapAnswers.length === 1 && card.falsyGapAnswers.length > 1) return Boom.badRequest();
-
-    const validAnswersCaracters = isValidAnswersCaracters(falsyGapAnswers);
-    const validAnswersLength = isValidAnswersLength(falsyGapAnswers);
-
-    if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
-  }
+const checkFlashCard = (payload) => {
+  const { text } = payload;
+  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
 
   return null;
 };
 
-const checkFlashCard = (payload) => {
-  const { text } = payload;
-  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
+const checkFillTheGap = (payload) => {
+  const { gappedText } = payload;
+
+  if (!gappedText) return null;
+
+  const { outerAcc, gapAcc } = parseTagCode(gappedText);
+
+  const validTagging = isValidTagging(outerAcc, gapAcc);
+  const validAnswerInTag = isValidAnswerInTag(gapAcc);
+  const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
+  const validAnswersLength = isValidAnswersLength(gapAcc);
+  const validTagsCount = isValidTagsCount(gapAcc);
+
+  if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
+      !validAnswerInTag) return Boom.badRequest();
 
   return null;
 };
@@ -61,7 +54,7 @@ exports.authorizeCardUpdate = async (req) => {
 
   switch (card.template) {
     case FILL_THE_GAPS:
-      return checkFillTheGap(req.payload, card);
+      return checkFillTheGap(req.payload);
     case FLASHCARD:
       return checkFlashCard(req.payload);
     default:

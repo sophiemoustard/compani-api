@@ -50,7 +50,7 @@ const CardSchema = mongoose.Schema({
   question: { type: String },
   qcuGoodAnswer: { type: String },
   falsyGapAnswers: {
-    type: [String],
+    type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
   qcAnswers: {
@@ -77,7 +77,7 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
-        this.falsyGapAnswers = [];
+        this.falsyGapAnswers = [{ text: '' }, { text: '' }];
         break;
       case SINGLE_CHOICE_QUESTION:
         this.qcAnswers = [{ text: '' }];
