@@ -1318,15 +1318,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       const missingParams = ['identity.lastname', 'company', 'local.email'];
-      missingParams.forEach((path) => {
-        it(`should return a 400 error if user has to be created, and missing '${path}' parameter`, async () => {
+      missingParams.forEach((param) => {
+        it(`should return a 400 error if user has to be created, and missing '${param}' parameter`, async () => {
           const payload = {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
           };
 
-          const falsyPayload = omit(payload, path);
+          const falsyPayload = omit(payload, param);
           const response = await app.inject({
             method: 'POST',
             url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
