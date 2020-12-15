@@ -285,11 +285,11 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
             learningGoals: programsList[0].learningGoals,
             subPrograms: [expect.any(ObjectID)],
           },
-          steps: [{
+          steps: expect.arrayContaining([{
             _id: expect.any(ObjectID),
             name: step.name,
             type: step.type,
-          }],
+          }]),
         },
         trainer: expect.objectContaining({
           _id: courseTrainer._id,
@@ -731,13 +731,13 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           image: programsList[0].image,
           subPrograms: [expect.any(ObjectID)],
         },
-        steps: [{
+        steps: expect.arrayContaining([{
           _id: expect.any(ObjectID),
           name: step.name,
           type: step.type,
           areActivitiesValid: false,
           progress: expect.any(Number),
-          activities: [{
+          activities: expect.arrayContaining([{
             _id: expect.any(ObjectID),
             name: activity.name,
             type: activity.type,
@@ -748,8 +748,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
               expect.objectContaining({ user: coachFromAuthCompany._id }),
               expect.not.objectContaining({ user: clientAdmin._id }),
             ]),
-          }],
-        }],
+          }]),
+        }]),
       }),
       slots: expect.arrayContaining([
         expect.objectContaining({
