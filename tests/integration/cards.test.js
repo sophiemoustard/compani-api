@@ -340,8 +340,11 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated.qcAnswers.length).toEqual(card.qcAnswers.length + 1);
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        qcAnswers: { $size: card.qcAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should add an ordered answer', async () => {
@@ -354,8 +357,11 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated.orderedAnswers.length).toEqual(card.orderedAnswers.length + 1);
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        orderedAnswers: { $size: card.orderedAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should return 404 if invalid card id', async () => {
