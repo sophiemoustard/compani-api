@@ -171,7 +171,9 @@ exports.authorizeUserCreation = async (req) => {
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');
-  if (req.payload.company && ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
+  const loggedUserCompany = get(credentials, 'company._id');
+  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) &&
+    ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
     throw Boom.forbidden();
   }
 
