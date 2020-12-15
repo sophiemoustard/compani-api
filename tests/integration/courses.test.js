@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const path = require('path');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
@@ -7,6 +8,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
+const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
 const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = require('../../src/helpers/constants');
@@ -30,6 +32,7 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const DocxHelper = require('../../src/helpers/docx');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -1747,6 +1750,21 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   beforeEach(populateDB);
+
+  let downloadFileByIdStub;
+  let createDocxStub;
+  beforeEach(() => {
+    downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+    createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+    createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+    process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+  });
+
+  afterEach(() => {
+    downloadFileByIdStub.restore();
+    createDocxStub.restore();
+    process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+  });
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
