@@ -26,6 +26,7 @@ const {
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
   GAP_ANSWER_MAX_LENGTH,
+  FILL_THE_GAPS_MIN_ANSWERS_COUNT,
 } = require('../../helpers/constants');
 
 exports.cardValidationByTemplate = (template) => {
@@ -64,9 +65,9 @@ exports.cardValidationByTemplate = (template) => {
     case FILL_THE_GAPS:
       return Joi.object().keys({
         gappedText: Joi.string().required(),
-        falsyGapAnswers: Joi.array().items(
-          Joi.string().required().max(GAP_ANSWER_MAX_LENGTH)
-        ).min(2).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
+        falsyGapAnswers: Joi.array().items(Joi.object({
+          text: Joi.string().max(GAP_ANSWER_MAX_LENGTH).required(),
+        })).min(FILL_THE_GAPS_MIN_ANSWERS_COUNT).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
     case SINGLE_CHOICE_QUESTION:

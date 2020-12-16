@@ -60,7 +60,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'fill_the_gaps',
         payload: {
           gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          falsyGapAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -150,12 +149,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
         { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { falsyGapAnswers: ['la maman', 'le tonton'] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { falsyGapAnswers: ['la maman'] } },
-        { msg: 'long answer', payload: { falsyGapAnswers: ['la maman', 'more then 15 characters'] } },
-        { msg: 'wrong character in answer', payload: { falsyGapAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
-        { msg: 'too many falsy answers', payload: { falsyGapAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
@@ -558,6 +552,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
         payload: { correct: false },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if fill the gaps and text has invalid char', async () => {
+      const card = cardsList[5];
+      const answer = card.falsyGapAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: 'invalid char: c\'est tout' },
         headers: { 'x-access-token': authToken },
       });
 

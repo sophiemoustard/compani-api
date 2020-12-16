@@ -22,35 +22,28 @@ const {
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
-const checkFillTheGap = (payload, card) => {
-  const { gappedText, falsyGapAnswers } = payload;
-
-  if (gappedText) {
-    const { outerAcc, gapAcc } = parseTagCode(gappedText);
-
-    const validTagging = isValidTagging(outerAcc, gapAcc);
-    const validAnswerInTag = isValidAnswerInTag(gapAcc);
-    const validAnswersCaracters = isValidAnswersCaracters(gapAcc);
-    const validAnswersLength = isValidAnswersLength(gapAcc);
-    const validTagsCount = isValidTagsCount(gapAcc);
-
-    if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
-      !validAnswerInTag) return Boom.badRequest();
-  } else if (falsyGapAnswers) {
-    if (falsyGapAnswers.length === 1 && card.falsyGapAnswers.length > 1) return Boom.badRequest();
-
-    const validAnswersCaracters = isValidAnswersCaracters(falsyGapAnswers);
-    const validAnswersLength = isValidAnswersLength(falsyGapAnswers);
-
-    if (!validAnswersCaracters || !validAnswersLength) return Boom.badRequest();
-  }
+const checkFlashCard = (payload) => {
+  const { text } = payload;
+  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
 
   return null;
 };
 
-const checkFlashCard = (payload) => {
-  const { text } = payload;
-  if (text && text.length > FLASHCARD_TEXT_MAX_LENGTH) return Boom.badRequest();
+const checkFillTheGap = (payload) => {
+  const { gappedText } = payload;
+
+  if (!gappedText) return null;
+
+  const { outerAcc, gapAcc } = parseTagCode(gappedText);
+
+  const validTagging = isValidTagging(outerAcc, gapAcc);
+  const validAnswerInTag = isValidAnswerInTag(gapAcc);
+  const validAnswersCaracters = gapAcc.every(answer => isValidAnswerCaracters(answer));
+  const validAnswersLength = isValidAnswersLength(gapAcc);
+  const validTagsCount = isValidTagsCount(gapAcc);
+
+  if (!validTagging || !validAnswersCaracters || !validAnswersLength || !validTagsCount ||
+      !validAnswerInTag) return Boom.badRequest();
 
   return null;
 };
@@ -61,7 +54,7 @@ exports.authorizeCardUpdate = async (req) => {
 
   switch (card.template) {
     case FILL_THE_GAPS:
-      return checkFillTheGap(req.payload, card);
+      return checkFillTheGap(req.payload);
     case FLASHCARD:
       return checkFlashCard(req.payload);
     default:
@@ -100,11 +93,17 @@ exports.authorizeCardAnswerCreation = async (req) => {
 exports.authorizeCardAnswerUpdate = async (req) => {
   const card = await Card.findOne({
     _id: req.params._id,
-    $or: [{ 'qcAnswers._id': req.params.answerId }, { 'orderedAnswers._id': req.params.answerId }],
+    $or: [
+      { 'qcAnswers._id': req.params.answerId },
+      { 'orderedAnswers._id': req.params.answerId },
+      { 'falsyGapAnswers._id': req.params.answerId },
+    ],
   }).lean();
   if (!card) throw Boom.notFound();
 
   if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
+
+  if (card.template === FILL_THE_GAPS && !isValidAnswerCaracters(req.payload.text)) throw Boom.badRequest();
 
   return card;
 };
@@ -172,7 +171,7 @@ const isValidTagging = (outerAcc, answers) => !containLonelyTag(outerAcc) && !an
 
 const isValidAnswerInTag = gapAcc => !gapAcc.some(v => v.trim() !== v);
 
-const isValidAnswersCaracters = answers => answers.every(v => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(v));
+const isValidAnswerCaracters = answer => /^[a-zA-Z0-9àâçéèêëîïôûùü\040'-]*$/.test(answer);
 
 const isValidAnswersLength = answers => answers.every(v => v.length > 0 && v.length < 16);
 
