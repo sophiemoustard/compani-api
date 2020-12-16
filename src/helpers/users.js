@@ -207,15 +207,14 @@ exports.createUser = async (userPayload, credentials) => {
     return User.create({ ...payload, firstMobileConnection: moment().toDate() });
   }
 
-  const companyId = payload.company || get(credentials, 'company._id', null);
+  const companyId = payload.company || get(credentials, 'company._id');
   if (!userPayload.role) return User.create({ ...payload, company: companyId });
 
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
-  const user = role.name !== TRAINER
-    ? await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId })
-    : await User.create({ ...payload, role: { [role.interface]: role._id } });
+  if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
+  const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);

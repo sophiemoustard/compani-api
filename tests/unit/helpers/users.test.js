@@ -936,7 +936,7 @@ describe('createUser', () => {
     sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
   });
 
-  it('client admin - should create a coach for his organization and handles sector', async () => {
+  it('client admin - should create a coach for his organization', async () => {
     const companyId = new ObjectID();
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
