@@ -11,6 +11,7 @@ const {
   TRAINEE_DELETION,
 } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
+const { calledWithExactly, stubChainedQueries } = require('../utils');
 
 describe('createHistory', () => {
   let create;
@@ -303,14 +304,10 @@ describe('createHistoryOnTraineeDeletion', () => {
 });
 
 describe('list', () => {
-  let CourseHistoryMock;
-
-  beforeEach(() => {
-    CourseHistoryMock = sinon.mock(CourseHistory);
-  });
+  let CourseHistoryFind;
 
   afterEach(() => {
-    CourseHistoryMock.restore();
+    CourseHistoryFind.restore();
   });
 
   it('should return the requested course histories', async () => {
@@ -328,22 +325,22 @@ describe('list', () => {
     }];
     const query = { course: returnedList[0].course };
 
-    CourseHistoryMock
-      .expects('find')
-      .withExactArgs(query)
-      .chain('populate')
-      .withExactArgs({ path: 'createdBy', select: '_id identity picture' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainee', select: '_id identity' })
-      .chain('sort')
-      .withExactArgs({ createdAt: -1 })
-      .chain('lean')
-      .returns(returnedList);
+    CourseHistoryFind = sinon.stub(CourseHistory, 'find')
+      .returns(stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    CourseHistoryMock.verify();
+
+    const chainedPayload = [
+      { query: '', args: query },
+      { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
+      { query: 'populate', args: { path: 'trainee', select: '_id identity' } },
+      { query: 'sort', args: { createdAt: -1 } },
+      { query: 'limit', args: 20 },
+      { query: 'lean' },
+    ];
+    calledWithExactly(CourseHistoryFind, chainedPayload);
   });
 
   it('should return the requested course histories before createdAt', async () => {
@@ -361,22 +358,22 @@ describe('list', () => {
       createdAt: '2019-02-03T10:00:00.000Z',
     }];
     const query = { course: returnedList[0].course, createdAt: '2019-02-04T10:00:00.000Z' };
-
-    CourseHistoryMock
-      .expects('find')
-      .withExactArgs({ course: query.course, createdAt: { $lt: query.createdAt } })
-      .chain('populate')
-      .withExactArgs({ path: 'createdBy', select: '_id identity picture' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainee', select: '_id identity' })
-      .chain('sort')
-      .withExactArgs({ createdAt: -1 })
-      .chain('lean')
-      .returns(returnedList);
+    CourseHistoryFind = sinon.stub(CourseHistory, 'find')
+      .returns(stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    CourseHistoryMock.verify();
+    calledWithExactly(
+      CourseHistoryFind,
+      [
+        { query: '', args: { course: query.course, createdAt: { $lt: query.createdAt } } },
+        { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
+        { query: 'populate', args: { path: 'trainee', select: '_id identity' } },
+        { query: 'sort', args: { createdAt: -1 } },
+        { query: 'limit', args: 20 },
+        { query: 'lean' },
+      ]
+    );
   });
 });

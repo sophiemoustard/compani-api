@@ -47,6 +47,10 @@ describe('getActivity', () => {
   // https://stackoverflow.com/questions/37948135/how-do-i-stub-a-chain-of-methods-in-sinon
   let ActivityStub;
 
+  afterEach(() => {
+    ActivityStub.restore();
+  });
+
   it('should return the requested activity', async () => {
     ActivityStub = sinon.stub(Activity, 'findOne').returns({
       populate: sinon.stub().returnsThis(),
@@ -76,7 +80,6 @@ describe('getActivity', () => {
       ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
       { virtuals: true }
     );
-    ActivityStub.restore();
   });
 
   it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
@@ -103,7 +106,6 @@ describe('getActivity', () => {
 
     calledWithExactly(ActivityStub, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
-    ActivityStub.restore();
   });
 
   // ------- MEDIUM -------
