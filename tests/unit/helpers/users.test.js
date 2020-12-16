@@ -1019,13 +1019,7 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({ ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string })
       .returns(newUser);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(newUser);
+    UserMock.expects('findOne').never();
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
