@@ -5,7 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-const { checkSinon, chainedMongoose } = require('../utils');
+const { calledWithExactly, stubChainedQueries } = require('../utils');
 
 describe('getActivity', () => {
   // let ActivityMock;
@@ -79,29 +79,29 @@ describe('getActivity', () => {
     ActivityStub.restore();
   });
 
-  it('should return the requested activity - with checkSinon and chainedMongoose', async () => {
-    ActivityStub = sinon.stub(Activity, 'findOne').returns(chainedMongoose([{ _id: 'skusku' }]));
+  it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
+    ActivityStub = sinon.stub(Activity, 'findOne').returns(stubChainedQueries([{ _id: 'skusku' }]));
 
     const activity = { _id: new ObjectID() };
 
     const result = await ActivityHelper.getActivity(activity._id);
 
-    const skusku = [
-      { query: '', arg: { _id: activity._id } },
-      { query: 'populate', arg: { path: 'cards', select: '-__v -createdAt -updatedAt' } },
+    const chainedPayload = [
+      { query: '', args: { _id: activity._id } },
+      { query: 'populate', args: { path: 'cards', select: '-__v -createdAt -updatedAt' } },
       {
         query: 'populate',
-        arg: {
+        args: {
           path: 'steps',
           select: '_id -activities',
           populate:
           { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
         },
       },
-      { query: 'lean', arg: { virtuals: true } },
+      { query: 'lean', args: { virtuals: true } },
     ];
 
-    checkSinon(ActivityStub, skusku);
+    calledWithExactly(ActivityStub, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
     ActivityStub.restore();
   });
