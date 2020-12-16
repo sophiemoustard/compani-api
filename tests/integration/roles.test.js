@@ -48,6 +48,9 @@ describe('ROLES ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 200 },
+        { name: 'training_organisation_manager', expectedCode: 200 },
+        { name: 'trainer', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
