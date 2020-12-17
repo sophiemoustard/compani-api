@@ -151,6 +151,22 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         expect(response.statusCode).toBe(403);
       });
 
+    it('should publish with empty onSite step',
+      async () => {
+        const subProgramId = subProgramsList[7]._id;
+        const payload = { status: 'published', accessCompany: authCompany._id };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/subprograms/${subProgramId.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+        expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+      });
+
     it('should return a 400 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
       async () => {
         const payload = { status: 'published', accessCompany: new ObjectID() };
