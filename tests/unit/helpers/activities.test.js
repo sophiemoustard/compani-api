@@ -5,85 +5,20 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-const { calledWithExactly, stubChainedQueries } = require('../utils');
+const sinonMongoose = require('../sinonMongoose');
 
 describe('getActivity', () => {
-  // let ActivityMock;
+  let findOne;
 
-  // beforeEach(() => {
-  //   ActivityMock = sinon.mock(Activity);
-  // });
-
-  // afterEach(() => {
-  //   ActivityMock.restore();
-  // });
-
-  // it('should return the requested activity', async () => {
-  //   const activity = { _id: new ObjectID() };
-
-  //   ActivityMock.expects('findOne')
-  //     .withExactArgs({ _id: activity._id })
-  //     .chain('populate')
-  //     .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
-  //     .chain('populate')
-  //     .withExactArgs({
-  //       path: 'steps',
-  //       select: '_id -activities',
-  //       populate: {
-  //         path: 'subProgram',
-  //         select: '_id -steps',
-  //         populate: { path: 'program', select: 'name -subPrograms' },
-  //       },
-  //     })
-  //     .chain('lean')
-  //     .once()
-  //     .returns(activity);
-
-  //   const result = await ActivityHelper.getActivity(activity._id);
-  //   expect(result).toMatchObject(activity);
-  // });
-
-  // ------- STACKOVERFLOW -------
-  // https://stackoverflow.com/questions/37948135/how-do-i-stub-a-chain-of-methods-in-sinon
-  let ActivityStub;
-
-  afterEach(() => {
-    ActivityStub.restore();
+  beforeEach(() => {
+    findOne = sinon.stub(Activity, 'findOne');
   });
-
-  it('should return the requested activity', async () => {
-    ActivityStub = sinon.stub(Activity, 'findOne').returns({
-      populate: sinon.stub().returnsThis(),
-      lean: sinon.stub().returns({ _id: 'skusku' }),
-    });
-
-    const activity = { _id: new ObjectID() };
-
-    const result = await ActivityHelper.getActivity(activity._id);
-
-    expect(result).toMatchObject({ _id: 'skusku' });
-    sinon.assert.calledWithExactly(ActivityStub, { _id: activity._id });
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate,
-      { path: 'cards', select: '-__v -createdAt -updatedAt' }
-    );
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
-      {
-        path: 'steps',
-        select: '_id -activities',
-        populate:
-          { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
-      }
-    );
-    sinon.assert.calledWithExactly(
-      ActivityStub.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
-      { virtuals: true }
-    );
+  afterEach(() => {
+    findOne.restore();
   });
 
   it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
-    ActivityStub = sinon.stub(Activity, 'findOne').returns(stubChainedQueries([{ _id: 'skusku' }]));
+    findOne.returns(sinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
 
     const activity = { _id: new ObjectID() };
 
@@ -104,62 +39,9 @@ describe('getActivity', () => {
       { query: 'lean', args: { virtuals: true } },
     ];
 
-    calledWithExactly(ActivityStub, chainedPayload);
+    sinonMongoose.calledWithExactly(findOne, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
   });
-
-  // ------- MEDIUM -------
-  // https://medium.com/@tehvicke/integration-and-unit-testing-with-jest-in-nodejs-and-mongoose-bd41c61c9fbc
-  // let ActivityMock;
-
-  // beforeEach(() => {
-  //   ActivityMock = sinon.stub(Activity, 'findOne').callsFake(() => ({
-  //     populate: sinon.stub().callsFake(() => ({
-  //       populate: sinon.stub().callsFake(() => ({
-  //         lean: sinon.stub().returns({ _id: 'skusku' }),
-  //       })),
-  //     })),
-  //   }));
-  // });
-
-  // afterEach(() => {
-  //   ActivityMock.restore();
-  // });
-
-  // it('should return the requested activity', async () => {
-  //   const activity = { _id: new ObjectID() };
-
-  //   const result = await ActivityHelper.getActivity(activity._id);
-
-  //   console.log(ActivityMock.getCall(0).returnValue.populate());
-  //   expect(result).toMatchObject({ _id: 'skusku' });
-  //   sinon.assert.calledWithExactly(ActivityMock, { _id: activity._id });
-  //   sinon.assert.calledWithExactly(
-  //     ActivityMock.getCall(0).returnValue.populate,
-  //     { path: 'cards', select: '-__v -createdAt -updatedAt' }
-  //   );
-  //   sinon.assert.calledWithExactly(
-  //     ActivityMock.getCall(0).returnValue.populate.getCall(0).returnValue.populate,
-  //     {
-  //       path: 'steps',
-  //       select: '_id -activities',
-  //       populate:
-  //         { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
-  //     }
-  //   );
-  //   sinon.assert.calledWithExactly(
-  //     ActivityMock.getCall(0).returnValue.populate.getCall(0).returnValue.populate.getCall(0).returnValue.lean,
-  //     { virtuals: true }
-  //   );
-  // });
-
-  // https://stackoverflow.com/questions/27847377/using-sinon-to-stub-chained-mongoose-calls
-  // 3ème commentaire -> ne donne rien
-  // 1er commentaire -> même code que notre solution mais en moins lisible
-
-  // https://github.com/sinonjs/sinon/issues/92
-  // NECECSSITE DE STUB CHAQUE FONCTION (FINDONE, POPULATE, LEAN) PUIS DE FAIRE UN CALLRIGHTAFTER + CALLEDWITHEXACTLY
-  // JE N'AI PAS REUSSI A STUB POPULATE NI LEAN
 });
 
 describe('updateActivity', () => {
