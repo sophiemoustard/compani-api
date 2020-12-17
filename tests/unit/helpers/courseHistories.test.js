@@ -11,7 +11,7 @@ const {
   TRAINEE_DELETION,
 } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
-const sinonMongoose = require('../sinonMongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('createHistory', () => {
   let create;
@@ -304,13 +304,13 @@ describe('createHistoryOnTraineeDeletion', () => {
 });
 
 describe('list', () => {
-  let CourseHistoryFind;
+  let find;
 
   beforeEach(() => {
-    CourseHistoryFind = sinon.stub(CourseHistory, 'find');
+    find = sinon.stub(CourseHistory, 'find');
   });
   afterEach(() => {
-    CourseHistoryFind.restore();
+    find.restore();
   });
 
   it('should return the requested course histories', async () => {
@@ -328,12 +328,12 @@ describe('list', () => {
     }];
     const query = { course: returnedList[0].course };
 
-    CourseHistoryFind.returns(sinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    sinonMongoose.calledWithExactly(CourseHistoryFind, [
+    SinonMongoose.calledWithExactly(find, [
       { query: '', args: query },
       { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
       { query: 'populate', args: { path: 'trainee', select: '_id identity' } },
@@ -359,13 +359,13 @@ describe('list', () => {
     }];
     const query = { course: returnedList[0].course, createdAt: '2019-02-04T10:00:00.000Z' };
 
-    CourseHistoryFind.returns(sinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    sinonMongoose.calledWithExactly(
-      CourseHistoryFind,
+    SinonMongoose.calledWithExactly(
+      find,
       [
         { query: '', args: { course: query.course, createdAt: { $lt: query.createdAt } } },
         { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
