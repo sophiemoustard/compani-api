@@ -4,14 +4,36 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
+const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
-const activitiesList = [{ _id: new ObjectID(), type: 'sharing_experience', name: 'activite' }];
+const cardsList = [
+  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
+  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
+  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
+];
+
+const activitiesList = [
+  {
+    _id: new ObjectID(),
+    type: 'sharing_experience',
+    name: 'activite',
+    cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id],
+  },
+  {
+    _id: new ObjectID(),
+    type: 'sharing_experience',
+    name: 'activite',
+    cards: [],
+  },
+];
 
 const stepsList = [
   { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
   { _id: new ObjectID(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), name: 'step 3', type: 'e_learning' },
+  { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[1]._id] },
 ];
 
 const subProgramsList = [
@@ -20,6 +42,8 @@ const subProgramsList = [
   { _id: new ObjectID(), name: 'subProgram 3', status: 'published', steps: [stepsList[0]._id] },
   { _id: new ObjectID(), name: 'subProgram 4', status: 'draft', steps: [stepsList[2]._id] },
   { _id: new ObjectID(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
+  { _id: new ObjectID(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
+  { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id] },
 ];
 
 const programsList = [
@@ -46,6 +70,7 @@ const populateDB = async () => {
   await Step.deleteMany({});
   await Activity.deleteMany({});
   await Course.deleteMany({});
+  await Card.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -54,6 +79,7 @@ const populateDB = async () => {
   await Step.insertMany(stepsList);
   await Activity.insertMany(activitiesList);
   await Course.insertMany(coursesList);
+  await Card.insertMany(cardsList);
 };
 
 module.exports = {
@@ -61,4 +87,5 @@ module.exports = {
   subProgramsList,
   stepsList,
   activitiesList,
+  cardsList,
 };
