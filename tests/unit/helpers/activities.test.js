@@ -5,7 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-const sinonMongoose = require('../sinonMongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getActivity', () => {
   let findOne;
@@ -18,7 +18,7 @@ describe('getActivity', () => {
   });
 
   it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
-    findOne.returns(sinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
 
     const activity = { _id: new ObjectID() };
 
@@ -39,7 +39,7 @@ describe('getActivity', () => {
       { query: 'lean', args: { virtuals: true } },
     ];
 
-    sinonMongoose.calledWithExactly(findOne, chainedPayload);
+    SinonMongoose.calledWithExactly(findOne, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
   });
 });
