@@ -5,42 +5,42 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getActivity', () => {
-  let ActivityMock;
+  let findOne;
 
   beforeEach(() => {
-    ActivityMock = sinon.mock(Activity);
+    findOne = sinon.stub(Activity, 'findOne');
   });
-
   afterEach(() => {
-    ActivityMock.restore();
+    findOne.restore();
   });
 
-  it('should return the requested activity', async () => {
+  it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
+
     const activity = { _id: new ObjectID() };
 
-    ActivityMock.expects('findOne')
-      .withExactArgs({ _id: activity._id })
-      .chain('populate')
-      .withExactArgs({ path: 'cards', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'steps',
-        select: '_id -activities',
-        populate: {
-          path: 'subProgram',
-          select: '_id -steps',
-          populate: { path: 'program', select: 'name -subPrograms' },
-        },
-      })
-      .chain('lean')
-      .once()
-      .returns(activity);
-
     const result = await ActivityHelper.getActivity(activity._id);
-    expect(result).toMatchObject(activity);
+
+    const chainedPayload = [
+      { query: '', args: { _id: activity._id } },
+      { query: 'populate', args: { path: 'cards', select: '-__v -createdAt -updatedAt' } },
+      {
+        query: 'populate',
+        args: {
+          path: 'steps',
+          select: '_id -activities',
+          populate:
+          { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+        },
+      },
+      { query: 'lean', args: { virtuals: true } },
+    ];
+
+    SinonMongoose.calledWithExactly(findOne, chainedPayload);
+    expect(result).toMatchObject({ _id: 'skusku' });
   });
 });
 
