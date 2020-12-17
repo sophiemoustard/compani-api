@@ -94,6 +94,8 @@ describe('listELearning', () => {
           },
         ],
       })
+      .chain('populate')
+      .withExactArgs('categories')
       .chain('lean')
       .once()
       .returns(programsList);
