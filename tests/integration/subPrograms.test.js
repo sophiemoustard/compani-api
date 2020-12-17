@@ -493,7 +493,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.subPrograms.length).toEqual(2);
+      expect(response.result.data.subPrograms.length).toEqual(4);
       const { subPrograms } = response.result.data;
       const stepsIds = subPrograms[0].steps.map(step => step._id);
       const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
