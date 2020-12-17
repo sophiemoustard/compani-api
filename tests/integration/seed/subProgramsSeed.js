@@ -32,8 +32,8 @@ const stepsList = [
   { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
   { _id: new ObjectID(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), name: 'step 3', type: 'e_learning' },
-  { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), name: 'step 4', type: 'e_learning' },
+  { _id: new ObjectID(), name: 'step 5', type: 'e_learning', activities: [activitiesList[1]._id] },
 ];
 
 const subProgramsList = [
@@ -44,6 +44,7 @@ const subProgramsList = [
   { _id: new ObjectID(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
   { _id: new ObjectID(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
   { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id] },
+  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id] },
 ];
 
 const programsList = [
