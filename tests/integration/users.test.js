@@ -136,6 +136,25 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should not create a user if not from his company', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        sector: userSectors[0]._id,
+        origin: WEBAPP,
+        role: new ObjectID(),
+        company: otherCompany._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should not create a user if email provided already exists', async () => {
       const payload = {
         identity: { firstname: 'user', lastname: 'Kirk' },
