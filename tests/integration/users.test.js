@@ -324,9 +324,11 @@ describe('POST /users/authenticate', () => {
       url: '/users/authenticate',
       payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'webapp' },
     });
+
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
       refreshToken: expect.any(String),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
@@ -358,6 +360,7 @@ describe('POST /users/authenticate', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
       refreshToken: expect.any(String),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
@@ -373,6 +376,7 @@ describe('POST /users/authenticate', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
       refreshToken: expect.any(String),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
@@ -388,6 +392,7 @@ describe('POST /users/authenticate', () => {
     expect(response.statusCode).toBe(200);
     expect(response.result.data).toEqual(expect.objectContaining({
       token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
       refreshToken: expect.any(String),
       user: expect.objectContaining({ _id: expect.any(String) }),
     }));
@@ -1719,6 +1724,12 @@ describe('POST /users/refreshToken', () => {
       payload: { refreshToken: usersSeedList[1].refreshToken },
     });
     expect(res.statusCode).toBe(200);
+    expect(res.result.data).toEqual(expect.objectContaining({
+      token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
+      refreshToken: expect.any(String),
+      user: expect.objectContaining({ _id: expect.any(String) }),
+    }));
   });
 
   it('should return a 404 error when refresh token isn\'t good', async () => {

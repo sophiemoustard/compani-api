@@ -31,17 +31,20 @@ describe('authenticate', () => {
   let compare;
   let encode;
   let momentToDate;
+  let momentAdd;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     compare = sinon.stub(bcrypt, 'compare');
     encode = sinon.stub(AuthenticationHelper, 'encode');
     momentToDate = sinon.stub(momentProto, 'toDate');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
     compare.restore();
     encode.restore();
     momentToDate.restore();
+    momentAdd.restore();
   });
 
   it('should authenticate user and set firstMobileConnection', async () => {
@@ -51,7 +54,7 @@ describe('authenticate', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
-    momentToDate.returns('2020-12-08T13:45:25.437Z');
+    momentToDate.onCall(0).returns('2020-12-08T13:45:25.437Z');
 
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -70,14 +73,16 @@ describe('authenticate', () => {
 
     const result = await UsersHelper.authenticate(payload);
 
-    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
     UserMock.verify();
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledOnceWithExactly(
-      encode,
-      { _id: user._id.toHexString() },
-      TOKEN_EXPIRE_TIME
-    );
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 
   it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
@@ -87,6 +92,7 @@ describe('authenticate', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
+
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
       .chain('select')
@@ -100,14 +106,17 @@ describe('authenticate', () => {
 
     const result = await UsersHelper.authenticate(payload);
 
-    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
     UserMock.verify();
+    sinon.assert.notCalled(momentToDate);
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledOnceWithExactly(
-      encode,
-      { _id: user._id.toHexString() },
-      TOKEN_EXPIRE_TIME
-    );
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 
   it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
@@ -118,7 +127,6 @@ describe('authenticate', () => {
       local: { password: 'toto' },
       firstMobileConnection: '2020-12-08T13:45:25.437Z',
     };
-    momentToDate.returns('2020-12-08T13:45:25.437Z');
 
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -133,14 +141,17 @@ describe('authenticate', () => {
 
     const result = await UsersHelper.authenticate(payload);
 
-    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
     UserMock.verify();
+    sinon.assert.notCalled(momentToDate);
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledOnceWithExactly(
-      encode,
-      { _id: user._id.toHexString() },
-      TOKEN_EXPIRE_TIME
-    );
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 
   it('should throw an error if user does not exist', async () => {
@@ -163,6 +174,8 @@ describe('authenticate', () => {
       UserMock.verify();
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
   });
 
@@ -186,6 +199,8 @@ describe('authenticate', () => {
       UserMock.verify();
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
   });
 
@@ -209,6 +224,8 @@ describe('authenticate', () => {
       UserMock.verify();
       sinon.assert.calledOnceWithExactly(compare, payload.password, 'password_hash');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
   });
 });
@@ -216,13 +233,16 @@ describe('authenticate', () => {
 describe('refreshToken', () => {
   let UserMock;
   let encode;
+  let momentAdd;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     encode = sinon.stub(AuthenticationHelper, 'encode');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
     encode.restore();
+    momentAdd.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
@@ -240,8 +260,10 @@ describe('refreshToken', () => {
     } finally {
       UserMock.verify();
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentAdd);
     }
   });
+
   it('should return refresh token', async () => {
     const payload = { refreshToken: 'token' };
     const user = {
@@ -249,6 +271,7 @@ describe('refreshToken', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
+
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
       .chain('lean')
@@ -258,9 +281,15 @@ describe('refreshToken', () => {
 
     const result = await UsersHelper.refreshToken(payload);
 
-    expect(result).toEqual({ token: 'token', refreshToken: 'token', user: { _id: user._id.toHexString() } });
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: 'token',
+      user: { _id: user._id.toHexString() },
+    });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 });
 

@@ -43,7 +43,12 @@ exports.authenticate = async (payload) => {
     );
   }
 
-  return { token, refreshToken: user.refreshToken, user: tokenPayload };
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken: user.refreshToken,
+    user: tokenPayload,
+  };
 };
 
 exports.refreshToken = async (payload) => {
@@ -53,7 +58,12 @@ exports.refreshToken = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: payload.refreshToken, user: tokenPayload };
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken: payload.refreshToken,
+    user: tokenPayload,
+  };
 };
 
 exports.formatQueryForUsersList = async (query) => {
