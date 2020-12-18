@@ -36,6 +36,7 @@ exports.listELearning = async (credentials) => {
         },
       ],
     })
+    .populate('categories')
     .lean();
 };
 
