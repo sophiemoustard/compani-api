@@ -45,7 +45,7 @@ exports.authenticate = async (payload) => {
 
   return {
     token,
-    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds'),
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
     refreshToken: user.refreshToken,
     user: tokenPayload,
   };
@@ -60,7 +60,7 @@ exports.refreshToken = async (payload) => {
 
   return {
     token,
-    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds'),
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
     refreshToken: payload.refreshToken,
     user: tokenPayload,
   };
