@@ -28,6 +28,7 @@ const formatRights = (roles, company) => {
 const validate = async (decoded) => {
   try {
     if (!decoded._id) throw new Error('No id present in token');
+
     const user = await User.findById(decoded._id, '_id identity role company local customers')
       .populate({ path: 'sector', options: { requestingOwnInfos: true } })
       .lean({ autopopulate: true });
