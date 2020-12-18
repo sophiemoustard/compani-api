@@ -238,7 +238,7 @@ describe('listELearningDraft', () => {
     SubProgramMock.expects('find')
       .withExactArgs({ status: 'draft' })
       .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name description' })
+      .withExactArgs({ path: 'program', select: '_id name description image' })
       .chain('populate')
       .withExactArgs({ path: 'steps', select: 'type' })
       .chain('lean')
