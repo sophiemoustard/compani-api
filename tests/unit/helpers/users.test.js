@@ -37,7 +37,7 @@ describe('authenticate', () => {
     compare = sinon.stub(bcrypt, 'compare');
     encode = sinon.stub(AuthenticationHelper, 'encode');
     momentToDate = sinon.stub(momentProto, 'toDate');
-    momentAdd = sinon.stub(momentProto, 'add');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
@@ -54,8 +54,7 @@ describe('authenticate', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
-    momentToDate.returns('2020-12-08T13:45:25.437Z');
-    momentAdd.returns('2020-12-09T13:45:25.437Z');
+    momentToDate.onCall(0).returns('2020-12-08T13:45:25.437Z');
 
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
@@ -94,7 +93,6 @@ describe('authenticate', () => {
       local: { password: 'toto' },
     };
 
-    momentAdd.returns('2020-12-09T13:45:25.437Z');
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
       .chain('select')
@@ -130,7 +128,6 @@ describe('authenticate', () => {
       firstMobileConnection: '2020-12-08T13:45:25.437Z',
     };
 
-    momentAdd.returns('2020-12-09T13:45:25.437Z');
     UserMock.expects('findOne')
       .withExactArgs({ 'local.email': payload.email.toLowerCase() })
       .chain('select')
@@ -240,7 +237,7 @@ describe('refreshToken', () => {
   beforeEach(() => {
     UserMock = sinon.mock(User);
     encode = sinon.stub(AuthenticationHelper, 'encode');
-    momentAdd = sinon.stub(momentProto, 'add');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
@@ -275,7 +272,6 @@ describe('refreshToken', () => {
       local: { password: 'toto' },
     };
 
-    momentAdd.returns('2020-12-09T13:45:25.437Z');
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
       .chain('lean')
