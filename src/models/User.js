@@ -16,6 +16,8 @@ const {
   AUXILIARY_WITHOUT_COMPANY,
   BLENDED,
   STRICTLY_E_LEARNING,
+  MOBILE,
+  WEBAPP,
 } = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
@@ -27,6 +29,8 @@ const roleSchemaDefinition = {
   ref: 'Role',
   autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
 };
+
+const ORIGIN_OPTIONS = [WEBAPP, MOBILE];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -316,3 +320,4 @@ UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
 module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
+module.exports.ORIGIN_OPTIONS = ORIGIN_OPTIONS;

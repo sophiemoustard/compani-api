@@ -51,7 +51,7 @@ exports.exportToTxt = async (data) => {
   const date = new Date();
   const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.txt`);
 
-  await fsPromises.writeFile(tmpOutputPath, textContent);
+  await fsPromises.writeFile(tmpOutputPath, textContent, { encoding: 'ascii' });
 
   return tmpOutputPath;
 };
