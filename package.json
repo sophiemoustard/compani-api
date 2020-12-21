@@ -32,7 +32,7 @@
     "@hapi/good-squeeze": "^6.0.0",
     "@hapi/hapi": "^20.0.3",
     "@hapi/inert": "^6.0.3",
-    "axios": "^0.19.2",
+    "axios": "^0.21.0",
     "bcrypt": "^5.0.0",
     "cloudinary": "^1.23.0",
     "cron": "^1.7.2",
