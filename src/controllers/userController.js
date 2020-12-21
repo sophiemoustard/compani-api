@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
 const {
@@ -29,9 +30,13 @@ const authenticate = async (req, h) => {
   }
 };
 
+/**
+ * From MOBILE, refreshToken is in the payload
+ * From WEBAPP, refresh_token is in the state
+ */
 const refreshToken = async (req, h) => {
   try {
-    const token = await UsersHelper.refreshToken(req.state);
+    const token = await UsersHelper.refreshToken(get(req, 'payload.refreshToken') || get(req, 'state.refresh_token'));
 
     return h.response({
       message: translate[language].userAuthentified,

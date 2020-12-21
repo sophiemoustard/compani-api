@@ -51,8 +51,8 @@ exports.authenticate = async (payload) => {
   };
 };
 
-exports.refreshToken = async (state) => {
-  const user = await User.findOne({ refreshToken: state.refresh_token }).lean();
+exports.refreshToken = async (refreshToken) => {
+  const user = await User.findOne({ refreshToken }).lean();
   if (!user) throw Boom.unauthorized();
 
   const tokenPayload = { _id: user._id.toHexString() };
@@ -61,7 +61,7 @@ exports.refreshToken = async (state) => {
   return {
     token,
     tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
-    refreshToken: state.refresh_token,
+    refreshToken,
     user: tokenPayload,
   };
 };

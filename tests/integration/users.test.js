@@ -1609,11 +1609,27 @@ describe('DELETE /users/:id', () => {
 
 describe('POST /users/refreshToken', () => {
   beforeEach(populateDB);
-  it('should return refresh token', async () => {
+  it('should return refresh token for webapp', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/refreshToken',
       headers: { Cookie: `refresh_token=${usersSeedList[1].refreshToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.result.data).toEqual(expect.objectContaining({
+      token: expect.any(String),
+      tokenExpireDate: expect.any(Date),
+      refreshToken: expect.any(String),
+      user: expect.objectContaining({ _id: expect.any(String) }),
+    }));
+  });
+
+  it('should return refresh token for mobile', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/users/refreshToken',
+      payload: { refreshToken: usersSeedList[1].refreshToken },
     });
 
     expect(res.statusCode).toBe(200);
