@@ -26,6 +26,7 @@ const {
   updatePassword,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
+const { ORIGIN_OPTIONS } = require('../models/User');
 const {
   getUser,
   authorizeUserUpdate,
@@ -67,6 +68,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
             password: Joi.string().required(),
+            origin: Joi.string().valid(...ORIGIN_OPTIONS),
           }).required(),
         },
         auth: false,
