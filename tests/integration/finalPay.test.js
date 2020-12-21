@@ -26,16 +26,13 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftFinalPay).toBeDefined();
       expect(response.result.data.draftFinalPay.length).toEqual(1);
-      expect(omit(
-        response.result.data.draftFinalPay[0],
-        ['auxiliary', 'auxiliaryId']
-      )).toEqual({
+      expect(omit(response.result.data.draftFinalPay[0], ['auxiliary', 'auxiliaryId'])).toEqual({
         overtimeHours: 0,
         additionalHours: 0,
         bonus: 0,
@@ -96,7 +93,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -167,7 +164,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/finalpay',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -181,7 +178,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/finalpay',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: [{ ...payload[0], auxiliary: auxiliaryFromOtherCompany._id }],
       });
 
@@ -197,7 +194,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
           method: 'POST',
           url: '/finalpay',
           payload: invalidPayload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -219,7 +216,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/finalpay',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 

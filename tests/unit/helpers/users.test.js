@@ -247,14 +247,14 @@ describe('refreshToken', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      const payload = { refreshToken: 'token' };
+      const refreshToken = 'token';
       UserMock.expects('findOne')
-        .withExactArgs({ refreshToken: payload.refreshToken })
+        .withExactArgs({ refreshToken })
         .chain('lean')
         .once()
         .returns(null);
 
-      await UsersHelper.refreshToken(payload);
+      await UsersHelper.refreshToken(refreshToken);
     } catch (e) {
       expect(e).toEqual(Boom.unauthorized());
     } finally {
@@ -265,7 +265,7 @@ describe('refreshToken', () => {
   });
 
   it('should return refresh token', async () => {
-    const payload = { refreshToken: 'token' };
+    const refreshToken = 'token';
     const user = {
       _id: new ObjectID(),
       refreshToken: 'token',
@@ -273,13 +273,13 @@ describe('refreshToken', () => {
     };
 
     UserMock.expects('findOne')
-      .withExactArgs({ refreshToken: payload.refreshToken })
+      .withExactArgs({ refreshToken })
       .chain('lean')
       .once()
       .returns(user);
     encode.returns('token');
 
-    const result = await UsersHelper.refreshToken(payload);
+    const result = await UsersHelper.refreshToken(refreshToken);
 
     expect(result).toEqual({
       token: 'token',

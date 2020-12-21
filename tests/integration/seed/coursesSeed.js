@@ -33,6 +33,7 @@ const trainerOrganisationManager = userList
   .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
+const noRoleNoCompany = userList[11];
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -69,6 +70,7 @@ const activitiesHistory = [
   { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activity._id },
   { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activity._id },
   { _id: new ObjectID(), user: courseTrainer._id, activity: activity._id },
+  { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activity._id },
 ];
 
 const step = {
@@ -149,6 +151,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
+    trainees: [noRoleNoCompany._id],
   },
   { // course without trainees and slots
     _id: new ObjectID(),

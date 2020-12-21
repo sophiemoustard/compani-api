@@ -189,11 +189,6 @@ exports.authorizeUserGet = async (req) => {
   if (!has(authenticatedUser, 'role.vendor') && !queryCompanyId) throw Boom.forbidden();
   if (!has(authenticatedUser, 'role.vendor') && queryCompanyId !== userCompanyId.toHexString()) throw Boom.forbidden();
 
-  if (query.email) {
-    const user = await User.findOne({ email: query.email, company: userCompanyId }).lean();
-    if (!user) throw Boom.forbidden();
-  }
-
   if (query.customers) {
     const customers = UtilsHelper.formatIdsArray(query.customers);
     const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: userCompanyId });

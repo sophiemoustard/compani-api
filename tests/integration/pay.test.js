@@ -29,7 +29,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -52,7 +52,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/pay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -98,12 +98,7 @@ describe('PAY ROUTES - POST /pay', () => {
       surchargedAndExempt: 20,
       surchargedAndExemptDetails: {},
       surchargedAndNotExempt: 20,
-      surchargedAndNotExemptDetails: {
-        [new ObjectID()]: {
-          planName: 'Toto',
-          custom: { hours: 20, percentage: 10 },
-        },
-      },
+      surchargedAndNotExemptDetails: { [new ObjectID()]: { planName: 'Toto', custom: { hours: 20, percentage: 10 } } },
       paidTransportHours: 3,
       internalHours: 9,
       absencesHours: 5,
@@ -120,7 +115,7 @@ describe('PAY ROUTES - POST /pay', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/pay',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -134,7 +129,7 @@ describe('PAY ROUTES - POST /pay', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/pay',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
       });
 
@@ -150,7 +145,7 @@ describe('PAY ROUTES - POST /pay', () => {
           method: 'POST',
           url: '/pay',
           payload: invalidPayload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -172,7 +167,7 @@ describe('PAY ROUTES - POST /pay', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/pay',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -195,7 +190,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -206,7 +201,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -217,7 +212,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -228,7 +223,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -238,7 +233,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -248,7 +243,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -258,7 +253,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/hours-balance-details?&month=10-2019',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -268,7 +263,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -278,7 +273,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=102019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -299,7 +294,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -321,7 +316,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2018`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -332,7 +327,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=12-2019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -350,7 +345,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=12-2018`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -360,7 +355,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/hours-to-work?&month=10-2019',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -370,7 +365,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -380,7 +375,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=102019`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -400,7 +395,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=12-2018`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -422,7 +417,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/identification?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -432,7 +427,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/contract_version?startDate=2019-10-01T00:00:00&endDate=2019-10-31T23:59:59',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -442,7 +437,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/absence?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -452,7 +447,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/contract_end?startDate=2019-10-01T00:00:00&endDate=2019-10-31T23:59:59',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -462,7 +457,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/toto?startDate=2020-11-01T00:00:00&endDate=2020-11-30T23:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -472,7 +467,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/identification?startDate=2020-11-01T00:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -482,7 +477,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -492,7 +487,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/identification?startDate=2020-12-01T00:00:00&endDate=2020-11-30T23:00:00',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -513,7 +508,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/pay/export/identification?endDate=2020-11-30T23:00:00',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -36,7 +36,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -63,7 +63,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: falsyPayload,
     });
 
@@ -77,7 +77,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Coucou', evening: 1, eveningEndTime: '23:59' },
     });
 
@@ -88,7 +88,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Coucou', evening: 1, eveningStartTime: '23:59' },
     });
 
@@ -99,7 +99,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Coucou', custom: 1, customEndTime: '23:59' },
     });
 
@@ -110,7 +110,7 @@ describe('POST /surcharges', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Coucou', custom: 1, customEndTime: '23:59' },
     });
 
@@ -127,25 +127,12 @@ describe('POST /surcharges', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = {
-          name: 'Chasse aux monstres automnaux',
-          saturday: 35,
-          sunday: 30,
-          publicHoliday: 16,
-          twentyFifthOfDecember: 60,
-          firstOfMay: 40,
-          evening: 20,
-          eveningStartTime: '21:00',
-          eveningEndTime: '23:59',
-          custom: 55,
-          customStartTime: '12:00',
-          customEndTime: '14:00',
-        };
-        const token = await getToken(role.name);
+        const payload = { name: 'Chasse aux monstres automnaux', saturday: 35 };
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/surcharges',
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -166,7 +153,7 @@ describe('GET /surcharges', () => {
     const response = await app.inject({
       method: 'GET',
       url: '/surcharges',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -183,11 +170,11 @@ describe('GET /surcharges', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: '/surcharges',
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -221,7 +208,7 @@ describe('PUT /surcharges/:id', () => {
     const response = await app.inject({
       method: 'PUT',
       url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -233,7 +220,7 @@ describe('PUT /surcharges/:id', () => {
     const response = await app.inject({
       method: 'PUT',
       url: `/surcharges/${invalidId}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Chasser sans son chien' },
     });
 
@@ -245,7 +232,7 @@ describe('PUT /surcharges/:id', () => {
     const response = await app.inject({
       method: 'PUT',
       url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -263,12 +250,12 @@ describe('PUT /surcharges/:id', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = { name: 'Chasse aux monstres printaniers', saturday: 35, sunday: 30, publicHoliday: 16 };
-        const token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
           url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
           payload,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -288,7 +275,7 @@ describe('DELETE /surcharges/:id', () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -301,7 +288,7 @@ describe('DELETE /surcharges/:id', () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(404);
@@ -311,7 +298,7 @@ describe('DELETE /surcharges/:id', () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/surcharges/${new ObjectID()}`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(404);
@@ -327,11 +314,11 @@ describe('DELETE /surcharges/:id', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
           url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

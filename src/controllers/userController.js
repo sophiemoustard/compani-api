@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
 const {
@@ -12,14 +13,62 @@ const {
 
 const { language } = translate;
 
-const authenticate = async (req) => {
+const authenticate = async (req, h) => {
   try {
     const authentication = await UsersHelper.authenticate(req.payload);
     req.log('info', `${req.payload.email} connected`);
 
-    return {
+    return h.response({
       message: translate[language].userAuthentified,
       data: { ...authentication },
+    }).state('alenvi_token', authentication.token)
+      .state('refresh_token', authentication.refreshToken)
+      .state('user_id', authentication.user._id);
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+/**
+ * From MOBILE, refreshToken is in the payload
+ * From WEBAPP, refresh_token is in the state
+ */
+const refreshToken = async (req, h) => {
+  try {
+    const token = await UsersHelper.refreshToken(get(req, 'payload.refreshToken') || get(req, 'state.refresh_token'));
+
+    return h.response({
+      message: translate[language].userAuthentified,
+      data: { ...token },
+    }).state('alenvi_token', token.token)
+      .state('refresh_token', token.refreshToken)
+      .state('user_id', token.user._id);
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const logout = async (req, h) => {
+  try {
+    return h.response({ message: translate[language].userAuthentified })
+      .unstate('alenvi_token')
+      .unstate('refresh_token')
+      .unstate('user_id');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const createPasswordToken = async (req) => {
+  try {
+    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
+
+    return {
+      message: translate[language].resetPasswordTokenFound,
+      data: { passwordToken },
     };
   } catch (e) {
     req.log('error', e);
@@ -27,14 +76,23 @@ const authenticate = async (req) => {
   }
 };
 
-const refreshToken = async (req) => {
+const forgotPassword = async (req) => {
   try {
-    const token = await UsersHelper.refreshToken(req.payload);
+    await UsersHelper.forgotPassword(req.payload.email);
 
-    return {
-      message: translate[language].userAuthentified,
-      data: { ...token },
-    };
+    return { message: translate[language].emailSent };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const checkResetPasswordToken = async (req, h) => {
+  try {
+    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
+
+    return h.response({ message: translate[language].resetPasswordTokenFound, data: { ...token } })
+      .state('alenvi_token', token.token);
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -55,20 +113,6 @@ const create = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
     }
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const createPasswordToken = async (req) => {
-  try {
-    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
-
-    return {
-      message: translate[language].resetPasswordTokenFound,
-      data: { passwordToken },
-    };
-  } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
@@ -216,28 +260,6 @@ const removeHelper = async (req) => {
   }
 };
 
-const forgotPassword = async (req) => {
-  try {
-    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
-
-    return { message: translate[language].emailSent, data: { mailInfo } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const checkResetPasswordToken = async (req) => {
-  try {
-    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
-
-    return { message: translate[language].resetPasswordTokenFound, data: { ...token } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const uploadFile = async (req) => {
   try {
     const uploadedFile = await createAndSaveFile(req.params, req.payload);
@@ -291,6 +313,7 @@ const createDriveFolder = async (req) => {
 
 module.exports = {
   authenticate,
+  logout,
   create,
   createPasswordToken,
   list,

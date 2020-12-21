@@ -131,5 +131,6 @@ const userList = [
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
+const noRoleNoCompany = userList.find(u => u.local.email === 'norole.nocompany@alenvi.io');
 
-module.exports = { userList, trainer };
+module.exports = { userList, trainer, noRoleNoCompany };

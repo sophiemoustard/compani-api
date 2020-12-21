@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   authenticate,
+  logout,
   create,
   createPasswordToken,
   list,
@@ -118,7 +119,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
-            email: Joi.string().email(),
             customers: objectIdOrArray,
             company: Joi.objectId(),
           }),
@@ -386,12 +386,17 @@ exports.plugin = {
       method: 'POST',
       path: '/refreshToken',
       options: {
-        validate: {
-          payload: Joi.object({ refreshToken: Joi.string().required() }),
-        },
         auth: false,
+        state: { parse: true, failAction: 'error' },
       },
       handler: refreshToken,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/logout',
+      options: { auth: false },
+      handler: logout,
     });
 
     server.route({

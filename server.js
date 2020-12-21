@@ -16,6 +16,7 @@ const server = Hapi.server({
     },
     cors: {
       origin: ['*'],
+      credentials: true,
       additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token'],
     },
     validate: {
@@ -33,6 +34,32 @@ const server = Hapi.server({
 const init = async () => {
   await server.register([...plugins]);
   await server.register([...routes]);
+  server.state('alenvi_token', {
+    isHttpOnly: true,
+    ttl: 24 * 60 * 60 * 1000,
+    isSecure: process.env.NODE_ENV !== 'development',
+    isSameSite: 'Strict',
+    path: '/',
+    domain: process.env.TOKEN_DOMAIN,
+  });
+
+  server.state('refresh_token', {
+    isHttpOnly: true,
+    ttl: 365 * 24 * 60 * 60 * 1000,
+    isSecure: process.env.NODE_ENV !== 'development',
+    isSameSite: 'Strict',
+    path: '/',
+    domain: process.env.TOKEN_DOMAIN,
+  });
+
+  server.state('user_id', {
+    isHttpOnly: false,
+    ttl: 24 * 60 * 60 * 1000,
+    isSecure: process.env.NODE_ENV !== 'development',
+    isSameSite: 'Strict',
+    path: '/',
+    domain: process.env.TOKEN_DOMAIN,
+  });
 
   mongooseConnection(server);
 

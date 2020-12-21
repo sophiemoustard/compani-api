@@ -349,7 +349,7 @@ const billsList = [
   },
 ];
 
-const billNumber = [
+const billNumbers = [
   { _id: new ObjectID(), seq: 2, prefix: '0519', company: authCompany._id },
   { _id: new ObjectID(), seq: 2, prefix: '0919', company: authCompany._id },
 ];
@@ -541,7 +541,7 @@ const populateDB = async () => {
   await User.create(billUserList);
   await CreditNote.create(creditNote);
   await FundingHistory.create(fundingHistory);
-  await BillNumber.create(billNumber);
+  await BillNumber.create(billNumbers);
   await Contract.create(contracts);
 };
 
@@ -557,4 +557,5 @@ module.exports = {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
+  billNumbers,
 };
