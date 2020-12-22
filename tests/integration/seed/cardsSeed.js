@@ -23,25 +23,50 @@ const cardsList = [
   { _id: new ObjectID(), template: TITLE_TEXT },
   { _id: new ObjectID(), template: TEXT_MEDIA },
   { _id: new ObjectID(), template: FLASHCARD },
-  { _id: new ObjectID(), template: FILL_THE_GAPS, falsyGapAnswers: ['le papa', 'la maman'] },
+  {
+    _id: new ObjectID(),
+    template: FILL_THE_GAPS,
+    falsyGapAnswers: [{ _id: new ObjectID(), text: 'ase' }, { _id: new ObjectID(), text: 'énué' }],
+  },
   {
     _id: new ObjectID(),
     template: MULTIPLE_CHOICE_QUESTION,
-    qcmAnswers: [{ correct: false, label: 'au bois dormant' }, { correct: true, label: 'et le clochard' }],
+    qcAnswers: [
+      { _id: new ObjectID(), correct: false, text: 'mex' },
+      { _id: new ObjectID(), correct: true, text: 'Avery' },
+      { _id: new ObjectID(), correct: true, text: 'erne' },
+      { _id: new ObjectID(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
+    ],
   },
-  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcuFalsyAnswers: ['le papa', 'la maman'] },
-  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE, orderedAnswers: ['rien', 'des trucs'] },
+  {
+    _id: new ObjectID(),
+    template: SINGLE_CHOICE_QUESTION,
+    qcAnswers: [
+      { _id: new ObjectID(), text: 'uel' },
+      { _id: new ObjectID(), text: 'ile' },
+      { _id: new ObjectID(), text: 'o' },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    template: ORDER_THE_SEQUENCE,
+    orderedAnswers: [
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+      { _id: new ObjectID(), text: 'encore des trucs' },
+    ],
+  },
   { _id: new ObjectID(), template: SURVEY },
   { _id: new ObjectID(), template: OPEN_QUESTION },
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
   },
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [
+    qcAnswers: [
       { text: 'bye bye', _id: new ObjectID() },
       { text: 'bye bye', _id: new ObjectID() },
       { text: 'bye bye', _id: new ObjectID() },
@@ -51,7 +76,36 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: QUESTION_ANSWER,
-    questionAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+  },
+  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectID(), text: 'uel' }] },
+  {
+    _id: new ObjectID(),
+    template: MULTIPLE_CHOICE_QUESTION,
+    qcAnswers: [
+      { _id: new ObjectID(), correct: false, text: 'mex' },
+      { _id: new ObjectID(), correct: true, text: 'Avery' },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    template: ORDER_THE_SEQUENCE,
+    orderedAnswers: [
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    template: FILL_THE_GAPS,
+    falsyGapAnswers: [
+      { _id: new ObjectID(), text: 'ase' },
+      { _id: new ObjectID(), text: 'énué' },
+      { _id: new ObjectID(), text: 'olard' },
+      { _id: new ObjectID(), text: 'ension' },
+      { _id: new ObjectID(), text: 'rien' },
+      { _id: new ObjectID(), text: 'des trucs' },
+    ],
   },
 ];
 
@@ -59,14 +113,23 @@ const activitiesList = [
   {
     _id: new ObjectID(),
     name: 'Coucou toi',
-    cards: [cardsList[0]._id, cardsList[1]._id, cardsList[11]._id, cardsList[12]._id],
+    cards: [
+      cardsList[0]._id,
+      cardsList[1]._id,
+      cardsList[11]._id,
+      cardsList[12]._id,
+      cardsList[8]._id,
+      cardsList[16]._id,
+      cardsList[5]._id,
+      cardsList[17]._id,
+    ],
     type: 'video',
     status: 'draft',
   },
   {
     _id: new ObjectID(),
     name: 'la peche',
-    cards: [cardsList[4]._id, cardsList[5]._id, cardsList[13]._id],
+    cards: [cardsList[4]._id, cardsList[13]._id],
     type: 'quiz',
     status: 'published',
   },

@@ -860,8 +860,8 @@ describe('EVENTS ROUTES', () => {
           type: 'intervention',
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: '5c0002a5086ec30013f7f436',
-          customer: '5c35b5eb1a6fb00997363eeb',
+          auxiliary: new ObjectID(),
+          customer: new ObjectID(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           sector: sectors[0]._id.toHexString(),
           address: {

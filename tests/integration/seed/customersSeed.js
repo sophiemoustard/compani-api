@@ -17,6 +17,7 @@ const {
   ONCE,
   HOURLY,
   AUXILIARY,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -35,6 +36,7 @@ const referentList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -43,6 +45,7 @@ const referentList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     company: authCompany._id,
+    origin: WEBAPP,
   },
 ];
 
@@ -87,7 +90,7 @@ const customerServiceList = [
 ];
 
 const customerThirdPartyPayer = {
-  _id: new ObjectID('62400565f8fd3555379720c9'),
+  _id: new ObjectID(),
   company: authCompany._id,
   isApa: true,
 };
@@ -588,6 +591,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[0]._id],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -597,6 +601,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[1]._id],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -606,6 +611,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [customersList[3]._id],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -615,6 +621,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: otherCompanyCustomerId,
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -623,6 +630,7 @@ const userList = [
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+    origin: WEBAPP,
   },
 ];
 

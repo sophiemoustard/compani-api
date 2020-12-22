@@ -12,6 +12,7 @@ const {
   EVENT_UPDATE,
   EVENT_DELETION,
   EVENT_CREATION,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -22,6 +23,7 @@ const user = {
   role: { client: rolesList[1]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
+  origin: WEBAPP,
 };
 
 const eventHistoryAuxiliaries = [{
@@ -31,6 +33,7 @@ const eventHistoryAuxiliaries = [{
   role: { client: rolesList[2]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
+  origin: WEBAPP,
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'Joséphine', lastname: 'Mita' },
@@ -38,6 +41,7 @@ const eventHistoryAuxiliaries = [{
   role: { client: rolesList[2]._id },
   company: authCompany._id,
   refreshToken: uuidv4(),
+  origin: WEBAPP,
 }];
 
 const sectors = [{
@@ -129,6 +133,7 @@ const auxiliaryFromOtherCompany = {
   role: { client: rolesList[2]._id },
   company: otherCompany._id,
   refreshToken: uuidv4(),
+  origin: WEBAPP,
 };
 
 const populateDB = async () => {

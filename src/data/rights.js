@@ -39,7 +39,7 @@ const rights = [
   { permission: 'payments:list:create', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Creer une liste de paiement' },
   { permission: 'programs:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les programmes' },
   { permission: 'programs:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter les données des programmes' },
-  { permission: 'roles:read', rolesConcerned: [CLIENT_ADMIN, COACH], description: 'Consulter les roles' },
+  { permission: 'roles:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, CLIENT_ADMIN, COACH], description: 'Consulter les roles' },
   { permission: 'scripts:run', rolesConcerned: [VENDOR_ADMIN], subscription: ERP, description: 'Lancer un script' },
   { permission: 'sms:send', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Envoyer un sms' },
   { permission: 'taxcertificates:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Éditer une attestation fiscale' },

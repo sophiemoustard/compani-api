@@ -568,7 +568,7 @@ describe('getPaidInterventionStats', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    const query = { sector: new ObjectID(), month: '102019' };
     const auxiliaries = [{ auxiliaryId: new ObjectID() }];
     getUsersFromSectorHistoriesStub.returns(auxiliaries);
     const getPaidInterventionStatsResult = [{
@@ -599,7 +599,7 @@ describe('getPaidInterventionStats', () => {
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const query = { sector: ['5d1a40b7ecb0da251cfa4fe9', '5d1a40b7ecb0da251cfa4fe8'], month: '102019' };
+    const query = { sector: [new ObjectID(), new ObjectID()], month: '102019' };
     const auxiliaries = [{ auxiliaryId: new ObjectID() }, { auxiliaryId: new ObjectID() }];
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
@@ -656,28 +656,30 @@ describe('getCustomersAndDurationBySector', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    const sectorId = new ObjectID();
+    const query = { sector: sectorId, month: '102019' };
     getCustomersAndDurationBySector.returns({ customerCount: 9 });
     const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ customerCount: 9 });
     sinon.assert.calledWithExactly(
       getCustomersAndDurationBySector,
-      [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      [sectorId],
       '102019',
       credentials.company._id
     );
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
+    const sectors = [new ObjectID(), new ObjectID()];
+    const query = { sector: sectors, month: '102019' };
     getCustomersAndDurationBySector.returns({ customerCount: 9 });
     const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ customerCount: 9 });
     sinon.assert.calledWithExactly(
       getCustomersAndDurationBySector,
-      [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      sectors,
       '102019',
       credentials.company._id
     );
@@ -695,28 +697,30 @@ describe('getIntenalAndBilledHoursBySector', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    const sectorId = new ObjectID();
+    const query = { sector: sectorId, month: '102019' };
     getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
     const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);
 
     expect(result).toEqual({ interventions: 9 });
     sinon.assert.calledWithExactly(
       getIntenalAndBilledHoursBySector,
-      [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      [sectorId],
       '102019',
       credentials.company._id
     );
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
+    const sectors = [new ObjectID(), new ObjectID()];
+    const query = { sector: sectors, month: '102019' };
     getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
     const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);
 
     expect(result).toEqual({ interventions: 9 });
     sinon.assert.calledWithExactly(
       getIntenalAndBilledHoursBySector,
-      [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      sectors,
       '102019',
       credentials.company._id
     );

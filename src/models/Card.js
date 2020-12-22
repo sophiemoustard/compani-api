@@ -50,25 +50,17 @@ const CardSchema = mongoose.Schema({
   question: { type: String },
   qcuGoodAnswer: { type: String },
   falsyGapAnswers: {
-    type: [String],
-    default: undefined,
-  },
-  qcuFalsyAnswers: {
-    type: [String],
-    default: undefined,
-  },
-  questionAnswers: {
     type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
-  isQuestionAnswerMultipleChoiced: { type: Boolean },
-  qcmAnswers: {
-    type: [mongoose.Schema({ label: { type: String }, correct: { type: Boolean } }, { _id: false, id: false })],
+  qcAnswers: {
+    type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
     default: undefined,
   },
+  isQuestionAnswerMultipleChoiced: { type: Boolean },
   explanation: { type: String },
   orderedAnswers: {
-    type: [String],
+    type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
   label: mongoose.Schema({
@@ -85,20 +77,20 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
-        this.falsyGapAnswers = [];
+        this.falsyGapAnswers = [{ text: '' }, { text: '' }];
         break;
       case SINGLE_CHOICE_QUESTION:
-        this.qcuFalsyAnswers = [];
+        this.qcAnswers = [{ text: '' }];
         break;
       case QUESTION_ANSWER:
-        this.questionAnswers = [{ text: '' }, { text: '' }];
+        this.qcAnswers = [{ text: '' }, { text: '' }];
         this.isQuestionAnswerMultipleChoiced = false;
         break;
       case ORDER_THE_SEQUENCE:
-        this.orderedAnswers = [];
+        this.orderedAnswers = [{ text: '' }, { text: '' }];
         break;
       case MULTIPLE_CHOICE_QUESTION:
-        this.qcmAnswers = [];
+        this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
         this.label = {};

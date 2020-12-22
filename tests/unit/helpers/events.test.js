@@ -423,29 +423,30 @@ describe('listForCreditNotes', () => {
 
 describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
+    const subId = new ObjectID();
     const event = {
       type: 'intervention',
       customer: {
         subscriptions: [
           {
             createdAt: '2019-01-11T08:38:18.653Z',
-            _id: new ObjectID('5c3855fa12d1370abdda0b8f'),
-            service: '5c35cdc2bd5e3e7360b853fa',
+            _id: subId,
+            service: new ObjectID(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
           },
           {
             createdAt: '2019-01-21T09:38:18',
-            _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
-            service: '5c35cdc2bd5e3e7360b853fa',
+            _id: new ObjectID(),
+            service: new ObjectID(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
           },
         ],
       },
-      subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
+      subscription: subId,
     };
 
     const result = await EventHelper.populateEventSubscription(event);
@@ -482,15 +483,15 @@ describe('populateEventSubscription', () => {
         subscriptions: [
           {
             createdAt: '2019-01-21T09:38:18',
-            _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
-            service: '5c35cdc2bd5e3e7360b853fa',
+            _id: new ObjectID(),
+            service: new ObjectID(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
           },
         ],
       },
-      subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
+      subscription: new ObjectID(),
     };
 
     try {
@@ -511,6 +512,7 @@ describe('populateEvents', () => {
   });
 
   it('should populate subscription as event is an intervention', async () => {
+    const subIdList = [new ObjectID(), new ObjectID()];
     const events = [
       {
         type: 'intervention',
@@ -518,23 +520,23 @@ describe('populateEvents', () => {
           subscriptions: [
             {
               createdAt: '2019-01-11T08:38:18.653Z',
-              _id: new ObjectID('5c3855fa12d1370abdda0b8f'),
-              service: '5c35cdc2bd5e3e7360b853fa',
+              _id: subIdList[0],
+              service: new ObjectID(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
             {
               createdAt: '2019-01-21T09:38:18',
-              _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
-              service: '5c35cdc2bd5e3e7360b853fa',
+              _id: new ObjectID(),
+              service: new ObjectID(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
           ],
         },
-        subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
+        subscription: subIdList[0],
       },
       {
         type: 'intervention',
@@ -542,23 +544,23 @@ describe('populateEvents', () => {
           subscriptions: [
             {
               createdAt: '2019-01-12T08:38:18.653Z',
-              _id: new ObjectID('5a3bc0315e421400147d5ecd'),
-              service: '5ad8c41659769000142589f7',
+              _id: subIdList,
+              service: new ObjectID(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
             {
               createdAt: '2019-01-22T09:38:18.653Z',
-              _id: new ObjectID('5a3bc0005e421400147d5ec4'),
-              service: '5a5735cb1f2a1f0014d48e14',
+              _id: new ObjectID(),
+              service: new ObjectID(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
           ],
         },
-        subscription: new ObjectID('5a3bc0315e421400147d5ecd'),
+        subscription: subIdList,
       },
     ];
 
@@ -1263,11 +1265,7 @@ describe('deleteEvents', () => {
   });
 
   it('should delete events', async () => {
-    const events = [
-      { _id: '1234567890' },
-      { _id: 'qwertyuiop' },
-      { _id: 'asdfghjkl' },
-    ];
+    const events = [{ _id: '1234567890' }, { _id: 'qwertyuiop' }, { _id: 'asdfghjkl' }];
     await EventHelper.deleteEvents(events, credentials);
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);

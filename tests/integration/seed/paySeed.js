@@ -10,6 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -33,6 +34,7 @@ const user = {
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   inactivityDate: '2018-11-01T12:52:27.461Z',
   company: authCompany._id,
+  origin: WEBAPP,
 };
 
 const auxiliaries = [{
@@ -44,6 +46,7 @@ const auxiliaries = [{
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId1],
   company: authCompany._id,
+  origin: WEBAPP,
 }, {
   _id: auxiliaryId2,
   identity: { firstname: 'OtherTest', lastname: 'Test8' },
@@ -53,6 +56,7 @@ const auxiliaries = [{
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId2],
   company: authCompany._id,
+  origin: WEBAPP,
 }];
 
 const auxiliaryFromOtherCompany = {
@@ -65,6 +69,7 @@ const auxiliaryFromOtherCompany = {
   contracts: [contractId2],
   sector: sectorFromOtherCompany._id,
   company: otherCompany._id,
+  origin: WEBAPP,
 };
 
 const contracts = [{
@@ -140,6 +145,17 @@ const event = {
     street: '37 rue de Ponthieu',
     location: { type: 'Point', coordinates: [2.377133, 48.801389] },
   },
+};
+
+const absence = {
+  _id: new ObjectID(),
+  type: ABSENCE,
+  company: authCompany._id,
+  auxiliary: auxiliaries[0],
+  absence: UNPAID_LEAVE,
+  absenceNature: DAILY,
+  startDate: '2020-11-12T09:00:00',
+  endDate: '2020-11-16T21:29:29',
 };
 
 const customer = {
@@ -226,7 +242,7 @@ const populateDB = async () => {
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
-  await (new Event(event)).save();
+  await Event.create([event, absence]);
   await Contract.insertMany(contracts);
 };
 

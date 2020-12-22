@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const flat = require('flat');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
@@ -104,8 +105,9 @@ const checkCustomers = async (userCompany, payload) => {
 };
 
 const checkUpdateRestrictions = (payload) => {
-  const allowedUpdateKeys = ['firstname', 'lastname', 'phone', 'email'];
-  const payloadKeys = (Object.values(payload).map(value => Object.keys(value))).flat();
+  const allowedUpdateKeys = ['identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'origin'];
+  const payloadKeys = Object.keys(flat(payload));
+
   if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
 };
 
@@ -169,7 +171,9 @@ exports.authorizeUserCreation = async (req) => {
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');
-  if (req.payload.company && ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
+  const loggedUserCompany = get(credentials, 'company._id');
+  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) &&
+    ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
     throw Boom.forbidden();
   }
 

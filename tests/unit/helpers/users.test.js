@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
-const get = require('lodash/get');
 const expect = require('expect');
 const moment = require('moment');
+const { fn: momentProto } = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
@@ -19,7 +19,7 @@ const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
-const { HELPER, AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
+const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP, MOBILE } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 
 require('sinon-mongoose');
@@ -30,15 +30,128 @@ describe('authenticate', () => {
   let UserMock;
   let compare;
   let encode;
+  let momentToDate;
+  let momentAdd;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     compare = sinon.stub(bcrypt, 'compare');
     encode = sinon.stub(AuthenticationHelper, 'encode');
+    momentToDate = sinon.stub(momentProto, 'toDate');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
     compare.restore();
     encode.restore();
+    momentToDate.restore();
+    momentAdd.restore();
+  });
+
+  it('should authenticate user and set firstMobileConnection', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+    };
+    momentToDate.onCall(0).returns('2020-12-08T13:45:25.437Z');
+
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne')
+      .withExactArgs(
+        { _id: user._id, firstMobileConnection: { $exists: false } },
+        { $set: { firstMobileConnection: '2020-12-08T13:45:25.437Z' } }
+      );
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
+    UserMock.verify();
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
+  });
+
+  it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+    };
+
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne').never();
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
+    UserMock.verify();
+    sinon.assert.notCalled(momentToDate);
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
+  });
+
+  it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
+    const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
+    const user = {
+      _id: new ObjectID(),
+      refreshToken: 'token',
+      local: { password: 'toto' },
+      firstMobileConnection: '2020-12-08T13:45:25.437Z',
+    };
+
+    UserMock.expects('findOne')
+      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
+      .chain('select')
+      .withExactArgs('local refreshToken')
+      .chain('lean')
+      .once()
+      .returns(user);
+    compare.returns(true);
+    encode.returns('token');
+    UserMock.expects('updateOne').never();
+
+    const result = await UsersHelper.authenticate(payload);
+
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: user.refreshToken,
+      user: { _id: user._id.toHexString() },
+    });
+    UserMock.verify();
+    sinon.assert.notCalled(momentToDate);
+    sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
+    sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 
   it('should throw an error if user does not exist', async () => {
@@ -52,6 +165,8 @@ describe('authenticate', () => {
         .once()
         .returns(null);
 
+      UserMock.expects('updateOne').never();
+
       await UsersHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
@@ -59,8 +174,11 @@ describe('authenticate', () => {
       UserMock.verify();
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
   });
+
   it('should throw an error if refresh token does not exist', async () => {
     try {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
@@ -72,6 +190,8 @@ describe('authenticate', () => {
         .once()
         .returns({ _id: new ObjectID() });
 
+      UserMock.expects('updateOne').never();
+
       await UsersHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
@@ -79,8 +199,11 @@ describe('authenticate', () => {
       UserMock.verify();
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
   });
+
   it('should throw an error if wrong password', async () => {
     const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
@@ -92,56 +215,34 @@ describe('authenticate', () => {
         .once()
         .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
       compare.returns(false);
+      UserMock.expects('updateOne').never();
 
       await UsersHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
       UserMock.verify();
-      sinon.assert.calledWithExactly(compare, payload.password, 'password_hash');
+      sinon.assert.calledOnceWithExactly(compare, payload.password, 'password_hash');
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentToDate);
+      sinon.assert.notCalled(momentAdd);
     }
-  });
-  it('should return authentication data', async () => {
-    const payload = { email: 'toto@email.com', password: 'toto' };
-    const user = {
-      _id: new ObjectID(),
-      refreshToken: 'token',
-      local: { password: 'toto' },
-    };
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-      .chain('select')
-      .withExactArgs('local refreshToken')
-      .chain('lean')
-      .once()
-      .returns(user);
-    compare.returns(true);
-    encode.returns('token');
-
-    const result = await UsersHelper.authenticate(payload);
-
-    expect(result).toEqual({ token: 'token', refreshToken: user.refreshToken, user: { _id: user._id.toHexString() } });
-    UserMock.verify();
-    sinon.assert.calledWithExactly(compare, payload.password, 'toto');
-    sinon.assert.calledWithExactly(
-      encode,
-      { _id: user._id.toHexString() },
-      TOKEN_EXPIRE_TIME
-    );
   });
 });
 
 describe('refreshToken', () => {
   let UserMock;
   let encode;
+  let momentAdd;
   beforeEach(() => {
     UserMock = sinon.mock(User);
     encode = sinon.stub(AuthenticationHelper, 'encode');
+    momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
     UserMock.restore();
     encode.restore();
+    momentAdd.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
@@ -159,8 +260,10 @@ describe('refreshToken', () => {
     } finally {
       UserMock.verify();
       sinon.assert.notCalled(encode);
+      sinon.assert.notCalled(momentAdd);
     }
   });
+
   it('should return refresh token', async () => {
     const payload = { refreshToken: 'token' };
     const user = {
@@ -168,6 +271,7 @@ describe('refreshToken', () => {
       refreshToken: 'token',
       local: { password: 'toto' },
     };
+
     UserMock.expects('findOne')
       .withExactArgs({ refreshToken: payload.refreshToken })
       .chain('lean')
@@ -177,9 +281,15 @@ describe('refreshToken', () => {
 
     const result = await UsersHelper.refreshToken(payload);
 
-    expect(result).toEqual({ token: 'token', refreshToken: 'token', user: { _id: user._id.toHexString() } });
+    expect(result).toEqual({
+      token: 'token',
+      tokenExpireDate: '2020-12-09T13:45:25.437Z',
+      refreshToken: 'token',
+      user: { _id: user._id.toHexString() },
+    });
     UserMock.verify();
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
+    sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 });
 
@@ -738,15 +848,16 @@ describe('createUser', () => {
   let RoleMock;
   let objectIdStub;
   let createHistoryStub;
+  let momentToDate;
   const userId = new ObjectID();
   const roleId = new ObjectID();
-  const credentials = { company: { _id: new ObjectID() } };
 
   beforeEach(() => {
     UserMock = sinon.mock(User);
     RoleMock = sinon.mock(Role);
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
     createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
+    momentToDate = sinon.stub(momentProto, 'toDate');
   });
 
   afterEach(() => {
@@ -754,262 +865,239 @@ describe('createUser', () => {
     RoleMock.restore();
     objectIdStub.restore();
     createHistoryStub.restore();
+    momentToDate.restore();
   });
 
-  it('should create an auxiliary', async () => {
+  it('should create a new account for not logged user', async () => {
+    const payload = {
+      identity: { lastname: 'Test' },
+      local: { email: 'toto@test.com' },
+      contact: { phone: '0606060606' },
+      origin: WEBAPP,
+    };
+
+    RoleMock.expects('findById').never();
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({ ...payload, refreshToken: sinon.match.string })
+      .once()
+      .returns({ identity: payload.identity, local: payload.local, contact: payload.contact });
+
+    const result = await UsersHelper.createUser(payload, null);
+
+    expect(result).toEqual({ identity: payload.identity, local: payload.local, contact: payload.contact });
+    RoleMock.verify();
+    UserMock.verify();
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should set firstMobileConnection if origin is mobile', async () => {
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com', password: '1234567890' },
-      role: { client: roleId },
+      local: { email: 'toto@test.com' },
+      contact: { phone: '0606060606' },
+      origin: MOBILE,
+    };
+    const date = '2020-12-08T13:45:25.437Z';
+
+    momentToDate.returns(date);
+    RoleMock.expects('findById').never();
+    UserMock.expects('findOne').never();
+    UserMock.expects('create')
+      .withExactArgs({ ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE })
+      .once()
+      .returns(payload);
+
+    const result = await UsersHelper.createUser(payload, null);
+
+    expect(result).toEqual(payload);
+    RoleMock.verify();
+    UserMock.verify();
+    sinon.assert.calledOnceWithExactly(momentToDate);
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('client admin - should create an auxiliary for his organization and handles sector', async () => {
+    const companyId = new ObjectID();
+    const payload = {
+      identity: { lastname: 'Test' },
+      local: { email: 'toto@test.com' },
+      role: roleId,
       sector: new ObjectID(),
+      origin: WEBAPP,
     };
     const newUser = {
-      ...payload,
+      _id: userId,
+      identity: { lastname: 'Test' },
+      local: { email: 'toto@test.com' },
       role: { client: { _id: roleId, name: 'auxiliary' } },
+      origin: WEBAPP,
     };
 
     RoleMock.expects('findById')
       .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
       .returns({ _id: roleId, name: 'auxiliary', interface: 'client' });
-
     UserMock.expects('create')
-      .withExactArgs({ ...omit(payload, 'sector'), company: credentials.company._id, refreshToken: sinon.match.string })
-      .returns({ ...newUser, _id: userId });
-
+      .withExactArgs({
+        identity: { lastname: 'Test' },
+        local: { email: 'toto@test.com' },
+        origin: WEBAPP,
+        company: companyId,
+        refreshToken: sinon.match.string,
+        role: { client: roleId },
+      })
+      .returns(newUser);
     UserMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: get(credentials, 'company._id', null) },
-      })
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(newUser);
-
     UserMock.expects('findOneAndUpdate').never();
 
-    const result = await UsersHelper.createUser(payload, credentials);
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
-    expect(result).toMatchObject(newUser);
+    expect(result).toEqual(newUser);
     RoleMock.verify();
     UserMock.verify();
-    sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, credentials.company._id);
+    sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
   });
 
-  it('should create a coach', async () => {
+  it('client admin - should create a coach for his organization', async () => {
+    const companyId = new ObjectID();
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com', password: '1234567890' },
+      local: { email: 'toto@test.com' },
       role: { client: roleId },
+      origin: WEBAPP,
     };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'coach', rights: [{ _id: new ObjectID() }] },
-    };
+    const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'coach' } };
 
     RoleMock.expects('findById')
       .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
       .returns({ _id: roleId, name: 'coach', interface: 'client' });
-
     UserMock.expects('create')
-      .withExactArgs({ ...payload, company: credentials.company._id, refreshToken: sinon.match.string })
-      .returns({ ...newUser, _id: userId });
-
+      .withExactArgs({ ...payload, company: companyId, refreshToken: sinon.match.string })
+      .returns(newUser);
     UserMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: get(credentials, 'company._id', null) },
-      })
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUser });
+      .returns(newUser);
 
-    const result = await UsersHelper.createUser(payload, credentials);
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
-    expect(result).toMatchObject(newUser);
+    expect(result).toEqual(newUser);
     RoleMock.verify();
     UserMock.verify();
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should create a client admin', async () => {
+  it('vendor admin - should create a client admin with company', async () => {
+    const companyId = new ObjectID();
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
-      local: { email: 'admin@test.com', password: '1234567890' },
-      role: { client: roleId },
+      local: { email: 'admin@test.com' },
+      role: roleId,
       company: new ObjectID(),
+      origin: WEBAPP,
     };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'client_admin', rights: [{ _id: new ObjectID() }] },
-    };
+    const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'client_admin' } };
 
     RoleMock.expects('findById')
       .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
       .returns({ _id: roleId, name: 'client_admin', interface: 'client' });
-
     UserMock.expects('create')
-      .withExactArgs({
-        ...payload,
-        refreshToken: sinon.match.string,
-      })
-      .returns({ ...newUser, _id: userId });
-
+      .withExactArgs({ ...payload, role: { client: roleId }, refreshToken: sinon.match.string })
+      .returns(newUser);
     UserMock.expects('findOne')
       .withExactArgs({ _id: userId })
       .chain('populate')
       .withExactArgs({ path: 'sector', select: '_id sector', match: { company: payload.company } })
       .chain('lean')
       .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUser });
+      .returns(newUser);
 
-    const result = await UsersHelper.createUser(payload, credentials);
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
-    expect(result).toMatchObject(newUser);
+    expect(result).toEqual(newUser);
     RoleMock.verify();
     UserMock.verify();
   });
 
-  it('should create a trainer', async () => {
+  it('vendor admin - should create a trainer without company', async () => {
+    const companyId = new ObjectID();
     const payload = {
       identity: { lastname: 'Admin', firstname: 'Toto' },
-      local: { email: 'trainer@test.com', password: '1234567890' },
-      role: { vendor: roleId },
+      local: { email: 'trainer@test.com' },
+      role: roleId,
+      origin: WEBAPP,
     };
-    const newUser = {
-      ...payload,
-      role: { _id: roleId, name: 'trainer', rights: [{ _id: new ObjectID() }] },
-    };
+    const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'trainer' } };
 
     RoleMock.expects('findById')
       .withExactArgs(payload.role, { name: 1, interface: 1 })
       .chain('lean')
       .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
-
     UserMock.expects('create')
-      .withExactArgs({ ...payload, refreshToken: sinon.match.string })
-      .returns({ ...newUser, _id: userId });
+      .withExactArgs({ ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string })
+      .returns(newUser);
+    UserMock.expects('findOne').never();
 
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns({ ...newUser });
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
-    const result = await UsersHelper.createUser(payload, credentials);
-
-    expect(result).toMatchObject(newUser);
+    expect(result).toEqual(newUser);
     RoleMock.verify();
     UserMock.verify();
   });
 
-  it('should create a user without role, if no role specified', async () => {
+  it('vendor admin - should create a user without role but with company', async () => {
+    const companyId = new ObjectID();
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com' },
-      contact: {},
       company: new ObjectID(),
+      origin: WEBAPP,
     };
-    const newUser = { ...payload, _id: userId, role: {} };
+    const newUser = { ...payload, _id: userId };
 
     RoleMock.expects('findById').never();
-
     UserMock.expects('findOne').never();
     UserMock.expects('create')
       .withExactArgs({ ...payload, refreshToken: sinon.match.string })
       .returns(newUser);
 
-    const result = await UsersHelper.createUser(payload, credentials);
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
     expect(result).toEqual(newUser);
 
     RoleMock.verify();
     UserMock.verify();
     sinon.assert.notCalled(createHistoryStub);
-  });
-
-  it('should create a user if not connected', async () => {
-    const payload = {
-      identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com' },
-      contact: { phone: '0606060606' },
-      role: { client: roleId },
-    };
-    const newUser = { identity: payload.identity, local: payload.local, contact: payload.contact };
-
-    RoleMock.expects('findById').never();
-
-    UserMock.expects('findOne').never();
-    UserMock.expects('create')
-      .withExactArgs({ ...newUser, refreshToken: sinon.match.string })
-      .once()
-      .returns(newUser);
-
-    const result = await UsersHelper.createUser(payload, null);
-    expect(result).toEqual(newUser);
-
-    RoleMock.verify();
-    UserMock.verify();
-    sinon.assert.notCalled(createHistoryStub);
-  });
-
-  it('should return an error 409 if user already exist', async () => {
-    try {
-      const payload = {
-        identity: { lastname: 'Admin', firstname: 'Toto' },
-        local: { email: 'trainer@test.com', password: '1234567890' },
-        role: { vendor: roleId },
-        company: new ObjectID(),
-      };
-
-      RoleMock.expects('findById')
-        .withExactArgs(payload.role, { name: 1, interface: 1 })
-        .chain('lean')
-        .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
-
-      UserMock.expects('create')
-        .withExactArgs({
-          ...payload,
-          refreshToken: sinon.match.string,
-        })
-        .throws({ code: 11000 });
-
-      UserMock.expects('findOneAndUpdate')
-        .never();
-
-      await UsersHelper.createUser(payload, credentials);
-    } catch (e) {
-      expect(e).toMatchObject({ code: 11000 });
-      RoleMock.verify();
-      UserMock.verify();
-    }
   });
 
   it('should return a 400 error if role does not exist', async () => {
     try {
+      const companyId = new ObjectID();
       const payload = {
         identity: { lastname: 'Test', firstname: 'Toto' },
-        local: { email: 'toto@test.com', password: '1234567890' },
-        role: { client: roleId },
+        local: { email: 'toto@test.com' },
+        role: roleId,
+        origin: WEBAPP,
       };
 
       RoleMock.expects('findById')
         .withExactArgs(payload.role, { name: 1, interface: 1 })
         .chain('lean')
         .returns(null);
-
       UserMock.expects('create').never();
 
-      await UsersHelper.createUser(payload, credentials);
+      await UsersHelper.createUser(payload, { company: { _id: companyId } });
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {

@@ -18,7 +18,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -274,7 +274,7 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
-  const addedTrainee = trainee || await UsersHelper.createUser(payload);
+  const addedTrainee = trainee || await UsersHelper.createUser({ ...payload, origin: WEBAPP });
 
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 

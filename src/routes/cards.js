@@ -21,15 +21,9 @@ const {
   getCardMediaPublicId,
 } = require('./preHandlers/cards');
 const {
-  SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT,
-  FILL_THE_GAPS_MAX_ANSWERS_COUNT,
-  MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT,
-  ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT,
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,
   QUESTION_MAX_LENGTH,
-  GAP_ANSWER_MAX_LENGTH,
-  QUESTION_ANSWER_MAX_ANSWERS_COUNT,
   FLASHCARD_TEXT_MAX_LENGTH,
 } = require('../helpers/constants');
 
@@ -54,18 +48,6 @@ exports.plugin = {
             gappedText: Joi.string(),
             question: Joi.string().max(QUESTION_MAX_LENGTH),
             qcuGoodAnswer: Joi.string().max(QC_ANSWER_MAX_LENGTH),
-            qcmAnswers: Joi.array().items(Joi.object({
-              label: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
-              correct: Joi.boolean().required(),
-            })).min(1).max(MULTIPLE_CHOICE_QUESTION_MAX_ANSWERS_COUNT),
-            orderedAnswers: Joi.array().items(Joi.string()).min(1).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
-            qcuFalsyAnswers: Joi.array().items(
-              Joi.string().max(QC_ANSWER_MAX_LENGTH)
-            ).min(1).max(SINGLE_CHOICE_QUESTION_MAX_FALSY_ANSWERS_COUNT),
-            falsyGapAnswers: Joi.array().items(
-              Joi.string().max(GAP_ANSWER_MAX_LENGTH)
-            ).min(1).max(FILL_THE_GAPS_MAX_ANSWERS_COUNT),
-            questionAnswers: Joi.array().items(Joi.string()).min(1).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
             isQuestionAnswerMultipleChoiced: Joi.boolean(),
             explanation: Joi.string(),
             label: Joi.object().keys({
@@ -86,7 +68,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardAnswerCreation }],
+        pre: [{ method: authorizeCardAnswerCreation, assign: 'card' }],
       },
       handler: addAnswer,
     });
@@ -101,11 +83,12 @@ exports.plugin = {
             answerId: Joi.objectId().required(),
           }),
           payload: Joi.object({
-            text: Joi.string().required(),
-          }),
+            text: Joi.string(),
+            correct: Joi.boolean(),
+          }).min(1),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardAnswerUpdate }],
+        pre: [{ method: authorizeCardAnswerUpdate, assign: 'card' }],
       },
       handler: updateAnswer,
     });
@@ -116,7 +99,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required(), answerId: Joi.objectId().required() }) },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardAnswerDeletion }],
+        pre: [{ method: authorizeCardAnswerDeletion, assign: 'card' }],
       },
       handler: deleteAnswer,
     });

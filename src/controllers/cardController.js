@@ -17,7 +17,7 @@ const update = async (req) => {
 
 const addAnswer = async (req) => {
   try {
-    await CardHelper.addCardAnswer(req.params._id);
+    await CardHelper.addCardAnswer(req.pre.card);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
@@ -28,7 +28,7 @@ const addAnswer = async (req) => {
 
 const updateAnswer = async (req) => {
   try {
-    await CardHelper.updateCardAnswer(req.params, req.payload);
+    await CardHelper.updateCardAnswer(req.pre.card, req.params, req.payload);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {
@@ -39,7 +39,7 @@ const updateAnswer = async (req) => {
 
 const deleteAnswer = async (req) => {
   try {
-    await CardHelper.deleteCardAnswer(req.params);
+    await CardHelper.deleteCardAnswer(req.pre.card, req.params);
 
     return { message: translate[language].cardUpdated };
   } catch (e) {

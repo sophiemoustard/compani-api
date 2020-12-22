@@ -5,7 +5,6 @@ const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
-const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
@@ -17,7 +16,7 @@ const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const AuthenticationHelper = require('./authentication');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, MOBILE } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const EmailHelper = require('./email');
 const GdriveStorageHelper = require('./gdriveStorage');
@@ -37,7 +36,19 @@ exports.authenticate = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: user.refreshToken, user: tokenPayload };
+  if (payload.origin === MOBILE && !user.firstMobileConnection) {
+    await User.updateOne(
+      { _id: user._id, firstMobileConnection: { $exists: false } },
+      { $set: { firstMobileConnection: moment().toDate() } }
+    );
+  }
+
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken: user.refreshToken,
+    user: tokenPayload,
+  };
 };
 
 exports.refreshToken = async (payload) => {
@@ -47,7 +58,12 @@ exports.refreshToken = async (payload) => {
   const tokenPayload = { _id: user._id.toHexString() };
   const token = AuthenticationHelper.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-  return { token, refreshToken: payload.refreshToken, user: tokenPayload };
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken: payload.refreshToken,
+    user: tokenPayload,
+  };
 };
 
 exports.formatQueryForUsersList = async (query) => {
@@ -185,22 +201,34 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
+/**
+ * 1st case : User creates his account => no credentials => handle payload as given
+ * 2nd case : Client role creates user for his organization => set company with the one in credentials
+ * + role (if needed)
+ *  - if sector is given => add sector history (for auxiliary and planning referent)
+ * 3rd case : Vendor role creates user for one organization => set company with the one in payload + role (if needed)
+ * 4th case : Vendor role creates trainer => do no set company
+ */
 exports.createUser = async (userPayload, credentials) => {
-  const { sector, role: roleId, ...payload } = cloneDeep(userPayload);
-  const companyId = payload.company || get(credentials, 'company._id', null);
+  const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
 
-  if (!roleId || !credentials) return User.create({ ...payload, refreshToken: uuidv4() });
+  if (!credentials) {
+    if (userPayload.origin !== MOBILE) return User.create(payload);
+    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
+  }
 
-  const role = await Role.findById(roleId, { name: 1, interface: 1 }).lean();
+  const companyId = payload.company || get(credentials, 'company._id');
+  if (!userPayload.role) return User.create({ ...payload, company: companyId });
+
+  const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
-  payload.role = { [role.interface]: role._id };
+  if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
+  const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
 
-  if (role.name !== TRAINER) payload.company = companyId;
-
-  const user = await User.create({ ...payload, refreshToken: uuidv4() });
-
-  if (sector) await SectorHistoriesHelper.createHistory({ _id: user._id, sector }, companyId);
+  if (userPayload.sector) {
+    await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);
+  }
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })

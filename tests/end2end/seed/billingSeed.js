@@ -23,6 +23,7 @@ const {
   ONCE,
   HOURLY,
   MONTHLY,
+  WEBAPP,
 } = require('../../../src/helpers/constants');
 
 const subscriptions = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
@@ -321,6 +322,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
     contracts: [new ObjectID()],
+    origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
@@ -330,6 +332,7 @@ const billUserList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: otherCompany._id,
     contracts: [new ObjectID()],
+    origin: WEBAPP,
   },
 ];
 

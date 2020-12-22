@@ -22,7 +22,7 @@ const StepHelper = require('../../../src/helpers/steps');
 const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-const { E_LEARNING, ON_SITE } = require('../../../src/helpers/constants');
+const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -959,7 +959,7 @@ describe('addCourseTrainee', () => {
       { course: course._id, traineeId: user._id },
       addedBy._id
     );
-    sinon.assert.calledWithExactly(createUserStub, payload);
+    sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP });
     sinon.assert.notCalled(updateUserStub);
   });
 
@@ -1705,7 +1705,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
           endDate: '2020-10-12T13:30:00.000+01:00',
-          address: { fullAddress: '35B rue de la tour Malakoff' },
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
       });
 
@@ -1719,7 +1719,7 @@ describe('generateConvocationPdf', () => {
       slots: [{
         startDay: '12 oct. 2020',
         hours: '13:30 - 14:30',
-        address: '35B rue de la tour Malakoff',
+        address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         length: 1,
         position: 1,
       }],
@@ -1741,7 +1741,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDate: '2020-10-12T12:30:00.000+01:00',
           endDate: '2020-10-12T13:30:00.000+01:00',
-          address: { fullAddress: '35B rue de la tour Malakoff' },
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
       }
     );
@@ -1757,7 +1757,7 @@ describe('generateConvocationPdf', () => {
         slots: [{
           startDay: '12 oct. 2020',
           hours: '13:30 - 14:30',
-          address: '35B rue de la tour Malakoff',
+          address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
           length: 1,
           position: 1,
         }],

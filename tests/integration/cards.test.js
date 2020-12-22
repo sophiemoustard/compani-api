@@ -60,7 +60,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'fill_the_gaps',
         payload: {
           gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
-          falsyGapAnswers: ['le papa', 'la maman', 'le papi'],
           explanation: 'c\'est evidement la mamie qui remplit le texte',
         },
         id: fillTheGapId,
@@ -69,7 +68,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'order_the_sequence',
         payload: {
           question: 'Que faire dans cette situation ?',
-          orderedAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: orderTheSequenceId,
@@ -79,7 +77,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Que faire dans cette situation ?',
           qcuGoodAnswer: 'plein de trucs',
-          qcuFalsyAnswers: ['rien', 'des trucs', 'ou pas'],
           explanation: 'en fait on doit faire ça',
         },
         id: singleChoiceQuestionId,
@@ -88,7 +85,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         template: 'multiple_choice_question',
         payload: {
           question: 'Que faire dans cette situation ?',
-          qcmAnswers: [{ label: 'un truc', correct: true }, { label: 'rien', correct: false }],
           explanation: 'en fait on doit faire ça',
         },
         id: multipleChoiceQuestionId,
@@ -153,12 +149,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
         { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
         { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
-        { msg: 'valid answers', payload: { falsyGapAnswers: ['la maman', 'le tonton'] }, passing: true },
-        { msg: 'remove one of the 2 existing answers', payload: { falsyGapAnswers: ['la maman'] } },
-        { msg: 'long answer', payload: { falsyGapAnswers: ['la maman', 'more then 15 characters'] } },
-        { msg: 'wrong character in answer', payload: { falsyGapAnswers: ['la maman', 'c\'est tout.'] } },
         { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
-        { msg: 'too many falsy answers', payload: { falsyGapAnswers: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] } },
       ];
 
       requests.forEach((request) => {
@@ -180,12 +171,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Order the sequence', () => {
       const requests = [
-        {
-          msg: 'valid ordered answers',
-          payload: { orderedAnswers: ['en fait si', 'a ouai, non'], question: 'ya quoi ???' },
-          passing: true,
-        },
-        { msg: 'remove one of the 2 existing ordered answers', payload: { orderedAnswers: ['en fait si'] } },
         {
           msg: 'too many chars in question',
           payload: {
@@ -215,14 +200,14 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Single choice question', () => {
       const requests = [
-        { msg: 'valid answers', payload: { qcuFalsyAnswers: ['toto'], qcuGoodAnswer: 'c\'est le S' }, code: 200 },
-        { msg: 'missing falsyAnswer', payload: { qcuFalsyAnswers: [] }, code: 400 },
-        { msg: 'too many answer', payload: { qcuFalsyAnswers: ['toto', 'toto', 'toto', 'toto'] }, code: 400 },
         {
-          msg: 'too many chars in falsy answers',
-          payload: {
-            qcuFalsyAnswers: ['eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz'],
-          },
+          msg: 'valid good answer',
+          payload: { qcuGoodAnswer: 'c\'est le S' },
+          code: 200,
+        },
+        {
+          msg: 'missing good answer',
+          payload: { qcuGoodAnswer: '' },
           code: 400,
         },
         {
@@ -244,52 +229,6 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
           });
 
           const cardUpdated = await Card.findById(singleChoiceQuestionId).lean({ virtuals: true });
-
-          expect(response.statusCode).toBe(request.code);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
-        });
-      });
-    });
-
-    describe('Multiple choice question', () => {
-      const requests = [
-        {
-          msg: 'valid answers',
-          payload: { qcmAnswers: [{ label: 'vie', correct: true }, { label: 'gique', correct: false }] },
-          code: 200,
-        },
-        { msg: 'missing label', payload: { qcmAnswers: [{ correct: true }] }, code: 400 },
-        { msg: 'missing correct', payload: { qcmAnswers: [{ label: 'et la bête' }] }, code: 400 },
-        {
-          msg: 'missing correct answer',
-          payload: { qcmAnswers: [{ label: 'époque', correct: false }, { label: 'et le clochard', correct: false }] },
-          code: 400,
-        },
-        {
-          msg: 'too many chars in answer',
-          payload: {
-            qcmAnswers: [
-              {
-                label: 'eeeeeyuiolkjhgfdasdfghjklzasdfghjklzasdfghjklzasdfghjklzasdvdvdvfghjklzasdfghjklz',
-                correct: true,
-              },
-              { label: 'bleue', correct: false },
-            ],
-          },
-          code: 400,
-        },
-      ];
-
-      requests.forEach((request) => {
-        it(`should return a ${request.code} if ${request.msg}`, async () => {
-          const response = await app.inject({
-            method: 'PUT',
-            url: `/cards/${multipleChoiceQuestionId.toHexString()}`,
-            payload: request.payload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          const cardUpdated = await Card.findById(multipleChoiceQuestionId).lean({ virtuals: true });
 
           expect(response.statusCode).toBe(request.code);
           expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
@@ -385,7 +324,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should add an answer', async () => {
+    it('should add a qcAnswer', async () => {
       const card = cardsList[11];
       const response = await app.inject({
         method: 'POST',
@@ -395,8 +334,45 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated.questionAnswers.length).toEqual(card.questionAnswers.length + 1);
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        qcAnswers: { $size: card.qcAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
+    });
+
+    it('should add an ordered answer', async () => {
+      const card = cardsList[16];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        orderedAnswers: { $size: card.orderedAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
+    });
+
+    it('should add an falsy gap answer', async () => {
+      const card = cardsList[5];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        falsyGapAnswers: { $size: card.falsyGapAnswers.length + 1 },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should return 404 if invalid card id', async () => {
@@ -409,15 +385,23 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if too many answers', async () => {
-      const card = cardsList[12];
-      const response = await app.inject({
-        method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
-        headers: { 'x-access-token': authToken },
-      });
+    const templates = [
+      { name: 'question_answer', card: cardsList[12] },
+      { name: 'single_choice_question', card: cardsList[7] },
+      { name: 'multiple_choice_question', card: cardsList[6] },
+      { name: 'order_the_sequence', card: cardsList[8] },
+      { name: 'fill_the_gaps', card: cardsList[17] },
+    ];
+    templates.forEach((template) => {
+      it(`should return 403 if ${template.name} with already max answers`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/cards/${template.card._id.toHexString()}/answers`,
+          headers: { 'x-access-token': authToken },
+        });
 
-      expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     it('should return 403 if card activity is published', async () => {
@@ -462,15 +446,16 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const card = cardsList[11];
-  const answer = card.questionAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should update an answer', async () => {
+    it('should update a qc answer', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
@@ -480,21 +465,69 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        ...card,
-        questionAnswers: [
-          { _id: card.questionAnswers[0]._id, text: 'je suis un texte' },
-          card.questionAnswers[1],
-        ],
-      }));
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        qcAnswers: { _id: card.qcAnswers[0]._id, text: 'je suis un texte' },
+      });
+      expect(cardUpdated).toEqual(1);
     });
 
-    it('should return 400 if text is missing', async () => {
+    it('should update an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
-        payload: { text: '' },
+        payload: { text: 'je suis un texte' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.countDocuments({
+        _id: card._id,
+        orderedAnswers: { _id: card.orderedAnswers[0]._id, text: 'je suis un texte' },
+      });
+      expect(cardUpdated).toEqual(1);
+    });
+
+    it('should return 400 if text is null', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: '', correct: true },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if correct is null', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { correct: null, text: 'Avery' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if payload is empty', async () => {
+      const card = cardsList[6];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: {},
         headers: { 'x-access-token': authToken },
       });
 
@@ -502,6 +535,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if invalid card id', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
@@ -513,19 +549,51 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if answer is not in card', async () => {
+      const card = cardsList[11];
       const otherQACard = cardsList[12];
+
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.questionAnswers[0]._id.toHexString()}`,
+        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
         payload: { text: 'je suis un texte' },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 400 if field correct is given and template isn\'t qcm', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { correct: false },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if fill the gaps and text has invalid char', async () => {
+      const card = cardsList[5];
+      const answer = card.falsyGapAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: 'invalid char: c\'est tout' },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
+    const card = cardsList[11];
+    const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -555,15 +623,16 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const card = cardsList[12];
-  const answer = card.questionAnswers[0];
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should delete an answer', async () => {
+    it('should delete a qcAnswer', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
@@ -575,15 +644,63 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const cardUpdated = await Card.findById(card._id).lean();
       expect(cardUpdated).toEqual(expect.objectContaining({
         ...card,
-        questionAnswers: [
-          card.questionAnswers[1],
-          card.questionAnswers[2],
-          card.questionAnswers[3],
+        qcAnswers: [
+          card.qcAnswers[1],
+          card.qcAnswers[2],
+          card.qcAnswers[3],
+        ],
+      }));
+    });
+
+    it('should delete an ordered answer', async () => {
+      const card = cardsList[8];
+      const answer = card.orderedAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        orderedAnswers: [
+          card.orderedAnswers[1],
+          card.orderedAnswers[2],
+        ],
+      }));
+    });
+
+    it('should delete a falsy gap answer', async () => {
+      const card = cardsList[17];
+      const answer = card.falsyGapAnswers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardUpdated = await Card.findById(card._id).lean();
+      expect(cardUpdated).toEqual(expect.objectContaining({
+        falsyGapAnswers: [
+          card.falsyGapAnswers[1],
+          card.falsyGapAnswers[2],
+          card.falsyGapAnswers[3],
+          card.falsyGapAnswers[4],
+          card.falsyGapAnswers[5],
         ],
       }));
     });
 
     it('should return 400 if cardId is missing', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${null}/answers/${answer._id.toHexString()}`,
@@ -594,6 +711,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 400 if answerId is missing', async () => {
+      const card = cardsList[12];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${card._id.toHexString()}/answers/${null}`,
@@ -604,6 +723,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if invalid card id', async () => {
+      const card = cardsList[12];
+      const answer = card.qcAnswers[0];
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
@@ -614,10 +736,12 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     });
 
     it('should return 404 if answer is not in card', async () => {
+      const card = cardsList[12];
+
       const otherQACard = cardsList[11];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.questionAnswers[0]._id.toHexString()}`,
+        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -628,11 +752,31 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const publishedCard = cardsList[13];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.questionAnswers[0]._id.toHexString()}`,
+        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    const templates = [
+      { name: 'question_answer', card: cardsList[11], key: 'qcAnswers' },
+      { name: 'single_choice_question', card: cardsList[14], key: 'qcAnswers' },
+      { name: 'multiple_choice_question', card: cardsList[15], key: 'qcAnswers' },
+      { name: 'order_the_sequence', card: cardsList[16], key: 'orderedAnswers' },
+      { name: 'fill_the_gaps', card: cardsList[5], key: 'falsyGapAnswers' },
+    ];
+    templates.forEach((template) => {
+      it(`should return 403 if ${template.name} with already min answers`, async () => {
+        const answers = template.card[`${template.key}`];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/cards/${template.card._id.toHexString()}/answers/${answers[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     it('should return 400 if card has 2 or less answers', async () => {
@@ -640,7 +784,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${oneQuestionCard._id.toHexString()}
-          /answers/${oneQuestionCard.questionAnswers[0]._id.toHexString()}`,
+          /answers/${oneQuestionCard.qcAnswers[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -649,6 +793,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   });
 
   describe('Other roles', () => {
+    const card = cardsList[12];
+    const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

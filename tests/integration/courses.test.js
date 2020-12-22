@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const path = require('path');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
@@ -7,9 +8,10 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
+const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -30,6 +32,7 @@ const {
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const SmsHelper = require('../../src/helpers/sms');
+const DocxHelper = require('../../src/helpers/docx');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -282,11 +285,11 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
             learningGoals: programsList[0].learningGoals,
             subPrograms: [expect.any(ObjectID)],
           },
-          steps: [{
+          steps: expect.arrayContaining([{
             _id: expect.any(ObjectID),
             name: step.name,
             type: step.type,
-          }],
+          }]),
         },
         trainer: expect.objectContaining({
           _id: courseTrainer._id,
@@ -728,13 +731,13 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           image: programsList[0].image,
           subPrograms: [expect.any(ObjectID)],
         },
-        steps: [{
+        steps: expect.arrayContaining([{
           _id: expect.any(ObjectID),
           name: step.name,
           type: step.type,
           areActivitiesValid: false,
           progress: expect.any(Number),
-          activities: [{
+          activities: expect.arrayContaining([{
             _id: expect.any(ObjectID),
             name: activity.name,
             type: activity.type,
@@ -745,8 +748,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
               expect.objectContaining({ user: coachFromAuthCompany._id }),
               expect.not.objectContaining({ user: clientAdmin._id }),
             ]),
-          }],
-        }],
+          }]),
+        }]),
       }),
       slots: expect.arrayContaining([
         expect.objectContaining({
@@ -1206,13 +1209,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
-  const payload = {
-    identity: { firstname: 'Coco', lastname: 'Bongo' },
-    local: { email: 'coco_bongo@alenvi.io' },
-    contact: { phone: '0689320234' },
-    company: authCompany._id,
-  };
-  const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
 
   beforeEach(populateDB);
 
@@ -1223,6 +1219,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should add existing user to course trainees', async () => {
+        const existingUserPayload = {
+          local: { email: auxiliary.local.email },
+          company: authCompany._id,
+        };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1242,6 +1243,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should add new user to course trainees', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          contact: { phone: '0689320234' },
+          company: authCompany._id,
+        };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1254,6 +1262,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(newUser).toBeDefined();
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
+        expect(newUser.origin).toEqual(WEBAPP);
         expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
@@ -1282,6 +1291,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return a 409 error if user is not from the course company', async () => {
+        const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
+
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
@@ -1306,22 +1317,16 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(409);
       });
 
-      it('should return a 400 error if missing email parameter', async () => {
-        const falsyPayload = omit(payload, 'local.email');
-        const response = await app.inject({
-          method: 'POST',
-          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-          payload: falsyPayload,
-          headers: { 'x-access-token': token },
-        });
+      const missingParams = ['identity.lastname', 'company', 'local.email'];
+      missingParams.forEach((param) => {
+        it(`should return a 400 error if user has to be created, and missing '${param}' parameter`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
 
-        expect(response.statusCode).toBe(400);
-      });
-
-      const missingParams = ['identity.lastname', 'company'];
-      missingParams.forEach((path) => {
-        it(`should return a 400 error if user has to be created, and missing '${path}' parameter`, async () => {
-          const falsyPayload = omit(payload, path);
+          const falsyPayload = omit(payload, param);
           const response = await app.inject({
             method: 'POST',
             url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
@@ -1345,6 +1350,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       ];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
+
           token = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
@@ -1358,6 +1369,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return 403 as user is trainer if not one of his courses', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          company: authCompany._id,
+        };
+
         token = await getToken('trainer');
         const response = await app.inject({
           method: 'POST',
@@ -1371,6 +1388,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
       ['coach', 'client_admin'].forEach((role) => {
         it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+          const payload = {
+            identity: { firstname: 'Coco', lastname: 'Bongo' },
+            local: { email: 'coco_bongo@alenvi.io' },
+            company: authCompany._id,
+          };
+
           token = await getToken(role);
           const response = await app.inject({
             method: 'POST',
@@ -1384,6 +1407,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       it('should return a 200 as user is course trainer', async () => {
+        const payload = {
+          identity: { firstname: 'Coco', lastname: 'Bongo' },
+          local: { email: 'coco_bongo@alenvi.io' },
+          company: authCompany._id,
+        };
+
         token = await getTokenByCredentials(courseTrainer.local);
         const response = await app.inject({
           method: 'POST',
@@ -1403,6 +1432,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
     });
 
     it('should add user to inter b2b course', async () => {
+      const existingUserPayload = { local: { email: auxiliary.local.email }, company: authCompany._id };
+
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
@@ -1718,11 +1749,25 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   let authToken = null;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
-  beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
     beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+
       authToken = await getToken('vendor_admin');
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
     });
 
     it('should return 200', async () => {
@@ -1748,6 +1793,23 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

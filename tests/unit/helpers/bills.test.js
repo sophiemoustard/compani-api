@@ -92,6 +92,7 @@ describe('formatBilledEvents', () => {
       },
     ]);
   });
+
   it('should format events for tpp with care hours', () => {
     const bill = {
       subscription: {
