@@ -78,9 +78,9 @@ const createPasswordToken = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    await UsersHelper.forgotPassword(req.payload.email);
+    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
 
-    return { message: translate[language].emailSent };
+    return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
