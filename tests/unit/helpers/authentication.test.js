@@ -5,31 +5,33 @@ const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
 const bcrypt = require('bcrypt');
+const SinonMongoose = require('../sinonMongoose');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
 const EmailHelper = require('../../../src/helpers/email');
 const translate = require('../../../src/helpers/translate');
 const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const User = require('../../../src/models/User');
 
-require('sinon-mongoose');
-
 const { language } = translate;
 
 describe('authenticate', () => {
-  let UserMock;
+  let findOne;
+  let updateOne;
   let compare;
   let encode;
   let momentToDate;
   let momentAdd;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
+    updateOne = sinon.stub(User, 'updateOne');
     compare = sinon.stub(bcrypt, 'compare');
     encode = sinon.stub(AuthenticationHelper, 'encode');
     momentToDate = sinon.stub(momentProto, 'toDate');
     momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
+    updateOne.restore();
     compare.restore();
     encode.restore();
     momentToDate.restore();
@@ -40,35 +42,35 @@ describe('authenticate', () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
-      refreshToken: 'token',
+      refreshToken: 'refreshToken',
       local: { password: 'toto' },
     };
     momentToDate.onCall(0).returns('2020-12-08T13:45:25.437Z');
-
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-      .chain('select')
-      .withExactArgs('local refreshToken')
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
-    UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: user._id, firstMobileConnection: { $exists: false } },
-        { $set: { firstMobileConnection: '2020-12-08T13:45:25.437Z' } }
-      );
 
     const result = await AuthenticationHelper.authenticate(payload);
 
     expect(result).toEqual({
       token: 'token',
       tokenExpireDate: '2020-12-09T13:45:25.437Z',
-      refreshToken: user.refreshToken,
+      refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': 'toto@email.com' }] },
+        { query: 'select', args: ['local refreshToken'] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: user._id, firstMobileConnection: { $exists: false } },
+      { $set: { firstMobileConnection: '2020-12-08T13:45:25.437Z' } }
+    );
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
     sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
@@ -76,32 +78,29 @@ describe('authenticate', () => {
 
   it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
-    const user = {
-      _id: new ObjectID(),
-      refreshToken: 'token',
-      local: { password: 'toto' },
-    };
+    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-      .chain('select')
-      .withExactArgs('local refreshToken')
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
-    UserMock.expects('updateOne').never();
 
     const result = await AuthenticationHelper.authenticate(payload);
 
     expect(result).toEqual({
       token: 'token',
       tokenExpireDate: '2020-12-09T13:45:25.437Z',
-      refreshToken: user.refreshToken,
+      refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
+        { query: 'select', args: ['local refreshToken'] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(updateOne);
     sinon.assert.notCalled(momentToDate);
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
@@ -112,31 +111,32 @@ describe('authenticate', () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
       _id: new ObjectID(),
-      refreshToken: 'token',
+      refreshToken: 'refreshToken',
       local: { password: 'toto' },
       firstMobileConnection: '2020-12-08T13:45:25.437Z',
     };
 
-    UserMock.expects('findOne')
-      .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-      .chain('select')
-      .withExactArgs('local refreshToken')
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
-    UserMock.expects('updateOne').never();
 
     const result = await AuthenticationHelper.authenticate(payload);
 
     expect(result).toEqual({
       token: 'token',
       tokenExpireDate: '2020-12-09T13:45:25.437Z',
-      refreshToken: user.refreshToken,
+      refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
+        { query: 'select', args: ['local refreshToken'] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(updateOne);
     sinon.assert.notCalled(momentToDate);
     sinon.assert.calledOnceWithExactly(compare, payload.password, 'toto');
     sinon.assert.calledOnceWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
@@ -144,23 +144,24 @@ describe('authenticate', () => {
   });
 
   it('should throw an error if user does not exist', async () => {
-    try {
-      const payload = { email: 'toto@email.com', password: '123456!eR' };
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns(null);
+    const payload = { email: 'toto@email.com', password: '123456!eR' };
 
-      UserMock.expects('updateOne').never();
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([], ['select', 'lean']));
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      UserMock.verify();
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
+          { query: 'select', args: ['local refreshToken'] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(updateOne);
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
       sinon.assert.notCalled(momentToDate);
@@ -169,23 +170,23 @@ describe('authenticate', () => {
   });
 
   it('should throw an error if refresh token does not exist', async () => {
+    const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
-      const payload = { email: 'toto@email.com', password: '123456!eR' };
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns({ _id: new ObjectID() });
-
-      UserMock.expects('updateOne').never();
+      findOne.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectID() }], ['select', 'lean']));
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      UserMock.verify();
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
+          { query: 'select', args: ['local refreshToken'] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(updateOne);
       sinon.assert.calledOnceWithExactly(compare, '123456!eR', '');
       sinon.assert.notCalled(encode);
       sinon.assert.notCalled(momentToDate);
@@ -194,24 +195,29 @@ describe('authenticate', () => {
   });
 
   it('should throw an error if wrong password', async () => {
-    const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
-      UserMock.expects('findOne')
-        .withExactArgs({ 'local.email': payload.email.toLowerCase() })
-        .chain('select')
-        .withExactArgs('local refreshToken')
-        .chain('lean')
-        .once()
-        .returns({ _id: new ObjectID(), refreshToken: 'token', local: { password: 'password_hash' } });
+      const payload = { email: 'toto@email.com', password: '123456!eR' };
+
+      findOne.returns(SinonMongoose.stubChainedQueries(
+        [{ _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'password_hash' } }],
+        ['select', 'lean']
+      ));
       compare.returns(false);
-      UserMock.expects('updateOne').never();
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      UserMock.verify();
-      sinon.assert.calledOnceWithExactly(compare, payload.password, 'password_hash');
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ 'local.email': 'toto@email.com' }] },
+          { query: 'select', args: ['local refreshToken'] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(updateOne);
+      sinon.assert.calledOnceWithExactly(compare, '123456!eR', 'password_hash');
       sinon.assert.notCalled(encode);
       sinon.assert.notCalled(momentToDate);
       sinon.assert.notCalled(momentAdd);
@@ -220,163 +226,161 @@ describe('authenticate', () => {
 });
 
 describe('refreshToken', () => {
-  let UserMock;
+  let findOne;
   let encode;
   let momentAdd;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
     encode = sinon.stub(AuthenticationHelper, 'encode');
     momentAdd = sinon.stub(momentProto, 'add').returns({ toDate: sinon.stub().returns('2020-12-09T13:45:25.437Z') });
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
     encode.restore();
     momentAdd.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
     try {
-      const refreshToken = 'token';
-      UserMock.expects('findOne')
-        .withExactArgs({ refreshToken })
-        .chain('lean')
-        .once()
-        .returns(null);
+      findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
-      await AuthenticationHelper.refreshToken(refreshToken);
+      await AuthenticationHelper.refreshToken('refreshToken');
     } catch (e) {
       expect(e).toEqual(Boom.unauthorized());
     } finally {
-      UserMock.verify();
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
+      );
       sinon.assert.notCalled(encode);
       sinon.assert.notCalled(momentAdd);
     }
   });
 
   it('should return refresh token', async () => {
-    const refreshToken = 'token';
-    const user = {
-      _id: new ObjectID(),
-      refreshToken: 'token',
-      local: { password: 'toto' },
-    };
+    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
-    UserMock.expects('findOne')
-      .withExactArgs({ refreshToken })
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
     encode.returns('token');
 
-    const result = await AuthenticationHelper.refreshToken(refreshToken);
+    const result = await AuthenticationHelper.refreshToken('refreshToken');
 
     expect(result).toEqual({
       token: 'token',
       tokenExpireDate: '2020-12-09T13:45:25.437Z',
-      refreshToken: 'token',
+      refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
+    );
     sinon.assert.calledWithExactly(encode, { _id: user._id.toHexString() }, TOKEN_EXPIRE_TIME);
     sinon.assert.calledOnceWithExactly(momentAdd, TOKEN_EXPIRE_TIME, 'seconds');
   });
 });
 
 describe('updatePassword', () => {
-  let UserMock;
-  const userId = new ObjectID();
-  const user = { _id: userId };
-
+  let findOneAndUpdate;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
   });
   afterEach(() => {
-    UserMock.restore();
+    findOneAndUpdate.restore();
   });
 
   it('should update a user password', async () => {
+    const userId = new ObjectID();
     const payload = { local: { password: '123456!eR' } };
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: userId },
-        { $set: flat(payload), $unset: { passwordToken: '' } },
-        { new: true }
-      )
-      .chain('lean')
-      .returns({ ...user, ...payload });
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: userId, local: { password: '123456!eR' } }],
+      ['lean']
+    ));
 
     const result = await AuthenticationHelper.updatePassword(userId, payload);
 
-    expect(result).toEqual({ ...user, ...payload });
-    UserMock.verify();
+    expect(result).toEqual({ _id: userId, local: { password: '123456!eR' } });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: userId },
+            { $set: { 'local.password': '123456!eR' }, $unset: { passwordToken: '' } },
+            { new: true },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('checkPasswordToken', () => {
-  let UserMock;
+  let findOne;
   let encode;
   let fakeDate;
   const date = new Date('2020-01-13');
-  const token = '1234567890';
-  const filter = { passwordToken: { token, expiresIn: { $gt: date.getTime() } } };
-
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
     encode = sinon.stub(AuthenticationHelper, 'encode');
     fakeDate = sinon.useFakeTimers(date);
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
     encode.restore();
     fakeDate.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
-    try {
-      UserMock.expects('findOne')
-        .withExactArgs(flat(filter, { maxDepth: 2 }))
-        .chain('select')
-        .withExactArgs('local')
-        .chain('lean')
-        .withExactArgs()
-        .once()
-        .returns(null);
+    const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date.getTime() } } };
 
-      await AuthenticationHelper.checkPasswordToken(token);
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([], ['select', 'lean']));
+
+      await AuthenticationHelper.checkPasswordToken('1234567890');
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
-      UserMock.verify();
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
+          { query: 'select', args: ['local'] },
+          { query: 'lean' },
+        ]
+      );
       sinon.assert.notCalled(encode);
     }
   });
 
   it('should return a new access token after checking reset password token', async () => {
+    const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date.getTime() } } };
     const user = { _id: new ObjectID(), local: { email: 'toto@toto.com' } };
     const userPayload = { _id: user._id, email: user.local.email };
 
-    UserMock.expects('findOne')
-      .withExactArgs(flat(filter, { maxDepth: 2 }))
-      .chain('select')
-      .withExactArgs('local')
-      .chain('lean')
-      .withExactArgs()
-      .once()
-      .returns(user);
-    encode.returns(token);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
+    encode.returns('1234567890');
 
-    const result = await AuthenticationHelper.checkPasswordToken(token);
+    const result = await AuthenticationHelper.checkPasswordToken('1234567890');
 
-    expect(result).toEqual({ token, user: userPayload });
-    UserMock.verify();
+    expect(result).toEqual({ token: '1234567890', user: userPayload });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
+        { query: 'select', args: ['local'] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(encode, userPayload, TOKEN_EXPIRE_TIME);
   });
 });
 
 describe('createPasswordToken', () => {
   let generatePasswordTokenStub;
-  const email = 'toto@toto.com';
 
   beforeEach(() => {
     generatePasswordTokenStub = sinon.stub(AuthenticationHelper, 'generatePasswordToken');
@@ -386,8 +390,11 @@ describe('createPasswordToken', () => {
   });
 
   it('should return a new password token', async () => {
+    const email = 'toto@toto.com';
     generatePasswordTokenStub.returns({ token: '123456789' });
+
     const passwordToken = await AuthenticationHelper.createPasswordToken(email);
+
     sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 24 * 3600 * 1000);
     expect(passwordToken).toEqual({ token: '123456789' });
   });
@@ -396,7 +403,6 @@ describe('createPasswordToken', () => {
 describe('forgotPassword', () => {
   let forgotPasswordEmail;
   let generatePasswordTokenStub;
-  const email = 'toto@toto.com';
 
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
@@ -408,6 +414,7 @@ describe('forgotPassword', () => {
   });
 
   it('should return a new access token after checking reset password token', async () => {
+    const email = 'toto@toto.com';
     generatePasswordTokenStub.returns({ token: '123456789' });
     forgotPasswordEmail.returns({ sent: true });
 
@@ -420,49 +427,68 @@ describe('forgotPassword', () => {
 });
 
 describe('generatePasswordToken', () => {
-  let UserMock;
+  let findOneAndUpdate;
   let fakeDate;
-  const email = 'toto@toto.com';
   const date = new Date('2020-01-13');
-  const payload = { passwordToken: { token: expect.any(String), expiresIn: date.getTime() + 3600000 } };
-
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
     fakeDate = sinon.useFakeTimers(date);
   });
   afterEach(() => {
-    UserMock.restore();
+    findOneAndUpdate.restore();
     fakeDate.restore();
   });
 
   it('should throw an error if user does not exist', async () => {
     try {
-      UserMock.expects('findOneAndUpdate')
-        .chain('lean')
-        .withExactArgs()
-        .once()
-        .returns(null);
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
-      await AuthenticationHelper.generatePasswordToken(email, 3600000);
+      await AuthenticationHelper.generatePasswordToken('toto@toto.com', 3600000);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
-      UserMock.verify();
+      SinonMongoose.calledWithExactly(
+        findOneAndUpdate,
+        [
+          {
+            query: 'findOneAndUpdate',
+            args: [
+              { 'local.email': 'toto@toto.com' },
+              { $set: { passwordToken: { token: sinon.match.string, expiresIn: date.getTime() + 3600000 } } },
+              { new: true },
+            ],
+          },
+          { query: 'lean' },
+        ]
+      );
     }
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com', ...payload } };
+    const user = {
+      _id: new ObjectID(),
+      local: { email: 'toto@toto.com' },
+      passwordToken: { token: sinon.match.string, expiresIn: date.getTime() + 3600000 },
+    };
 
-    UserMock.expects('findOneAndUpdate')
-      .chain('lean')
-      .withExactArgs()
-      .once()
-      .returns(user);
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
-    const result = await AuthenticationHelper.generatePasswordToken(email, 3600000);
+    const result = await AuthenticationHelper.generatePasswordToken('toto@toto.com', 3600000);
 
-    expect(result).toEqual(payload.passwordToken);
-    UserMock.verify();
+    expect(result).toEqual({ token: expect.any(String), expiresIn: date.getTime() + 3600000 });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { 'local.email': 'toto@toto.com' },
+            { $set: { passwordToken: { token: sinon.match.string, expiresIn: date.getTime() + 3600000 } } },
+            { new: true },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
