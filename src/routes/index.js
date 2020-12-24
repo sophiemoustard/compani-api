@@ -8,6 +8,10 @@ exports.routes = [
     routes: { prefix: '/users' },
   },
   {
+    plugin: require('./authentication'),
+    routes: { prefix: '/users' },
+  },
+  {
     plugin: require('./administrativeDocuments'),
     routes: { prefix: '/administrativedocuments' },
   },
