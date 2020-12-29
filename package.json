@@ -34,7 +34,6 @@
     "@hapi/inert": "^6.0.3",
     "axios": "^0.21.0",
     "bcrypt": "^5.0.0",
-    "cloudinary": "^1.23.0",
     "cron": "^1.7.2",
     "date-holidays": "^1.8.3",
     "docxtemplater": "^3.19.7",

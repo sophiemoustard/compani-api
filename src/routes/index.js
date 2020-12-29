@@ -32,10 +32,6 @@ exports.routes = [
     routes: { prefix: '/gdrive' },
   },
   {
-    plugin: require('./cloudinary'),
-    routes: { prefix: '/cloudinary' },
-  },
-  {
     plugin: require('./sms'),
     routes: { prefix: '/sms' },
   },
