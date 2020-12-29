@@ -2,61 +2,98 @@ const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-
 const PayDocument = require('../../../src/models/PayDocument');
+const User = require('../../../src/models/User');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const UtilsHelper = require('../../../src/helpers/utils');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
-  let addFileStub;
-  let saveStub;
-  const payload = {
-    driveFolderId: '1234567890',
-    fileName: 'test',
-    payDoc: 'stream',
-    mimeType: 'application/pdf',
-    date: new Date().toISOString(),
-    nature: 'test',
-    user: new ObjectID(),
-  };
-  const credentials = { company: { _id: new ObjectID() } };
+  let addFile;
+  let create;
+  let findOne;
+  let formatIdentity;
 
   beforeEach(() => {
-    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
-    saveStub = sinon.stub(PayDocument.prototype, 'save');
+    addFile = sinon.stub(GdriveStorageHelper, 'addFile');
+    create = sinon.stub(PayDocument, 'create');
+    findOne = sinon.stub(User, 'findOne');
+    formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
   });
 
   afterEach(() => {
-    addFileStub.restore();
-    saveStub.restore();
+    addFile.restore();
+    create.restore();
+    findOne.restore();
+    formatIdentity.restore();
   });
 
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
-    addFileStub.returns(null);
+    const userId = new ObjectID();
+    const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
+    const credentials = { company: { _id: new ObjectID() } };
+    findOne.returns(SinonMongoose.stubChainedQueries([{
+      _id: userId,
+      administrative: { driveFolder: { driveId: 'driveId' } },
+      identity: { lastname: 'lastname' },
+    }]));
+    formatIdentity.returns('bonjour');
+    addFile.returns(null);
+
     try {
       await PayDocumentHelper.create(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
     } finally {
-      sinon.assert.calledWithExactly(addFileStub, {
-        driveFolderId: '1234567890',
-        name: 'test',
-        type: 'application/pdf',
+      SinonMongoose.calledWithExactly(findOne, [
+        { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+        { query: 'lean' },
+      ]);
+      sinon.assert.calledWithExactly(formatIdentity, { lastname: 'lastname' }, 'FL');
+      sinon.assert.calledWithExactly(addFile, {
+        driveFolderId: 'driveId',
+        name: 'bulletin_de_paie_31_12_2020_0000_bonjour',
+        type: 'pdf',
         body: 'stream',
       });
+      sinon.assert.notCalled(create);
     }
   });
 
   it('should save document to drive and db', async () => {
-    addFileStub.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
+    const userId = new ObjectID();
+    const companyId = new ObjectID();
+    const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
+    const credentials = { company: { _id: companyId } };
+    findOne.returns(SinonMongoose.stubChainedQueries([{
+      _id: userId,
+      administrative: { driveFolder: { driveId: 'driveId' } },
+      identity: { lastname: 'lastname' },
+    }]));
+    formatIdentity.returns('bonjour');
+    addFile.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
+
     await PayDocumentHelper.create(payload, credentials);
-    sinon.assert.calledWithExactly(addFileStub, {
-      driveFolderId: '1234567890',
-      name: 'test',
-      type: 'application/pdf',
-      body: 'stream',
-    });
-    sinon.assert.calledOnce(saveStub);
+
+    sinon.assert.calledWithExactly(
+      addFile,
+      { driveFolderId: 'driveId', name: 'bulletin_de_paie_31_12_2020_0000_bonjour', type: 'pdf', body: 'stream' }
+    );
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        company: companyId,
+        date: '2020-12-31T00:00:00',
+        nature: 'payslip',
+        user: userId,
+        file: { driveId: '0987654321', link: 'http://test.com/test.pdf' },
+      }
+    );
   });
 });
 

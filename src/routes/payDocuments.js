@@ -23,12 +23,10 @@ exports.plugin = {
         payload: formDataPayload(),
         validate: {
           payload: Joi.object({
-            date: Joi.date(),
-            fileName: Joi.string().required(),
-            payDoc: Joi.any().required(),
+            file: Joi.any().required(),
             nature: Joi.string().valid(...PAY_DOCUMENT_NATURES).required(),
             mimeType: Joi.string().required(),
-            driveFolderId: Joi.string().required(),
+            date: Joi.date().required(),
             user: Joi.objectId().required(),
           }),
         },
