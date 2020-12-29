@@ -132,7 +132,7 @@ describe('formatPdf', () => {
       name: 'Alenvi',
       rcs: 'rcs',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
-      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      logo: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png',
       legalRepresentative: { lastname: 'Trebalag', firstname: 'Jean Christophe', position: 'master' },
     };
     const taxCertificate = {
