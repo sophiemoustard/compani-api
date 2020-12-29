@@ -1,6 +1,6 @@
 'use strict';
 
-const { validate } = require('../helpers/authentication');
+const { validate } = require('../helpers/authorization');
 
 exports.plugin = {
   name: 'hapi-auth-jwt-2',

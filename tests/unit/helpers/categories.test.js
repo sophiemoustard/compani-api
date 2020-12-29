@@ -41,7 +41,7 @@ describe('list', () => {
     expect(result).toMatchObject(categoriesList);
     SinonMongoose.calledWithExactly(list, [
       { query: 'find' },
-      { query: 'populate', args: { path: 'programsCount' } },
+      { query: 'populate', args: [{ path: 'programsCount' }] },
       { query: 'lean' },
     ]);
   });

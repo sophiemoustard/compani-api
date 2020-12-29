@@ -1,72 +1,93 @@
 const jwt = require('jsonwebtoken');
+const Boom = require('@hapi/boom');
+const moment = require('moment');
+const bcrypt = require('bcrypt');
+const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
-const pick = require('lodash/pick');
+const flat = require('flat');
+const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
-const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, CLIENT } = require('./constants');
+const { TOKEN_EXPIRE_TIME } = require('../models/User');
+const translate = require('./translate');
+const { MOBILE } = require('./constants');
+const EmailHelper = require('./email');
 
-const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
+const { language } = translate;
 
-const formatRights = (roles, company) => {
-  let formattedRights = [];
-  for (const role of roles) {
-    let interfaceRights = rights;
+exports.encode = (payload, expireTime) =>
+  jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
-    if (role.interface === CLIENT) {
-      const companySubscriptions = Object.keys(company.subscriptions).filter(key => company.subscriptions[key]);
-      interfaceRights = interfaceRights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
-    }
+exports.authenticate = async (payload) => {
+  const user = await User
+    .findOne({ 'local.email': payload.email.toLowerCase() })
+    .select('local refreshToken')
+    .lean();
+  const correctPassword = get(user, 'local.password') || '';
+  const isCorrect = await bcrypt.compare(payload.password, correctPassword);
+  if (!user || !user.refreshToken || !correctPassword || !isCorrect) throw Boom.unauthorized();
 
-    formattedRights = formattedRights.concat(interfaceRights
-      .filter(right => right.rolesConcerned.includes(role.name))
-      .map(right => right.permission));
+  const tokenPayload = { _id: user._id.toHexString() };
+  const token = exports.encode(tokenPayload, TOKEN_EXPIRE_TIME);
+
+  if (payload.origin === MOBILE && !user.firstMobileConnection) {
+    await User.updateOne(
+      { _id: user._id, firstMobileConnection: { $exists: false } },
+      { $set: { firstMobileConnection: moment().toDate() } }
+    );
   }
 
-  return [...new Set(formattedRights)];
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken: user.refreshToken,
+    user: tokenPayload,
+  };
 };
 
-const validate = async (decoded) => {
-  try {
-    if (!decoded._id) throw new Error('No id present in token');
+exports.refreshToken = async (refreshToken) => {
+  const user = await User.findOne({ refreshToken }).lean();
+  if (!user) throw Boom.unauthorized();
 
-    const user = await User.findById(decoded._id, '_id identity role company local customers')
-      .populate({ path: 'sector', options: { requestingOwnInfos: true } })
-      .lean({ autopopulate: true });
+  const tokenPayload = { _id: user._id.toHexString() };
+  const token = exports.encode(tokenPayload, TOKEN_EXPIRE_TIME);
 
-    const userRoles = user.role ? Object.values(user.role).filter(role => !!role) : [];
-
-    const userRolesName = userRoles.map(role => role.name);
-    const userRights = formatRights(userRoles, user.company);
-
-    const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
-    const scope = [
-      `user:read-${decoded._id}`,
-      `user:edit-${decoded._id}`,
-      ...userRolesName,
-      ...userRights,
-      ...customersScopes,
-    ];
-
-    if (get(user, 'role.client.name') === CLIENT_ADMIN) scope.push(`company-${user.company._id}`);
-
-    const credentials = {
-      email: get(user, 'local.email', null),
-      _id: decoded._id,
-      identity: user.identity || null,
-      company: user.company || null,
-      sector: user.sector ? user.sector.toHexString() : null,
-      role: pick(user.role, ['client.name', 'vendor.name']),
-      scope,
-    };
-
-    return { isValid: true, credentials };
-  } catch (e) {
-    console.error(e);
-    return { isValid: false };
-  }
+  return {
+    token,
+    tokenExpireDate: moment().add(TOKEN_EXPIRE_TIME, 'seconds').toDate(),
+    refreshToken,
+    user: tokenPayload,
+  };
 };
 
-module.exports = {
-  encode,
-  validate,
+exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
+  { _id: userId },
+  { $set: flat(userPayload), $unset: { passwordToken: '' } },
+  { new: true }
+).lean();
+
+exports.checkPasswordToken = async (token) => {
+  const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
+  const user = await User.findOne(flat(filter, { maxDepth: 2 })).select('local').lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  const payload = { _id: user._id, email: user.local.email };
+  const userPayload = pickBy(payload);
+  const expireTime = 86400;
+
+  return { token: exports.encode(userPayload, expireTime), user: userPayload };
+};
+
+exports.createPasswordToken = async email => exports.generatePasswordToken(email, 24 * 3600 * 1000); // 1 day
+
+exports.forgotPassword = async (email) => {
+  const passwordToken = await exports.generatePasswordToken(email, 3600000);
+  return EmailHelper.forgotPasswordEmail(email, passwordToken);
+};
+
+exports.generatePasswordToken = async (email, time) => {
+  const payload = { passwordToken: { token: uuidv4(), expiresIn: Date.now() + time } };
+  const user = await User.findOneAndUpdate({ 'local.email': email }, { $set: payload }, { new: true }).lean();
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  return payload.passwordToken;
 };
