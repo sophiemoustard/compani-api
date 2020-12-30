@@ -29,10 +29,7 @@ describe('POST /paydocuments', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
       addStub = sinon.stub(Gdrive, 'add');
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
-        id: '1234567890',
-        webViewLink: 'http://test.com/file.pdf',
-      });
+      addFileStub = sinon.stub(GdriveStorage, 'addFile');
     });
     afterEach(() => {
       addFileStub.restore();
@@ -41,9 +38,7 @@ describe('POST /paydocuments', () => {
 
     it('should create a new pay document', async () => {
       const docPayload = {
-        payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-        driveFolderId: '09876543211',
-        fileName: 'pay-document',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
         user: payDocumentUser._id.toHexString(),
@@ -52,6 +47,7 @@ describe('POST /paydocuments', () => {
 
       const form = generateFormData(docPayload);
       const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id }).lean();
+      addFileStub.returns({ id: '1234567890', webViewLink: 'http://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -71,18 +67,18 @@ describe('POST /paydocuments', () => {
       sinon.assert.calledOnce(addFileStub);
     });
 
-    const wrongParams = ['payDoc', 'fileName', 'nature', 'mimeType', 'driveFolderId'];
+    const wrongParams = ['file', 'nature', 'mimeType', 'user'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
-          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-          driveFolderId: '09876543211',
-          fileName: 'pay-document',
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
           user: payDocumentUser._id.toHexString(),
           mimeType: 'application/pdf',
         };
+
+        addFileStub.returns({ id: '1234567890', webViewLink: 'http://test.com/file.pdf' });
         const form = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
@@ -97,9 +93,7 @@ describe('POST /paydocuments', () => {
 
     it('should not create a new pay document if the user is not from the same company', async () => {
       const docPayload = {
-        payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-        driveFolderId: '09876543211',
-        fileName: 'pay-document',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
         user: userFromOtherCompany._id.toHexString(),
@@ -146,15 +140,14 @@ describe('POST /paydocuments', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
         authToken = await getToken(role.name, role.erp);
         const docPayload = {
-          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-          driveFolderId: '09876543211',
-          fileName: 'pay-document',
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
           user: payDocumentUser._id.toHexString(),
           mimeType: 'application/pdf',
         };
 
+        addFileStub.returns({ id: '1234567890', webViewLink: 'http://test.com/file.pdf' });
         const form = generateFormData(docPayload);
 
         const response = await app.inject({
