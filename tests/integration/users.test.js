@@ -127,6 +127,23 @@ describe('POST /users', () => {
       expect(userSectorHistory).toBeDefined();
     });
 
+    it('should not create user if password in payload', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
+        contact: { phone: '0606060606' },
+        origin: MOBILE,
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     it('should not create a user if role provided does not exist', async () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },

@@ -159,7 +159,9 @@ exports.authorizeUserUpdateWithoutCompany = (req) => {
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
   if (!credentials) checkUpdateRestrictions(req.payload);
+
   if (credentials && req.payload.local.password) throw Boom.forbidden();
+
   const scope = get(credentials, 'scope');
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
 
