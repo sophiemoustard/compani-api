@@ -45,27 +45,21 @@ describe('getActivity', () => {
 });
 
 describe('updateActivity', () => {
-  let ActivityMock;
-
+  let updateOne;
   beforeEach(() => {
-    ActivityMock = sinon.mock(Activity);
+    updateOne = sinon.stub(Activity, 'updateOne');
   });
-
   afterEach(() => {
-    ActivityMock.restore();
+    updateOne.restore();
   });
 
   it('should update an activity\'s name', async () => {
     const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
     const payload = { name: 'faire dodo' };
 
-    ActivityMock.expects('updateOne')
-      .withExactArgs({ _id: activity._id }, { $set: payload })
-      .once();
-
     await ActivityHelper.updateActivity(activity._id, payload);
 
-    ActivityMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: activity._id }, { $set: payload });
   });
 });
 
@@ -137,24 +131,20 @@ describe('addActivity', () => {
 });
 
 describe('detachActivity', () => {
-  let StepMock;
-
+  let updateOne;
   beforeEach(() => {
-    StepMock = sinon.mock(Step);
+    updateOne = sinon.stub(Step, 'updateOne');
   });
-
   afterEach(() => {
-    StepMock.restore();
+    updateOne.restore();
   });
 
   it('should detach activity', async () => {
     const stepId = new ObjectID();
     const activityId = new ObjectID();
 
-    StepMock.expects('updateOne').withExactArgs({ _id: stepId }, { $pull: { activities: activityId } });
-
     await ActivityHelper.detachActivity(stepId, activityId);
 
-    StepMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $pull: { activities: activityId } });
   });
 });
