@@ -7,8 +7,7 @@ const EventHistoryRepository = require('../../../src/repositories/EventHistoryRe
 const EventHistory = require('../../../src/models/EventHistory');
 const User = require('../../../src/models/User');
 const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getEventHistories', () => {
   let getListQueryStub;
@@ -113,14 +112,14 @@ describe('getListQuery', () => {
 
 describe('createEventHistory', () => {
   let create;
-  let UserMock;
+  let findOne;
   beforeEach(() => {
     create = sinon.stub(EventHistory, 'create');
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
     create.restore();
-    UserMock.restore();
+    findOne.restore();
   });
 
   it('should save event history with auxiliary in payload', async () => {
@@ -129,14 +128,8 @@ describe('createEventHistory', () => {
     const companyId = new ObjectID();
     const payload = { _id: new ObjectID(), auxiliary: auxiliaryId.toHexString() };
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ sector: sectorId });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ sector: sectorId }]));
+
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
 
     sinon.assert.calledWithExactly(
@@ -150,7 +143,17 @@ describe('createEventHistory', () => {
         event: { auxiliary: auxiliaryId.toHexString() },
       }
     );
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: payload.auxiliary }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should save event history with sector in payload', async () => {
@@ -158,7 +161,7 @@ describe('createEventHistory', () => {
     const sectorId = new ObjectID();
     const payload = { _id: new ObjectID(), sector: sectorId.toHexString(), type: 'intervention' };
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    UserMock.expects('findOne').never();
+
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
 
     sinon.assert.calledWithExactly(
@@ -171,7 +174,7 @@ describe('createEventHistory', () => {
         event: { type: 'intervention' },
       }
     );
-    UserMock.verify();
+    sinon.assert.notCalled(findOne);
   });
 });
 
@@ -585,12 +588,15 @@ describe('createEventHistoryOnUpdate', () => {
 });
 
 describe('formatHistoryForAuxiliaryUpdate', () => {
-  let UserMock;
+  let find;
+  let findOne;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    find = sinon.stub(User, 'find');
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    UserMock.restore();
+    find.restore();
+    findOne.restore();
   });
 
   it('should format event history when auxiliary is updated', async () => {
@@ -604,15 +610,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
-
-    UserMock.expects('find')
-      .withExactArgs({ _id: { $in: [auxiliaryId, 'qwertyuiop'] } })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns([{ _id: auxiliaryId, sector: sectorId }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, sector: sectorId }]]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -627,7 +625,15 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId],
       auxiliaries: [auxiliaryId.toHexString(), 'qwertyuiop'],
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ _id: { $in: [auxiliaryId, 'qwertyuiop'] } }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    sinon.assert.notCalled(findOne);
   });
 
   it('should format event history when auxiliary is removed (Unassign)', async () => {
@@ -641,15 +647,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     };
     const payload = { sector: sectorId.toHexString() };
     const event = { auxiliary: auxiliaryId };
-
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
@@ -661,7 +659,15 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId.toHexString()],
       auxiliaries: [auxiliaryId.toHexString()],
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    sinon.assert.notCalled(find);
   });
 
   it('should format event history when auxiliary is added (Assign)', async () => {
@@ -676,15 +682,8 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     };
     const payload = { auxiliary: auxiliaryId.toHexString() };
     const event = { sector: eventSectorId };
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
@@ -698,16 +697,25 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId.toHexString(), eventSectorId.toHexString()],
       auxiliaries: [auxiliaryId.toHexString()],
     });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    sinon.assert.notCalled(find);
   });
 });
 
 describe('formatHistoryForCancelUpdate', () => {
-  let UserMock;
+  let findOne;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
   });
 
   it('should format event history with one auxiliary', async () => {
@@ -723,14 +731,7 @@ describe('formatHistoryForCancelUpdate', () => {
       cancel: { reason: 'toto', condition: 'tata' },
       auxiliary: auxiliaryId.toHexString(),
     };
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForCancelUpdate(mainInfo, payload, companyId);
 
@@ -748,7 +749,14 @@ describe('formatHistoryForCancelUpdate', () => {
         cancel: { reason: 'toto', condition: 'tata' },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should format event history without auxiliary', async () => {
@@ -763,8 +771,6 @@ describe('formatHistoryForCancelUpdate', () => {
       sector: sectorId,
     };
 
-    UserMock.expects('findOne').never();
-
     const result = await EventHistoryHelper.formatHistoryForCancelUpdate(mainInfo, payload);
 
     expect(result).toBeDefined();
@@ -777,18 +783,18 @@ describe('formatHistoryForCancelUpdate', () => {
         cancel: { reason: 'toto', condition: 'tata' },
       },
     });
-    UserMock.verify();
+    sinon.assert.notCalled(findOne);
   });
 });
 
 describe('formatHistoryForDatesUpdate', () => {
   const sectorId = new ObjectID();
-  let UserMock;
+  let findOne;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
   });
 
   it('should format event history with one auxiliary', async () => {
@@ -805,15 +811,7 @@ describe('formatHistoryForDatesUpdate', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event, companyId);
 
@@ -828,23 +826,20 @@ describe('formatHistoryForDatesUpdate', () => {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should format event history without auxiliary', async () => {
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = {
-      startDate: '2019-01-20T09:38:18',
-      endDate: '2019-01-20T11:38:18',
-      sector: sectorId,
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { startDate: '2019-01-20T09:38:18', endDate: '2019-01-20T11:38:18', sector: sectorId };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-
-    UserMock.expects('findOne').never();
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event);
 
@@ -858,22 +853,13 @@ describe('formatHistoryForDatesUpdate', () => {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
       },
     });
+    sinon.assert.notCalled(findOne);
   });
 
   it('should format event history with endDate and startDate', async () => {
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = {
-      startDate: '2019-01-20T09:38:18',
-      endDate: '2019-01-21T11:38:18',
-      sector: sectorId,
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { startDate: '2019-01-20T09:38:18', endDate: '2019-01-21T11:38:18', sector: sectorId };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-22T10:38:18' };
-
-    UserMock.expects('findOne').never();
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event);
 
@@ -888,44 +874,32 @@ describe('formatHistoryForDatesUpdate', () => {
         endDate: { from: '2019-01-22T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
+    sinon.assert.notCalled(findOne);
   });
 });
 
 describe('formatHistoryForHoursUpdate', () => {
-  let UserMock;
+  let findOne;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    UserMock.restore();
+    findOne.restore();
   });
 
   it('should format event history with one auxiliary', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
-
-    UserMock.expects('findOne').never();
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
@@ -943,23 +917,25 @@ describe('formatHistoryForHoursUpdate', () => {
         endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should format event history without auxiliary', async () => {
     const sectorId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       sector: sectorId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-
-    UserMock.expects('findOne').never();
 
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event);
 
@@ -974,5 +950,6 @@ describe('formatHistoryForHoursUpdate', () => {
         endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
+    sinon.assert.notCalled(findOne);
   });
 });
