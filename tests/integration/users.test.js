@@ -59,7 +59,7 @@ describe('POST /users', () => {
     it('should create user even if user not connected', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
-        local: { email: 'newuser@alenvi.io' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
         contact: { phone: '0606060606' },
         origin: MOBILE,
       };
@@ -75,6 +75,18 @@ describe('POST /users', () => {
       expect(user.local.email).toBe('newuser@alenvi.io');
       expect(user.contact.phone).toBe('0606060606');
       expect(user.firstMobileConnection).toBeDefined();
+    });
+    it('should not create user if password too short', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'test' },
+        contact: { phone: '0606060606' },
+        origin: MOBILE,
+      };
+
+      const res = await app.inject({ method: 'POST', url: '/users', payload });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 

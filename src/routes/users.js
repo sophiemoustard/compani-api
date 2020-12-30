@@ -64,7 +64,10 @@ exports.plugin = {
             origin: Joi.string().valid(...ORIGIN_OPTIONS).required(),
             company: Joi.objectId(),
             sector: Joi.objectId(),
-            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
+            local: Joi.object().keys({
+              email: Joi.string().email().required(),
+              password: Joi.string().min(6),
+            }).required(),
             role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
