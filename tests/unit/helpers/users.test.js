@@ -636,6 +636,12 @@ describe('createUser', () => {
       .withExactArgs({ ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE })
       .once()
       .returns(payload);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: payload._id })
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns(payload);
+    UserMock.expects('findOne').never();
 
     const result = await UsersHelper.createUser(payload, null);
 
@@ -776,6 +782,11 @@ describe('createUser', () => {
       .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
     UserMock.expects('create')
       .withExactArgs({ ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string })
+      .returns(newUser);
+    UserMock.expects('findOne')
+      .withExactArgs({ _id: newUser._id })
+      .chain('lean')
+      .withExactArgs({ virtuals: true })
       .returns(newUser);
     UserMock.expects('findOne').never();
 
