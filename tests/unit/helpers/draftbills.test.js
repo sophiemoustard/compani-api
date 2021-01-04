@@ -256,7 +256,7 @@ describe('getMatchingFunding', () => {
       { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
       { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
     ];
-    const result = DraftBillsHelper.getMatchingFunding('2019-05-01T09:00:00', fundings);
+    const result = DraftBillsHelper.getMatchingFunding('2022-05-01T09:00:00', fundings);
     expect(result).toBeDefined();
     expect(result._id).toEqual(3);
   });

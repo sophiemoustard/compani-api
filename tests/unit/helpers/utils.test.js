@@ -245,12 +245,12 @@ describe('getDaysRatioBetweenTwoDates', () => {
   });
 
   it('Case 3. Holidays in range', () => {
-    const start = new Date('2019/05/07');
-    const end = new Date('2019/05/09');
+    const start = new Date('2022/04/17');
+    const end = new Date('2022/04/19');
     const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ holidays: 1, sundays: 0, businessDays: 2 });
+    expect(result).toEqual({ holidays: 1, sundays: 1, businessDays: 1 });
   });
 });
 
