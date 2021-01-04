@@ -83,14 +83,14 @@ describe('addActivity', () => {
 
   it('should create an activity', async () => {
     const stepId = new ObjectID();
-    const newActivity = { _id: new ObjectID(), name: 'c\'est une activité !' };
-    const newActivityId = new ObjectID();
-    create.returns({ _id: newActivityId });
+    const newActivity = { name: 'c\'est une activité !' };
+    const createdActivityId = new ObjectID();
+    create.returns({ _id: createdActivityId });
 
     await ActivityHelper.addActivity(stepId, newActivity);
 
     sinon.assert.calledOnceWithExactly(create, newActivity);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: newActivityId } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: createdActivityId } });
     sinon.assert.notCalled(insertMany);
     sinon.assert.notCalled(getActivity);
   });
