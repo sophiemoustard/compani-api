@@ -3,8 +3,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const CategoryHelper = require('../../../src/helpers/categories');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
   let save;
@@ -24,28 +23,27 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  let CategoryMock;
+  let list;
   beforeEach(() => {
-    CategoryMock = sinon.mock(Category);
+    list = sinon.stub(Category, 'find');
   });
   afterEach(() => {
-    CategoryMock.restore();
+    list.restore();
   });
 
   it('should return categories', async () => {
     const categoriesList = [{ name: 'ma première catégorie' }, { name: 'ma seconde catégorie' }];
 
-    CategoryMock.expects('find')
-      .once()
-      .chain('populate')
-      .withExactArgs({ path: 'programsCount' })
-      .chain('lean')
-      .once()
-      .returns(categoriesList);
+    list.returns(SinonMongoose.stubChainedQueries([categoriesList]));
 
     const result = await CategoryHelper.list();
 
     expect(result).toMatchObject(categoriesList);
+    SinonMongoose.calledWithExactly(list, [
+      { query: 'find' },
+      { query: 'populate', args: [{ path: 'programsCount' }] },
+      { query: 'lean' },
+    ]);
   });
 });
 

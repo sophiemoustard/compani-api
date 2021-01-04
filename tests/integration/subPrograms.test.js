@@ -31,7 +31,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const subProgramUpdated = await SubProgram.findById(blendedSubProgramId);
@@ -46,7 +46,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
@@ -60,7 +60,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -72,7 +72,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
@@ -90,7 +90,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
@@ -110,7 +110,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
           method: 'PUT',
           url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
@@ -174,7 +174,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
           method: 'PUT',
           url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -186,7 +186,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -197,7 +197,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { name: '' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -208,7 +208,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { steps: [] },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -219,7 +219,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { status: 'qwertyuiop' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -230,7 +230,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
         payload: { name: 'new name', status: 'draft' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -241,7 +241,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${subProgramsList[2]._id.toHexString()}`,
         payload: { name: 'qwertyuiop' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -253,7 +253,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${subProgramsList[1]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -265,7 +265,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${subProgramsList[3]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(409);
@@ -277,7 +277,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         method: 'PUT',
         url: `/subprograms/${subProgramsList[4]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -303,7 +303,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
           method: 'PUT',
           payload,
           url: `/subprograms/${blendedSubProgramId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -329,7 +329,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         method: 'POST',
         url: `/subprograms/${subProgramId.toHexString()}/steps`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const subProgramUpdated = await SubProgram.findById(subProgramId);
@@ -347,7 +347,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
           method: 'POST',
           url: `/subprograms/${subProgramId.toHexString()}/steps`,
           payload: omit(payload, param),
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -360,7 +360,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         method: 'POST',
         url: `/subprograms/${invalidId}/steps`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -371,7 +371,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         method: 'POST',
         url: `/subprograms/${subProgramsList[2]._id.toHexString()}/steps`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -397,7 +397,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
           method: 'POST',
           payload,
           url: `/subprograms/${subProgramId.toHexString()}/steps`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -421,7 +421,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       await SubProgram.findById(subProgramId);
@@ -437,7 +437,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/subprograms/${invalidId}/steps/${subProgramsList[0].steps[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -448,7 +448,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/subprograms/${subProgramsList[0]._id}/steps/${invalidId}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -458,7 +458,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/subprograms/${subProgramsList[2]._id}/steps/${subProgramsList[2].steps[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -483,7 +483,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

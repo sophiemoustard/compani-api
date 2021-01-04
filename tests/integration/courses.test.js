@@ -23,14 +23,12 @@ const {
   traineeWithoutCompany,
   courseTrainer,
   coachFromAuthCompany,
-  helper,
-  auxiliaryWithoutCompany,
   clientAdmin,
-  trainerOrganisationManager,
   traineeFromOtherCompany,
   slots,
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { noRoleNoCompany } = require('../seed/userSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
@@ -42,24 +40,12 @@ describe('NODE ENV', () => {
 });
 
 describe('COURSES ROUTES - POST /courses', () => {
-  let token;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
-    });
-
-    it('should create intra course', async () => {
-      const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/courses',
-        headers: { 'x-access-token': token },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
+      authToken = await getToken('vendor_admin');
     });
 
     it('should create inter_b2b course', async () => {
@@ -67,26 +53,21 @@ describe('COURSES ROUTES - POST /courses', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    const missingParams = [
-      { path: 'company' },
-      { path: 'subProgram' },
-      { path: 'type' },
-    ];
     const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
-    missingParams.forEach((test) => {
-      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+    ['company', 'subProgram', 'type'].forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
-          payload: omit({ ...payload }, test.path),
-          headers: { 'x-access-token': token },
+          payload: omit({ ...payload }, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -107,11 +88,11 @@ describe('COURSES ROUTES - POST /courses', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -135,7 +116,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -173,7 +154,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?format=blended',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -184,7 +165,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?format=strictly_e_learning',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -201,7 +182,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -214,7 +195,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses?trainer=${courseTrainer._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -226,7 +207,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -247,7 +228,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/courses',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -271,7 +252,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseFromAuthCompanyIntra._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -339,7 +320,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -367,7 +348,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -396,7 +377,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -419,7 +400,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const courseSlots = slots.filter(s => areObjectIdsEquals(s.course._id, coursesList[0]._id));
@@ -487,7 +468,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -501,88 +482,57 @@ describe('COURSES ROUTES - GET /courses/user', () => {
   beforeEach(populateDB);
 
   describe('Get user own courses for each role', () => {
-    const roles = [
-      { name: 'helper', user: helper, expectedCode: 200, numberOfCourse: 2 },
-      { name: 'auxiliary', user: auxiliary, expectedCode: 200, numberOfCourse: 1 },
-      {
-        name: 'auxiliary_without_company',
-        user: auxiliaryWithoutCompany,
-        expectedCode: 200,
-        numberOfCourse: 0,
-      },
-      { name: 'coach', user: coachFromAuthCompany, expectedCode: 200, numberOfCourse: 6 },
-      { name: 'client_admin', user: clientAdmin, expectedCode: 200, numberOfCourse: 3 },
-      {
-        name: 'training_organisation_manager',
-        user: trainerOrganisationManager,
-        expectedCode: 200,
-        numberOfCourse: 1,
-      },
-      {
-        name: 'trainer',
-        user: courseTrainer,
-        expectedCode: 200,
-        numberOfCourse: 1,
-      },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getTokenByCredentials(role.user.local);
+    it('should return 200 as user is logged', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
-        const response = await app.inject({
-          method: 'GET',
-          url: '/courses/user',
-          headers: { 'x-access-token': authToken },
-        });
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses/user',
+        headers: { 'x-access-token': authToken },
+      });
 
-        expect(response.statusCode).toBe(role.expectedCode);
-        expect(response.result.data.courses.length).toBe(role.numberOfCourse);
-        if (response.result.data.courses.length) {
-          expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
-            subProgram: expect.objectContaining({
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toBe(1);
+      expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectID),
+          program: {
+            _id: expect.any(ObjectID),
+            name: programsList[0].name,
+            image: programsList[0].image,
+            description: programsList[0].description,
+            subPrograms: [expect.any(ObjectID)],
+          },
+          steps: expect.arrayContaining([
+            expect.objectContaining({
               _id: expect.any(ObjectID),
-              program: {
-                _id: expect.any(ObjectID),
-                name: programsList[0].name,
-                image: programsList[0].image,
-                description: programsList[0].description,
-                subPrograms: [expect.any(ObjectID)],
-              },
-              steps: expect.arrayContaining([
+              name: step.name,
+              type: step.type,
+              areActivitiesValid: false,
+              progress: expect.any(Number),
+              activities: expect.arrayContaining([
                 expect.objectContaining({
                   _id: expect.any(ObjectID),
-                  name: step.name,
-                  type: step.type,
-                  areActivitiesValid: false,
-                  progress: expect.any(Number),
-                  activities: expect.arrayContaining([
-                    expect.objectContaining({
-                      _id: expect.any(ObjectID),
-                      name: activity.name,
-                      type: activity.type,
-                      cards: expect.arrayContaining([
-                        expect.objectContaining({ _id: expect.any(ObjectID), template: 'title_text', isValid: false }),
-                      ]),
-                      quizCount: 0,
-                      areCardsValid: false,
-                      activityHistories: expect.arrayContaining([
-                        expect.objectContaining({ user: role.user._id }),
-                      ]),
-                    })]),
+                  name: activity.name,
+                  type: activity.type,
+                  cards: expect.arrayContaining([
+                    expect.objectContaining({ _id: expect.any(ObjectID), template: 'title_text', isValid: false }),
+                  ]),
+                  quizCount: 0,
+                  areCardsValid: false,
+                  activityHistories: expect.arrayContaining([expect.objectContaining({ user: noRoleNoCompany._id })]),
                 })]),
             }),
-            slots: expect.arrayContaining([expect.objectContaining({
-              startDate: expect.any(Date),
-              endDate: expect.any(Date),
-              step: expect.objectContaining({
-                type: expect.any(String),
-              }),
-            })]),
-          }));
-          expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
-            .every(history => history.user.toHexString() === role.user._id.toHexString())).toBeTruthy();
-        }
-      });
+          ]),
+        }),
+        slots: expect.arrayContaining([expect.objectContaining({
+          startDate: expect.any(Date),
+          endDate: expect.any(Date),
+          step: expect.objectContaining({ type: expect.any(String) }),
+        })]),
+      }));
+      expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
+        .every(history => history.user.toHexString() === noRoleNoCompany._id.toHexString())).toBeTruthy();
     });
   });
 
@@ -593,7 +543,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -606,7 +556,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -622,7 +572,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${traineeId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -635,7 +585,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -646,7 +596,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -657,7 +607,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -668,7 +618,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -687,7 +637,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -697,23 +647,20 @@ describe('COURSES ROUTES - GET /courses/user', () => {
   });
 
   it('should return 401 if user is not login', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/courses/user',
-    });
+    const response = await app.inject({ method: 'GET', url: '/courses/user' });
 
     expect(response.statusCode).toBe(401);
   });
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
-  let authToken = null;
-  const courseId = coursesList[0]._id;
+  let authToken;
   const eLearningCourseId = coursesList[8]._id;
   beforeEach(populateDB);
 
   it('should get course if trainee', async () => {
-    authToken = await getTokenByCredentials(coachFromAuthCompany.local);
+    const courseId = coursesList[5]._id;
+    authToken = await getTokenByCredentials(noRoleNoCompany.local);
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseId.toHexString()}/user`,
@@ -731,7 +678,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           image: programsList[0].image,
           subPrograms: [expect.any(ObjectID)],
         },
-        steps: expect.arrayContaining([{
+        steps: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
           name: step.name,
           type: step.type,
@@ -745,23 +692,20 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
             quizCount: 0,
             areCardsValid: false,
             activityHistories: expect.arrayContaining([
-              expect.objectContaining({ user: coachFromAuthCompany._id }),
+              expect.objectContaining({ user: noRoleNoCompany._id }),
               expect.not.objectContaining({ user: clientAdmin._id }),
             ]),
           }]),
-        }]),
+        })]),
       }),
-      slots: expect.arrayContaining([
-        expect.objectContaining({
-          ...pick(slots[0], ['startDate, endDate, step']),
-        }),
-      ]),
+      slots: expect.arrayContaining([expect.objectContaining(pick(slots[0], ['startDate, endDate, step']))]),
     }));
     expect(response.result.data.course.subProgram.steps[0].activities[0].activityHistories).toHaveLength(1);
   });
 
   it('should not get course if not trainee', async () => {
-    authToken = await getToken('vendor_admin');
+    const courseId = coursesList[0]._id;
+    authToken = await getTokenByCredentials(noRoleNoCompany.local);
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseId.toHexString()}/user`,
@@ -776,7 +720,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${eLearningCourseId.toHexString()}/user`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -787,7 +731,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${eLearningCourseId.toHexString()}/user`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(403);
@@ -795,14 +739,14 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
 });
 
 describe('COURSES ROUTES - PUT /courses/{_id}', () => {
-  let token;
+  let authToken;
   const courseIdFromAuthCompany = coursesList[0]._id;
   const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should update course', async () => {
@@ -814,7 +758,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -828,13 +772,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 400 error if contact phone number is invalid', async () => {
-      const payload = {
-        contact: { phone: '07772211' },
-      };
+      const payload = { contact: { phone: '07772211' } };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -854,11 +796,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
         const payload = { misc: 'new name' };
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
           url: `/courses/${courseIdFromAuthCompany}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -868,11 +810,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     it('should return 403 as user is trainer if not one of his courses', async () => {
       const payload = { misc: 'new name' };
-      token = await getToken('trainer');
+      authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -882,11 +824,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     ['coach', 'client_admin'].forEach((role) => {
       it(`should return 403 as user is ${role} requesting on an other company`, async () => {
         const payload = { misc: 'new name' };
-        token = await getToken(role);
+        authToken = await getToken(role);
         const response = await app.inject({
           method: 'PUT',
           url: `/courses/${courseIdFromOtherCompany}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -896,11 +838,11 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     it('should return 200 as user is the course trainer', async () => {
       const payload = { misc: 'new name' };
-      token = await getToken('trainer');
+      authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -910,7 +852,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 });
 
 describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
-  let token;
+  let authToken;
   const courseIdWithTrainees = coursesList[4]._id;
   const courseIdWithSlots = coursesList[5]._id;
   const courseIdWithoutTraineesAndSlots = coursesList[6]._id;
@@ -919,14 +861,14 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should delete course', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdWithoutTraineesAndSlots}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -936,7 +878,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdWithTrainees}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -946,7 +888,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdWithSlotsToPLan}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -956,7 +898,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdWithSlots}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -975,11 +917,11 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${courseIdWithoutTraineesAndSlots}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1006,19 +948,18 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   });
 
   it('should send a SMS to user from compani', async () => {
-    const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany }).lean();
     SmsHelperStub.returns('SMS SENT !');
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
       payload,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.result.message).toBe('SMS bien envoyé.');
-    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany }).lean();
-    expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+    expect(smsHistoryAfter).toEqual(1);
     sinon.assert.calledWithExactly(
       SmsHelperStub,
       {
@@ -1036,22 +977,23 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       method: 'POST',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
       payload: { ...payload, type: 'qwert' },
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
+
     expect(response.statusCode).toBe(400);
     sinon.assert.notCalled(SmsHelperStub);
   });
 
-  const missingParams = ['content', 'type'];
-  missingParams.forEach((param) => {
+  ['content', 'type'].forEach((param) => {
     it(`should return a 400 error if missing ${param} parameter`, async () => {
       SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
         payload: omit(payload, param),
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(400);
       sinon.assert.notCalled(SmsHelperStub);
     });
@@ -1072,7 +1014,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1086,7 +1028,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${coursesList[1]._id}/sms`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -1100,7 +1042,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromOtherCompany}/sms`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1114,7 +1056,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     const response = await app.inject({
       method: 'POST',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -1137,7 +1079,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -1160,7 +1102,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(role.expectedCode);
@@ -1172,7 +1114,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${coursesList[1]._id}/sms`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(403);
@@ -1184,7 +1126,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromOtherCompany}/sms`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1196,7 +1138,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     const response = await app.inject({
       method: 'GET',
       url: `/courses/${courseIdFromAuthCompany}/sms`,
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -1204,7 +1146,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
 });
 
 describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
-  let token;
+  let authToken;
   const intraCourseIdFromAuthCompany = coursesList[0]._id;
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
@@ -1215,7 +1157,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   describe('intra', () => {
     describe('VENDOR_ADMIN', () => {
       beforeEach(async () => {
-        token = await getToken('vendor_admin');
+        authToken = await getToken('vendor_admin');
       });
 
       it('should add existing user to course trainees', async () => {
@@ -1227,7 +1169,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: existingUserPayload,
         });
 
@@ -1253,7 +1195,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -1279,7 +1221,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
           payload: updatePayload,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -1296,7 +1238,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: existingUserPayload,
         });
 
@@ -1307,7 +1249,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdWithTrainee}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: {
             ...pick(coachFromAuthCompany, ['local.email', 'company']),
             identity: { lastname: 'same_trainee' },
@@ -1331,7 +1273,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             method: 'POST',
             url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
             payload: falsyPayload,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(400);
@@ -1356,11 +1298,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             company: authCompany._id,
           };
 
-          token = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -1375,11 +1317,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           company: authCompany._id,
         };
 
-        token = await getToken('trainer');
+        authToken = await getToken('trainer');
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${coursesList[1]._id}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -1394,11 +1336,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             company: authCompany._id,
           };
 
-          token = await getToken(role);
+          authToken = await getToken(role);
           const response = await app.inject({
             method: 'POST',
             url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -1413,11 +1355,11 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           company: authCompany._id,
         };
 
-        token = await getTokenByCredentials(courseTrainer.local);
+        authToken = await getTokenByCredentials(courseTrainer.local);
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -1428,7 +1370,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
   describe('inter_b2b vendor_role', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should add user to inter b2b course', async () => {
@@ -1437,7 +1379,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: existingUserPayload,
       });
 
@@ -1451,7 +1393,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         method: 'POST',
         url: `/courses/${interb2bCourseIdFromAuthCompany}/trainees`,
         payload: falsyPayload,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -1460,43 +1402,39 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 });
 
 describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
-  let token;
+  let authToken;
   const course = coursesList[4];
 
   beforeEach(populateDB);
 
-  describe('TRAINER_ORGANISATION_MANAGER', () => {
+  it('should return 401 if user not authenticated', async () => {
+    const response = await app.inject({ method: 'POST', url: `/courses/${course._id}/register-e-learning` });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  describe('Logged user', () => {
     beforeEach(async () => {
-      token = await getTokenByCredentials(trainerOrganisationManager.local);
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should add trainee to e-learning course', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${course._id}/register-e-learning`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const courseUpdated = await Course.findById(course._id);
-      expect(courseUpdated.trainees).toEqual(expect.arrayContaining([trainerOrganisationManager._id]));
-    });
-
-    it('should return 401 if user not authenticated', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${course._id}/register-e-learning`,
-        headers: { 'x-access-token': '' },
-      });
-
-      expect(response.statusCode).toBe(401);
+      const courseUpdated = await Course.findById(course._id, { trainees: 1 }).lean();
+      expect(courseUpdated.trainees).toEqual(expect.arrayContaining([noRoleNoCompany._id]));
     });
 
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${new ObjectID()}/register-e-learning`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(404);
@@ -1506,57 +1444,34 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[0]._id}/register-e-learning`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if trainee already suscribed to course', async () => {
-      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+      authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
 
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${course._id}/register-e-learning`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if the course has accessRules and user not from a company with access', async () => {
-      token = await getTokenByCredentials(traineeFromOtherCompany.local);
+      authToken = await getTokenByCredentials(traineeFromOtherCompany.local);
 
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/register-e-learning`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
-        token = await getToken(role.name);
-        const response = await app.inject({
-          method: 'POST',
-          url: `/courses/${coursesList[6]._id}/register-e-learning`,
-          headers: { 'x-access-token': token },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -1578,7 +1493,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1609,7 +1524,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1621,7 +1536,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[1]._id}/trainees/${traineeFromOtherCompany._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1633,7 +1548,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${courseIdFromOtherCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -1645,7 +1560,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${courseIdFromAuthCompany.toHexString()}/trainees/${traineeId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1668,7 +1583,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1679,7 +1594,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${invalidId}/attendance-sheets`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -1701,7 +1616,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1713,7 +1628,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[1]._id}/attendance-sheets`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1725,7 +1640,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${courseIdFromOtherCompany}/attendance-sheets`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -1737,7 +1652,7 @@ describe('COURSE ROUTES - GET /:_id/attendance-sheets', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromAuthCompany}/attendance-sheets`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1774,7 +1689,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1785,7 +1700,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${invalidId}/completion-certificates`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -1824,7 +1739,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1836,7 +1751,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[1]._id}/completion-certificates`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1848,7 +1763,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/courses/${courseIdFromOtherCompany}/completion-certificates`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -1860,7 +1775,7 @@ describe('COURSE ROUTES - GET /:_id/completion-certificates', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1881,7 +1796,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/accessrules`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { company: otherCompany._id },
       });
 
@@ -1892,7 +1807,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${new ObjectID()}/accessrules`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { company: otherCompany._id },
       });
 
@@ -1903,7 +1818,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/accessrules`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { company: authCompany._id },
       });
 
@@ -1914,7 +1829,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/accessrules`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -1936,7 +1851,7 @@ describe('COURSE ROUTES - POST /:_id/accessrules', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${coursesList[8]._id}/accessrules`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { company: otherCompany._id },
         });
 
@@ -1959,7 +1874,7 @@ describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[8]._id}/accessrules/${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1969,7 +1884,7 @@ describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${new ObjectID()}/accessrules/${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -1979,7 +1894,7 @@ describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[8]._id}/accessrules/${otherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -2001,7 +1916,7 @@ describe('COURSE ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/courses/${coursesList[8]._id}/accessrules/${authCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -2023,7 +1938,7 @@ describe('COURSE ROUTES - GET /:_id/convocations', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[9]._id}/convocations`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2033,7 +1948,7 @@ describe('COURSE ROUTES - GET /:_id/convocations', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${new ObjectID()}/convocations`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);

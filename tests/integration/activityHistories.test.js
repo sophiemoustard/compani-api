@@ -8,7 +8,8 @@ const {
   activityHistoriesUsersList,
   cardsList,
 } = require('./seed/activityHistoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getTokenByCredentials } = require('./seed/authenticationSeed');
+const { noRoleNoCompany } = require('../seed/userSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -32,9 +33,15 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
 
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  it('should return a 401 if user is not connected', async () => {
+    const response = await app.inject({ method: 'POST', url: '/activityhistories', payload });
+
+    expect(response.statusCode).toBe(401);
+  });
+
+  describe('Logged user', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should create activityHistory', async () => {
@@ -57,17 +64,6 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 401 if user is not connected', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/activityhistories',
-        payload,
-        headers: { 'x-access-token': '' },
-      });
-
-      expect(response.statusCode).toBe(401);
     });
 
     it('should return a 404 if user doesn\'t exist', async () => {
@@ -219,33 +215,6 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         });
 
         expect(response.statusCode).toBe(400);
-      });
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'helper', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'POST',
-          url: '/activityhistories',
-          payload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });

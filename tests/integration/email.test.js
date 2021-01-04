@@ -29,7 +29,7 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload,
     });
 
@@ -43,12 +43,11 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { ...payload, email: emailUserFromOtherCompany.local.email },
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.result.data.mailInfo).toBeDefined();
     expect(response.result.data.mailInfo).toEqual('emailSent');
     sinon.assert.calledWithExactly(sendinBlueTransporter);
   });
@@ -58,7 +57,7 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { type: 'trainer', email: trainerFromOtherCompany.local.email },
     });
 
@@ -70,7 +69,7 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { ...payload, email: emailUserFromOtherCompany.local.email },
     });
 
@@ -82,7 +81,7 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { ...payload, email: 'qwertyuiop@asdfghjkl.fr' },
     });
 
@@ -94,7 +93,7 @@ describe('EMAIL ROUTES', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/email/send-welcome',
-      headers: { 'x-access-token': authToken },
+      headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { ...payload, type: 'poiuyt' },
     });
 
@@ -108,7 +107,7 @@ describe('EMAIL ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/email/send-welcome',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: omit(payload, [param]),
       });
 

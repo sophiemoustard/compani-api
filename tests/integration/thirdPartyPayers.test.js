@@ -42,7 +42,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -62,7 +62,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/thirdpartypayers',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: payloadWithoutParam,
         });
 
@@ -80,12 +80,12 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const token = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: '/thirdpartypayers',
             payload,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -99,7 +99,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -117,11 +117,11 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const token = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/thirdpartypayers',
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -149,7 +149,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -160,7 +160,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -171,7 +171,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -188,12 +188,12 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const token = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
             url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
             payload,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -208,7 +208,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
@@ -219,7 +219,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
     });
@@ -228,7 +228,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -244,11 +244,11 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const token = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
             url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
-            headers: { 'x-access-token': token },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

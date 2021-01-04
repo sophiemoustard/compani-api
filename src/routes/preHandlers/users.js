@@ -105,7 +105,14 @@ const checkCustomers = async (userCompany, payload) => {
 };
 
 const checkUpdateRestrictions = (payload) => {
-  const allowedUpdateKeys = ['identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'origin'];
+  const allowedUpdateKeys = [
+    'identity.firstname',
+    'identity.lastname',
+    'contact.phone',
+    'local.email',
+    'local.password',
+    'origin',
+  ];
   const payloadKeys = Object.keys(flat(payload));
 
   if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
@@ -158,6 +165,8 @@ exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
   if (!credentials) checkUpdateRestrictions(req.payload);
 
+  if (credentials && req.payload.local.password) throw Boom.forbidden();
+
   const scope = get(credentials, 'scope');
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
 
@@ -188,11 +197,6 @@ exports.authorizeUserGet = async (req) => {
 
   if (!has(authenticatedUser, 'role.vendor') && !queryCompanyId) throw Boom.forbidden();
   if (!has(authenticatedUser, 'role.vendor') && queryCompanyId !== userCompanyId.toHexString()) throw Boom.forbidden();
-
-  if (query.email) {
-    const user = await User.findOne({ email: query.email, company: userCompanyId }).lean();
-    if (!user) throw Boom.forbidden();
-  }
 
   if (query.customers) {
     const customers = UtilsHelper.formatIdsArray(query.customers);

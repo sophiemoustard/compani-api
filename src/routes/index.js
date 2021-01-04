@@ -8,6 +8,10 @@ exports.routes = [
     routes: { prefix: '/users' },
   },
   {
+    plugin: require('./authentication'),
+    routes: { prefix: '/users' },
+  },
+  {
     plugin: require('./administrativeDocuments'),
     routes: { prefix: '/administrativedocuments' },
   },
@@ -26,10 +30,6 @@ exports.routes = [
   {
     plugin: require('./Google/drive'),
     routes: { prefix: '/gdrive' },
-  },
-  {
-    plugin: require('./cloudinary'),
-    routes: { prefix: '/cloudinary' },
   },
   {
     plugin: require('./sms'),

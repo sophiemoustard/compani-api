@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
-const UserHelper = require('./users');
+const AuthenticationHelper = require('./authentication');
 const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN } = require('./constants');
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
@@ -65,7 +65,7 @@ exports.completeEventConsistencyScriptEmail = async (nb) => {
 };
 
 exports.sendWelcome = async (type, email, company) => {
-  const passwordToken = await UserHelper.createPasswordToken(email);
+  const passwordToken = await AuthenticationHelper.createPasswordToken(email);
 
   let companyName;
   let subject = 'Bienvenue dans votre espace Compani';

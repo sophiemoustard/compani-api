@@ -49,7 +49,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -78,7 +78,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
             method: 'POST',
             url: '/establishments',
             payload: omit({ ...payload }, path),
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(400);
@@ -90,7 +90,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, name: 'Terre\\Lune' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -101,7 +101,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, name: 'qwertyuioplkjhgfdsamnbvcxzpoiuytrewq' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -112,7 +112,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, siret: '12345678900987654321' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -123,7 +123,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, siret: '1234567890098B' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -134,7 +134,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, phone: '+33789345690' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -145,7 +145,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, workHealthService: 'MT500' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -156,7 +156,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, urssafCode: '207' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -167,7 +167,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'POST',
           url: '/establishments',
           payload: { ...payload, siret: '12345678901234' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(409);
@@ -189,7 +189,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
             method: 'POST',
             url: '/establishments',
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -211,7 +211,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -223,7 +223,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { name: 'Terre\\Lune' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -234,7 +234,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { name: 'qwertyuioplkjhgfdsamnbvcxzpoiuytrewq' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -245,7 +245,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { siret: '12345678900987654321' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -256,7 +256,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { siret: '1234567890098B' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -267,7 +267,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { phone: '+33789345690' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -278,7 +278,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { workHealthService: 'MT500' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -289,7 +289,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { urssafCode: '207' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -300,7 +300,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentFromOtherCompany._id}`,
           payload: { urssafCode: '117' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -311,7 +311,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${new ObjectID()}`,
           payload: { urssafCode: '117' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(404);
@@ -322,7 +322,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           method: 'PUT',
           url: `/establishments/${establishmentsList[0]._id}`,
           payload: { siret: '09876543210987' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(409);
@@ -344,7 +344,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
             method: 'PUT',
             url: `/establishments/${establishmentsList[0]._id}`,
             payload: { name: 'Tutu' },
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -364,7 +364,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/establishments',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -380,7 +380,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/establishments',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -402,7 +402,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/establishments',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -422,7 +422,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${establishmentsList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -434,7 +434,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${establishmentsList[1]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -444,7 +444,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${establishmentFromOtherCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(403);
@@ -454,7 +454,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${new ObjectID()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(404);
@@ -475,7 +475,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           const response = await app.inject({
             method: 'DELETE',
             url: `/establishments/${establishmentsList[0]._id}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

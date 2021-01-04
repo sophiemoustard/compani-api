@@ -13,19 +13,19 @@ const {
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('GET /stats/customer-follow-up', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
     it('should get customer follow up', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -38,7 +38,7 @@ describe('GET /stats/customer-follow-up', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-follow-up?customer=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -54,11 +54,11 @@ describe('GET /stats/customer-follow-up', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -68,20 +68,20 @@ describe('GET /stats/customer-follow-up', () => {
 });
 
 describe('GET /stats/customer-fundings-monitoring', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get customer fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customerFundingsMonitoring[0]).toBeDefined();
@@ -94,7 +94,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -112,11 +112,11 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -126,20 +126,20 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 });
 
 describe('GET /stats/all-customers-fundings-monitoring', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFundingsMonitoring);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get all customers fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/all-customers-fundings-monitoring',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
 
@@ -169,11 +169,11 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: '/stats/all-customers-fundings-monitoring',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -183,20 +183,20 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
 });
 
 describe('GET /stats/paid-intervention-stats', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
@@ -215,7 +215,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.paidInterventionStats[0]).toBeDefined();
@@ -228,7 +228,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -238,7 +238,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[2]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -248,7 +248,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/paid-intervention-stats?month=07-2019',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -258,7 +258,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -268,7 +268,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=072019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -284,11 +284,11 @@ describe('GET /stats/paid-intervention-stats', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -298,20 +298,20 @@ describe('GET /stats/paid-intervention-stats', () => {
 });
 
 describe('GET /stats/customer-duration/sector', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customersAndDuration[0]).toBeDefined();
@@ -325,7 +325,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -349,7 +349,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=01-2020&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -373,7 +373,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -383,7 +383,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/customer-duration/sector?month=07-2019',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -393,7 +393,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -403,7 +403,7 @@ describe('GET /stats/customer-duration/sector', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration/sector?month=072019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -420,11 +420,11 @@ describe('GET /stats/customer-duration/sector', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/stats/customer-duration/sector?month=07-2019&sector=${sectorList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -434,20 +434,20 @@ describe('GET /stats/customer-duration/sector', () => {
 });
 
 describe('GET /stats/internal-billed-hours', () => {
-  let clientAdminToken = null;
+  let authToken = null;
 
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      clientAdminToken = await getToken('client_admin');
+      authToken = await getToken('client_admin');
     });
 
     it('should get internal and billed hours stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=07-2019&sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.internalAndBilledHours[0]).toBeDefined();
@@ -460,7 +460,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=11-2019&sector=${sectorList[0]._id}&sector=${sectorList[1]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -482,7 +482,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?month=07-2019&sector=${sectorList[2]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -492,7 +492,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/internal-billed-hours?month=07-2019',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -502,7 +502,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -512,7 +512,7 @@ describe('GET /stats/internal-billed-hours', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/internal-billed-hours?sector=${sectorList[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -529,11 +529,11 @@ describe('GET /stats/internal-billed-hours', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/stats/internal-billed-hours?month=07-2019&sector=${sectorList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
