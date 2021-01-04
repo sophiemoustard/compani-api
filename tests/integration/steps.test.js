@@ -29,13 +29,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const stepUpdated = await Step.findById(stepId);
-
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, name: payload.name }));
     });
 
     it('should update activities', async () => {
@@ -44,7 +41,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const stepUpdated = await Step.findById(stepId).lean();
@@ -58,7 +55,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -69,7 +66,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload: { name: '' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -81,7 +78,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -93,7 +90,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -105,7 +102,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         method: 'PUT',
         url: `/steps/${stepsList[3]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -131,7 +128,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
           method: 'PUT',
           payload,
           url: `/steps/${stepId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -157,7 +154,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           method: 'POST',
           url: `/steps/${step._id.toHexString()}/activities`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         const stepUpdated = await Step.findById(step._id);
@@ -173,7 +170,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
             method: 'POST',
             url: `/steps/${step._id.toHexString()}/activities`,
             payload: omit(payload, missingParam),
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(400);
@@ -186,7 +183,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           method: 'POST',
           url: `/steps/${step._id.toHexString()}/activities`,
           payload: wrongPayload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -200,7 +197,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         method: 'POST',
         url: `/steps/${step._id.toHexString()}/activities`,
         payload: { activityId: duplicatedActivityId },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const stepUpdated = await Step.findById(step._id)
@@ -238,7 +235,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         method: 'POST',
         url: `/steps/${step._id.toHexString()}/activities`,
         payload: { activityId: duplicatedActivityId },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const stepUpdated = await Step.findById(step._id)
@@ -262,7 +259,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         method: 'POST',
         url: `/steps/${invalidId}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -273,7 +270,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         method: 'POST',
         url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -298,7 +295,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
           method: 'POST',
           payload,
           url: `/steps/${step._id.toHexString()}/activities`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -325,7 +322,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const stepUpdated = await Step.findById(stepId)
@@ -361,7 +358,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -373,7 +370,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -385,7 +382,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         method: 'PUT',
         url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -411,7 +408,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
           method: 'PUT',
           payload,
           url: `/steps/${stepId.toHexString()}/activities`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -435,7 +432,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const stepUpdated = await Step.findById(step._id);
@@ -452,7 +449,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/steps/${unknownStepId.toHexString()}/activities/${activityId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -463,7 +460,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/steps/${step._id.toHexString()}/activities/${invalidActivityId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -475,7 +472,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         method: 'DELETE',
         url: `/steps/${stepsList[3]._id.toHexString()}/activities/${activitiesList[3]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -499,7 +496,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

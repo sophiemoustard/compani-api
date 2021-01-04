@@ -30,12 +30,11 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
       const response = await app.inject({
         method: 'GET',
         url: '/administrativedocuments',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const administrativeDocuments = await AdministrativeDocument.find({ company: authCompany._id }).lean();
-      expect(response.result.data.administrativeDocuments.length).toBe(administrativeDocuments.length);
+      expect(response.result.data.administrativeDocuments.length).toBe(2);
     });
   });
 
@@ -53,7 +52,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
         const response = await app.inject({
           method: 'GET',
           url: '/administrativedocuments',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -84,13 +83,12 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     it('should create new document', async () => {
       const form = generateFormData(payload);
       addStub.returns({ id: 'fakeFileDriveId', webViewLink: 'www.fakedriveid.fr' });
-      const administrativeDocumentsBefore = await AdministrativeDocument.find({ company: authCompany._id }).lean();
 
       const response = await app.inject({
         method: 'POST',
         url: '/administrativedocuments',
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -98,23 +96,18 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
         createPermissionStub,
         { fileId: 'fakeFileDriveId', permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false } }
       );
-      const administrativeDocumentsAfter = await AdministrativeDocument.find({ company: authCompany._id }).lean();
-      expect(administrativeDocumentsAfter.length).toBe(administrativeDocumentsBefore.length + 1);
+      const countAfter = await AdministrativeDocument.countDocuments({ company: authCompany._id });
+      expect(countAfter).toBe(3);
     });
 
-    const falsyAssertions = [
-      { param: 'name', payload: { ...omit(payload, ['name']) } },
-      { param: 'file', payload: { ...omit(payload, ['file']) } },
-      { param: 'mimeType', payload: { ...omit(payload, ['mimeType']) } },
-    ];
-    falsyAssertions.forEach((test) => {
-      it(`should return a 400 error if '${test.param}' payload is missing`, async () => {
-        const form = generateFormData(test.payload);
+    ['name', 'file', 'mimeType'].forEach((param) => {
+      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+        const form = generateFormData(omit(payload, [param]));
 
         const response = await app.inject({
           method: 'POST',
           url: '/administrativedocuments',
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           payload: await GetStream(form),
         });
 
@@ -134,14 +127,13 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const payload = { name: 'contrat', file: 'test', mimeType: 'pdf' };
-        const form = generateFormData(payload);
+        const form = generateFormData({ name: 'contrat', file: 'test', mimeType: 'pdf' });
 
         const response = await app.inject({
           method: 'POST',
           url: '/administrativedocuments',
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -160,23 +152,22 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
     });
 
     it('should delete an administrative document', async () => {
-      const administrativeDocumentsBefore = await AdministrativeDocument.find({ company: authCompany._id }).lean();
       const res = await app.inject({
         method: 'DELETE',
         url: `/administrativedocuments/${administrativeDocumentsList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const administrativeDocumentsAfter = await AdministrativeDocument.find({ company: authCompany._id }).lean();
-      expect(administrativeDocumentsAfter.length).toEqual(administrativeDocumentsBefore.length - 1);
+      expect(administrativeDocumentsAfter.length).toEqual(1);
     });
 
     it('should return a 404 if document is not from the same company', async () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/administrativedocuments/${administrativeDocumentsList[2]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -186,7 +177,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
       const res = await app.inject({
         method: 'DELETE',
         url: `/administrativedocuments/${new ObjectID()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -198,6 +189,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -206,7 +198,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
         const response = await app.inject({
           method: 'DELETE',
           url: `/administrativedocuments/${administrativeDocumentsList[0]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -28,7 +28,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(ch => ch.course === coursesList[0]._id);
@@ -42,7 +42,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[2]._id}&createdAt=2020-06-25T06:00:00`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const courseHistoriesFromCourse = courseHistoriesList.filter(
@@ -58,7 +58,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/coursehistories',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(400);
@@ -82,7 +82,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/coursehistories?course=${coursesList[1]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -94,7 +94,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -105,7 +105,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -116,7 +116,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -127,7 +127,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[2]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -138,7 +138,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[2]._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(403);

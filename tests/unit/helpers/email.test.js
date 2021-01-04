@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const EmailHelper = require('../../../src/helpers/email');
 const EmailOptionsHelper = require('../../../src/helpers/emailOptions');
-const UserHelper = require('../../../src/helpers/users');
+const AuthenticationHelper = require('../../../src/helpers/authentication');
 const NodemailerHelper = require('../../../src/helpers/nodemailer');
 
 describe('sendWelcome', () => {
@@ -27,7 +27,7 @@ describe('sendWelcome', () => {
     helperCustomContent = sinon.stub(EmailOptionsHelper, 'helperCustomContent');
     coachCustomContent = sinon.stub(EmailOptionsHelper, 'coachCustomContent');
     baseWelcomeContent = sinon.stub(EmailOptionsHelper, 'baseWelcomeContent');
-    createPasswordToken = sinon.stub(UserHelper, 'createPasswordToken');
+    createPasswordToken = sinon.stub(AuthenticationHelper, 'createPasswordToken');
     sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter');
     sendMail = sinon.stub();
   });

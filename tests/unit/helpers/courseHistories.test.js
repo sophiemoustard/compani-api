@@ -334,11 +334,11 @@ describe('list', () => {
 
     expect(result).toMatchObject(returnedList);
     SinonMongoose.calledWithExactly(find, [
-      { query: '', args: query },
-      { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
-      { query: 'populate', args: { path: 'trainee', select: '_id identity' } },
-      { query: 'sort', args: { createdAt: -1 } },
-      { query: 'limit', args: 20 },
+      { query: '', args: [query] },
+      { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
+      { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+      { query: 'sort', args: [{ createdAt: -1 }] },
+      { query: 'limit', args: [20] },
       { query: 'lean' },
     ]);
   });
@@ -367,11 +367,11 @@ describe('list', () => {
     SinonMongoose.calledWithExactly(
       find,
       [
-        { query: '', args: { course: query.course, createdAt: { $lt: query.createdAt } } },
-        { query: 'populate', args: { path: 'createdBy', select: '_id identity picture' } },
-        { query: 'populate', args: { path: 'trainee', select: '_id identity' } },
-        { query: 'sort', args: { createdAt: -1 } },
-        { query: 'limit', args: 20 },
+        { query: '', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
+        { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
+        { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
+        { query: 'limit', args: [20] },
         { query: 'lean' },
       ]
     );

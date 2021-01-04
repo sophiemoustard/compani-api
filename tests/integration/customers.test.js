@@ -36,10 +36,10 @@ describe('NODE ENV', () => {
 });
 
 describe('CUSTOMERS ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('POST /customers', () => {
@@ -72,7 +72,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'POST',
         url: '/customers',
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -113,7 +113,7 @@ describe('CUSTOMERS ROUTES', () => {
           method: 'POST',
           url: '/customers',
           payload: omit(cloneDeep(payload), paramPath),
-          headers: { 'x-access-token': clientAdminToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -130,14 +130,14 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
-          const authToken = await getToken(role.name, role.erp);
+          authToken = await getToken(role.name, role.erp);
           addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
 
           const response = await app.inject({
             method: 'POST',
             url: '/customers',
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -151,7 +151,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
@@ -171,11 +171,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/customers',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -184,11 +184,11 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers from the company', async () => {
-      const authToken = await getTokenByCredentials(userList[4].local);
+      authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
@@ -203,7 +203,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/first-intervention',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       const customers = await Customer.find({ company: authCompany._id }).lean();
@@ -221,11 +221,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/customers',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -234,11 +234,11 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers from the company with first intervention info', async () => {
-      const authToken = await getTokenByCredentials(userList[4].local);
+      authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers/first-intervention',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(Object.values(res.result.data.customers)).toHaveLength(1);
@@ -251,7 +251,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
@@ -271,11 +271,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/customers/billed-events',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -284,11 +284,11 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers with billed events from the company', async () => {
-      const authToken = await getTokenByCredentials(userList[4].local);
+      authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
@@ -305,7 +305,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/subscriptions',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
@@ -327,11 +327,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/customers/subscriptions',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -340,11 +340,11 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers with subscriptions from the company', async () => {
-      const authToken = await getTokenByCredentials(userList[4].local);
+      authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers/subscriptions',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -363,7 +363,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/with-intervention',
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -381,11 +381,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/customers/with-intervention',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -400,7 +400,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customerId.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
@@ -441,7 +441,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -450,7 +450,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -458,11 +458,11 @@ describe('CUSTOMERS ROUTES', () => {
     describe('Other roles', () => {
       it('should return the customer if I am its helper', async () => {
         const helper = userList[0];
-        const helperToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(helper.local);
         const res = await app.inject({
           method: 'GET',
           url: `/customers/${helper.customers[0]}`,
-          headers: { 'x-access-token': helperToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(200);
       });
@@ -476,11 +476,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/customers/${customersList[0]._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -502,7 +502,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customersList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
@@ -526,7 +526,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: ibanPayload,
       });
 
@@ -541,7 +541,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: ibanPayload,
       });
 
@@ -557,7 +557,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           contact: {
             secondaryAddress: {
@@ -581,7 +581,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { contact: { secondaryAddress: {} } },
       });
 
@@ -594,7 +594,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${new ObjectID().toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -606,7 +606,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customer._id}`,
         payload: { contact: { phone: '123dcsnejnf' } },
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -614,11 +614,11 @@ describe('CUSTOMERS ROUTES', () => {
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
         const helper = userList[0];
-        const helperToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(helper.local);
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${helper.customers[0]}`,
-          headers: { 'x-access-token': helperToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload: {
             identity: {
               firstname: 'Volgarr',
@@ -638,12 +638,12 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
             url: `/customers/${customersList[0]._id.toHexString()}`,
             payload: updatePayload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -656,7 +656,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}`,
         payload: updatePayload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -675,7 +675,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -691,7 +691,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -700,7 +700,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -709,7 +709,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -719,7 +719,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[4]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -729,7 +729,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[5]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -739,7 +739,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[6]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -749,7 +749,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[7]._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -765,11 +765,11 @@ describe('CUSTOMERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
             url: `/customers/${customersList[3]._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -780,10 +780,10 @@ describe('CUSTOMERS ROUTES', () => {
 });
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
@@ -802,7 +802,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -828,7 +828,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -850,7 +850,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -872,7 +872,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -899,11 +899,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[1]._id.toHexString()}/subscriptions`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -927,7 +927,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -945,7 +945,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -960,7 +960,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -974,7 +974,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -986,7 +986,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions/${subscriptionId}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1005,11 +1005,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
             url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -1027,7 +1027,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1038,7 +1038,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}/subscriptions/${subscriptionId}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1051,7 +1051,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1069,11 +1069,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
             url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1084,10 +1084,10 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 });
 
 describe('CUSTOMER MANDATES ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
@@ -1096,7 +1096,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${customer._id}/mandates`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1109,7 +1109,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/mandates`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(404);
@@ -1119,7 +1119,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}/mandates`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1136,11 +1136,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/customers/${customer._id}/mandates`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1158,7 +1158,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1175,7 +1175,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1190,7 +1190,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1204,7 +1204,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -1227,11 +1227,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
             url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -1300,11 +1300,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     it('should create a mandate signature request if I am its helper', async () => {
       const helper = userList[1];
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
       expect(res.statusCode).toBe(200);
@@ -1321,11 +1321,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     it('should return 403 if user is not from the same company', async () => {
       const helper = userList[2];
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}/esign`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
       expect(res.statusCode).toBe(403);
@@ -1340,12 +1340,12 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const authToken = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: `/customers/${customerId}/mandates/${mandateId}/esign`,
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1355,10 +1355,10 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -1366,7 +1366,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1381,7 +1381,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/quotes`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1391,7 +1391,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${otherCompanyCustomer._id}/quotes`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1407,11 +1407,11 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1433,7 +1433,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1452,7 +1452,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload: {},
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1473,7 +1473,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/quotes`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1500,12 +1500,12 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1517,11 +1517,11 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
   let helper;
-  let helperToken;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     [helper] = userList;
-    helperToken = await getTokenByCredentials(helper.local);
+    authToken = await getTokenByCredentials(helper.local);
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -1538,7 +1538,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1559,7 +1559,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1576,7 +1576,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1604,7 +1604,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1637,12 +1637,12 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1653,10 +1653,10 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 });
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1681,7 +1681,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1714,7 +1714,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(409);
@@ -1739,7 +1739,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1764,7 +1764,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1791,7 +1791,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${invalidId}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1817,7 +1817,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/fundings`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1848,12 +1848,12 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customer._id.toHexString()}/fundings`,
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1878,7 +1878,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1902,7 +1902,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1921,7 +1921,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1946,12 +1946,12 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
             url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
             payload,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -1968,7 +1968,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1978,7 +1978,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id}`,
-        headers: { 'x-access-token': clientAdminToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(403);
@@ -1996,11 +1996,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
             url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -2011,10 +2011,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 });
 
 describe('CUSTOMER FILE UPLOAD ROUTES', () => {
-  let clientAdminToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    clientAdminToken = await getToken('client_admin');
+    authToken = await getToken('client_admin');
   });
 
   describe('POST /customers/:_id/gdrive/:driveId/upload', () => {
@@ -2049,7 +2049,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2073,7 +2073,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -2096,7 +2096,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2120,7 +2120,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -2142,7 +2142,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
@@ -2165,7 +2165,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': clientAdminToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(403);
@@ -2181,14 +2181,14 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         addStub.returns({ id: 'fakeFileDriveId' });
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
         const helper = userList[0];
-        const helperToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(helper.local);
         const customerId = helper.customers[0];
         const form = generateFormData(payload);
         const res = await app.inject({
           method: 'POST',
           url: `/customers/${customerId.toHexString()}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': helperToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(200);
         sinon.assert.calledOnce(addStub);
@@ -2213,12 +2213,12 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
           getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
           const form = generateFormData(payload);
-          const authToken = await getToken(role.name);
+          authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
             url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
             payload: await GetStream(form),
-            headers: { ...form.getHeaders(), 'x-access-token': authToken },
+            headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

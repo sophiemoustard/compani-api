@@ -9,7 +9,8 @@ const {
   subProgramsList,
   programsList,
 } = require('./seed/activitiesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { noRoleNoCompany } = require('../seed/userSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
@@ -32,7 +33,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/activities/${activityId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -76,37 +77,22 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
     });
   });
 
-  it('should return 401 if user is not authenticate', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/activities/${activityId.toHexString()}`,
+  describe('Other roles', () => {
+    it('should return 401 if user is not authenticate', async () => {
+      const response = await app.inject({ method: 'GET', url: `/activities/${activityId.toHexString()}` });
+
+      expect(response.statusCode).toBe(401);
     });
 
-    expect(response.statusCode).toBe(401);
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/activities/${activityId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
+    it('should return 200 as user is logged', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/activities/${activityId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 });
@@ -127,10 +113,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activityId);
+      const activityUpdated = await Activity.findById(activityId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
@@ -149,7 +135,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const activityUpdated = await Activity.findById(activityId).lean();
@@ -163,7 +149,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -174,7 +160,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload: { name: '' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -186,7 +172,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -198,7 +184,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activityId.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -210,7 +196,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         method: 'PUT',
         url: `/activities/${activitiesList[3]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -236,7 +222,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
           method: 'PUT',
           payload,
           url: `/activities/${activityId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -261,13 +247,12 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/cards`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activityId);
+      const activityUpdated = await Activity.findById(activityId).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(activityUpdated._id).toEqual(activityId);
       expect(activityUpdated.cards.length).toEqual(5);
     });
 
@@ -276,7 +261,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/cards`,
         payload: { template: 'invalid template' },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -287,7 +272,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/cards`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -299,7 +284,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${invalidId}/cards`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -310,7 +295,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${activitiesList[3]._id.toHexString()}/cards`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -335,7 +320,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
           method: 'POST',
           payload: { template: 'transition' },
           url: `/activities/${activityId.toHexString()}/cards`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

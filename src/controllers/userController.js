@@ -1,45 +1,8 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
-const {
-  getUsersList,
-  getUsersListWithSectorHistories,
-  getLearnerList,
-  createAndSaveFile,
-  getUser,
-  userExists,
-} = require('../helpers/users');
 
 const { language } = translate;
-
-const authenticate = async (req) => {
-  try {
-    const authentication = await UsersHelper.authenticate(req.payload);
-    req.log('info', `${req.payload.email} connected`);
-
-    return {
-      message: translate[language].userAuthentified,
-      data: { ...authentication },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const refreshToken = async (req) => {
-  try {
-    const token = await UsersHelper.refreshToken(req.payload);
-
-    return {
-      message: translate[language].userAuthentified,
-      data: { ...token },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
 
 const create = async (req) => {
   try {
@@ -60,23 +23,9 @@ const create = async (req) => {
   }
 };
 
-const createPasswordToken = async (req) => {
-  try {
-    const passwordToken = await UsersHelper.createPasswordToken(req.payload.email);
-
-    return {
-      message: translate[language].resetPasswordTokenFound,
-      data: { passwordToken },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const list = async (req) => {
   try {
-    const users = await getUsersList(req.query, req.auth.credentials);
+    const users = await UsersHelper.getUsersList(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
@@ -90,7 +39,7 @@ const list = async (req) => {
 
 const listWithSectorHistories = async (req) => {
   try {
-    const users = await getUsersListWithSectorHistories(req.query, req.auth.credentials);
+    const users = await UsersHelper.getUsersListWithSectorHistories(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
@@ -104,7 +53,7 @@ const listWithSectorHistories = async (req) => {
 
 const activeList = async (req) => {
   try {
-    const users = await getUsersList(req.query, req.auth.credentials);
+    const users = await UsersHelper.getUsersList(req.query, req.auth.credentials);
     const activeUsers = users.filter(user => user.isActive);
 
     return {
@@ -119,7 +68,7 @@ const activeList = async (req) => {
 
 const learnerList = async (req) => {
   try {
-    const users = await getLearnerList(req.query, req.auth.credentials);
+    const users = await UsersHelper.getLearnerList(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
@@ -133,7 +82,7 @@ const learnerList = async (req) => {
 
 const show = async (req) => {
   try {
-    const user = await getUser(req.params._id, req.auth.credentials);
+    const user = await UsersHelper.getUser(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].userFound,
@@ -147,7 +96,7 @@ const show = async (req) => {
 
 const exists = async (req) => {
   try {
-    const userInfo = await userExists(req.query.email, req.auth.credentials);
+    const userInfo = await UsersHelper.userExists(req.query.email, req.auth.credentials);
 
     return {
       message: translate[language].userFound,
@@ -180,20 +129,6 @@ const update = async (req) => {
   }
 };
 
-const updatePassword = async (req) => {
-  try {
-    const updatedUser = await UsersHelper.updatePassword(req.params._id, req.payload);
-
-    return {
-      message: translate[language].userUpdated,
-      data: { updatedUser },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const updateCertificates = async (req) => {
   try {
     await UsersHelper.updateUserCertificates(req.params._id, req.payload, req.auth.credentials);
@@ -216,31 +151,9 @@ const removeHelper = async (req) => {
   }
 };
 
-const forgotPassword = async (req) => {
-  try {
-    const mailInfo = await UsersHelper.forgotPassword(req.payload.email);
-
-    return { message: translate[language].emailSent, data: { mailInfo } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const checkResetPasswordToken = async (req) => {
-  try {
-    const token = await UsersHelper.checkResetPasswordToken(req.params.token);
-
-    return { message: translate[language].resetPasswordTokenFound, data: { ...token } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const uploadFile = async (req) => {
   try {
-    const uploadedFile = await createAndSaveFile(req.params, req.payload);
+    const uploadedFile = await UsersHelper.createAndSaveFile(req.params, req.payload);
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
@@ -290,9 +203,7 @@ const createDriveFolder = async (req) => {
 };
 
 module.exports = {
-  authenticate,
   create,
-  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
@@ -301,13 +212,9 @@ module.exports = {
   exists,
   update,
   removeHelper,
-  refreshToken,
-  forgotPassword,
-  checkResetPasswordToken,
   updateCertificates,
   uploadFile,
   uploadPicture,
   deletePicture,
   createDriveFolder,
-  updatePassword,
 };

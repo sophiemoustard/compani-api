@@ -4,9 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  authenticate,
   create,
-  createPasswordToken,
   list,
   listWithSectorHistories,
   activeList,
@@ -15,15 +13,11 @@ const {
   exists,
   update,
   removeHelper,
-  refreshToken,
-  forgotPassword,
-  checkResetPasswordToken,
   updateCertificates,
   uploadFile,
   uploadPicture,
   deletePicture,
   createDriveFolder,
-  updatePassword,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -62,22 +56,6 @@ exports.plugin = {
   register: async (server) => {
     server.route({
       method: 'POST',
-      path: '/authenticate',
-      options: {
-        validate: {
-          payload: Joi.object().keys({
-            email: Joi.string().email().required(),
-            password: Joi.string().required(),
-            origin: Joi.string().valid(...ORIGIN_OPTIONS),
-          }).required(),
-        },
-        auth: false,
-      },
-      handler: authenticate,
-    });
-
-    server.route({
-      method: 'POST',
       path: '/',
       options: {
         auth: { mode: 'optional' },
@@ -86,7 +64,10 @@ exports.plugin = {
             origin: Joi.string().valid(...ORIGIN_OPTIONS).required(),
             company: Joi.objectId(),
             sector: Joi.objectId(),
-            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
+            local: Joi.object().keys({
+              email: Joi.string().email().required(),
+              password: Joi.string().min(6),
+            }).required(),
             role: Joi.objectId(),
             identity: Joi.object().keys({
               firstname: Joi.string().allow('', null),
@@ -118,7 +99,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
-            email: Joi.string().email(),
             customers: objectIdOrArray,
             company: Joi.objectId(),
           }),
@@ -314,41 +294,6 @@ exports.plugin = {
 
     server.route({
       method: 'PUT',
-      path: '/{_id}/create-password-token',
-      options: {
-        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            email: Joi.string().email().required(),
-          }),
-        },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-        ],
-      },
-      handler: createPasswordToken,
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/password',
-      options: {
-        auth: { scope: ['user:edit-{params._id}'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            local: Joi.object().keys({ password: Joi.string().min(6).required() }),
-            isConfirmed: Joi.boolean(),
-          }),
-        },
-      },
-      handler: updatePassword,
-    });
-
-    server.route({
-      method: 'PUT',
       path: '/{_id}/certificates',
       options: {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
@@ -380,44 +325,6 @@ exports.plugin = {
         ],
       },
       handler: removeHelper,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/refreshToken',
-      options: {
-        validate: {
-          payload: Joi.object({ refreshToken: Joi.string().required() }),
-        },
-        auth: false,
-      },
-      handler: refreshToken,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/forgot-password',
-      options: {
-        validate: {
-          payload: Joi.object().keys({
-            email: Joi.string().email().required(),
-          }),
-        },
-        auth: false,
-      },
-      handler: forgotPassword,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/check-reset-password/{token}',
-      options: {
-        validate: {
-          params: Joi.object().keys({ token: Joi.string().required() }),
-        },
-        auth: false,
-      },
-      handler: checkResetPasswordToken,
     });
 
     server.route({

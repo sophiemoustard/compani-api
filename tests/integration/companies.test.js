@@ -36,7 +36,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/companies/${company._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -52,7 +52,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/companies/${invalidId}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -75,7 +75,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/companies/${company._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -84,21 +84,6 @@ describe('COMPANIES ROUTES', () => {
       });
 
       it('should return 403 if not its company', async () => {
-        const invalidId = new ObjectID();
-        const payload = {
-          name: 'Alenvi Alenvi',
-        };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/companies/${invalidId}`,
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(403);
-      });
-
-      it('should return 403 if not the same ids', async () => {
         const invalidId = otherCompany._id.toHexString();
         const payload = {
           name: 'Alenvi Alenvi',
@@ -106,7 +91,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/companies/${invalidId}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -127,7 +112,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/companies/${company._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload: assertion.payload,
           });
 
@@ -153,7 +138,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/companies/${company._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -198,7 +183,7 @@ describe('COMPANIES ROUTES', () => {
           method: 'POST',
           url: `/companies/${company._id}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toEqual(200);
         sinon.assert.calledOnce(addStub);
@@ -217,7 +202,7 @@ describe('COMPANIES ROUTES', () => {
           method: 'POST',
           url: `/companies/${otherCompany._id}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(403);
       });
@@ -264,7 +249,7 @@ describe('COMPANIES ROUTES', () => {
           method: 'POST',
           url: '/companies',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -292,23 +277,19 @@ describe('COMPANIES ROUTES', () => {
           method: 'POST',
           url: '/companies',
           payload: { name: authCompany.name, tradeName: 'qwerty', type: 'association' },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(409);
       });
 
-      const missingParams = [
-        { path: 'name' },
-        { path: 'type' },
-      ];
-      missingParams.forEach((test) => {
-        it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+      ['name', 'type'].forEach((param) => {
+        it(`should return a 400 error if missing '${param}' parameter`, async () => {
           const response = await app.inject({
             method: 'POST',
             url: '/companies',
-            payload: omit({ ...payload }, test.path),
-            headers: { 'x-access-token': authToken },
+            payload: omit({ ...payload }, param),
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(400);
@@ -330,7 +311,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: '/companies',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload: { ...payload, ...assertion.payload },
           });
 
@@ -390,7 +371,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'POST',
             url: '/companies',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
 
@@ -410,7 +391,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/companies/first-intervention',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -436,7 +417,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/companies/first-intervention',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -454,7 +435,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/companies',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -480,7 +461,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/companies',
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -498,7 +479,7 @@ describe('COMPANIES ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/companies/${authCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
@@ -524,7 +505,7 @@ describe('COMPANIES ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/companies/${authCompany._id}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

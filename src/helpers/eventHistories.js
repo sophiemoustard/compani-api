@@ -53,12 +53,12 @@ exports.createEventHistory = async (payload, credentials, action) => {
       customer,
       absence,
       internalHour,
-      address,
       misc,
       repetition,
     }),
   };
 
+  if (address && Object.keys(address).length) eventHistory.event.address = address;
   if (payload.sector) eventHistory.sectors = [payload.sector];
   if (payload.auxiliary) {
     eventHistory.auxiliaries = [payload.auxiliary];

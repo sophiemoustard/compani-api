@@ -21,9 +21,9 @@ jobs:
 
     steps:
       # Check out the repository
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       # Install Node.js
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
           node-version: 12.18.3
       - run: npm ci
