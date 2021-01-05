@@ -17,6 +17,7 @@ const {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
+  billNumbers,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
@@ -51,7 +52,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/drafts?${qs.stringify(query)}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -73,23 +74,18 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/drafts?${qs.stringify(query)}&customer=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
-    const falsyAssertions = [
-      { param: 'endDate', query: { ...omit(query, ['endDate']) } },
-      { param: 'billingStartDate', query: { ...omit(query, ['billingStartDate']) } },
-      { param: 'billingPeriod', query: { ...omit(query, ['billingPeriod']) } },
-    ];
-    falsyAssertions.forEach((test) => {
-      it(`should return a 400 error if '${test.param}' query is missing`, async () => {
+    ['endDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
+      it(`should return a 400 error if '${param}' query is missing`, async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/bills/drafts?${qs.stringify(test.query)}`,
-          headers: { 'x-access-token': authToken },
+          url: `/bills/drafts?${qs.stringify(omit(query, [param]))}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -111,7 +107,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/bills/drafts?${qs.stringify(query)}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -326,12 +322,12 @@ describe('BILL ROUTES - POST /bills', () => {
         method: 'POST',
         url: '/bills',
         payload: { bills: payload },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ company: authCompany._id }).lean();
-      expect(bills.length).toBe(2 + authBillsList.length);
+      const billCount = await Bill.countDocuments({ company: authCompany._id });
+      expect(billCount).toBe(2 + authBillsList.length);
       const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
       expect(creditNote[0].isEditable).toBeFalsy();
     });
@@ -341,38 +337,37 @@ describe('BILL ROUTES - POST /bills', () => {
         method: 'POST',
         url: '/bills',
         payload: { bills: payloadWithTwoSubscriptions },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ company: authCompany._id }).lean();
-      expect(bills.length).toBe(1 + authBillsList.length);
+      const billsCount = await Bill.countDocuments({ company: authCompany._id });
+      expect(billsCount).toBe(1 + authBillsList.length);
     });
 
     it('should not create new bill with existing number', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
       formatBillNumber.returns(billsList[0].number);
 
-      const billCountBefore = await Bill.countDocuments({});
-      const billNumberBefore = await BillNumber.findOne({ prefix: '0519' }).lean();
-      const fundingHistoryBefore = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
-
       const response = await app.inject({
         method: 'POST',
         url: '/bills',
         payload: { bills: payload },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(500);
       formatBillNumber.restore();
 
       const billCountAfter = await Bill.countDocuments({});
-      expect(billCountAfter).toEqual(billCountBefore);
+      expect(billCountAfter).toEqual(authBillsList.length + billsList.length);
+
       const billNumberAfter = await BillNumber.findOne({ prefix: '0519' }).lean();
-      expect(billNumberBefore.seq).toEqual(billNumberAfter.seq);
+      expect(billNumberAfter.seq).toEqual(billNumbers.find(bn => bn.prefix === '0519').seq);
+
       const fundingHistoryAfter = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
-      expect(fundingHistoryBefore.amountTTC).toEqual(fundingHistoryAfter.amountTTC);
+      expect(fundingHistoryAfter.amountTTC).toEqual(fundingHistory.amountTTC);
+
       const eventInBill = await Event.findOne({ _id: eventList[4]._id }).lean();
       expect(eventInBill.isBilled).toBeFalsy();
       expect(eventInBill.bills).toEqual({ surcharges: [] });
@@ -444,7 +439,7 @@ describe('BILL ROUTES - POST /bills', () => {
         method: 'POST',
         url: '/bills',
         payload: { bills: draftBillPayload },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -526,7 +521,7 @@ describe('BILL ROUTES - POST /bills', () => {
         method: 'POST',
         url: '/bills',
         payload: { bills: draftBillPayload },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -541,7 +536,7 @@ describe('BILL ROUTES - POST /bills', () => {
         method: 'POST',
         url: '/bills',
         payload: { bills: [{ ...payload[0], customer: { ...payload[0].customer, _id: billCustomerList[2]._id } }] },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -563,7 +558,7 @@ describe('BILL ROUTES - POST /bills', () => {
             }],
           }],
         },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -593,7 +588,7 @@ describe('BILL ROUTES - POST /bills', () => {
             },
           }],
         },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -630,7 +625,7 @@ describe('BILL ROUTES - POST /bills', () => {
             },
           }],
         },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -653,7 +648,7 @@ describe('BILL ROUTES - POST /bills', () => {
           method: 'POST',
           url: '/bills',
           payload: { bills: payload },
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -675,7 +670,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/${authBillsList[0]._id}/pdfs`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -685,7 +680,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/${billsList[0]._id}/pdfs`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -695,11 +690,11 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
   describe('Other roles', () => {
     it('should return customer bills pdf if I am its helper', async () => {
       const helper = billUserList[0];
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
         url: `/bills/${authBillsList[0]._id}/pdfs`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -717,7 +712,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/bills/${authBillsList[0]._id}/pdfs`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

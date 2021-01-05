@@ -256,6 +256,13 @@ module.exports = {
   // PAY DOCUMENT NATURE
   PAYSLIP: 'payslip',
   CERTIFICATE: 'certificate',
+  get PAY_DOCUMENT_NATURES() {
+    return {
+      [this.PAYSLIP]: 'Bulletin de paie',
+      [this.CERTIFICATE]: 'Attestation',
+      [this.OTHER]: 'Document paie',
+    };
+  },
   // COURSES
   INTRA: 'intra',
   INTER_B2B: 'inter_b2b',

@@ -29,22 +29,17 @@ describe('SMS ROUTES', () => {
     });
 
     it('should send a SMS to user from company', async () => {
-      const payload = {
-        recipient: `+33${smsUser.contact.phone.substring(1)}`,
-        content: 'Ceci est un test',
-        tag: HR_SMS,
-      };
-      const credentials = { company: { _id: authCompany._id } };
+      const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: HR_SMS };
       const response = await app.inject({
         method: 'POST',
         url: '/sms',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sms).toBe('SMS SENT !');
-      sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match(credentials));
+      sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match({ company: { _id: authCompany._id } }));
     });
 
     it('should throw error if phone is not in the same company', async () => {
@@ -57,7 +52,7 @@ describe('SMS ROUTES', () => {
         method: 'POST',
         url: '/sms',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -70,7 +65,7 @@ describe('SMS ROUTES', () => {
         method: 'POST',
         url: '/sms',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -85,7 +80,7 @@ describe('SMS ROUTES', () => {
           method: 'POST',
           url: '/sms',
           payload: omit({ ...payload }, path),
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(response.statusCode).toBe(400);
         sinon.assert.notCalled(SmsHelperStub);
@@ -100,19 +95,16 @@ describe('SMS ROUTES', () => {
     ];
 
     roles.forEach((role) => {
-      const payload = {
-        recipient: `+33${smsUser.contact.phone.substring(1)}`,
-        content: 'Ceci est un test',
-        tag: COURSE_SMS,
-      };
+      const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: COURSE_SMS };
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/sms',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
+
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });

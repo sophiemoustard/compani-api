@@ -8,20 +8,22 @@ const CompanyHelper = require('../../../src/helpers/companies');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const Drive = require('../../../src/models/Google/Drive');
 const { INTERVENTION } = require('../../../src/helpers/constants');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('createCompany', () => {
-  let CompanyMock;
+  let find;
+  let createCompany;
   let createFolderForCompanyStub;
   let createFolderStub;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
+    find = sinon.stub(Company, 'find');
+    createCompany = sinon.stub(Company, 'create');
     createFolderForCompanyStub = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
     createFolderStub = sinon.stub(GdriveStorageHelper, 'createFolder');
   });
   afterEach(() => {
-    CompanyMock.restore();
+    find.restore();
+    createCompany.restore();
     createFolderForCompanyStub.restore();
     createFolderStub.restore();
   });
@@ -39,85 +41,87 @@ describe('createCompany', () => {
     createFolderStub.onCall(0).returns({ id: '0987654321' });
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
     createFolderStub.onCall(2).returns({ id: 'asdfghj' });
-    CompanyMock.expects('find')
-      .chain('sort')
-      .withExactArgs({ prefixNumber: -1 })
-      .chain('limit')
-      .withExactArgs(1)
-      .chain('lean')
-      .once()
-      .returns([{ _id: new ObjectID(), prefixNumber: 345 }]);
-    CompanyMock.expects('create').withExactArgs({ ...createdCompany, prefixNumber: 346 }).once();
+    find.returns(SinonMongoose.stubChainedQueries(
+      [[{ _id: new ObjectID(), prefixNumber: 345 }]],
+      ['sort', 'limit', 'lean']
+    ));
 
     await CompanyHelper.createCompany(payload);
 
-    sinon.assert.calledWithExactly(createFolderForCompanyStub, payload.name);
-    sinon.assert.calledWithExactly(createFolderStub, 'direct debits', '1234567890');
-    sinon.assert.calledWithExactly(createFolderStub, 'customers', '1234567890');
-    sinon.assert.calledWithExactly(createFolderStub, 'auxiliaries', '1234567890');
-    CompanyMock.verify();
+    sinon.assert.calledOnceWithExactly(createFolderForCompanyStub, payload.name);
+    sinon.assert.calledWithExactly(createFolderStub.getCall(0), 'direct debits', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub.getCall(1), 'customers', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub.getCall(2), 'auxiliaries', '1234567890');
+    sinon.assert.calledOnceWithExactly(createCompany, { ...createdCompany, prefixNumber: 346 });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find' },
+        { query: 'sort', args: [{ prefixNumber: -1 }] },
+        { query: 'limit', args: [1] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('list', () => {
-  let CompanyMock;
+  let find;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
+    find = sinon.stub(Company, 'find');
   });
   afterEach(() => {
-    CompanyMock.restore();
+    find.restore();
   });
 
   it('should return companies', async () => {
     const companyList = [{ _id: new ObjectID() }];
-    CompanyMock.expects('find')
-      .withExactArgs({ toto: 'qwerty' })
-      .chain('lean')
-      .once()
-      .returns(companyList);
+    find.returns(SinonMongoose.stubChainedQueries([companyList], ['lean']));
 
     const result = await CompanyHelper.list({ toto: 'qwerty' });
 
     expect(result).toEqual(companyList);
-    CompanyMock.restore();
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ toto: 'qwerty' }] }, { query: 'lean', args: [] }]
+    );
   });
 });
 
 describe('getCompany', () => {
-  let CompanyMock;
+  let findOne;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
+    findOne = sinon.stub(Company, 'findOne');
   });
   afterEach(() => {
-    CompanyMock.restore();
+    findOne.restore();
   });
 
   it('should return company', async () => {
     const company = { _id: new ObjectID() };
-    CompanyMock.expects('findOne')
-      .withExactArgs({ _id: company._id })
-      .chain('lean')
-      .once()
-      .returns(company);
+    findOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
 
     const result = await CompanyHelper.getCompany(company._id);
 
     expect(result).toEqual(company);
-    CompanyMock.restore();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: company._id }] }, { query: 'lean', args: [] }]
+    );
   });
 });
 
 describe('uploadFile', () => {
-  let CompanyModel;
+  let findOneAndUpdate;
   let addStub;
   let getFileByIdStub;
   beforeEach(() => {
-    CompanyModel = sinon.mock(Company);
+    findOneAndUpdate = sinon.stub(Company, 'findOneAndUpdate');
     addStub = sinon.stub(Drive, 'add');
     getFileByIdStub = sinon.stub(Drive, 'getFileById');
   });
   afterEach(() => {
-    CompanyModel.restore();
+    findOneAndUpdate.restore();
     addStub.restore();
     getFileByIdStub.restore();
   });
@@ -136,10 +140,7 @@ describe('uploadFile', () => {
         },
       },
     };
-    CompanyModel
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: params._id }, { $set: flat(companyPayload) }, { new: true })
-      .chain('lean');
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await CompanyHelper.uploadFile(payload, params);
     sinon.assert.calledWithExactly(addStub, {
@@ -150,36 +151,42 @@ describe('uploadFile', () => {
       type: undefined,
     });
     sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
-    CompanyModel.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: params._id }, { $set: flat(companyPayload) }, { new: true }] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 });
 
 describe('getFirstIntervention', () => {
-  let EventModel;
+  let find;
   beforeEach(() => {
-    EventModel = sinon.mock(Event);
+    find = sinon.stub(Event, 'find');
   });
   afterEach(() => {
-    EventModel.restore();
+    find.restore();
   });
 
   it('should get first intervention', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    EventModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, type: INTERVENTION })
-      .chain('sort')
-      .withExactArgs({ startDate: 1 })
-      .chain('limit')
-      .withExactArgs(1)
-      .chain('lean')
-      .returns([{ startDate: '2019-11-12' }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ startDate: '2019-11-12' }]], ['sort', 'limit', 'lean']));
 
     const result = await CompanyHelper.getFirstIntervention(credentials);
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ startDate: '2019-11-12' }]);
-    EventModel.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, type: INTERVENTION }] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'limit', args: [1] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 });
 

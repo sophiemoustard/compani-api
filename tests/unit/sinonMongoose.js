@@ -20,13 +20,14 @@ const stubChainedQueries = (stubbedMethodReturns, chainedQueries = ['populate', 
 
 const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
   let chainedQuery = stubbedMethod;
-  if (chainedPayload[0].args) sinon.assert.calledWithExactly(chainedQuery.getCall(callCount), chainedPayload[0].args);
-  else sinon.assert.calledWithExactly(chainedQuery.getCall(callCount));
+  if (chainedPayload[0].args) {
+    sinon.assert.calledWithExactly(chainedQuery.getCall(callCount), ...chainedPayload[0].args);
+  } else sinon.assert.calledWithExactly(chainedQuery.getCall(callCount));
 
   for (let i = 1; i < chainedPayload.length; i++) {
     const { query, args } = chainedPayload[i];
     chainedQuery = chainedQuery.getCall(callCount).returnValue[query];
-    if (args) sinon.assert.calledWithExactly(chainedQuery, args);
+    if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
     else sinon.assert.calledWithExactly(chainedQuery);
   }
 };

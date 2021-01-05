@@ -29,7 +29,7 @@ describe('BALANCES ROUTES - GET /', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/balances',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -103,7 +103,7 @@ describe('BALANCES ROUTES - GET /', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/balances',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -127,7 +127,7 @@ describe('BALANCES ROUTES - GET /details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/balances/details?customer=${customerId}&startDate=2019-10-10&endDate=2019-11-10`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -143,7 +143,7 @@ describe('BALANCES ROUTES - GET /details', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/balances/details?customer=${customerFromOtherCompany._id}&startDate=2019-10-10&endDate=2019-11-10`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -152,11 +152,11 @@ describe('BALANCES ROUTES - GET /details', () => {
 
   describe('Other roles', () => {
     it('should return customer balance if I am its helper', async () => {
-      const helperToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
         url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
-        headers: { 'x-access-token': helperToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -174,7 +174,7 @@ describe('BALANCES ROUTES - GET /details', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

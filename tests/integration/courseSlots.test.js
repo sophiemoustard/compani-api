@@ -14,12 +14,12 @@ describe('NODE ENV', () => {
 });
 
 describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
-  let token;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should create course slot', async () => {
@@ -39,7 +39,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -68,7 +68,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -81,18 +81,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         endDate: courseSlotsList[0].endDate,
         course: coursesList[0]._id,
         step: stepsList[0]._id,
-        address: {
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris',
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-        },
       };
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -115,7 +108,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -138,7 +131,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -162,7 +155,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -186,7 +179,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -210,7 +203,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -234,21 +227,16 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = [
-      { path: 'course' },
-      { path: 'step' },
-      { path: 'endDate' },
-      { path: 'address.fullAddress' },
-    ];
-    missingParams.forEach((test) => {
-      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+    const missingParams = ['course', 'step', 'endDate', 'address.fullAddress'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
@@ -265,8 +253,8 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courseslots',
-          payload: omit({ ...payload }, test.path),
-          headers: { 'x-access-token': token },
+          payload: omit({ ...payload }, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -282,11 +270,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         course: coursesList[1]._id,
         step: stepsList[0]._id,
       };
-      token = await getTokenByCredentials(trainer.local);
+      authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -300,11 +288,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         course: coursesList[0]._id,
         step: stepsList[0]._id,
       };
-      token = await getToken('client_admin');
+      authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -318,11 +306,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         course: coursesList[0]._id,
         step: stepsList[0]._id,
       };
-      token = await getToken('coach');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -346,11 +334,11 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
           course: coursesList[1]._id,
           step: stepsList[0]._id,
         };
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/courseslots',
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -361,12 +349,12 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 });
 
 describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
-  let token;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should update course slot', async () => {
@@ -378,7 +366,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -401,7 +389,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -416,7 +404,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -432,7 +420,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -448,7 +436,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -464,7 +452,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${new ObjectID()}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -488,7 +476,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
       expect(response.statusCode).toBe(400);
@@ -511,20 +499,16 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = [
-      { path: 'startDate' },
-      { path: 'step' },
-      { path: 'endDate' },
-    ];
-    missingParams.forEach((test) => {
-      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+    const missingParams = ['startDate', 'step', 'endDate'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const payload = {
           startDate: '2020-03-04T09:00:00',
           endDate: '2020-03-04T11:00:00',
@@ -533,8 +517,8 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/courseslots/${courseSlotsList[0]._id}`,
-          headers: { 'x-access-token': token },
-          payload: omit({ ...payload }, test.path),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: omit({ ...payload }, param),
         });
 
         expect(response.statusCode).toBe(400);
@@ -554,12 +538,12 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     ];
 
     it('should a 200 as user is course trainer', async () => {
-      token = await getTokenByCredentials(trainer.local);
+      authToken = await getTokenByCredentials(trainer.local);
       const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[2]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -567,12 +551,12 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     });
 
     it('should return 200 as user is client admin from course company', async () => {
-      token = await getToken('client_admin');
+      authToken = await getToken('client_admin');
       const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
@@ -582,11 +566,11 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
           url: `/courseslots/${courseSlotsList[3]._id}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
 
@@ -597,19 +581,19 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 });
 
 describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
-  let token;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
-      token = await getToken('vendor_admin');
+      authToken = await getToken('vendor_admin');
     });
 
     it('should delete course slot and create courseHistory', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -627,7 +611,7 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${new ObjectID()}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -646,22 +630,22 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
     ];
 
     it('should return a 200 as user is course trainer', async () => {
-      token = await getTokenByCredentials(trainer.local);
+      authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${courseSlotsList[2]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
     it('should return 200 as user is client admin from course company', async () => {
-      token = await getToken('client_admin');
+      authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -669,11 +653,11 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        token = await getToken(role.name);
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
           url: `/courseslots/${courseSlotsList[3]._id}`,
-          headers: { 'x-access-token': token },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -9,61 +9,58 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ROLES ROUTES', () => {
-  let token = null;
-
-  describe('GET /roles', () => {
-    describe('CLIENT_ADMIN', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        token = await getToken('coach');
-      });
-
-      it('should return all roles', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: '/roles',
-          headers: { 'x-access-token': token },
-        });
-        expect(res.statusCode).toBe(200);
-        expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
-        expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
-          name: expect.any(String),
-        }));
-      });
-
-      it('should return a 400 error if query parameter does not exist', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: '/roles?toto=test',
-          headers: { 'x-access-token': token },
-        });
-        expect(res.statusCode).toBe(400);
-      });
+describe('GET /roles', () => {
+  let authToken;
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
     });
 
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-        { name: 'vendor_admin', expectedCode: 200 },
-        { name: 'training_organisation_manager', expectedCode: 200 },
-        { name: 'trainer', expectedCode: 403 },
-      ];
+    it('should return all roles', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
+      expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
+        name: expect.any(String),
+      }));
+    });
 
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          token = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: '/roles',
-            headers: { 'x-access-token': token },
-          });
+    it('should return a 400 error if query parameter does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?toto=test',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
 
-          expect(response.statusCode).toBe(role.expectedCode);
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/roles',
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });

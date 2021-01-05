@@ -12,6 +12,7 @@ const Role = require('../../src/models/Role');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   HELPER,
+  COACH,
   AUXILIARY,
   TRAINER,
   AUXILIARY_WITHOUT_COMPANY,
@@ -30,19 +31,16 @@ const {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   authCustomer,
-  coachAndTrainer,
 } = require('./seed/usersSeed');
 const {
   getToken,
-  getUser,
   getTokenByCredentials,
   otherCompany,
   authCompany,
   rolesList,
 } = require('./seed/authenticationSeed');
-const { trainer, userList } = require('../seed/userSeed');
+const { trainer, userList, noRoleNoCompany } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
-const EmailHelper = require('../../src/helpers/email');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
@@ -61,7 +59,7 @@ describe('POST /users', () => {
     it('should create user even if user not connected', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
-        local: { email: 'newuser@alenvi.io' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
         contact: { phone: '0606060606' },
         origin: MOBILE,
       };
@@ -77,6 +75,19 @@ describe('POST /users', () => {
       expect(user.local.email).toBe('newuser@alenvi.io');
       expect(user.contact.phone).toBe('0606060606');
       expect(user.firstMobileConnection).toBeDefined();
+    });
+
+    it('should not create user if password too short', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'test' },
+        contact: { phone: '0606060606' },
+        origin: MOBILE,
+      };
+
+      const res = await app.inject({ method: 'POST', url: '/users', payload });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 
@@ -98,14 +109,13 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user._id).toEqual(expect.any(Object));
       expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
       expect(res.result.data.user.role.client).toMatchObject({ name: AUXILIARY });
-
       expect(res.result.data.user.identity.firstname).toBe(payload.identity.firstname);
       expect(res.result.data.user.identity.lastname).toBe(payload.identity.lastname);
       expect(res.result.data.user.local.email).toBe(payload.local.email);
@@ -116,6 +126,23 @@ describe('POST /users', () => {
         .findOne({ auxiliary: res.result.data.user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
         .lean();
       expect(userSectorHistory).toBeDefined();
+    });
+
+    it('should not create user if password in payload', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
+        contact: { phone: '0606060606' },
+        origin: MOBILE,
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
 
     it('should not create a user if role provided does not exist', async () => {
@@ -130,7 +157,7 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -166,7 +193,7 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(409);
@@ -184,7 +211,7 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -202,7 +229,7 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -220,7 +247,7 @@ describe('POST /users', () => {
           method: 'POST',
           url: '/users',
           payload: omit(payload, param),
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(res.statusCode).toBe(400);
@@ -235,7 +262,6 @@ describe('POST /users', () => {
     });
 
     it('should create a user for another company', async () => {
-      const usersCountBefore = await User.countDocuments({ company: otherCompany._id });
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -249,19 +275,15 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.user.company).toBeDefined();
       expect(response.result.data.user.company._id).toEqual(otherCompany._id);
-
-      const usersCount = await User.countDocuments({ company: otherCompany._id });
-      expect(usersCount).toBe(usersCountBefore + 1);
     });
 
     it('should create a trainer', async () => {
-      const usersCountBefore = await User.countDocuments({});
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -273,12 +295,10 @@ describe('POST /users', () => {
         method: 'POST',
         url: '/users',
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const usersCountAfter = await User.countDocuments({});
-      expect(usersCountAfter).toEqual(usersCountBefore + 1);
     });
   });
 
@@ -306,142 +326,12 @@ describe('POST /users', () => {
           method: 'POST',
           url: '/users',
           payload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });
-});
-
-describe('POST /users/authenticate', () => {
-  beforeEach(populateDB);
-
-  it('should authenticate a user', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'webapp' },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data).toEqual(expect.objectContaining({
-      token: expect.any(String),
-      tokenExpireDate: expect.any(Date),
-      refreshToken: expect.any(String),
-      user: expect.objectContaining({ _id: expect.any(String) }),
-    }));
-  });
-
-  it('should authenticate a user and set firstMobileConnection', async () => {
-    const momentToDate = sinon.stub(momentProto, 'toDate');
-    momentToDate.returns('2020-12-08T13:45:25.437Z');
-
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'mobile' },
-    });
-
-    expect(response.statusCode).toBe(200);
-    const user = await User.findOne({ _id: response.result.data.user._id }).lean();
-    expect(user.firstMobileConnection).toEqual(new Date('2020-12-08T13:45:25.437Z'));
-    momentToDate.restore();
-  });
-
-  it('should authenticate a user without company', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: userList[8].local,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data).toEqual(expect.objectContaining({
-      token: expect.any(String),
-      tokenExpireDate: expect.any(Date),
-      refreshToken: expect.any(String),
-      user: expect.objectContaining({ _id: expect.any(String) }),
-    }));
-  });
-
-  it('should authenticate a user without role', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: userList[10].local,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data).toEqual(expect.objectContaining({
-      token: expect.any(String),
-      tokenExpireDate: expect.any(Date),
-      refreshToken: expect.any(String),
-      user: expect.objectContaining({ _id: expect.any(String) }),
-    }));
-  });
-
-  it('should authenticate a user without role or company', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: userList[11].local,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data).toEqual(expect.objectContaining({
-      token: expect.any(String),
-      tokenExpireDate: expect.any(Date),
-      refreshToken: expect.any(String),
-      user: expect.objectContaining({ _id: expect.any(String) }),
-    }));
-  });
-
-  it('should authenticate a user if email has capitals', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'Kitty@alenvi.io', password: '123456!eR' },
-    });
-    expect(res.statusCode).toBe(200);
-  });
-
-  it('should not authenticate a user if missing parameter', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io' },
-    });
-    expect(res.statusCode).toBe(400);
-  });
-
-  it('should not authenticate a user if user does not exist', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'test@alenvi.io', password: '123456!eR' },
-    });
-    expect(res.statusCode).toBe(401);
-  });
-
-  it('should not authenticate a user if wrong password', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '7890' },
-    });
-    expect(res.statusCode).toBe(401);
-  });
-
-  it('should not authenticate a user if refreshToken is missing', async () => {
-    await User.findOneAndUpdate({ 'local.email': 'white@alenvi.io' }, { $unset: { refreshToken: '' } });
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/authenticate',
-      payload: { email: 'white@alenvi.io', password: '123456!eR' },
-    });
-    expect(res.statusCode).toBe(401);
   });
 });
 
@@ -453,33 +343,18 @@ describe('GET /users', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should get all users (company A)', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(15);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
-    });
-
     it('should get all users (company B)', async () => {
       authToken = await getTokenByCredentials(coachFromOtherCompany.local);
 
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${otherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const users = await User.find({ company: otherCompany._id });
       expect(res.result.data.users.length).toBe(users.length);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
     });
 
     it('should get all coachs users (company A)', async () => {
@@ -487,62 +362,29 @@ describe('GET /users', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(coachUsers.length);
-      expect(res.result.data.users).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
-        }),
-      ]));
-    });
-
-    it('should get all coachs users (company B)', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
-
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${otherCompany._id}&role=coach`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(2);
-      expect(res.result.data.users).toEqual(expect.arrayContaining([expect.any(Object)]));
-      expect(res.result.data.users).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          role: expect.objectContaining({ client: expect.objectContaining({ name: 'coach' }) }),
-        }),
-      ]));
+      expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
     it('should not get users if role given doesn\'t exist', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=Babouin`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
-    });
-
-    it('should return a 403 if email not from the same company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${authCompany._id}&email=${helperFromOtherCompany.local.email}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(res.statusCode).toBe(403);
     });
 
     it('should return a 403 if customer not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&customers=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -551,8 +393,8 @@ describe('GET /users', () => {
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users?company=${new ObjectID()}`,
-        headers: { 'x-access-token': authToken },
+        url: `/users?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -562,7 +404,7 @@ describe('GET /users', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${new ObjectID()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -575,14 +417,12 @@ describe('GET /users', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       const usersCount = await User.countDocuments({});
       expect(res.result.data.users.length).toBe(usersCount);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
     });
 
     it('should get users from an other companies', async () => {
@@ -590,14 +430,10 @@ describe('GET /users', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${otherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      const users = await User.find({ company: otherCompany._id }).lean();
-      expect(res.result.data.users.length).toBe(users.length);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.client._id.toHexString()).toEqual(expect.any(String));
     });
   });
 
@@ -618,7 +454,7 @@ describe('GET /users', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/users?company=${authCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -638,8 +474,6 @@ describe('GET /users/exists', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.result.data.exists).toBe(true);
-    expect(res.result.data.user).toEqual({});
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -651,7 +485,7 @@ describe('GET /users/exists', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/exists?email=${usersSeedList[0].local.email}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -663,7 +497,7 @@ describe('GET /users/exists', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/exists?email=test@test.fr',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -680,6 +514,7 @@ describe('GET /users/exists', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -687,7 +522,7 @@ describe('GET /users/exists', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/users/exists?email=${usersSeedList[0].local.email}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -697,19 +532,6 @@ describe('GET /users/exists', () => {
           expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
         }
       });
-    });
-
-    it('should return 200 and all infos as logged user is trainer', async () => {
-      authToken = await getToken('trainer');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/users/exists?email=${usersSeedList[0].local.email}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.exists).toBe(true);
-      expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
     });
   });
 });
@@ -725,7 +547,7 @@ describe('GET /users/sector-histories', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/sector-histories?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -742,13 +564,13 @@ describe('GET /users/sector-histories', () => {
       ]));
     });
 
-    it('should return a 403 if not role vendor and try to get other company', async () => {
+    it('should return a 403 if try to get other company', async () => {
       authToken = await getTokenByCredentials(usersSeedList[0].local);
 
       const res = await app.inject({
         method: 'GET',
         url: `/users/sector-histories?company=${otherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -769,7 +591,7 @@ describe('GET /users/sector-histories', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/users/sector-histories?company=${authCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -790,7 +612,7 @@ describe('GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/users/learners',
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -817,7 +639,7 @@ describe('GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -830,20 +652,7 @@ describe('GET /users/learners', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
-        .toBeTruthy();
-    });
-
-    it('should return 200 if user is both trainer and coach and he requests learners from his company', async () => {
-      authToken = await getTokenByCredentials(coachAndTrainer.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -858,6 +667,7 @@ describe('GET /users/learners', () => {
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -865,7 +675,7 @@ describe('GET /users/learners', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/users/learners',
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -880,7 +690,7 @@ describe('GET /users/learners', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/users/learners?company=${otherCompany._id}`,
-            headers: { 'x-access-token': authToken },
+            headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -902,7 +712,7 @@ describe('GET /users/active', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/active?company=${authCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -915,7 +725,7 @@ describe('GET /users/active', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/active?company=${otherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -931,7 +741,7 @@ describe('GET /users/active', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/active?company=${otherCompany._id}&role=auxiliary`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBe(1);
@@ -941,7 +751,7 @@ describe('GET /users/active', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/active?email=${helperFromOtherCompany.local.email}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -961,7 +771,7 @@ describe('GET /users/active', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/users/active?company=${authCompany._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -982,7 +792,7 @@ describe('GET /users/:id', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/${usersSeedList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1009,11 +819,11 @@ describe('GET /users/:id', () => {
     });
 
     it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
+      const id = new ObjectID();
       const res = await app.inject({
         method: 'GET',
-        url: `/users/${id}`,
-        headers: { 'x-access-token': authToken },
+        url: `/users/${id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1023,7 +833,7 @@ describe('GET /users/:id', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/${auxiliaryFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1040,7 +850,7 @@ describe('GET /users/:id', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/${trainer._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1074,7 +884,7 @@ describe('GET /users/:id', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/users/${usersSeedList[1]._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1089,6 +899,7 @@ describe('PUT /users/:id/', () => {
     identity: { firstname: 'Riri' },
     local: { email: 'riri@alenvi.io' },
   };
+
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1100,18 +911,10 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
-      const updatedUser = await User.findById(usersSeedList[0]._id).lean({ autopopulate: true });
-      expect(updatedUser).toBeDefined();
-      expect(updatedUser).toMatchObject({
-        _id: usersSeedList[0]._id,
-        identity: expect.objectContaining({
-          firstname: updatePayload.identity.firstname,
-        }),
-        local: expect.objectContaining({ email: updatePayload.local.email }),
-      });
     });
 
     it('should update the user sector and sector history', async () => {
@@ -1120,15 +923,21 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: { ...updatePayload, sector: userSectors[1]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
+
       const updatedUser = await User.findById(userId)
         .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
         .lean({ autopopulate: true, virtuals: true });
-
       expect(updatedUser).toBeDefined();
       expect(updatedUser.sector).toEqual(userSectors[1]._id);
+      expect(updatedUser).toMatchObject({
+        _id: usersSeedList[0]._id,
+        identity: expect.objectContaining({ firstname: updatePayload.identity.firstname }),
+        local: expect.objectContaining({ email: updatePayload.local.email }),
+      });
+
       const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
       const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany });
       expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
@@ -1140,7 +949,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: { sector: userSectors[1]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(firstResponse.statusCode).toBe(200);
@@ -1149,7 +958,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: { sector: userSectors[2]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(secondRespons.statusCode).toBe(200);
@@ -1170,7 +979,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: { sector: userSectors[0]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1184,7 +993,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[1]._id}`,
         payload: { sector: userSectors[1]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1198,7 +1007,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[4]._id}`,
         payload: { sector: userSectors[1]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1213,7 +1022,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
         payload: { customers: [authCustomer._id], role: role._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1225,7 +1034,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
         payload: { customers: [authCustomer._id], role: role._id, company: authCompany._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1237,7 +1046,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
         payload: { customers: [customerFromOtherCompany._id], role: role._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(403);
@@ -1249,7 +1058,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
         payload: { customers: [customerFromOtherCompany._id], role: role._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(409);
@@ -1268,7 +1077,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: trainerPayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1293,7 +1102,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: auxiliaryPayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1318,7 +1127,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: auxiliaryPayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(409);
@@ -1331,7 +1140,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${id}`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1341,7 +1150,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${helperFromOtherCompany._id}`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1351,7 +1160,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
         payload: { establishment: null },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1361,7 +1170,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
         payload: { establishment: establishmentList[1]._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1371,7 +1180,7 @@ describe('PUT /users/:id/', () => {
         method: 'POST',
         url: '/users',
         payload: { contact: { phone: '09876' } },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -1382,7 +1191,7 @@ describe('PUT /users/:id/', () => {
         method: 'POST',
         url: '/users',
         payload: { local: { password: '123456!eR' } },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
@@ -1398,7 +1207,7 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${trainer._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
       });
 
@@ -1410,7 +1219,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id.toHexString()}`,
         payload: { company: authCompany._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -1420,7 +1229,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${helperFromOtherCompany._id}`,
         payload: { company: authCompany._id },
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1430,7 +1239,7 @@ describe('PUT /users/:id/', () => {
     beforeEach(populateDB);
 
     it('should update user if it is me - no role no company', async () => {
-      authToken = await getTokenByCredentials(userList[11].local);
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const response = await app.inject({
         method: 'PUT',
@@ -1458,7 +1267,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload: auxiliaryPayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1479,7 +1288,7 @@ describe('PUT /users/:id/', () => {
         method: 'PUT',
         url: `/users/${userId}`,
         payload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1502,137 +1311,7 @@ describe('PUT /users/:id/', () => {
           method: 'PUT',
           url: `/users/${userList[1]._id.toHexString()}`,
           payload: updatePayload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('PUT /users/:id/create-password-token', () => {
-  let authToken;
-  const payload = { email: 'aux@alenvi.io' };
-
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
-    });
-
-    it('should create password token', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/create-password-token`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.passwordToken).toBeDefined();
-    });
-
-    it('should not create password token if user is from an other company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/create-password-token`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should return 404 if user not found', async () => {
-      const id = new ObjectID().toHexString();
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${id}/create-password-token`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe('Other roles', () => {
-    beforeEach(populateDB);
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/users/${userList[1]._id.toHexString()}/create-password-token`,
-          payload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('PUT /users/:id/password', () => {
-  let authToken;
-  const updatePayload = { local: { password: '123456!eR' } };
-
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-
-    it('should update user password if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
-        payload: updatePayload,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 400 error if password too short', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
-        payload: { local: { password: '12345' } },
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(400);
-    });
-  });
-
-  describe('Other roles', () => {
-    beforeEach(populateDB);
-
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
-          payload: updatePayload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1657,7 +1336,7 @@ describe('DELETE /users/:id', () => {
         message = 'should delete a helper by id';
         statusCode = 200;
       } else {
-        message = 'should return 403 as user is not helpers';
+        message = 'should return 403 as user is not helper';
         statusCode = 403;
       }
 
@@ -1665,7 +1344,7 @@ describe('DELETE /users/:id', () => {
         const res = await app.inject({
           method: 'DELETE',
           url: `/users/${user._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(statusCode);
       });
@@ -1675,7 +1354,7 @@ describe('DELETE /users/:id', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/users/${(new ObjectID()).toHexString()}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1684,7 +1363,7 @@ describe('DELETE /users/:id', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/users/${helperFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -1706,39 +1385,12 @@ describe('DELETE /users/:id', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/users/${usersSeedList[3]._id}`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });
-});
-
-describe('POST /users/refreshToken', () => {
-  beforeEach(populateDB);
-  it('should return refresh token', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/refreshToken',
-      payload: { refreshToken: usersSeedList[1].refreshToken },
-    });
-    expect(res.statusCode).toBe(200);
-    expect(res.result.data).toEqual(expect.objectContaining({
-      token: expect.any(String),
-      tokenExpireDate: expect.any(Date),
-      refreshToken: expect.any(String),
-      user: expect.objectContaining({ _id: expect.any(String) }),
-    }));
-  });
-
-  it('should return a 404 error when refresh token isn\'t good', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: '/users/refreshToken',
-      payload: { refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba' },
-    });
-    expect(res.statusCode).toBe(401);
   });
 });
 
@@ -1756,7 +1408,7 @@ describe('PUT /users/:id/certificates', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
         payload: updatePayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1767,8 +1419,9 @@ describe('PUT /users/:id/certificates', () => {
         method: 'PUT',
         url: `/users/${new ObjectID().toHexString()}/certificates`,
         payload: {},
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -1777,8 +1430,9 @@ describe('PUT /users/:id/certificates', () => {
         method: 'PUT',
         url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
         payload: updatePayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
   });
@@ -1791,7 +1445,7 @@ describe('PUT /users/:id/certificates', () => {
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
         payload: updatePayload,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1811,7 +1465,7 @@ describe('PUT /users/:id/certificates', () => {
           method: 'PUT',
           url: `/users/${usersSeedList[1]._id.toHexString()}/certificates`,
           payload: updatePayload,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1847,7 +1501,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
         method: 'POST',
         url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1862,7 +1516,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
         method: 'POST',
         url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectID()}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
@@ -1876,7 +1530,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
           method: 'POST',
           url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -1892,7 +1546,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
         method: 'POST',
         url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
         payload: await GetStream(form),
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1912,7 +1566,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
           method: 'POST',
           url: `/users/${usersSeedList[1]._id}/gdrive/${usersSeedList[1].administrative.driveFolder}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -1951,7 +1605,7 @@ describe('POST /users/:id/upload', () => {
         method: 'POST',
         url: `/users/${user._id}/upload`,
         payload,
-        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1967,7 +1621,7 @@ describe('POST /users/:id/upload', () => {
           method: 'POST',
           url: `/users/${user._id}/upload`,
           payload: await GetStream(invalidForm),
-          headers: { ...invalidForm.getHeaders(), 'x-access-token': authToken },
+          headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
@@ -2013,7 +1667,7 @@ describe('POST /users/:id/upload', () => {
           method: 'POST',
           url: `/users/${user._id}/upload`,
           payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -2046,7 +1700,7 @@ describe('DELETE /users/:id/upload', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${user._id}/upload`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2062,7 +1716,7 @@ describe('DELETE /users/:id/upload', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${invalidId.toHexString()}/upload`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
@@ -2099,7 +1753,7 @@ describe('DELETE /users/:id/upload', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/users/${user._id}/upload`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -2130,7 +1784,7 @@ describe('POST /users/:id/drivefolder', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-        headers: { 'x-access-token': authToken },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2157,90 +1811,11 @@ describe('POST /users/:id/drivefolder', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${usersSeedList[1]._id.toHexString()}/drivefolder`,
-          headers: { 'x-access-token': authToken },
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });
-});
-
-describe('GET /users/check-reset-password/:token', () => {
-  beforeEach(populateDB);
-
-  it('should return a new access token after checking reset password token', async () => {
-    const user = getUser('helper', true, usersSeedList);
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
-
-    const response = await app.inject({
-      method: 'GET',
-      url: `/users/check-reset-password/${user.passwordToken.token}`,
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.token).toEqual(expect.any(String));
-    fakeDate.restore();
-  });
-
-  it('should return a 404 error if token is not valid', async () => {
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
-
-    const response = await app.inject({
-      method: 'GET',
-      url: '/users/check-reset-password/1234567890',
-    });
-
-    expect(response.statusCode).toBe(404);
-    fakeDate.restore();
-  });
-});
-
-describe('POST /users/forgot-password', () => {
-  let forgotPasswordEmail;
-  beforeEach(populateDB);
-  beforeEach(() => {
-    forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
-  });
-  afterEach(() => {
-    forgotPasswordEmail.restore();
-  });
-
-  it('should send an email to renew password', async () => {
-    const userEmail = usersSeedList[0].local.email;
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/forgot-password',
-      payload: { email: userEmail },
-    });
-
-    expect(response.statusCode).toBe(200);
-    sinon.assert.calledWith(
-      forgotPasswordEmail,
-      userEmail,
-      sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number })
-    );
-  });
-
-  it('should return a 400 error if missing email parameter', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/forgot-password',
-      payload: {},
-    });
-
-    expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(forgotPasswordEmail);
-  });
-
-  it('should return a 404 error if user does not exist', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/users/forgot-password',
-      payload: { email: 't@t.com' },
-    });
-
-    expect(response.statusCode).toBe(404);
-    sinon.assert.notCalled(forgotPasswordEmail);
   });
 });
