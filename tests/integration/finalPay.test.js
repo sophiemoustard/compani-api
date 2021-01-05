@@ -25,7 +25,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
     it('should compute draft final pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
+        url: '/finalpay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -36,12 +36,12 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         overtimeHours: 0,
         additionalHours: 0,
         bonus: 0,
-        endDate: moment('2019-05-28T23:59:59').toDate(),
-        month: '05-2019',
+        endDate: moment('2022-05-28T23:59:59').toDate(),
+        month: '05-2022',
         contractHours: 39,
-        holidaysHours: 4.5,
+        holidaysHours: 1.5,
         absencesHours: 0,
-        hoursToWork: 34.5,
+        hoursToWork: 37.5,
         workedHours: 2,
         internalHours: 0,
         notSurchargedAndNotExempt: 2,
@@ -52,28 +52,28 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         surchargedAndExemptDetails: {},
         paidKm: 0,
         paidTransportHours: 0,
-        hoursBalance: -32.5,
+        hoursBalance: -35.5,
         transport: 0,
         phoneFees: 0,
-        startDate: moment('2019-05-01T00:00:00').toDate(),
-        hoursCounter: -32.5,
+        startDate: moment('2022-05-01T00:00:00').toDate(),
+        hoursCounter: -35.5,
         mutual: true,
         diff: {
+          hoursBalance: 0,
           absencesHours: 0,
-          workedHours: 0,
           internalHours: 0,
-          paidTransportHours: 0,
-          notSurchargedAndNotExempt: 0,
-          surchargedAndNotExempt: 0,
-          surchargedAndNotExemptDetails: {},
           notSurchargedAndExempt: 0,
+          notSurchargedAndNotExempt: 0,
+          paidTransportHours: 0,
           surchargedAndExempt: 0,
           surchargedAndExemptDetails: {},
-          hoursBalance: 0,
+          surchargedAndNotExempt: 0,
+          surchargedAndNotExemptDetails: {},
+          workedHours: 0,
         },
         previousMonthHoursCounter: 0,
         endReason: 'mutation',
-        endNotificationDate: moment('2019-03-28T00:00:00').toDate(),
+        endNotificationDate: moment('2022-03-28T00:00:00').toDate(),
         compensation: 0,
       });
     });
@@ -92,7 +92,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
+          url: '/finalpay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -1738,19 +1738,6 @@ describe('computePrevPayDiff', () => {
       hoursCounter: 3,
     });
   });
-
-  it('should not compute diff on future month', async () => {
-    const query = { startDate: moment().startOf('M').toISOString(), endDate: moment().endOf('M').toISOString() };
-    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
-
-    const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, null, query, [], []);
-    expect(result).toEqual({ diff: {}, auxiliary: '1234567890', hoursCounter: 0 });
-    sinon.assert.notCalled(getContractMonthInfo);
-    sinon.assert.notCalled(getPayFromEvents);
-    sinon.assert.notCalled(getPayFromAbsences);
-    sinon.assert.notCalled(computePrevPayDetailDiff);
-  });
 });
 
 describe('getPreviousMonthPay', () => {
