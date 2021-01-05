@@ -270,6 +270,22 @@ function populateSectors(docs, next) {
   return next();
 }
 
+function formatPayload(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'refreshToken')) doc.refreshToken = null;
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'passwordToken')) {
+    // eslint-disable-next-line no-param-reassign
+    doc.passwordToken.token = null;
+    // eslint-disable-next-line no-param-reassign
+    doc.passwordToken.expiresIn = null;
+  }
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'local.password')) doc.local.password = null;
+
+  return next();
+}
+
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
   localField: '_id',
@@ -316,6 +332,7 @@ UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);
+UserSchema.post('save', formatPayload);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);

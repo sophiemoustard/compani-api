@@ -75,6 +75,8 @@ describe('POST /users', () => {
       expect(user.local.email).toBe('newuser@alenvi.io');
       expect(user.contact.phone).toBe('0606060606');
       expect(user.firstMobileConnection).toBeDefined();
+      expect(res.result.data.user.refreshToken).toBeNull();
+      expect(res.result.data.user.local.password).toBeNull();
     });
     it('should not create user if password too short', async () => {
       const payload = {

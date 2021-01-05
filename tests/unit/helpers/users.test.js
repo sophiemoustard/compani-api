@@ -634,8 +634,6 @@ describe('createUser', () => {
 
     momentToDate.returns(date);
     userCreate.returns(payload);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([payload],
-      ['lean']));
 
     const result = await UsersHelper.createUser(payload, null);
 
@@ -649,10 +647,6 @@ describe('createUser', () => {
       firstMobileConnection: date,
       origin: MOBILE,
     });
-    SinonMongoose.calledWithExactly(userFindOne, [
-      { query: 'findOne', args: [{ _id: payload._id }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
   });
 
   it('client admin - should create an auxiliary for his organization and handles sector', async () => {
@@ -787,8 +781,6 @@ describe('createUser', () => {
     roleFindById.returns(SinonMongoose.stubChainedQueries([{ _id: roleId, name: 'trainer', interface: 'vendor' }],
       ['lean']));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser],
-      ['lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -802,10 +794,6 @@ describe('createUser', () => {
       role: { vendor: roleId },
       refreshToken: sinon.match.string,
     });
-    SinonMongoose.calledWithExactly(userFindOne, [
-      { query: 'findOne', args: [{ _id: newUser._id }] },
-      { query: 'lean', args: [{ virtuals: true }] },
-    ]);
   });
 
   it('vendor admin - should create a user without role but with company', async () => {

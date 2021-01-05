@@ -168,9 +168,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (!credentials) {
     if (userPayload.origin !== MOBILE) return User.create(payload);
-    const user = await User.create({ ...payload, firstMobileConnection: moment().toDate() });
-
-    return User.findOne({ _id: user._id }).lean({ virtuals: true, autopopulate: true });
+    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
   }
 
   const companyId = payload.company || get(credentials, 'company._id');
@@ -179,11 +177,7 @@ exports.createUser = async (userPayload, credentials) => {
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
-  if (role.name === TRAINER) {
-    const user = await User.create({ ...payload, role: { [role.interface]: role._id } });
-
-    return User.findOne({ _id: user._id }).lean({ virtuals: true });
-  }
+  if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
   const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
 
   if (userPayload.sector) {
