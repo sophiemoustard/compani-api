@@ -45,63 +45,58 @@ describe('getActivity', () => {
 });
 
 describe('updateActivity', () => {
-  let ActivityMock;
-
+  let updateOne;
   beforeEach(() => {
-    ActivityMock = sinon.mock(Activity);
+    updateOne = sinon.stub(Activity, 'updateOne');
   });
-
   afterEach(() => {
-    ActivityMock.restore();
+    updateOne.restore();
   });
 
   it('should update an activity\'s name', async () => {
     const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
     const payload = { name: 'faire dodo' };
 
-    ActivityMock.expects('updateOne')
-      .withExactArgs({ _id: activity._id }, { $set: payload })
-      .once();
-
     await ActivityHelper.updateActivity(activity._id, payload);
 
-    ActivityMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: activity._id }, { $set: payload });
   });
 });
 
 describe('addActivity', () => {
-  let StepMock;
-  let ActivityMock;
-  let CardMock;
-
+  let create;
+  let updateOne;
+  let insertMany;
+  let getActivity;
   beforeEach(() => {
-    StepMock = sinon.mock(Step);
-    ActivityMock = sinon.mock(Activity);
-    CardMock = sinon.mock(Card);
+    create = sinon.stub(Activity, 'create');
+    updateOne = sinon.stub(Step, 'updateOne');
+    insertMany = sinon.stub(Card, 'insertMany');
+    getActivity = sinon.stub(ActivityHelper, 'getActivity');
   });
-
   afterEach(() => {
-    StepMock.restore();
-    ActivityMock.restore();
-    CardMock.restore();
+    create.restore();
+    updateOne.restore();
+    insertMany.restore();
+    getActivity.restore();
   });
 
-  const step = { _id: new ObjectID(), name: 'step' };
   it('should create an activity', async () => {
-    const newActivity = { name: 'c\'est une étape !' };
-    const activityId = new ObjectID();
+    const stepId = new ObjectID();
+    const newActivity = { name: 'c\'est une activité !' };
+    const createdActivityId = new ObjectID();
+    create.returns({ _id: createdActivityId });
 
-    ActivityMock.expects('create').withExactArgs(newActivity).returns({ _id: activityId });
+    await ActivityHelper.addActivity(stepId, newActivity);
 
-    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: { activities: activityId } });
-
-    await ActivityHelper.addActivity(step._id, newActivity);
-
-    StepMock.verify();
-    ActivityMock.verify();
+    sinon.assert.calledOnceWithExactly(create, newActivity);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: createdActivityId } });
+    sinon.assert.notCalled(insertMany);
+    sinon.assert.notCalled(getActivity);
   });
 
   it('should duplicate an activity', async () => {
+    const stepId = new ObjectID();
     const activity = {
       _id: new ObjectID(),
       name: 'danser',
@@ -116,45 +111,38 @@ describe('addActivity', () => {
       _id: new ObjectID(),
       cards: activity.cards.map(c => ({ ...c, _id: new ObjectID() })),
     };
-    const getActivityStub = sinon.stub(ActivityHelper, 'getActivity').returns(activity);
+    getActivity.returns(activity);
+    const cards = activity.cards.map(a => ({ ...a, _id: sinon.match(ObjectID) }));
+    create.returns({ _id: newActivity._id });
 
-    CardMock.expects('insertMany')
-      .withExactArgs(activity.cards.map(a => ({ ...a, _id: sinon.match(ObjectID) })));
+    await ActivityHelper.addActivity(stepId, { activityId: activity._id });
 
-    ActivityMock.expects('create').returns({ _id: newActivity._id });
-
-    StepMock.expects('updateOne').withExactArgs({ _id: step._id }, { $push: { activities: newActivity._id } });
-
-    await ActivityHelper.addActivity(step._id, { activityId: activity._id });
-
-    StepMock.verify();
-    ActivityMock.verify();
-    CardMock.verify();
-
-    sinon.assert.calledWithExactly(getActivityStub, activity._id);
-    getActivityStub.restore();
+    sinon.assert.calledOnceWithExactly(getActivity, activity._id);
+    sinon.assert.calledOnceWithExactly(insertMany, cards);
+    sinon.assert.calledOnceWithExactly(create, {
+      name: activity.name,
+      type: activity.type,
+      cards: cards.map(c => c._id),
+    });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $push: { activities: newActivity._id } });
   });
 });
 
 describe('detachActivity', () => {
-  let StepMock;
-
+  let updateOne;
   beforeEach(() => {
-    StepMock = sinon.mock(Step);
+    updateOne = sinon.stub(Step, 'updateOne');
   });
-
   afterEach(() => {
-    StepMock.restore();
+    updateOne.restore();
   });
 
   it('should detach activity', async () => {
     const stepId = new ObjectID();
     const activityId = new ObjectID();
 
-    StepMock.expects('updateOne').withExactArgs({ _id: stepId }, { $pull: { activities: activityId } });
-
     await ActivityHelper.detachActivity(stepId, activityId);
 
-    StepMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $pull: { activities: activityId } });
   });
 });
