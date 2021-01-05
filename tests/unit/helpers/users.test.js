@@ -641,12 +641,10 @@ describe('createUser', () => {
     sinon.assert.calledOnceWithExactly(momentToDate);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
-    sinon.assert.calledOnceWithExactly(userCreate, {
-      ...payload,
-      refreshToken: sinon.match.string,
-      firstMobileConnection: date,
-      origin: MOBILE,
-    });
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE }
+    );
   });
 
   it('client admin - should create an auxiliary for his organization and handles sector', async () => {
@@ -666,33 +664,40 @@ describe('createUser', () => {
       origin: WEBAPP,
     };
 
-    roleFindById.returns(SinonMongoose.stubChainedQueries([{ _id: roleId, name: 'auxiliary', interface: 'client' }],
-      ['lean']));
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'auxiliary', interface: 'client' }],
+      ['lean']
+    ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser],
-      ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
     sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
-    SinonMongoose.calledWithExactly(roleFindById, [
-      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledOnceWithExactly(userCreate, {
-      identity: { lastname: 'Test' },
-      local: { email: 'toto@test.com' },
-      origin: WEBAPP,
-      company: companyId,
-      refreshToken: sinon.match.string,
-      role: { client: roleId },
-    });
-    SinonMongoose.calledWithExactly(userFindOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      {
+        identity: { lastname: 'Test' },
+        local: { email: 'toto@test.com' },
+        origin: WEBAPP,
+        company: companyId,
+        refreshToken: sinon.match.string,
+        role: { client: roleId },
+      }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
     sinon.assert.notCalled(userFindOneAndUpdate);
   });
 
@@ -706,30 +711,37 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'coach' } };
 
-    roleFindById.returns(SinonMongoose.stubChainedQueries([{ _id: roleId, name: 'coach', interface: 'client' }],
-      ['lean']));
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'coach', interface: 'client' }],
+      ['lean']
+    ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser],
-      ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
-    SinonMongoose.calledWithExactly(roleFindById, [
-      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledOnceWithExactly(userCreate, {
-      ...payload,
-      company: companyId,
-      refreshToken: sinon.match.string,
-    });
-    SinonMongoose.calledWithExactly(userFindOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      {
+        ...payload,
+        company: companyId,
+        refreshToken: sinon.match.string,
+      }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('vendor admin - should create a client admin with company', async () => {
@@ -743,29 +755,32 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'client_admin' } };
 
-    roleFindById.returns(SinonMongoose.stubChainedQueries([{ _id: roleId, name: 'client_admin', interface: 'client' }],
-      ['lean']));
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'client_admin', interface: 'client' }],
+      ['lean']
+    ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser],
-      ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    SinonMongoose.calledWithExactly(roleFindById, [
-      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledOnceWithExactly(userCreate, {
-      ...payload,
-      role: { client: roleId },
-      refreshToken: sinon.match.string,
-    });
-    SinonMongoose.calledWithExactly(userFindOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, role: { client: roleId }, refreshToken: sinon.match.string }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('vendor admin - should create a trainer without company', async () => {
@@ -778,22 +793,23 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'trainer' } };
 
-    roleFindById.returns(SinonMongoose.stubChainedQueries([{ _id: roleId, name: 'trainer', interface: 'vendor' }],
-      ['lean']));
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'trainer', interface: 'vendor' }],
+      ['lean']
+    ));
     userCreate.returns(newUser);
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    SinonMongoose.calledWithExactly(roleFindById, [
-      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledOnceWithExactly(userCreate, {
-      ...payload,
-      role: { vendor: roleId },
-      refreshToken: sinon.match.string,
-    });
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string }
+    );
   });
 
   it('vendor admin - should create a user without role but with company', async () => {
@@ -826,8 +842,7 @@ describe('createUser', () => {
       origin: WEBAPP,
     };
     try {
-      roleFindById.returns(SinonMongoose.stubChainedQueries([null],
-        ['lean']));
+      roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
       await UsersHelper.createUser(payload, { company: { _id: companyId } });
     } catch (e) {
@@ -835,10 +850,10 @@ describe('createUser', () => {
     } finally {
       sinon.assert.notCalled(createHistoryStub);
       sinon.assert.notCalled(userCreate);
-      SinonMongoose.calledWithExactly(roleFindById, [
-        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledWithExactly(
+        roleFindById,
+        [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+      );
     }
   });
 });
