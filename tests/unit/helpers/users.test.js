@@ -641,6 +641,7 @@ describe('createUser', () => {
     sinon.assert.calledOnceWithExactly(momentToDate);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(
       userCreate,
       { ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE }
@@ -802,6 +803,7 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
+    sinon.assert.notCalled(userFindOne);
     SinonMongoose.calledWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
