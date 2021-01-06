@@ -9,7 +9,15 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/check-update',
-      options: { auth: false, validate: { query: Joi.object({ apiVersion: Joi.string().required() }) } },
+      options: {
+        auth: false,
+        validate: {
+          query: Joi.object({
+            apiVersion: Joi.string(),
+            mobileVersion: Joi.string(),
+          }).required(),
+        },
+      },
       handler: checkUpdate,
     });
   },
