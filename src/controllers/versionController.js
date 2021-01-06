@@ -7,7 +7,7 @@ const { language } = translate;
 
 const checkUpdate = async (req) => {
   try {
-    const mustUpdate = await versionHelper.checkUpdate(req.query.apiVersion);
+    const mustUpdate = await versionHelper.checkUpdate(req.query);
 
     return {
       message: mustUpdate ? translate[language].apiVersionUpToDate : translate[language].apiVersionToUpdate,
