@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create } = require('../controllers/attendanceSheetController');
+const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-attendanceSheets',
@@ -23,10 +24,11 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        payload: formDataPayload(),
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            link: Joi.string().required(),
+            file: Joi.any().required(),
             trainee: Joi.objectId(),
             date: Joi.date(),
           }),

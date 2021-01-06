@@ -7,6 +7,8 @@ exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.G
 
 exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_USER_BUCKET);
 
+exports.uploadCourseFile = async payload => uploadMedia(payload, process.env.GCS_COURSE_BUCKET);
+
 const formatFileName = fileName =>
   `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
 
