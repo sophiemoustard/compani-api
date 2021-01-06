@@ -270,18 +270,20 @@ function populateSectors(docs, next) {
   return next();
 }
 
-function formatPayload(doc, next) {
+async function formatPayload(doc, next) {
+  const payload = doc.toObject();
+
   // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'refreshToken')) doc.refreshToken = null;
+  if (get(doc, 'refreshToken')) delete payload.refreshToken;
+
   // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'passwordToken')) {
-    // eslint-disable-next-line no-param-reassign
-    doc.passwordToken.token = null;
-    // eslint-disable-next-line no-param-reassign
-    doc.passwordToken.expiresIn = null;
-  }
+  if (get(doc, 'passwordToken')) delete payload.passwordToken;
+
   // eslint-disable-next-line no-param-reassign
-  if (get(doc, 'local.password')) doc.local.password = null;
+  if (get(doc, 'local.password')) delete payload.local.password;
+
+  // eslint-disable-next-line no-param-reassign
+  doc.overwrite(payload);
 
   return next();
 }
