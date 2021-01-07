@@ -5,9 +5,9 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const checkUpdate = async (req) => {
+const shouldUpdate = async (req) => {
   try {
-    const mustUpdate = await versionHelper.checkUpdate(req.query);
+    const mustUpdate = await versionHelper.shouldUpdate(req.query);
 
     return {
       message: mustUpdate ? translate[language].apiVersionUpToDate : translate[language].apiVersionToUpdate,
@@ -20,5 +20,5 @@ const checkUpdate = async (req) => {
 };
 
 module.exports = {
-  checkUpdate,
+  shouldUpdate,
 };
