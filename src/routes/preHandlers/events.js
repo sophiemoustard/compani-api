@@ -135,18 +135,27 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
+    const auxiliary = await User.countDocuments(({ _id: req.payload.auxiliary, company: companyId }));
     if (!auxiliary) throw Boom.forbidden();
   }
 
   if (req.payload.sector) {
-    const sector = await Sector.findOne(({ _id: req.payload.sector, company: companyId })).lean();
+    const sector = await Sector.countDocuments(({ _id: req.payload.sector, company: companyId }));
     if (!sector) throw Boom.forbidden();
   }
 
   if (req.payload.internalHour) {
-    const internalHour = await InternalHour.findOne(({ _id: req.payload.internalHour, company: companyId })).lean();
+    const internalHour = await InternalHour.countDocuments(({ _id: req.payload.internalHour, company: companyId }));
     if (!internalHour) throw Boom.forbidden();
+  }
+
+  if (req.payload.extension) {
+    const extendedAbsence = await Event.countDocuments(({
+      _id: req.payload.extension,
+      absenceNature: req.payload.absenceNature,
+      absence: req.payload.absence,
+    }));
+    if (!extendedAbsence) throw Boom.forbidden();
   }
 
   return null;
