@@ -7,7 +7,7 @@ const AttendanceSheetSchema = mongoose.Schema({
   },
   date: { type: Date },
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-}, { timestamps: true });
+}, { timestamps: true, id: false });
 
 AttendanceSheetSchema.virtual('course', {
   ref: 'Course',
