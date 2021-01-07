@@ -270,6 +270,18 @@ function populateSectors(docs, next) {
   return next();
 }
 
+async function formatPayload(doc, next) {
+  const payload = doc.toObject();
+
+  if (get(doc, 'refreshToken')) delete payload.refreshToken;
+  if (get(doc, 'passwordToken')) delete payload.passwordToken;
+  if (get(doc, 'local.password')) delete payload.local.password;
+
+  doc.overwrite(payload);
+
+  return next();
+}
+
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
   localField: '_id',
@@ -316,6 +328,7 @@ UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);
+UserSchema.post('save', formatPayload);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);

@@ -7,6 +7,7 @@ const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
 const omit = require('lodash/omit');
+const SinonMongoose = require('../sinonMongoose');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
@@ -573,8 +574,10 @@ describe('createAndSaveFile', () => {
 });
 
 describe('createUser', () => {
-  let UserMock;
-  let RoleMock;
+  let userFindOne;
+  let roleFindById;
+  let userCreate;
+  let userFindOneAndUpdate;
   let objectIdStub;
   let createHistoryStub;
   let momentToDate;
@@ -582,16 +585,20 @@ describe('createUser', () => {
   const roleId = new ObjectID();
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    userFindOne = sinon.stub(User, 'findOne');
+    roleFindById = sinon.stub(Role, 'findById');
+    userCreate = sinon.stub(User, 'create');
+    userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
     createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
     momentToDate = sinon.stub(momentProto, 'toDate');
   });
 
   afterEach(() => {
-    UserMock.restore();
-    RoleMock.restore();
+    userFindOne.restore();
+    roleFindById.restore();
+    userCreate.restore();
+    userFindOneAndUpdate.restore();
     objectIdStub.restore();
     createHistoryStub.restore();
     momentToDate.restore();
@@ -605,19 +612,15 @@ describe('createUser', () => {
       origin: WEBAPP,
     };
 
-    RoleMock.expects('findById').never();
-    UserMock.expects('findOne').never();
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, refreshToken: sinon.match.string })
-      .once()
-      .returns({ identity: payload.identity, local: payload.local, contact: payload.contact });
+    userCreate.returns({ identity: payload.identity, local: payload.local, contact: payload.contact });
 
     const result = await UsersHelper.createUser(payload, null);
 
     expect(result).toEqual({ identity: payload.identity, local: payload.local, contact: payload.contact });
-    RoleMock.verify();
-    UserMock.verify();
     sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(userFindOne);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
   });
 
   it('should set firstMobileConnection if origin is mobile', async () => {
@@ -630,20 +633,19 @@ describe('createUser', () => {
     const date = '2020-12-08T13:45:25.437Z';
 
     momentToDate.returns(date);
-    RoleMock.expects('findById').never();
-    UserMock.expects('findOne').never();
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE })
-      .once()
-      .returns(payload);
+    userCreate.returns(payload);
 
     const result = await UsersHelper.createUser(payload, null);
 
     expect(result).toEqual(payload);
-    RoleMock.verify();
-    UserMock.verify();
     sinon.assert.calledOnceWithExactly(momentToDate);
     sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(userFindOne);
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE }
+    );
   });
 
   it('client admin - should create an auxiliary for his organization and handles sector', async () => {
@@ -663,35 +665,41 @@ describe('createUser', () => {
       origin: WEBAPP,
     };
 
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'auxiliary', interface: 'client' });
-    UserMock.expects('create')
-      .withExactArgs({
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'auxiliary', interface: 'client' }],
+      ['lean']
+    ));
+    userCreate.returns(newUser);
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
+
+    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
+
+    expect(result).toEqual(newUser);
+    sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      {
         identity: { lastname: 'Test' },
         local: { email: 'toto@test.com' },
         origin: WEBAPP,
         company: companyId,
         refreshToken: sinon.match.string,
         role: { client: roleId },
-      })
-      .returns(newUser);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(newUser);
-    UserMock.expects('findOneAndUpdate').never();
-
-    const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
-
-    expect(result).toEqual(newUser);
-    RoleMock.verify();
-    UserMock.verify();
-    sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
+      }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
+    sinon.assert.notCalled(userFindOneAndUpdate);
   });
 
   it('client admin - should create a coach for his organization', async () => {
@@ -704,27 +712,37 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'coach' } };
 
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'coach', interface: 'client' });
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, company: companyId, refreshToken: sinon.match.string })
-      .returns(newUser);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(newUser);
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'coach', interface: 'client' }],
+      ['lean']
+    ));
+    userCreate.returns(newUser);
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    RoleMock.verify();
-    UserMock.verify();
     sinon.assert.notCalled(createHistoryStub);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      {
+        ...payload,
+        company: companyId,
+        refreshToken: sinon.match.string,
+      }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('vendor admin - should create a client admin with company', async () => {
@@ -738,26 +756,32 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'client_admin' } };
 
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'client_admin', interface: 'client' });
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, role: { client: roleId }, refreshToken: sinon.match.string })
-      .returns(newUser);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: payload.company } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(newUser);
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'client_admin', interface: 'client' }],
+      ['lean']
+    ));
+    userCreate.returns(newUser);
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    RoleMock.verify();
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, role: { client: roleId }, refreshToken: sinon.match.string }
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('vendor admin - should create a trainer without company', async () => {
@@ -770,20 +794,24 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'trainer' } };
 
-    RoleMock.expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: roleId, name: 'trainer', interface: 'vendor' });
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string })
-      .returns(newUser);
-    UserMock.expects('findOne').never();
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: roleId, name: 'trainer', interface: 'vendor' }],
+      ['lean']
+    ));
+    userCreate.returns(newUser);
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    RoleMock.verify();
-    UserMock.verify();
+    sinon.assert.notCalled(userFindOne);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      userCreate,
+      { ...payload, role: { vendor: roleId }, refreshToken: sinon.match.string }
+    );
   });
 
   it('vendor admin - should create a user without role but with company', async () => {
@@ -796,43 +824,38 @@ describe('createUser', () => {
     };
     const newUser = { ...payload, _id: userId };
 
-    RoleMock.expects('findById').never();
-    UserMock.expects('findOne').never();
-    UserMock.expects('create')
-      .withExactArgs({ ...payload, refreshToken: sinon.match.string })
-      .returns(newUser);
+    userCreate.returns(newUser);
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
     expect(result).toEqual(newUser);
 
-    RoleMock.verify();
-    UserMock.verify();
     sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(userFindOne);
+    sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
   });
 
   it('should return a 400 error if role does not exist', async () => {
+    const companyId = new ObjectID();
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      role: roleId,
+      origin: WEBAPP,
+    };
     try {
-      const companyId = new ObjectID();
-      const payload = {
-        identity: { lastname: 'Test', firstname: 'Toto' },
-        local: { email: 'toto@test.com' },
-        role: roleId,
-        origin: WEBAPP,
-      };
-
-      RoleMock.expects('findById')
-        .withExactArgs(payload.role, { name: 1, interface: 1 })
-        .chain('lean')
-        .returns(null);
-      UserMock.expects('create').never();
+      roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
       await UsersHelper.createUser(payload, { company: { _id: companyId } });
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
-      RoleMock.verify();
-      UserMock.verify();
       sinon.assert.notCalled(createHistoryStub);
+      sinon.assert.notCalled(userCreate);
+      SinonMongoose.calledWithExactly(
+        roleFindById,
+        [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+      );
     }
   });
 });
