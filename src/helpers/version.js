@@ -1,4 +1,4 @@
-exports.checkUpdate = async (version) => {
+exports.shouldUpdate = async (version) => {
   if (version.apiVersion) {
     const majorApiVersion = process.env.API_VERSION.replace(/\.[0-9]+\.[0-9]+$/, '');
     return majorApiVersion > version.apiVersion;

@@ -1,14 +1,14 @@
 'use-strict';
 
 const Joi = require('joi');
-const { checkUpdate } = require('../controllers/versionController');
+const { shouldUpdate } = require('../controllers/versionController');
 
 exports.plugin = {
   name: 'routes-version',
   register: async (server) => {
     server.route({
       method: 'GET',
-      path: '/check-update',
+      path: '/should-update',
       options: {
         auth: false,
         validate: {
@@ -18,7 +18,7 @@ exports.plugin = {
           }).required(),
         },
       },
-      handler: checkUpdate,
+      handler: shouldUpdate,
     });
   },
 };
