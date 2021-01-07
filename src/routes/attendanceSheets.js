@@ -6,7 +6,7 @@ const { list, create } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
 
 exports.plugin = {
-  name: 'routes-attendanceSheets',
+  name: 'routes-attendancesheets',
   register: async (server) => {
     server.route({
       method: 'GET',
