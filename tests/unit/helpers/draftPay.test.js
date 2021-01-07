@@ -250,7 +250,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply holiday surcharge', () => {
-    const event = { startDate: '2019-05-08T09:00:00', endDate: '2019-05-08T11:00:00' };
+    const event = { startDate: '2022-05-08T09:00:00', endDate: '2022-05-08T11:00:00' };
     const surcharge = { publicHoliday: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
@@ -1168,11 +1168,11 @@ describe('getHoursFromDailyAbsence', () => {
     });
 
     it('should only consider in query range event days', () => {
-      const query = { startDate: '2019-05-02T07:00:00', endDate: '2019-05-31T07:00:00' };
-      const absence = { absenceNature: 'daily', startDate: '2019-04-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+      const query = { startDate: '2022-05-02T07:00:00', endDate: '2022-05-31T07:00:00' };
+      const absence = { absenceNature: 'daily', startDate: '2022-04-18T10:00:00', endDate: '2022-05-18T12:00:00' };
       const contract = {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
+        startDate: '2022-02-18T07:00:00',
+        endDate: '2022-07-18T22:00:00',
         versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
       };
 
@@ -1180,14 +1180,14 @@ describe('getHoursFromDailyAbsence', () => {
 
       const result = DraftPayHelper.getHoursFromDailyAbsence(absence, contract, query);
 
-      expect(result).toBe(28);
+      expect(result).toBe(30);
       sinon.assert.calledWithExactly(
         getMatchingVersion.getCall(0),
         moment(query.startDate).startOf('d'),
         contract,
         'startDate'
       );
-      sinon.assert.callCount(getMatchingVersion, 14);
+      sinon.assert.callCount(getMatchingVersion, 15);
     });
   });
 
@@ -1219,17 +1219,17 @@ describe('getHoursFromDailyAbsence', () => {
     });
 
     it('contract ends during an entire month of absence', () => {
-      const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
-      const absence = { absenceNature: 'daily', startDate: '2019-03-02T10:00:00', endDate: '2019-06-18T12:00:00' };
+      const query = { startDate: '2022-05-01T07:00:00', endDate: '2022-05-31T07:00:00' };
+      const absence = { absenceNature: 'daily', startDate: '2022-03-02T10:00:00', endDate: '2022-06-18T12:00:00' };
       const contract = {
-        startDate: '2019-04-18T07:00:00',
-        endDate: '2019-05-18T22:00:00',
+        startDate: '2022-04-18T07:00:00',
+        endDate: '2022-05-18T22:00:00',
         versions: [{ weeklyHours: 12 }],
       };
 
       const result = DraftPayHelper.getHoursFromDailyAbsence(absence, contract, query);
 
-      expect(result).toBe(28);
+      expect(result).toBe(30);
       sinon.assert.notCalled(getMatchingVersion);
     });
   });
@@ -1737,19 +1737,6 @@ describe('computePrevPayDiff', () => {
       },
       hoursCounter: 3,
     });
-  });
-
-  it('should not compute diff on future month', async () => {
-    const query = { startDate: moment().startOf('M').toISOString(), endDate: moment().endOf('M').toISOString() };
-    const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
-
-    const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, null, query, [], []);
-    expect(result).toEqual({ diff: {}, auxiliary: '1234567890', hoursCounter: 0 });
-    sinon.assert.notCalled(getContractMonthInfo);
-    sinon.assert.notCalled(getPayFromEvents);
-    sinon.assert.notCalled(getPayFromAbsences);
-    sinon.assert.notCalled(computePrevPayDetailDiff);
   });
 });
 

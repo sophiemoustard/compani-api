@@ -418,10 +418,6 @@ const getDiff = (prevPay, hours, key) => {
 };
 
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
-  // Do not compute diff when pay is not done no the month
-  const shouldComputeDiff = moment(query.endDate).isBefore(moment().startOf('month'));
-  if (!shouldComputeDiff) return { auxiliary: auxiliary._id, diff: {}, hoursCounter: 0 };
-
   const contract = auxiliary.contracts.find(cont => !cont.endDate || moment(cont.endDate).isAfter(query.endDate));
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
