@@ -9,7 +9,15 @@ const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { AUXILIARY } = require('../../helpers/constants');
+const {
+  AUXILIARY,
+  MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
+  WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
+  ILLNESS,
+} = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -150,12 +158,15 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.extension) {
-    const extendedAbsence = await Event.countDocuments(({
+    if (![MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, WORK_ACCIDENT, TRANSPORT_ACCIDENT, ILLNESS]
+      .includes(req.payload.absence)) throw Boom.forbidden();
+
+    const extendedAbsence = await Event.findOne(({
       _id: req.payload.extension,
-      absenceNature: req.payload.absenceNature,
       absence: req.payload.absence,
-    }));
+    })).lean();
     if (!extendedAbsence) throw Boom.forbidden();
+    if (extendedAbsence.startDate > req.payload.startDate) throw Boom.forbidden();
   }
 
   return null;

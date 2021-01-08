@@ -123,7 +123,6 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
       internalHour: 1,
       absence: 1,
       absenceNature: 1,
-      extension: 1,
       address: 1,
       misc: 1,
       attachment: 1,
