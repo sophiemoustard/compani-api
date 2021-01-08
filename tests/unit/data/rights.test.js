@@ -8,6 +8,7 @@ const {
   TRAINER,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  AUXILIARY_WITHOUT_COMPANY,
 } = require('../../../src/helpers/constants');
 
 describe('checking the format of right.js file', () => {
@@ -19,6 +20,8 @@ describe('checking the format of right.js file', () => {
   });
 
   it('a role must have the permissions associated with the role below it (client side)', async () => {
+    const auxiliaryWithoutCompanyPermissions = rights
+      .filter(right => right.rolesConcerned.includes(AUXILIARY_WITHOUT_COMPANY)).map(right => right.permission);
     const auxiliaryPermissions = rights
       .filter(right => right.rolesConcerned.includes(AUXILIARY)).map(right => right.permission);
     const planningReferentPermissions = rights
@@ -29,6 +32,7 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(CLIENT_ADMIN)).map(right => right.permission);
 
     const arePermissionsIncludedList = [
+      auxiliaryWithoutCompanyPermissions.map(permission => auxiliaryPermissions.includes(permission)),
       auxiliaryPermissions.map(permission => planningReferentPermissions.includes(permission)),
       planningReferentPermissions.map(permission => coachPermissions.includes(permission)),
       coachPermissions.map(permission => clientAdminPermissions.includes(permission)),
