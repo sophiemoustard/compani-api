@@ -349,4 +349,6 @@ module.exports = {
   // ORIGIN
   MOBILE: 'mobile',
   WEBAPP: 'webapp',
+  // Email
+  TRAINEE: 'trainee',
 };
