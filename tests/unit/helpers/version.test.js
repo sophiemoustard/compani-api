@@ -3,7 +3,7 @@ const VersionHelper = require('../../../src/helpers/version');
 
 describe('shouldUpdate', () => {
   beforeEach(() => {
-    process.env.API_VERSION = '2.3.4';
+    process.env.API_VERSION = '2';
     process.env.MOBILE_VERSION = ['1.2.0'];
   });
   afterEach(() => {

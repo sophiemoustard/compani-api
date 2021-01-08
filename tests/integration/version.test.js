@@ -9,7 +9,7 @@ describe('NODE ENV', () => {
 
 describe('VERSION TEST', () => {
   beforeEach(() => {
-    process.env.API_VERSION = '1.2.3';
+    process.env.API_VERSION = '2';
     process.env.MOBILE_VERSION = ['1.2.0'];
   });
   afterEach(() => {
@@ -21,16 +21,16 @@ describe('VERSION TEST', () => {
     it('should return false (old version)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/version/should-update?apiVersion=1',
+        url: '/version/should-update?apiVersion=2',
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeFalsy();
     });
 
-    it('should return that user true (old version)', async () => {
+    it('should return true (old version)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/version/should-update?apiVersion=0.2.3',
+        url: '/version/should-update?apiVersion=1',
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeTruthy();
