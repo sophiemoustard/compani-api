@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
+const { checkCourseType } = require('./preHandlers/attendanceSheets');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -34,6 +35,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:edit'] },
+        pre: [{ method: checkCourseType }],
       },
       handler: create,
     });
