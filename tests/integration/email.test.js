@@ -88,7 +88,7 @@ describe('EMAIL ROUTES', () => {
     expect(response.statusCode).toBe(404);
   });
 
-  it('should throw an error if type is not trainer, helper, coach or client_admin', async () => {
+  it('should throw an error if type is not trainee, trainer, helper, coach or client_admin', async () => {
     const authToken = await getToken('client_admin');
     const response = await app.inject({
       method: 'POST',
