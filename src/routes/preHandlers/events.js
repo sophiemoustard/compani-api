@@ -9,7 +9,15 @@ const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
-const { AUXILIARY } = require('../../helpers/constants');
+const {
+  AUXILIARY,
+  MATERNITY_LEAVE,
+  PATERNITY_LEAVE,
+  PARENTAL_LEAVE,
+  WORK_ACCIDENT,
+  TRANSPORT_ACCIDENT,
+  ILLNESS,
+} = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -135,18 +143,30 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
+    const auxiliary = await User.countDocuments(({ _id: req.payload.auxiliary, company: companyId }));
     if (!auxiliary) throw Boom.forbidden();
   }
 
   if (req.payload.sector) {
-    const sector = await Sector.findOne(({ _id: req.payload.sector, company: companyId })).lean();
+    const sector = await Sector.countDocuments(({ _id: req.payload.sector, company: companyId }));
     if (!sector) throw Boom.forbidden();
   }
 
   if (req.payload.internalHour) {
-    const internalHour = await InternalHour.findOne(({ _id: req.payload.internalHour, company: companyId })).lean();
+    const internalHour = await InternalHour.countDocuments(({ _id: req.payload.internalHour, company: companyId }));
     if (!internalHour) throw Boom.forbidden();
+  }
+
+  if (req.payload.extension) {
+    if (![MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, WORK_ACCIDENT, TRANSPORT_ACCIDENT, ILLNESS]
+      .includes(req.payload.absence)) throw Boom.forbidden();
+
+    const extendedAbsence = await Event.findOne(({
+      _id: req.payload.extension,
+      absence: req.payload.absence,
+    })).lean();
+    if (!extendedAbsence) throw Boom.forbidden();
+    if (extendedAbsence.startDate > req.payload.startDate) throw Boom.forbidden();
   }
 
   return null;

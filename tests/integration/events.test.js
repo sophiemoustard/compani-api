@@ -29,6 +29,9 @@ const {
   ILLNESS,
   DAILY,
   EVERY_DAY,
+  PAID_LEAVE,
+  MATERNITY_LEAVE,
+  PARENTAL_LEAVE,
 } = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
@@ -317,7 +320,7 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(200);
         expect(response.result.data.workingStats[auxiliaries[0]._id]).toBeDefined();
-        expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(4);
+        expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(2);
         expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(5.5);
       });
 
@@ -567,6 +570,7 @@ describe('EVENTS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('client_admin');
       });
+
       it('should create an internal hour', async () => {
         const payload = {
           type: INTERNAL_HOUR,
@@ -1003,6 +1007,91 @@ describe('EVENTS ROUTES', () => {
             city: 'Antony',
             location: { type: 'Point', coordinates: [2.377133, 48.801389] },
           },
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should create an extended absence', async () => {
+        const payload = {
+          type: ABSENCE,
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
+          auxiliary: eventsList[20].auxiliary,
+          absenceNature: DAILY,
+          absence: PARENTAL_LEAVE,
+          extension: eventsList[20]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.event).toBeDefined();
+      });
+
+      it('should return 403 if absence extension and extended absence are not for the same valid reason', async () => {
+        const payload = {
+          type: ABSENCE,
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
+          auxiliary: eventsList[20].auxiliary,
+          absenceNature: DAILY,
+          absence: MATERNITY_LEAVE,
+          extension: eventsList[20]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return 403 if extended absence reason is invalid', async () => {
+        const payload = {
+          type: ABSENCE,
+          startDate: '2019-01-23T10:00:00',
+          endDate: '2019-01-23T12:30:00',
+          auxiliary: eventsList[1].auxiliary,
+          absenceNature: DAILY,
+          absence: PAID_LEAVE,
+          extension: eventsList[1]._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return 403 if event startDate is before extended absence startDate', async () => {
+        const payload = {
+          type: ABSENCE,
+          startDate: '2019-01-17T10:00:00',
+          endDate: '2019-01-17T12:30:00',
+          auxiliary: eventsList[20].auxiliary,
+          absenceNature: DAILY,
+          absence: PARENTAL_LEAVE,
+          extension: eventsList[20]._id,
         };
 
         const response = await app.inject({
