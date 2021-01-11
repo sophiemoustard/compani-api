@@ -7,7 +7,7 @@ exports.checkCourseType = async (req) => {
   const course = await Course.findOne({ _id: req.payload.course }).populate('slots');
   if (course.type === INTRA) {
     if (req.payload.trainee) return Boom.badRequest();
-    const courseDates = course.slots.filter(slot => moment(slot.startDate).isSame(req.payload.date));
+    const courseDates = course.slots.filter(slot => moment(slot.startDate).isSame(req.payload.date, 'day'));
     if (!courseDates.length) return Boom.forbidden();
 
     return null;
