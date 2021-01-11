@@ -26,7 +26,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(AUXILIARY)).map(right => right.permission);
 
     const arePermissionsIncluded = auxiliaryWithoutCompanyPermissions
-      .map(permission => auxiliaryPermissions.includes(permission)).every(value => value);
+      .map(permission => auxiliaryPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
@@ -38,7 +39,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(PLANNING_REFERENT)).map(right => right.permission);
 
     const arePermissionsIncluded = auxiliaryPermissions
-      .map(permission => planningReferentPermissions.includes(permission)).every(value => value);
+      .map(permission => planningReferentPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
@@ -50,7 +52,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(COACH)).map(right => right.permission);
 
     const arePermissionsIncluded = planningReferentPermissions
-      .map(permission => coachPermissions.includes(permission)).every(value => value);
+      .map(permission => coachPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
@@ -62,7 +65,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(CLIENT_ADMIN)).map(right => right.permission);
 
     const arePermissionsIncluded = coachPermissions
-      .map(permission => clientAdminPermissions.includes(permission)).every(value => value);
+      .map(permission => clientAdminPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
@@ -74,7 +78,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(TRAINING_ORGANISATION_MANAGER)).map(right => right.permission);
 
     const arePermissionsIncluded = trainerPermissions
-      .map(permission => trainingOrganisationManagerPermissions.includes(permission)).every(value => value);
+      .map(permission => trainingOrganisationManagerPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
@@ -86,7 +91,8 @@ describe('checking the format of right.js file', () => {
       .filter(right => right.rolesConcerned.includes(VENDOR_ADMIN)).map(right => right.permission);
 
     const arePermissionsIncluded = trainingOrganisationManagerPermissions
-      .map(permission => vendorAdminPermissions.includes(permission)).every(value => value);
+      .map(permission => vendorAdminPermissions.includes(permission))
+      .every(value => value);
 
     expect(arePermissionsIncluded).toBeTruthy();
   });
