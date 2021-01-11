@@ -13,6 +13,7 @@ const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
+const SectorHistory = require('../models/SectorHistory');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
@@ -99,6 +100,16 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   if (!contract) throw Boom.badRequest();
 
   const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
+  const sectors = await SectorHistory.find(
+    {
+      company: companyId,
+      auxiliary: auxiliaryId,
+      startDate: { $lt: endDate },
+      $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
+    },
+    { sector: 1 }
+  ).lean() || [];
+
   const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
     auxiliary,
     contract,
@@ -110,7 +121,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  return draft || null;
+  return { ...draft, sectors: sectors.map(sh => sh.sector) } || null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
