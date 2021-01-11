@@ -269,6 +269,10 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
     activityHistoryFound: 'Activity history found.',
+    /* AttendanceSheets */
+    attendanceSheetCreated: 'AttendanceSheet created.',
+    attendanceSheetsFound: 'AttendanceSheets found.',
+    attendanceSheetsNotFound: 'AttendanceSheets not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -537,5 +541,9 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoryFound: 'Historique d\'activité trouvé.',
+    /* AttendanceSheets */
+    attendanceSheetCreated: 'Feuille d\'émargement créée.',
+    attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
+    attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
   },
 };

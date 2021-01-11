@@ -99,7 +99,7 @@ const exists = async (req) => {
     const userInfo = await UsersHelper.userExists(req.query.email, req.auth.credentials);
 
     return {
-      message: translate[language].userFound,
+      message: userInfo.exists ? translate[language].userFound : translate[language].userNotFound,
       data: userInfo,
     };
   } catch (e) {
