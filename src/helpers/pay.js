@@ -121,7 +121,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  return { ...draft, sectors: sectors.map(sh => sh.sector) } || null;
+  return { ...draft, sectors: [...new Set(sectors.map(sh => sh.sector.toHexString()))] } || null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
