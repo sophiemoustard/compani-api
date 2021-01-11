@@ -9,11 +9,4 @@ const AttendanceSheetSchema = mongoose.Schema({
   trainee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true, id: false });
 
-AttendanceSheetSchema.virtual('course', {
-  ref: 'Course',
-  localField: '_id',
-  foreignField: 'attendanceSheets',
-  justOne: true,
-});
-
 module.exports = mongoose.model('AttendanceSheet', AttendanceSheetSchema);

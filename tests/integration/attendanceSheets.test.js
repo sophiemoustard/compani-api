@@ -6,10 +6,7 @@ const GetStream = require('get-stream');
 const { ObjectID } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
-const {
-  populateDB,
-  coursesList,
-} = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const Course = require('../../src/models/Course');
@@ -175,7 +172,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     });
 
     it('should get course\'s attendance sheets', async () => {
-      const attendanceSheetsNumber = coursesList[0].attendanceSheets.length;
+      const attendanceSheetsLength = coursesList[0].attendanceSheets.length;
       const response = await app.inject({
         method: 'GET',
         url: `/attendancesheets?course=${coursesList[0]._id}`,
@@ -183,7 +180,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsNumber);
+      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
     });
   });
 

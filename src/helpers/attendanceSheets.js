@@ -6,7 +6,7 @@ const GCloudStorageHelper = require('./gCloudStorage');
 
 exports.create = async (payload) => {
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
-    fileName: payload.file.hapi.filename,
+    fileName: get(payload, 'file.hapi.filename') || '',
     file: payload.file,
   });
   const newAttendanceSheet = await AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
