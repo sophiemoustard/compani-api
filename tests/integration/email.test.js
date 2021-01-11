@@ -100,17 +100,18 @@ describe('EMAIL ROUTES', () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it('should not throw an error if type is trainee and user is not from the same company as trainee', async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
-    });
+  it('should not throw an error if type is trainee and vendor user is not from the same company as trainee',
+    async () => {
+      const authToken = await getToken('vendor_admin');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
+      });
 
-    expect(response.statusCode).toBe(200);
-  });
+      expect(response.statusCode).toBe(200);
+    });
 
   const missingParams = ['type', 'email'];
   missingParams.forEach((param) => {
