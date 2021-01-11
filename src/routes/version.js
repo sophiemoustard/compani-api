@@ -14,7 +14,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             apiVersion: Joi.string(),
-            mobileVersion: Joi.string(),
           }).required(),
         },
       },
@@ -27,7 +26,6 @@ exports.plugin = {
         auth: false,
         validate: {
           query: Joi.object({
-            apiVersion: Joi.string(),
             mobileVersion: Joi.string(),
           }).required(),
         },
