@@ -18,13 +18,19 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.company) {
+    if (query.format === STRICTLY_E_LEARNING) {
+      return CourseRepository.findCourseAndPopulate({
+        format: query.format,
+        accessRules: { $in: [query.company, []] },
+      });
+    }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
       { ...omit(query, ['company']), type: INTER_B2B },
