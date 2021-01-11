@@ -17,7 +17,7 @@ describe('VERSION TEST', () => {
     process.env.MOBILE_VERSION = '';
   });
 
-  describe('POST /version/should-update', () => {
+  describe('POST /version/check-update', () => {
     it('should return false (old version)', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -35,7 +35,9 @@ describe('VERSION TEST', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeTruthy();
     });
+  });
 
+  describe('POST /version/should-update', () => {
     it('should return false (new version)', async () => {
       const response = await app.inject({
         method: 'GET',
