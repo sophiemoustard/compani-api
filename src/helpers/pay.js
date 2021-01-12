@@ -74,9 +74,20 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     companyId
   );
 
+  const sectors = await SectorHistory.find(
+    {
+      company: companyId,
+      auxiliary: auxiliaryId,
+      startDate: { $lt: endDate },
+      $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
+    },
+    { sector: 1 }
+  ).lean() || [];
+  const sectorsId = [...new Set(sectors.map(sh => sh.sector.toHexString()))];
+
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
-  if (pay) return pay;
+  if (pay) return { ...pay, sectors: sectorsId };
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
@@ -100,15 +111,6 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   if (!contract) throw Boom.badRequest();
 
   const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
-  const sectors = await SectorHistory.find(
-    {
-      company: companyId,
-      auxiliary: auxiliaryId,
-      startDate: { $lt: endDate },
-      $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
-    },
-    { sector: 1 }
-  ).lean() || [];
 
   const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
     auxiliary,
@@ -121,7 +123,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  return { ...draft, sectors: [...new Set(sectors.map(sh => sh.sector.toHexString()))] } || null;
+  return { ...draft, sectors: sectorsId } || null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
