@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const handlebars = require('handlebars');
 const path = require('path');
 const fs = require('fs');
@@ -82,17 +81,19 @@ const completeEventConsistencyScriptEmailBody = (eventsWithErrors) => {
   return message;
 };
 
-const welcomeTraineeContent = () => `<p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
-    nous venons de vous créer votre compte apprenant.</p>
-    <p>
-    Vous y trouverez de nombreuses formation ludiques pour vous accompagner dans votre quotidien : 
-    les troubles cognitif, la communication empathique, gérer la fin de vie et le deuil, et bien d'autres encore... 
-    </p>
-    <p>
-    Nous vous invitons à télécharger l'application Compani Formation sur votre store et
-     à cliquer sur “c’est ma première connexion” pour vous créer un mot de passe. 
-    </p>
-    <br />`;
+const welcomeTraineeContent = () => `<p>Bonjour,</p>
+  <p>Bienvenue sur Compani Formation, l'outil au service du prendre soin,
+  nous venons de vous créer votre compte apprenant.</p>
+  <p>
+  Vous y trouverez de nombreuses formation ludiques pour vous accompagner dans votre quotidien : 
+  les troubles cognitif, la communication empathique, gérer la fin de vie et le deuil, et bien d'autres encore... 
+  </p>
+  <p>
+  Nous vous invitons à télécharger l'application Compani Formation sur votre store et
+    à cliquer sur “c’est ma première connexion” pour vous créer un mot de passe. 
+  </p>
+  <p>Bien cordialement,<br>
+    L'équipe Compani</p>`;
 
 module.exports = {
   baseWelcomeContent,
