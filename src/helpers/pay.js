@@ -87,7 +87,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
 
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
-  if (pay) return { ...pay, sectors: sectorsId };
+  if (pay) return { ...pay, sectors: sectorsId, counterAndDiffRelevant: true };
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
@@ -123,7 +123,8 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  return { ...draft, sectors: sectorsId } || null;
+  const firstMonthContract = moment(startDate).startOf('month').isSameOrBefore(contract.startDate);
+  return { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } || null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
