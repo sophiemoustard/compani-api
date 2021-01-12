@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { addActivityHistory } = require('../controllers/activityHistoryController');
+const { addActivityHistory, list } = require('../controllers/activityHistoryController');
 const { authorizeAddActivityHistory } = require('./preHandlers/activityHistories');
 
 exports.plugin = {
@@ -27,6 +27,21 @@ exports.plugin = {
         pre: [{ method: authorizeAddActivityHistory }],
       },
       handler: addActivityHistory,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: Joi.object({
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required().greater(Joi.ref('startDate')),
+          }),
+        },
+        auth: { scope: ['courses:read'] },
+        handler: list,
+      },
     });
   },
 };

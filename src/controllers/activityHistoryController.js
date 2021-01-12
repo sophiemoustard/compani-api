@@ -15,6 +15,18 @@ const addActivityHistory = async (req) => {
   }
 };
 
+const list = async (req) => {
+  try {
+    const histories = await ActivityHistoryHelper.list(req.query);
+
+    return { message: translate[language].activityHistoriesFound, data: histories };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   addActivityHistory,
+  list,
 };
