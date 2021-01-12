@@ -55,13 +55,13 @@ describe('list', () => {
     expect(result).toEqual([{ user: 1 }, { user: 2 }, { user: 3 }]);
     SinonMongoose.calledWithExactly(
       findUsers,
-      [{ query: '', args: [{ company: companyId }, { _id: 1 }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ company: companyId }, { _id: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
       findHistories,
       [
         {
-          query: '',
+          query: 'find',
           args: [{
             date: { $lte: new Date('2021-01-10T23:00:00'), $gte: new Date('2020-12-10T23:00:00') },
             user: { $in: [1, 2, 3] },
