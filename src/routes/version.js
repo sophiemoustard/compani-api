@@ -1,7 +1,7 @@
 'use-strict';
 
 const Joi = require('joi');
-const { checkUpdate } = require('../controllers/versionController');
+const { shouldUpdate } = require('../controllers/versionController');
 
 exports.plugin = {
   name: 'routes-version',
@@ -9,8 +9,28 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/check-update',
-      options: { auth: false, validate: { query: Joi.object({ apiVersion: Joi.string().required() }) } },
-      handler: checkUpdate,
+      options: {
+        auth: false,
+        validate: {
+          query: Joi.object({
+            apiVersion: Joi.string(),
+          }).required(),
+        },
+      },
+      handler: shouldUpdate,
+    });
+    server.route({
+      method: 'GET',
+      path: '/should-update',
+      options: {
+        auth: false,
+        validate: {
+          query: Joi.object({
+            mobileVersion: Joi.string(),
+          }).required(),
+        },
+      },
+      handler: shouldUpdate,
     });
   },
 };
