@@ -19,7 +19,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  return (new AttendanceSheet({ ...omit(payload, 'file'), file: fileUploaded })).save();
+  return AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
 
 exports.list = async query => AttendanceSheet.find({ course: query.course }).lean();
