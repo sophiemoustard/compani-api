@@ -1286,6 +1286,24 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.event.address).toBeUndefined();
       });
 
+      it('should update extended absence', async () => {
+        const event = eventsList[21];
+        const payload = {
+          absence: eventsList[21].absence,
+          extension: eventsList[20]._id,
+          auxiliary: event.auxiliary.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       it('should return a 400 if event is not an internal hours and adress is {}', async () => {
         const event = eventsList[2];
         const payload = { address: {} };

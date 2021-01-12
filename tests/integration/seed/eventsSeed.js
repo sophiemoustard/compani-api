@@ -698,6 +698,19 @@ const eventsList = [
     auxiliary: auxiliaries[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    repetition: { frequency: NEVER },
+    type: ABSENCE,
+    absence: PARENTAL_LEAVE,
+    absenceNature: DAILY,
+    startDate: '2020-01-20T21:00:18.653Z',
+    endDate: '2020-01-20T23:00:18.653Z',
+    auxiliary: auxiliaries[0]._id,
+    createdAt: '2019-01-11T08:38:18.653Z',
+    extension: new ObjectID(),
+  },
 ];
 
 const eventFromOtherCompany = {
