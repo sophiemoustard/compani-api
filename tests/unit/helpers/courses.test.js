@@ -120,18 +120,19 @@ describe('list', () => {
   });
 
   it('should return company eLearning courses', async () => {
+    const companyId = new ObjectID();
     const coursesList = [
       { accessRules: [], format: 'strictly_e_learning' },
-      { accessRules: ['ma structure'], format: 'strictly_e_learning' },
+      { accessRules: [companyId], format: 'strictly_e_learning' },
     ];
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ company: 'ma structure', format: 'strictly_e_learning' });
+    const result = await CourseHelper.list({ company: companyId, format: 'strictly_e_learning' });
     expect(result).toMatchObject(coursesList);
 
     sinon.assert.calledOnceWithExactly(
-      findCourseAndPopulate, { format: 'strictly_e_learning', accessRules: { $in: ['ma structure', []] } }
+      findCourseAndPopulate, { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
     );
   });
 });
