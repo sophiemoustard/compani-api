@@ -17,7 +17,7 @@ const addActivityHistory = async (req) => {
 
 const list = async (req) => {
   try {
-    const histories = await ActivityHistoryHelper.list(req.query);
+    const histories = await ActivityHistoryHelper.list(req.query, req.auth.credentials);
 
     return { message: translate[language].activityHistoriesFound, data: histories };
   } catch (e) {
