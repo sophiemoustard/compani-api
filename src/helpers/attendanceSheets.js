@@ -14,13 +14,13 @@ exports.create = async (payload) => {
 
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
   }
-
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
     fileName: `emargement_${fileName}`,
     file: payload.file,
   });
 
   const newAttendanceSheet = await AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
+
   await Course.updateOne({ _id: payload.course }, { $push: { attendanceSheets: newAttendanceSheet._id } });
 };
 
