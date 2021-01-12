@@ -19,13 +19,7 @@ exports.create = async (payload) => {
     file: payload.file,
   });
 
-  const newAttendanceSheet = await AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
-
-  await Course.updateOne({ _id: payload.course }, { $push: { attendanceSheets: newAttendanceSheet._id } });
+  return (new AttendanceSheet({ ...omit(payload, 'file'), file: fileUploaded })).save();
 };
 
-exports.list = async (query) => {
-  const course = await Course.findOne({ _id: query.course }).populate({ path: 'attendanceSheets' }).lean();
-
-  return get(course, 'attendanceSheets', []);
-};
+exports.list = async query => AttendanceSheet.find({ course: query.course }).lean();
