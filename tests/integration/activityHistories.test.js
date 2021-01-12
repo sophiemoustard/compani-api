@@ -8,7 +8,7 @@ const {
   activityHistoriesUsersList,
   cardsList,
 } = require('./seed/activityHistoriesSeed');
-const { getTokenByCredentials, getToken, authCompany } = require('./seed/authenticationSeed');
+const { getTokenByCredentials, getToken } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 
 describe('NODE ENV', () => {
@@ -270,7 +270,7 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
     });
   });
 
-  describe('Other roles', () => {
+  describe('Other client roles', () => {
     beforeEach(populateDB);
 
     const roles = [
@@ -279,8 +279,6 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -294,6 +292,30 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+  });
+
+  describe('Vendor roles', () => {
+    it('should return 200 as user has a company', async () => {
+      authToken = await getToken('training_organisation_manager');
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?endDate=2021-01-10T23:00:00&startDate=2020-12-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 as user has no company', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?endDate=2021-01-10T23:00:00&startDate=2020-12-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

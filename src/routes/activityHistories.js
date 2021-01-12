@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { addActivityHistory, list } = require('../controllers/activityHistoryController');
-const { authorizeAddActivityHistory } = require('./preHandlers/activityHistories');
+const { authorizeAddActivityHistory, authorizeHistoriesList } = require('./preHandlers/activityHistories');
 
 exports.plugin = {
   name: 'routes-activity-histories',
@@ -40,8 +40,9 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:read'] },
-        handler: list,
+        pre: [{ method: authorizeHistoriesList }],
       },
+      handler: list,
     });
   },
 };
