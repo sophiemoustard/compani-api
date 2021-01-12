@@ -34,7 +34,7 @@ describe('list', () => {
 
     expect(result).toMatchObject(attendanceSheets);
     SinonMongoose.calledWithExactly(find, [
-      { query: '', args: [{ course: courseId }] },
+      { query: 'find', args: [{ course: courseId }] },
       { query: 'lean' },
     ]);
   });
