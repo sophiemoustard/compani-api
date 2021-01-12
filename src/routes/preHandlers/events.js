@@ -159,7 +159,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.extension) {
     if (![MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, WORK_ACCIDENT, TRANSPORT_ACCIDENT, ILLNESS]
-      .includes(req.payload.absence)) throw Boom.forbidden();
+      .includes(req.payload.absence)) throw Boom.forbidden('extension');
 
     const extendedAbsence = await Event.findOne(({
       _id: req.payload.extension,
