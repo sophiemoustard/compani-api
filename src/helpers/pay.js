@@ -82,7 +82,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
       $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
     },
     { sector: 1 }
-  ).lean() || [];
+  ).lean();
   const sectorsId = [...new Set(sectors.map(sh => sh.sector.toHexString()))];
 
   const month = moment(startDate).format('MM-YYYY');
@@ -124,7 +124,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   );
 
   const firstMonthContract = moment(startDate).startOf('month').isSameOrBefore(contract.startDate);
-  return { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } || null;
+  return draft ? { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } : null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {

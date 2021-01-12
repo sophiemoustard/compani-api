@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
+const SinonMongoose = require('../sinonMongoose');
 const Pay = require('../../../src/models/Pay');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
@@ -13,6 +14,7 @@ const DraftPayHelper = require('../../../src/helpers/draftPay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
+const SectorHistory = require('../../../src/models/SectorHistory');
 
 require('sinon-mongoose');
 
@@ -233,22 +235,24 @@ describe('hoursBalanceDetailByAuxiliary', () => {
   const company = { _id: companyId };
   const prevPayList = [{ hours: 10 }];
 
-  let PayModel;
-  let UserModel;
-  let CompanyModel;
-  let SurchargeModel;
-  let DistanceMatrixModel;
+  let payFindOne;
+  let userFindOne;
+  let companyFindOne;
+  let surchargeFind;
+  let distanceMatrixFind;
+  let sectorHistoryFind;
   let getEventsToPayStub;
   let getPreviousMonthPayStub;
   let getContractStub;
   let computeAuxiliaryDraftPayStub;
 
   beforeEach(() => {
-    PayModel = sinon.mock(Pay);
-    UserModel = sinon.mock(User);
-    CompanyModel = sinon.mock(Company);
-    SurchargeModel = sinon.mock(Surcharge);
-    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+    payFindOne = sinon.stub(Pay, 'findOne');
+    userFindOne = sinon.stub(User, 'findOne');
+    companyFindOne = sinon.stub(Company, 'findOne');
+    surchargeFind = sinon.stub(Surcharge, 'find');
+    distanceMatrixFind = sinon.stub(DistanceMatrix, 'find');
+    sectorHistoryFind = sinon.stub(SectorHistory, 'find');
     getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
     getPreviousMonthPayStub = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
     getContractStub = sinon.stub(PayHelper, 'getContract');
@@ -256,11 +260,12 @@ describe('hoursBalanceDetailByAuxiliary', () => {
   });
 
   afterEach(() => {
-    PayModel.restore();
-    UserModel.restore();
-    CompanyModel.restore();
-    SurchargeModel.restore();
-    DistanceMatrixModel.restore();
+    payFindOne.restore();
+    userFindOne.restore();
+    companyFindOne.restore();
+    surchargeFind.restore();
+    distanceMatrixFind.restore();
+    sectorHistoryFind.restore();
     getEventsToPayStub.restore();
     getPreviousMonthPayStub.restore();
     getContractStub.restore();
@@ -269,39 +274,22 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
   it('should return draftPay', async () => {
     const events = [{ _id: new ObjectID() }];
+    const sectorId = new ObjectID();
     const auxiliaryEvent = { auxiliary: { _id: auxiliaryId }, events, absences: [] };
     const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
     getEventsToPayStub.returns([auxiliaryEvent]);
-    PayModel.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, month })
-      .chain('lean')
-      .returns();
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliary);
-    PayModel.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, month: prevMonth })
-      .chain('lean')
-      .returns(prevPay);
-    CompanyModel.expects('findOne')
-      .withExactArgs({ _id: companyId })
-      .chain('lean')
-      .returns(company);
-    SurchargeModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(surcharges);
-    DistanceMatrixModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([surcharges], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
 
     const contract = { startDate: '2018-11-12' };
     getContractStub.returns(contract);
     getPreviousMonthPayStub.returns(prevPayList);
-    const draft = { name: 'brouillon' };
+    const draft = { name: 'brouillon', sectors: [sectorId.toHexString()], counterAndDiffRelevant: true };
     computeAuxiliaryDraftPayStub.returns(draft);
 
     const result =
@@ -329,24 +317,112 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       distanceMatrix,
       surcharges
     );
-    PayModel.verify();
-    UserModel.verify();
-    CompanyModel.verify();
-    SurchargeModel.verify();
-    DistanceMatrixModel.verify();
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month: prevMonth }] }, { query: 'lean' }],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      companyFindOne,
+      [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      surchargeFind,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      distanceMatrixFind,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      sectorHistoryFind,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              company: companyId,
+              auxiliary: auxiliaryId,
+              startDate: { $lt: endDate },
+              $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
+            },
+            { sector: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return draftPay with counterAndDiffRelevant if contract has just started', async () => {
+    const events = [{ _id: new ObjectID() }];
+    const sectorId = new ObjectID();
+    const auxiliaryEvent = { auxiliary: { _id: auxiliaryId }, events, absences: [] };
+    const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
+    getEventsToPayStub.returns([auxiliaryEvent]);
+
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([surcharges], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
+
+    const contract = { startDate: moment().startOf('day').toDate() };
+    getContractStub.returns(contract);
+    getPreviousMonthPayStub.returns(prevPayList);
+    const draft = { name: 'brouillon', sectors: [sectorId.toHexString()], counterAndDiffRelevant: true };
+    computeAuxiliaryDraftPayStub.returns(draft);
+
+    const result =
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
+
+    expect(result).toEqual(draft);
+  });
+
+  it('should return draftPay with counterAndDiffRelevant to false if no prevPay and not firstmonth', async () => {
+    const events = [{ _id: new ObjectID() }];
+    const sectorId = new ObjectID();
+    const auxiliaryEvent = { auxiliary: { _id: auxiliaryId }, events, absences: [] };
+    const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
+    getEventsToPayStub.returns([auxiliaryEvent]);
+
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([surcharges], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
+
+    const contract = { startDate: '2018-12-01' };
+    getContractStub.returns(contract);
+    getPreviousMonthPayStub.returns(prevPayList);
+    const draft = { name: 'brouillon', sectors: [sectorId.toHexString()], counterAndDiffRelevant: false };
+    computeAuxiliaryDraftPayStub.returns(draft);
+
+    const result =
+      await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
+
+    expect(result).toEqual(draft);
   });
 
   it('should return pay if it exists', async () => {
     const pay = { _id: new ObjectID() };
-    PayModel.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, month })
-      .chain('lean')
-      .returns(pay);
-    UserModel.expects('findOne').never();
-    PayModel.expects('findOne').never();
-    CompanyModel.expects('findOne').never();
-    SurchargeModel.expects('find').never();
-    DistanceMatrixModel.expects('find').never();
+    const sectorId = new ObjectID();
+    payFindOne.returns(SinonMongoose.stubChainedQueries([pay], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
 
     const events = [{ _id: new ObjectID() }];
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
@@ -354,105 +430,77 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const result =
       await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
-    expect(result).toEqual(pay);
+    expect(result).toEqual({ ...pay, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
     sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
     sinon.assert.notCalled(getPreviousMonthPayStub);
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(computeAuxiliaryDraftPayStub);
-    PayModel.verify();
-    UserModel.verify();
-    CompanyModel.verify();
-    SurchargeModel.verify();
-    DistanceMatrixModel.verify();
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    sinon.assert.notCalled(userFindOne);
+    sinon.assert.notCalled(companyFindOne);
+    sinon.assert.notCalled(surchargeFind);
+    sinon.assert.notCalled(distanceMatrixFind);
+    SinonMongoose.calledWithExactly(
+      sectorHistoryFind,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              company: companyId,
+              auxiliary: auxiliaryId,
+              startDate: { $lt: endDate },
+              $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
+            },
+            { sector: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return 400 if no contract', async () => {
     const events = [{ _id: new ObjectID() }];
+    const sectorId = new ObjectID();
     const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
     try {
       getEventsToPayStub.returns([]);
       getPreviousMonthPayStub.returns(prevPayList);
       getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
 
-      PayModel.expects('findOne')
-        .withExactArgs({ auxiliary: auxiliaryId, month })
-        .chain('lean')
-        .returns();
-      UserModel.expects('findOne')
-        .withExactArgs({ _id: auxiliaryId })
-        .chain('populate')
-        .chain('lean')
-        .returns(auxiliary);
-      PayModel.expects('findOne')
-        .withExactArgs({ auxiliary: auxiliaryId, month: prevMonth })
-        .chain('lean')
-        .returns(prevPay);
-      CompanyModel.expects('findOne')
-        .withExactArgs({ _id: companyId })
-        .chain('lean')
-        .returns(company);
-      SurchargeModel.expects('find')
-        .withExactArgs({ company: companyId })
-        .chain('lean')
-        .returns(surcharges);
-      DistanceMatrixModel.expects('find')
-        .withExactArgs({ company: companyId })
-        .chain('lean')
-        .returns(distanceMatrix);
+      payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+      companyFindOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+      surchargeFind.returns(SinonMongoose.stubChainedQueries([surcharges], ['lean']));
+      distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+      sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
+
       getContractStub.returns();
 
       await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest());
     } finally {
-      sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
-      sinon.assert.calledWithExactly(
-        getPreviousMonthPayStub,
-        [{ ...auxiliary, prevPay }],
-        query,
-        surcharges,
-        distanceMatrix,
-        companyId
-      );
-      sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
-      PayModel.verify();
-      UserModel.verify();
-      CompanyModel.verify();
-      SurchargeModel.verify();
-      DistanceMatrixModel.verify();
+      sinon.assert.notCalled(computeAuxiliaryDraftPayStub);
     }
   });
 
   it('should return null if no draftPay', async () => {
     const events = [{ _id: new ObjectID() }];
+    const sectorId = new ObjectID();
     const auxiliaryEvent = { auxiliary: { _id: auxiliaryId }, events, absences: [] };
     const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
     getEventsToPayStub.returns([auxiliaryEvent]);
-    PayModel.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, month })
-      .chain('lean')
-      .returns();
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliary);
-    PayModel.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, month: prevMonth })
-      .chain('lean')
-      .returns(prevPay);
-    CompanyModel.expects('findOne')
-      .withExactArgs({ _id: companyId })
-      .chain('lean')
-      .returns(company);
-    SurchargeModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(surcharges);
-    DistanceMatrixModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([surcharges], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[{ sector: sectorId }]], ['lean']));
 
     computeAuxiliaryDraftPayStub.returns();
     const contract = { startDate: '2018-11-12' };
@@ -463,32 +511,6 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials.company._id);
 
     expect(result).toBe(null);
-    sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
-    sinon.assert.calledWithExactly(
-      getPreviousMonthPayStub,
-      [{ ...auxiliary, prevPay }],
-      query,
-      surcharges,
-      distanceMatrix,
-      companyId
-    );
-    sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
-    sinon.assert.calledWithExactly(
-      computeAuxiliaryDraftPayStub,
-      auxiliary,
-      contract,
-      auxiliaryEvent,
-      prevPayList[0],
-      company,
-      query,
-      distanceMatrix,
-      surcharges
-    );
-    PayModel.verify();
-    UserModel.verify();
-    CompanyModel.verify();
-    SurchargeModel.verify();
-    DistanceMatrixModel.verify();
   });
 });
 
