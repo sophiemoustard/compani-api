@@ -38,7 +38,7 @@ describe('POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsBefore = await AttendanceSheet.find({ course: coursesList[0]._id });
+      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -49,8 +49,8 @@ describe('POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsAfter = await AttendanceSheet.find({ course: coursesList[0]._id });
-      expect(attendanceSheetsAfter.length).toBe(attendanceSheetsBefore.length + 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
+      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
@@ -62,7 +62,7 @@ describe('POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsBefore = await AttendanceSheet.find({ course: coursesList[1]._id });
+      const attendanceSheetsLengthBefore = await AttendanceSheet.countDocuments({ course: coursesList[1]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -73,8 +73,8 @@ describe('POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const attendanceSheetsAfter = await AttendanceSheet.find({ course: coursesList[1]._id });
-      expect(attendanceSheetsAfter.length).toBe(attendanceSheetsBefore.length + 1);
+      const attendanceSheetsLengthAfter = await AttendanceSheet.countDocuments({ course: coursesList[1]._id });
+      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
@@ -170,7 +170,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     });
 
     it('should get course\'s attendance sheets', async () => {
-      const attendanceSheets = await AttendanceSheet.find({ course: coursesList[0]._id });
+      const attendanceSheetsLength = await AttendanceSheet.countDocuments({ course: coursesList[0]._id });
 
       const response = await app.inject({
         method: 'GET',
@@ -179,7 +179,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheets.length);
+      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
     });
   });
 

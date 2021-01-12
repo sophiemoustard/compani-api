@@ -28,7 +28,7 @@ describe('list', () => {
       date: '2020-04-03T10:00:00',
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets], ['lean']));
 
     const result = await attendanceSheetHelper.list({ course: courseId });
 
