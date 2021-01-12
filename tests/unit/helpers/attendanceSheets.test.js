@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');

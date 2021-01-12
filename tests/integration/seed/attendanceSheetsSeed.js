@@ -8,26 +8,34 @@ const { COACH } = require('../../../src/helpers/constants.js');
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
 
-const attendanceSheetsList = [
-  { _id: new ObjectID(), file: { publicId: 'mon upload', link: 'www.test.com' }, date: '2020-04-03T10:00:00' },
-  { _id: new ObjectID(), file: { publicId: 'mon upload', link: 'www.test.com' }, trainee: coachFromAuthCompany._id },
-];
-
 const coursesList = [
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
-    attendanceSheets: [attendanceSheetsList[0]],
     type: 'intra',
     trainees: [coachFromAuthCompany._id],
   },
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
-    attendanceSheets: [attendanceSheetsList[1]],
     type: 'inter_b2b',
     trainees: [coachFromAuthCompany._id],
+  },
+];
+
+const attendanceSheetsList = [
+  {
+    _id: new ObjectID(),
+    course: coursesList[0],
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    date: '2020-04-03T10:00:00',
+  },
+  {
+    _id: new ObjectID(),
+    course: coursesList[0],
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: coachFromAuthCompany._id,
   },
 ];
 

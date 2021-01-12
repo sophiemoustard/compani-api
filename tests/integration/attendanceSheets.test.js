@@ -9,7 +9,7 @@ const app = require('../../server');
 const { populateDB, coursesList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
-const Course = require('../../src/models/Course');
+const AttendanceSheet = require('../../src/models/AttendanceSheet');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -38,7 +38,7 @@ describe('POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsLengthBefore = coursesList[0].attendanceSheets.length;
+      const attendanceSheetsBefore = await AttendanceSheet.find({ course: coursesList[0]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -49,9 +49,8 @@ describe('POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCourse = await Course.findOne({ _id: coursesList[0]._id }, { attendanceSheets: 1 });
-      const attendanceSheetsLengthAfter = updatedCourse.attendanceSheets.length;
-      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
+      const attendanceSheetsAfter = await AttendanceSheet.find({ course: coursesList[0]._id });
+      expect(attendanceSheetsAfter.length).toBe(attendanceSheetsBefore.length + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
@@ -63,7 +62,7 @@ describe('POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      const attendanceSheetsLengthBefore = coursesList[1].attendanceSheets.length;
+      const attendanceSheetsBefore = await AttendanceSheet.find({ course: coursesList[1]._id });
       uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -74,9 +73,8 @@ describe('POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCourse = await Course.findOne({ _id: coursesList[1]._id }, { attendanceSheets: 1 });
-      const attendanceSheetsLengthAfter = updatedCourse.attendanceSheets.length;
-      expect(attendanceSheetsLengthAfter).toBe(attendanceSheetsLengthBefore + 1);
+      const attendanceSheetsAfter = await AttendanceSheet.find({ course: coursesList[1]._id });
+      expect(attendanceSheetsAfter.length).toBe(attendanceSheetsBefore.length + 1);
       sinon.assert.calledOnce(uploadCourseFile);
     });
 
@@ -172,7 +170,8 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     });
 
     it('should get course\'s attendance sheets', async () => {
-      const attendanceSheetsLength = coursesList[0].attendanceSheets.length;
+      const attendanceSheets = await AttendanceSheet.find({ course: coursesList[0]._id });
+
       const response = await app.inject({
         method: 'GET',
         url: `/attendancesheets?course=${coursesList[0]._id}`,
@@ -180,7 +179,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
+      expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheets.length);
     });
   });
 
