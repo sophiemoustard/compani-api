@@ -8,7 +8,7 @@ const {
   activityHistoriesUsersList,
   cardsList,
 } = require('./seed/activityHistoriesSeed');
-const { getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getTokenByCredentials, getToken, authCompany } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 
 describe('NODE ENV', () => {
@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
+describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
   let authToken = null;
   const payload = {
     user: activityHistoriesUsersList[0],
@@ -215,6 +215,84 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories/', () => {
         });
 
         expect(response.statusCode).toBe(400);
+      });
+    });
+  });
+});
+
+describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
+  let authToken = null;
+
+  describe('CLIENT ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should return a list of activity histories', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?startDate=2020-12-10T23:00:00&endDate=2021-01-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 as startDate is missing', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?endDate=2020-12-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 as endDate is missing', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?startDate=2021-01-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if startDate is greater than endDate', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/activityhistories?startDate=2021-01-10T23:00:00&endDate=2020-12-10T23:00:00',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/activityhistories?endDate=2021-01-10T23:00:00&startDate=2020-12-10T23:00:00',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });
