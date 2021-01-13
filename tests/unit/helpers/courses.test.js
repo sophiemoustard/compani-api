@@ -118,6 +118,23 @@ describe('list', () => {
     );
     CourseMock.verify();
   });
+
+  it('should return company eLearning courses', async () => {
+    const companyId = new ObjectID();
+    const coursesList = [
+      { accessRules: [], format: 'strictly_e_learning' },
+      { accessRules: [companyId], format: 'strictly_e_learning' },
+    ];
+
+    findCourseAndPopulate.returns(coursesList);
+
+    const result = await CourseHelper.list({ company: companyId, format: 'strictly_e_learning' });
+    expect(result).toMatchObject(coursesList);
+
+    sinon.assert.calledOnceWithExactly(
+      findCourseAndPopulate, { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
+    );
+  });
 });
 
 describe('getCourseProgress', () => {
