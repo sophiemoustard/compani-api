@@ -13,7 +13,7 @@ const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
-const SectorHistory = require('../models/SectorHistory');
+const SectorHistory = require('./sectorHistories');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
@@ -67,24 +67,7 @@ exports.hoursBalanceDetail = async (query, credentials) => {
 };
 
 exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, companyId) => {
-  const auxiliaryEvents = await EventRepository.getEventsToPay(
-    startDate,
-    endDate,
-    [new ObjectID(auxiliaryId)],
-    companyId
-  );
-
-  const sectors = await SectorHistory.find(
-    {
-      company: companyId,
-      auxiliary: auxiliaryId,
-      startDate: { $lt: endDate },
-      $or: [{ endDate: { $gt: startDate } }, { endDate: { $exists: false } }],
-    },
-    { sector: 1 }
-  ).lean();
-  const sectorsId = [...new Set(sectors.map(sh => sh.sector.toHexString()))];
-
+  const sectorsId = await SectorHistory.getAuxiliarySectors(auxiliaryId, companyId, startDate, endDate);
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return { ...pay, sectors: sectorsId, counterAndDiffRelevant: true };
@@ -110,6 +93,8 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
 
+  const auxiliaryEvents =
+    await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
   const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
 
   const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
@@ -123,7 +108,8 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  const firstMonthContract = moment(startDate).startOf('month').isSameOrBefore(contract.startDate);
+  const firstMonthContract = moment(startDate).startOf('M').isSameOrBefore(contract.startDate);
+
   return draft ? { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } : null;
 };
 
