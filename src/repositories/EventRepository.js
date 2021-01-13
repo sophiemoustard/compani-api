@@ -221,6 +221,7 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
         { path: 'contracts', match: { company: companyId } },
       ],
     })
+    .populate({ path: 'extension', select: 'startDate' })
     .lean({ autopopulate: true });
 };
 
