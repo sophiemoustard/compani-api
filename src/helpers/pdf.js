@@ -5,7 +5,7 @@ const util = require('util');
 const handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
 
-const ReadFile = util.promisify(fs.readFile);
+exports.readFile = util.promisify(fs.readFile);
 
 exports.formatSurchargeHourForPdf = date =>
   (moment(date).minutes() > 0 ? moment(date).format('HH[h]mm') : moment(date).format('HH[h]'));
@@ -35,21 +35,27 @@ exports.formatTable = (items, options) => {
 };
 
 exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printBackground: true }) => {
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-  const page = await browser.newPage();
-  const templatePath = path.resolve('./', templateUrl);
-  const content = await ReadFile(templatePath, 'utf8');
-  handlebars.registerHelper('table', exports.formatTable);
-  handlebars.registerHelper('times', function (n, block) {
-    let accum = '';
-    for (let i = 0; i < n; ++i) accum += block.fn(this);
-    return accum;
-  });
-  const template = handlebars.compile(content);
-  const html = template(data);
-  await page.setContent(html);
-  const pdf = await page.pdf(options);
-  await browser.close();
+  let browser;
+  try {
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    const templatePath = path.resolve('./', templateUrl);
+    const content = await exports.readFile(templatePath, 'utf8');
+    handlebars.registerHelper('table', exports.formatTable);
+    handlebars.registerHelper('times', function (n, block) {
+      let accum = '';
+      for (let i = 0; i < n; ++i) accum += block.fn(this);
+      return accum;
+    });
+    const template = handlebars.compile(content);
+    const html = template(data);
+    await page.setContent(html);
+    const pdf = await page.pdf(options);
+    await browser.close();
 
-  return pdf;
+    return pdf;
+  } catch (e) {
+    browser.close();
+    throw e;
+  }
 };
