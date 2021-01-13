@@ -475,7 +475,7 @@ describe('exportAbsencesHistory', () => {
     'Absence d\'origine',
     'Divers',
   ];
-  const start = '2019-05-20T08:00:00'; // inutile ?
+  const start = '2019-05-20T08:00:00';
   const end = '2019-05-20T22:00:00';
   let getAbsencesForExport;
   let formatAbsence;
