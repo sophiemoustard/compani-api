@@ -2,9 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create } = require('../controllers/attendanceSheetController');
+const { list, create, deleteAttendanceSheet } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
-const { checkCourseType } = require('./preHandlers/attendanceSheets');
+const { checkCourseType, attendanceSheetExists } = require('./preHandlers/attendanceSheets');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -38,6 +38,19 @@ exports.plugin = {
         pre: [{ method: checkCourseType }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: attendanceSheetExists, assign: 'attendanceSheet' }],
+      },
+      handler: deleteAttendanceSheet,
     });
   },
 };
