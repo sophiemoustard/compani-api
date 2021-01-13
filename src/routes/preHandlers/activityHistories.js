@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const Joi = require('joi');
+const get = require('lodash/get');
 const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
@@ -45,6 +46,13 @@ exports.authorizeAddActivityHistory = async (req) => {
       if (!activityCount) throw Boom.notFound();
     }
   }
+
+  return null;
+};
+
+exports.authorizeHistoriesList = async (req) => {
+  const company = get(req, 'auth.credentials.company._id');
+  if (!company) return Boom.forbidden();
 
   return null;
 };
