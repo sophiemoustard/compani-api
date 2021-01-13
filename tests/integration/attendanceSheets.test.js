@@ -6,7 +6,7 @@ const GetStream = require('get-stream');
 const { ObjectID } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
-const { populateDB, coursesList } = require('./seed/attendanceSheetsSeed');
+const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
@@ -20,10 +20,10 @@ describe('NODE ENV', () => {
 describe('POST /attendancesheets', () => {
   let authToken = null;
   let uploadCourseFile;
-  describe('CLIENT_ADMIN', () => {
+  describe('VENDOR_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('vendor_admin');
       uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
     });
     afterEach(() => {
@@ -200,6 +200,80 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/attendancesheets?course=${coursesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
+  let authToken = null;
+  let deleteCourseFile;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+    });
+    afterEach(() => {
+      deleteCourseFile.restore();
+    });
+
+    it('should delete an attendance sheet', async () => {
+      const attendanceSheetId = attendanceSheetsList[0]._id;
+      const attendanceSheetsLength = await AttendanceSheet.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendancesheets/${attendanceSheetId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await AttendanceSheet.countDocuments()).toEqual(attendanceSheetsLength - 1);
+      sinon.assert.calledOnce(deleteCourseFile);
+    });
+
+    it('should return a 404 if attendance sheet does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendancesheets/${new ObjectID().toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+    });
+    afterEach(() => {
+      deleteCourseFile.restore();
+    });
+
+    const roles = [
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const attendanceSheetId = attendanceSheetsList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/attendancesheets/${attendanceSheetId.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
