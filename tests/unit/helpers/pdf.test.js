@@ -3,7 +3,6 @@ const path = require('path');
 const expect = require('expect');
 const puppeteer = require('puppeteer');
 const handlebars = require('handlebars');
-const util = require('util');
 const PdfHelper = require('../../../src/helpers/pdf');
 
 describe('formatSurchargeHourForPdf', () => {
