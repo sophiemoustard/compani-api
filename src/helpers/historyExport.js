@@ -170,7 +170,6 @@ const absenceExportHeader = [
 ];
 
 exports.formatAbsence = (absence) => {
-  console.log('skusku', absence.extension);
   const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
   const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
 

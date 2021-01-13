@@ -380,7 +380,7 @@ describe('formatAbsence', () => {
     getAbsenceHours.restore();
   });
 
-  it('should return an array with the header and 1 row for daily absence', async () => {
+  it('should return an array with the header and 1 row for hourly absence', async () => {
     const event = {
       type: 'absence',
       absence: 'unjustified_absence',
@@ -411,12 +411,14 @@ describe('formatAbsence', () => {
       '20/05/2019 08:00',
       '20/05/2019 10:00',
       '2,00',
+      'non',
+      '',
       '',
     ]);
     sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
   });
 
-  it('should return an array with the header and 1 row for hourly absence', async () => {
+  it('should return an array with the header and 1 row for daily absence', async () => {
     const event = {
       type: 'absence',
       absence: 'leave',
@@ -432,6 +434,7 @@ describe('formatAbsence', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T22:00:00',
+      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     getAbsenceHours.returns(4);
@@ -448,6 +451,8 @@ describe('formatAbsence', () => {
       '20/05/2019',
       '20/05/2019',
       '4,00',
+      'oui',
+      '20/04/2019',
       'brbr',
     ]);
     sinon.assert.calledOnceWithExactly(getAbsenceHours, event, event.auxiliary.contracts);
@@ -466,6 +471,8 @@ describe('exportAbsencesHistory', () => {
     'Début',
     'Fin',
     'Equivalent heures contrat',
+    'Prolongation',
+    'Absence d\'origine',
     'Divers',
   ];
   const start = '2019-05-20T08:00:00'; // inutile ?
@@ -509,7 +516,7 @@ describe('exportAbsencesHistory', () => {
     const credentials = { company: { _id: '1234567890' } };
     const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
       'Horaire',
-      '20/05/2019 08:00', '21/05/2019 10:00', '26,00', ''];
+      '20/05/2019 08:00', '21/05/2019 10:00', '26,00', 'non', '', ''];
 
     getAbsencesForExport.returns([event]);
     formatAbsence.returns(formattedAbsence);
@@ -543,11 +550,11 @@ describe('exportAbsencesHistory', () => {
     };
     const credentials = { company: { _id: '1234567890' } };
     const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé', 'Journalière',
-      '20/05/2019', '31/05/2019', '40,00', 'brbr'];
+      '20/05/2019', '31/05/2019', '40,00', 'non', '', 'brbr'];
     const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
-      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'brbr'];
+      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'non', '', 'brbr'];
     const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
-      'Journalière', '01/07/2019', '20/07/2019', '72,00', 'brbr'];
+      'Journalière', '01/07/2019', '20/07/2019', '72,00', 'non', '', 'brbr'];
 
     getAbsencesForExport.returns([event]);
     formatAbsence.onCall(0).returns(formattedAbsenceRow);
@@ -582,15 +589,16 @@ describe('exportAbsencesHistory', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-07-01T22:00:00',
+      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     const credentials = { company: { _id: '1234567890' } };
     const formattedAbsenceRow = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
-      'Journalière', '20/05/2019', '31/05/2019', '40,00', 'brbr'];
+      'Journalière', '20/05/2019', '31/05/2019', '40,00', 'oui', '2019/04/20', 'brbr'];
     const formattedAbsenceRow2 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
-      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'brbr'];
+      'Journalière', '01/06/2019', '30/06/2019', '96,00', 'oui', '2019/04/20', 'brbr'];
     const formattedAbsenceRow3 = [event.auxiliary._id, 'Princess', 'CAROLYN', '', 'Etoiles - 75', 'Congé',
-      'Journalière', '01/07/2019', '01/07/2019', '4,00', 'brbr'];
+      'Journalière', '01/07/2019', '01/07/2019', '4,00', 'oui', '2019/04/20', 'brbr'];
 
     getAbsencesForExport.returns([event]);
     formatAbsence.onCall(0).returns(formattedAbsenceRow);
