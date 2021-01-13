@@ -55,7 +55,7 @@ exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printB
 
     return pdf;
   } catch (e) {
-    browser.close();
+    await browser.close();
     throw e;
   }
 };
