@@ -433,6 +433,10 @@ describe('getAbsences', () => {
         select: 'serialNumber identity',
         populate: [{ path: 'contracts' }, { path: 'establishment' }],
       })
+      .chain('populate')
+      .withExactArgs({ path: 'extension', select: 'startDate' })
+      .chain('sort')
+      .withExactArgs({ startDate: 1 })
       .chain('lean')
       .once()
       .returns(absences);
@@ -473,6 +477,10 @@ describe('getAbsences', () => {
         select: 'serialNumber identity',
         populate: [{ path: 'contracts' }, { path: 'establishment' }],
       })
+      .chain('populate')
+      .withExactArgs({ path: 'extension', select: 'startDate' })
+      .chain('sort')
+      .withExactArgs({ startDate: 1 })
       .chain('lean')
       .once()
       .returns(absences);
@@ -518,6 +526,7 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
         identity: { lastname: 'Compani' },
       },
+      extension: { _id: new ObjectID(), startDate: '2020-11-19T00:00:00' },
     }];
     getAbsences.returns(absences);
     getAbsenceHours.onCall(0).returns(5);
@@ -531,10 +540,10 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '21/11/2020', 0, 1, 1, 5],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '22/11/2020', 0, 0, 1, 0],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '23/11/2020', 1, 1, 1, 4],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_premier_arret', 'va_abs_prolongation', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '21/11/2020', 0, 1, 1, 5],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '22/11/2020', 0, 0, 1, 0],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '23/11/2020', 1, 1, 1, 4],
       ]
     );
     sinon.assert.calledWithExactly(
@@ -582,8 +591,8 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'Toto', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_premier_arret', 'va_abs_prolongation', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Toto', 'contract', 'CPL', '21/11/2020', '21/11/2020', '1', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
       ]
     );
     sinon.assert.calledOnceWithExactly(
