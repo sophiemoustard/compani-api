@@ -184,7 +184,6 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
       },
     },
     { $unwind: { path: '$events' } },
-    { $addFields: { 'events.sector': '$sector' } },
     { $replaceRoot: { newRoot: '$events' } },
     { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 60 * 60 * 1000] } } },
     {
@@ -192,7 +191,6 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         _id: { auxiliary: '$auxiliary', customer: '$customer' },
         duration: { $sum: '$duration' },
         events: { $addToSet: '$$ROOT' },
-        sectors: { $addToSet: '$sector' },
       },
     },
     {
@@ -200,7 +198,6 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         _id: { auxiliary: '$_id.auxiliary' },
         customerCount: { $sum: 1 },
         duration: { $sum: '$duration' },
-        sectors: { $addToSet: '$sectors' },
       },
     },
     {
@@ -208,13 +205,6 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         _id: '$_id.auxiliary',
         customerCount: 1,
         duration: 1,
-        sectors: {
-          $reduce: {
-            input: '$sectors',
-            initialValue: [],
-            in: { $setUnion: ['$$value', '$$this'] },
-          },
-        },
       },
     },
   ]).option({ company: companyId });

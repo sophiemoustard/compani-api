@@ -13,6 +13,7 @@ const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
+const SectorHistory = require('./sectorHistories');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
@@ -66,16 +67,10 @@ exports.hoursBalanceDetail = async (query, credentials) => {
 };
 
 exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, companyId) => {
-  const auxiliaryEvents = await EventRepository.getEventsToPay(
-    startDate,
-    endDate,
-    [new ObjectID(auxiliaryId)],
-    companyId
-  );
-
+  const sectorsId = await SectorHistory.getAuxiliarySectors(auxiliaryId, companyId, startDate, endDate);
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
-  if (pay) return pay;
+  if (pay) return { ...pay, sectors: sectorsId, counterAndDiffRelevant: true };
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
@@ -98,7 +93,10 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
 
+  const auxiliaryEvents =
+    await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
   const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
+
   const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
     auxiliary,
     contract,
@@ -110,7 +108,9 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
     surcharges
   );
 
-  return draft || null;
+  const firstMonthContract = moment(startDate).startOf('M').isSameOrBefore(contract.startDate);
+
+  return draft ? { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } : null;
 };
 
 exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
