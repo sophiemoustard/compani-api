@@ -379,8 +379,8 @@ exports.computeAuxiliaryDraftPay = async (aux, contract, eventsToPay, prevPay, c
     ...monthBalance,
     hoursCounter,
     mutual: !get(aux, 'administrative.mutualFund.has'),
-    diff: prevPay.diff,
-    previousMonthHoursCounter: prevPay.hoursCounter,
+    diff: get(prevPay, 'diff') || null,
+    previousMonthHoursCounter: get(prevPay, 'hoursCounter') || 0,
   };
 };
 
@@ -473,13 +473,15 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
 
   const auxIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
-  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
+
+  const isJanuary = moment(query.startDate).month() === 0;
+  const prevPayList = isJanuary ? [] : await exports.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
 
   const draftPay = [];
   for (const aux of auxiliaries) {
     const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === aux._id.toHexString()) ||
       { absences: [], events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
+    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString()) || null;
     const contract = exports.getContract(aux.contracts, query.endDate);
     if (!contract) continue;
 

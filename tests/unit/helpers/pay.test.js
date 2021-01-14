@@ -9,7 +9,6 @@ const User = require('../../../src/models/User');
 const PayHelper = require('../../../src/helpers/pay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const ContractHelper = require('../../../src/helpers/contracts');
-const EventRepository = require('../../../src/repositories/EventRepository');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 
@@ -431,7 +430,7 @@ describe('hoursBalanceDetailBySector', () => {
       credentials.company._id
     );
     sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
-    sinon.assert.calledWithExactly( hoursBalanceDetailByAuxiliary, auxiliaryId, startDate, endDate, credentials s);
+    sinon.assert.calledWithExactly(hoursBalanceDetailByAuxiliary, auxiliaryId, startDate, endDate, credentials);
   });
 
   it('should return the info for many sectors', async () => {
