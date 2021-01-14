@@ -124,6 +124,6 @@ describe('delete', () => {
     await attendanceSheetHelper.delete(attendanceSheet);
 
     sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
-    sinon.assert.calledWithExactly(deleteOne, { _id: attendanceSheet._id });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheet._id });
   });
 });

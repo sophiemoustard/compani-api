@@ -22,6 +22,5 @@ exports.checkCourseType = async (req) => {
 exports.attendanceSheetExists = async (req) => {
   const attendanceSheet = await AttendanceSheet.findOne({ _id: req.params._id }).lean();
 
-  if (!attendanceSheet) return Boom.notFound();
-  return attendanceSheet;
+  return attendanceSheet || Boom.notFound();
 };

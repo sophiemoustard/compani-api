@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /attendancesheets', () => {
+describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
   let authToken = null;
   let uploadCourseFile;
   describe('VENDOR_ADMIN', () => {
@@ -162,9 +162,9 @@ describe('POST /attendancesheets', () => {
 
 describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
   let authToken = null;
-  beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
@@ -184,14 +184,11 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -212,9 +209,9 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
   let authToken = null;
   let deleteCourseFile;
-  beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
       deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
@@ -249,6 +246,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
       deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
@@ -258,13 +256,9 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     });
 
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {

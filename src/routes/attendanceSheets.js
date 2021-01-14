@@ -47,7 +47,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['programs:edit'] },
+        auth: { scope: ['courses:edit'] },
         pre: [{ method: attendanceSheetExists, assign: 'attendanceSheet' }],
       },
       handler: deleteAttendanceSheet,
