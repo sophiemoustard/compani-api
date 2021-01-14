@@ -379,13 +379,13 @@ exports.computeAuxiliaryDraftPay = async (aux, contract, eventsToPay, prevPay, c
     ...monthBalance,
     hoursCounter,
     mutual: !get(aux, 'administrative.mutualFund.has'),
-    diff: get(prevPay, 'diff') || null,
+    diff: get(prevPay, 'diff') || computeDiff(null, null, 0, 0),
     previousMonthHoursCounter: get(prevPay, 'hoursCounter') || 0,
   };
 };
 
 exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
-  const details = hours[detailType] ? cloneDeep(hours[detailType]) : {};
+  const details = hours && hours[detailType] ? cloneDeep(hours[detailType]) : {};
   if (!prevPay) return details;
 
   const prevPayDetail = mapKeys(prevPay[detailType], value => value.planId);
@@ -417,6 +417,20 @@ const getDiff = (prevPay, hours, key) => {
   return Math.round(diff * 100) / 100;
 };
 
+const computeDiff = (prevPay, hours, absenceDiff, workedHoursDiff) => ({
+  absencesHours: absenceDiff,
+  workedHours: workedHoursDiff,
+  internalHours: getDiff(prevPay, hours, 'internalHours'),
+  paidTransportHours: getDiff(prevPay, hours, 'paidTransportHours'),
+  notSurchargedAndNotExempt: getDiff(prevPay, hours, 'notSurchargedAndNotExempt'),
+  surchargedAndNotExempt: getDiff(prevPay, hours, 'surchargedAndNotExempt'),
+  surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
+  notSurchargedAndExempt: getDiff(prevPay, hours, 'notSurchargedAndExempt'),
+  surchargedAndExempt: getDiff(prevPay, hours, 'surchargedAndExempt'),
+  surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
+  hoursBalance: absenceDiff + workedHoursDiff,
+});
+
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
   const contract = auxiliary.contracts.find(cont => !cont.endDate || moment(cont.endDate).isAfter(query.endDate));
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
@@ -427,19 +441,7 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
 
   return {
     auxiliary: auxiliary._id,
-    diff: {
-      absencesHours: absenceDiff,
-      workedHours: workedHoursDiff,
-      internalHours: getDiff(prevPay, hours, 'internalHours'),
-      paidTransportHours: getDiff(prevPay, hours, 'paidTransportHours'),
-      notSurchargedAndNotExempt: getDiff(prevPay, hours, 'notSurchargedAndNotExempt'),
-      surchargedAndNotExempt: getDiff(prevPay, hours, 'surchargedAndNotExempt'),
-      surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
-      notSurchargedAndExempt: getDiff(prevPay, hours, 'notSurchargedAndExempt'),
-      surchargedAndExempt: getDiff(prevPay, hours, 'surchargedAndExempt'),
-      surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
-      hoursBalance: absenceDiff + workedHoursDiff,
-    },
+    diff: computeDiff(prevPay, hours, absenceDiff, workedHoursDiff),
     hoursCounter: prevPay && prevPay.hoursCounter ? prevPay.hoursCounter : 0,
   };
 };
