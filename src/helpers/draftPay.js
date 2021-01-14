@@ -379,7 +379,7 @@ exports.computeAuxiliaryDraftPay = async (aux, contract, eventsToPay, prevPay, c
     ...monthBalance,
     hoursCounter,
     mutual: !get(aux, 'administrative.mutualFund.has'),
-    diff: get(prevPay, 'diff') || computeDiff(null, null, 0, 0),
+    diff: get(prevPay, 'diff') || exports.computeDiff(null, null, 0, 0),
     previousMonthHoursCounter: get(prevPay, 'hoursCounter') || 0,
   };
 };
@@ -417,7 +417,7 @@ const getDiff = (prevPay, hours, key) => {
   return Math.round(diff * 100) / 100;
 };
 
-const computeDiff = (prevPay, hours, absenceDiff, workedHoursDiff) => ({
+exports.computeDiff = (prevPay, hours, absenceDiff, workedHoursDiff) => ({
   absencesHours: absenceDiff,
   workedHours: workedHoursDiff,
   internalHours: getDiff(prevPay, hours, 'internalHours'),
@@ -441,7 +441,7 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
 
   return {
     auxiliary: auxiliary._id,
-    diff: computeDiff(prevPay, hours, absenceDiff, workedHoursDiff),
+    diff: exports.computeDiff(prevPay, hours, absenceDiff, workedHoursDiff),
     hoursCounter: prevPay && prevPay.hoursCounter ? prevPay.hoursCounter : 0,
   };
 };
@@ -464,7 +464,7 @@ exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, dm, company
   return Promise.all(prevPayDiff);
 };
 
-exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => {
+exports.computeDraftPay = async (auxiliaries, query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { startDate, endDate } = query;
   const [company, surcharges, dm] = await Promise.all([
@@ -505,5 +505,5 @@ exports.getDraftPay = async (query, credentials) => {
   const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, endDate, 'pays', companyId);
   if (auxiliaries.length === 0) return [];
 
-  return exports.computeDraftPayByAuxiliary(auxiliaries, { startDate, endDate }, credentials);
+  return exports.computeDraftPay(auxiliaries, { startDate, endDate }, credentials);
 };

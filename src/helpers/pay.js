@@ -75,7 +75,7 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
 
   const payQuery = { startDate, endDate };
-  const [draft] = await DraftPayHelper.computeDraftPayByAuxiliary([{ ...auxiliary, prevPay }], payQuery, credentials);
+  const [draft] = await DraftPayHelper.computeDraftPay([{ ...auxiliary, prevPay }], payQuery, credentials);
 
   const firstMonthContract = moment(startDate).startOf('M').isSameOrBefore(contract.startDate);
 

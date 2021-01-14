@@ -212,14 +212,14 @@ describe('hoursBalanceDetailByAuxiliary', () => {
   let userFindOne;
   let getAuxiliarySectors;
   let getContractStub;
-  let computeDraftPayByAuxiliary;
+  let computeDraftPay;
 
   beforeEach(() => {
     payFindOne = sinon.stub(Pay, 'findOne');
     userFindOne = sinon.stub(User, 'findOne');
     getAuxiliarySectors = sinon.stub(SectorHistoryHelper, 'getAuxiliarySectors');
     getContractStub = sinon.stub(PayHelper, 'getContract');
-    computeDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'computeDraftPayByAuxiliary');
+    computeDraftPay = sinon.stub(DraftPayHelper, 'computeDraftPay');
   });
 
   afterEach(() => {
@@ -227,7 +227,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     userFindOne.restore();
     getAuxiliarySectors.restore();
     getContractStub.restore();
-    computeDraftPayByAuxiliary.restore();
+    computeDraftPay.restore();
   });
 
   it('should return draftPay', async () => {
@@ -240,14 +240,14 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
-    computeDraftPayByAuxiliary.returns([draft]);
+    computeDraftPay.returns([draft]);
 
     const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
 
     expect(result).toEqual({ ...draft, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
     sinon.assert.calledWithExactly(getAuxiliarySectors, auxiliaryId, companyId, startDate, endDate);
     sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
-    sinon.assert.calledWithExactly(computeDraftPayByAuxiliary, [{ ...auxiliary, prevPay }], query, credentials);
+    sinon.assert.calledWithExactly(computeDraftPay, [{ ...auxiliary, prevPay }], query, credentials);
     SinonMongoose.calledWithExactly(
       payFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
@@ -277,7 +277,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
-    computeDraftPayByAuxiliary.returns([draft]);
+    computeDraftPay.returns([draft]);
 
     const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
 
@@ -294,7 +294,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
-    computeDraftPayByAuxiliary.returns([draft]);
+    computeDraftPay.returns([draft]);
 
     const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
 
@@ -312,7 +312,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
     expect(result).toEqual({ ...pay, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
     sinon.assert.notCalled(getContractStub);
-    sinon.assert.notCalled(computeDraftPayByAuxiliary);
+    sinon.assert.notCalled(computeDraftPay);
     SinonMongoose.calledWithExactly(
       payFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
@@ -335,7 +335,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest());
     } finally {
-      sinon.assert.notCalled(computeDraftPayByAuxiliary);
+      sinon.assert.notCalled(computeDraftPay);
     }
   });
 
@@ -347,7 +347,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     getAuxiliarySectors.returns([sectorId.toHexString()]);
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
-    computeDraftPayByAuxiliary.returns([]);
+    computeDraftPay.returns([]);
     getContractStub.returns(contract);
 
     const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
