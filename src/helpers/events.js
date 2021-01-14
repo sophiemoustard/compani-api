@@ -47,6 +47,7 @@ exports.list = async (query, credentials) => {
   } if (groupBy === AUXILIARY) {
     return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
   }
+
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
 

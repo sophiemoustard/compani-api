@@ -105,6 +105,15 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
   },
   { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
   {
+    $lookup: {
+      from: 'events',
+      localField: 'extension',
+      foreignField: '_id',
+      as: 'extension',
+    },
+  },
+  { $unwind: { path: '$extension', preserveNullAndEmptyArrays: true } },
+  {
     $project: {
       _id: 1,
       customer: { _id: 1, identity: 1, contact: 1 },
@@ -123,6 +132,7 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
       internalHour: 1,
       absence: 1,
       absenceNature: 1,
+      extension: 1,
       address: 1,
       misc: 1,
       attachment: 1,
@@ -156,6 +166,7 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
     populate: { path: 'subscriptions.service' },
   })
   .populate({ path: 'internalHour' })
+  .populate({ path: 'extension' })
   .lean({ autopopulate: true, viruals: true });
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
