@@ -12,6 +12,7 @@ const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -1812,49 +1813,56 @@ describe('getPreviousMonthPay', () => {
 
 describe('computeDraftPayByAuxiliary', () => {
   let getEventsToPay;
-  let companyMock;
-  let surchargeMock;
-  let distanceMatrixMock;
+  let companyFindOne;
+  let surchargeFind;
+  let distanceMatrixFind;
   let getPreviousMonthPay;
   let computeAuxiliaryDraftPay;
   let getContract;
   beforeEach(() => {
     getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
-    companyMock = sinon.mock(Company);
-    surchargeMock = sinon.mock(Surcharge);
-    distanceMatrixMock = sinon.mock(DistanceMatrix);
+    companyFindOne = sinon.stub(Company, 'findOne');
+    surchargeFind = sinon.stub(Surcharge, 'find');
+    distanceMatrixFind = sinon.stub(DistanceMatrix, 'find');
     getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
     computeAuxiliaryDraftPay = sinon.stub(DraftPayHelper, 'computeAuxiliaryDraftPay');
     getContract = sinon.stub(DraftPayHelper, 'getContract');
   });
   afterEach(() => {
     getEventsToPay.restore();
-    companyMock.restore();
-    surchargeMock.restore();
-    distanceMatrixMock.restore();
+    companyFindOne.restore();
+    surchargeFind.restore();
+    distanceMatrixFind.restore();
     getPreviousMonthPay.restore();
     computeAuxiliaryDraftPay.restore();
     getContract.restore();
   });
 
   it('should return an empty array if no auxiliary', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    companyMock.expects('findOne').chain('lean').returns({});
-    surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean')
-      .returns([]);
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+
     const result = await DraftPayHelper.computeDraftPayByAuxiliary([], query, credentials);
 
-    sinon.assert.calledOnce(getPreviousMonthPay);
-    expect(result).toBeDefined();
     expect(result).toEqual([]);
-    companyMock.verify();
-    surchargeMock.verify();
-    distanceMatrixMock.verify();
+    sinon.assert.calledOnceWithExactly(getPreviousMonthPay, [], query, [{ _id: 'sur' }], [{ _id: 'dm' }], companyId);
+    sinon.assert.notCalled(computeAuxiliaryDraftPay);
+    SinonMongoose.calledWithExactly(
+      companyFindOne,
+      [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      surchargeFind,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      distanceMatrixFind,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should not return draft pay as no matching contracts', async () => {
@@ -1869,38 +1877,23 @@ describe('computeDraftPayByAuxiliary', () => {
       administrative: { mutualFund: { has: true } },
     };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const payData = [
-      {
-        events: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] }],
-        absences: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-06T10:00:00' }] }],
-        auxiliary: { _id: auxiliaryId },
-      },
-      {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
-      },
-    ];
-    const prevPay = [
-      { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
-    ];
+    const payData = [{
+      events: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] }],
+      absences: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-06T10:00:00' }] }],
+      auxiliary: { _id: auxiliaryId },
+    }];
+    const prevPay = [{ auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 }];
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyMock.expects('findOne').chain('lean').returns({});
-    surchargeMock.expects('find').chain('lean').returns([{ _id: 'sur' }]);
-    distanceMatrixMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean')
-      .returns([{ _id: 'dm' }]);
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
-    getContract.returns({ _id: '1234567890' });
-
     getContract.returns(null);
 
     const result = await DraftPayHelper.computeDraftPayByAuxiliary([aux], query, credentials);
+
     expect(result).toEqual([]);
     sinon.assert.calledWithExactly(
       getPreviousMonthPay,
@@ -1910,9 +1903,6 @@ describe('computeDraftPayByAuxiliary', () => {
       [{ _id: 'dm' }],
       companyId
     );
-    companyMock.verify();
-    surchargeMock.verify();
-    distanceMatrixMock.verify();
     sinon.assert.notCalled(computeAuxiliaryDraftPay);
   });
 
@@ -1941,15 +1931,12 @@ describe('computeDraftPayByAuxiliary', () => {
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyMock.expects('findOne').chain('lean').returns({});
-    surchargeMock.expects('find').chain('lean').returns([{ _id: 'sur' }]);
-    distanceMatrixMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean')
-      .returns([{ _id: 'dm' }]);
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
+
     const result = await DraftPayHelper.computeDraftPayByAuxiliary(auxiliaries, query, credentials);
 
     expect(result).toBeDefined();
@@ -1962,9 +1949,6 @@ describe('computeDraftPayByAuxiliary', () => {
       [{ _id: 'dm' }],
       companyId
     );
-    companyMock.verify();
-    surchargeMock.verify();
-    distanceMatrixMock.verify();
     sinon.assert.calledWithExactly(
       computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] },
@@ -1975,7 +1959,7 @@ describe('computeDraftPayByAuxiliary', () => {
         auxiliary: { _id: auxiliaryId },
       },
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      {},
+      { _id: companyId },
       { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' },
       [{ _id: 'dm' }],
       [{ _id: 'sur' }]
@@ -1983,41 +1967,28 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should return draft pay by auxiliary on january without computing previous pay', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
-    const payData = [
-      {
-        events: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-03T10:00:00' }] }],
-        absences: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-06T10:00:00' }] }],
-        auxiliary: { _id: auxiliaryId },
-      },
-      {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-01-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-01-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
-      },
-    ];
+    const payData = [{
+      events: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-03T10:00:00' }] }],
+      absences: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-06T10:00:00' }] }],
+      auxiliary: { _id: auxiliaryId },
+    }];
 
     getEventsToPay.returns(payData);
-    companyMock.expects('findOne').chain('lean').returns({});
-    surchargeMock.expects('find').chain('lean').returns([{ _id: 'sur' }]);
-    distanceMatrixMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean')
-      .returns([{ _id: 'dm' }]);
+    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
+
     const result = await DraftPayHelper.computeDraftPayByAuxiliary(auxiliaries, query, credentials);
 
-    expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
     sinon.assert.notCalled(getPreviousMonthPay);
-    companyMock.verify();
-    surchargeMock.verify();
-    distanceMatrixMock.verify();
     sinon.assert.calledWithExactly(
       computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] },
@@ -2028,7 +1999,7 @@ describe('computeDraftPayByAuxiliary', () => {
         auxiliary: { _id: auxiliaryId },
       },
       null,
-      {},
+      { _id: companyId },
       { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' },
       [{ _id: 'dm' }],
       [{ _id: 'sur' }]

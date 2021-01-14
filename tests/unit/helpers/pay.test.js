@@ -365,31 +365,24 @@ describe('hoursBalanceDetailBySector', () => {
   let getUsersFromSectorHistoriesStub;
   let getContractStub;
   let hoursBalanceDetailByAuxiliary;
-  let UserMock;
+  let userFind;
   beforeEach(() => {
     getUsersFromSectorHistoriesStub = sinon.stub(SectorHistoryRepository, 'getUsersFromSectorHistories');
     getContractStub = sinon.stub(PayHelper, 'getContract');
     hoursBalanceDetailByAuxiliary = sinon.stub(PayHelper, 'hoursBalanceDetailByAuxiliary');
-    UserMock = sinon.mock(User);
+    userFind = sinon.stub(User, 'find');
   });
   afterEach(() => {
     getUsersFromSectorHistoriesStub.restore();
     getContractStub.restore();
     hoursBalanceDetailByAuxiliary.restore();
-    UserMock.verify();
+    userFind.restore();
   });
 
   it('should return an empty array if no information', async () => {
     const query = { sector: new ObjectID() };
     getUsersFromSectorHistoriesStub.returns([]);
-
-    UserMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, _id: { $in: [] } })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns([]);
+    userFind.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await PayHelper.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
 
@@ -401,6 +394,14 @@ describe('hoursBalanceDetailBySector', () => {
       [query.sector],
       credentials.company._id
     );
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [] } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 
   it('should return the info for a sector', async () => {
@@ -409,12 +410,9 @@ describe('hoursBalanceDetailBySector', () => {
     const usersFromSectorHistories = [{ auxiliaryId }];
     const contract = { _id: 'poiuytre' };
 
-    UserMock.expects('find')
-      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, contracts: [contract], identity: 'test', picture: 'toto' }]);
+    userFind.returns(SinonMongoose.stubChainedQueries([[
+      { _id: auxiliaryId, contracts: [contract], identity: 'test', picture: 'toto' },
+    ]]));
     getContractStub.returns(contract);
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     hoursBalanceDetailByAuxiliary.returns({ auxiliary: auxiliaryId, hours: 10 });
@@ -431,25 +429,27 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
     sinon.assert.calledWithExactly(hoursBalanceDetailByAuxiliary, auxiliaryId, startDate, endDate, credentials);
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 
   it('should return the info for many sectors', async () => {
     const query = { sector: [new ObjectID(), new ObjectID()] };
     const auxiliaryIds = [new ObjectID(), new ObjectID()];
     const usersFromSectorHistories = [{ auxiliaryId: auxiliaryIds[0] }, { auxiliaryId: auxiliaryIds[1] }];
-    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     const contracts = [{ _id: auxiliaryIds[0] }, { _id: auxiliaryIds[1] }];
-    UserMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, _id: { $in: auxiliaryIds } })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns([
-        { _id: auxiliaryIds[0], contracts: [contracts[0]], identity: 'test', picture: 'toto' },
-        { _id: auxiliaryIds[1], contracts: [contracts[1]], identity: 'test2', picture: 'toto2' },
-      ]);
 
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    userFind.returns(SinonMongoose.stubChainedQueries([[
+      { _id: auxiliaryIds[0], contracts: [contracts[0]], identity: 'test', picture: 'toto' },
+      { _id: auxiliaryIds[1], contracts: [contracts[1]], identity: 'test2', picture: 'toto2' },
+    ]]));
     getContractStub.onCall(0).returns(contracts[0]);
     getContractStub.onCall(1).returns(contracts[1]);
     hoursBalanceDetailByAuxiliary.onCall(0).returns({ auxiliary: auxiliaryIds[0], hours: 10 });
@@ -484,6 +484,14 @@ describe('hoursBalanceDetailBySector', () => {
       endDate,
       credentials
     );
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: auxiliaryIds } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 
   it('should not take into account if auxiliary does not have contract', async () => {
@@ -491,13 +499,7 @@ describe('hoursBalanceDetailBySector', () => {
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
     getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
-    UserMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, name: 'titi' }]);
+    userFind.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, name: 'titi' }]]));
 
     const result = await PayHelper.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
 
@@ -511,22 +513,24 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(hoursBalanceDetailByAuxiliary);
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 
   it('should not take into account if auxiliary does not currently have contract', async () => {
     const query = { sector: new ObjectID() };
     const auxiliaryId = new ObjectID();
     const usersFromSectorHistories = [{ auxiliaryId }];
-    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
     const contract = { _id: 'poiuytr' };
-    UserMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, _id: { $in: [auxiliaryId] } })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('lean')
-      .returns([{ contracts: [contract] }]);
 
+    getUsersFromSectorHistoriesStub.returns(usersFromSectorHistories);
+    userFind.returns(SinonMongoose.stubChainedQueries([[{ contracts: [contract] }]]));
     getContractStub.returns();
 
     const result = await PayHelper.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
@@ -541,6 +545,14 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
     sinon.assert.notCalled(hoursBalanceDetailByAuxiliary);
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean', args: [] },
+      ]
+    );
   });
 });
 
