@@ -107,7 +107,7 @@ const GooglePlayAndAppStoreButtons = () => `
           <tr>
             <td>
               <a href="https://apps.apple.com/us/app/compani-formation/id1516691161?itsct=apps_box&amp;itscg=30200" target="_blank" style="display: inline-block; padding-right: 15px">
-                <img style="width: 130px" alt='Disponible sur App Store' src='https://storage.googleapis.com/compani-programme-test/media-aezr-20210115163447' />           
+                <img style="width: 140px" alt='Disponible sur App Store' src='https://storage.googleapis.com/compani-main/app-store-logo.png' />
               </a>
             </td>
             <td>
