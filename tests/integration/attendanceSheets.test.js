@@ -161,6 +161,13 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
+    });
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
@@ -176,6 +183,8 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
           date: new Date('2020-01-23').toISOString(),
         };
         const form = generateFormData(formData);
+        uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
+
         const response = await app.inject({
           method: 'POST',
           url: '/attendancesheets',
