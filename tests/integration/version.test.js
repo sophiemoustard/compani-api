@@ -26,15 +26,6 @@ describe('VERSION TEST', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeFalsy();
     });
-
-    it('should return true (old version)', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/version/check-update?apiVersion=1',
-      });
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.mustUpdate).toBeTruthy();
-    });
   });
 
   describe('POST /version/should-update', () => {

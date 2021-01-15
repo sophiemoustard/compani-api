@@ -168,7 +168,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (!credentials) {
     if (userPayload.origin !== MOBILE) return User.create(payload);
-    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
+    return User.create(payload);
   }
 
   const companyId = payload.company || get(credentials, 'company._id');

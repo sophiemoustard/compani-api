@@ -623,31 +623,6 @@ describe('createUser', () => {
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
   });
 
-  it('should set firstMobileConnection if origin is mobile', async () => {
-    const payload = {
-      identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com' },
-      contact: { phone: '0606060606' },
-      origin: MOBILE,
-    };
-    const date = '2020-12-08T13:45:25.437Z';
-
-    momentToDate.returns(date);
-    userCreate.returns(payload);
-
-    const result = await UsersHelper.createUser(payload, null);
-
-    expect(result).toEqual(payload);
-    sinon.assert.calledOnceWithExactly(momentToDate);
-    sinon.assert.notCalled(createHistoryStub);
-    sinon.assert.notCalled(roleFindById);
-    sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(
-      userCreate,
-      { ...payload, refreshToken: sinon.match.string, firstMobileConnection: date, origin: MOBILE }
-    );
-  });
-
   it('client admin - should create an auxiliary for his organization and handles sector', async () => {
     const companyId = new ObjectID();
     const payload = {
