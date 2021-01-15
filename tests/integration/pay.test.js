@@ -446,7 +446,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
     it('should export contract ends for pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/pay/export/contract_end?startDate=2022-10-01T00:00:00&endDate=2022-10-31T23:59:59',
+        url: '/pay/export/contract_end?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:59:59',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

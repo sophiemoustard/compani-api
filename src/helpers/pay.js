@@ -2,16 +2,12 @@ const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
 const Pay = require('../models/Pay');
+const FinalPay = require('../models/FinalPay');
 const User = require('../models/User');
-const Company = require('../models/Company');
-const DistanceMatrix = require('../models/DistanceMatrix');
-const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
-const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const SectorHistory = require('./sectorHistories');
 
@@ -57,71 +53,45 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.hoursBalanceDetail = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
   const startDate = moment(query.month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(query.month, 'MM-YYYY').endOf('M').toDate();
 
-  if (query.sector) return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, companyId);
+  if (query.sector) return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
 
-  return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, companyId);
+  return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, credentials);
 };
 
-exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, companyId) => {
+exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const sectorsId = await SectorHistory.getAuxiliarySectors(auxiliaryId, companyId, startDate, endDate);
   const month = moment(startDate).format('MM-YYYY');
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return { ...pay, sectors: sectorsId, counterAndDiffRelevant: true };
 
-  const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
-  const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
-  const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
-  const payQuery = { startDate, endDate };
-  const [company, surcharges, distanceMatrix] = await Promise.all([
-    Company.findOne({ _id: companyId }).lean(),
-    Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find({ company: companyId }).lean(),
-  ]);
+  const finalPay = await FinalPay.findOne({ auxiliary: auxiliaryId, month }).lean();
+  if (finalPay) return { ...finalPay, sectors: sectorsId, counterAndDiffRelevant: true };
 
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay(
-    [{ ...auxiliary, prevPay }],
-    payQuery,
-    surcharges,
-    distanceMatrix,
-    companyId
-  );
-  const prevPayWithDiff = prevPayList.length ? prevPayList[0] : null;
+  const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
 
-  const auxiliaryEvents =
-    await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
-  const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
+  const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
+  const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
 
-  const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
-    auxiliary,
-    contract,
-    events,
-    prevPayWithDiff,
-    company,
-    payQuery,
-    distanceMatrix,
-    surcharges
-  );
+  const payQuery = { startDate, endDate };
+  const [draft] = await DraftPayHelper.computeDraftPay([{ ...auxiliary, prevPay }], payQuery, credentials);
 
   const firstMonthContract = moment(startDate).startOf('M').isSameOrBefore(contract.startDate);
 
   return draft ? { ...draft, sectors: sectorsId, counterAndDiffRelevant: !!prevPay || firstMonthContract } : null;
 };
 
-exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyId) => {
+exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const sectors = UtilsHelper.formatObjectIdsArray(sector);
 
-  const auxiliariesIds = await SectorHistoryRepository.getUsersFromSectorHistories(
-    startDate,
-    endDate,
-    sectors,
-    companyId
-  );
+  const auxiliariesIds =
+    await SectorHistoryRepository.getUsersFromSectorHistories(startDate, endDate, sectors, companyId);
   const result = [];
   const auxiliaries = await User.find({ company: companyId, _id: { $in: auxiliariesIds.map(aux => aux.auxiliaryId) } })
     .populate('contracts')
@@ -132,8 +102,10 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, companyI
     const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
     if (!contract) continue;
 
-    const hbd = await exports.hoursBalanceDetailByAuxiliary(auxiliary._id, startDate, endDate, companyId);
-    result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
+    const hbd = await exports.hoursBalanceDetailByAuxiliary(auxiliary._id, startDate, endDate, credentials);
+    if (hbd) {
+      result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
+    }
   }
 
   return result;
