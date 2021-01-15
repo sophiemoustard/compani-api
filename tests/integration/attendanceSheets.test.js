@@ -158,6 +158,36 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
       expect(response.statusCode).toBe(403);
     });
   });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+    const roles = [
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const formData = {
+          course: coursesList[0]._id.toHexString(),
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          date: new Date('2020-01-23').toISOString(),
+        };
+        const form = generateFormData(formData);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/attendancesheets',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
 });
 
 describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
@@ -187,6 +217,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     beforeEach(populateDB);
     const roles = [
       { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
@@ -256,8 +287,9 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     });
 
     const roles = [
+      { name: 'client_admin', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
     ];
 

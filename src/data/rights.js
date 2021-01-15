@@ -22,6 +22,7 @@ const rights = [
   { permission: 'courses:create', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer une formation' },
   { permission: 'courses:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Editer les formations' },
   { permission: 'courses:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Consulter les données des formations' },
+  { permission: 'attendancesheets:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Uploader et supprimer des feuilles d\'émargement' },
   { permission: 'customers:administrative:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer les données administratives de bénéficiaires' },
   { permission: 'customers:create', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Créer ou supprimer des bénéficiaires' },
   { permission: 'customers:edit', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Editer les données de bénéficiaires' },
