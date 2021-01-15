@@ -506,6 +506,20 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if text is too long', async () => {
+      const card = cardsList[11];
+      const answer = card.qcAnswers[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        payload: { text: 'Je suis un text vraiment vraiment vraiment tres tres tres tres tres long', correct: true },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if correct is null', async () => {
       const card = cardsList[6];
       const answer = card.qcAnswers[0];
