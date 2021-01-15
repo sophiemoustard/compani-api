@@ -384,7 +384,7 @@ exports.computeAuxiliaryDraftPay = async (aux, contract, eventsToPay, prevPay, c
   };
 };
 
-exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
+exports.computePrevPayDetailDiff = (prevPay, hours, detailType) => {
   const details = hours && hours[detailType] ? cloneDeep(hours[detailType]) : {};
   if (!prevPay) return details;
 
@@ -424,10 +424,10 @@ exports.computeDiff = (prevPay, hours, absenceDiff, workedHoursDiff) => ({
   paidTransportHours: getDiff(prevPay, hours, 'paidTransportHours'),
   notSurchargedAndNotExempt: getDiff(prevPay, hours, 'notSurchargedAndNotExempt'),
   surchargedAndNotExempt: getDiff(prevPay, hours, 'surchargedAndNotExempt'),
-  surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
+  surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(prevPay, hours, 'surchargedAndNotExemptDetails'),
   notSurchargedAndExempt: getDiff(prevPay, hours, 'notSurchargedAndExempt'),
   surchargedAndExempt: getDiff(prevPay, hours, 'surchargedAndExempt'),
-  surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
+  surchargedAndExemptDetails: exports.computePrevPayDetailDiff(prevPay, hours, 'surchargedAndExemptDetails'),
   hoursBalance: absenceDiff + workedHoursDiff,
 });
 

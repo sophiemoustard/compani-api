@@ -1610,33 +1610,22 @@ describe('computePrevPayDetailDiff', () => {
   it('should compute previous pay if hours and prevPay are defined', () => {
     const hours = {
       surchargedAndExemptDetails: {
-        qwertyuiop: {
-          evenings: { hours: 23 },
-          saturdays: { hours: 23 },
-        },
+        qwertyuiop: { evenings: { hours: 23 }, saturdays: { hours: 23 } },
         asdfghjkl: { christmas: { hours: 5 } },
       },
     };
     const prevPay = {
       surchargedAndExemptDetails: [
-        {
-          planId: 'qwertyuiop',
-          evenings: { hours: 2 },
-          sundays: { hours: 3 },
-        },
+        { planId: 'qwertyuiop', evenings: { hours: 2 }, sundays: { hours: 3 } },
         { planId: 'zxcvbnm', evenings: { hours: 4 } },
       ],
     };
     const detailType = 'surchargedAndExemptDetails';
 
-    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+    const result = DraftPayHelper.computePrevPayDetailDiff(prevPay, hours, detailType);
 
     expect(result).toEqual({
-      qwertyuiop: {
-        evenings: { hours: 21 },
-        saturdays: { hours: 23 },
-        sundays: { hours: -3 },
-      },
+      qwertyuiop: { evenings: { hours: 21 }, saturdays: { hours: 23 }, sundays: { hours: -3 } },
       asdfghjkl: { christmas: { hours: 5 } },
       zxcvbnm: { evenings: { hours: -4 } },
     });
@@ -1645,25 +1634,17 @@ describe('computePrevPayDetailDiff', () => {
   it('should compute previous pay if hours is defined but not prevPay', () => {
     const hours = {
       surchargedAndExemptDetails: {
-        qwertyuiop: {
-          evenings: { hours: 23 },
-          saturdays: { hours: 23 },
-        },
+        qwertyuiop: { evenings: { hours: 23 }, saturdays: { hours: 23 } },
         asdfghjkl: { christmas: { hours: 5 } },
       },
     };
-    const prevPay = {
-      surchargedAndExemptDetails: [],
-    };
+    const prevPay = { surchargedAndExemptDetails: [] };
     const detailType = 'surchargedAndExemptDetails';
 
-    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+    const result = DraftPayHelper.computePrevPayDetailDiff(prevPay, hours, detailType);
 
     expect(result).toEqual({
-      qwertyuiop: {
-        evenings: { hours: 23 },
-        saturdays: { hours: 23 },
-      },
+      qwertyuiop: { evenings: { hours: 23 }, saturdays: { hours: 23 } },
       asdfghjkl: { christmas: { hours: 5 } },
     });
   });
@@ -1672,23 +1653,16 @@ describe('computePrevPayDetailDiff', () => {
     const hours = {};
     const prevPay = {
       surchargedAndExemptDetails: [
-        {
-          planId: 'qwertyuiop',
-          evenings: { hours: 2 },
-          sundays: { hours: 3 },
-        },
+        { planId: 'qwertyuiop', evenings: { hours: 2 }, sundays: { hours: 3 } },
         { planId: 'zxcvbnm', evenings: { hours: 4 } },
       ],
     };
     const detailType = 'surchargedAndExemptDetails';
 
-    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+    const result = DraftPayHelper.computePrevPayDetailDiff(prevPay, hours, detailType);
 
     expect(result).toEqual({
-      qwertyuiop: {
-        evenings: { hours: -2 },
-        sundays: { hours: -3 },
-      },
+      qwertyuiop: { evenings: { hours: -2 }, sundays: { hours: -3 } },
       zxcvbnm: { evenings: { hours: -4 } },
     });
   });
@@ -1716,9 +1690,7 @@ describe('computePrevPayDiff', () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
     const events = [{ _id: new ObjectID() }];
-
-    getContractMonthInfo.returns({ contractHours: 34 });
-    getPayFromEvents.returns({
+    const hours = {
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
       surchargedAndNotExempt: 3,
@@ -1728,7 +1700,9 @@ describe('computePrevPayDiff', () => {
       surchargedAndExemptDetails: {},
       internalHours: 0,
       paidTransportHours: 0,
-    });
+    };
+    getContractMonthInfo.returns({ contractHours: 34 });
+    getPayFromEvents.returns(hours);
     getPayFromAbsences.returns(5);
     computePrevPayDetailDiff.returnsArg(2);
 
@@ -1751,6 +1725,8 @@ describe('computePrevPayDiff', () => {
       },
       hoursCounter: 0,
     });
+    sinon.assert.calledWithExactly(computePrevPayDetailDiff.getCall(0), null, hours, 'surchargedAndNotExemptDetails');
+    sinon.assert.calledWithExactly(computePrevPayDetailDiff.getCall(1), null, hours, 'surchargedAndExemptDetails');
   });
 
   it('should return diff with prevPay', async () => {
@@ -1772,8 +1748,7 @@ describe('computePrevPayDiff', () => {
       internalHours: 1,
       paidTransportHours: 3,
     };
-
-    getPayFromEvents.returns({
+    const hours = {
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
       surchargedAndNotExempt: 3,
@@ -1783,7 +1758,9 @@ describe('computePrevPayDiff', () => {
       surchargedAndExemptDetails: {},
       internalHours: 2,
       paidTransportHours: 4,
-    });
+    };
+
+    getPayFromEvents.returns(hours);
     getPayFromAbsences.returns(-2);
     computePrevPayDetailDiff.returnsArg(2);
 
@@ -1806,6 +1783,13 @@ describe('computePrevPayDiff', () => {
       },
       hoursCounter: 3,
     });
+    sinon.assert.calledWithExactly(
+      computePrevPayDetailDiff.getCall(0),
+      prevPay,
+      hours,
+      'surchargedAndNotExemptDetails'
+    );
+    sinon.assert.calledWithExactly(computePrevPayDetailDiff.getCall(1), prevPay, hours, 'surchargedAndExemptDetails');
   });
 });
 
