@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const Pay = require('../models/Pay');
+const FinalPay = require('../models/FinalPay');
 const User = require('../models/User');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
@@ -67,6 +68,9 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return { ...pay, sectors: sectorsId, counterAndDiffRelevant: true };
 
+  const finalPay = await FinalPay.findOne({ auxiliary: auxiliaryId, month }).lean();
+  if (finalPay) return { ...finalPay, sectors: sectorsId, counterAndDiffRelevant: true };
+
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
@@ -99,7 +103,9 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, credenti
     if (!contract) continue;
 
     const hbd = await exports.hoursBalanceDetailByAuxiliary(auxiliary._id, startDate, endDate, credentials);
-    result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
+    if (hbd) {
+      result.push({ ...hbd, auxiliaryId: auxiliary._id, identity: auxiliary.identity, picture: auxiliary.picture });
+    }
   }
 
   return result;

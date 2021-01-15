@@ -95,7 +95,6 @@ describe('getDraftFinalPayByAuxiliary', () => {
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 16,
       transport: 26.54,
       phoneFees: 29.6,
     };
@@ -113,6 +112,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
+      hoursCounter: 16,
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890' },
       startDate: '2019-05-01T00:00:00',
@@ -154,7 +154,6 @@ describe('getDraftFinalPayByAuxiliary', () => {
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 16,
       transport: 26.54,
       phoneFees: 29.6,
     };
@@ -173,6 +172,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
+      hoursCounter: 4,
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890' },
       startDate: '2019-05-01T00:00:00',

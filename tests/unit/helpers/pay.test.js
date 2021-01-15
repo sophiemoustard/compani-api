@@ -11,6 +11,7 @@ const DraftPayHelper = require('../../../src/helpers/draftPay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
+const FinalPay = require('../../../src/models/FinalPay');
 
 require('sinon-mongoose');
 
@@ -209,6 +210,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
   const prevPay = { _id: new ObjectID() };
 
   let payFindOne;
+  let finalPayFindOne;
   let userFindOne;
   let getAuxiliarySectors;
   let getContractStub;
@@ -216,6 +218,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
   beforeEach(() => {
     payFindOne = sinon.stub(Pay, 'findOne');
+    finalPayFindOne = sinon.stub(FinalPay, 'findOne');
     userFindOne = sinon.stub(User, 'findOne');
     getAuxiliarySectors = sinon.stub(SectorHistoryHelper, 'getAuxiliarySectors');
     getContractStub = sinon.stub(PayHelper, 'getContract');
@@ -224,6 +227,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
   afterEach(() => {
     payFindOne.restore();
+    finalPayFindOne.restore();
     userFindOne.restore();
     getAuxiliarySectors.restore();
     getContractStub.restore();
@@ -238,6 +242,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
     computeDraftPay.returns([draft]);
@@ -250,6 +255,10 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     sinon.assert.calledWithExactly(computeDraftPay, [{ ...auxiliary, prevPay }], query, credentials);
     SinonMongoose.calledWithExactly(
       payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      finalPayFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
@@ -275,6 +284,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
     computeDraftPay.returns([draft]);
@@ -292,6 +302,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
     computeDraftPay.returns([draft]);
@@ -318,6 +329,31 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(userFindOne);
+    sinon.assert.notCalled(finalPayFindOne);
+  });
+
+  it('should return final pay if it exists', async () => {
+    const pay = { _id: new ObjectID() };
+    const sectorId = new ObjectID();
+
+    getAuxiliarySectors.returns([sectorId.toHexString()]);
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([pay], ['lean']));
+
+    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
+
+    expect(result).toEqual({ ...pay, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
+    sinon.assert.notCalled(getContractStub);
+    sinon.assert.notCalled(computeDraftPay);
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      finalPayFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    sinon.assert.notCalled(userFindOne);
   });
 
   it('should return 400 if no contract', async () => {
@@ -327,6 +363,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       getAuxiliarySectors.returns([sectorId.toHexString()]);
 
       payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+      finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
       userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
 
       getContractStub.returns();
@@ -346,6 +383,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
     payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     computeDraftPay.returns([]);
     getContractStub.returns(contract);

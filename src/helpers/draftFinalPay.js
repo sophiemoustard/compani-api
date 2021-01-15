@@ -38,7 +38,7 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, prevPay, company
     hoursCounter,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
     diff: get(prevPay, 'diff') || DraftPayHelper.computeDiff(null, null, 0, 0),
-    previousMonthHoursCounter: get(prevPay, 'hoursCounter'),
+    previousMonthHoursCounter: get(prevPay, 'hoursCounter') || 0,
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,
