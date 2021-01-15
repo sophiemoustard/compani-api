@@ -26,10 +26,16 @@ exports.createCourse = payload => (new Course(payload)).save();
 exports.list = async (query) => {
   if (query.company) {
     if (query.format === STRICTLY_E_LEARNING) {
-      return CourseRepository.findCourseAndPopulate({
+      const courses = await CourseRepository.findCourseAndPopulate({
         format: query.format,
         accessRules: { $in: [query.company, []] },
       });
+
+      return courses.map(course => ({ ...course,
+        trainees: course.trainees.filter((trainee) => {
+          const companyId = get(trainee, 'company._id');
+          return companyId ? companyId.toHexString() === query.company : false;
+        }) }));
     }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
