@@ -31,11 +31,12 @@ exports.list = async (query) => {
         accessRules: { $in: [query.company, []] },
       });
 
-      return courses.map(course => ({ ...course,
-        trainees: course.trainees.filter((trainee) => {
-          const companyId = get(trainee, 'company._id');
-          return companyId ? companyId.toHexString() === query.company : false;
-        }) }));
+      return courses.map(course => (
+        {
+          ...course,
+          trainees: course.trainees.filter(t => (t.company ? query.company === t.company._id.toHexString() : null)),
+        }
+      ));
     }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
