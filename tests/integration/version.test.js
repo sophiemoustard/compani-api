@@ -24,7 +24,7 @@ describe('VERSION TEST', () => {
         url: '/version/check-update?apiVersion=2',
       });
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.mustUpdate).toBeFalsy();
+      expect(response.result.data.mustUpdate).toBeTruthy();
     });
   });
 

@@ -166,10 +166,7 @@ exports.createAndSaveFile = async (params, payload) => {
 exports.createUser = async (userPayload, credentials) => {
   const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
 
-  if (!credentials) {
-    if (userPayload.origin !== MOBILE) return User.create(payload);
-    return User.create(payload);
-  }
+  if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
   if (!userPayload.role) return User.create({ ...payload, company: companyId });

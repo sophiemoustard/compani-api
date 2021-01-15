@@ -13,7 +13,7 @@ describe('shouldUpdate', () => {
 
   it('should return false if api version', async () => {
     const result = await VersionHelper.shouldUpdate({ apiVersion: '1' });
-    expect(result).toBeFalsy();
+    expect(result).toBeTruthy();
   });
 
   it('should return true if lower version in mobile (new version)', async () => {
