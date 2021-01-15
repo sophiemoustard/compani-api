@@ -18,7 +18,7 @@ describe('VERSION TEST', () => {
   });
 
   describe('POST /version/check-update', () => {
-    it('should return false (old version)', async () => {
+    it('should return true (old version)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/version/check-update?apiVersion=2',

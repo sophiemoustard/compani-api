@@ -11,7 +11,7 @@ describe('shouldUpdate', () => {
     process.env.MOBILE_VERSION = '';
   });
 
-  it('should return false if api version', async () => {
+  it('should return true if api version', async () => {
     const result = await VersionHelper.shouldUpdate({ apiVersion: '1' });
     expect(result).toBeTruthy();
   });
