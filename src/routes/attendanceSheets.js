@@ -13,7 +13,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read'] },
+        auth: { scope: ['attendancesheets:read'] },
         validate: {
           query: Joi.object({ course: Joi.objectId() }),
         },

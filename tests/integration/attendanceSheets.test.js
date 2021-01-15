@@ -163,7 +163,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
     beforeEach(populateDB);
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
     ];
@@ -216,7 +215,6 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
     const roles = [
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
@@ -288,7 +286,6 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
 
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
     ];
