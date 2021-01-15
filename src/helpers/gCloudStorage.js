@@ -34,6 +34,8 @@ exports.deleteProgramMedia = async payload => deleteMedia(payload, process.env.G
 
 exports.deleteUserMedia = async payload => deleteMedia(payload, process.env.GCS_USER_BUCKET);
 
+exports.deleteCourseFile = async payload => deleteMedia(payload, process.env.GCS_COURSE_BUCKET);
+
 const deleteMedia = async (publicId, bucketName) => new Promise((resolve, reject) => {
   getStorage().bucket(bucketName).file(publicId).delete({}, (err, res) => {
     if (err) {

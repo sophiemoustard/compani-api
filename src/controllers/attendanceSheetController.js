@@ -31,7 +31,19 @@ const create = async (req) => {
   }
 };
 
+const deleteAttendanceSheet = async (req) => {
+  try {
+    await AttendanceSheetHelper.delete(req.pre.attendanceSheet);
+
+    return { message: translate[language].attendanceSheetDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
+  deleteAttendanceSheet,
 };

@@ -105,3 +105,25 @@ describe('create', () => {
     );
   });
 });
+
+describe('delete', () => {
+  let deleteOne;
+  let deleteCourseFile;
+  beforeEach(() => {
+    deleteOne = sinon.stub(AttendanceSheet, 'deleteOne');
+    deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+    deleteCourseFile.restore();
+  });
+
+  it('should remove an attendance sheet', async () => {
+    const attendanceSheet = { _id: new ObjectID(), file: { publicId: 'yo' } };
+
+    await attendanceSheetHelper.delete(attendanceSheet);
+
+    sinon.assert.calledOnceWithExactly(deleteCourseFile, 'yo');
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceSheet._id });
+  });
+});

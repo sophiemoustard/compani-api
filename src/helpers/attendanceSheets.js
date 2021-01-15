@@ -21,3 +21,9 @@ exports.create = async (payload) => {
 };
 
 exports.list = async query => AttendanceSheet.find({ course: query.course }).lean();
+
+exports.delete = async (attendanceSheet) => {
+  await GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);
+
+  return AttendanceSheet.deleteOne({ _id: attendanceSheet._id });
+};

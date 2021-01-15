@@ -2,9 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create } = require('../controllers/attendanceSheetController');
+const { list, create, deleteAttendanceSheet } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
-const { checkCourseType } = require('./preHandlers/attendanceSheets');
+const { checkCourseType, attendanceSheetExists } = require('./preHandlers/attendanceSheets');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -13,7 +13,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['courses:read'] },
+        auth: { scope: ['attendancesheets:read'] },
         validate: {
           query: Joi.object({ course: Joi.objectId() }),
         },
@@ -34,10 +34,23 @@ exports.plugin = {
             date: Joi.date(),
           }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['attendancesheets:edit'] },
         pre: [{ method: checkCourseType }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['attendancesheets:edit'] },
+        pre: [{ method: attendanceSheetExists, assign: 'attendanceSheet' }],
+      },
+      handler: deleteAttendanceSheet,
     });
   },
 };
