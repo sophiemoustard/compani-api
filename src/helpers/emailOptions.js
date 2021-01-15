@@ -120,7 +120,7 @@ const GooglePlayAndAppStoreButtons = () => `
       </td>
     </tr>
   </table>
-  <p>Google Play et le logo Google Play sont des marques de Google LLC.</p>`;
+  <p style="color: grey; font-size: 8px">Google Play et le logo Google Play sont des marques de Google LLC.</p>`;
 
 module.exports = {
   baseWelcomeContent,
