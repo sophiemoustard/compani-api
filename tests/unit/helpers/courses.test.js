@@ -121,18 +121,38 @@ describe('list', () => {
 
   it('should return company eLearning courses', async () => {
     const companyId = new ObjectID();
+    const traineeId = new ObjectID();
     const coursesList = [
-      { accessRules: [], format: 'strictly_e_learning' },
-      { accessRules: [companyId], format: 'strictly_e_learning' },
+      {
+        accessRules: [],
+        format: 'strictly_e_learning',
+        trainees: [
+          { _id: traineeId, company: { _id: companyId } },
+          { _id: new ObjectID(), company: { _id: new ObjectID() } },
+          { _id: new ObjectID() },
+        ],
+      },
+      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
+    ];
+    const filteredCourseList = [
+      {
+        accessRules: [],
+        format: 'strictly_e_learning',
+        trainees: [
+          { _id: traineeId, company: { _id: companyId } },
+        ],
+      },
+      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
     ];
 
     findCourseAndPopulate.returns(coursesList);
 
     const result = await CourseHelper.list({ company: companyId, format: 'strictly_e_learning' });
-    expect(result).toMatchObject(coursesList);
+    expect(result).toMatchObject(filteredCourseList);
 
     sinon.assert.calledOnceWithExactly(
-      findCourseAndPopulate, { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
+      findCourseAndPopulate,
+      { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
     );
   });
 });
