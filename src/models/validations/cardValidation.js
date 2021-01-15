@@ -83,7 +83,7 @@ exports.cardValidationByTemplate = (template) => {
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         orderedAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
+          text: Joi.string().required(),
         })).min(ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT).max(ORDER_THE_SEQUENCE_MAX_ANSWERS_COUNT),
         explanation: Joi.string().required(),
       });
@@ -122,7 +122,7 @@ exports.cardValidationByTemplate = (template) => {
       return Joi.object().keys({
         question: Joi.string().required().max(QUESTION_MAX_LENGTH),
         qcAnswers: Joi.array().items(Joi.object({
-          text: Joi.string().required(),
+          text: Joi.string().max(QC_ANSWER_MAX_LENGTH).required(),
         })).min(QUESTION_ANSWER_MIN_ANSWERS_COUNT).max(QUESTION_ANSWER_MAX_ANSWERS_COUNT),
       });
     default:
