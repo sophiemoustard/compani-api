@@ -31,12 +31,9 @@ exports.list = async (query) => {
         accessRules: { $in: [query.company, []] },
       });
 
-      return courses.map(course => (
-        {
-          ...course,
-          trainees: course.trainees.filter(t => (t.company ? query.company === t.company._id.toHexString() : null)),
-        }
-      ));
+      return courses.map(course => ({ ...course,
+        trainees: course.trainees.filter(t =>
+          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)) }));
     }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
@@ -49,7 +46,8 @@ exports.list = async (query) => {
       ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
         .map(course => ({
           ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+          trainees: course.trainees.filter(t =>
+            (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
         })),
     ];
   }

@@ -120,39 +120,39 @@ describe('list', () => {
   });
 
   it('should return company eLearning courses', async () => {
-    const payload = { company: new ObjectID(), format: 'strictly_e_learning' };
+    const companyId = new ObjectID();
     const traineeId = new ObjectID();
     const coursesList = [
       {
         accessRules: [],
         format: 'strictly_e_learning',
         trainees: [
-          { _id: traineeId, company: { _id: payload.company } },
+          { _id: traineeId, company: { _id: companyId } },
           { _id: new ObjectID(), company: { _id: new ObjectID() } },
           { _id: new ObjectID() },
         ],
       },
-      { accessRules: [payload.company], format: 'strictly_e_learning', trainees: [] },
+      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
     ];
     const filteredCourseList = [
       {
         accessRules: [],
         format: 'strictly_e_learning',
         trainees: [
-          { _id: traineeId, company: { _id: payload.company } },
+          { _id: traineeId, company: { _id: companyId } },
         ],
       },
-      { accessRules: [payload.company], format: 'strictly_e_learning', trainees: [] },
+      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
     ];
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ ...payload, company: payload.company.toHexString() });
+    const result = await CourseHelper.list({ company: companyId, format: 'strictly_e_learning' });
     expect(result).toMatchObject(filteredCourseList);
 
     sinon.assert.calledOnceWithExactly(
       findCourseAndPopulate,
-      { format: 'strictly_e_learning', accessRules: { $in: [payload.company.toHexString(), []] } }
+      { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
     );
   });
 });
