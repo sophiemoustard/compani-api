@@ -67,8 +67,8 @@ exports.getDraftFinalPay = async (query, credentials) => {
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(a => a._id), companyId);
-  const isJanuary = moment(query.startDate).month() === 0;
-  const prevPayList = isJanuary
+  // Counter is reset on January
+  const prevPayList = moment(query.startDate).month() === 0
     ? []
     : await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
 
