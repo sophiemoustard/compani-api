@@ -47,12 +47,12 @@ describe('getContractMonthInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(104);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );
-    sinon.assert.calledWithExactly(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4);
   });
 });
 
@@ -433,7 +433,7 @@ describe('getTransportInfo', () => {
       destinations: 'paradis',
       mode: 'repos',
     };
-    sinon.assert.calledWithExactly(getOrCreateDistanceMatrix, query, companyId);
+    sinon.assert.calledOnceWithExactly(getOrCreateDistanceMatrix, query, companyId);
     expect(result).toEqual({ duration: 2, distance: 3 });
   });
 });
@@ -552,7 +552,7 @@ describe('getPaidTransportInfo', () => {
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
   it('should compute transit transport', async () => {
@@ -704,7 +704,13 @@ describe('getEventHours', () => {
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
     expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
-    sinon.assert.calledWithExactly(getSurchargeSplit, event, { sunday: 10 }, details, { distance: 12, duration: 30 });
+    sinon.assert.calledOnceWithExactly(
+      getSurchargeSplit,
+      event,
+      { sunday: 10 },
+      details,
+      { distance: 12, duration: 30 }
+    );
   });
 });
 
@@ -883,7 +889,7 @@ describe('getPayFromEvents', () => {
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getMatchingVersion,
       '2019-07-12T09:00:00',
       { versions: [{ startDate: '2019-02-22T00:00:00' }], surcharge: surchargeId },
@@ -936,7 +942,7 @@ describe('getPayFromEvents', () => {
       internalHours: 0,
       paidTransportHours: 2,
     });
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getEventHours,
       { ...events[0][0], auxiliary },
       false,
@@ -991,7 +997,7 @@ describe('getPayFromEvents', () => {
       paidTransportHours: 3,
       internalHours: 0,
     });
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getEventHours,
       { ...events[0][0], auxiliary },
       false,
@@ -1029,7 +1035,7 @@ describe('getPayFromEvents', () => {
       internalHours: 5,
       paidTransportHours: 2,
     });
-    sinon.assert.calledWithExactly(getEventHours, { ...events[0][0], auxiliary }, false, null, {}, []);
+    sinon.assert.calledOnceWithExactly(getEventHours, { ...events[0][0], auxiliary }, false, null, {}, []);
     sinon.assert.notCalled(getMatchingVersion);
   });
 
@@ -1378,8 +1384,8 @@ describe('computeBalance', () => {
       hoursToWork: 131,
       holidaysHours: 3,
     });
-    sinon.assert.calledWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
-    sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
+    sinon.assert.calledOnceWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
+    sinon.assert.calledOnceWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
   });
 
   it('should return balance without phoneFees', async () => {
@@ -1424,8 +1430,8 @@ describe('computeBalance', () => {
       hoursToWork: 131,
       holidaysHours: 3,
     });
-    sinon.assert.calledWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
-    sinon.assert.calledWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
+    sinon.assert.calledOnceWithExactly(getPayFromEvents, [events.events[1]], auxiliary, [], [], query);
+    sinon.assert.calledOnceWithExactly(getPayFromAbsences, [events.absences[0], events.absences[1]], contract, query);
   });
 
   it('should return balance, contract ends during this month', async () => {
@@ -1458,8 +1464,8 @@ describe('computeBalance', () => {
     getTransportRefund.returns(26.54);
 
     await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, [], []);
-    sinon.assert.calledWithExactly(getPayFromEvents, [events.events[0]], auxiliary, [], [], query);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(getPayFromEvents, [events.events[0]], auxiliary, [], [], query);
+    sinon.assert.calledOnceWithExactly(
       getPayFromAbsences,
       [events.absences[0], events.absences[2], events.absences[3]],
       contract,
@@ -1523,7 +1529,7 @@ describe('computeAuxiliaryDraftPay', () => {
       overtimeHours: 0,
       additionalHours: 0,
     });
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computeBalance,
       aux,
       { startDate: '2019-05-13T00:00:00' },
@@ -1593,7 +1599,7 @@ describe('computeAuxiliaryDraftPay', () => {
       overtimeHours: 0,
       additionalHours: 0,
     });
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computeBalance,
       aux,
       { startDate: '2019-05-13T00:00:00' },
@@ -1841,14 +1847,14 @@ describe('getPreviousMonthPay', () => {
     const result = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getEventsToPay,
       moment(query.startDate).subtract(1, 'M').startOf('M').toDate(),
       moment(query.endDate).subtract(1, 'M').endOf('M').toDate(),
       [auxiliaryId],
       companyId
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computePrevPayDiff,
       auxiliaries[0],
       payData[0],
@@ -1947,7 +1953,7 @@ describe('computeDraftPay', () => {
     const result = await DraftPayHelper.computeDraftPay([aux], query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getPreviousMonthPay,
       [aux],
       query,
@@ -1993,7 +1999,7 @@ describe('computeDraftPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getPreviousMonthPay,
       auxiliaries,
       query,
@@ -2001,7 +2007,7 @@ describe('computeDraftPay', () => {
       [{ _id: 'dm' }],
       companyId
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] },
       { _id: '1234567890' },
@@ -2041,7 +2047,7 @@ describe('computeDraftPay', () => {
 
     expect(result).toEqual([{ hoursBalance: 120 }]);
     sinon.assert.notCalled(getPreviousMonthPay);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] },
       { _id: '1234567890' },
@@ -2079,7 +2085,7 @@ describe('getDraftPay', () => {
     const result = await DraftPayHelper.getDraftPay(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getAuxiliariesToPay,
       {
         startDate: { $lte: end },
@@ -2100,7 +2106,7 @@ describe('getDraftPay', () => {
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);
 
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getAuxiliariesToPay,
       {
         startDate: { $lte: end },
@@ -2110,7 +2116,7 @@ describe('getDraftPay', () => {
       'pays',
       credentials.company._id
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       computeDraftPay,
       auxiliaries,
       { startDate: moment(query.startDate).startOf('d').toDate(), endDate: moment(query.endDate).endOf('d').toDate() },

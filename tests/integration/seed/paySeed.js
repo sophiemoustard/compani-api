@@ -95,7 +95,7 @@ const contracts = [{
   company: authCompany._id,
   startDate: '2021-12-03T23:00:00',
   _id: contractId2,
-  endDate: '2022-10-03T23:00:00',
+  endDate: '2022-11-03T23:00:00',
   endNotificationDate: '2022-03-03T23:00:00',
   endReason: 'resignation',
   versions: [
@@ -117,7 +117,7 @@ const contracts = [{
     },
     {
       createdAt: '2021-12-04T16:34:04',
-      endDate: '2022-10-03T23:00:00',
+      endDate: '2022-11-03T23:00:00',
       grossHourlyRate: 10.28,
       startDate: '2022-10-01T23:00:01',
       weeklyHours: 7,
