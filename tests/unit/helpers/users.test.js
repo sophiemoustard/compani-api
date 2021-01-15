@@ -16,7 +16,7 @@ const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
-const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP, MOBILE } = require('../../../src/helpers/constants');
+const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 
 require('sinon-mongoose');
