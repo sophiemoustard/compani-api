@@ -75,6 +75,7 @@ const EventSchema = mongoose.Schema(
     },
     absence: { type: String, enum: ABSENCE_TYPES, required() { return this.type === ABSENCE; } },
     absenceNature: { type: String, enum: ABSENCE_NATURES, required() { return this.type === ABSENCE; } },
+    extension: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     address: {
       type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }),
       required() { return this.type === INTERVENTION; },

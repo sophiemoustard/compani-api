@@ -59,13 +59,16 @@ describe('getContractMonthInfo', () => {
 describe('getDraftFinalPayByAuxiliary', () => {
   let computeBalance;
   let genericData;
+  let computeDiff;
   beforeEach(() => {
     computeBalance = sinon.stub(DraftPayHelper, 'computeBalance');
     genericData = sinon.stub(DraftPayHelper, 'genericData');
+    computeDiff = sinon.stub(DraftPayHelper, 'computeDiff');
   });
   afterEach(() => {
     computeBalance.restore();
     genericData.restore();
+    computeDiff.restore();
   });
 
   it('should return draft pay for one auxiliary', async () => {
@@ -92,7 +95,6 @@ describe('getDraftFinalPayByAuxiliary', () => {
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 16,
       transport: 26.54,
       phoneFees: 29.6,
     };
@@ -110,6 +112,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
+      hoursCounter: 16,
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890' },
       startDate: '2019-05-01T00:00:00',
@@ -125,6 +128,67 @@ describe('getDraftFinalPayByAuxiliary', () => {
       diff: { workedHours: 3, hoursBalance: 2 },
       previousMonthHoursCounter: 10,
     });
+    sinon.assert.notCalled(computeDiff);
+  });
+
+  it('should return draft pay for one auxiliary if no prevPay', async () => {
+    const aux = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [{
+        startDate: '2019-03-02T00:00:00',
+        endDate: '2019-05-17T23:59:59',
+        endReason: 'plus envie',
+        endNotificationDate: '2019-05-12T23:59:59',
+      }],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
+    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const computedPay = {
+      startDate: '2019-05-01T00:00:00',
+      contractHours: 150,
+      workedHours: 138,
+      notSurchargedAndNotExempt: 15,
+      surchargedAndNotExempt: 9,
+      hoursBalance: 4,
+      transport: 26.54,
+      phoneFees: 29.6,
+    };
+    computeBalance.returns(computedPay);
+    computeDiff.returns({ workedHours: 0, hoursBalance: 0 });
+    genericData.returns({
+      auxiliaryId: '1234567890',
+      auxiliary: { _id: '1234567890' },
+      overtimeHours: 0,
+      additionalHours: 0,
+      bonus: 0,
+      month: '05-2019',
+    });
+
+    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(aux, events, null, company, query, [], []);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      ...computedPay,
+      hoursCounter: 4,
+      auxiliaryId: '1234567890',
+      auxiliary: { _id: '1234567890' },
+      startDate: '2019-05-01T00:00:00',
+      overtimeHours: 0,
+      additionalHours: 0,
+      bonus: 0,
+      mutual: false,
+      month: '05-2019',
+      endDate: '2019-05-17T23:59:59',
+      endNotificationDate: '2019-05-12T23:59:59',
+      endReason: 'plus envie',
+      compensation: 0,
+      diff: { workedHours: 0, hoursBalance: 0 },
+      previousMonthHoursCounter: 0,
+    });
+    sinon.assert.calledOnceWithExactly(computeDiff, null, null, 0, 0);
   });
 });
 

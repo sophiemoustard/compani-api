@@ -18,13 +18,23 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.list = async (query) => {
   if (query.company) {
+    if (query.format === STRICTLY_E_LEARNING) {
+      const courses = await CourseRepository.findCourseAndPopulate({
+        format: query.format,
+        accessRules: { $in: [query.company, []] },
+      });
+
+      return courses.map(course => ({ ...course,
+        trainees: course.trainees.filter(t =>
+          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)) }));
+    }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(
       { ...omit(query, ['company']), type: INTER_B2B },
@@ -36,7 +46,8 @@ exports.list = async (query) => {
       ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
         .map(course => ({
           ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t => query.company === t.company._id.toHexString()),
+          trainees: course.trainees.filter(t =>
+            (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
         })),
     ];
   }

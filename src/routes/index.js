@@ -175,4 +175,8 @@ exports.routes = [
     plugin: require('./categories'),
     routes: { prefix: '/categories' },
   },
+  {
+    plugin: require('./attendanceSheets'),
+    routes: { prefix: '/attendancesheets' },
+  },
 ];

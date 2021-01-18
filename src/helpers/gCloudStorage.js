@@ -7,6 +7,8 @@ exports.uploadProgramMedia = async payload => uploadMedia(payload, process.env.G
 
 exports.uploadUserMedia = async payload => uploadMedia(payload, process.env.GCS_USER_BUCKET);
 
+exports.uploadCourseFile = async payload => uploadMedia(payload, process.env.GCS_COURSE_BUCKET);
+
 const formatFileName = fileName =>
   `media-${fileName.replace(/[^a-zA-Z0-9]/g, '')}-${moment().format(UPLOAD_DATE_FORMAT)}`;
 
@@ -31,6 +33,8 @@ const uploadMedia = async (payload, bucketName) => new Promise((resolve, reject)
 exports.deleteProgramMedia = async payload => deleteMedia(payload, process.env.GCS_PROGRAM_BUCKET);
 
 exports.deleteUserMedia = async payload => deleteMedia(payload, process.env.GCS_USER_BUCKET);
+
+exports.deleteCourseFile = async payload => deleteMedia(payload, process.env.GCS_COURSE_BUCKET);
 
 const deleteMedia = async (publicId, bucketName) => new Promise((resolve, reject) => {
   getStorage().bucket(bucketName).file(publicId).delete({}, (err, res) => {

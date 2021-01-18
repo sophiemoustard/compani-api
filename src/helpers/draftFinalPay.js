@@ -37,8 +37,8 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, prevPay, company
     startDate: moment(query.startDate).isBefore(contract.startDate) ? contract.startDate : query.startDate,
     hoursCounter,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
-    diff: prevPay.diff,
-    previousMonthHoursCounter: prevPay.hoursCounter,
+    diff: get(prevPay, 'diff') || DraftPayHelper.computeDiff(null, null, 0, 0),
+    previousMonthHoursCounter: get(prevPay, 'hoursCounter') || 0,
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,
@@ -67,7 +67,10 @@ exports.getDraftFinalPay = async (query, credentials) => {
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(a => a._id), companyId);
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
+  // Counter is reset on January
+  const prevPayList = moment(query.startDate).month() === 0
+    ? []
+    : await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
 
   const draftFinalPay = [];
   for (const auxiliary of auxiliaries) {
