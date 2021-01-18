@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const handlebars = require('handlebars');
 const path = require('path');
 const fs = require('fs');
@@ -93,7 +94,33 @@ const welcomeTraineeContent = () => `<p>Bonjour,</p>
     à cliquer sur “c’est ma première connexion” pour vous créer un mot de passe. 
   </p>
   <p>Bien cordialement,<br>
-    L'équipe Compani</p>`;
+    L'équipe Compani</p>
+  <br>
+  ${GooglePlayAndAppStoreButtons()}
+  `;
+
+const GooglePlayAndAppStoreButtons = () => `
+  <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <table cellspacing="0" cellpadding="0">
+          <tr>
+            <td>
+              <a href="https://apps.apple.com/us/app/compani-formation/id1516691161?itsct=apps_box&amp;itscg=30200" style="display: inline-block;">
+                <img src="https://storage.googleapis.com/compani-main/appstore-logo.png" alt="Download on the App Store" style="height: 40px;">
+              </a>
+            </td>
+            <td>
+              <a href="https://play.google.com/store/apps/details?id=com.alenvi.compani&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1" target="_blank" style="display: inline-block;">
+                <img style="height: 60px" alt='Disponible sur Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/fr_badge_web_generic.png' />
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <p style="color: grey; font-size: 8px">Google Play et le logo Google Play sont des marques de Google LLC.</p>`;
 
 module.exports = {
   baseWelcomeContent,
