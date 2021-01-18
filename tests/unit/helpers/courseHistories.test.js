@@ -10,7 +10,6 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
 } = require('../../../src/helpers/constants');
-require('sinon-mongoose');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createHistory', () => {
