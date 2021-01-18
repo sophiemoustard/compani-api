@@ -106,15 +106,15 @@ const GooglePlayAndAppStoreButtons = () => `
         <table cellspacing="0" cellpadding="0">
           <tr>
             <td>
-              <a href="https://apps.apple.com/us/app/compani-formation/id1516691161?itsct=apps_box&amp;itscg=30200" target="_blank" style="display: inline-block; padding-right: 15px">
-                <img style="width: 140px" alt='Disponible sur App Store' src='https://storage.googleapis.com/compani-main/app-store-logo.png' />
+              <a href="https://apps.apple.com/us/app/compani-formation/id1516691161?itsct=apps_box&amp;itscg=30200" style="display: inline-block;">
+                <img src="https://storage.googleapis.com/compani-main/appstore-logo.png" alt="Download on the App Store" style="height: 40px;">
               </a>
             </td>
             <td>
-            <a href="https://play.google.com/store/apps/details?id=com.alenvi.compani&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1" target="_blank" style="display: inline-block;">
-              <img style="width: 150px" alt='Disponible sur Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/fr_badge_web_generic.png' />           
-            </a>
-          </td>
+              <a href="https://play.google.com/store/apps/details?id=com.alenvi.compani&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1" target="_blank" style="display: inline-block;">
+                <img style="height: 60px" alt='Disponible sur Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/fr_badge_web_generic.png' />
+              </a>
+            </td>
           </tr>
         </table>
       </td>
