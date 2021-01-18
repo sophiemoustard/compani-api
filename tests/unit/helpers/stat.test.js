@@ -6,8 +6,6 @@ const StatsHelper = require('../../../src/helpers/stats');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const StatRepository = require('../../../src/repositories/StatRepository');
 
-require('sinon-mongoose');
-
 describe('getCustomerFundingsMonitoring', () => {
   const fundingsDate = {
     maxStartDate: moment().endOf('month').toDate(),

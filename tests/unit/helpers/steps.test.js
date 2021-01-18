@@ -5,7 +5,6 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
 const { E_LEARNING } = require('../../../src/helpers/constants');
-require('sinon-mongoose');
 
 describe('updateStep', () => {
   let updateOne;
