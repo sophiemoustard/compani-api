@@ -8,6 +8,7 @@ const Pay = require('../../../src/models/Pay');
 const User = require('../../../src/models/User');
 const PayHelper = require('../../../src/helpers/pay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
+const DraftFinalPayHelper = require('../../../src/helpers/draftFinalPay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
@@ -200,11 +201,11 @@ describe('hoursBalanceDetail', () => {
 
 describe('hoursBalanceDetailByAuxiliary', () => {
   const auxiliaryId = new ObjectID();
-  const month = moment().format('MM-YYYY');
-  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
-  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
+  const month = '09-2022';
+  const startDate = '2022-09-01T00:00:00';
+  const endDate = '2022-09-30T23:59:59';
   const query = { startDate, endDate };
-  const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
+  const prevMonth = '08-2022';
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
   const prevPay = { _id: new ObjectID() };
@@ -215,6 +216,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
   let getAuxiliarySectors;
   let getContractStub;
   let computeDraftPay;
+  let computeDraftFinalPay;
 
   beforeEach(() => {
     payFindOne = sinon.stub(Pay, 'findOne');
@@ -223,6 +225,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     getAuxiliarySectors = sinon.stub(SectorHistoryHelper, 'getAuxiliarySectors');
     getContractStub = sinon.stub(PayHelper, 'getContract');
     computeDraftPay = sinon.stub(DraftPayHelper, 'computeDraftPay');
+    computeDraftFinalPay = sinon.stub(DraftFinalPayHelper, 'computeDraftFinalPay');
   });
 
   afterEach(() => {
@@ -232,11 +235,12 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     getAuxiliarySectors.restore();
     getContractStub.restore();
     computeDraftPay.restore();
+    computeDraftFinalPay.restore();
   });
 
   it('should return draftPay', async () => {
     const sectorId = new ObjectID();
-    const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
+    const auxiliary = { _id: auxiliaryId, contracts: [{ startDate: '2018-11-01' }] };
     const contract = { startDate: '2018-11-12' };
     const draft = { name: 'brouillon' };
 
@@ -276,10 +280,52 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     );
   });
 
+  it('should return draftFinalPay if contract ends on period', async () => {
+    const sectorId = new ObjectID();
+    const auxiliary = { _id: auxiliaryId, contracts: [{ startDate: '2018-11-01' }] };
+    const contract = { startDate: '2018-11-12', endDate: '2022-09-27' };
+    const draft = { name: 'brouillon' };
+
+    getAuxiliarySectors.returns([sectorId.toHexString()]);
+    payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    getContractStub.returns(contract);
+    computeDraftFinalPay.returns([draft]);
+
+    const result = await PayHelper.hoursBalanceDetailByAuxiliary(auxiliaryId, startDate, endDate, credentials);
+
+    expect(result).toEqual({ ...draft, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
+    sinon.assert.calledWithExactly(getAuxiliarySectors, auxiliaryId, companyId, startDate, endDate);
+    sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
+    sinon.assert.calledWithExactly(computeDraftFinalPay, [{ ...auxiliary, prevPay }], query, credentials);
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      finalPayFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      payFindOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month: prevMonth }] }, { query: 'lean' }],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
   it('should return draftPay with counterAndDiffRelevant if contract has just started', async () => {
     const sectorId = new ObjectID();
     const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
-    const contract = { startDate: moment().startOf('day').toDate() };
+    const contract = { startDate: '2022-09-12T00:00:00' };
     const draft = { name: 'brouillon' };
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
