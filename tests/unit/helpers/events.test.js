@@ -108,6 +108,28 @@ describe('list', () => {
   });
 });
 
+describe('isRepetition', () => {
+  it('should return true if event is repetition with frequency not never', () => {
+    const res = EventHelper.isRepetition({ repetition: { frequency: 'every_week' } });
+    expect(res).toBe(true);
+  });
+
+  it('should return false if event is repetition with frequency never', () => {
+    const res = EventHelper.isRepetition({ repetition: { frequency: 'never' } });
+    expect(res).toBe(false);
+  });
+
+  it('should return false if event is repetition without frequency', () => {
+    const res = EventHelper.isRepetition({ repetition: { id: '123' } });
+    expect(res).toBe(false);
+  });
+
+  it('should return false if event is not a repetition', () => {
+    const res = EventHelper.isRepetition({ repetition: { id: '123' } });
+    expect(res).toBe(false);
+  });
+});
+
 describe('formatEditionPayload', () => {
   it('Case 1: event is detached from repetition', () => {
     const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID(), misc: 'lalalal' };

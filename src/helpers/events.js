@@ -36,7 +36,7 @@ momentRange.extendMoment(moment);
 const { language } = translate;
 
 exports.isRepetition = event =>
-  event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+  !!event.repetition && !!event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
