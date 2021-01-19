@@ -208,15 +208,14 @@ exports.isMiscOnlyUpdated = (event, payload) => {
   return (payload.misc !== event.misc && isEqual(mainEventInfo, mainPayloadInfo));
 };
 
-exports.formatEditionPayload = (event, payload) => {
-  const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
+exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
   let unset = null;
   let set = payload;
   if (!payload.isCancelled && event.isCancelled) {
     unset = { cancel: '' };
   }
 
-  if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
+  if (detachFromRepetition) set = { ...set, 'repetition.frequency': NEVER };
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
   else unset = { ...unset, sector: '' };
@@ -248,7 +247,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
-    const payload = exports.formatEditionPayload(event, eventPayload);
+    const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
+    const payload = exports.formatEditionPayload(event, eventPayload, isRepetition(event) && !miscUpdatedOnly);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
 

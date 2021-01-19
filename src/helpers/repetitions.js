@@ -1,6 +1,7 @@
 const moment = require('moment');
 const omit = require('lodash/omit');
 const Repetition = require('../models/Repetition');
+const EventsHelper = require('./events');
 
 exports.updateRepetitions = async (eventPayload, parentId) => {
   const repetition = await Repetition.findOne({ parentId });
@@ -15,7 +16,7 @@ exports.updateRepetitions = async (eventPayload, parentId) => {
     .hours(eventEndDate.hours())
     .minutes(eventEndDate.minutes()).toISOString();
 
-  const repetitionPayload = { $set: { ...omit(eventPayload, ['_id']), startDate, endDate } };
-  if (!eventPayload.auxiliary) repetitionPayload.$unset = { auxiliary: '' };
-  await Repetition.findOneAndUpdate({ parentId }, repetitionPayload);
+  const repetitionPayload = { ...omit(eventPayload, ['_id']), startDate, endDate };
+  const payload = EventsHelper.formatEditionPayload(repetition, repetitionPayload, false);
+  await Repetition.findOneAndUpdate({ parentId }, payload);
 };

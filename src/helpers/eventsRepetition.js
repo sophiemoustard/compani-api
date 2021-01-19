@@ -19,8 +19,10 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
+const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
+const Utils = require('./utils');
 
 momentRange.extendMoment(moment);
 
@@ -151,21 +153,16 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       .minutes(parentEndDate.minutes()).toISOString();
     let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
 
-    let unset;
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
+    let detachFromRepetition = false;
     if (eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts) {
-      eventToSet = {
-        ...omit(eventToSet, ['repetition.frequency', 'auxiliary']),
-        sector: sectorId,
-        'repetition.frequency': NEVER,
-      };
-      unset = { auxiliary: '' };
+      eventToSet = { ...omit(eventToSet, ['auxiliary']), sector: sectorId };
+      detachFromRepetition = true;
     } else if (!eventPayload.auxiliary) {
       eventToSet = { ...omit(eventToSet, 'auxiliary'), sector: sectorId };
-      unset = { auxiliary: '' };
     }
 
-    const payload = unset ? { $set: eventToSet, $unset: unset } : { $set: eventToSet };
+    const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
     promises.push(Event.updateOne({ _id: events[i]._id }, { ...payload }));
   }
   await Promise.all([
