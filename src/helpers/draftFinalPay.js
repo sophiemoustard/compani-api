@@ -22,7 +22,7 @@ exports.getContractMonthInfo = (contract, query) => {
   return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
 };
 
-exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, prevPay, company, query, dm, surcharges) => {
+exports.computeAuxiliaryDraftFinalPay = async (auxiliary, events, prevPay, company, query, dm, surcharges) => {
   const { contracts } = auxiliary;
   const contract = contracts.find(cont => cont.endDate);
 
@@ -77,7 +77,8 @@ exports.getDraftFinalPay = async (query, credentials) => {
     const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) ||
       { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const draft = await exports.getDraftFinalPayByAuxiliary(auxiliary, events, prevPay, company, query, dm, surcharges);
+    const draft =
+      await exports.computeAuxiliaryDraftFinalPay(auxiliary, events, prevPay, company, query, dm, surcharges);
     if (draft) draftFinalPay.push(draft);
   }
 

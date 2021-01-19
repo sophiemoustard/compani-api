@@ -56,7 +56,7 @@ describe('getContractMonthInfo', () => {
   });
 });
 
-describe('getDraftFinalPayByAuxiliary', () => {
+describe('computeAuxiliaryDraftFinalPay', () => {
   let computeBalance;
   let genericData;
   let computeDiff;
@@ -108,7 +108,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       month: '05-2019',
     });
 
-    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(aux, events, prevPay, company, query, [], []);
+    const result = await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(aux, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
@@ -168,7 +168,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       month: '05-2019',
     });
 
-    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(aux, events, null, company, query, [], []);
+    const result = await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(aux, events, null, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
@@ -200,7 +200,7 @@ describe('getDraftPay', () => {
   let surchargeMock;
   let distanceMatrixMock;
   let getPreviousMonthPay;
-  let getDraftFinalPayByAuxiliary;
+  let computeAuxiliaryDraftFinalPay;
 
   beforeEach(() => {
     getAuxiliariesToPay = sinon.stub(ContractRepository, 'getAuxiliariesToPay');
@@ -210,7 +210,7 @@ describe('getDraftPay', () => {
     distanceMatrixMock = sinon.mock(DistanceMatrix);
     findPay = sinon.stub(FinalPay, 'find');
     getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
-    getDraftFinalPayByAuxiliary = sinon.stub(DraftFinalPayHelper, 'getDraftFinalPayByAuxiliary');
+    computeAuxiliaryDraftFinalPay = sinon.stub(DraftFinalPayHelper, 'computeAuxiliaryDraftFinalPay');
   });
 
   afterEach(() => {
@@ -221,7 +221,7 @@ describe('getDraftPay', () => {
     distanceMatrixMock.restore();
     findPay.restore();
     getPreviousMonthPay.restore();
-    getDraftFinalPayByAuxiliary.restore();
+    computeAuxiliaryDraftFinalPay.restore();
   });
 
   it('should return an empty array if no auxiliary', async () => {
@@ -281,7 +281,7 @@ describe('getDraftPay', () => {
     findPay.returns(existingPay);
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
-    getDraftFinalPayByAuxiliary.returns({ hoursBalance: 120 });
+    computeAuxiliaryDraftFinalPay.returns({ hoursBalance: 120 });
     const result = await DraftFinalPayHelper.getDraftFinalPay(query, credentials);
 
     expect(result).toBeDefined();
@@ -303,7 +303,7 @@ describe('getDraftPay', () => {
       credentials.company._id
     );
     sinon.assert.calledWithExactly(
-      getDraftFinalPayByAuxiliary,
+      computeAuxiliaryDraftFinalPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       {
         events: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] }],
