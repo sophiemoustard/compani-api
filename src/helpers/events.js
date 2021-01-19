@@ -35,7 +35,8 @@ momentRange.extendMoment(moment);
 
 const { language } = translate;
 
-const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+exports.isRepetition = event =>
+  event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -58,7 +59,7 @@ exports.createEvent = async (payload, credentials) => {
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  const isRepeatedEvent = isRepetition(event);
+  const isRepeatedEvent = exports.isRepetition(event);
   const hasConflicts = await EventsValidationHelper.hasConflicts(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
     const auxiliary = await User.findOne({ _id: event.auxiliary })
@@ -248,7 +249,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
     const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
-    const payload = exports.formatEditionPayload(event, eventPayload, isRepetition(event) && !miscUpdatedOnly);
+    const payload = exports.formatEditionPayload(event, eventPayload, exports.isRepetition(event) && !miscUpdatedOnly);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
 

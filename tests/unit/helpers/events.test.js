@@ -109,56 +109,37 @@ describe('list', () => {
 });
 
 describe('formatEditionPayload', () => {
-  let isMiscOnlyUpdated;
-  beforeEach(() => {
-    isMiscOnlyUpdated = sinon.stub(EventHelper, 'isMiscOnlyUpdated');
-  });
-  afterEach(() => {
-    isMiscOnlyUpdated.restore();
-  });
-
-  it('Case 1: event is in repetition and misc is not the only field updated', () => {
+  it('Case 1: event is detached from repetition', () => {
     const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID(), misc: 'lalalal' };
     const event = { repetition: { frequency: EVERY_WEEK } };
-    isMiscOnlyUpdated.returns(false);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
+    const result = EventHelper.formatEditionPayload(event, payload, true);
 
     expect(result).toEqual({ $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } });
   });
-  it('Case 2: event is in repetition and misc is the only field updated', () => {
+
+  it('Case 2: event is not detached from repetition', () => {
     const payload = { misc: 'lalala' };
     const event = { repetition: { frequency: EVERY_WEEK } };
-    isMiscOnlyUpdated.returns(true);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
+    const result = EventHelper.formatEditionPayload(event, payload, false);
 
     expect(result).toEqual({ $set: payload, $unset: { auxiliary: '' } });
   });
-  it('Case 3: event is in repetition and misc is not updated', () => {
-    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
-    const event = { repetition: { frequency: EVERY_WEEK } };
-    isMiscOnlyUpdated.returns(false);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
-
-    expect(result).toEqual({ $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } });
-  });
   it('Case 4: auxiliary is in payload', () => {
     const payload = { startDate: '2019-01-10T10:00:00', auxiliary: new ObjectID() };
     const event = {};
-    isMiscOnlyUpdated.returns(true);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
+    const result = EventHelper.formatEditionPayload(event, payload, false);
 
     expect(result).toEqual({ $set: payload, $unset: { sector: '' } });
   });
   it('Case 5: remove cancellation', () => {
     const payload = { isCancelled: false, startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
     const event = { isCancelled: true, cancel: { reason: AUXILIARY_INITIATIVE } };
-    isMiscOnlyUpdated.returns(true);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
+    const result = EventHelper.formatEditionPayload(event, payload, false);
 
     expect(result).toEqual({ $set: { ...payload, isCancelled: false }, $unset: { auxiliary: '', cancel: '' } });
   });
@@ -166,9 +147,8 @@ describe('formatEditionPayload', () => {
     const auxiliary = new ObjectID();
     const payload = { address: {}, auxiliary };
     const event = { auxiliary };
-    isMiscOnlyUpdated.returns(true);
 
-    const result = EventHelper.formatEditionPayload(event, payload);
+    const result = EventHelper.formatEditionPayload(event, payload, false);
 
     expect(result).toEqual({ $set: payload, $unset: { address: '', sector: '' } });
   });
@@ -183,6 +163,9 @@ describe('updateEvent', () => {
   let unassignConflictInterventions;
   let populateEventSubscription;
   let isUpdateAllowed;
+  let isMiscOnlyUpdated;
+  let isRepetition;
+
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
@@ -195,6 +178,8 @@ describe('updateEvent', () => {
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
     formatEditionPayload = sinon.stub(EventHelper, 'formatEditionPayload');
     isUpdateAllowed = sinon.stub(EventsValidationHelper, 'isUpdateAllowed');
+    isMiscOnlyUpdated = sinon.stub(EventHelper, 'isMiscOnlyUpdated');
+    isRepetition = sinon.stub(EventHelper, 'isRepetition');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
@@ -205,6 +190,8 @@ describe('updateEvent', () => {
     unassignConflictInterventions.restore();
     formatEditionPayload.restore();
     isUpdateAllowed.restore();
+    isMiscOnlyUpdated.restore();
+    isRepetition.restore();
   });
 
   it('should update repetition', async () => {
@@ -240,7 +227,8 @@ describe('updateEvent', () => {
 
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.called(updateRepetition);
+    sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials);
+    sinon.assert.notCalled(isRepetition);
     EventMock.verify();
   });
 
@@ -249,10 +237,59 @@ describe('updateEvent', () => {
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
     const auxiliaryId = new ObjectID();
-    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
-    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
+    const event = { _id: eventId, type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T12:38:18',
+      auxiliary: auxiliaryId.toHexString(),
+      misc: 'test',
+    };
 
     isUpdateAllowed.returns(true);
+    isMiscOnlyUpdated.returns(false);
+    isRepetition.returns(false);
+    formatEditionPayload.returns({ $set: {}, unset: {} });
+    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns({ ...event, updated: 1 });
+
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, { ...event, updated: 1 });
+    sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(isRepetition, event);
+    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
+    sinon.assert.notCalled(unassignConflictInterventions);
+    sinon.assert.notCalled(updateRepetition);
+  });
+
+  it('should update event when misc is updates among other fields', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString(), misc: '123' };
+
+    isUpdateAllowed.returns(true);
+    isMiscOnlyUpdated.returns(false);
+    isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
     EventMock.expects('findOne')
@@ -273,7 +310,78 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload, credentials);
 
     EventMock.verify();
-    sinon.assert.notCalled(updateRepetition);
+    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
+  });
+
+  it('should update event when misc is updates among other fields and event is not a repetition', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString(), misc: '123' };
+
+    isUpdateAllowed.returns(true);
+    isMiscOnlyUpdated.returns(false);
+    isRepetition.returns(false);
+    formatEditionPayload.returns({ $set: {}, unset: {} });
+    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
+  });
+
+  it('should update event when only misc is updated', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
+    const payload = { misc: '123' };
+
+    isUpdateAllowed.returns(true);
+    isMiscOnlyUpdated.returns(true);
+    isRepetition.returns(true);
+    formatEditionPayload.returns({ $set: {}, unset: {} });
+    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
+    EventMock.expects('findOne')
+      .withExactArgs({ _id: event._id })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
 
   it('should update absence', async () => {
@@ -291,6 +399,7 @@ describe('updateEvent', () => {
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
     isUpdateAllowed.returns(true);
+    isMiscOnlyUpdated.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
     EventMock.expects('findOne')
@@ -322,6 +431,7 @@ describe('updateEvent', () => {
       event.auxiliary,
       credentials
     );
+    sinon.assert.notCalled(isMiscOnlyUpdated);
     EventMock.verify();
   });
 
@@ -348,6 +458,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(isMiscOnlyUpdated);
       EventMock.verify();
     }
   });
