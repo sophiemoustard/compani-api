@@ -74,7 +74,6 @@ describe('POST /users', () => {
       expect(user.identity.lastname).toBe('Kirk');
       expect(user.local.email).toBe('newuser@alenvi.io');
       expect(user.contact.phone).toBe('0606060606');
-      expect(user.firstMobileConnection).toBeDefined();
       expect(res.result.data.user.refreshToken).not.toBeDefined();
       expect(res.result.data.user.local.password).not.toBeDefined();
     });
@@ -121,7 +120,6 @@ describe('POST /users', () => {
       expect(res.result.data.user.identity.lastname).toBe(payload.identity.lastname);
       expect(res.result.data.user.local.email).toBe(payload.local.email);
       expect(res.result.data.user.serialNumber).toEqual(expect.any(String));
-      expect(res.result.data.user.firstMobileConnection).toBeUndefined();
 
       const userSectorHistory = await SectorHistory
         .findOne({ auxiliary: res.result.data.user._id, sector: userSectors[0]._id, startDate: { $exists: false } })

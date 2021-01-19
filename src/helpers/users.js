@@ -13,7 +13,7 @@ const Company = require('../models/Company');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, MOBILE } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GdriveStorageHelper = require('./gdriveStorage');
 const UtilsHelper = require('./utils');
@@ -166,10 +166,7 @@ exports.createAndSaveFile = async (params, payload) => {
 exports.createUser = async (userPayload, credentials) => {
   const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
 
-  if (!credentials) {
-    if (userPayload.origin !== MOBILE) return User.create(payload);
-    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
-  }
+  if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
   if (!userPayload.role) return User.create({ ...payload, company: companyId });
