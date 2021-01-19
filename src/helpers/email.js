@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const AuthenticationHelper = require('./authentication');
-const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN } = require('./constants');
+const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN, TRAINEE } = require('./constants');
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
   ? NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions)
@@ -71,6 +71,17 @@ exports.sendWelcome = async (type, email, company) => {
   let subject = 'Bienvenue dans votre espace Compani';
   let customContent;
   const options = { passwordToken, companyName: 'Compani' };
+
+  if (type === TRAINEE) {
+    const mailOptions = {
+      from: `Compani <${SENDER_MAIL}>`,
+      to: email,
+      subject,
+      html: EmailOptionsHelper.welcomeTraineeContent(),
+    };
+
+    return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
+  }
 
   switch (type) {
     case HELPER:

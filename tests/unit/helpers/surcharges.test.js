@@ -194,7 +194,7 @@ describe('getEventSurcharges', () => {
   const dailySurcharges = [
     { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december', name: '25 Décembre' },
     { key: 'firstOfMay', date: '2019-05-01', label: '1st of May', name: '1er Mai' },
-    { key: 'publicHoliday', date: '2019-07-14', label: 'holiday', name: 'Jour férié' },
+    { key: 'publicHoliday', date: '2022-07-14', label: 'holiday', name: 'Jour férié' },
     { key: 'saturday', date: '2019-08-17', label: 'saturday', name: 'Samedi' },
     { key: 'sunday', date: '2019-08-18', label: 'sunday', name: 'Dimanche' },
   ];
@@ -230,7 +230,7 @@ describe('getEventSurcharges', () => {
 
   it('should return holiday and not sunday surcharge', () => {
     getCustomSurchargeStub.returnsArg(4);
-    const event = { startDate: '2019-07-14T07:00:00', endDate: '2019-07-14T09:00:00' };
+    const event = { startDate: '2022-07-14T07:00:00', endDate: '2022-07-14T09:00:00' };
     const surcharge = { sunday: 10, publicHoliday: 20 };
     expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
       percentage: 20,

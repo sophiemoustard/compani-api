@@ -3,6 +3,7 @@ const momentRange = require('moment-range');
 const Holidays = require('date-holidays');
 
 momentRange.extendMoment(moment);
+
 const holidays = new Holidays('FR');
 const now = new Date();
 const currentYear = now.getFullYear();
@@ -16,6 +17,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6],
 });
+
 moment.tz.setDefault('Europe/Paris');
 
 module.exports = moment;

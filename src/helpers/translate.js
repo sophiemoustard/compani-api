@@ -268,7 +268,12 @@ module.exports = {
     courseSlotConflict: 'Course slot in conflict.',
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
-    activityHistoryFound: 'Activity history found.',
+    activityHistoriesFound: 'Activity histories found.',
+    /* AttendanceSheets */
+    attendanceSheetCreated: 'AttendanceSheet created.',
+    attendanceSheetsFound: 'AttendanceSheets found.',
+    attendanceSheetsNotFound: 'AttendanceSheets not found.',
+    attendanceSheetDeleted: 'AttendanceSheet deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -536,6 +541,11 @@ module.exports = {
     courseSlotConflict: 'Créneau de formation en conflit.',
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
-    activityHistoryFound: 'Historique d\'activité trouvé.',
+    activityHistoriesFound: 'Historiques d\'activité trouvés.',
+    /* AttendanceSheets */
+    attendanceSheetCreated: 'Feuille d\'émargement créée.',
+    attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
+    attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
+    attendanceSheetDeleted: 'Feuille d\'émargement supprimée.',
   },
 };

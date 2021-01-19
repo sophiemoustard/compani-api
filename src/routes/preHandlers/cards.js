@@ -21,6 +21,7 @@ const {
   ORDER_THE_SEQUENCE_MIN_ANSWERS_COUNT,
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
+  QC_ANSWER_MAX_LENGTH,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -113,6 +114,8 @@ exports.authorizeCardAnswerUpdate = async (req) => {
   if (has(req.payload, 'correct') && card.template !== MULTIPLE_CHOICE_QUESTION) throw Boom.badRequest();
 
   if (card.template === FILL_THE_GAPS && !isValidAnswerCaracters(req.payload.text)) throw Boom.badRequest();
+  if ([SINGLE_CHOICE_QUESTION, MULTIPLE_CHOICE_QUESTION, QUESTION_ANSWER].includes(card.template) &&
+    req.payload.text && req.payload.text.length > QC_ANSWER_MAX_LENGTH) throw Boom.badRequest();
 
   return card;
 };

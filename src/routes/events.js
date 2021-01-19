@@ -68,6 +68,7 @@ exports.plugin = {
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
             absenceNature: Joi.string().valid(...ABSENCE_NATURES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            extension: Joi.objectId(),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),

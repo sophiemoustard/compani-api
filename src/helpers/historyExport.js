@@ -164,6 +164,8 @@ const absenceExportHeader = [
   'Début',
   'Fin',
   'Equivalent heures contrat',
+  'Prolongation',
+  'Absence d\'origine',
   'Divers',
 ];
 
@@ -182,6 +184,8 @@ exports.formatAbsence = (absence) => {
     moment(absence.startDate).format(datetimeFormat),
     moment(absence.endDate).format(datetimeFormat),
     UtilsHelper.formatFloatForExport(hours),
+    absence.extension ? 'oui' : 'non',
+    absence.extension ? moment(absence.extension.startDate).format(datetimeFormat) : '',
     absence.misc || '',
   ];
 };

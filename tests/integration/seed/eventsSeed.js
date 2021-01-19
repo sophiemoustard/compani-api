@@ -23,6 +23,7 @@ const {
   ABSENCE,
   INTERVENTION,
   WEBAPP,
+  PARENTAL_LEAVE,
 } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
@@ -684,6 +685,18 @@ const eventsList = [
       city: 'Antony',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    repetition: { frequency: NEVER },
+    type: ABSENCE,
+    absence: PARENTAL_LEAVE,
+    absenceNature: DAILY,
+    startDate: '2019-01-19T14:00:18.653Z',
+    endDate: '2019-01-19T17:00:18.653Z',
+    auxiliary: auxiliaries[0]._id,
+    createdAt: '2019-01-11T08:38:18.653Z',
   },
 ];
 
