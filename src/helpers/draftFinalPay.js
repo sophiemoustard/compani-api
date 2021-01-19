@@ -46,10 +46,39 @@ exports.computeAuxiliaryDraftFinalPay = async (auxiliary, events, prevPay, compa
   };
 };
 
-exports.getDraftFinalPay = async (query, credentials) => {
-  const start = moment(query.startDate).startOf('d').toDate();
-  const end = moment(query.endDate).endOf('d').toDate();
+exports.computeDraftFinalPay = async (auxiliaries, query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
+  const { startDate, endDate } = query;
+  const auxIds = auxiliaries.map(aux => aux._id);
+  const [company, surcharges, dm] = await Promise.all([
+    Company.findOne({ _id: companyId }).lean(),
+    Surcharge.find({ company: companyId }).lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
+  ]);
+
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
+  // Counter is reset on January
+  const prevPayList = moment(query.startDate).month() === 0
+    ? []
+    : await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
+
+  const draftFinalPay = [];
+  for (const aux of auxiliaries) {
+    const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === aux._id.toHexString()) ||
+      { absences: [], events: [] };
+    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
+    const draft =
+      await exports.computeAuxiliaryDraftFinalPay(aux, events, prevPay, company, query, dm, surcharges);
+    if (draft) draftFinalPay.push(draft);
+  }
+
+  return draftFinalPay;
+};
+
+exports.getDraftFinalPay = async (query, credentials) => {
+  const startDate = moment(query.startDate).startOf('d').toDate();
+  const endDate = moment(query.endDate).endOf('d').toDate();
+
   const contractRules = {
     endDate: {
       $exists: true,
@@ -57,30 +86,9 @@ exports.getDraftFinalPay = async (query, credentials) => {
       $gte: moment(query.startDate).startOf('d').toDate(),
     },
   };
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'finalpays', companyId);
+  const companyId = get(credentials, 'company._id', null);
+  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, endDate, 'finalpays', companyId);
   if (auxiliaries.length === 0) return [];
 
-  const [company, surcharges, dm] = await Promise.all([
-    Company.findOne({ _id: companyId }).lean(),
-    Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find({ company: companyId }).lean(),
-  ]);
-
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(a => a._id), companyId);
-  // Counter is reset on January
-  const prevPayList = moment(query.startDate).month() === 0
-    ? []
-    : await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
-
-  const draftFinalPay = [];
-  for (const auxiliary of auxiliaries) {
-    const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) ||
-      { absences: [], events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const draft =
-      await exports.computeAuxiliaryDraftFinalPay(auxiliary, events, prevPay, company, query, dm, surcharges);
-    if (draft) draftFinalPay.push(draft);
-  }
-
-  return draftFinalPay;
+  return exports.computeDraftFinalPay(auxiliaries, { startDate, endDate }, credentials);
 };
