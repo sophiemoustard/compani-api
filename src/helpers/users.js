@@ -80,6 +80,7 @@ exports.getLearnerList = async (query, credentials) => {
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistoryCount' })
+    .populate({ path: 'lastActivityHistory' })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
 };
