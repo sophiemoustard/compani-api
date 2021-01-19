@@ -163,7 +163,7 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
     }
 
     const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
-    promises.push(Event.updateOne({ _id: events[i]._id }, { ...payload }));
+    promises.push(Event.updateOne({ _id: events[i]._id }, payload));
   }
   await Promise.all([
     ...promises,

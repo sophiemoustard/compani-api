@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
+const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
@@ -385,22 +386,25 @@ describe('createRepetitions', () => {
 describe('updateRepetition', () => {
   let hasConflicts;
   let EventMock;
-  let findOneAndUpdateEvent;
+  let updateOne;
   let updateRepetitions;
   let UserMock;
+  let formatEditionPayload;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     EventMock = sinon.mock(Event);
-    findOneAndUpdateEvent = sinon.stub(Event, 'updateOne');
+    updateOne = sinon.stub(Event, 'updateOne');
     updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
     UserMock = sinon.mock(User);
+    formatEditionPayload = sinon.stub(EventsHelper, 'formatEditionPayload');
   });
   afterEach(() => {
     hasConflicts.restore();
     EventMock.restore();
-    findOneAndUpdateEvent.restore();
+    updateOne.restore();
     updateRepetitions.restore();
     UserMock.restore();
+    formatEditionPayload.restore();
   });
 
   it('should update repetition', async () => {
@@ -453,10 +457,23 @@ describe('updateRepetition', () => {
       .chain('lean')
       .returns(events);
     hasConflicts.returns(false);
+
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledThrice(hasConflicts);
-    sinon.assert.calledThrice(findOneAndUpdateEvent);
+    sinon.assert.calledThrice(updateOne);
+    sinon.assert.calledThrice(formatEditionPayload);
+    sinon.assert.calledWithExactly(
+      formatEditionPayload.getCall(0),
+      events[0],
+      {
+        startDate: '2019-03-23T10:00:00.000Z',
+        endDate: '2019-03-23T11:00:00.000Z',
+        auxiliary: '1234567890',
+        _id: 'asdfghjk',
+      },
+      false
+    );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
   });
 
@@ -482,6 +499,16 @@ describe('updateRepetition', () => {
         _id: '123456',
       },
     ];
+    formatEditionPayload.returns({
+      $set: {
+        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        'repetition.frequency': 'never',
+      },
+      $unset: { auxiliary: '' },
+    });
     EventMock.expects('find')
       .chain('lean')
       .returns(events);
@@ -505,7 +532,7 @@ describe('updateRepetition', () => {
       }
     );
     sinon.assert.calledWithExactly(
-      findOneAndUpdateEvent,
+      updateOne,
       { _id: '123456' },
       {
         $set: {
@@ -519,6 +546,98 @@ describe('updateRepetition', () => {
       }
     );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledOnceWithExactly(
+      formatEditionPayload,
+      events[0],
+      {
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        _id: '123456',
+      },
+      true
+    );
+  });
+
+  it('should unassign intervention if all the interventions are unassigned', async () => {
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
+    const event = {
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00.000Z',
+      type: INTERVENTION,
+      auxiliary: auxiliaryId,
+    };
+    const payload = {
+      startDate: '2019-03-23T10:00:00.000Z',
+      endDate: '2019-03-23T11:00:00.000Z',
+    };
+    const events = [
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T09:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        _id: '123456',
+      },
+    ];
+    formatEditionPayload.returns({
+      $set: {
+        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        'repetition.frequency': 'never',
+      },
+      $unset: { auxiliary: '' },
+    });
+    EventMock.expects('find')
+      .chain('lean')
+      .returns(events);
+    hasConflicts.returns(true);
+    UserMock.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns({ sector: sectorId, _id: auxiliaryId });
+    const credentials = { company: { _id: new ObjectID() } };
+
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
+
+    sinon.assert.calledWithExactly(
+      hasConflicts,
+      {
+        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: credentials.company._id,
+      }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: '123456' },
+      {
+        $set: {
+          _id: '123456',
+          startDate: '2019-03-24T10:00:00.000Z',
+          endDate: '2019-03-24T11:00:00.000Z',
+          sector: sectorId,
+          'repetition.frequency': 'never',
+        },
+        $unset: { auxiliary: '' },
+      }
+    );
+    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledOnceWithExactly(
+      formatEditionPayload,
+      events[0],
+      {
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        _id: '123456',
+      },
+      false
+    );
   });
 });
 
