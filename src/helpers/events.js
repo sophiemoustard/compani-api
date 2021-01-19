@@ -247,7 +247,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
-    const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
+    const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, isRepetition(event) && !miscUpdatedOnly);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
