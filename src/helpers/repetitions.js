@@ -4,7 +4,7 @@ const Repetition = require('../models/Repetition');
 const EventsHelper = require('./events');
 
 exports.updateRepetitions = async (eventPayload, parentId) => {
-  const repetition = await Repetition.findOne({ parentId });
+  const repetition = await Repetition.findOne({ parentId }).lean();
   if (!repetition) return;
 
   const eventStartDate = moment(eventPayload.startDate);
