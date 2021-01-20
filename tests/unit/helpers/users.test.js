@@ -7,6 +7,7 @@ const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const SinonMongoose = require('../sinonMongoose');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
@@ -230,14 +231,14 @@ describe('getUsersListWithSectorHistories', () => {
 });
 
 describe('getLearnerList', () => {
-  let UserMock;
+  let findUser;
   let findRole;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findUser = sinon.stub(User, 'find');
     findRole = sinon.stub(Role, 'find');
   });
   afterEach(() => {
-    UserMock.restore();
+    findUser.restore();
     findRole.restore();
   });
 
@@ -245,28 +246,26 @@ describe('getLearnerList', () => {
     const query = {};
     const credentials = { role: { vendor: new ObjectID() } };
     const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    UserMock.expects('find')
-      .withExactArgs({}, 'identity.firstname identity.lastname picture', { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: 'name' })
-      .chain('populate')
-      .withExactArgs({ path: 'blendedCoursesCount' })
-      .chain('populate')
-      .withExactArgs({ path: 'eLearningCoursesCount' })
-      .chain('populate')
-      .withExactArgs({ path: 'activityHistoryCount' })
-      .chain('populate')
-      .withExactArgs({ path: 'lastActivityHistory' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: true })
-      .chain('lean')
-      .returns(users);
+
+    findUser.returns(SinonMongoose.stubChainedQueries(
+      [users],
+      ['populate', 'setOptions', 'lean']
+    ));
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
     expect(result).toEqual(users);
     sinon.assert.notCalled(findRole);
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(findUser, [
+      { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'activityHistoryCount' }] },
+      { query: 'populate', args: [{ path: 'lastActivityHistory' }] },
+      { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should get learners from company', async () => {
@@ -277,28 +276,31 @@ describe('getLearnerList', () => {
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
     const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     findRole.returns(rolesToExclude);
-    UserMock.expects('find')
-      .withExactArgs(
-        { company: query.company, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
-        'identity.firstname identity.lastname picture',
-        { autopopulate: false }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: 'name' })
-      .chain('populate')
-      .withExactArgs({ path: 'blendedCoursesCount' })
-      .chain('populate')
-      .withExactArgs({ path: 'eLearningCoursesCount' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: false })
-      .chain('lean')
-      .returns(users);
+
+    findUser.returns(SinonMongoose.stubChainedQueries(
+      [users],
+      ['populate', 'setOptions', 'lean']
+    ));
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
     expect(result).toEqual(users);
     sinon.assert.calledOnceWithExactly(findRole, { name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(findUser, [
+      { query: 'find',
+        args: [
+          { company: query.company, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
+          'identity.firstname identity.lastname picture',
+          { autopopulate: false },
+        ] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'activityHistoryCount' }] },
+      { query: 'populate', args: [{ path: 'lastActivityHistory' }] },
+      { query: 'setOptions', args: [{ isVendorUser: false }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
