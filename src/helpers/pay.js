@@ -6,6 +6,7 @@ const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const User = require('../models/User');
 const DraftPayHelper = require('./draftPay');
+const DraftFinalPayHelper = require('./draftFinalPay');
 const ContractHelper = require('./contracts');
 const UtilsHelper = require('./utils');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
@@ -79,7 +80,9 @@ exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, 
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
 
   const payQuery = { startDate, endDate };
-  const [draft] = await DraftPayHelper.computeDraftPay([{ ...auxiliary, prevPay }], payQuery, credentials);
+  const [draft] = !contract.endDate || new Date(contract.endDate) > new Date(endDate)
+    ? await DraftPayHelper.computeDraftPay([{ ...auxiliary, prevPay }], payQuery, credentials)
+    : await DraftFinalPayHelper.computeDraftFinalPay([{ ...auxiliary, prevPay }], payQuery, credentials);
 
   const firstMonthContract = moment(startDate).startOf('M').isSameOrBefore(contract.startDate);
 
