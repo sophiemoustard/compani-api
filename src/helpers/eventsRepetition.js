@@ -22,7 +22,6 @@ const EventHistoriesHelper = require('./eventHistories');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
-const Utils = require('./utils');
 
 momentRange.extendMoment(moment);
 
