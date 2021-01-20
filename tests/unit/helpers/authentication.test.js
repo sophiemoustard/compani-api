@@ -1,7 +1,6 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const { fn: momentProto } = require('moment');
-const moment = require('moment');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const flat = require('flat');
