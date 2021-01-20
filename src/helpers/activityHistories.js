@@ -16,13 +16,15 @@ exports.list = async (query, credentials) => {
     .populate({
       path: 'activity',
       select: '_id',
-      populate: { path: 'steps',
+      populate: {
+        path: 'steps',
         select: '_id',
-        populate: { path: 'subProgram',
+        populate: {
+          path: 'subProgram',
           select: '_id',
-          populate: { path: 'courses program',
-            select: 'name misc format trainees',
-            match: { format: STRICTLY_E_LEARNING } } } },
+          populate: { path: 'program courses', select: 'name misc format trainees' },
+        },
+      },
     })
     .lean();
 
@@ -40,15 +42,28 @@ exports.list = async (query, credentials) => {
       })) },
   }));
 
-  const filteredActivitiesHistories = historiesWithFilteredTrainees.map(activityHistory => ({
+  const historiesWithFilteredCourses = historiesWithFilteredTrainees.map(activityHistory => ({
     ...activityHistory,
-    activity: { ...activityHistory.activity,
-      steps: activityHistory.activity.steps.filter(step => step.subProgram.courses.length) },
+    activity: {
+      ...activityHistory.activity,
+      steps: activityHistory.activity.steps.map(step => ({
+        ...step,
+        subProgram: {
+          ...step.subProgram,
+          courses: step.subProgram.courses.filter(course =>
+            course.trainees.length && course.format === STRICTLY_E_LEARNING),
+        },
+      })),
+    },
   }));
 
-  return filteredActivitiesHistories.map(activityHistory => ({
+  const historiesWithFilteredSteps = historiesWithFilteredCourses.map(activityHistory => ({
     ...activityHistory,
-    activity: { ...activityHistory.activity,
-      steps: activityHistory.activity.steps.filter(step => step.length) },
+    activity: {
+      ...activityHistory.activity,
+      steps: activityHistory.activity.steps.filter(step => step.subProgram.courses.length),
+    },
   }));
+
+  return historiesWithFilteredSteps.filter(activityHistory => activityHistory.activity.steps.length);
 };
