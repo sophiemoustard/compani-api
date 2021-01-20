@@ -409,6 +409,7 @@ describe('forgotPassword', () => {
   let identityVerificationCreate;
   let codeVerification;
   let creationDate;
+
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
     verificationCodeEmail = sinon.stub(EmailHelper, 'verificationCodeEmail');
