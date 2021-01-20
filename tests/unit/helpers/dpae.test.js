@@ -432,7 +432,7 @@ describe('getAbsences', () => {
     findPay.returns(
       SinonMongoose.stubChainedQueries([[{ createdAt: '2020-10-29T10:31:00' }]], ['sort', 'limit', 'lean'])
     );
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'populate', 'sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
 
     const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
 
@@ -479,7 +479,7 @@ describe('getAbsences', () => {
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'populate', 'sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
 
     const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
 
