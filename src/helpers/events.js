@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
+const has = require('lodash/get');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
 const cloneDeep = require('lodash/cloneDeep');
@@ -36,7 +37,7 @@ momentRange.extendMoment(moment);
 const { language } = translate;
 
 exports.isRepetition = event =>
-  !!event.repetition && !!event.repetition.frequency && event.repetition.frequency !== NEVER;
+  !!has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -249,7 +250,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
     const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
-    const payload = exports.formatEditionPayload(event, eventPayload, exports.isRepetition(event) && !miscUpdatedOnly);
+    const detachFromRepetition = exports.isRepetition(event) && !miscUpdatedOnly;
+    const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
 

@@ -9,16 +9,16 @@ const SinonMongoose = require('../sinonMongoose');
 describe('updateRepetitions', () => {
   let findOneRepetition;
   let formatEditionPayloadStub;
-  let RepetitionMock;
+  let findOneAndUpdateRepetition;
   beforeEach(() => {
     findOneRepetition = sinon.stub(Repetition, 'findOne');
     formatEditionPayloadStub = sinon.stub(EventsHelper, 'formatEditionPayload');
-    RepetitionMock = sinon.mock(Repetition);
+    findOneAndUpdateRepetition = sinon.stub(Repetition, 'findOneAndUpdate');
   });
   afterEach(() => {
     findOneRepetition.restore();
     formatEditionPayloadStub.restore();
-    RepetitionMock.restore();
+    findOneAndUpdateRepetition.restore();
   });
 
   it('should update a repetition', async () => {
@@ -32,12 +32,12 @@ describe('updateRepetitions', () => {
     };
     findOneRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['lean']));
     formatEditionPayloadStub.returns({ payload: 'payload' });
-    RepetitionMock.expects('findOneAndUpdate').withExactArgs({ parentId }, { payload: 'payload' });
 
     const result = await RepetitionHelper.updateRepetitions(eventPayload, parentId);
 
     expect(result).toBeUndefined();
     SinonMongoose.calledWithExactly(findOneRepetition, [{ query: 'find', args: [{ parentId }] }, { query: 'lean' }]);
+    sinon.assert.calledOnceWithExactly(findOneAndUpdateRepetition, { parentId }, { payload: 'payload' })
     sinon.assert.calledOnceWithExactly(
       formatEditionPayloadStub,
       repetition,
@@ -49,12 +49,12 @@ describe('updateRepetitions', () => {
   it('should do nothing if repetition does not exist', async () => {
     const parentId = new ObjectID();
     findOneRepetition.returns(SinonMongoose.stubChainedQueries([], ['lean']));
-    RepetitionMock.expects('findOneAndUpdate').never();
 
     const result = await RepetitionHelper.updateRepetitions({}, parentId);
 
     expect(result).toBeUndefined();
     SinonMongoose.calledWithExactly(findOneRepetition, [{ query: 'find', args: [{ parentId }] }, { query: 'lean' }]);
+    sinon.assert.notCalled(findOneAndUpdateRepetition);
     sinon.assert.notCalled(formatEditionPayloadStub);
   });
 });

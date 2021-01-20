@@ -153,11 +153,8 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
     let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
 
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
-    let detachFromRepetition = false;
-    if (eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts) {
-      eventToSet = { ...omit(eventToSet, ['auxiliary']), sector: sectorId };
-      detachFromRepetition = true;
-    } else if (!eventPayload.auxiliary) {
+    const detachFromRepetition = !!eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts;
+    if (detachFromRepetition || !eventPayload.auxiliary) {
       eventToSet = { ...omit(eventToSet, 'auxiliary'), sector: sectorId };
     }
 
