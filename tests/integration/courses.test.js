@@ -677,6 +677,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           name: programsList[0].name,
           image: programsList[0].image,
           subPrograms: [expect.any(ObjectID)],
+          description: programsList[0].description,
+          learningGoals: programsList[0].learningGoals,
         },
         steps: expect.arrayContaining([expect.objectContaining({
           _id: expect.any(ObjectID),
