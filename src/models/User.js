@@ -18,6 +18,8 @@ const {
   STRICTLY_E_LEARNING,
   MOBILE,
   WEBAPP,
+  EMAIL,
+  PHONE,
 } = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
@@ -31,6 +33,7 @@ const roleSchemaDefinition = {
 };
 
 const ORIGIN_OPTIONS = [WEBAPP, MOBILE];
+const TYPE_OPTIONS = [EMAIL, PHONE];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -336,3 +339,4 @@ UserSchema.plugin(autopopulate);
 module.exports = mongoose.model('User', UserSchema);
 module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
 module.exports.ORIGIN_OPTIONS = ORIGIN_OPTIONS;
+module.exports.TYPE_OPTIONS = TYPE_OPTIONS;
