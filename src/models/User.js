@@ -324,8 +324,7 @@ UserSchema.virtual('lastActivityHistory', {
   ref: 'ActivityHistory',
   localField: '_id',
   foreignField: 'user',
-  justOne: true,
-  options: { sort: { updatedAt: -1 } },
+  options: { sort: { updatedAt: -1 }, limit: 1 },
 });
 
 UserSchema.statics.isActive = isActive;
