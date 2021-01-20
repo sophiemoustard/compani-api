@@ -2,6 +2,8 @@ const ActivityHistory = require('../models/ActivityHistory');
 const User = require('../models/User');
 const { STRICTLY_E_LEARNING } = require('./constants');
 
+exports.addActivityHistory = async payload => ActivityHistory.create(payload);
+
 const filterCourses = activityHistory => ({
   ...activityHistory,
   activity: {
@@ -24,8 +26,6 @@ const filterSteps = activityHistory => ({
     steps: activityHistory.activity.steps.filter(step => step.subProgram.courses.length),
   },
 });
-
-exports.addActivityHistory = async payload => ActivityHistory.create(payload);
 
 exports.list = async (query, credentials) => {
   const users = await User.find({ company: credentials.company._id }, { _id: 1 }).lean();
