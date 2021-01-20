@@ -126,7 +126,9 @@ describe('list', () => {
               populate: {
                 path: 'subProgram',
                 select: '_id',
-                populate: { path: 'program courses', select: 'name misc format trainees' },
+                populate: [
+                  { path: 'courses', select: 'misc format trainees', match: { format: 'strictly_e_learning' } },
+                  { path: 'program', select: 'name' }],
               },
             },
           }],
