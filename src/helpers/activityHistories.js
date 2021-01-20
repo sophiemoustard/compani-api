@@ -1,23 +1,6 @@
 const ActivityHistory = require('../models/ActivityHistory');
 const User = require('../models/User');
 const { STRICTLY_E_LEARNING } = require('./constants');
-const UtilsHelper = require('./utils');
-
-const filterTrainees = activityHistory => ({
-  ...activityHistory,
-  activity: {
-    ...activityHistory.activity,
-    steps: activityHistory.activity.steps.map(step => ({
-      ...step,
-      subProgram: { ...step.subProgram,
-        courses: step.subProgram.courses.map(course => ({
-          ...course,
-          trainees: course.trainees.filter(trainee =>
-            UtilsHelper.areObjectIdsEquals(trainee, activityHistory.user)),
-        })) },
-    })),
-  },
-});
 
 const filterCourses = activityHistory => ({
   ...activityHistory,
@@ -27,7 +10,8 @@ const filterCourses = activityHistory => ({
       ...step,
       subProgram: {
         ...step.subProgram,
-        courses: step.subProgram.courses.filter(course => course.trainees.length),
+        courses: step.subProgram.courses.filter(course =>
+          course.trainees.map(trainee => trainee.toHexString()).includes(activityHistory.user.toHexString())),
       },
     })),
   },
@@ -68,6 +52,5 @@ exports.list = async (query, credentials) => {
     })
     .lean();
 
-  return activityHistories.map(h =>
-    filterSteps(filterCourses(filterTrainees(h)))).filter(h => h.activity.steps.length);
+  return activityHistories.map(h => filterSteps(filterCourses(h))).filter(h => h.activity.steps.length);
 };

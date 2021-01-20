@@ -58,7 +58,7 @@ describe('list', () => {
               courses: [{
                 misc: 'groupe 1',
                 format: 'strictly_e_learning',
-                trainees: [new ObjectID(), firstUserId],
+                trainees: [firstUserId],
               }],
             },
           }],
