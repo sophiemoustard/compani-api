@@ -67,7 +67,7 @@ const createPasswordToken = async (req) => {
 
 const forgotPassword = async (req) => {
   try {
-    const mailInfo = await AuthenticationHelper.forgotPassword(req.payload.email);
+    const mailInfo = await AuthenticationHelper.forgotPassword(req.payload);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {

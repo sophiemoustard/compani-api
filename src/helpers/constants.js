@@ -351,4 +351,7 @@ module.exports = {
   WEBAPP: 'webapp',
   // Email
   TRAINEE: 'trainee',
+  // Type
+  EMAIL: 'email',
+  PHONE: 'phone',
 };

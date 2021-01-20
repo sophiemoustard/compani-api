@@ -50,6 +50,11 @@ const forgotPasswordEmail = (passwordToken) => {
       L'équipe Compani</p>`;
 };
 
+const verificationCodeEmail = verificationCode => `<p>Bonjour,</p>
+    <p>Votre code Compani : ${verificationCode}. Veuillez utiliser ce code, valable une heure, pour confirmer votre identité.</p>
+    <p>Bien cordialement,<br>
+      L'équipe Compani</p>`;
+
 const billEmail = async (companyName) => {
   const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
   const template = handlebars.compile(content);
@@ -128,6 +133,7 @@ module.exports = {
   trainerCustomContent,
   coachCustomContent,
   forgotPasswordEmail,
+  verificationCodeEmail,
   billEmail,
   completeBillScriptEmailBody,
   completeEventRepScriptEmailBody,
