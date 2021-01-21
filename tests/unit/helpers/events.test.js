@@ -301,7 +301,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('should update event when misc is updates among other fields', async () => {
+  it('should update event when misc is updated among other fields and event is a repetition', async () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
@@ -336,7 +336,7 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
   });
 
-  it('should update event when misc is updates among other fields and event is not a repetition', async () => {
+  it('should update event when misc is updated among other fields and event is not a repetition', async () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();

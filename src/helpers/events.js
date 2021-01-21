@@ -2,7 +2,7 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
-const has = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
 const cloneDeep = require('lodash/cloneDeep');
@@ -36,8 +36,7 @@ momentRange.extendMoment(moment);
 
 const { language } = translate;
 
-exports.isRepetition = event =>
-  !!has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
+exports.isRepetition = event => has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
