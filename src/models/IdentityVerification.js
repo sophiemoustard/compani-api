@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
-// User schema
 const IdentityVerificationSchema = mongoose.Schema({
-  creationDate: { type: Date },
-  email: { type: String },
-  verificationCode: { type: Number },
+  createdAt: { type: Date, timestamp: true, default: Date.now, required: true },
+  email: { type: String, required: true },
+  code: { type: Number, required: true },
 });
 
 module.exports = mongoose.model('IdentityVerification', IdentityVerificationSchema);

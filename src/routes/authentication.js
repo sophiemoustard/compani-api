@@ -12,9 +12,9 @@ const {
   checkPasswordToken,
   updatePassword,
 } = require('../controllers/authenticationController');
-const { WEBAPP } = require('../helpers/constants');
-const { ORIGIN_OPTIONS, TYPE_OPTIONS } = require('../models/User');
-const { getUser, authorizeUserUpdate, authorizeForgotPasswordPost } = require('./preHandlers/users');
+const { WEBAPP, EMAIL, PHONE, MOBILE } = require('../helpers/constants');
+const { ORIGIN_OPTIONS } = require('../models/User');
+const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 
 exports.plugin = {
   name: 'routes-authentication',
@@ -95,12 +95,10 @@ exports.plugin = {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(WEBAPP),
-            type: Joi.string().valid(...TYPE_OPTIONS),
+            type: Joi.string().valid(...PHONE, EMAIL)
+              .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
-        pre: [
-          { method: authorizeForgotPasswordPost },
-        ],
         auth: false,
       },
       handler: forgotPassword,
