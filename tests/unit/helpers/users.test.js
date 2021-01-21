@@ -245,7 +245,14 @@ describe('getLearnerList', () => {
   it('should get all learners', async () => {
     const query = {};
     const credentials = { role: { vendor: new ObjectID() } };
-    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const users = [
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
 
     findUser.returns(SinonMongoose.stubChainedQueries(
       [users],
@@ -254,15 +261,17 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(users);
+    expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
     SinonMongoose.calledWithExactly(findUser, [
       { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
       { query: 'populate', args: [{ path: 'company', select: 'name' }] },
       { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
       { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
-      { query: 'populate', args: [{ path: 'activityHistoryCount' }] },
-      { query: 'populate', args: [{ path: 'lastActivityHistory' }] },
+      {
+        query: 'populate',
+        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+      },
       { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
       { query: 'lean' },
     ]);
@@ -274,9 +283,16 @@ describe('getLearnerList', () => {
     const roleId1 = new ObjectID();
     const roleId2 = new ObjectID();
     const rolesToExclude = [{ _id: roleId1 }, { _id: roleId2 }];
-    const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    findRole.returns(rolesToExclude);
+    const users = [
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
 
+    findRole.returns(rolesToExclude);
     findUser.returns(SinonMongoose.stubChainedQueries(
       [users],
       ['populate', 'setOptions', 'lean']
@@ -284,7 +300,7 @@ describe('getLearnerList', () => {
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
-    expect(result).toEqual(users);
+    expect(result).toEqual(usersWithVirtuals);
     sinon.assert.calledOnceWithExactly(findRole, { name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
     SinonMongoose.calledWithExactly(findUser, [
       { query: 'find',
@@ -295,9 +311,10 @@ describe('getLearnerList', () => {
         ] },
       { query: 'populate', args: [{ path: 'company', select: 'name' }] },
       { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
-      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
-      { query: 'populate', args: [{ path: 'activityHistoryCount' }] },
-      { query: 'populate', args: [{ path: 'lastActivityHistory' }] },
+      {
+        query: 'populate',
+        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+      },
       { query: 'setOptions', args: [{ isVendorUser: false }] },
       { query: 'lean' },
     ]);
