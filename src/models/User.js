@@ -313,6 +313,12 @@ UserSchema.virtual('eLearningCoursesCount', {
   options: { match: { format: STRICTLY_E_LEARNING } },
 });
 
+UserSchema.virtual('activityHistories', {
+  ref: 'ActivityHistory',
+  localField: '_id',
+  foreignField: 'user',
+});
+
 UserSchema.statics.isActive = isActive;
 
 UserSchema.virtual('isActive').get(setIsActive);
