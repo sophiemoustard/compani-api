@@ -95,7 +95,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
             origin: Joi.string().valid(...ORIGIN_OPTIONS).default(WEBAPP),
-            type: Joi.string().valid(...PHONE, EMAIL)
+            type: Joi.string().valid(PHONE, EMAIL)
               .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
