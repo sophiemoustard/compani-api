@@ -11,6 +11,8 @@ const EmailHelper = require('../../../src/helpers/email');
 const translate = require('../../../src/helpers/translate');
 const { TOKEN_EXPIRE_TIME } = require('../../../src/models/User');
 const User = require('../../../src/models/User');
+const { MOBILE, EMAIL } = require('../../../src/helpers/constants');
+const IdentityVerification = require('../../../src/models/IdentityVerification');
 
 const { language } = translate;
 
@@ -402,15 +404,24 @@ describe('createPasswordToken', () => {
 
 describe('forgotPassword', () => {
   let forgotPasswordEmail;
+  let verificationCodeEmail;
   let generatePasswordTokenStub;
+  let identityVerificationCreate;
+  let codeVerification;
 
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    verificationCodeEmail = sinon.stub(EmailHelper, 'verificationCodeEmail');
     generatePasswordTokenStub = sinon.stub(AuthenticationHelper, 'generatePasswordToken');
+    identityVerificationCreate = sinon.stub(IdentityVerification, 'create');
+    codeVerification = sinon.stub(Math, 'random');
   });
   afterEach(() => {
     forgotPasswordEmail.restore();
+    verificationCodeEmail.restore();
     generatePasswordTokenStub.restore();
+    identityVerificationCreate.restore();
+    codeVerification.restore();
   });
 
   it('should return a new access token after checking reset password token', async () => {
@@ -418,11 +429,29 @@ describe('forgotPassword', () => {
     generatePasswordTokenStub.returns({ token: '123456789' });
     forgotPasswordEmail.returns({ sent: true });
 
-    const result = await AuthenticationHelper.forgotPassword(email);
+    const result = await AuthenticationHelper.forgotPassword({ email });
 
     expect(result).toEqual({ sent: true });
     sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 3600000);
     sinon.assert.calledWithExactly(forgotPasswordEmail, email, { token: '123456789' });
+    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(identityVerificationCreate);
+    sinon.assert.notCalled(codeVerification);
+  });
+
+  it('should send a code verification if origin mobile and type email', async () => {
+    const email = 'toto@toto.com';
+    codeVerification.returns(0.1111);
+    identityVerificationCreate.returns({ email, code: 1111 });
+    verificationCodeEmail.returns({ sent: true });
+
+    const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: EMAIL });
+
+    expect(result).toEqual({ sent: true });
+    sinon.assert.calledWithExactly(verificationCodeEmail, email, 1111);
+    sinon.assert.notCalled(forgotPasswordEmail);
+    sinon.assert.notCalled(generatePasswordTokenStub);
+    sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: 1111 });
   });
 });
 
