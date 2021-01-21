@@ -408,7 +408,6 @@ describe('forgotPassword', () => {
   let generatePasswordTokenStub;
   let identityVerificationCreate;
   let codeVerification;
-  let creationDate;
 
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
@@ -416,7 +415,6 @@ describe('forgotPassword', () => {
     generatePasswordTokenStub = sinon.stub(AuthenticationHelper, 'generatePasswordToken');
     identityVerificationCreate = sinon.stub(IdentityVerification, 'create');
     codeVerification = sinon.stub(Math, 'random');
-    creationDate = sinon.stub(Date, 'now');
   });
   afterEach(() => {
     forgotPasswordEmail.restore();
@@ -424,7 +422,6 @@ describe('forgotPassword', () => {
     generatePasswordTokenStub.restore();
     identityVerificationCreate.restore();
     codeVerification.restore();
-    creationDate.restore();
   });
 
   it('should return a new access token after checking reset password token', async () => {
@@ -440,18 +437,12 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(verificationCodeEmail);
     sinon.assert.notCalled(identityVerificationCreate);
     sinon.assert.notCalled(codeVerification);
-    sinon.assert.notCalled(creationDate);
   });
 
   it('should send a code verification if origin mobile and type email', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    creationDate.returns('Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time');
-    identityVerificationCreate.returns({
-      createdAt: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
-      email,
-      code: 1111,
-    });
+    identityVerificationCreate.returns({ email, code: 1111 });
     verificationCodeEmail.returns({ sent: true });
 
     const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: EMAIL });
@@ -460,11 +451,7 @@ describe('forgotPassword', () => {
     sinon.assert.calledWithExactly(verificationCodeEmail, email, 1111);
     sinon.assert.notCalled(forgotPasswordEmail);
     sinon.assert.notCalled(generatePasswordTokenStub);
-    sinon.assert.calledOnceWithExactly(identityVerificationCreate, {
-      createdAt: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
-      email,
-      code: 1111,
-    });
+    sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: 1111 });
   });
 });
 

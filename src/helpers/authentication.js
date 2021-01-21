@@ -83,11 +83,7 @@ exports.createPasswordToken = async email => exports.generatePasswordToken(email
 exports.forgotPassword = async (payload) => {
   const { email, origin, type } = payload;
   if (origin === MOBILE && type === EMAIL) {
-    const verification = await IdentityVerification.create({
-      createdAt: Date.now(),
-      email,
-      code: Math.floor(Math.random() * 10000),
-    });
+    const verification = await IdentityVerification.create({ email, code: Math.floor(Math.random() * 10000) });
 
     return EmailHelper.verificationCodeEmail(email, verification.code);
   }
