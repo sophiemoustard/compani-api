@@ -74,15 +74,20 @@ exports.getLearnerList = async (query, credentials) => {
     userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
   }
 
-  return User
+  const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
-    .populate({ path: 'activityHistoryCount' })
-    .populate({ path: 'lastActivityHistory' })
+    .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
+
+  return learnerList.map(learner => ({
+    ...omit(learner, 'activityHistories'),
+    activityHistoryCount: learner.activityHistories.length,
+    lastActivityHistory: learner.activityHistories[0],
+  }));
 };
 
 exports.getUser = async (userId, credentials) => {
