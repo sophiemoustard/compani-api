@@ -736,7 +736,7 @@ describe('getTraineeCourse', () => {
     };
     const credentials = { _id: new ObjectID() };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['populate', 'populate', 'select', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['populate', 'select', 'lean']));
 
     formatCourseWithProgress.returns({
       ...course,
