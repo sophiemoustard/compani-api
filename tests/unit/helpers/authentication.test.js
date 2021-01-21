@@ -437,6 +437,10 @@ describe('forgotPassword', () => {
     expect(result).toEqual({ sent: true });
     sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 3600000);
     sinon.assert.calledWithExactly(forgotPasswordEmail, email, { token: '123456789' });
+    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(identityVerificationCreate);
+    sinon.assert.notCalled(codeVerification);
+    sinon.assert.notCalled(creationDate);
   });
 
   it('should send a code verification if origin mobile and type email', async () => {
@@ -444,9 +448,9 @@ describe('forgotPassword', () => {
     codeVerification.returns(0.1111);
     creationDate.returns('Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time');
     identityVerificationCreate.returns({
-      creationDate: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
+      createdAt: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
       email,
-      verificationCode: 1111,
+      code: 1111,
     });
     verificationCodeEmail.returns({ sent: true });
 
@@ -457,9 +461,9 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(forgotPasswordEmail);
     sinon.assert.notCalled(generatePasswordTokenStub);
     sinon.assert.calledOnceWithExactly(identityVerificationCreate, {
-      creationDate: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
+      createdAt: 'Wed Jan 20 2021 17:20:01 GMT+0100 (Central European Standard Time',
       email,
-      verificationCode: 1111,
+      code: 1111,
     });
   });
 });

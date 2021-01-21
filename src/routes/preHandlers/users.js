@@ -19,7 +19,6 @@ const {
   CLIENT,
   VENDOR,
   AUXILIARY_WITHOUT_COMPANY,
-  MOBILE,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -225,11 +224,4 @@ exports.getPicturePublicId = async (req) => {
   if (!user) throw Boom.notFound();
 
   return get(user, 'picture.publicId') || '';
-};
-
-exports.authorizeForgotPasswordPost = async (req) => {
-  const { payload } = req;
-  if (payload.origin === MOBILE && !payload.type) throw Boom.forbidden();
-
-  return null;
 };

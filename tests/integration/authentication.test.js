@@ -429,11 +429,30 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    sinon.assert.calledWith(
-      verificationCodeEmail,
-      userEmail,
-      sinon.match(sinon.match.number)
-    );
+    sinon.assert.calledWith(verificationCodeEmail, userEmail, sinon.match(sinon.match.number));
+  });
+  it('should return 400 if origin mobile and no type', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(verificationCodeEmail);
+  });
+
+  it('should return 400 if origin mobile and wrong type', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE, type: 'SMS' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(verificationCodeEmail);
   });
 
   it('should be compatible with old mobile app version', async () => {
