@@ -24,7 +24,7 @@ const {
   SERIOUS_MISCONDUCT_LAYOFF,
   CONTRACTUAL_TERMINATION,
 } = require('../../../src/helpers/constants');
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('formatBirthDate', () => {
   it('should format date', () => {
@@ -168,20 +168,20 @@ describe('formatContractInfo', () => {
 });
 
 describe('exportDpae', () => {
-  let UserMock;
+  let findOneUser;
   let formatIdentificationInfo;
   let formatBankingInfo;
   let formatContractInfo;
   let exportToTxt;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findOneUser = sinon.stub(User, 'findOne');
     formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
     formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
     formatContractInfo = sinon.stub(DpaeHelper, 'formatContractInfo');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
   });
   afterEach(() => {
-    UserMock.restore();
+    findOneUser.restore();
     formatIdentificationInfo.restore();
     formatBankingInfo.restore();
     formatContractInfo.restore();
@@ -197,12 +197,7 @@ describe('exportDpae', () => {
     };
     const auxiliary = { serialNumber: 'serialNumber' };
 
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: 'mon auxiliaire' }, 'identity serialNumber contact administrative.payment establishment')
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'siret' })
-      .chain('lean')
-      .returns(auxiliary);
+    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     formatIdentificationInfo.returns({ ap_matr: 'serialNumber' });
     formatBankingInfo.returns({ fs_bq_dom: 'BANK AUDI FRANCE' });
     formatContractInfo.returns({ ap_contrat: '1234567890' });
@@ -218,22 +213,33 @@ describe('exportDpae', () => {
       exportToTxt,
       [['ap_matr', 'fs_bq_dom', 'ap_contrat'], ['serialNumber', 'BANK AUDI FRANCE', '1234567890']]
     );
+    SinonMongoose.calledWithExactly(
+      findOneUser,
+      [
+        {
+          query: 'findOne',
+          args: [{ _id: 'mon auxiliaire' }, 'identity serialNumber contact administrative.payment establishment'],
+        },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('exportIdentification', () => {
-  let ContractMock;
+  let findContract;
   let formatIdentificationInfo;
   let formatBankingInfo;
   let exportToTxt;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findContract = sinon.stub(Contract, 'find');
     formatIdentificationInfo = sinon.stub(DpaeHelper, 'formatIdentificationInfo');
     formatBankingInfo = sinon.stub(DpaeHelper, 'formatBankingInfo');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
   });
   afterEach(() => {
-    ContractMock.restore();
+    findContract.restore();
     formatIdentificationInfo.restore();
     formatBankingInfo.restore();
     exportToTxt.restore();
@@ -243,21 +249,7 @@ describe('exportIdentification', () => {
     const endDate = moment('2020-01-11T14:00:00').toDate();
     const companyId = new ObjectID();
 
-    ContractMock.expects('find')
-      .withExactArgs({
-        startDate: { $lte: moment(endDate).endOf('d').toDate() },
-        $or: [
-          { endDate: null },
-          { endDate: { $exists: false } },
-          { endDate: { $gt: moment(endDate).endOf('d').toDate() } },
-        ],
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'user', select: 'serialNumber identity contact.address administrative.payment' })
-      .chain('lean')
-      .once()
-      .returns([{ user: 'first user' }, { user: 'second user' }]);
+    findContract.returns(SinonMongoose.stubChainedQueries([[{ user: 'first user' }, { user: 'second user' }]]));
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
     formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
     exportToTxt.returns('file');
@@ -271,21 +263,43 @@ describe('exportIdentification', () => {
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
     sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank'], [1, 1], [2, 2]]);
+    SinonMongoose.calledWithExactly(
+      findContract,
+      [
+        {
+          query: 'find',
+          args: [{
+            startDate: { $lte: moment(endDate).endOf('d').toDate() },
+            $or: [
+              { endDate: null },
+              { endDate: { $exists: false } },
+              { endDate: { $gt: moment(endDate).endOf('d').toDate() } },
+            ],
+            company: companyId,
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'user', select: 'serialNumber identity contact.address administrative.payment' }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('exportsContractVersions', () => {
-  let ContractMock;
+  let findContract;
   let exportToTxt;
   let getQuery;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findContract = sinon.stub(Contract, 'find');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     getQuery = sinon.stub(ContractHelper, 'getQuery');
     process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
-    ContractMock.restore();
+    findContract.restore();
     exportToTxt.restore();
     getQuery.restore();
     process.env.AP_SOC = '';
@@ -311,13 +325,7 @@ describe('exportsContractVersions', () => {
       ],
     }];
     getQuery.returns([{ endDate: null }, { endDate: { $exists: false } }]);
-    ContractMock.expects('find')
-      .withExactArgs({ $and: [{ endDate: null }, { endDate: { $exists: false } }] })
-      .chain('populate')
-      .withExactArgs({ path: 'user', select: 'serialNumber identity' })
-      .chain('lean')
-      .once()
-      .returns(versions);
+    findContract.returns(SinonMongoose.stubChainedQueries([versions]));
     exportToTxt.returns('file');
 
     const result = await DpaeHelper.exportContractVersions(query, { company: { _id: companyId } });
@@ -332,19 +340,27 @@ describe('exportsContractVersions', () => {
         ['ap_soc', 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26, 260],
       ]
     );
+    SinonMongoose.calledWithExactly(
+      findContract,
+      [
+        { query: 'find', args: [{ $and: [{ endDate: null }, { endDate: { $exists: false } }] }] },
+        { query: 'populate', args: [{ path: 'user', select: 'serialNumber identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('exportContractEnds', () => {
-  let ContractMock;
+  let findContract;
   let exportToTxt;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findContract = sinon.stub(Contract, 'find');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     process.env.AP_SOC = 'ap_soc';
   });
   afterEach(() => {
-    ContractMock.restore();
+    findContract.restore();
     exportToTxt.restore();
     process.env.AP_SOC = '';
   });
@@ -363,19 +379,7 @@ describe('exportContractEnds', () => {
       endDate: '2020-11-07T00:00:00',
       endReason: SERIOUS_MISCONDUCT_LAYOFF,
     }];
-    ContractMock.expects('find')
-      .withExactArgs({
-        endDate: {
-          $lte: moment(query.endDate).endOf('d').toDate(),
-          $gte: moment(query.startDate).startOf('d').toDate(),
-        },
-        company: '1234567890',
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'user', select: 'serialNumber identity' })
-      .chain('lean')
-      .once()
-      .returns(contracts);
+    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
     exportToTxt.returns('file');
 
     const result = await DpaeHelper.exportContractEnds(query, { company: { _id: companyId } });
@@ -389,99 +393,131 @@ describe('exportContractEnds', () => {
         ['ap_soc', 'userNumber', 'Gallier', 'titotu', '07/11/2020', 16],
       ]
     );
+    SinonMongoose.calledWithExactly(
+      findContract,
+      [
+        {
+          query: 'find',
+          args: [{
+            endDate: {
+              $lte: moment(query.endDate).endOf('d').toDate(),
+              $gte: moment(query.startDate).startOf('d').toDate(),
+            },
+            company: '1234567890',
+          }],
+        },
+        { query: 'populate', args: [{ path: 'user', select: 'serialNumber identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('getAbsences', () => {
-  let EventMock;
-  let PayMock;
+  let findEvent;
+  let findPay;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
-    PayMock = sinon.mock(Pay);
+    findEvent = sinon.stub(Event, 'find');
+    findPay = sinon.stub(Pay, 'find');
   });
   afterEach(() => {
-    EventMock.restore();
-    PayMock.restore();
+    findEvent.restore();
+    findPay.restore();
   });
 
   it('should return absence from previous month pay date', async () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
-
-    PayMock.expects('find')
-      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
-      .chain('sort')
-      .withExactArgs({ createdAt: -1 })
-      .chain('limit')
-      .withExactArgs(1)
-      .chain('lean')
-      .once()
-      .returns([{ createdAt: '2020-10-29T10:31:00' }]);
-
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment('2020-10-29T10:31:00').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber identity',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    findPay.returns(
+      SinonMongoose.stubChainedQueries([[{ createdAt: '2020-10-29T10:31:00' }]], ['sort', 'limit', 'lean'])
+    );
+    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
 
     const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    EventMock.verify();
-    PayMock.verify();
+    SinonMongoose.calledWithExactly(
+      findPay,
+      [
+        { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
+        { query: 'limit', args: [1] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        {
+          query: 'find',
+          args: [{
+            type: 'absence',
+            absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+            startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+            endDate: { $gt: moment('2020-10-29T10:31:00').toDate() },
+            company: companyId,
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'serialNumber identity',
+            populate: [{ path: 'contracts' }, { path: 'establishment' }],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'extension', select: 'startDate' }] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return absence from query start date', async () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
-
-    PayMock.expects('find')
-      .withExactArgs({ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId })
-      .chain('sort')
-      .withExactArgs({ createdAt: -1 })
-      .chain('limit')
-      .withExactArgs(1)
-      .chain('lean')
-      .once()
-      .returns([]);
-
-    EventMock.expects('find')
-      .withExactArgs({
-        type: 'absence',
-        absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
-        startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
-        endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
-        company: companyId,
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'serialNumber identity',
-        populate: [{ path: 'contracts' }, { path: 'establishment' }],
-      })
-      .chain('lean')
-      .once()
-      .returns(absences);
+    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
 
     const result = await DpaeHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    EventMock.verify();
-    PayMock.verify();
+    SinonMongoose.calledWithExactly(
+      findPay,
+      [
+        { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
+        { query: 'sort', args: [{ createdAt: -1 }] },
+        { query: 'limit', args: [1] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find',
+          args: [{
+            type: 'absence',
+            absence: { $in: [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, ILLNESS, UNJUSTIFIED, WORK_ACCIDENT, TRANSPORT_ACCIDENT] },
+            startDate: { $lt: moment(query.endDate).endOf('day').toDate() },
+            endDate: { $gt: moment(query.startDate).startOf('day').toDate() },
+            company: companyId,
+          },
+          ] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'serialNumber identity',
+            populate: [{ path: 'contracts' }, { path: 'establishment' }],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'extension', select: 'startDate' }] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -518,6 +554,7 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
         identity: { lastname: 'Compani' },
       },
+      extension: { _id: new ObjectID(), startDate: '2020-11-19T00:00:00' },
     }];
     getAbsences.returns(absences);
     getAbsenceHours.onCall(0).returns(5);
@@ -531,10 +568,10 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '21/11/2020', 0, 1, 1, 5],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '22/11/2020', 0, 0, 1, 0],
-        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '23/11/2020', 1, 1, 1, 4],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_premier_arret', 'va_abs_prolongation', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '21/11/2020', 0, 1, 1, 5],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '22/11/2020', 0, 0, 1, 0],
+        ['ap_soc', '09876', '0987654321', 'Compani', 'contract', 'CPL', '21/11/2020', '23/11/2020', '0', '19/11/2020', '23/11/2020', 1, 1, 1, 4],
       ]
     );
     sinon.assert.calledWithExactly(
@@ -582,8 +619,8 @@ describe('exportsAbsence', () => {
     sinon.assert.calledOnceWithExactly(
       exportToTxt,
       [
-        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
-        ['ap_soc', '09876', '0987654321', 'Toto', 'contract', 'CPL', '21/11/2020', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
+        ['ap_soc', 'ap_etab', 'ap_matr', 'fs_nom', 'ap_contrat', 'va_abs_code', 'va_abs_deb', 'va_abs_fin', 'va_abs_premier_arret', 'va_abs_prolongation', 'va_abs_date', 'va_abs_nb22', 'va_abs_nb26', 'va_abs_nb30', 'va_abs_nbh'],
+        ['ap_soc', '09876', '0987654321', 'Toto', 'contract', 'CPL', '21/11/2020', '21/11/2020', '1', '21/11/2020', '21/11/2020', 0, 1, 1, 2],
       ]
     );
     sinon.assert.calledOnceWithExactly(
