@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
 const cloneDeep = require('lodash/cloneDeep');
@@ -35,7 +36,7 @@ momentRange.extendMoment(moment);
 
 const { language } = translate;
 
-const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+exports.isRepetition = event => has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -58,7 +59,7 @@ exports.createEvent = async (payload, credentials) => {
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  const isRepeatedEvent = isRepetition(event);
+  const isRepeatedEvent = exports.isRepetition(event);
   const hasConflicts = await EventsValidationHelper.hasConflicts(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
     const auxiliary = await User.findOne({ _id: event.auxiliary })
@@ -208,15 +209,14 @@ exports.isMiscOnlyUpdated = (event, payload) => {
   return (payload.misc !== event.misc && isEqual(mainEventInfo, mainPayloadInfo));
 };
 
-exports.formatEditionPayload = (event, payload) => {
-  const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
+exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
   let unset = null;
   let set = payload;
   if (!payload.isCancelled && event.isCancelled) {
     unset = { cancel: '' };
   }
 
-  if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
+  if (detachFromRepetition) set = { ...set, 'repetition.frequency': NEVER };
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
   else unset = { ...unset, sector: '' };
@@ -248,7 +248,9 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
-    const payload = exports.formatEditionPayload(event, eventPayload);
+    const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
+    const detachFromRepetition = exports.isRepetition(event) && !miscUpdatedOnly;
+    const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
 
