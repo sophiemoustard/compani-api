@@ -407,7 +407,16 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          {
+            path: 'steps',
+            select: 'name type',
+            populate: {
+              path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: '_id' }
+            },
+          },
+        ],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
@@ -445,7 +454,16 @@ describe('getCourse', () => {
       .withExactArgs({
         path: 'subProgram',
         select: 'program steps',
-        populate: [{ path: 'program', select: 'name learningGoals' }, { path: 'steps', select: 'name type' }],
+        populate: [
+          { path: 'program', select: 'name learningGoals' },
+          {
+            path: 'steps',
+            select: 'name type',
+            populate: {
+              path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: '_id' }
+            },
+          },
+        ],
       })
       .chain('populate')
       .withExactArgs({ path: 'slots', populate: { path: 'step', select: 'name' } })
