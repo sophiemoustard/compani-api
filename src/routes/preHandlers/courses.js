@@ -152,51 +152,46 @@ exports.authorizeRegisterToELearning = async (req) => {
   return null;
 };
 
-exports.userCanGetCourse = async (course, req) => {
-  const credentials = get(req, 'auth.credentials');
-  if (!credentials || !credentials._id) return false;
-
-  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
-  if (loggedUserVendorRole) return true;
-
-  const isTrainee = course.trainees.includes(credentials._id);
-  if (isTrainee) return true;
-
-  const loggedUserClientRole = get(credentials, 'role.client.name');
-  if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) {
+exports.userCanGetCourse = async (req) => {
+  try {
+    const { course } = req.pre;
+    const credentials = get(req, 'auth.credentials');
     const userCompany = get(credentials, 'company._id');
 
-    const userCompanyHasAccessToCourse = course.format === STRICTLY_E_LEARNING &&
-      (course.accessRules.length === 0 || course.accessRules.includes(userCompany));
-    if (userCompanyHasAccessToCourse) return true;
+    const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+    if (loggedUserVendorRole) return null;
 
-    const isSameCompany = course.type === INTRA && course.format !== STRICTLY_E_LEARNING &&
-        UtilsHelper.areObjectIdsEquals(course.company, userCompany);
-    if (isSameCompany) return true;
+    const isTrainee = course.trainees.includes(credentials._id);
+    if (isTrainee) return null;
 
-    const courseWithTrainees = await Course
-      .findById(req.params._id)
-      .populate({ path: 'trainees', select: 'company' })
-      .lean();
-    const userCompanyHasTraineeInCourse = courseWithTrainees.type === INTER_B2B &&
-      course.format !== STRICTLY_E_LEARNING &&
-      courseWithTrainees.trainees.some(trainee => trainee.company === userCompany);
-    if (userCompanyHasTraineeInCourse) return true;
+    const loggedUserClientRole = get(credentials, 'role.client.name');
+    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) throw Boom.forbidden();
+
+    if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.company, userCompany)) throw Boom.forbidden();
+
+    if (course.type === INTER_B2B && course.format !== STRICTLY_E_LEARNING) {
+      const courseWithTrainees = await Course.findById(req.params._id)
+        .populate({ path: 'trainees', select: 'company' })
+        .lean();
+      if (!courseWithTrainees.trainees.some(trainee => trainee.company === userCompany)) throw Boom.forbidden();
+
+      return null;
+    }
+
+    if (
+      course.format === STRICTLY_E_LEARNING &&
+    course.accessRules.length !== 0 &&
+    !course.accessRules.includes(userCompany)
+    ) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
-
-  return false;
 };
 
 exports.getCourse = async (req) => {
-  const course = await Course.findById(req.params._id).lean();
-  if (!course) throw Boom.notFound();
-
-  const userCanGetCourse = await exports.userCanGetCourse(course, req);
-
-  return userCanGetCourse ? course : Boom.forbidden();
-};
-
-exports.getCourseWithoutAuthorization = async (req) => {
   const course = await Course.findById(req.params._id).lean();
   if (!course) throw Boom.notFound();
 
