@@ -715,14 +715,14 @@ describe('deleteRepetition', () => {
 
 describe('formatEventBasedOnRepetition', () => {
   let hasConflicts;
-  let UserMock;
+  let detachAuxiliaryFromEvent;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    UserMock = sinon.mock(User);
+    detachAuxiliaryFromEvent = sinon.stub(EventsHelper, 'detachAuxiliaryFromEvent');
   });
   afterEach(() => {
     hasConflicts.restore();
-    UserMock.restore();
+    detachAuxiliaryFromEvent.restore();
   });
 
   it('should format event based on repetition', async () => {
@@ -746,20 +746,16 @@ describe('formatEventBasedOnRepetition', () => {
     };
 
     hasConflicts.returns(false);
-    UserMock.expects('findOne').never();
 
     const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, new Date());
 
-    expect(event.toObject()).toEqual(expect.objectContaining({
+    expect(event).toEqual(expect.objectContaining({
       ...omit(repetition, ['frequency', 'parentId', 'startDate', 'endDate']),
       repetition: { frequency: repetition.frequency, parentId: repetition.parentId },
       startDate: moment().add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
       endDate: moment().add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
-      isBilled: false,
-      isCancelled: false,
-      bills: { surcharges: [] },
     }));
-    UserMock.verify();
+    sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
 
   it('should return null if unavailability in conflict', async () => {
@@ -774,20 +770,29 @@ describe('formatEventBasedOnRepetition', () => {
     };
 
     hasConflicts.returns(true);
-    UserMock.expects('findOne').never();
 
     const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, new Date());
 
     expect(event).toBeNull();
-    UserMock.verify();
+    sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
 
   it('should format and unassign event based on repetition', async () => {
+    const customer = new ObjectID();
+    const subscription = new ObjectID();
+    const auxiliary = new ObjectID();
+    const sector = new ObjectID();
+    const company = new ObjectID();
+    const parentId = new ObjectID();
+
     const repetition = {
       type: 'intervention',
-      customer: new ObjectID(),
-      subscription: new ObjectID(),
-      auxiliary: new ObjectID(),
+      customer,
+      subscription,
+      auxiliary,
+      sector,
+      misc: 'note',
+      internalHour: 'non',
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
@@ -795,36 +800,43 @@ describe('formatEventBasedOnRepetition', () => {
         street: '37 rue de Ponthieu',
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
-      company: new ObjectID(),
+      company,
       frequency: 'every_day',
-      parentId: new ObjectID(),
+      parentId,
       startDate: moment('2019-12-01T09:00:00').toDate(),
       endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(true);
-    const sectorId = new ObjectID();
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: repetition.auxiliary })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: repetition.company } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns({ _id: repetition.auxiliary, sector: sectorId });
+    detachAuxiliaryFromEvent.returns({ sector });
 
-    const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, '2020-03-11T00:00:00');
+    const date = '2020-03-11T00:00:00';
+    const event = await EventsRepetitionHelper.formatEventBasedOnRepetition(repetition, date);
 
-    expect(event.toObject()).toEqual(expect.objectContaining({
-      ...omit(repetition, ['frequency', 'parentId', 'auxiliary', 'startDate', 'endDate']),
-      sector: sectorId,
-      repetition: { frequency: 'never', parentId: repetition.parentId },
-      startDate: moment('2020-03-11').add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
-      endDate: moment('2020-03-11').add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
-      isBilled: false,
-      isCancelled: false,
-      bills: { surcharges: [] },
-    }));
-    UserMock.verify();
+    expect(event).toEqual({ sector });
+    sinon.assert.calledOnceWithExactly(
+      detachAuxiliaryFromEvent,
+      {
+        type: 'intervention',
+        customer,
+        subscription,
+        auxiliary,
+        sector,
+        misc: 'note',
+        internalHour: 'non',
+        company,
+        address: {
+          fullAddress: '37 rue de ponthieu 75008 Paris',
+          zipCode: '75008',
+          city: 'Paris',
+          street: '37 rue de Ponthieu',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
+        startDate: moment(date).add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+        endDate: moment(date).add(90, 'd').set({ hours: 10, minutes: 0, seconds: 0, milliseconds: 0 }).toDate(),
+        repetition: { frequency: 'every_day', parentId },
+      },
+      repetition.company
+    );
   });
 });

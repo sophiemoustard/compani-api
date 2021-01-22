@@ -1266,7 +1266,7 @@ describe('createEvent', () => {
     sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
 
-  it('should detach auxiliary as event is a repeted intervention with conflicts', async () => {
+  it('should detach auxiliary as event is a repeated intervention with conflicts', async () => {
     const newEvent = { type: INTERVENTION, auxiliary: new ObjectID(), repetition: { frequency: 'every_week' } };
     const detachedEvent = { _id: new ObjectID(), type: INTERVENTION, repetition: { frequency: 'never' } };
 

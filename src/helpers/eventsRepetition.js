@@ -219,5 +219,5 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
     newEvent = await EventsHelper.detachAuxiliaryFromEvent(newEvent, repetition.company);
   }
 
-  return new Event(newEvent);
+  return newEvent;
 };

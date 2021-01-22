@@ -53,16 +53,15 @@ exports.list = async (query, credentials) => {
 };
 
 exports.detachAuxiliaryFromEvent = async (event, companyId) => {
-  const payload = { ...event };
-
-  const auxiliary = await User.findOne({ _id: payload.auxiliary })
+  const auxiliary = await User.findOne({ _id: event.auxiliary })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
-  delete payload.auxiliary;
-  payload.sector = auxiliary.sector;
-  payload.repetition.frequency = NEVER;
 
-  return payload;
+  return {
+    ...omit(event, 'auxiliary'),
+    sector: auxiliary.sector,
+    repetition: { frequency: NEVER },
+  };
 };
 
 exports.createEvent = async (payload, credentials) => {
