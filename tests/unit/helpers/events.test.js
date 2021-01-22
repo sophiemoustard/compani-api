@@ -29,6 +29,7 @@ const {
   CUSTOMER,
   PLANNING_VIEW_END_HOUR,
 } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -1150,6 +1151,38 @@ describe('updateAbsencesOnContractEnd', () => {
     sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, companyId);
     sinon.assert.calledWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
     sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+  });
+});
+
+describe('detachAuxiliaryFromEvent', () => {
+  let findOneUser;
+
+  beforeEach(() => {
+    findOneUser = sinon.stub(User, 'findOne');
+  });
+
+  afterEach(() => {
+    findOneUser.restore();
+  });
+
+  it('should detach auxiliary from event', async () => {
+    const event = { auxiliary: new ObjectID(), repetition: { frequency: 'every_week' } };
+    const companyId = new ObjectID();
+
+    const auxiliary = { sector: 'sector' };
+    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+
+    const result = await EventHelper.detachAuxiliaryFromEvent(event, companyId);
+
+    expect(result).toEqual({ sector: 'sector', repetition: { frequency: 'never' } });
+    SinonMongoose.calledWithExactly(
+      findOneUser,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 });
 
