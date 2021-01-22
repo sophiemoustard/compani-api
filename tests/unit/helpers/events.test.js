@@ -1231,49 +1231,56 @@ describe('createEvent', () => {
     detachAuxiliaryFromEvent.restore();
   });
 
-  it('should not create as creation is not allowed', async () => {
+  it('should not create event as creation is not allowed', async () => {
     isCreationAllowed.returns(false);
     try {
-      await EventHelper.createEvent({}, {});
+      await EventHelper.createEvent({}, credentials);
     } catch (e) {
       expect(e.output.payload.statusCode).toEqual(422);
     } finally {
+      sinon.assert.calledOnceWithExactly(isCreationAllowed, { company: companyId }, credentials);
       sinon.assert.notCalled(createEvent);
     }
   });
 
-  it('should create as creation is allowed', async () => {
+  it('should create event as creation is allowed', async () => {
     const newEvent = { type: INTERNAL_HOUR };
 
     isCreationAllowed.returns(true);
-    getEvent.returns(newEvent);
+    getEvent.returns({ ...newEvent, populated: true });
     createEvent.returns(newEvent);
 
     await EventHelper.createEvent(newEvent, credentials);
 
-    sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
-    sinon.assert.notCalled(createRepetitions);
-    sinon.assert.called(populateEventSubscription);
-    sinon.assert.calledWithExactly(createEvent, { ...newEvent, company: companyId });
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, newEvent, credentials);
+    sinon.assert.calledOnceWithExactly(getEvent, newEvent._id, credentials);
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, { ...newEvent, populated: true });
+    sinon.assert.calledOnceWithExactly(createEvent, { ...newEvent, company: companyId });
     sinon.assert.notCalled(findOneUser);
+    sinon.assert.notCalled(createRepetitions);
   });
 
   it('should create repetitions as event is a repetition', async () => {
     const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const populatedEvent = { ...payload, _id: new ObjectID(), populated: true };
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
     createEvent.returns(payload);
-    getEvent.returns(payload);
+    getEvent.returns(populatedEvent);
 
     await EventHelper.createEvent(payload, credentials);
 
-    sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.calledWithExactly(getEvent, payload._id, credentials);
-    sinon.assert.called(createRepetitions);
-    sinon.assert.called(populateEventSubscription);
-    sinon.assert.calledWithExactly(createEvent, { ...payload, company: companyId });
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, payload, credentials);
+    sinon.assert.calledOnceWithExactly(getEvent, payload._id, credentials);
+    sinon.assert.calledOnceWithExactly(
+      createRepetitions,
+      populatedEvent,
+      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: populatedEvent._id } },
+      credentials
+    );
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, populatedEvent);
+    sinon.assert.calledOnceWithExactly(createEvent, { ...payload, company: companyId });
     sinon.assert.notCalled(findOneUser);
   });
 
@@ -1297,13 +1304,13 @@ describe('createEvent', () => {
 
     await EventHelper.createEvent(payload, credentials);
 
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
       payload,
       auxiliary,
       credentials
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' },
       auxiliary,
