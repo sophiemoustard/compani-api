@@ -196,6 +196,13 @@ exports.getCourse = async (req) => {
   return userCanGetCourse ? course : Boom.forbidden();
 };
 
+exports.getCourseWithoutAuthorization = async (req) => {
+  const course = await Course.findById(req.params._id).lean();
+  if (!course) throw Boom.notFound();
+
+  return course;
+};
+
 exports.authorizeAndGetTrainee = async (req) => {
   const traineeId = get(req, 'query.traineeId');
   const credentials = get(req, 'auth.credentials');
