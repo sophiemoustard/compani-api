@@ -116,7 +116,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
-    trainees: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     type: 'intra',
   },
   {
@@ -204,7 +204,7 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    trainees: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     accessRules: [otherCompany._id],
   },
 ];

@@ -152,7 +152,7 @@ exports.authorizeRegisterToELearning = async (req) => {
   return null;
 };
 
-exports.userCanGetCourse = async (req) => {
+exports.authorizeGetCourse = async (req) => {
   try {
     const { course } = req.pre;
     const credentials = get(req, 'auth.credentials');
@@ -169,20 +169,17 @@ exports.userCanGetCourse = async (req) => {
 
     if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.company, userCompany)) throw Boom.forbidden();
 
-    if (course.type === INTER_B2B && course.format !== STRICTLY_E_LEARNING) {
+    if (course.type === INTER_B2B) {
       const courseWithTrainees = await Course.findById(req.params._id)
         .populate({ path: 'trainees', select: 'company' })
         .lean();
-      if (!courseWithTrainees.trainees.some(trainee => trainee.company === userCompany)) throw Boom.forbidden();
-
-      return null;
+      if (!courseWithTrainees.trainees.some(
+        trainee => !UtilsHelper.areObjectIdsEquals(trainee.company, userCompany)
+      )) throw Boom.forbidden();
     }
 
-    if (
-      course.format === STRICTLY_E_LEARNING &&
-    course.accessRules.length !== 0 &&
-    !course.accessRules.includes(userCompany)
-    ) throw Boom.forbidden();
+    if (course.format === STRICTLY_E_LEARNING && course.accessRules.length !== 0 &&
+      !course.accessRules.includes(userCompany)) throw Boom.forbidden();
 
     return null;
   } catch (e) {
