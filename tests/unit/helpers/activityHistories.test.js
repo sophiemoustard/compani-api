@@ -117,7 +117,7 @@ describe('list', () => {
         },
         {
           query: 'populate',
-          args: [{
+          args: [[{
             path: 'activity',
             select: '_id',
             populate: {
@@ -131,7 +131,7 @@ describe('list', () => {
                   { path: 'program', select: 'name' }],
               },
             },
-          }],
+          }, { path: 'user', select: '_id identity picture' }]],
         },
         { query: 'lean' },
       ]
