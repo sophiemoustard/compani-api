@@ -219,7 +219,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
       path: 'subProgram',
       select: 'program steps',
       populate: [
-        { path: 'program', select: 'name image' },
+        { path: 'program', select: 'name image description learningGoals' },
         {
           path: 'steps',
           select: 'name type activities',

@@ -23,6 +23,7 @@ const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -696,15 +697,15 @@ describe('getTraineeProgress', () => {
 });
 
 describe('getTraineeCourse', () => {
-  let CourseMock;
   let formatCourseWithProgress;
+  let courseFindOne;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
     formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
+    courseFindOne = sinon.stub(Course, 'findOne');
   });
   afterEach(() => {
-    CourseMock.restore();
     formatCourseWithProgress.restore();
+    courseFindOne.restore();
   });
 
   it('should return courses', async () => {
@@ -735,35 +736,8 @@ describe('getTraineeCourse', () => {
     };
     const credentials = { _id: new ObjectID() };
 
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: course._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program steps',
-        populate: [
-          { path: 'program', select: 'name image' },
-          {
-            path: 'steps',
-            select: 'name type activities',
-            populate: {
-              path: 'activities',
-              select: 'name type cards activityHistories',
-              populate: [
-                { path: 'activityHistories', match: { user: credentials._id } },
-                { path: 'cards', select: 'template' },
-              ],
-            },
-          },
-        ],
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate step address' })
-      .chain('select')
-      .withExactArgs('_id misc')
-      .chain('lean')
-      .once()
-      .returns(course);
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['populate', 'select', 'lean']));
+
     formatCourseWithProgress.returns({
       ...course,
       subProgram: {
@@ -782,6 +756,36 @@ describe('getTraineeCourse', () => {
       },
       progress: 1,
     });
+
+    SinonMongoose.calledWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'program steps',
+            populate: [
+              { path: 'program', select: 'name image description learningGoals' },
+              {
+                path: 'steps',
+                select: 'name type activities',
+                populate: {
+                  path: 'activities',
+                  select: 'name type cards activityHistories',
+                  populate: [
+                    { path: 'activityHistories', match: { user: credentials._id } },
+                    { path: 'cards', select: 'template' },
+                  ],
+                },
+              },
+            ],
+          }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step address' }] },
+        { query: 'select', args: ['_id misc'] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
 
     sinon.assert.calledWithExactly(formatCourseWithProgress, course);
   });
