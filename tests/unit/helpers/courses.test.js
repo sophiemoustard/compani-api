@@ -418,7 +418,7 @@ describe('getCourse', () => {
               path: 'steps',
               select: 'name type',
               populate: {
-                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: '_id' },
+                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
               },
             },
           ],
@@ -477,7 +477,7 @@ describe('getCourse', () => {
               path: 'steps',
               select: 'name type',
               populate: {
-                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: '_id' },
+                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
               },
             },
           ],

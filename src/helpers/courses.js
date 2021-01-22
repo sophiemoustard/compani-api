@@ -120,7 +120,11 @@ exports.getCourse = async (course, loggedUser) => {
         {
           path: 'steps',
           select: 'name type',
-          populate: { path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: '_id' } },
+          populate: {
+            path: 'activities',
+            select: 'name type',
+            populate: { path: 'activityHistories', select: 'user' },
+          },
         },
       ],
     })

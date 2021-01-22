@@ -277,6 +277,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
               activityHistories: expect.arrayContaining([{
                 _id: expect.any(ObjectID),
                 activity: activity._id,
+                user: expect.any(ObjectID),
               }]),
             }]),
           }]),
