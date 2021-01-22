@@ -394,10 +394,7 @@ describe('getCourse', () => {
     const course = {
       _id: new ObjectID(),
       type: 'inter_b2b',
-      trainees: [
-        { _id: new ObjectID(), company: new ObjectID() },
-        { _id: new ObjectID(), company: new ObjectID() },
-      ],
+      trainees: [{ _id: new ObjectID(), company: new ObjectID() }, { _id: new ObjectID(), company: new ObjectID() }],
     };
     findOne.returns(SinonMongoose.stubChainedQueries([course]));
 
