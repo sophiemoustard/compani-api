@@ -1258,6 +1258,33 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(createEvent, { ...newEvent, company: companyId });
     sinon.assert.notCalled(findOneUser);
     sinon.assert.notCalled(createRepetitions);
+    sinon.assert.notCalled(detachAuxiliaryFromEvent);
+  });
+
+  it('should detach auxiliary as event is a repeted intervention with conflicts', async () => {
+    const newEvent = { type: INTERVENTION, auxiliary: new ObjectID(), repetition: { frequency: 'every_week' } };
+    const detachedEvent = { _id: new ObjectID(), type: INTERVENTION, repetition: { frequency: 'never' } };
+
+    isCreationAllowed.returns(true);
+    hasConflicts.returns(true);
+    detachAuxiliaryFromEvent.returns(detachedEvent);
+    getEvent.returns({ ...detachedEvent, populated: true });
+    createEvent.returns(detachedEvent);
+
+    await EventHelper.createEvent(newEvent, credentials);
+
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, newEvent, credentials);
+    sinon.assert.calledOnceWithExactly(getEvent, detachedEvent._id, credentials);
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, { ...detachedEvent, populated: true });
+    sinon.assert.calledOnceWithExactly(createEvent, { ...detachedEvent });
+    sinon.assert.calledOnceWithExactly(detachAuxiliaryFromEvent, { ...newEvent, company: companyId }, companyId);
+    sinon.assert.calledOnceWithExactly(
+      createRepetitions,
+      { ...detachedEvent, populated: true },
+      { ...newEvent, company: companyId, repetition: { ...newEvent.repetition, parentId: detachedEvent._id } },
+      credentials
+    );
+    sinon.assert.notCalled(findOneUser);
   });
 
   it('should create repetitions as event is a repetition', async () => {
@@ -1282,6 +1309,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(populateEventSubscription, populatedEvent);
     sinon.assert.calledOnceWithExactly(createEvent, { ...payload, company: companyId });
     sinon.assert.notCalled(findOneUser);
+    sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
 
   it('should unassign intervention and delete other event in conflict on absence creation', async () => {
@@ -1324,6 +1352,7 @@ describe('createEvent', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
+    sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });
 });
 
