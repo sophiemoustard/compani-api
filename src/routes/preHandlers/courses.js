@@ -159,6 +159,9 @@ exports.authorizeGetCourse = async (req) => {
     const userCompany = get(credentials, 'company._id');
 
     const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+    if (loggedUserVendorRole === TRAINER && !UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id)) {
+      throw Boom.forbidden();
+    }
     if (loggedUserVendorRole) return null;
 
     const isTrainee = course.trainees.includes(credentials._id);

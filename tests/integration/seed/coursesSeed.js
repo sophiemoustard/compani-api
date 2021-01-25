@@ -144,6 +144,7 @@ const coursesList = [
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     format: 'strictly_e_learning',
+    trainer: courseTrainer._id,
   },
   { // course with slots
     _id: new ObjectID(),
