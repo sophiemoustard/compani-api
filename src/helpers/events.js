@@ -52,45 +52,52 @@ exports.list = async (query, credentials) => {
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
 
+exports.detachAuxiliaryFromEvent = async (event, companyId) => {
+  const auxiliary = await User.findOne({ _id: event.auxiliary })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
+
+  return {
+    ...omit(event, 'auxiliary'),
+    sector: auxiliary.sector,
+    repetition: { ...event.repetition, frequency: NEVER },
+  };
+};
+
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  let event = { ...cloneDeep(payload), company: companyId };
-  if (!await EventsValidationHelper.isCreationAllowed(event, credentials)) throw Boom.badData();
+  let eventPayload = { ...cloneDeep(payload), company: companyId };
+  if (!await EventsValidationHelper.isCreationAllowed(eventPayload, credentials)) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  const isRepeatedEvent = exports.isRepetition(event);
-  const hasConflicts = await EventsValidationHelper.hasConflicts(event);
-  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
-    const auxiliary = await User.findOne({ _id: event.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-      .lean({ autopopulate: true, virtuals: true });
-    delete event.auxiliary;
-    event.sector = auxiliary.sector;
-    event.repetition.frequency = NEVER;
+  const isRepeatedEvent = exports.isRepetition(eventPayload);
+  const hasConflicts = await EventsValidationHelper.hasConflicts(eventPayload);
+  if (eventPayload.type === INTERVENTION && eventPayload.auxiliary && isRepeatedEvent && hasConflicts) {
+    eventPayload = exports.detachAuxiliaryFromEvent(eventPayload, companyId);
   }
 
-  event = await Event.create(event);
-  event = await EventRepository.getEvent(event._id, credentials);
+  const event = await Event.create(eventPayload);
+  const populatedEvent = await EventRepository.getEvent(event._id, credentials);
   if (payload.type === ABSENCE) {
-    const { startDate, endDate } = event;
+    const { startDate, endDate } = populatedEvent;
     const dates = { startDate, endDate };
-    const auxiliary = await User.findOne({ _id: event.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    await exports.deleteConflictInternalHoursAndUnavailabilities(event, auxiliary, credentials);
+    await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);
     await exports.unassignConflictInterventions(dates, auxiliary, credentials);
   }
 
   if (isRepeatedEvent) {
     await EventsRepetitionHelper.createRepetitions(
-      event,
-      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: event._id } },
+      populatedEvent,
+      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: populatedEvent._id } },
       credentials
     );
   }
 
-  return exports.populateEventSubscription(event);
+  return exports.populateEventSubscription(populatedEvent);
 };
 
 exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary, credentials) => {

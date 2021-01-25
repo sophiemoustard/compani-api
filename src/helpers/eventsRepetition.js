@@ -205,7 +205,7 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
     'address',
     'company',
   ];
-  const newEvent = {
+  let newEvent = {
     ...pick(cloneDeep(repetition), pickedFields),
     startDate: newEventStartDate,
     endDate: newEventEndDate,
@@ -216,13 +216,8 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
   if ([INTERNAL_HOUR, UNAVAILABILITY].includes(newEvent.type) && hasConflicts) return null;
 
   if (newEvent.type === INTERVENTION && newEvent.auxiliary && hasConflicts) {
-    delete newEvent.auxiliary;
-    newEvent.repetition.frequency = NEVER;
-    const user = await User.findOne({ _id: repetition.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: repetition.company } })
-      .lean({ autopopulate: true, virtuals: true });
-    newEvent.sector = user.sector;
+    newEvent = await EventsHelper.detachAuxiliaryFromEvent(newEvent, repetition.company);
   }
 
-  return new Event(newEvent);
+  return newEvent;
 };
