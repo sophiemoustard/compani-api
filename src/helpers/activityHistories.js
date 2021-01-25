@@ -13,7 +13,7 @@ const filterCourses = activityHistory => ({
       subProgram: {
         ...step.subProgram,
         courses: step.subProgram.courses.filter(course =>
-          course.trainees.map(trainee => trainee.toHexString()).includes(activityHistory.user.toHexString())),
+          course.trainees.map(trainee => trainee.toHexString()).includes(activityHistory.user._id.toHexString())),
       },
     })),
   },
@@ -50,6 +50,7 @@ exports.list = async (query, credentials) => {
         },
       },
     })
+    .populate({ path: 'user', select: '_id identity picture' })
     .lean();
 
   return activityHistories.map(h => filterSteps(filterCourses(h))).filter(h => h.activity.steps.length);

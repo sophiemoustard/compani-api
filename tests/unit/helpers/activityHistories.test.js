@@ -133,6 +133,7 @@ describe('list', () => {
             },
           }],
         },
+        { query: 'populate', args: [{ path: 'user', select: '_id identity picture' }] },
         { query: 'lean' },
       ]
     );
