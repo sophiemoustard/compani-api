@@ -3,8 +3,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const InternalHour = require('../../../src/models/InternalHour');
 const InternalHoursHelper = require('../../../src/helpers/internalHours');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
   let createStub;
@@ -27,27 +26,27 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  let InternalHourMock;
+  let find;
   beforeEach(() => {
-    InternalHourMock = sinon.mock(InternalHour);
+    find = sinon.stub(InternalHour, 'find');
   });
   afterEach(() => {
-    InternalHourMock.restore();
+    find.restore();
   });
 
   it('should return an array of every internal hour of user company', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const internalHours = [{ _id: new ObjectID(), name: 'skusku' }];
 
-    InternalHourMock.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean')
-      .returns(internalHours);
+    find.returns(SinonMongoose.stubChainedQueries([internalHours], ['lean']));
 
     const result = await InternalHoursHelper.list(credentials);
 
     expect(result).toEqual(internalHours);
-    InternalHourMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 });
 
