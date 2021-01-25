@@ -8,7 +8,7 @@ exports.sendVerificationCodeSms = async (phone, code) => {
   await exports.send({
     tag: PASSWORD_SMS,
     content: `Votre code Compani : ${code}.`
-      + ' Veuillez utiliser ce code, valable une heure, pour confirmer votre indentité.',
+      + ' Veuillez utiliser ce code, valable une heure, pour confirmer votre identité.',
     recipient: `+33${phone.substring(1)}`,
     sender: 'Compani',
   });

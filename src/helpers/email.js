@@ -122,7 +122,7 @@ exports.forgotPasswordEmail = async (receiver, passwordToken) => {
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
 };
 
-exports.verificationCodeEmail = async (receiver, verificationCode) => {
+exports.sendVerificationCodeEmail = async (receiver, verificationCode) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
