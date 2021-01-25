@@ -66,7 +66,23 @@ exports.updatePassword = async (userId, userPayload) => User.findOneAndUpdate(
   { new: true }
 ).lean();
 
-exports.checkPasswordToken = async (token) => {
+exports.checkPasswordToken = async (token, email) => {
+  if (email) {
+    const code = await IdentityVerification.findOne({ email, code: Number(token) })
+      .lean({ virtuals: true, autopopulate: true });
+    if (!code) throw Boom.notFound();
+    const timeElapsed = (Date.now() - code.createdAt) / 1000;
+    if (timeElapsed < 3600) {
+      const user = await User.findOne({ 'local.email': email }).lean();
+      if (!user) throw Boom.notFound(translate[language].userNotFound);
+      const payload = { _id: user._id, email: user.local.email };
+      const userPayload = pickBy(payload);
+      const expireTime = 86400;
+      return { token: exports.encode(userPayload, expireTime), user: userPayload };
+    }
+    throw Boom.unauthorized();
+  }
+
   const filter = { passwordToken: { token, expiresIn: { $gt: Date.now() } } };
   const user = await User.findOne(flat(filter, { maxDepth: 2 })).select('local').lean();
   if (!user) throw Boom.notFound(translate[language].userNotFound);
@@ -83,7 +99,10 @@ exports.createPasswordToken = async email => exports.generatePasswordToken(email
 exports.forgotPassword = async (payload) => {
   const { email, origin, type } = payload;
   if (origin === MOBILE && type === EMAIL) {
-    const verification = await IdentityVerification.create({ email, code: Math.floor(Math.random() * 10000) });
+    const verification = await IdentityVerification.create({
+      email,
+      code: Math.floor(Math.random() * (10000 - 1000 + 1) + 1000),
+    });
 
     return EmailHelper.verificationCodeEmail(email, verification.code);
   }

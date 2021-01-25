@@ -363,10 +363,18 @@ describe('POST /users/:id/drivefolder', () => {
 
 describe('GET /users/passwordtoken/:token', () => {
   beforeEach(populateDB);
+  let fakeDate;
+  beforeEach(() => {
+    fakeDate = sinon.stub(Date, 'now');
+  });
+
+  afterEach(() => {
+    fakeDate.restore();
+  });
 
   it('should return a new access token after checking reset password token', async () => {
     const user = getUser('helper', true, usersSeedList);
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+    fakeDate.returns(new Date('2020-01-20'));
 
     const response = await app.inject({
       method: 'GET',
@@ -375,11 +383,37 @@ describe('GET /users/passwordtoken/:token', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.result.data.token).toEqual(expect.any(String));
-    fakeDate.restore();
+  });
+
+  it('should return a new access token after checking verification code from mobile', async () => {
+    const token = '3310';
+    const email = 'carolyn@alenvi.io';
+    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.token).toEqual(expect.any(String));
+  });
+
+  it('should return a 404 error if verification code is wrong', async () => {
+    const token = '3311';
+    const email = 'carolyn@alenvi.io';
+    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(404);
   });
 
   it('should return a 404 error if token is not valid', async () => {
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+    fakeDate.returns(new Date('2020-01-20'));
 
     const response = await app.inject({
       method: 'GET',
@@ -387,7 +421,6 @@ describe('GET /users/passwordtoken/:token', () => {
     });
 
     expect(response.statusCode).toBe(404);
-    fakeDate.restore();
   });
 });
 
