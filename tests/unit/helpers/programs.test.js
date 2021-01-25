@@ -8,8 +8,6 @@ const ProgramHelper = require('../../../src/helpers/programs');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('createProgram', () => {
   let create;
   beforeEach(() => {
@@ -185,36 +183,23 @@ describe('getProgram', () => {
 });
 
 describe('update', () => {
-  let ProgramMock;
+  let programUpdateOne;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    programUpdateOne = sinon.stub(Program, 'updateOne');
   });
   afterEach(() => {
-    ProgramMock.restore();
+    programUpdateOne.restore();
   });
 
   it('should update name', async () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
-    ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: payload })
-      .returns({ _id: programId, name: 'toto' });
+    programUpdateOne.returns({ _id: programId, name: 'toto' });
 
-    const result = await ProgramHelper.updateProgram(programId, payload);
-    expect(result).toMatchObject({ _id: programId, name: 'toto' });
-  });
+    await ProgramHelper.updateProgram(programId, payload);
 
-  it('should update image', async () => {
-    const programId = new ObjectID();
-    const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
-
-    ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: payload })
-      .returns({ _id: programId, ...payload });
-
-    const result = await ProgramHelper.updateProgram(programId, payload);
-    expect(result).toMatchObject({ _id: programId, ...payload });
+    programUpdateOne.calledOnceWithExactly({ _id: programId }, { $set: payload });
   });
 });
 
