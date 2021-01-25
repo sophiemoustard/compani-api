@@ -512,13 +512,38 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should get course with follow up', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if user company is not query company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${otherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
@@ -528,7 +553,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+          url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
