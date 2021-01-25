@@ -110,6 +110,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({ token: Joi.string().required() }),
+          query: Joi.object().keys({ email: Joi.string().email() }),
         },
         auth: false,
       },
