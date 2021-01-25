@@ -370,7 +370,7 @@ describe('checkPasswordToken', () => {
 
     UserfindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
     IdentityVerificationFindOne.returns(SinonMongoose.stubChainedQueries([
-      { code: 3310, email, createdAt: new Date('2021-01-25T10:05:32.582Z') },
+      { code: 3310, email, updatedAt: new Date('2021-01-25T10:05:32.582Z') },
     ], ['lean']));
     fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
     encode.returns('1234567890');
@@ -467,6 +467,7 @@ describe('forgotPassword', () => {
   let forgotPasswordEmail;
   let verificationCodeEmail;
   let generatePasswordTokenStub;
+  let identityVerificationFindOneAndUpdate;
   let identityVerificationCreate;
   let codeVerification;
 
@@ -474,6 +475,7 @@ describe('forgotPassword', () => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
     verificationCodeEmail = sinon.stub(EmailHelper, 'verificationCodeEmail');
     generatePasswordTokenStub = sinon.stub(AuthenticationHelper, 'generatePasswordToken');
+    identityVerificationFindOneAndUpdate = sinon.stub(IdentityVerification, 'findOneAndUpdate');
     identityVerificationCreate = sinon.stub(IdentityVerification, 'create');
     codeVerification = sinon.stub(Math, 'random');
   });
@@ -481,6 +483,7 @@ describe('forgotPassword', () => {
     forgotPasswordEmail.restore();
     verificationCodeEmail.restore();
     generatePasswordTokenStub.restore();
+    identityVerificationFindOneAndUpdate.restore();
     identityVerificationCreate.restore();
     codeVerification.restore();
   });
@@ -496,13 +499,15 @@ describe('forgotPassword', () => {
     sinon.assert.calledOnceWithExactly(generatePasswordTokenStub, email, 3600000);
     sinon.assert.calledWithExactly(forgotPasswordEmail, email, { token: '123456789' });
     sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(identityVerificationFindOneAndUpdate);
     sinon.assert.notCalled(identityVerificationCreate);
     sinon.assert.notCalled(codeVerification);
   });
 
-  it('should send a code verification if origin mobile and type email', async () => {
+  it('should create and send a verification code if origin mobile and type email', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
+    identityVerificationFindOneAndUpdate.returns(null);
     identityVerificationCreate.returns({ email, code: 2000 });
     verificationCodeEmail.returns({ sent: true });
 
@@ -513,6 +518,30 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(forgotPasswordEmail);
     sinon.assert.notCalled(generatePasswordTokenStub);
     sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: 2000 });
+    SinonMongoose.calledWithExactly(
+      identityVerificationFindOneAndUpdate,
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: 2000 } }, { new: true }] }]
+    );
+  });
+
+  it('should update and send new verification code if already exists one', async () => {
+    const email = 'toto@toto.com';
+    codeVerification.returns(0.1111);
+    identityVerificationFindOneAndUpdate.returns({ email, code: 2000 });
+    identityVerificationCreate.returns(null);
+    verificationCodeEmail.returns({ sent: true });
+
+    const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: EMAIL });
+
+    expect(result).toEqual({ sent: true });
+    sinon.assert.calledWithExactly(verificationCodeEmail, email, 2000);
+    sinon.assert.notCalled(forgotPasswordEmail);
+    sinon.assert.notCalled(generatePasswordTokenStub);
+    sinon.assert.notCalled(identityVerificationCreate);
+    SinonMongoose.calledWithExactly(
+      identityVerificationFindOneAndUpdate,
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: 2000 } }, { new: true }] }]
+    );
   });
 });
 
