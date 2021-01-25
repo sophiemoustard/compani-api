@@ -426,15 +426,15 @@ describe('GET /users/passwordtoken/:token', () => {
 
 describe('POST /users/forgot-password', () => {
   let forgotPasswordEmail;
-  let verificationCodeEmail;
+  let sendVerificationCodeEmail;
   beforeEach(populateDB);
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
-    verificationCodeEmail = sinon.stub(EmailHelper, 'verificationCodeEmail');
+    sendVerificationCodeEmail = sinon.stub(EmailHelper, 'sendVerificationCodeEmail');
   });
   afterEach(() => {
     forgotPasswordEmail.restore();
-    verificationCodeEmail.restore();
+    sendVerificationCodeEmail.restore();
   });
 
   it('should send an email to renew password', async () => {
@@ -462,7 +462,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    sinon.assert.calledWith(verificationCodeEmail, userEmail, sinon.match(sinon.match.string));
+    sinon.assert.calledWith(sendVerificationCodeEmail, userEmail, sinon.match(sinon.match.string));
   });
 
   it('should return 400 if origin mobile and no type', async () => {
@@ -474,7 +474,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
   });
 
   it('should return 400 if origin mobile and wrong type', async () => {
@@ -486,7 +486,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
   });
 
   it('should be compatible with old mobile app version', async () => {

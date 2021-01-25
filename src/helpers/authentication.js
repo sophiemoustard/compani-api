@@ -105,7 +105,7 @@ exports.forgotPassword = async (payload) => {
     let verification = await IdentityVerification.findOneAndUpdate({ email }, { $set: { code } }, { new: true });
     if (!verification) verification = await IdentityVerification.create({ email, code });
 
-    if (type === EMAIL) return EmailHelper.verificationCodeEmail(email, verification.code);
+    if (type === EMAIL) return EmailHelper.sendVerificationCodeEmail(email, verification.code);
 
     const user = await User.findOne({ 'local.email': email }, { 'contact.phone': 1 }).lean();
     if (!get(user, 'contact.phone')) throw Boom.conflict();
