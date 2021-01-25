@@ -109,6 +109,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ company: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
