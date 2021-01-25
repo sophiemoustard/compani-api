@@ -36,6 +36,7 @@ const {
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
   authorizeAndGetTrainee,
+  authorizeGetCourse,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -97,7 +98,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
       },
       handler: getById,
     });
@@ -110,7 +111,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
       },
       handler: getFollowUp,
     });

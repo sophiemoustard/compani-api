@@ -152,9 +152,47 @@ exports.authorizeRegisterToELearning = async (req) => {
   return null;
 };
 
+exports.authorizeGetCourse = async (req) => {
+  try {
+    const { course } = req.pre;
+    const credentials = get(req, 'auth.credentials');
+    const userCompany = get(credentials, 'company._id');
+
+    const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+    if (loggedUserVendorRole === TRAINER && !UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id)) {
+      throw Boom.forbidden();
+    }
+    if (loggedUserVendorRole) return null;
+
+    const isTrainee = course.trainees.includes(credentials._id);
+    if (isTrainee) return null;
+
+    const loggedUserClientRole = get(credentials, 'role.client.name');
+    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) throw Boom.forbidden();
+
+    if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.company, userCompany)) throw Boom.forbidden();
+
+    if (course.type === INTER_B2B) {
+      const courseWithTrainees = await Course.findById(req.params._id)
+        .populate({ path: 'trainees', select: 'company' })
+        .lean();
+      if (!courseWithTrainees.trainees.some(
+        trainee => !UtilsHelper.areObjectIdsEquals(trainee.company, userCompany)
+      )) throw Boom.forbidden();
+    }
+
+    if (course.format === STRICTLY_E_LEARNING && course.accessRules.length !== 0 &&
+      !course.accessRules.includes(userCompany)) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 exports.getCourse = async (req) => {
   const course = await Course.findById(req.params._id).lean();
-
   if (!course) throw Boom.notFound();
 
   return course;

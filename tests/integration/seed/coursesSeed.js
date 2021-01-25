@@ -116,7 +116,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
-    trainees: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     type: 'intra',
   },
   {
@@ -144,6 +144,7 @@ const coursesList = [
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     format: 'strictly_e_learning',
+    trainer: courseTrainer._id,
   },
   { // course with slots
     _id: new ObjectID(),
@@ -191,11 +192,21 @@ const coursesList = [
     trainer: coachFromAuthCompany._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
+    trainee: [traineeFromOtherCompany._id],
     contact: {
-      name: 'Romain Delenda',
+      name: 'Romain Delendarroze',
       email: 'romainlebg77@gmail.com',
       phone: '0123456789',
     },
+  },
+  { // course without authCompany in access rules (11ème position)
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'inter_b2b with accessRules',
+    type: 'inter_b2b',
+    format: 'strictly_e_learning',
+    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    accessRules: [otherCompany._id],
   },
 ];
 

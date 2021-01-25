@@ -169,7 +169,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(6);
+      expect(response.result.data.courses.length).toEqual(7);
     });
   });
 
@@ -199,7 +199,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(2);
+      expect(response.result.data.courses.length).toEqual(3);
     });
 
     it('should get courses for a specific company', async () => {
@@ -211,7 +211,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(5);
+      expect(response.result.data.courses.length).toEqual(6);
     });
 
     const roles = [
@@ -358,9 +358,62 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
         company: pick(authCompany, ['_id', 'name']),
       })]));
     });
+
+    it('should return 403 if course is eLearning and has accessRules that doesn\'t contain user company ',
+      async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[11]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
+    it('should return 403 if course is intra and user company is not course company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if course is inter_b2b and no trainee is from user company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
+    it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 200 if user is trainer and is course\'s trainer', async () => {
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -368,7 +421,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
