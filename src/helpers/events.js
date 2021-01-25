@@ -60,7 +60,7 @@ exports.detachAuxiliaryFromEvent = async (event, companyId) => {
   return {
     ...omit(event, 'auxiliary'),
     sector: auxiliary.sector,
-    repetition: { frequency: NEVER },
+    repetition: { ...event.repetition, frequency: NEVER },
   };
 };
 
