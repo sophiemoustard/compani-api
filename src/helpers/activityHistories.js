@@ -35,7 +35,7 @@ exports.list = async (query, credentials) => {
       date: { $lte: new Date(query.endDate), $gte: new Date(query.startDate) },
       user: { $in: users.map(u => u._id) },
     })
-    .populate([{
+    .populate({
       path: 'activity',
       select: '_id',
       populate: {
@@ -49,7 +49,8 @@ exports.list = async (query, credentials) => {
             { path: 'program', select: 'name' }],
         },
       },
-    }, { path: 'user', select: '_id identity picture' }])
+    })
+    .populate({ path: 'user', select: '_id identity picture' })
     .lean();
 
   return activityHistories.map(h => filterSteps(filterCourses(h))).filter(h => h.activity.steps.length);
