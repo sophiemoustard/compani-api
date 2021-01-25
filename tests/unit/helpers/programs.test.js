@@ -6,6 +6,7 @@ const Program = require('../../../src/models/Program');
 const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -27,27 +28,29 @@ describe('createProgram', () => {
 });
 
 describe('list', () => {
-  let ProgramMock;
+  let find;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    find = sinon.stub(Program, 'find');
   });
   afterEach(() => {
-    ProgramMock.restore();
+    find.restore();
   });
 
   it('should return programs', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
 
-    ProgramMock.expects('find')
-      .withExactArgs({})
-      .chain('populate')
-      .withExactArgs({ path: 'subPrograms', select: 'name' })
-      .chain('lean')
-      .once()
-      .returns(programsList);
+    find.returns(SinonMongoose.stubChainedQueries([programsList]));
 
     const result = await ProgramHelper.list();
     expect(result).toMatchObject(programsList);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{}] },
+        { query: 'populate', args: [{ path: 'subPrograms', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
