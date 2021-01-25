@@ -2,6 +2,19 @@ const axios = require('axios');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Company = require('../models/Company');
+const { PASSWORD_SMS } = require('./constants');
+
+exports.sendVerificationCodeSms = async (phone, code) => {
+  await exports.send({
+    tag: PASSWORD_SMS,
+    content: `Votre code Compani : ${code}.`
+      + ' Veuillez utiliser ce code, valable une heure, pour confirmer votre indentité.',
+    recipient: `+33${phone.substring(1)}`,
+    sender: 'Compani',
+  });
+
+  return { phone };
+};
 
 exports.sendFromCompany = async (data, credentials) => {
   const company = await Company.findOne({ _id: credentials.company._id }).lean();
@@ -9,6 +22,9 @@ exports.sendFromCompany = async (data, credentials) => {
   await exports.send({ ...data, sender: company.tradeName });
 };
 
+/**
+ * @param data { tag: string, content: string, recipient: string }
+ */
 exports.send = async (data) => {
   try {
     await axios({
