@@ -74,7 +74,7 @@ describe('listELearning', () => {
     programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
 
     const result = await ProgramHelper.listELearning(credentials);
-    expect(result).toMatchObject(programsList);
+    expect(result).toMatchObject([{ name: 'name' }, { name: 'program' }]);
 
     SinonMongoose.calledWithExactly(
       courseFind,
