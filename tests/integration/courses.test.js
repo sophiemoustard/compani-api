@@ -270,6 +270,15 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
             _id: expect.any(ObjectID),
             name: step.name,
             type: step.type,
+            activities: expect.arrayContaining([{
+              _id: expect.any(ObjectID),
+              name: activity.name,
+              type: activity.type,
+              activityHistories: expect.arrayContaining([expect.objectContaining({
+                _id: expect.any(ObjectID),
+                user: expect.any(ObjectID),
+              })]),
+            }]),
           }]),
         },
         trainer: expect.objectContaining({
