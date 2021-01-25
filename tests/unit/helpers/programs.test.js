@@ -55,15 +55,15 @@ describe('list', () => {
 });
 
 describe('listELearning', () => {
-  let ProgramMock;
-  let CourseMock;
+  let programFind;
+  let courseFind;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    CourseMock = sinon.mock(Course);
+    programFind = sinon.stub(Program, 'find');
+    courseFind = sinon.stub(Course, 'find');
   });
   afterEach(() => {
-    ProgramMock.restore();
-    CourseMock.restore();
+    programFind.restore();
+    courseFind.restore();
   });
 
   it('should return programs with elearning subprograms', async () => {
@@ -72,39 +72,50 @@ describe('listELearning', () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
 
-    CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] })
-      .chain('lean')
-      .returns([{ subProgram: subPrograms[0] }]);
-
-    ProgramMock.expects('find')
-      .withExactArgs({ subPrograms: { $in: subPrograms } })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subPrograms',
-        select: 'name',
-        match: { _id: { $in: subPrograms } },
-        populate: [
-          { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
-          {
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
-              select: 'activityHistories',
-              populate: { path: 'activityHistories', match: { user: credentials._id } },
-            },
-          },
-        ],
-      })
-      .chain('populate')
-      .withExactArgs('categories')
-      .chain('lean')
-      .once()
-      .returns(programsList);
+    courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
+    programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
 
     const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject(programsList);
+
+    SinonMongoose.calledWithExactly(
+      courseFind,
+      [
+        {
+          query: 'find',
+          args: [{ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      programFind,
+      [
+        { query: 'find', args: [{ subPrograms: { $in: subPrograms } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subPrograms',
+            select: 'name',
+            match: { _id: { $in: subPrograms } },
+            populate: [
+              { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
+              {
+                path: 'steps',
+                select: 'activities',
+                populate: {
+                  path: 'activities',
+                  select: 'activityHistories',
+                  populate: { path: 'activityHistories', match: { user: credentials._id } },
+                },
+              },
+            ],
+          }],
+        },
+        { query: 'populate', args: ['categories'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
