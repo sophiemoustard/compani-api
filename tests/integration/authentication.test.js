@@ -462,7 +462,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    sinon.assert.calledWith(verificationCodeEmail, userEmail, sinon.match(sinon.match.number));
+    sinon.assert.calledWith(verificationCodeEmail, userEmail, sinon.match(sinon.match.string));
   });
 
   it('should return 400 if origin mobile and no type', async () => {

@@ -354,4 +354,6 @@ module.exports = {
   // Type
   EMAIL: 'email',
   PHONE: 'phone',
+  // Time
+  SECONDS_IN_AN_HOUR: 3600,
 };
