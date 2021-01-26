@@ -782,9 +782,14 @@ describe('getTraineeCourse', () => {
             ],
           }] },
         { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step address' }] },
-        { query: 'select', args: ['_id misc'] },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
-        { query: 'populate', args: [{ path: 'contact' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname biography picture',
+          }],
+        },
+        { query: 'select', args: ['_id misc contact'] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
