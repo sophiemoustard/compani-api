@@ -1,3 +1,4 @@
+const omit = require('lodash/omit');
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
@@ -7,6 +8,7 @@ const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
 const Course = require('../../../src/models/Course');
+const Activity = require('../../../src/models/Activity');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
@@ -727,6 +729,61 @@ describe('getCourseFollowUp', () => {
       { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
       { query: 'lean' },
     ], 1);
+  });
+});
+
+describe('get questionnaire answers', () => {
+  let findOne;
+  let formatActivity;
+  beforeEach(() => {
+    findOne = sinon.stub(Activity, 'findOne');
+    formatActivity = sinon.stub(CourseHelper, 'formatActivity');
+  });
+  afterEach(() => {
+    findOne.restore();
+    formatActivity.restore();
+  });
+
+  it('should return questionnaire answers', async () => {
+    const activityId = new ObjectID();
+    const questionnaireAnswers = {
+      _id: activityId,
+      name: 'le nom de l\'activité',
+      activityHistories: [{ _id: new ObjectID() }],
+      steps: [{
+        id: new ObjectID(),
+        name: 'le nom de l\'étape',
+        subProgram: { _id: new ObjectID(), program: { name: 'le nom du programme' } },
+      }],
+      followUp: [{ template: 'survey', question: 'la question', answers: ['une réponse'] }],
+    };
+    findOne.returns(SinonMongoose.stubChainedQueries([{ ...omit(questionnaireAnswers, ['followUp']) }]));
+    formatActivity.returns(questionnaireAnswers);
+
+    const result = await CourseHelper.getQuestionnaireAnswers(activityId);
+
+    expect(result).toMatchObject(questionnaireAnswers);
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: activityId }, { name: 1 }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'steps',
+          select: 'name',
+          populate: { path: 'subProgram', select: '_id', populate: { path: 'program', select: 'name' } },
+        }],
+      },
+      {
+        query: 'populate',
+        args: [{
+          path: 'activityHistories',
+          populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+        }],
+      },
+      { query: 'lean' },
+    ]);
+
+    sinon.assert.calledOnceWithExactly(formatActivity, { ...omit(questionnaireAnswers, ['followUp']) });
   });
 });
 
