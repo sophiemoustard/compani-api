@@ -53,7 +53,7 @@ const identityVerifications = [
   {
     _id: new ObjectID(),
     email: 'carolyn@alenvi.io',
-    code: 3310,
+    code: '3310',
     createdAt: new Date('2021-01-25T10:05:32.582Z'),
   },
 ];
