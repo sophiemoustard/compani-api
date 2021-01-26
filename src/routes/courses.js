@@ -8,6 +8,7 @@ const {
   create,
   getById,
   getFollowUp,
+  getQuestionnaireAnswers,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -120,6 +121,19 @@ exports.plugin = {
         ],
       },
       handler: getFollowUp,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/questionnaire',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ activity: Joi.objectId().required() }),
+        },
+        auth: { scope: ['courses:read'] },
+      },
+      handler: getQuestionnaireAnswers,
     });
 
     server.route({

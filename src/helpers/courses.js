@@ -8,6 +8,7 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
+const Activity = require('../models/Activity');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -207,6 +208,21 @@ exports.getCourseFollowUp = async (course, company) => {
       ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
     })),
   };
+};
+
+exports.getQuestionnaireAnswers = async (activityId) => {
+  const activity = await Activity.findOne({ _id: activityId }, { name: 1 })
+    .populate({
+      path: 'steps',
+      select: 'name',
+      populate: { path: 'subProgram', select: '_id', populate: { path: 'program', select: 'name' } },
+    })
+    .populate({
+      path: 'activityHistories',
+      populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+    })
+    .lean();
+  return exports.formatActivity(activity);
 };
 
 exports.getTraineeProgress = (traineeId, steps, slots) => {
