@@ -512,9 +512,9 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     });
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get course with follow up', async () => {
@@ -539,12 +539,21 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   });
 
   describe('Other roles', () => {
+    it('should return 403 if user has no company and query has no company', async () => {
+      authToken = await getToken('auxiliary_without_company');
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
