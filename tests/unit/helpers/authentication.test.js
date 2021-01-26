@@ -333,7 +333,9 @@ describe('sendToken', () => {
     const email = 'carolyn@alenvi.io';
     const user = { _id: new ObjectID(), local: { email } };
     const userPayload = { _id: user._id, email };
+
     encode.returns('1234567890');
+
     const result = await AuthenticationHelper.sendToken(user);
     expect(result).toEqual({ token: '1234567890', user: userPayload });
     sinon.assert.calledWithExactly(encode, userPayload, TOKEN_EXPIRE_TIME);
