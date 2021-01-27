@@ -76,10 +76,10 @@ const getFollowUp = async (req) => {
 
 const getQuestionnaireAnswers = async (req) => {
   try {
-    const questionnaireAnswers = await CoursesHelper.getQuestionnaireAnswers(req.query.activity);
+    const questionnaireAnswers = await CoursesHelper.getQuestionnaireAnswers(req.query.activity, req.params._id);
 
     return {
-      message: translate[language].activityFound,
+      message: translate[language].courseFound,
       data: { questionnaireAnswers },
     };
   } catch (e) {
