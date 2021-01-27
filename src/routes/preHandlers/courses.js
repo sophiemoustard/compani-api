@@ -254,7 +254,7 @@ exports.authorizeGetFollowUp = async (req) => {
 };
 
 exports.isQuestionnaire = async (req) => {
-  const activity = await Activity.findOne({ _id: req.query.activity }, { type: 1 });
+  const activity = await Activity.countDocuments({ _id: req.query.activity, type: QUESTIONNAIRE });
 
-  return (activity.type !== QUESTIONNAIRE) ? Boom.badRequest() : null;
+  return (!activity) ? Boom.badRequest() : null;
 };
