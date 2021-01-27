@@ -546,39 +546,39 @@ describe('forgotPassword', () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
     identityVerificationFindOneAndUpdate.returns(null);
-    identityVerificationCreate.returns({ email, code: '2000' });
+    identityVerificationCreate.returns({ email, code: '1999' });
     verificationCodeEmail.returns({ sent: true });
 
     const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: EMAIL });
 
     expect(result).toEqual({ sent: true });
-    sinon.assert.calledWithExactly(verificationCodeEmail, email, '2000');
+    sinon.assert.calledWithExactly(verificationCodeEmail, email, '1999');
     sinon.assert.notCalled(forgotPasswordEmail);
     sinon.assert.notCalled(generatePasswordTokenStub);
-    sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: '2000' });
+    sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: '1999' });
     SinonMongoose.calledWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '2000' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
     );
   });
 
   it('should update and send new verification code if already exists one', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns({ email, code: '2000' });
+    identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
     identityVerificationCreate.returns(null);
     verificationCodeEmail.returns({ sent: true });
 
     const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: EMAIL });
 
     expect(result).toEqual({ sent: true });
-    sinon.assert.calledWithExactly(verificationCodeEmail, email, '2000');
+    sinon.assert.calledWithExactly(verificationCodeEmail, email, '1999');
     sinon.assert.notCalled(forgotPasswordEmail);
     sinon.assert.notCalled(generatePasswordTokenStub);
     sinon.assert.notCalled(identityVerificationCreate);
     SinonMongoose.calledWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '2000' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
     );
   });
 });
