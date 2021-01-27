@@ -78,7 +78,7 @@ const forgotPassword = async (req) => {
 
 const checkPasswordToken = async (req, h) => {
   try {
-    const token = await AuthenticationHelper.checkPasswordToken(req.params.token);
+    const token = await AuthenticationHelper.checkPasswordToken(req.params.token, req.query.email);
 
     return h.response({ message: translate[language].resetPasswordTokenFound, data: { ...token } })
       .state('alenvi_token', token.token);
