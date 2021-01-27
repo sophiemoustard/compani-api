@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
+const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const {
   TRAINER,
@@ -11,6 +12,7 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
+  QUESTIONNAIRE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -249,4 +251,10 @@ exports.authorizeGetFollowUp = async (req) => {
   if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
 
   return null;
+};
+
+exports.isQuestionnaire = async (req) => {
+  const activity = await Activity.findOne({ _id: req.query.activity }, { type: 1 });
+
+  return (activity.type !== QUESTIONNAIRE) ? Boom.badRequest() : null;
 };
