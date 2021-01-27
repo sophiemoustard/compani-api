@@ -239,3 +239,14 @@ exports.authorizeAccessRuleDeletion = async (req) => {
 
   return null;
 };
+
+exports.authorizeGetFollowUp = async (req) => {
+  const credentials = get(req, 'auth.credentials');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const companyQueryIsValid = !!req.query.company &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
+
+  if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+
+  return null;
+};

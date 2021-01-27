@@ -166,8 +166,9 @@ exports.formatActivity = (activity) => {
 
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
-exports.getCourseFollowUp = async (course) => {
+exports.getCourseFollowUp = async (course, company) => {
   const courseWithTrainees = await Course.findOne({ _id: course._id }).select('trainees').lean();
+  const traineeCompanyMatch = company ? { company } : {};
 
   const courseFollowUp = await Course.findOne({ _id: course._id })
     .select('subProgram')
@@ -191,7 +192,7 @@ exports.getCourseFollowUp = async (course) => {
         },
       ],
     })
-    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname', match: traineeCompanyMatch })
     .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 

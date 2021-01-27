@@ -62,7 +62,7 @@ const getById = async (req) => {
 
 const getFollowUp = async (req) => {
   try {
-    const followUp = await CoursesHelper.getCourseFollowUp(req.pre.course);
+    const followUp = await CoursesHelper.getCourseFollowUp(req.pre.course, req.query.company);
 
     return {
       message: translate[language].courseFound,
