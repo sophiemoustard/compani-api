@@ -229,9 +229,9 @@ exports.getQuestionnaireAnswers = async (activityId, courseId) => {
     .lean();
 
   return {
+    ...exports.formatActivity(omit(activity, 'steps')),
     course: { ...course, subProgram: omit(course.subProgram, 'steps') },
     step: activity.steps[0],
-    ...exports.formatActivity(omit(activity, 'steps')),
   };
 };
 
