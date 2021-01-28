@@ -126,14 +126,14 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/questionnaire',
+      path: '/{_id}/questionnaires',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ activity: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: isQuestionnaire }],
+        pre: [{ method: isQuestionnaire }, { method: authorizeGetFollowUp }],
       },
       handler: getQuestionnaireAnswers,
     });

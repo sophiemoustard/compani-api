@@ -224,7 +224,7 @@ exports.getQuestionnaireAnswers = async (activityId, courseId) => {
     .populate({
       path: 'steps',
       select: 'name',
-      match: { _id: { $in: course.subProgram.steps.map(t => t.toHexString()) } },
+      match: { _id: { $in: course.subProgram.steps.map(s => s._id.toHexString()) } },
     })
     .lean();
 

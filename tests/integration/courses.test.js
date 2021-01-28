@@ -572,7 +572,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/{_id}/questionnaire', () => {
+describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -584,7 +584,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaire', () => {
     it('should get questionnaire answers', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaire?activity=${activitiesList[1]._id}`,
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -594,7 +594,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaire', () => {
     it('should return a 400 if the activity is not a questionnaire', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaire?activity=${activitiesList[0]._id}`,
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -606,7 +606,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaire', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
@@ -616,7 +616,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaire', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaire?activity=${activitiesList[1]._id}`,
+          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
