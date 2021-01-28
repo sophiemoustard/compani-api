@@ -15,7 +15,7 @@ const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = 
 const {
   populateDB,
   coursesList,
-  activity,
+  activitiesList,
   step,
   subProgramsList,
   programsList,
@@ -272,8 +272,8 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
             type: step.type,
             activities: expect.arrayContaining([{
               _id: expect.any(ObjectID),
-              name: activity.name,
-              type: activity.type,
+              name: activitiesList[0].name,
+              type: activitiesList[0].type,
               activityHistories: expect.arrayContaining([expect.objectContaining({
                 _id: expect.any(ObjectID),
                 user: expect.any(ObjectID),
@@ -482,7 +482,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
             name: step.name,
             type: step.type,
             activities: expect.arrayContaining([expect.objectContaining({
-              _id: activity._id,
+              _id: activitiesList[0]._id,
               followUp: expect.any(Array),
               activityHistories: expect.any(Array),
               name: expect.any(String),
@@ -572,6 +572,60 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   });
 });
 
+describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should get questionnaire answers', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 400 if the activity is not a questionnaire', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('COURSES ROUTES - GET /courses/user', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -608,8 +662,8 @@ describe('COURSES ROUTES - GET /courses/user', () => {
               activities: expect.arrayContaining([
                 expect.objectContaining({
                   _id: expect.any(ObjectID),
-                  name: activity.name,
-                  type: activity.type,
+                  name: activitiesList[0].name,
+                  type: activitiesList[0].type,
                   cards: expect.arrayContaining([
                     expect.objectContaining({ _id: expect.any(ObjectID), template: 'title_text', isValid: false }),
                   ]),
@@ -783,8 +837,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
           progress: expect.any(Number),
           activities: expect.arrayContaining([{
             _id: expect.any(ObjectID),
-            name: activity.name,
-            type: activity.type,
+            name: activitiesList[0].name,
+            type: activitiesList[0].type,
             cards: expect.arrayContaining([{ _id: expect.any(ObjectID), template: 'title_text', isValid: false }]),
             quizCount: 0,
             areCardsValid: false,

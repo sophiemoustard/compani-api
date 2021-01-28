@@ -21,6 +21,7 @@ const {
   COACH,
   VIDEO,
   WEBAPP,
+  QUESTIONNAIRE,
 } = require('../../../src/helpers/constants.js');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
@@ -61,23 +62,26 @@ const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(
 
 const card = { _id: ObjectID(), template: 'title_text' };
 
-const activity = { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] };
+const activitiesList = [
+  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] },
+  { _id: new ObjectID(), name: 'other activity', type: QUESTIONNAIRE, cards: [card._id] },
+];
 const activitiesHistory = [
-  { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activity._id },
-  { _id: new ObjectID(), user: clientAdmin._id, activity: activity._id },
-  { _id: new ObjectID(), user: helper._id, activity: activity._id },
-  { _id: new ObjectID(), user: auxiliary._id, activity: activity._id },
-  { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activity._id },
-  { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activity._id },
-  { _id: new ObjectID(), user: courseTrainer._id, activity: activity._id },
-  { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activity._id },
+  { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: clientAdmin._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: helper._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: auxiliary._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: courseTrainer._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
 ];
 
 const step = {
   _id: new ObjectID(),
   name: 'etape',
   type: 'on_site',
-  activities: [activity._id],
+  activities: [activitiesList[0]._id],
 };
 
 const subProgramsList = [
@@ -280,14 +284,14 @@ const populateDB = async () => {
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
-  await Activity.create(activity);
+  await Activity.insertMany(activitiesList);
   await Card.create(card);
   await ActivityHistory.insertMany(activitiesHistory);
 };
 
 module.exports = {
   populateDB,
-  activity,
+  activitiesList,
   step,
   coursesList,
   subProgramsList,
