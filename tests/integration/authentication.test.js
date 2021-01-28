@@ -9,7 +9,8 @@ const { getToken, getUser, getTokenByCredentials, authCompany } = require('./see
 const { userList, noRoleNoCompany } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
-const { MOBILE, EMAIL } = require('../../src/helpers/constants');
+const SmsHelper = require('../../src/helpers/sms');
+const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -426,15 +427,18 @@ describe('GET /users/passwordtoken/:token', () => {
 
 describe('POST /users/forgot-password', () => {
   let forgotPasswordEmail;
-  let verificationCodeEmail;
+  let sendVerificationCodeEmail;
+  let sendVerificationCodeSms;
   beforeEach(populateDB);
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
-    verificationCodeEmail = sinon.stub(EmailHelper, 'verificationCodeEmail');
+    sendVerificationCodeEmail = sinon.stub(EmailHelper, 'sendVerificationCodeEmail');
+    sendVerificationCodeSms = sinon.stub(SmsHelper, 'sendVerificationCodeSms');
   });
   afterEach(() => {
     forgotPasswordEmail.restore();
-    verificationCodeEmail.restore();
+    sendVerificationCodeEmail.restore();
+    sendVerificationCodeSms.restore();
   });
 
   it('should send an email to renew password', async () => {
@@ -462,7 +466,19 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    sinon.assert.calledWith(verificationCodeEmail, userEmail, sinon.match(sinon.match.string));
+    sinon.assert.calledWith(sendVerificationCodeEmail, userEmail, sinon.match(sinon.match.string));
+  });
+
+  it('should send a code verification by sms if origin mobile and type phone', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE, type: PHONE },
+    });
+
+    expect(response.statusCode).toBe(200);
+    sinon.assert.calledWith(sendVerificationCodeSms, usersSeedList[0].contact.phone, sinon.match(sinon.match.string));
   });
 
   it('should return 400 if origin mobile and no type', async () => {
@@ -474,7 +490,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
   });
 
   it('should return 400 if origin mobile and wrong type', async () => {
@@ -486,7 +502,7 @@ describe('POST /users/forgot-password', () => {
     });
 
     expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(verificationCodeEmail);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
   });
 
   it('should be compatible with old mobile app version', async () => {

@@ -11,6 +11,7 @@ const { TOKEN_EXPIRE_TIME } = require('../models/User');
 const translate = require('./translate');
 const { MOBILE, EMAIL, SECONDS_IN_AN_HOUR } = require('./constants');
 const EmailHelper = require('./email');
+const SmsHelper = require('./sms');
 const IdentityVerification = require('../models/IdentityVerification');
 
 const { language } = translate;
@@ -99,12 +100,17 @@ exports.createPasswordToken = async email => exports.generatePasswordToken(email
 
 exports.forgotPassword = async (payload) => {
   const { email, origin, type } = payload;
-  if (origin === MOBILE && type === EMAIL) {
+  if (origin === MOBILE) {
     const code = String(Math.floor(Math.random() * 9000 + 1000));
     let verification = await IdentityVerification.findOneAndUpdate({ email }, { $set: { code } }, { new: true });
     if (!verification) verification = await IdentityVerification.create({ email, code });
 
-    return EmailHelper.verificationCodeEmail(email, verification.code);
+    if (type === EMAIL) return EmailHelper.sendVerificationCodeEmail(email, verification.code);
+
+    const user = await User.findOne({ 'local.email': email }, { 'contact.phone': 1 }).lean();
+    if (!get(user, 'contact.phone')) throw Boom.conflict();
+
+    return SmsHelper.sendVerificationCodeSms(user.contact.phone, verification.code);
   }
 
   const passwordToken = await exports.generatePasswordToken(email, 3600000);
