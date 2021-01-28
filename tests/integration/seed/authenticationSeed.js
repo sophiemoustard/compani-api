@@ -14,6 +14,7 @@ const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { serviceList } = require('../../seed/serviceSeed');
 const app = require('../../../server');
+const IdentityVerification = require('../../../src/models/IdentityVerification');
 
 const otherCompany = {
   _id: new ObjectID(),
@@ -48,6 +49,15 @@ const sectorHistories = [
   },
 ];
 
+const identityVerifications = [
+  {
+    _id: new ObjectID(),
+    email: 'carolyn@alenvi.io',
+    code: '3310',
+    createdAt: new Date('2021-01-25T10:05:32.582Z'),
+  },
+];
+
 const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
   await User.deleteMany({});
@@ -57,6 +67,7 @@ const populateDBForAuthentication = async () => {
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Service.deleteMany({});
+  await IdentityVerification.deleteMany({});
 
   await new Company(authCompany).save();
   await new Company(otherCompany).save();
@@ -69,6 +80,7 @@ const populateDBForAuthentication = async () => {
   for (const user of userList) {
     await (new User(user)).save();
   }
+  await IdentityVerification.insertMany(identityVerifications);
 };
 
 const getUser = (roleName, erp = true, list = userList) => {

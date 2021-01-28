@@ -127,6 +127,7 @@ const usersSeedList = [
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
     },
+    contact: { phone: '0987654321' },
     inactivityDate: null,
     contracts: [{ _id: contractId }],
     establishment: establishmentList[0]._id,

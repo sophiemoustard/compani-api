@@ -9,6 +9,8 @@ const { getToken, getUser, getTokenByCredentials, authCompany } = require('./see
 const { userList, noRoleNoCompany } = require('../seed/userSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const EmailHelper = require('../../src/helpers/email');
+const SmsHelper = require('../../src/helpers/sms');
+const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -362,10 +364,18 @@ describe('POST /users/:id/drivefolder', () => {
 
 describe('GET /users/passwordtoken/:token', () => {
   beforeEach(populateDB);
+  let fakeDate;
+  beforeEach(() => {
+    fakeDate = sinon.stub(Date, 'now');
+  });
+
+  afterEach(() => {
+    fakeDate.restore();
+  });
 
   it('should return a new access token after checking reset password token', async () => {
     const user = getUser('helper', true, usersSeedList);
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+    fakeDate.returns(new Date('2020-01-20'));
 
     const response = await app.inject({
       method: 'GET',
@@ -374,11 +384,37 @@ describe('GET /users/passwordtoken/:token', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.result.data.token).toEqual(expect.any(String));
-    fakeDate.restore();
+  });
+
+  it('should return a new access token after checking verification code from mobile', async () => {
+    const token = '3310';
+    const email = 'carolyn@alenvi.io';
+    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.token).toEqual(expect.any(String));
+  });
+
+  it('should return a 404 error if verification code is wrong', async () => {
+    const token = '3311';
+    const email = 'carolyn@alenvi.io';
+    fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/users/passwordtoken/${token}?email=${email}`,
+    });
+
+    expect(response.statusCode).toBe(404);
   });
 
   it('should return a 404 error if token is not valid', async () => {
-    const fakeDate = sinon.useFakeTimers(new Date('2020-01-20'));
+    fakeDate.returns(new Date('2020-01-20'));
 
     const response = await app.inject({
       method: 'GET',
@@ -386,18 +422,23 @@ describe('GET /users/passwordtoken/:token', () => {
     });
 
     expect(response.statusCode).toBe(404);
-    fakeDate.restore();
   });
 });
 
 describe('POST /users/forgot-password', () => {
   let forgotPasswordEmail;
+  let sendVerificationCodeEmail;
+  let sendVerificationCodeSms;
   beforeEach(populateDB);
   beforeEach(() => {
     forgotPasswordEmail = sinon.stub(EmailHelper, 'forgotPasswordEmail');
+    sendVerificationCodeEmail = sinon.stub(EmailHelper, 'sendVerificationCodeEmail');
+    sendVerificationCodeSms = sinon.stub(SmsHelper, 'sendVerificationCodeSms');
   });
   afterEach(() => {
     forgotPasswordEmail.restore();
+    sendVerificationCodeEmail.restore();
+    sendVerificationCodeSms.restore();
   });
 
   it('should send an email to renew password', async () => {
@@ -414,6 +455,54 @@ describe('POST /users/forgot-password', () => {
       userEmail,
       sinon.match({ token: sinon.match.string, expiresIn: sinon.match.number })
     );
+  });
+
+  it('should send a code verification by email if origin mobile and type email', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE, type: EMAIL },
+    });
+
+    expect(response.statusCode).toBe(200);
+    sinon.assert.calledWith(sendVerificationCodeEmail, userEmail, sinon.match(sinon.match.string));
+  });
+
+  it('should send a code verification by sms if origin mobile and type phone', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE, type: PHONE },
+    });
+
+    expect(response.statusCode).toBe(200);
+    sinon.assert.calledWith(sendVerificationCodeSms, usersSeedList[0].contact.phone, sinon.match(sinon.match.string));
+  });
+
+  it('should return 400 if origin mobile and no type', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE },
+    });
+
+    expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
+  });
+
+  it('should return 400 if origin mobile and wrong type', async () => {
+    const userEmail = usersSeedList[0].local.email;
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/forgot-password',
+      payload: { email: userEmail, origin: MOBILE, type: 'SMS' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    sinon.assert.notCalled(sendVerificationCodeEmail);
   });
 
   it('should be compatible with old mobile app version', async () => {

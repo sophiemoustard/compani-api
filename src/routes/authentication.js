@@ -12,6 +12,7 @@ const {
   checkPasswordToken,
   updatePassword,
 } = require('../controllers/authenticationController');
+const { WEBAPP, EMAIL, PHONE, MOBILE } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
 const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 
@@ -93,6 +94,9 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
+            origin: Joi.string().valid(...ORIGIN_OPTIONS).default(WEBAPP),
+            type: Joi.string().valid(PHONE, EMAIL)
+              .when('origin', { is: MOBILE, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: false,
@@ -106,6 +110,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({ token: Joi.string().required() }),
+          query: Joi.object().keys({ email: Joi.string().email() }),
         },
         auth: false,
       },
