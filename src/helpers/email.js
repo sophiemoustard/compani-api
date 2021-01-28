@@ -121,3 +121,14 @@ exports.forgotPasswordEmail = async (receiver, passwordToken) => {
 
   return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
 };
+
+exports.sendVerificationCodeEmail = async (receiver, verificationCode) => {
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: receiver,
+    subject: 'Code de vérification de votre compte Compani',
+    html: EmailOptionsHelper.verificationCodeEmail(verificationCode),
+  };
+
+  return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
+};
