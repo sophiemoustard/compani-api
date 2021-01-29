@@ -26,6 +26,8 @@
     - [ ] Il est toujours envoyé par le mobile (même par les anciennes versions)
   - J'ai retiré un champ possible dans la route :
     - [ ] Les anciennes versions mobiles + l'actuelle ne l'envoient pas
+  - J'ai supprimé un retour/un champs du retour de la route :
+    - [ ] Les anciennes versions mobiles + l'actuelle n'utilise pas ce retour
 
 - J'ai changé un modele :
   - J'ai ajoute un champ possible :
