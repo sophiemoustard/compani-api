@@ -1356,7 +1356,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(409);
       });
 
-      const missingParams = ['identity.lastname', 'company', 'local.email'];
+      const missingParams = ['identity.lastname', 'company', 'local.email', 'contact.phone'];
       missingParams.forEach((param) => {
         it(`should return a 400 error if user has to be created, and missing '${param}' parameter`, async () => {
           const payload = {

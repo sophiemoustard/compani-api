@@ -106,7 +106,8 @@ exports.getCourseTrainee = async (req) => {
       const traineeAlreadyRegistered = course.trainees.some(t => t.toHexString() === trainee._id.toHexString());
       if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
     } else {
-      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname');
+      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname') ||
+        !get(req.payload, 'contact.phone');
       if (missingFields) throw Boom.badRequest();
     }
 
