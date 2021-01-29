@@ -1393,6 +1393,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
+            contact: { phone: '0689320234' },
           };
 
           authToken = await getToken(role.name);
@@ -1412,6 +1413,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           identity: { firstname: 'Coco', lastname: 'Bongo' },
           local: { email: 'coco_bongo@alenvi.io' },
           company: authCompany._id,
+          contact: { phone: '0689320234' },
         };
 
         authToken = await getToken('trainer');
@@ -1431,6 +1433,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
+            contact: { phone: '0689320234' },
           };
 
           authToken = await getToken(role);
@@ -1450,6 +1453,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           identity: { firstname: 'Coco', lastname: 'Bongo' },
           local: { email: 'coco_bongo@alenvi.io' },
           company: authCompany._id,
+          contact: { phone: '0689320234' },
         };
 
         authToken = await getTokenByCredentials(courseTrainer.local);
