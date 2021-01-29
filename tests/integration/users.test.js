@@ -77,6 +77,7 @@ describe('POST /users', () => {
       expect(res.result.data.user.refreshToken).not.toBeDefined();
       expect(res.result.data.user.local.password).not.toBeDefined();
     });
+
     it('should not create user if password too short', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
@@ -88,6 +89,26 @@ describe('POST /users', () => {
       const res = await app.inject({ method: 'POST', url: '/users', payload });
 
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should create user even if user not connected without phone is payload', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
+        origin: MOBILE,
+      };
+
+      const res = await app.inject({ method: 'POST', url: '/users', payload });
+
+      expect(res.statusCode).toBe(200);
+
+      const { user } = res.result.data;
+      expect(user._id).toEqual(expect.any(Object));
+      expect(user.identity.firstname).toBe('Test');
+      expect(user.identity.lastname).toBe('Kirk');
+      expect(user.local.email).toBe('newuser@alenvi.io');
+      expect(res.result.data.user.refreshToken).not.toBeDefined();
+      expect(res.result.data.user.local.password).not.toBeDefined();
     });
   });
 
@@ -168,7 +189,7 @@ describe('POST /users', () => {
         local: { email: 'kirk@alenvi.io' },
         sector: userSectors[0]._id,
         origin: WEBAPP,
-        role: new ObjectID(),
+        contact: { phone: '0712345678' },
         company: otherCompany._id,
       };
       const response = await app.inject({
@@ -186,6 +207,7 @@ describe('POST /users', () => {
         identity: { firstname: 'user', lastname: 'Kirk' },
         origin: WEBAPP,
         local: { email: usersSeedList[0].local.email },
+        contact: { phone: '0712345678' },
       };
 
       const response = await app.inject({
@@ -222,6 +244,7 @@ describe('POST /users', () => {
         local: { email: 'kirk@alenvi.io' },
         origin: WEBAPP,
         customers: [customerFromOtherCompany],
+        contact: { phone: '0712345678' },
       };
 
       const response = await app.inject({
@@ -241,6 +264,7 @@ describe('POST /users', () => {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
           local: { email: 'kirk@alenvi.io' },
           origin: WEBAPP,
+          contact: { phone: '0712345678' },
         };
         const res = await app.inject({
           method: 'POST',
@@ -251,6 +275,23 @@ describe('POST /users', () => {
 
         expect(res.statusCode).toBe(400);
       });
+    });
+
+    it('should return a 403 if created user has no role and payload has no phone', async () => {
+      const payload = {
+        identity: { firstname: 'Chloé', lastname: '6,022 140 76 × 10^(23) atomes' },
+        local: { email: 'chlochlo@alenvi.io' },
+        origin: WEBAPP,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -319,6 +360,7 @@ describe('POST /users', () => {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
           local: { email: 'kirk@alenvi.io' },
           origin: MOBILE,
+          contact: { phone: '0712345678' },
         };
 
         const response = await app.inject({

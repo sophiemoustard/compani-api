@@ -1410,7 +1410,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(response.statusCode).toBe(409);
       });
 
-      const missingParams = ['identity.lastname', 'company', 'local.email'];
+      const missingParams = ['identity.lastname', 'company', 'local.email', 'contact.phone'];
       missingParams.forEach((param) => {
         it(`should return a 400 error if user has to be created, and missing '${param}' parameter`, async () => {
           const payload = {
@@ -1447,6 +1447,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
+            contact: { phone: '0689320234' },
           };
 
           authToken = await getToken(role.name);
@@ -1466,6 +1467,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           identity: { firstname: 'Coco', lastname: 'Bongo' },
           local: { email: 'coco_bongo@alenvi.io' },
           company: authCompany._id,
+          contact: { phone: '0689320234' },
         };
 
         authToken = await getToken('trainer');
@@ -1485,6 +1487,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
             identity: { firstname: 'Coco', lastname: 'Bongo' },
             local: { email: 'coco_bongo@alenvi.io' },
             company: authCompany._id,
+            contact: { phone: '0689320234' },
           };
 
           authToken = await getToken(role);
@@ -1504,6 +1507,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           identity: { firstname: 'Coco', lastname: 'Bongo' },
           local: { email: 'coco_bongo@alenvi.io' },
           company: authCompany._id,
+          contact: { phone: '0689320234' },
         };
 
         authToken = await getTokenByCredentials(courseTrainer.local);

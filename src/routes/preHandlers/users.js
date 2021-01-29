@@ -181,6 +181,8 @@ exports.authorizeUserCreation = async (req) => {
     throw Boom.forbidden();
   }
 
+  if (credentials && !req.payload.role && !get(req.payload, 'contact.phone')) throw Boom.forbidden();
+
   return null;
 };
 
