@@ -90,6 +90,26 @@ describe('POST /users', () => {
 
       expect(res.statusCode).toBe(400);
     });
+
+    it('should create user even if user not connected without phone is payload', async () => {
+      const payload = {
+        identity: { firstname: 'Test', lastname: 'Kirk' },
+        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
+        origin: MOBILE,
+      };
+
+      const res = await app.inject({ method: 'POST', url: '/users', payload });
+
+      expect(res.statusCode).toBe(200);
+
+      const { user } = res.result.data;
+      expect(user._id).toEqual(expect.any(Object));
+      expect(user.identity.firstname).toBe('Test');
+      expect(user.identity.lastname).toBe('Kirk');
+      expect(user.local.email).toBe('newuser@alenvi.io');
+      expect(res.result.data.user.refreshToken).not.toBeDefined();
+      expect(res.result.data.user.local.password).not.toBeDefined();
+    });
   });
 
   describe('CLIENT_ADMIN', () => {
