@@ -12,7 +12,7 @@
   - [ ] J'ai décrit dans le cas d'usage les choses a tester sur l'autre plateforme
   - Je n'ai pas fait de breaking change :
     - [ ] Je n'ai pas changé les droits de la route
-    - [ ] Je n'ai pas changer les droits dans le fichier rights.js
+    - [ ] Je n'ai pas changé les droits dans le fichier rights.js
     - [ ] Je n'ai pas fait de changement sur le prehandler qui implique le mobile
     - [ ] Je n'ai pas changé le type d'un paramètre ou enlevé des valeurs possibles
   - J'ai supprimé une route :
