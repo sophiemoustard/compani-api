@@ -15,6 +15,7 @@
     - [ ] Je n'ai pas changé les droits dans le fichier rights.js
     - [ ] Je n'ai pas fait de changement sur le prehandler qui implique le mobile
     - [ ] Je n'ai pas changé le type d'un paramètre ou enlevé des valeurs possibles
+    - Justification des breaking changes s'il y en a:
   - J'ai supprimé une route :
     - [ ] Les anciennes versions mobiles + l'actuelle ne l'utilise pas
   - J'ai renommé une route :
