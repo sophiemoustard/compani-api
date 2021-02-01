@@ -13,7 +13,7 @@ const Company = require('../models/Company');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY, MOBILE } = require('./constants');
+const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
 const GdriveStorageHelper = require('./gdriveStorage');
 const UtilsHelper = require('./utils');
@@ -74,13 +74,20 @@ exports.getLearnerList = async (query, credentials) => {
     userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
   }
 
-  return User
+  const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
+    .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
     .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
     .lean();
+
+  return learnerList.map(learner => ({
+    ...omit(learner, 'activityHistories'),
+    activityHistoryCount: learner.activityHistories.length,
+    lastActivityHistory: learner.activityHistories[0],
+  }));
 };
 
 exports.getUser = async (userId, credentials) => {
@@ -166,10 +173,7 @@ exports.createAndSaveFile = async (params, payload) => {
 exports.createUser = async (userPayload, credentials) => {
   const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
 
-  if (!credentials) {
-    if (userPayload.origin !== MOBILE) return User.create(payload);
-    return User.create({ ...payload, firstMobileConnection: moment().toDate() });
-  }
+  if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
   if (!userPayload.role) return User.create({ ...payload, company: companyId });

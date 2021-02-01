@@ -8,6 +8,7 @@ const {
   create,
   getById,
   getFollowUp,
+  getQuestionnaireAnswers,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -33,9 +34,12 @@ const {
   authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
   getCourse,
+  isQuestionnaire,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
   authorizeAndGetTrainee,
+  authorizeGetCourse,
+  authorizeGetFollowUp,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -97,7 +101,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],
       },
       handler: getById,
     });
@@ -108,11 +112,30 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ company: Joi.objectId() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: getCourse, assign: 'course' }],
+        pre: [
+          { method: getCourse, assign: 'course' },
+          { method: authorizeGetCourse },
+          { method: authorizeGetFollowUp },
+        ],
       },
       handler: getFollowUp,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/questionnaires',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ activity: Joi.objectId().required() }),
+        },
+        auth: { scope: ['courses:read'] },
+        pre: [{ method: isQuestionnaire }, { method: authorizeGetFollowUp }],
+      },
+      handler: getQuestionnaireAnswers,
     });
 
     server.route({

@@ -11,19 +11,9 @@ describe('shouldUpdate', () => {
     process.env.MOBILE_VERSION = '';
   });
 
-  it('should return true if lower version in mobile (old version)', async () => {
+  it('should return true if api version', async () => {
     const result = await VersionHelper.shouldUpdate({ apiVersion: '1' });
     expect(result).toBeTruthy();
-  });
-
-  it('should return false if same version (old version)', async () => {
-    const result = await VersionHelper.shouldUpdate({ apiVersion: '2' });
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false if greater version in mobile (old version)', async () => {
-    const result = await VersionHelper.shouldUpdate({ apiVersion: '3' });
-    expect(result).toBeFalsy();
   });
 
   it('should return true if lower version in mobile (new version)', async () => {

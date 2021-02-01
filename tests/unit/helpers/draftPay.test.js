@@ -14,8 +14,6 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('getContractMonthInfo', () => {
   let getDaysRatioBetweenTwoDates;
   let getContractInfo;

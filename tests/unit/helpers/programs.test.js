@@ -6,8 +6,7 @@ const Program = require('../../../src/models/Program');
 const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('createProgram', () => {
   let create;
@@ -27,40 +26,42 @@ describe('createProgram', () => {
 });
 
 describe('list', () => {
-  let ProgramMock;
+  let find;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    find = sinon.stub(Program, 'find');
   });
   afterEach(() => {
-    ProgramMock.restore();
+    find.restore();
   });
 
   it('should return programs', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
 
-    ProgramMock.expects('find')
-      .withExactArgs({})
-      .chain('populate')
-      .withExactArgs({ path: 'subPrograms', select: 'name' })
-      .chain('lean')
-      .once()
-      .returns(programsList);
+    find.returns(SinonMongoose.stubChainedQueries([programsList]));
 
     const result = await ProgramHelper.list();
     expect(result).toMatchObject(programsList);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{}] },
+        { query: 'populate', args: [{ path: 'subPrograms', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('listELearning', () => {
-  let ProgramMock;
-  let CourseMock;
+  let programFind;
+  let courseFind;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    CourseMock = sinon.mock(Course);
+    programFind = sinon.stub(Program, 'find');
+    courseFind = sinon.stub(Course, 'find');
   });
   afterEach(() => {
-    ProgramMock.restore();
-    CourseMock.restore();
+    programFind.restore();
+    courseFind.restore();
   });
 
   it('should return programs with elearning subprograms', async () => {
@@ -69,112 +70,136 @@ describe('listELearning', () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
 
-    CourseMock.expects('find')
-      .withExactArgs({ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] })
-      .chain('lean')
-      .returns([{ subProgram: subPrograms[0] }]);
-
-    ProgramMock.expects('find')
-      .withExactArgs({ subPrograms: { $in: subPrograms } })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subPrograms',
-        select: 'name',
-        match: { _id: { $in: subPrograms } },
-        populate: [
-          { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
-          {
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
-              select: 'activityHistories',
-              populate: { path: 'activityHistories', match: { user: credentials._id } },
-            },
-          },
-        ],
-      })
-      .chain('populate')
-      .withExactArgs('categories')
-      .chain('lean')
-      .once()
-      .returns(programsList);
+    courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
+    programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
 
     const result = await ProgramHelper.listELearning(credentials);
-    expect(result).toMatchObject(programsList);
+    expect(result).toMatchObject([{ name: 'name' }, { name: 'program' }]);
+
+    SinonMongoose.calledWithExactly(
+      courseFind,
+      [
+        {
+          query: 'find',
+          args: [{ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      programFind,
+      [
+        { query: 'find', args: [{ subPrograms: { $in: subPrograms } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subPrograms',
+            select: 'name',
+            match: { _id: { $in: subPrograms } },
+            populate: [
+              { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
+              {
+                path: 'steps',
+                select: 'activities',
+                populate: {
+                  path: 'activities',
+                  select: 'activityHistories',
+                  populate: { path: 'activityHistories', match: { user: credentials._id } },
+                },
+              },
+            ],
+          }],
+        },
+        { query: 'populate', args: ['categories'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('getProgram', () => {
-  let ProgramMock;
+  let programFindOne;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    programFindOne = sinon.stub(Program, 'findOne');
   });
   afterEach(() => {
-    ProgramMock.restore();
+    programFindOne.restore();
   });
 
   it('should return the requested program', async () => {
+    const programId = new ObjectID();
+    const subProgramId = new ObjectID();
+    const stepId = new ObjectID();
+    const activityId = new ObjectID();
+    const cardsIds = [new ObjectID(), new ObjectID()];
+
     const program = {
-      _id: new ObjectID(),
+      _id: programId,
       subPrograms: [{
-        _id: new ObjectID(),
+        _id: subProgramId,
         steps: [{
-          _id: new ObjectID(),
-          activities: [{ _id: new ObjectID(), cards: [{ _id: new ObjectID() }] }],
+          _id: stepId,
+          activities: [{
+            _id: activityId,
+            cards: [{ _id: cardsIds[0], text: 'oui' }, { _id: cardsIds[1], text: 'non' }],
+          }],
         }],
       }],
     };
 
-    ProgramMock.expects('findOne')
-      .withExactArgs({ _id: program._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subPrograms',
-        populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'categories' })
-      .chain('lean')
-      .once()
-      .returns(program);
+    programFindOne.returns(SinonMongoose.stubChainedQueries([program]));
 
     const result = await ProgramHelper.getProgram(program._id);
-    expect(result).toMatchObject(program);
+
+    expect(result).toMatchObject({
+      _id: programId,
+      subPrograms: [{
+        _id: subProgramId,
+        steps: [{
+          _id: stepId,
+          activities: [{
+            _id: activityId,
+            cards: cardsIds,
+          }],
+        }],
+      }],
+    });
+    SinonMongoose.calledWithExactly(
+      programFindOne,
+      [
+        { query: 'findOne', args: [{ _id: program._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subPrograms',
+            populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'categories' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
   });
 });
 
 describe('update', () => {
-  let ProgramMock;
+  let programUpdateOne;
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
+    programUpdateOne = sinon.stub(Program, 'updateOne');
   });
   afterEach(() => {
-    ProgramMock.restore();
+    programUpdateOne.restore();
   });
 
   it('should update name', async () => {
     const programId = new ObjectID();
     const payload = { name: 'toto' };
 
-    ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: payload })
-      .returns({ _id: programId, name: 'toto' });
+    programUpdateOne.returns({ _id: programId, name: 'toto' });
 
-    const result = await ProgramHelper.updateProgram(programId, payload);
-    expect(result).toMatchObject({ _id: programId, name: 'toto' });
-  });
+    await ProgramHelper.updateProgram(programId, payload);
 
-  it('should update image', async () => {
-    const programId = new ObjectID();
-    const payload = { image: { publicId: new ObjectID(), link: new ObjectID() } };
-
-    ProgramMock.expects('updateOne')
-      .withExactArgs({ _id: programId }, { $set: payload })
-      .returns({ _id: programId, ...payload });
-
-    const result = await ProgramHelper.updateProgram(programId, payload);
-    expect(result).toMatchObject({ _id: programId, ...payload });
+    programUpdateOne.calledOnceWithExactly({ _id: programId }, { $set: payload });
   });
 });
 

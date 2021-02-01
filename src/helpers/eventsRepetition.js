@@ -19,6 +19,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
+const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 
@@ -151,22 +152,14 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       .minutes(parentEndDate.minutes()).toISOString();
     let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
 
-    let unset;
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
-    if (eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts) {
-      eventToSet = {
-        ...omit(eventToSet, ['repetition.frequency', 'auxiliary']),
-        sector: sectorId,
-        'repetition.frequency': NEVER,
-      };
-      unset = { auxiliary: '' };
-    } else if (!eventPayload.auxiliary) {
+    const detachFromRepetition = !!eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts;
+    if (detachFromRepetition || !eventPayload.auxiliary) {
       eventToSet = { ...omit(eventToSet, 'auxiliary'), sector: sectorId };
-      unset = { auxiliary: '' };
     }
 
-    const payload = unset ? { $set: eventToSet, $unset: unset } : { $set: eventToSet };
-    promises.push(Event.updateOne({ _id: events[i]._id }, { ...payload }));
+    const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
+    promises.push(Event.updateOne({ _id: events[i]._id }, payload));
   }
   await Promise.all([
     ...promises,
@@ -212,7 +205,7 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
     'address',
     'company',
   ];
-  const newEvent = {
+  let newEvent = {
     ...pick(cloneDeep(repetition), pickedFields),
     startDate: newEventStartDate,
     endDate: newEventEndDate,
@@ -223,13 +216,8 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
   if ([INTERNAL_HOUR, UNAVAILABILITY].includes(newEvent.type) && hasConflicts) return null;
 
   if (newEvent.type === INTERVENTION && newEvent.auxiliary && hasConflicts) {
-    delete newEvent.auxiliary;
-    newEvent.repetition.frequency = NEVER;
-    const user = await User.findOne({ _id: repetition.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: repetition.company } })
-      .lean({ autopopulate: true, virtuals: true });
-    newEvent.sector = user.sector;
+    newEvent = await EventsHelper.detachAuxiliaryFromEvent(newEvent, repetition.company);
   }
 
-  return new Event(newEvent);
+  return newEvent;
 };

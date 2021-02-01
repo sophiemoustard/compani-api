@@ -6,7 +6,6 @@ const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
-require('sinon-mongoose');
 
 describe('hasConflicts', () => {
   let countDocuments;
