@@ -53,7 +53,7 @@ const CardSchema = mongoose.Schema({
     type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
-  areAnswersCommutative: { type: Boolean },
+  canSwitchAnswers: { type: Boolean },
   qcAnswers: {
     type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
     default: undefined,
@@ -79,7 +79,7 @@ function save(next) {
     switch (this.template) {
       case FILL_THE_GAPS:
         this.falsyGapAnswers = [{ text: '' }, { text: '' }];
-        this.areAnswersCommutative = false;
+        this.canSwitchAnswers = false;
         break;
       case SINGLE_CHOICE_QUESTION:
         this.qcAnswers = [{ text: '' }];

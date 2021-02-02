@@ -54,7 +54,7 @@ const checkFillTheGap = (payload) => {
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
-  if (card.template !== FILL_THE_GAPS && req.payload.areAnswersCommutative !== undefined) throw Boom.forbidden();
+  if (card.template !== FILL_THE_GAPS && has(req, 'payload.canSwitchAnswers')) throw Boom.forbidden();
 
   switch (card.template) {
     case FILL_THE_GAPS:

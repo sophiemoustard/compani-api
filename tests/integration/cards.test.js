@@ -61,6 +61,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           gappedText: 'Un texte à remplir par <trou>l\'apprenant -e</trou>.',
           explanation: 'c\'est evidement la mamie qui remplit le texte',
+          canSwitchAnswers: true,
         },
         id: fillTheGapId,
       },
@@ -139,11 +140,11 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 403 when provide a useless areAnswersCommutative field on a non-FillTheGap card', async () => {
+    it('should return a 403 when provide a useless canSwitchAnswers field on a non-FillTheGap card', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/cards/${transitionId.toHexString()}`,
-        payload: { areAnswersCommutative: false },
+        payload: { canSwitchAnswers: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
