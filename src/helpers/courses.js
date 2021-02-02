@@ -142,7 +142,6 @@ exports.getCourse = async (course, loggedUser) => {
     .lean();
 };
 
-
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
 
