@@ -151,6 +151,17 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 403 when provide a useless isMandatory field on a non-Questionnaire card', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${transitionId.toHexString()}`,
+        payload: { isMandatory: false },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     describe('Fill the gaps', () => {
       const requests = [
         { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
