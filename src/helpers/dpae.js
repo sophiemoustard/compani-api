@@ -264,6 +264,8 @@ exports.getAbsences = async (query, credentials) => {
       select: 'serialNumber identity',
       populate: [{ path: 'contracts' }, { path: 'establishment' }],
     })
+    .populate({ path: 'extension', select: 'startDate' }) // initial absences must be before its extensions
+    .sort({ startDate: 1 })
     .lean();
 };
 
@@ -286,6 +288,10 @@ exports.exportAbsences = async (query, credentials) => {
       va_abs_code: VA_ABS_CODE[abs.absence],
       va_abs_deb: moment(abs.startDate).format('DD/MM/YYYY'),
       va_abs_fin: moment(abs.endDate).format('DD/MM/YYYY'),
+      va_abs_premier_arret: abs.extension ? '0' : '1',
+      va_abs_prolongation: abs.extension
+        ? moment(abs.extension.startDate).format('DD/MM/YYYY')
+        : moment(abs.startDate).format('DD/MM/YYYY'),
     };
 
     const range = Array.from(moment().range(abs.startDate, abs.endDate).by('days'));

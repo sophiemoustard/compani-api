@@ -3,32 +3,32 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const ServiceHelper = require('../../../src/helpers/services');
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
   const companyId = new ObjectID();
-  let ServiceMock;
+  let find;
 
   beforeEach(() => {
-    ServiceMock = sinon.mock(Service);
+    find = sinon.stub(Service, 'find');
   });
 
   afterEach(() => {
-    ServiceMock.restore();
+    find.restore();
   });
 
   it('should find services', async () => {
-    ServiceMock.expects('find')
-      .withExactArgs({ company: companyId, isArchived: true })
-      .chain('populate')
-      .withExactArgs({ path: 'versions.surcharge', match: { company: companyId } })
-      .chain('lean')
-      .returns([{ name: 'test' }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ name: 'test' }]]));
 
     const result = await ServiceHelper.list({ company: { _id: companyId } }, { isArchived: true });
 
     expect(result).toStrictEqual([{ name: 'test' }]);
-    ServiceMock.verify();
+
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ company: companyId, isArchived: true }] },
+      { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: companyId } }] },
+      { query: 'lean' },
+    ]);
   });
 });
 

@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
 const cloneDeep = require('lodash/cloneDeep');
@@ -35,7 +36,7 @@ momentRange.extendMoment(moment);
 
 const { language } = translate;
 
-const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+exports.isRepetition = event => has(event, 'repetition.frequency') && get(event, 'repetition.frequency') !== NEVER;
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -51,45 +52,52 @@ exports.list = async (query, credentials) => {
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
 
+exports.detachAuxiliaryFromEvent = async (event, companyId) => {
+  const auxiliary = await User.findOne({ _id: event.auxiliary })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
+
+  return {
+    ...omit(event, 'auxiliary'),
+    sector: auxiliary.sector,
+    repetition: { ...event.repetition, frequency: NEVER },
+  };
+};
+
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  let event = { ...cloneDeep(payload), company: companyId };
-  if (!await EventsValidationHelper.isCreationAllowed(event, credentials)) throw Boom.badData();
+  let eventPayload = { ...cloneDeep(payload), company: companyId };
+  if (!await EventsValidationHelper.isCreationAllowed(eventPayload, credentials)) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  const isRepeatedEvent = isRepetition(event);
-  const hasConflicts = await EventsValidationHelper.hasConflicts(event);
-  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
-    const auxiliary = await User.findOne({ _id: event.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-      .lean({ autopopulate: true, virtuals: true });
-    delete event.auxiliary;
-    event.sector = auxiliary.sector;
-    event.repetition.frequency = NEVER;
+  const isRepeatedEvent = exports.isRepetition(eventPayload);
+  const hasConflicts = await EventsValidationHelper.hasConflicts(eventPayload);
+  if (eventPayload.type === INTERVENTION && eventPayload.auxiliary && isRepeatedEvent && hasConflicts) {
+    eventPayload = exports.detachAuxiliaryFromEvent(eventPayload, companyId);
   }
 
-  event = await Event.create(event);
-  event = await EventRepository.getEvent(event._id, credentials);
+  const event = await Event.create(eventPayload);
+  const populatedEvent = await EventRepository.getEvent(event._id, credentials);
   if (payload.type === ABSENCE) {
-    const { startDate, endDate } = event;
+    const { startDate, endDate } = populatedEvent;
     const dates = { startDate, endDate };
-    const auxiliary = await User.findOne({ _id: event.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    await exports.deleteConflictInternalHoursAndUnavailabilities(event, auxiliary, credentials);
+    await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);
     await exports.unassignConflictInterventions(dates, auxiliary, credentials);
   }
 
   if (isRepeatedEvent) {
     await EventsRepetitionHelper.createRepetitions(
-      event,
-      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: event._id } },
+      populatedEvent,
+      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: populatedEvent._id } },
       credentials
     );
   }
 
-  return exports.populateEventSubscription(event);
+  return exports.populateEventSubscription(populatedEvent);
 };
 
 exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary, credentials) => {
@@ -208,15 +216,14 @@ exports.isMiscOnlyUpdated = (event, payload) => {
   return (payload.misc !== event.misc && isEqual(mainEventInfo, mainPayloadInfo));
 };
 
-exports.formatEditionPayload = (event, payload) => {
-  const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
+exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
   let unset = null;
   let set = payload;
   if (!payload.isCancelled && event.isCancelled) {
     unset = { cancel: '' };
   }
 
-  if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
+  if (detachFromRepetition) set = { ...set, 'repetition.frequency': NEVER };
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
   else unset = { ...unset, sector: '' };
@@ -248,7 +255,9 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
-    const payload = exports.formatEditionPayload(event, eventPayload);
+    const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
+    const detachFromRepetition = exports.isRepetition(event) && !miscUpdatedOnly;
+    const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
 

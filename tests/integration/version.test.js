@@ -18,19 +18,10 @@ describe('VERSION TEST', () => {
   });
 
   describe('POST /version/check-update', () => {
-    it('should return false (old version)', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/version/check-update?apiVersion=2',
-      });
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.mustUpdate).toBeFalsy();
-    });
-
     it('should return true (old version)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/version/check-update?apiVersion=1',
+        url: '/version/check-update?apiVersion=2',
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeTruthy();

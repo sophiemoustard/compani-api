@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
+const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const {
   TRAINER,
@@ -11,6 +12,7 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
+  QUESTIONNAIRE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -106,7 +108,8 @@ exports.getCourseTrainee = async (req) => {
       const traineeAlreadyRegistered = course.trainees.some(t => t.toHexString() === trainee._id.toHexString());
       if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
     } else {
-      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname');
+      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname') ||
+        !get(req.payload, 'contact.phone');
       if (missingFields) throw Boom.badRequest();
     }
 
@@ -152,9 +155,47 @@ exports.authorizeRegisterToELearning = async (req) => {
   return null;
 };
 
+exports.authorizeGetCourse = async (req) => {
+  try {
+    const { course } = req.pre;
+    const credentials = get(req, 'auth.credentials');
+    const userCompany = get(credentials, 'company._id');
+
+    const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+    if (loggedUserVendorRole === TRAINER && !UtilsHelper.areObjectIdsEquals(course.trainer, credentials._id)) {
+      throw Boom.forbidden();
+    }
+    if (loggedUserVendorRole) return null;
+
+    const isTrainee = course.trainees.includes(credentials._id);
+    if (isTrainee) return null;
+
+    const loggedUserClientRole = get(credentials, 'role.client.name');
+    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) throw Boom.forbidden();
+
+    if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.company, userCompany)) throw Boom.forbidden();
+
+    if (course.type === INTER_B2B) {
+      const courseWithTrainees = await Course.findById(req.params._id)
+        .populate({ path: 'trainees', select: 'company' })
+        .lean();
+      if (!courseWithTrainees.trainees.some(
+        trainee => !UtilsHelper.areObjectIdsEquals(trainee.company, userCompany)
+      )) throw Boom.forbidden();
+    }
+
+    if (course.format === STRICTLY_E_LEARNING && course.accessRules.length !== 0 &&
+      !course.accessRules.includes(userCompany)) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 exports.getCourse = async (req) => {
   const course = await Course.findById(req.params._id).lean();
-
   if (!course) throw Boom.notFound();
 
   return course;
@@ -200,4 +241,21 @@ exports.authorizeAccessRuleDeletion = async (req) => {
   if (!course) throw Boom.notFound();
 
   return null;
+};
+
+exports.authorizeGetFollowUp = async (req) => {
+  const credentials = get(req, 'auth.credentials');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const companyQueryIsValid = !!req.query.company &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
+
+  if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.isQuestionnaire = async (req) => {
+  const activity = await Activity.countDocuments({ _id: req.query.activity, type: QUESTIONNAIRE });
+
+  return (!activity) ? Boom.badRequest() : null;
 };

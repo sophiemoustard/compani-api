@@ -7,53 +7,55 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const SubProgramHelper = require('../../../src/helpers/subPrograms');
+const SinonMongoose = require('../sinonMongoose');
 require('sinon-mongoose');
 
 describe('addSubProgram', () => {
-  let ProgramMock;
-  let SubProgramMock;
+  let updateOne;
+  let create;
 
   beforeEach(() => {
-    ProgramMock = sinon.mock(Program);
-    SubProgramMock = sinon.mock(SubProgram);
+    updateOne = sinon.stub(Program, 'updateOne');
+    create = sinon.stub(SubProgram, 'create');
   });
 
   afterEach(() => {
-    ProgramMock.restore();
-    SubProgramMock.restore();
+    updateOne.restore();
+    create.restore();
   });
 
-  const program = { _id: new ObjectID() };
-  const newSubProgram = { name: 'nouveau sous programme' };
   it('should create a subProgram', async () => {
+    const program = { _id: new ObjectID() };
+    const newSubProgram = { name: 'nouveau sous programme' };
     const subProgramId = new ObjectID();
 
-    SubProgramMock.expects('create').withExactArgs(newSubProgram).returns({ _id: subProgramId });
-
-    ProgramMock.expects('updateOne').withExactArgs({ _id: program._id }, { $push: { subPrograms: subProgramId } });
+    create.returns({ _id: subProgramId });
 
     await SubProgramHelper.addSubProgram(program._id, newSubProgram);
 
-    ProgramMock.verify();
-    SubProgramMock.verify();
+    sinon.assert.calledOnceWithExactly(create, newSubProgram);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: program._id }, { $push: { subPrograms: subProgramId } });
   });
 });
 
 describe('updatedSubProgram', () => {
-  let SubProgramMock;
+  let updateOne;
+  let findOneAndUpdate;
   let stepUpdateManyStub;
   let activityUpdateManyStub;
   let courseCreateStub;
 
   beforeEach(() => {
-    SubProgramMock = sinon.mock(SubProgram);
+    updateOne = sinon.stub(SubProgram, 'updateOne');
+    findOneAndUpdate = sinon.stub(SubProgram, 'findOneAndUpdate');
     stepUpdateManyStub = sinon.stub(Step, 'updateMany');
     activityUpdateManyStub = sinon.stub(Activity, 'updateMany');
     courseCreateStub = sinon.stub(Course, 'create');
   });
 
   afterEach(() => {
-    SubProgramMock.restore();
+    updateOne.restore();
+    findOneAndUpdate.restore();
     stepUpdateManyStub.restore();
     activityUpdateManyStub.restore();
     courseCreateStub.restore();
@@ -63,13 +65,9 @@ describe('updatedSubProgram', () => {
     const subProgram = { _id: new ObjectID(), name: 'non' };
     const payload = { name: 'si' };
 
-    SubProgramMock.expects('updateOne')
-      .withExactArgs({ _id: subProgram._id }, { $set: payload })
-      .returns();
-
     await SubProgramHelper.updateSubProgram(subProgram._id, payload);
 
-    SubProgramMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: subProgram._id }, { $set: payload });
     sinon.assert.notCalled(stepUpdateManyStub);
     sinon.assert.notCalled(activityUpdateManyStub);
     sinon.assert.notCalled(courseCreateStub);
@@ -95,13 +93,7 @@ describe('updatedSubProgram', () => {
         ],
       };
 
-      SubProgramMock.expects('findOneAndUpdate')
-        .withExactArgs({ _id: subProgram._id }, { $set: payload })
-        .chain('populate')
-        .withExactArgs({ path: 'steps', select: 'activities type' })
-        .chain('lean')
-        .returns(updatedSubProgram);
-
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
       stepUpdateManyStub.returns({ activities });
 
       await SubProgramHelper.updateSubProgram(subProgram._id, payload);
@@ -111,7 +103,11 @@ describe('updatedSubProgram', () => {
         { _id: { $in: subProgram.steps } }, { status: payload.status }
       );
       sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: { $in: activities } }, { status: payload.status });
-      SubProgramMock.verify();
+      SinonMongoose.calledWithExactly(findOneAndUpdate, [
+        { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: payload }] },
+        { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]);
       sinon.assert.notCalled(courseCreateStub);
     });
 
@@ -133,14 +129,7 @@ describe('updatedSubProgram', () => {
           { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
         ],
       };
-
-      SubProgramMock.expects('findOneAndUpdate')
-        .withExactArgs({ _id: subProgram._id }, { $set: { status: payload.status } })
-        .chain('populate')
-        .withExactArgs({ path: 'steps', select: 'activities type' })
-        .chain('lean')
-        .returns(updatedSubProgram);
-
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
       stepUpdateManyStub.returns({ activities });
 
       await SubProgramHelper.updateSubProgram(subProgram._id, payload);
@@ -150,7 +139,11 @@ describe('updatedSubProgram', () => {
         { _id: { $in: subProgram.steps } }, { status: payload.status }
       );
       sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: { $in: activities } }, { status: payload.status });
-      SubProgramMock.verify();
+      SinonMongoose.calledWithExactly(findOneAndUpdate, [
+        { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: { status: payload.status } }] },
+        { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]);
       sinon.assert.calledWithExactly(
         courseCreateStub,
         { subProgram: subProgram._id, type: 'inter_b2c', format: 'strictly_e_learning', accessRules: [] }
@@ -176,14 +169,7 @@ describe('updatedSubProgram', () => {
             { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
           ],
         };
-
-        SubProgramMock.expects('findOneAndUpdate')
-          .withExactArgs({ _id: subProgram._id }, { $set: { status: payload.status } })
-          .chain('populate')
-          .withExactArgs({ path: 'steps', select: 'activities type' })
-          .chain('lean')
-          .returns(updatedSubProgram);
-
+        findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
         stepUpdateManyStub.returns({ activities });
 
         await SubProgramHelper.updateSubProgram(subProgram._id, payload);
@@ -196,7 +182,11 @@ describe('updatedSubProgram', () => {
           activityUpdateManyStub,
           { _id: { $in: activities } }, { status: payload.status }
         );
-        SubProgramMock.verify();
+        SinonMongoose.calledWithExactly(findOneAndUpdate, [
+          { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: { status: payload.status } }] },
+          { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
+          { query: 'lean', args: [{ virtuals: true }] },
+        ]);
         sinon.assert.calledWithExactly(
           courseCreateStub,
           {
@@ -211,12 +201,12 @@ describe('updatedSubProgram', () => {
 });
 
 describe('listELearningDraft', () => {
-  let SubProgramMock;
+  let find;
   beforeEach(() => {
-    SubProgramMock = sinon.mock(SubProgram);
+    find = sinon.stub(SubProgram, 'find');
   });
   afterEach(() => {
-    SubProgramMock.restore();
+    find.restore();
   });
 
   it('should return draft subprograms with elearning steps', async () => {
@@ -234,32 +224,30 @@ describe('listELearningDraft', () => {
         program: [{ _id: new ObjectID(), name: 'test' }],
       },
     ];
-
-    SubProgramMock.expects('find')
-      .withExactArgs({ status: 'draft' })
-      .chain('populate')
-      .withExactArgs({ path: 'program', select: '_id name description image' })
-      .chain('populate')
-      .withExactArgs({ path: 'steps', select: 'type' })
-      .chain('lean')
-      .once()
-      .returns(subProgramsList);
-
     const elearningSubProgramList = subProgramsList
       .filter(subProgram => subProgram.steps.length && subProgram.isStrictlyELearning);
 
+    find.returns(SinonMongoose.stubChainedQueries([subProgramsList]));
+
     const result = await SubProgramHelper.listELearningDraft();
+
     expect(result).toMatchObject(elearningSubProgramList);
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ status: 'draft' }] },
+      { query: 'populate', args: [{ path: 'program', select: '_id name description image' }] },
+      { query: 'populate', args: [{ path: 'steps', select: 'type' }] },
+      { query: 'lean', args: [{ virtuals: true }] },
+    ]);
   });
 });
 
 describe('getSubProgram', () => {
-  let SubProgramMock;
+  let findOne;
   beforeEach(() => {
-    SubProgramMock = sinon.mock(SubProgram);
+    findOne = sinon.stub(SubProgram, 'findOne');
   });
   afterEach(() => {
-    SubProgramMock.restore();
+    findOne.restore();
   });
 
   it('should return the requested subprogram', async () => {
@@ -272,17 +260,16 @@ describe('getSubProgram', () => {
       }],
     };
 
-    SubProgramMock.expects('findOne')
-      .withExactArgs({ _id: subProgram._id })
-      .chain('populate')
-      .withExactArgs({ path: 'program', select: 'name image' })
-      .chain('populate')
-      .withExactArgs({ path: 'steps', populate: { path: 'activities' } })
-      .chain('lean')
-      .once()
-      .returns(subProgram);
+    findOne.returns(SinonMongoose.stubChainedQueries([subProgram]));
 
     const result = await SubProgramHelper.getSubProgram(subProgram._id);
+
     expect(result).toMatchObject(subProgram);
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: subProgram._id }] },
+      { query: 'populate', args: [{ path: 'program', select: 'name image' }] },
+      { query: 'populate', args: [{ path: 'steps', populate: { path: 'activities' } }] },
+      { query: 'lean', args: [{ virtuals: true }] },
+    ]);
   });
 });
