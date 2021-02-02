@@ -433,7 +433,7 @@ describe('getCourse', () => {
         args: [{
           path: 'trainees',
           match: {},
-          select: 'identity.firstname identity.lastname local.email company contact',
+          select: 'identity.firstname identity.lastname local.email company contact picture.link',
           populate: { path: 'company', select: 'name' },
         }],
       },
@@ -492,7 +492,7 @@ describe('getCourse', () => {
         args: [{
           path: 'trainees',
           match: { company: authCompanyId },
-          select: 'identity.firstname identity.lastname local.email company contact',
+          select: 'identity.firstname identity.lastname local.email company contact picture.link',
           populate: { path: 'company', select: 'name' },
         }],
       },

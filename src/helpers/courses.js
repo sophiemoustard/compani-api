@@ -134,13 +134,14 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({
       path: 'trainees',
       match: traineesCompanyMatch,
-      select: 'identity.firstname identity.lastname local.email company contact',
+      select: 'identity.firstname identity.lastname local.email company contact picture.link',
       populate: { path: 'company', select: 'name' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
     .lean();
 };
+
 
 exports.selectUserHistory = (histories) => {
   const groupedHistories = Object.values(groupBy(histories, 'user'));
