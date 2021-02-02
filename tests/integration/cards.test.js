@@ -95,15 +95,24 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         payload: {
           question: 'Sur une échelle de 1 à 10 ?',
           label: { left: '1', right: '10' },
+          isMandatory: true,
         },
         id: surveyId,
       },
-      { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
+      {
+        template: 'open_question',
+        payload: {
+          question: 'Quelque chose à ajouter ?',
+          isMandatory: false,
+        },
+        id: openQuestionId,
+      },
       {
         template: 'question_answer',
         payload: {
           isQuestionAnswerMultipleChoiced: true,
           question: 'Que faire dans cette situation ?',
+          isMandatory: true,
         },
         id: questionAnswerId,
       },
