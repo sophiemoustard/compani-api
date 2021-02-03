@@ -25,62 +25,59 @@ require('sinon-mongoose');
 const { language } = translate;
 
 describe('formatQueryForUsersList', () => {
-  let RoleMock;
+  let find;
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
-    RoleMock = sinon.mock(Role);
+    find = sinon.stub(Role, 'find');
   });
 
   afterEach(() => {
-    RoleMock.restore();
+    find.restore();
   });
 
   it('should returns params without role if no role in query', async () => {
     const query = { company: companyId };
-    RoleMock.expects('find').never();
 
     const result = await UsersHelper.formatQueryForUsersList(query);
 
     expect(result).toEqual(query);
-    RoleMock.verify();
+    sinon.assert.notCalled(find);
   });
 
   it('should return params with role', async () => {
     const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
     const roles = [{ _id: query.role[0]._id, interface: 'vendor' }, { _id: query.role[1]._id, interface: 'vendor' }];
 
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(roles);
+    find.returns(SinonMongoose.stubChainedQueries([roles], ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
     expect(result).toEqual({
       company: companyId,
       'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
     });
-    RoleMock.verify();
+
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should return 404 if role does not exist', async () => {
+    const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
     try {
-      const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
-
-      RoleMock
-        .expects('find')
-        .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
-        .chain('lean')
-        .returns([]);
+      find.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
       const result = await UsersHelper.formatQueryForUsersList(query);
       expect(result).toBeUndefined();
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
     } finally {
-      RoleMock.verify();
+      SinonMongoose.calledWithExactly(find, [
+        { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
+        { query: 'lean' },
+      ]);
     }
   });
 });
