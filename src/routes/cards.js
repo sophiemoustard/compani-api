@@ -55,6 +55,7 @@ exports.plugin = {
               left: Joi.string().allow('', null).max(SURVEY_LABEL_MAX_LENGTH),
             }),
             canSwitchAnswers: Joi.boolean(),
+            isMandatory: Joi.boolean(),
           }),
         },
         auth: { scope: ['programs:edit'] },

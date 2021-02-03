@@ -67,10 +67,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       },
       {
         template: 'order_the_sequence',
-        payload: {
-          question: 'Que faire dans cette situation ?',
-          explanation: 'en fait on doit faire ça',
-        },
+        payload: { question: 'Que faire dans cette situation ?', explanation: 'en fait on doit faire ça' },
         id: orderTheSequenceId,
       },
       {
@@ -84,26 +81,25 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       },
       {
         template: 'multiple_choice_question',
-        payload: {
-          question: 'Que faire dans cette situation ?',
-          explanation: 'en fait on doit faire ça',
-        },
+        payload: { question: 'Que faire dans cette situation ?', explanation: 'en fait on doit faire ça' },
         id: multipleChoiceQuestionId,
       },
       {
         template: 'survey',
-        payload: {
-          question: 'Sur une échelle de 1 à 10 ?',
-          label: { left: '1', right: '10' },
-        },
+        payload: { question: 'Sur une échelle de 1 à 10 ?', label: { left: '1', right: '10' }, isMandatory: true },
         id: surveyId,
       },
-      { template: 'open_question', payload: { question: 'Quelque chose à ajouter ?' }, id: openQuestionId },
+      {
+        template: 'open_question',
+        payload: { question: 'Quelque chose à ajouter ?', isMandatory: false },
+        id: openQuestionId,
+      },
       {
         template: 'question_answer',
         payload: {
           isQuestionAnswerMultipleChoiced: true,
           question: 'Que faire dans cette situation ?',
+          isMandatory: true,
         },
         id: questionAnswerId,
       },
@@ -145,6 +141,17 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         method: 'PUT',
         url: `/cards/${transitionId.toHexString()}`,
         payload: { canSwitchAnswers: false },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 when provide a useless isMandatory field on a non-Questionnaire card', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/cards/${transitionId.toHexString()}`,
+        payload: { isMandatory: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
