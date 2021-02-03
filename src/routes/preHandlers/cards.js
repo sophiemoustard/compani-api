@@ -59,6 +59,7 @@ exports.authorizeCardUpdate = async (req) => {
   if (card.template !== FILL_THE_GAPS && has(req, 'payload.canSwitchAnswers')) throw Boom.forbidden();
   if (![OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template) &&
     has(req, 'payload.isMandatory')) throw Boom.forbidden();
+
   switch (card.template) {
     case FILL_THE_GAPS:
       return checkFillTheGap(req.payload);
