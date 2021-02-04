@@ -899,110 +899,103 @@ describe('removeHelper', () => {
 });
 
 describe('updateUser', () => {
-  let UserMock;
-  let RoleMock;
+  let userUpdateOne;
+  let roleFindById;
   let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    userUpdateOne = sinon.stub(User, 'updateOne');
+    roleFindById = sinon.stub(Role, 'findById');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
   });
   afterEach(() => {
-    UserMock.restore();
-    RoleMock.restore();
+    userUpdateOne.restore();
+    roleFindById.restore();
     updateHistoryOnSectorUpdateStub.restore();
   });
 
   it('should update a user', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
+    userUpdateOne.returns(SinonMongoose.stubChainedQueries([], []));
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(userUpdateOne, [
+      { query: 'updateOne', args: [{ _id: userId, company: credentials.company._id }, { $set: flat(payload) }] },
+    ]);
+    sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user without company', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
+    userUpdateOne.returns(SinonMongoose.stubChainedQueries([], []));
 
     await UsersHelper.updateUser(userId, payload, credentials, true);
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(userUpdateOne, [
+      { query: 'updateOne', args: [{ _id: userId }, { $set: flat(payload) }] },
+    ]);
+    sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user and create sector history', async () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
+    userUpdateOne.returns(SinonMongoose.stubChainedQueries([], []));
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(userUpdateOne, [
+      { query: 'updateOne', args: [{ _id: userId, company: credentials.company._id }, { $set: flat(payload) }] },
+    ]);
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
+    sinon.assert.notCalled(roleFindById);
   });
 
   it('should update a user role', async () => {
     const payload = { role: new ObjectID() };
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
-    UserMock
-      .expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole })
-      .returns();
+    userUpdateOne.returns(SinonMongoose.stubChainedQueries([], []));
 
-    RoleMock
-      .expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: payload.role, name: 'test', interface: 'client' });
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: payload.role, name: 'test', interface: 'client' }],
+      ['lean']
+    ));
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(userUpdateOne, [
+      { query: 'updateOne', args: [{ _id: userId, company: credentials.company._id }, { $set: payloadWithRole }] },
+    ]);
+    SinonMongoose.calledWithExactly(roleFindById, [
+      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should return a 400 error if role does not exists', async () => {
     const payload = { role: new ObjectID() };
 
-    RoleMock
-      .expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns(null);
-
-    UserMock.expects('find').never();
+    roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
-      RoleMock.verify();
+      SinonMongoose.calledWithExactly(roleFindById, [
+        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
+        { query: 'lean', args: [] },
+      ]);
+      sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
   });
