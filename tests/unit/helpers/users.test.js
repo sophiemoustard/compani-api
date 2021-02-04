@@ -306,131 +306,118 @@ describe('getLearnerList', () => {
 });
 
 describe('getUser', () => {
-  let userMock;
+  let findOne;
   beforeEach(() => {
-    userMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    userMock.restore();
+    findOne.restore();
   });
 
   it('should return user without populating role', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { name: 'helper', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false, requestingOwnInfos: false },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false, requestingOwnInfos: false },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should return user populating role because isVendorUser', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID(), role: { vendor: 'trainer' } };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: true, requestingOwnInfos: false },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: true, requestingOwnInfos: false },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should return user populating role because requestingOwnInfos', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: userId };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false, requestingOwnInfos: true },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
-  });
-
-  it('should throw error if user not found', async () => {
-    try {
-      const userId = new ObjectID();
-      const credentials = {
-        company: { _id: new ObjectID() },
-        role: { vendor: { _id: new ObjectID() } },
-        _id: new ObjectID(),
-      };
-
-      userMock.expects('findOne')
-        .withExactArgs({ _id: userId })
-        .chain('populate')
-        .withExactArgs({
-          path: 'contracts',
-          select: '-__v -createdAt -updatedAt',
-        })
-        .chain('populate')
-        .withExactArgs({
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
           path: 'sector',
           select: '_id sector',
           match: { company: credentials.company._id },
-          options: { isVendorUser: true, requestingOwnInfos: false },
-        })
-        .chain('lean')
-        .withExactArgs({ autopopulate: true, virtuals: true })
-        .once()
-        .returns(null);
+          options: { isVendorUser: false, requestingOwnInfos: true },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
+  });
+
+  it('should throw error if user not found', async () => {
+    const userId = new ObjectID();
+    const credentials = {
+      company: { _id: new ObjectID() },
+      role: { vendor: { _id: new ObjectID() } },
+      _id: new ObjectID(),
+    };
+
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([null], ['populate', 'lean']));
 
       await UsersHelper.getUser(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
     } finally {
-      userMock.verify();
+      SinonMongoose.calledWithExactly(findOne, [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: true, requestingOwnInfos: false },
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]);
     }
   });
 });
