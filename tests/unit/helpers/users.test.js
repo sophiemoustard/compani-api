@@ -423,7 +423,7 @@ describe('getUser', () => {
 });
 
 describe('userExists', () => {
-  let userMock;
+  let findOne;
   const email = 'test@test.fr';
   const nonExistantEmail = 'toto.gateau@alenvi.io';
   const user = {
@@ -436,65 +436,79 @@ describe('userExists', () => {
   const vendorCredentials = { role: { vendor: { _id: new ObjectID() } } };
   const clientCredentials = { role: { client: { _id: new ObjectID() } } };
   beforeEach(() => {
-    userMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    userMock.restore();
+    findOne.restore();
   });
 
   it('should find a user if credentials', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(user, 'local'));
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
   });
 
   it('should not find as email does not exist', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': nonExistantEmail }, { company: 1, role: 1 })
-      .chain('lean').returns(null);
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
     expect(rep.exists).toBe(false);
     expect(rep.user).toEqual({});
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { company: 1, role: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(userWithoutCompany);
+    findOne.returns(SinonMongoose.stubChainedQueries([userWithoutCompany], ['lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
   });
 
   it('should find an email but no user if no credentials', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
   });
 });
 
