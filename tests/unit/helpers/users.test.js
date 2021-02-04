@@ -160,19 +160,19 @@ describe('getUsersList', () => {
 });
 
 describe('getUsersListWithSectorHistories', () => {
-  let UserMock;
+  let find;
   let formatQueryForUsersListStub;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    find = sinon.stub(User, 'find');
     formatQueryForUsersListStub = sinon.stub(UsersHelper, 'formatQueryForUsersList');
   });
 
   afterEach(() => {
-    UserMock.restore();
+    find.restore();
     formatQueryForUsersListStub.restore();
   });
 
@@ -184,26 +184,9 @@ describe('getUsersListWithSectorHistories', () => {
       company: companyId,
       'role.client': { $in: roles },
     };
-    formatQueryForUsersListStub.returns(formattedQuery);
 
-    UserMock.expects('find')
-      .withExactArgs(formattedQuery, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sectorHistories',
-        select: '_id sector startDate endDate',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: false })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
+    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+    formatQueryForUsersListStub.returns(formattedQuery);
 
     const result = await UsersHelper.getUsersListWithSectorHistories(
       query,
@@ -214,7 +197,20 @@ describe('getUsersListWithSectorHistories', () => {
       formatQueryForUsersListStub,
       { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
     );
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
+      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+      { query: 'populate',
+        args: [{
+          path: 'sectorHistories',
+          select: '_id sector startDate endDate',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false },
+        }] },
+      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+      { query: 'setOptions', args: [{ isVendorUser: false }] },
+      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+    ]);
   });
 });
 
