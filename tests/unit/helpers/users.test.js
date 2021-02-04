@@ -844,45 +844,57 @@ describe('createUser', () => {
 });
 
 describe('removeHelper', () => {
-  let UserMock;
-  let RoleMock;
+  let roleFindOne;
+  let userFindOneAndUpdate;
 
   const user = { _id: new ObjectID() };
   const roleId = new ObjectID();
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    roleFindOne = sinon.stub(Role, 'findOne');
+    userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
   });
   afterEach(() => {
-    UserMock.restore();
-    RoleMock.restore();
+    roleFindOne.restore();
+    userFindOneAndUpdate.restore();
   });
 
   it('should remove client role and customers', async () => {
-    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } })
-      .returns();
+    userFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], []));
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(roleFindOne, [
+      { query: 'findOne', args: [{ name: 'trainer' }] },
+      { query: 'lean', args: [] },
+    ]);
+    SinonMongoose.calledWithExactly(userFindOneAndUpdate, [
+      {
+        query: 'findOneAndUpdate',
+        args: [{ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } }],
+      },
+    ]);
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
-    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
+    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
 
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } })
-      .returns();
+    userFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], []));
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(roleFindOne, [
+      { query: 'findOne', args: [{ name: 'trainer' }] },
+      { query: 'lean', args: [] },
+    ]);
+    SinonMongoose.calledWithExactly(userFindOneAndUpdate, [
+      {
+        query: 'findOneAndUpdate',
+        args: [{ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } }],
+      },
+    ]);
   });
 });
 
