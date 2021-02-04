@@ -1142,79 +1142,77 @@ describe('deleteMedia', () => {
 });
 
 describe('createDriveFolder', () => {
-  let CompanyMock;
+  let companyFindOne;
   let createFolder;
-  let updateOne;
+  let userUpdateOne;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
+    companyFindOne = sinon.stub(Company, 'findOne');
     createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
-    updateOne = sinon.stub(User, 'updateOne');
+    userUpdateOne = sinon.stub(User, 'updateOne');
   });
   afterEach(() => {
-    CompanyMock.restore();
+    companyFindOne.restore();
     createFolder.restore();
-    updateOne.restore();
+    userUpdateOne.restore();
   });
 
   it('should create a google drive folder and update user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID(), identity: { lastname: 'Delenda' } };
 
-    CompanyMock.expects('findOne')
-      .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-      .chain('lean')
-      .once()
-      .returns({ auxiliariesFolderId: 'auxiliariesFolderId' });
+    companyFindOne.returns(SinonMongoose.stubChainedQueries(
+      [{ auxiliariesFolderId: 'auxiliariesFolderId' }],
+      ['lean']
+    ));
 
     createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
 
     await UsersHelper.createDriveFolder(user);
 
-    CompanyMock.verify();
+    SinonMongoose.calledWithExactly(companyFindOne, [
+      { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+      { query: 'lean', args: [] },
+    ]);
     sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
     sinon.assert.calledOnceWithExactly(
-      updateOne,
+      userUpdateOne,
       { _id: user._id },
       { $set: { 'administrative.driveFolder.link': 'webViewLink', 'administrative.driveFolder.driveId': 'folderId' } }
     );
   });
 
   it('should return a 422 if user has no company', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID() };
     try {
-      const user = { _id: new ObjectID(), company: new ObjectID() };
-
-      CompanyMock.expects('findOne')
-        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-        .chain('lean')
-        .once()
-        .returns(null);
+      companyFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
       await UsersHelper.createDriveFolder(user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      CompanyMock.verify();
+      SinonMongoose.calledWithExactly(companyFindOne, [
+        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+        { query: 'lean', args: [] },
+      ]);
       sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(userUpdateOne);
     }
   });
 
   it('should return a 422 if user company has no auxialiaries folder Id', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID() };
     try {
-      const user = { _id: new ObjectID(), company: new ObjectID() };
-
-      CompanyMock.expects('findOne')
-        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-        .chain('lean')
-        .once()
-        .returns({ _id: user.company });
+      companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: user.company }], ['lean']));
 
       await UsersHelper.createDriveFolder(user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      CompanyMock.verify();
+      SinonMongoose.calledWithExactly(companyFindOne, [
+        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+        { query: 'lean', args: [] },
+      ]);
       sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(userUpdateOne);
     }
   });
 });
