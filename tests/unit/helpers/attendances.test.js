@@ -23,12 +23,12 @@ describe('create', () => {
 });
 
 describe('list', () => {
-  let list;
+  let find;
   beforeEach(() => {
-    list = sinon.stub(Attendance, 'find');
+    find = sinon.stub(Attendance, 'find');
   });
   afterEach(() => {
-    list.restore();
+    find.restore();
   });
 
   it('should return some courseSlots attendances', async () => {
@@ -38,12 +38,12 @@ describe('list', () => {
       { trainee: new ObjectID(), courseSlot },
     ];
 
-    list.returns(SinonMongoose.stubChainedQueries([attendancesList]));
+    find.returns(SinonMongoose.stubChainedQueries([attendancesList], ['lean']));
 
     const result = await AttendanceHelper.list([courseSlot]);
 
     expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(list, [
+    SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
       { query: 'lean' },
     ]);

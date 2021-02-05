@@ -2,13 +2,8 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
 const app = require('../../server');
-const {
-  populateDB,
-  attendancesList,
-  coursesList,
-  slotsList,
-} = require('./seed/attendancesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { populateDB, attendancesList, coursesList, slotsList } = require('./seed/attendancesSeed');
+const { getToken, getTokenByCredentials, trainer } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -77,9 +72,6 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
     const roles = [
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
     ];
@@ -110,14 +102,13 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     });
 
     it('should get courseSlot attendances', async () => {
-      const attendances = attendancesList.length;
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(attendances);
+      expect(response.result.data.attendances.length).toEqual(attendancesList.length);
     });
 
     it('should return 400 if query is empty', async () => {
@@ -131,12 +122,19 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
   });
 
   describe('Other roles', () => {
+    it('should return 200 if courseSlot is from trainer\'s courses', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
     const roles = [
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];

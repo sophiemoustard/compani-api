@@ -552,7 +552,7 @@ module.exports = {
     attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
     attendanceSheetDeleted: 'Feuille d\'émargement supprimée.',
     /* Attendances */
-    attendanceCreated: 'L\'apprenant a bien été émargé au créneau.',
+    attendanceCreated: 'Émargement créé.',
     attendancesFound: 'Émargements trouvés.',
     attendancesNotFound: 'Émargements non trouvés.',
   },

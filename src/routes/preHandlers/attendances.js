@@ -3,29 +3,21 @@ const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
 const { TRAINER } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
-const { checkAuthorization } = require('./courses');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
 
-exports.checkAttendances = async (req) => {
-  const query = UtilsHelper.formatObjectIdsArray(req.query.courseSlots);
+exports.attendancesAreFromSameCourse = async (req) => {
+  const courseSlotsIds = UtilsHelper.formatObjectIdsArray(req.query.courseSlots);
   const courseSlots = [];
-  for (const cs of query) {
-    courseSlots.push(await CourseSlot.findOne({ _id: cs }, { course: 1 })
-      .populate({ path: 'course', select: '_id trainer company' })
-      .lean());
-  }
-  const { course } = courseSlots[0];
-  if (courseSlots.filter(courseSlot =>
-    UtilsHelper.areObjectIdsEquals(courseSlot.course._id, course._id)).length !== courseSlots.length) {
+  for (const cs of courseSlotsIds) courseSlots.push(await CourseSlot.findOne({ _id: cs }, { course: 1 }).lean());
+  const courseId = courseSlots[0].course;
+  if (courseSlots.filter(cs => UtilsHelper.areObjectIdsEquals(cs.course, courseId)).length !== courseSlots.length) {
     throw Boom.forbidden();
   }
-  checkAuthorization(req.auth.credentials, course.trainer, course.company);
-
-  return query;
+  return courseSlotsIds;
 };
 
-exports.checkAttendanceAddition = async (req) => {
+exports.authorizeTrainerAndCheckTrainees = async (req) => {
   if (await this.checkAttendanceExists(req)) throw Boom.conflict();
 
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
