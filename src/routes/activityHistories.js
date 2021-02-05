@@ -18,7 +18,7 @@ exports.plugin = {
             activity: Joi.objectId().required(),
             questionnaireAnswersList: Joi.array().items(Joi.object({
               card: Joi.objectId().required(),
-              answerList: Joi.array().items(Joi.string()).min(1).required(),
+              answerList: Joi.array().items(Joi.string().allow('')).min(1).required(),
             })),
             score: Joi.number().required(),
           }),

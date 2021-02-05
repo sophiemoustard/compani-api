@@ -16,6 +16,7 @@ const cardsList = [
   { _id: new ObjectID(), template: 'open_question', question: 'test4?' },
   { _id: new ObjectID(), template: 'question_answer', question: 'test5?', isQuestionAnswerMultipleChoiced: true },
   { _id: new ObjectID(), template: 'question_answer', question: 'test6?', isQuestionAnswerMultipleChoiced: false },
+  { _id: new ObjectID(), template: 'open_question', question: 'test7?', isMandatory: true },
 ];
 
 const activitiesList = [

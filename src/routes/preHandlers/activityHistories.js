@@ -35,12 +35,16 @@ exports.authorizeAddActivityHistory = async (req) => {
 
       const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
       const tooManyAnswers = ([SURVEY, OPEN_QUESTION].includes(card.template) && qa.answerList.length !== 1) ||
-        ([QUESTION_ANSWER].includes(card.template) && (!card.isQuestionAnswerMultipleChoiced &&
-        qa.answerList.length !== 1));
-      const answerIsNotObjectID = [QUESTION_ANSWER].includes(card.template) &&
-      Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
+        (card.template === QUESTION_ANSWER && (!card.isQuestionAnswerMultipleChoiced && qa.answerList.length !== 1));
+      const answerIsNotObjectID = card.template === QUESTION_ANSWER &&
+        Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
+      const allowEmptyString = (!card.isMandatory && card.template === OPEN_QUESTION);
+      const hasEmptyString = qa.answerList.some(a => a === '');
 
-      if (isNotQuestionnaireTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
+      if (isNotQuestionnaireTemplate || tooManyAnswers || answerIsNotObjectID ||
+        (!allowEmptyString && hasEmptyString)) {
+        throw Boom.badData();
+      }
 
       const activityCount = await Activity.countDocuments({ _id: activityId, cards: card._id });
       if (!activityCount) throw Boom.notFound();

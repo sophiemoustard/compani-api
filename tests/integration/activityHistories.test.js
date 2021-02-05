@@ -66,6 +66,20 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 200 if card is an open question and answer is empty', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[3]._id, answerList: [''] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return a 404 if user doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -197,6 +211,48 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
         payload: {
           ...payload,
           questionnaireAnswersList: [{ card: cardsList[4]._id, answerList: ['blabla'] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card is q/a and answer is empty', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[4]._id, answerList: [''] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card is survey and answer is empty', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: [''] }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('should return 422 if card is a mandatory open question and answer is empty', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: {
+          ...payload,
+          questionnaireAnswersList: [{ card: cardsList[6]._id, answerList: [''] }],
         },
         headers: { 'x-access-token': authToken },
       });
