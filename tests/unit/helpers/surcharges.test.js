@@ -14,6 +14,7 @@ describe('list', () => {
   afterEach(() => {
     find.restore();
   });
+
   it('should return a list of every surcharges from company', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
@@ -21,10 +22,10 @@ describe('list', () => {
     find.returns(SinonMongoose.stubChainedQueries([[{ company: companyId, name: 'Coucou' }]], ['lean']));
 
     const result = await SurchargesHelper.list(credentials);
-    expect(result).toMatchObject([{ company: companyId, name: 'Coucou' }]);
+    expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);
 
     SinonMongoose.calledWithExactly(find, [
-      { query: 'findOne', args: [{ company: companyId }] },
+      { query: 'find', args: [{ company: companyId }] },
       { query: 'lean' },
     ]);
   });
