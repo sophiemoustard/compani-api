@@ -4,30 +4,30 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
 const SurchargesHelper = require('../../../src/helpers/surcharges');
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
-  let SurchargeMock;
+  let find;
   beforeEach(() => {
-    SurchargeMock = sinon.mock(Surcharge);
+    find = sinon.stub(Surcharge, 'find');
   });
   afterEach(() => {
-    SurchargeMock.restore();
+    find.restore();
   });
+
   it('should return a list of every surcharges from company', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    SurchargeMock.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .once()
-      .returns([{ company: companyId, name: 'Coucou' }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ company: companyId, name: 'Coucou' }]], ['lean']));
 
     const result = await SurchargesHelper.list(credentials);
-
-    SurchargeMock.verify();
     expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);
+
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ company: companyId }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
