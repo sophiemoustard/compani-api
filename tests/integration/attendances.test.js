@@ -119,6 +119,15 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendances.length).toEqual(attendances);
     });
+
+    it('should return 400 if query is empty', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
