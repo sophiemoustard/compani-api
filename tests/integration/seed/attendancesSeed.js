@@ -35,7 +35,7 @@ const slotsList = [
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
-    course: coursesList[1],
+    course: coursesList[0],
     step: new ObjectID(),
   },
 ];

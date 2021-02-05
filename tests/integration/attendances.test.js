@@ -60,6 +60,17 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 409 if trainee and courseSlot are already added', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendances',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: coursesList[0].trainees[0], courseSlot: slotsList[0]._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {
@@ -118,7 +129,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -126,7 +137,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/attendances',
+          url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
