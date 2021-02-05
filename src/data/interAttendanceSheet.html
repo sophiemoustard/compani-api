@@ -79,14 +79,21 @@
   td {
     min-height: 40px;
   }
-  .signature {
+  .tampon-container {
     font-weight: 700;
+    flex-direction: row;
+    display: flex;
+    justify-content: space-between;
+    page-break-inside: avoid;
   }
   .course-hours {
     font-size: 10px;
   }
   .course-address {
     font-size: 10px;
+  }
+  .tampon {
+    width: 110px;
   }
 </style>
 <div>
@@ -139,7 +146,10 @@
           </tbody>
         </table>
       </div>
-      <div class="signature">Signature et tampon de l'organisme de formation :</div>
+      <div class="tampon-container">
+        Signature et tampon de l'organisme de formation :
+        <img class="tampon" src="https://storage.googleapis.com/compani-main/tsb_signature.png">
+      </div>
     </div>
   {{/each}}
 </div>
