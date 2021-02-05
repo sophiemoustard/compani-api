@@ -3,7 +3,8 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create } = require('../controllers/attendanceController');
-const { checkCourse, checkAttendanceAddition } = require('./preHandlers/attendances');
+const { checkAttendances, checkAttendanceAddition } = require('./preHandlers/attendances');
+const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-attendances',
@@ -14,11 +15,11 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object({
-            courseSlots: Joi.array().items(Joi.objectId()),
+            courseSlots: objectIdOrArray.required(),
           }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: checkCourse }],
+        pre: [{ method: checkAttendances, assign: 'query' }],
       },
       handler: list,
     });

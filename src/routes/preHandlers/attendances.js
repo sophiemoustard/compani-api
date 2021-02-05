@@ -7,9 +7,10 @@ const { checkAuthorization } = require('./courses');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
 
-exports.checkCourse = async (req) => {
+exports.checkAttendances = async (req) => {
+  const query = UtilsHelper.formatObjectIdsArray(req.query.courseSlots);
   const courseSlots = [];
-  for (const cs of req.query.courseSlots) {
+  for (const cs of query) {
     courseSlots.push(await CourseSlot.findOne({ _id: cs }, { course: 1 })
       .populate({ path: 'course', select: '_id trainer company' })
       .lean());
@@ -21,7 +22,7 @@ exports.checkCourse = async (req) => {
   }
   checkAuthorization(req.auth.credentials, course.trainer, course.company);
 
-  return null;
+  return query;
 };
 
 exports.checkAttendanceAddition = async (req) => {

@@ -40,7 +40,7 @@ describe('list', () => {
 
     list.returns(SinonMongoose.stubChainedQueries([attendancesList]));
 
-    const result = await AttendanceHelper.list({ courseSlots: [courseSlot] });
+    const result = await AttendanceHelper.list([courseSlot]);
 
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledWithExactly(list, [
