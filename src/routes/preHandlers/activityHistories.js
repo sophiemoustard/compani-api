@@ -34,8 +34,8 @@ exports.authorizeAddActivityHistory = async (req) => {
       if (!card) throw Boom.notFound();
 
       const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
-      const tooManyAnswers = ([SURVEY, OPEN_QUESTION].includes(card.template) && qa.answerList.length !== 1) ||
-        (card.template === QUESTION_ANSWER && (!card.isQuestionAnswerMultipleChoiced && qa.answerList.length !== 1));
+      const tooManyAnswers = ([SURVEY, OPEN_QUESTION].includes(card.template) ||
+        (card.template === QUESTION_ANSWER && !card.isQuestionAnswerMultipleChoiced)) && qa.answerList.length !== 1;
       const answerIsNotObjectID = card.template === QUESTION_ANSWER &&
         Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
       const allowEmptyString = (!card.isMandatory && card.template === OPEN_QUESTION);
