@@ -18,7 +18,7 @@ exports.plugin = {
             courseSlots: objectIdOrArray.required(),
           }),
         },
-        auth: { scope: ['attendancesheets:edit'] },
+        auth: { scope: ['attendancesheets:read'] },
         pre: [{ method: trainerHasAccessToAttendances, assign: 'query' }],
       },
       handler: list,
