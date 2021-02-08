@@ -1,8 +1,32 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication, authCompany, trainer } = require('./authenticationSeed');
+const User = require('../../../src/models/User');
+const { rolesList } = require('../../seed/roleSeed');
+const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
+
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+
+const trainerList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainer', lastname: 'withCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainerWithCourse@alenvi.io', password: '123456!eR' },
+    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainer', lastname: 'noCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainerNoCourse@alenvi.io', password: '123456!eR' },
+    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    origin: WEBAPP,
+  },
+];
 
 const coursesList = [
   {
@@ -11,7 +35,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID(), new ObjectID()],
-    trainer,
+    trainer: trainerList[0]._id,
   },
   {
     _id: new ObjectID(),
@@ -19,7 +43,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID()],
-    trainer: new ObjectID(),
+    trainer: trainerList[0]._id,
   },
 ];
 
@@ -52,12 +76,16 @@ const populateDB = async () => {
   await Attendance.deleteMany({});
   await Course.deleteMany({});
   await CourseSlot.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentication();
 
   await Attendance.insertMany(attendancesList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slotsList);
+  for (const user of trainerList) {
+    await (new User(user)).save();
+  }
 };
 
 module.exports = {
@@ -65,4 +93,5 @@ module.exports = {
   attendancesList,
   coursesList,
   slotsList,
+  trainerList,
 };

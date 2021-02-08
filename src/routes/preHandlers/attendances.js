@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
 const { TRAINER } = require('../../helpers/constants');
@@ -6,14 +7,20 @@ const UtilsHelper = require('../../helpers/utils');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
 
-exports.attendancesAreFromSameCourse = async (req) => {
-  const courseSlotsIds = UtilsHelper.formatObjectIdsArray(req.query.courseSlots);
-  const courseSlots = [];
-  for (const cs of courseSlotsIds) courseSlots.push(await CourseSlot.findOne({ _id: cs }, { course: 1 }).lean());
-  const courseId = courseSlots[0].course;
-  if (courseSlots.filter(cs => UtilsHelper.areObjectIdsEquals(cs.course, courseId)).length !== courseSlots.length) {
+exports.trainerHasAccessToAttendances = async (req) => {
+  const courseSlotsIds = [...new Set(UtilsHelper.formatObjectIdsArray(req.query.courseSlots))];
+  const courseSlots = await CourseSlot.find({ _id: { $in: courseSlotsIds } }, { course: 1 })
+    .populate({ path: 'course', select: 'trainer trainees' })
+    .lean();
+
+  if (courseSlots.length !== courseSlotsIds.length) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  if (get(credentials, 'role.vendor.name') === TRAINER &&
+    !courseSlots.every(cs => UtilsHelper.areObjectIdsEquals(cs.course.trainer, credentials._id))) {
     throw Boom.forbidden();
   }
+
   return courseSlotsIds;
 };
 
@@ -25,9 +32,12 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
-  if (req.auth.credentials.role.vendor === TRAINER && req.auth.credentials._id !== courseSlot.course.trainer) {
+  const { credentials } = req.auth;
+  if (get(credentials, 'role.vendor.name') === TRAINER &&
+    !UtilsHelper.areObjectIdsEquals(credentials._id, courseSlot.course.trainer)) {
     throw Boom.forbidden();
   }
+
   if (!courseSlot.course.trainees.map(t => t.toHexString()).includes(req.payload.trainee)) throw Boom.forbidden();
 
   return null;

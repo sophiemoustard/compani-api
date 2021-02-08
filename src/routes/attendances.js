@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create } = require('../controllers/attendanceController');
-const { attendancesAreFromSameCourse, authorizeTrainerAndCheckTrainees } = require('./preHandlers/attendances');
+const { trainerHasAccessToAttendances, authorizeTrainerAndCheckTrainees } = require('./preHandlers/attendances');
 const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
@@ -19,7 +19,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: attendancesAreFromSameCourse, assign: 'query' }],
+        pre: [{ method: trainerHasAccessToAttendances, assign: 'query' }],
       },
       handler: list,
     });
