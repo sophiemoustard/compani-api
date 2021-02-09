@@ -4,7 +4,7 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const list = async (req) => {
+const listAttendances = async (req) => {
   try {
     const attendances = await AttendanceHelper.list(req.pre.query);
     return {
@@ -17,7 +17,7 @@ const list = async (req) => {
   }
 };
 
-const create = async (req) => {
+const createAttendance = async (req) => {
   try {
     await AttendanceHelper.create(req.payload);
 
@@ -40,7 +40,7 @@ const deleteAttendance = async (req) => {
 };
 
 module.exports = {
-  list,
-  create,
+  listAttendances,
+  createAttendance,
   deleteAttendance,
 };

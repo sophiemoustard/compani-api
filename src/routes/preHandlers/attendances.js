@@ -51,7 +51,7 @@ exports.checkAttendanceExistsAndAuthorizeTrainer = async (req) => {
 
   const { credentials } = req.auth;
   if (get(credentials, 'role.vendor.name') === TRAINER &&
-    !UtilsHelper.areObjectIdsEquals(credentials._id, attendance.courseSlot.course.trainer)) {
+    !UtilsHelper.areObjectIdsEquals(credentials._id, get(attendance, 'courseSlot.course.trainer'))) {
     throw Boom.forbidden();
   }
   return null;
