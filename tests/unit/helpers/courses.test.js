@@ -341,11 +341,7 @@ describe('listUserCourses', () => {
     SinonMongoose.calledWithExactly(courseFind, [
       {
         query: 'find',
-        args: [{
-          trainees: trainee._id,
-          $or: [{ accessRules: [] }, { accessRules: trainee.company }],
-        },
-        { format: 1 }],
+        args: [{ trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] }, { format: 1 }],
       },
       {
         query: 'populate',
@@ -967,24 +963,27 @@ describe('getTraineeCourse', () => {
 });
 
 describe('updateCourse', () => {
-  let CourseMock;
+  let courseFindOneAndUpdate;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course, 'CourseMock');
+    courseFindOneAndUpdate = sinon.stub(Course, 'findOneAndUpdate');
   });
   afterEach(() => {
-    CourseMock.restore();
+    courseFindOneAndUpdate.restore();
   });
 
   it('should update an intra course', async () => {
     const courseId = new ObjectID();
     const payload = { misc: 'groupe 4' };
-    CourseMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: courseId }, { $set: payload })
-      .chain('lean')
-      .returns(payload);
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([payload], ['lean']));
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.misc).toEqual(payload.misc);
+
+    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
+      { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
