@@ -1073,28 +1073,26 @@ describe('sendSMS', () => {
 describe('getSMSHistory', () => {
   const courseId = new ObjectID();
   const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
-  let CourseSmsHistoryMock;
+  let courseSmsHistoryFind;
   beforeEach(() => {
-    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
+    courseSmsHistoryFind = sinon.stub(CourseSmsHistory, 'find');
   });
   afterEach(() => {
-    CourseSmsHistoryMock.restore();
+    courseSmsHistoryFind.restore();
   });
 
   it('should get SMS history', async () => {
-    CourseSmsHistoryMock.expects('find')
-      .withExactArgs({ course: courseId })
-      .chain('populate')
-      .withExactArgs({ path: 'sender', select: 'identity.firstname identity.lastname' })
-      .chain('populate')
-      .withExactArgs({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
-      .chain('lean')
-      .returns(sms);
+    courseSmsHistoryFind.returns(SinonMongoose.stubChainedQueries([sms]));
 
     const result = await CourseHelper.getSMSHistory(courseId);
 
     expect(result).toEqual(sms);
-    CourseSmsHistoryMock.verify();
+    SinonMongoose.calledWithExactly(courseSmsHistoryFind, [
+      { query: 'find', args: [{ course: courseId }] },
+      { query: 'populate', args: [{ path: 'sender', select: 'identity.firstname identity.lastname' }] },
+      { query: 'populate', args: [{ path: 'missingPhones', select: 'identity.firstname identity.lastname' }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
