@@ -1097,21 +1097,18 @@ describe('getSMSHistory', () => {
 });
 
 describe('addCourseTrainee', () => {
-  let CourseMock;
-  let RoleMock;
+  let courseFindOneAndUpdate;
   let createUserStub;
   let updateUserStub;
   let createHistoryOnTraineeAddition;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course, 'CourseMock');
-    RoleMock = sinon.mock(Role, 'RoleMock');
+    courseFindOneAndUpdate = sinon.stub(Course, 'findOneAndUpdate');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
     updateUserStub = sinon.stub(UsersHelper, 'updateUser');
     createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
   });
   afterEach(() => {
-    CourseMock.restore();
-    RoleMock.restore();
+    courseFindOneAndUpdate.restore();
     createUserStub.restore();
     updateUserStub.restore();
     createHistoryOnTraineeAddition.restore();
@@ -1123,14 +1120,14 @@ describe('addCourseTrainee', () => {
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
-    CourseMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
-      .chain('lean')
-      .returns({ ...course, trainee: [user._id] });
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ ...course, trainee: [user._id] }], ['lean']));
 
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
-    CourseMock.verify();
+    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
+      { query: 'findOneAndUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
@@ -1145,17 +1142,15 @@ describe('addCourseTrainee', () => {
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
 
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ ...course, trainee: [user._id] }], ['lean']));
     createUserStub.returns(user);
-    RoleMock.expects('findOne').never();
-    CourseMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
-      .chain('lean')
-      .returns({ ...course, trainee: [user._id] });
 
     const result = await CourseHelper.addCourseTrainee(course._id, payload, null, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
-    CourseMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
+      { query: 'findOneAndUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
@@ -1169,16 +1164,15 @@ describe('addCourseTrainee', () => {
     const user = { _id: new ObjectID() };
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' }, company: new ObjectID() };
-
-    CourseMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true })
-      .chain('lean')
-      .returns({ ...course, trainee: [user._id] });
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ ...course, trainee: [user._id] }, ['lean']]));
 
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
-    CourseMock.verify();
+    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
+      { query: 'findOneUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.notCalled(createUserStub);
   });
 });
