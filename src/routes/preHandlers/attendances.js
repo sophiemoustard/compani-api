@@ -43,7 +43,16 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   return null;
 };
 
-exports.authorizeDeletion = async req => (await Attendance.countDocuments({ _id: req.params._id })
-  ? null
-  : Boom.notFound()
-);
+exports.checkAttendanceExistsAndAuthorizeTrainer = async (req) => {
+  const attendance = await Attendance.findOne({ _id: req.params._id }, { courseSlot: 1 })
+    .populate({ path: 'courseSlot', select: 'course', populate: { path: 'course', select: 'trainer' } })
+    .lean();
+  if (!attendance) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  if (get(credentials, 'role.vendor.name') === TRAINER &&
+    !UtilsHelper.areObjectIdsEquals(credentials._id, attendance.courseSlot.course.trainer)) {
+    throw Boom.forbidden();
+  }
+  return null;
+};

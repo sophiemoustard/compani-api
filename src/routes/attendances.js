@@ -6,7 +6,7 @@ const { list, create, deleteAttendance } = require('../controllers/attendanceCon
 const {
   trainerHasAccessToAttendances,
   authorizeTrainerAndCheckTrainees,
-  authorizeDeletion,
+  checkAttendanceExistsAndAuthorizeTrainer,
 } = require('./preHandlers/attendances');
 const { objectIdOrArray } = require('./validations/utils');
 
@@ -52,7 +52,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: authorizeDeletion }],
+        pre: [{ method: checkAttendanceExistsAndAuthorizeTrainer }],
       },
       handler: deleteAttendance,
     });
