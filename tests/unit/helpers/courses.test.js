@@ -10,7 +10,6 @@ const moment = require('moment');
 const Course = require('../../../src/models/Course');
 const Activity = require('../../../src/models/Activity');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
-const User = require('../../../src/models/User');
 const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
@@ -1018,45 +1017,38 @@ describe('sendSMS', () => {
   const payload = { content: 'Ceci est un test.' };
   const credentials = { _id: new ObjectID() };
 
-  let CourseMock;
-  let CourseSmsHistoryMock;
-  let UserMock;
+  let courseFindById;
+  let courseSmsHistoryCreate;
   let sendStub;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
-    CourseSmsHistoryMock = sinon.mock(CourseSmsHistory);
-    UserMock = sinon.mock(User);
+    courseFindById = sinon.stub(Course, 'findById');
+    courseSmsHistoryCreate = sinon.stub(CourseSmsHistory, 'create');
     sendStub = sinon.stub(SmsHelper, 'send');
   });
   afterEach(() => {
-    CourseMock.restore();
-    CourseSmsHistoryMock.restore();
-    UserMock.restore();
+    courseFindById.restore();
+    courseSmsHistoryCreate.restore();
     sendStub.restore();
   });
 
   it('should sens SMS to trainees and save missing phone trainee id', async () => {
-    CourseMock.expects('findById')
-      .withExactArgs(courseId)
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', select: '_id contact' })
-      .chain('lean')
-      .returns({ trainees });
-
+    courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
     sendStub.returns();
-
-    CourseSmsHistoryMock.expects('create')
-      .withExactArgs({
-        type: payload.type,
-        course: courseId,
-        message: payload.content,
-        sender: credentials._id,
-        missingPhones: ['poiuytrewq'],
-      })
-      .returns();
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
 
+    SinonMongoose.calledWithExactly(courseFindById, [
+      { query: 'findById', args: [courseId] },
+      { query: 'populate', args: [{ path: 'trainees', select: '_id contact' }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledWithExactly(courseSmsHistoryCreate, {
+      type: payload.type,
+      course: courseId,
+      message: payload.content,
+      sender: credentials._id,
+      missingPhones: ['poiuytrewq'],
+    });
     sinon.assert.calledWith(
       sendStub.getCall(0),
       {
@@ -1075,9 +1067,6 @@ describe('sendSMS', () => {
         tag: COURSE_SMS,
       }
     );
-    CourseMock.verify();
-    CourseSmsHistoryMock.verify();
-    UserMock.verify();
   });
 });
 
