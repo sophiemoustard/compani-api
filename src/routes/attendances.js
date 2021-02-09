@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { listAttendances, createAttendance, deleteAttendance } = require('../controllers/attendanceController');
+const { list, create, remove } = require('../controllers/attendanceController');
 const {
   trainerHasAccessToAttendances,
   authorizeTrainerAndCheckTrainees,
@@ -25,7 +25,7 @@ exports.plugin = {
         auth: { scope: ['attendancesheets:read'] },
         pre: [{ method: trainerHasAccessToAttendances, assign: 'query' }],
       },
-      handler: listAttendances,
+      handler: list,
     });
 
     server.route({
@@ -41,7 +41,7 @@ exports.plugin = {
         auth: { scope: ['attendancesheets:edit'] },
         pre: [{ method: authorizeTrainerAndCheckTrainees }],
       },
-      handler: createAttendance,
+      handler: create,
     });
 
     server.route({
@@ -52,7 +52,7 @@ exports.plugin = {
         auth: { scope: ['attendancesheets:edit'] },
         pre: [{ method: checkAttendanceExistsAndAuthorizeTrainer }],
       },
-      handler: deleteAttendance,
+      handler: remove,
     });
   },
 };

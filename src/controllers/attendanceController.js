@@ -4,7 +4,7 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const listAttendances = async (req) => {
+const list = async (req) => {
   try {
     const attendances = await AttendanceHelper.list(req.pre.query);
     return {
@@ -17,7 +17,7 @@ const listAttendances = async (req) => {
   }
 };
 
-const createAttendance = async (req) => {
+const create = async (req) => {
   try {
     await AttendanceHelper.create(req.payload);
 
@@ -28,7 +28,7 @@ const createAttendance = async (req) => {
   }
 };
 
-const deleteAttendance = async (req) => {
+const remove = async (req) => {
   try {
     await AttendanceHelper.delete(req.params._id);
 
@@ -40,7 +40,7 @@ const deleteAttendance = async (req) => {
 };
 
 module.exports = {
-  listAttendances,
-  createAttendance,
-  deleteAttendance,
+  list,
+  create,
+  remove,
 };
