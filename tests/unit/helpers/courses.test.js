@@ -25,8 +25,6 @@ const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('createCourse', () => {
   let save;
   beforeEach(() => {
