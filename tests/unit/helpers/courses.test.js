@@ -51,28 +51,23 @@ describe('createCourse', () => {
 
 describe('list', () => {
   let findCourseAndPopulate;
-  let CourseMock;
   const authCompany = new ObjectID();
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
-    CourseMock = sinon.mock(Course);
   });
   afterEach(() => {
     findCourseAndPopulate.restore();
-    CourseMock.restore();
   });
 
   it('should return courses', async () => {
     const coursesList = [{ misc: 'name' }, { misc: 'program' }];
 
     findCourseAndPopulate.returns(coursesList);
-    CourseMock.expects('findOne').never();
 
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
-    CourseMock.verify();
   });
 
   it('should return company courses', async () => {
@@ -102,8 +97,6 @@ describe('list', () => {
       .onSecondCall()
       .returns([returnedList[1]]);
 
-    CourseMock.expects('findOne').never();
-
     const result = await CourseHelper.list({
       company: authCompany.toHexString(),
       trainer: '1234567890abcdef12345678',
@@ -119,7 +112,6 @@ describe('list', () => {
       { trainer: '1234567890abcdef12345678', type: 'inter_b2b', format: 'blended' },
       true
     );
-    CourseMock.verify();
   });
 
   it('should return company eLearning courses', async () => {
