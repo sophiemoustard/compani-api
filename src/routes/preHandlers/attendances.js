@@ -42,3 +42,5 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
 
   return null;
 };
+
+exports.authorizeDeletion = async req => (this.checkAttendanceExists(req) ? null : Boom.notFound());

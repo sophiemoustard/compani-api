@@ -2,8 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create } = require('../controllers/attendanceController');
-const { trainerHasAccessToAttendances, authorizeTrainerAndCheckTrainees } = require('./preHandlers/attendances');
+const { list, create, deleteAttendance } = require('../controllers/attendanceController');
+const {
+  trainerHasAccessToAttendances,
+  authorizeTrainerAndCheckTrainees,
+  authorizeDeletion,
+} = require('./preHandlers/attendances');
 const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
@@ -38,6 +42,19 @@ exports.plugin = {
         pre: [{ method: authorizeTrainerAndCheckTrainees }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['attendancesheets:edit'] },
+        pre: [{ method: authorizeDeletion }],
+      },
+      handler: deleteAttendance,
     });
   },
 };

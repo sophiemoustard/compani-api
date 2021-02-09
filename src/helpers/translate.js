@@ -278,6 +278,7 @@ module.exports = {
     attendanceCreated: 'Attendance created.',
     attendancesFound: 'Attendances found.',
     attendancesNotFound: 'Attendances not found.',
+    attendanceDeleted: 'Attendance deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -555,5 +556,6 @@ module.exports = {
     attendanceCreated: 'Émargement créé.',
     attendancesFound: 'Émargements trouvés.',
     attendancesNotFound: 'Émargements non trouvés.',
+    attendanceDeleted: 'Émargement supprimé.',
   },
 };
