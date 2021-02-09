@@ -10,7 +10,6 @@ const moment = require('moment');
 const Course = require('../../../src/models/Course');
 const Activity = require('../../../src/models/Activity');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
-const Role = require('../../../src/models/Role');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
 const SmsHelper = require('../../../src/helpers/sms');
@@ -1485,18 +1484,18 @@ describe('formatInterCourseForPdf', () => {
 });
 
 describe('generateAttendanceSheets', () => {
-  let CourseMock;
+  let courseFindOne;
   let formatInterCourseForPdf;
   let formatIntraCourseForPdf;
   let generatePdf;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    courseFindOne = sinon.stub(Course, 'findOne');
     formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
     formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
   afterEach(() => {
-    CourseMock.restore();
+    courseFindOne.restore();
     formatInterCourseForPdf.restore();
     formatIntraCourseForPdf.restore();
     generatePdf.restore();
@@ -1505,26 +1504,26 @@ describe('generateAttendanceSheets', () => {
   it('should download attendance sheet for inter b2b course', async () => {
     const courseId = new ObjectID();
     const course = { misc: 'des infos en plus', type: 'inter_b2b' };
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
-      .chain('populate')
-      .withExactArgs('company')
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
-      .chain('populate')
-      .withExactArgs('trainer')
-      .chain('populate')
-      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .chain('lean')
-      .once()
-      .returns(course);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
+    SinonMongoose.calledWithExactly(courseFindOne, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      { query: 'populate', args: ['company'] },
+      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      { query: 'populate', args: ['trainer'] },
+      {
+        query: 'populate',
+        args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
+      },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
     sinon.assert.notCalled(formatIntraCourseForPdf);
     sinon.assert.calledOnceWithExactly(
@@ -1537,26 +1536,26 @@ describe('generateAttendanceSheets', () => {
   it('should download attendance sheet for intra course', async () => {
     const courseId = new ObjectID();
     const course = { misc: 'des infos en plus', type: 'intra' };
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
-      .chain('populate')
-      .withExactArgs('company')
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs({ path: 'trainees', populate: { path: 'company', select: 'name' } })
-      .chain('populate')
-      .withExactArgs('trainer')
-      .chain('populate')
-      .withExactArgs({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-      .chain('lean')
-      .once()
-      .returns(course);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+
     formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
+    SinonMongoose.calledWithExactly(courseFindOne, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      { query: 'populate', args: ['company'] },
+      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      { query: 'populate', args: ['trainer'] },
+      {
+        query: 'populate',
+        args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
+      },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(formatIntraCourseForPdf, course);
     sinon.assert.notCalled(formatInterCourseForPdf);
     sinon.assert.calledOnceWithExactly(
