@@ -49,3 +49,20 @@ describe('list', () => {
     ]);
   });
 });
+
+describe('delete', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(Attendance, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should remove a category', async () => {
+    const attendanceId = new ObjectID();
+    await AttendanceHelper.delete(attendanceId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceId });
+  });
+});

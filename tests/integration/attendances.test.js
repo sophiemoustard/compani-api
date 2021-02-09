@@ -218,3 +218,83 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     });
   });
 });
+
+describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete an attendance', async () => {
+      const attendanceId = attendancesList[0]._id;
+      const attendanceCount = await Attendance.countDocuments();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances/${attendanceId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await Attendance.countDocuments()).toEqual(attendanceCount - 1);
+    });
+
+    it('should return a 404 if attendance does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances/${new ObjectID().toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return 200 if courseSlot is from trainer\'s courses', async () => {
+      authToken = await getTokenByCredentials(trainerList[0].local);
+      const attendanceId = attendancesList[0]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances/${attendanceId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if courseSlot is not from trainer\'s courses', async () => {
+      authToken = await getTokenByCredentials(trainerList[1].local);
+      const attendanceId = attendancesList[0]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances/${attendanceId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    const roles = [
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const attendanceId = attendancesList[0]._id;
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/attendances/${attendanceId.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

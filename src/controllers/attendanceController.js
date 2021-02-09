@@ -28,7 +28,19 @@ const create = async (req) => {
   }
 };
 
+const remove = async (req) => {
+  try {
+    await AttendanceHelper.delete(req.params._id);
+
+    return { message: translate[language].attendanceDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
+  remove,
 };
