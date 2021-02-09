@@ -243,14 +243,14 @@ describe('formatCourseWithProgress', () => {
 });
 
 describe('listUserCourses', () => {
-  let CourseMock;
+  let courseFind;
   let formatCourseWithProgress;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    courseFind = sinon.stub(Course, 'find');
     formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
   });
   afterEach(() => {
-    CourseMock.restore();
+    courseFind.restore();
     formatCourseWithProgress.restore();
   });
 
@@ -310,40 +310,8 @@ describe('listUserCourses', () => {
       },
     ];
 
-    CourseMock.expects('find')
-      .withExactArgs(
-        {
-          trainees: trainee._id,
-          $or: [{ accessRules: [] }, { accessRules: trainee.company }],
-        },
-        { format: 1 }
-      )
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program steps',
-        populate: [
-          { path: 'program', select: 'name image description' },
-          {
-            path: 'steps',
-            select: 'name type activities',
-            populate: {
-              path: 'activities',
-              select: 'name type cards activityHistories',
-              populate: [
-                { path: 'activityHistories', match: { user: trainee._id } },
-                { path: 'cards', select: 'template' },
-              ],
-            },
-          },
-        ],
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
-      .chain('select')
-      .withExactArgs('_id misc')
-      .chain('lean')
-      .returns(coursesList);
+    courseFind.returns(SinonMongoose.stubChainedQueries([coursesList], ['populate', 'select', 'lean']));
+
     formatCourseWithProgress.onCall(0).returns({
       ...coursesList[0],
       subProgram: {
@@ -369,6 +337,45 @@ describe('listUserCourses', () => {
         steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
       },
       progress: 1 })));
+
+    SinonMongoose.calledWithExactly(courseFind, [
+      {
+        query: 'find',
+        args: [{
+          trainees: trainee._id,
+          $or: [{ accessRules: [] }, { accessRules: trainee.company }],
+        },
+        { format: 1 }],
+      },
+      {
+        query: 'populate',
+        args: [{
+          path: 'subProgram',
+          select: 'program steps',
+          populate: [
+            { path: 'program', select: 'name image description' },
+            {
+              path: 'steps',
+              select: 'name type activities',
+              populate: {
+                path: 'activities',
+                select: 'name type cards activityHistories',
+                populate: [
+                  { path: 'activityHistories', match: { user: trainee._id } },
+                  { path: 'cards', select: 'template' },
+                ],
+              },
+            },
+          ],
+        }],
+      },
+      {
+        query: 'populate',
+        args: [{ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } }],
+      },
+      { query: 'select', args: ['_id misc'] },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
 
     sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
     sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
