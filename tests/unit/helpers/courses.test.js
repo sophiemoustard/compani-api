@@ -1607,7 +1607,7 @@ describe('formatCourseForDocx', () => {
 });
 
 describe('generateCompletionCertificate', () => {
-  let CourseMock;
+  let courseFindOne;
   let formatCourseForDocx;
   let formatIdentity;
   let createDocx;
@@ -1617,7 +1617,7 @@ describe('generateCompletionCertificate', () => {
   let downloadFileById;
   let tmpDir;
   beforeEach(() => {
-    CourseMock = sinon.mock(Course);
+    courseFindOne = sinon.stub(Course, 'findOne');
     formatCourseForDocx = sinon.stub(CourseHelper, 'formatCourseForDocx');
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     createDocx = sinon.stub(DocxHelper, 'createDocx');
@@ -1628,7 +1628,7 @@ describe('generateCompletionCertificate', () => {
     tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
   });
   afterEach(() => {
-    CourseMock.restore();
+    courseFindOne.restore();
     formatCourseForDocx.restore();
     formatIdentity.restore();
     createDocx.restore();
@@ -1652,21 +1652,8 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
     };
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs('trainees')
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program',
-        populate: { path: 'program', select: 'name learningGoals' },
-      })
-      .chain('lean')
-      .once()
-      .returns(course);
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
     formatCourseForDocx.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
       courseDuration: '8h',
@@ -1734,7 +1721,20 @@ describe('generateCompletionCertificate', () => {
       fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
       tmpFilePath: '/path/certificate_template.docx',
     });
-    CourseMock.verify();
+    SinonMongoose.calledWithExactly(courseFindOne, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: ['trainees'] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'subProgram',
+          select: 'program',
+          populate: { path: 'program', select: 'name learningGoals' },
+        }],
+      },
+      { query: 'lean' },
+    ]);
   });
 });
 
