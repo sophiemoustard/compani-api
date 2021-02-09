@@ -14,35 +14,32 @@ const {
   ORDER_THE_SEQUENCE,
   TRANSITION,
 } = require('../../../src/helpers/constants');
-require('sinon-mongoose');
 
 describe('addCard', () => {
-  let CardMock;
-  let ActivityMock;
+  let cardCreate;
+  let activityUpdateOne;
   const activity = { _id: new ObjectID(), name: 'faire du jetski' };
   const newCard = { template: 'transition' };
 
   beforeEach(() => {
-    CardMock = sinon.mock(Card);
-    ActivityMock = sinon.mock(Activity);
+    cardCreate = sinon.stub(Card, 'create');
+    activityUpdateOne = sinon.stub(Activity, 'updateOne');
   });
 
   afterEach(() => {
-    CardMock.restore();
-    ActivityMock.restore();
+    cardCreate.restore();
+    activityUpdateOne.restore();
   });
 
   it('should create an transition card', async () => {
     const cardId = new ObjectID();
 
-    CardMock.expects('create').withExactArgs(newCard).returns({ _id: cardId });
-
-    ActivityMock.expects('updateOne').withExactArgs({ _id: activity._id }, { $push: { cards: cardId } });
+    cardCreate.returns({ _id: cardId });
 
     await CardHelper.addCard(activity._id, newCard);
 
-    CardMock.verify();
-    ActivityMock.verify();
+    sinon.assert.calledWithExactly(cardCreate, newCard);
+    sinon.assert.calledWith(activityUpdateOne, { _id: activity._id }, { $push: { cards: cardId } });
   });
 });
 
