@@ -1861,38 +1861,23 @@ describe('formatCourseForConvocationPdf', () => {
 describe('generateConvocationPdf', () => {
   let formatCourseForConvocationPdf;
   let generatePdf;
-  let CourseMock;
+  let courseFindOne;
   beforeEach(() => {
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    CourseMock = sinon.mock(Course);
+    courseFindOne = sinon.stub(Course, 'findOne');
   });
   afterEach(() => {
     formatCourseForConvocationPdf.restore();
     generatePdf.restore();
-    CourseMock.restore();
+    courseFindOne.restore();
   });
 
   it('should return pdf', async () => {
     const courseId = new ObjectID();
 
-    CourseMock.expects('findOne')
-      .withExactArgs({ _id: courseId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'subProgram',
-        select: 'program',
-        populate: { path: 'program', select: 'name description' },
-      })
-      .chain('populate')
-      .withExactArgs('slots')
-      .chain('populate')
-      .withExactArgs({ path: 'slotsToPlan', select: '_id' })
-      .chain('populate')
-      .withExactArgs({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
-      .chain('lean')
-      .once()
-      .returns({
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(
+      [{
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
         trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
@@ -1902,7 +1887,8 @@ describe('generateConvocationPdf', () => {
           endDate: '2020-10-12T13:30:00.000+01:00',
           address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
-      });
+      }]
+    ));
 
     formatCourseForConvocationPdf.returns({
       _id: courseId,
@@ -1925,7 +1911,21 @@ describe('generateConvocationPdf', () => {
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
     expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
-    CourseMock.verify();
+    SinonMongoose.calledWithExactly(courseFindOne, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'subProgram',
+          select: 'program',
+          populate: { path: 'program', select: 'name description' },
+        }],
+      },
+      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+      { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography' }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(
       formatCourseForConvocationPdf,
       {
