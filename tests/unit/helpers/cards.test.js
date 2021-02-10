@@ -39,7 +39,7 @@ describe('addCard', () => {
     await CardHelper.addCard(activity._id, newCard);
 
     sinon.assert.calledWithExactly(cardCreate, newCard);
-    sinon.assert.calledWith(activityUpdateOne, { _id: activity._id }, { $push: { cards: cardId } });
+    sinon.assert.calledWithExactly(activityUpdateOne, { _id: activity._id }, { $push: { cards: cardId } });
   });
 });
 
