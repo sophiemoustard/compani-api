@@ -52,18 +52,22 @@ describe('list', () => {
       {
         user: firstUserId,
         activity: {
-          steps: [{
-            subProgram: {
-              program: { name: 'une incroyable découverte' },
-              courses: [{
-                misc: 'groupe 1',
-                format: 'strictly_e_learning',
-                trainees: [firstUserId],
-              }],
+          steps: [
+            {
+              subProgram: {
+                program: { name: 'une incroyable découverte' },
+                courses: [{
+                  misc: 'groupe 1',
+                  format: 'strictly_e_learning',
+                  trainees: [firstUserId],
+                }],
+              },
             },
-          }],
+            { name: 'step without subprogram' },
+          ],
         },
       },
+      { user: firstUserId, activity: { steps: [] } },
       {
         user: secondUserId,
         activity: {
