@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const Joi = require('joi');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
@@ -22,7 +23,7 @@ exports.authorizeAddActivityHistory = async (req) => {
 
   if (!activity || !user) throw Boom.notFound();
 
-  const activitySubPrograms = activity.steps.map(s => s.subProgram._id);
+  const activitySubPrograms = activity.steps.filter(s => has(s, 'subProgram._id')).map(s => s.subProgram._id);
   const coursesWithActivityAndFollowedByUser = await Course
     .countDocuments({ subProgram: { $in: activitySubPrograms }, trainees: userId });
 

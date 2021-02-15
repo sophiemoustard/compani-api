@@ -53,6 +53,8 @@ const CardSchema = mongoose.Schema({
     type: [mongoose.Schema({ text: { type: String } }, { id: false })],
     default: undefined,
   },
+  canSwitchAnswers: { type: Boolean },
+  isMandatory: { type: Boolean },
   qcAnswers: {
     type: [mongoose.Schema({ text: { type: String }, correct: { type: Boolean } }, { id: false })],
     default: undefined,
@@ -78,6 +80,7 @@ function save(next) {
     switch (this.template) {
       case FILL_THE_GAPS:
         this.falsyGapAnswers = [{ text: '' }, { text: '' }];
+        this.canSwitchAnswers = false;
         break;
       case SINGLE_CHOICE_QUESTION:
         this.qcAnswers = [{ text: '' }];
@@ -85,6 +88,7 @@ function save(next) {
       case QUESTION_ANSWER:
         this.qcAnswers = [{ text: '' }, { text: '' }];
         this.isQuestionAnswerMultipleChoiced = false;
+        this.isMandatory = false;
         break;
       case ORDER_THE_SEQUENCE:
         this.orderedAnswers = [{ text: '' }, { text: '' }];
@@ -94,12 +98,16 @@ function save(next) {
         break;
       case SURVEY:
         this.label = {};
+        this.isMandatory = false;
         break;
       case TEXT_MEDIA:
         this.media = { type: UPLOAD_IMAGE };
         break;
       case TITLE_TEXT_MEDIA:
         this.media = { type: UPLOAD_IMAGE };
+        break;
+      case OPEN_QUESTION:
+        this.isMandatory = false;
         break;
     }
   }

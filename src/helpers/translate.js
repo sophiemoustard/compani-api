@@ -274,6 +274,11 @@ module.exports = {
     attendanceSheetsFound: 'AttendanceSheets found.',
     attendanceSheetsNotFound: 'AttendanceSheets not found.',
     attendanceSheetDeleted: 'AttendanceSheet deleted.',
+    /* Attendances */
+    attendanceCreated: 'Attendance created.',
+    attendancesFound: 'Attendances found.',
+    attendancesNotFound: 'Attendances not found.',
+    attendanceDeleted: 'Attendance deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -547,5 +552,10 @@ module.exports = {
     attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
     attendanceSheetsNotFound: 'Feuilles d\'émargement non trouvées.',
     attendanceSheetDeleted: 'Feuille d\'émargement supprimée.',
+    /* Attendances */
+    attendanceCreated: 'Émargement créé.',
+    attendancesFound: 'Émargements trouvés.',
+    attendancesNotFound: 'Émargements non trouvés.',
+    attendanceDeleted: 'Émargement supprimé.',
   },
 };

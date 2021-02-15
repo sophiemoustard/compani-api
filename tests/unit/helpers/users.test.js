@@ -20,86 +20,81 @@ const Role = require('../../../src/models/Role');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 
-require('sinon-mongoose');
-
 const { language } = translate;
 
 describe('formatQueryForUsersList', () => {
-  let RoleMock;
+  let find;
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
-    RoleMock = sinon.mock(Role);
+    find = sinon.stub(Role, 'find');
   });
 
   afterEach(() => {
-    RoleMock.restore();
+    find.restore();
   });
 
   it('should returns params without role if no role in query', async () => {
     const query = { company: companyId };
-    RoleMock.expects('find').never();
 
     const result = await UsersHelper.formatQueryForUsersList(query);
 
     expect(result).toEqual(query);
-    RoleMock.verify();
+    sinon.assert.notCalled(find);
   });
 
   it('should return params with role', async () => {
     const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
     const roles = [{ _id: query.role[0]._id, interface: 'vendor' }, { _id: query.role[1]._id, interface: 'vendor' }];
 
-    RoleMock
-      .expects('find')
-      .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(roles);
+    find.returns(SinonMongoose.stubChainedQueries([roles], ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
     expect(result).toEqual({
       company: companyId,
       'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
     });
-    RoleMock.verify();
+
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should return 404 if role does not exist', async () => {
+    const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
     try {
-      const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
-
-      RoleMock
-        .expects('find')
-        .withExactArgs({ name: { $in: query.role } }, { _id: 1, interface: 1 })
-        .chain('lean')
-        .returns([]);
+      find.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
       const result = await UsersHelper.formatQueryForUsersList(query);
       expect(result).toBeUndefined();
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
     } finally {
-      RoleMock.verify();
+      SinonMongoose.calledWithExactly(find, [
+        { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
+        { query: 'lean' },
+      ]);
     }
   });
 });
 
 describe('getUsersList', () => {
-  let UserMock;
   let formatQueryForUsersListStub;
+  let find;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
     formatQueryForUsersListStub = sinon.stub(UsersHelper, 'formatQueryForUsersList');
+    find = sinon.stub(User, 'find');
   });
 
   afterEach(() => {
-    UserMock.restore();
     formatQueryForUsersListStub.restore();
+    find.restore();
   });
 
   it('should get users', async () => {
@@ -107,31 +102,26 @@ describe('getUsersList', () => {
 
     formatQueryForUsersListStub.returns(query);
 
-    UserMock.expects('find')
-      .withExactArgs({ ...query, company: companyId }, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: false })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
+    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
     expect(result).toEqual(users);
     sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
+      { query: 'populate', args: [{ path: 'customers', select: 'identity driveFolder' }] },
+      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+      { query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false },
+        }] },
+      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+      { query: 'setOptions', args: [{ isVendorUser: false }] },
+      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+    ]);
   });
 
   it('should get users according to roles', async () => {
@@ -141,50 +131,46 @@ describe('getUsersList', () => {
       company: companyId,
       'role.client': { $in: roles },
     };
-    formatQueryForUsersListStub.returns(formattedQuery);
 
-    UserMock.expects('find')
-      .withExactArgs(formattedQuery, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: false })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
+    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+
+    formatQueryForUsersListStub.returns(formattedQuery);
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
     expect(result).toEqual(users);
     sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
+      { query: 'populate', args: [{ path: 'customers', select: 'identity driveFolder' }] },
+      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+      { query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false },
+        }] },
+      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+      { query: 'setOptions', args: [{ isVendorUser: false }] },
+      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+    ]);
   });
 });
 
 describe('getUsersListWithSectorHistories', () => {
-  let UserMock;
+  let find;
   let formatQueryForUsersListStub;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    find = sinon.stub(User, 'find');
     formatQueryForUsersListStub = sinon.stub(UsersHelper, 'formatQueryForUsersList');
   });
 
   afterEach(() => {
-    UserMock.restore();
+    find.restore();
     formatQueryForUsersListStub.restore();
   });
 
@@ -196,26 +182,9 @@ describe('getUsersListWithSectorHistories', () => {
       company: companyId,
       'role.client': { $in: roles },
     };
-    formatQueryForUsersListStub.returns(formattedQuery);
 
-    UserMock.expects('find')
-      .withExactArgs(formattedQuery, {}, { autopopulate: false })
-      .chain('populate')
-      .withExactArgs({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sectorHistories',
-        select: '_id sector startDate endDate',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: 'startDate endDate' })
-      .chain('setOptions')
-      .withExactArgs({ isVendorUser: false })
-      .chain('lean')
-      .withExactArgs({ virtuals: true, autopopulate: true })
-      .returns(users);
+    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+    formatQueryForUsersListStub.returns(formattedQuery);
 
     const result = await UsersHelper.getUsersListWithSectorHistories(
       query,
@@ -226,7 +195,20 @@ describe('getUsersListWithSectorHistories', () => {
       formatQueryForUsersListStub,
       { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
     );
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
+      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+      { query: 'populate',
+        args: [{
+          path: 'sectorHistories',
+          select: '_id sector startDate endDate',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false },
+        }] },
+      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+      { query: 'setOptions', args: [{ isVendorUser: false }] },
+      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+    ]);
   });
 });
 
@@ -322,137 +304,124 @@ describe('getLearnerList', () => {
 });
 
 describe('getUser', () => {
-  let userMock;
+  let findOne;
   beforeEach(() => {
-    userMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    userMock.restore();
+    findOne.restore();
   });
 
   it('should return user without populating role', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { name: 'helper', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false, requestingOwnInfos: false },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: false, requestingOwnInfos: false },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should return user populating role because isVendorUser', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID(), role: { vendor: 'trainer' } };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: true, requestingOwnInfos: false },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'sector',
+          select: '_id sector',
+          match: { company: credentials.company._id },
+          options: { isVendorUser: true, requestingOwnInfos: false },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should return user populating role because requestingOwnInfos', async () => {
     const userId = new ObjectID();
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectID() }, _id: userId };
-    userMock.expects('findOne')
-      .withExactArgs({ _id: userId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'contracts',
-        select: '-__v -createdAt -updatedAt',
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'sector',
-        select: '_id sector',
-        match: { company: credentials.company._id },
-        options: { isVendorUser: false, requestingOwnInfos: true },
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(user);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
 
     await UsersHelper.getUser(userId, credentials);
 
-    userMock.verify();
-  });
-
-  it('should throw error if user not found', async () => {
-    try {
-      const userId = new ObjectID();
-      const credentials = {
-        company: { _id: new ObjectID() },
-        role: { vendor: { _id: new ObjectID() } },
-        _id: new ObjectID(),
-      };
-
-      userMock.expects('findOne')
-        .withExactArgs({ _id: userId })
-        .chain('populate')
-        .withExactArgs({
-          path: 'contracts',
-          select: '-__v -createdAt -updatedAt',
-        })
-        .chain('populate')
-        .withExactArgs({
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ _id: userId }] },
+      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+      {
+        query: 'populate',
+        args: [{
           path: 'sector',
           select: '_id sector',
           match: { company: credentials.company._id },
-          options: { isVendorUser: true, requestingOwnInfos: false },
-        })
-        .chain('lean')
-        .withExactArgs({ autopopulate: true, virtuals: true })
-        .once()
-        .returns(null);
+          options: { isVendorUser: false, requestingOwnInfos: true },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
+  });
+
+  it('should throw error if user not found', async () => {
+    const userId = new ObjectID();
+    const credentials = {
+      company: { _id: new ObjectID() },
+      role: { vendor: { _id: new ObjectID() } },
+      _id: new ObjectID(),
+    };
+
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([null]));
 
       await UsersHelper.getUser(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
     } finally {
-      userMock.verify();
+      SinonMongoose.calledWithExactly(findOne, [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: true, requestingOwnInfos: false },
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]);
     }
   });
 });
 
 describe('userExists', () => {
-  let userMock;
+  let findOne;
   const email = 'test@test.fr';
   const nonExistantEmail = 'toto.gateau@alenvi.io';
   const user = {
@@ -465,65 +434,79 @@ describe('userExists', () => {
   const vendorCredentials = { role: { vendor: { _id: new ObjectID() } } };
   const clientCredentials = { role: { client: { _id: new ObjectID() } } };
   beforeEach(() => {
-    userMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
-    userMock.restore();
+    findOne.restore();
   });
 
   it('should find a user if credentials', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(user, 'local'));
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should not find as email does not exist', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': nonExistantEmail }, { company: 1, role: 1 })
-      .chain('lean').returns(null);
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
     expect(rep.exists).toBe(false);
     expect(rep.user).toEqual({});
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { company: 1, role: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(userWithoutCompany);
+    findOne.returns(SinonMongoose.stubChainedQueries([userWithoutCompany], ['lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should find an email but no user if no credentials', async () => {
-    userMock.expects('findOne')
-      .withExactArgs({ 'local.email': email }, { company: 1, role: 1 })
-      .chain('lean').returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
     const rep = await UsersHelper.userExists(email);
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
+
+    SinonMongoose.calledWithExactly(findOne, [
+      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
@@ -668,7 +651,7 @@ describe('createUser', () => {
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -715,7 +698,7 @@ describe('createUser', () => {
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -759,7 +742,7 @@ describe('createUser', () => {
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser], ['populate', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -859,153 +842,146 @@ describe('createUser', () => {
 });
 
 describe('removeHelper', () => {
-  let UserMock;
-  let RoleMock;
+  let roleFindOne;
+  let userFindOneAndUpdate;
 
   const user = { _id: new ObjectID() };
   const roleId = new ObjectID();
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    roleFindOne = sinon.stub(Role, 'findOne');
+    userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
   });
   afterEach(() => {
-    UserMock.restore();
-    RoleMock.restore();
+    roleFindOne.restore();
+    userFindOneAndUpdate.restore();
   });
 
   it('should remove client role and customers', async () => {
-    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } })
-      .returns();
+    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(roleFindOne, [
+      { query: 'findOne', args: [{ name: 'trainer' }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      userFindOneAndUpdate,
+      { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } }
+    );
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
-    RoleMock.expects('findOne').withExactArgs({ name: 'trainer' }).chain('lean').returns({ _id: roleId });
-
-    UserMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } })
-      .returns();
+    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
 
-    UserMock.verify();
-    RoleMock.verify();
+    SinonMongoose.calledWithExactly(roleFindOne, [
+      { query: 'findOne', args: [{ name: 'trainer' }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      userFindOneAndUpdate,
+      { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } }
+    );
   });
 });
 
 describe('updateUser', () => {
-  let UserMock;
-  let RoleMock;
+  let userUpdateOne;
+  let roleFindById;
   let updateHistoryOnSectorUpdateStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
 
   beforeEach(() => {
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    userUpdateOne = sinon.stub(User, 'updateOne');
+    roleFindById = sinon.stub(Role, 'findById');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
   });
   afterEach(() => {
-    UserMock.restore();
-    RoleMock.restore();
+    userUpdateOne.restore();
+    roleFindById.restore();
     updateHistoryOnSectorUpdateStub.restore();
   });
 
   it('should update a user', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
-
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id }, { $set: flat(payload) }
+    );
+    sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user without company', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
-
     await UsersHelper.updateUser(userId, payload, credentials, true);
 
-    UserMock.verify();
-    RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId }, { $set: flat(payload) }
+    );
+    sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should update a user and create sector history', async () => {
     const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
 
-    UserMock.expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: flat(payload) })
-      .returns();
-
-    RoleMock.expects('findById').never();
-
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id }, { $set: flat(payload) }
+    );
     sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
+    sinon.assert.notCalled(roleFindById);
   });
 
   it('should update a user role', async () => {
     const payload = { role: new ObjectID() };
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
-    UserMock
-      .expects('updateOne')
-      .withExactArgs({ _id: userId, company: credentials.company._id }, { $set: payloadWithRole })
-      .returns();
-
-    RoleMock
-      .expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns({ _id: payload.role, name: 'test', interface: 'client' });
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: payload.role, name: 'test', interface: 'client' }],
+      ['lean']
+    ));
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    UserMock.verify();
-    RoleMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id }, { $set: payloadWithRole }
+    );
+    SinonMongoose.calledWithExactly(roleFindById, [
+      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should return a 400 error if role does not exists', async () => {
     const payload = { role: new ObjectID() };
 
-    RoleMock
-      .expects('findById')
-      .withExactArgs(payload.role, { name: 1, interface: 1 })
-      .chain('lean')
-      .returns(null);
-
-    UserMock.expects('find').never();
+    roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
     } finally {
-      RoleMock.verify();
+      SinonMongoose.calledWithExactly(roleFindById, [
+        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
+        { query: 'lean' },
+      ]);
+      sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
   });
@@ -1152,79 +1128,77 @@ describe('deleteMedia', () => {
 });
 
 describe('createDriveFolder', () => {
-  let CompanyMock;
+  let companyFindOne;
   let createFolder;
-  let updateOne;
+  let userUpdateOne;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
+    companyFindOne = sinon.stub(Company, 'findOne');
     createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
-    updateOne = sinon.stub(User, 'updateOne');
+    userUpdateOne = sinon.stub(User, 'updateOne');
   });
   afterEach(() => {
-    CompanyMock.restore();
+    companyFindOne.restore();
     createFolder.restore();
-    updateOne.restore();
+    userUpdateOne.restore();
   });
 
   it('should create a google drive folder and update user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID(), identity: { lastname: 'Delenda' } };
 
-    CompanyMock.expects('findOne')
-      .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-      .chain('lean')
-      .once()
-      .returns({ auxiliariesFolderId: 'auxiliariesFolderId' });
+    companyFindOne.returns(SinonMongoose.stubChainedQueries(
+      [{ auxiliariesFolderId: 'auxiliariesFolderId' }],
+      ['lean']
+    ));
 
     createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
 
     await UsersHelper.createDriveFolder(user);
 
-    CompanyMock.verify();
+    SinonMongoose.calledWithExactly(companyFindOne, [
+      { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
     sinon.assert.calledOnceWithExactly(
-      updateOne,
+      userUpdateOne,
       { _id: user._id },
       { $set: { 'administrative.driveFolder.link': 'webViewLink', 'administrative.driveFolder.driveId': 'folderId' } }
     );
   });
 
   it('should return a 422 if user has no company', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID() };
     try {
-      const user = { _id: new ObjectID(), company: new ObjectID() };
-
-      CompanyMock.expects('findOne')
-        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-        .chain('lean')
-        .once()
-        .returns(null);
+      companyFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
       await UsersHelper.createDriveFolder(user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      CompanyMock.verify();
+      SinonMongoose.calledWithExactly(companyFindOne, [
+        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+        { query: 'lean' },
+      ]);
       sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(userUpdateOne);
     }
   });
 
   it('should return a 422 if user company has no auxialiaries folder Id', async () => {
+    const user = { _id: new ObjectID(), company: new ObjectID() };
     try {
-      const user = { _id: new ObjectID(), company: new ObjectID() };
-
-      CompanyMock.expects('findOne')
-        .withExactArgs({ _id: user.company }, { auxiliariesFolderId: 1 })
-        .chain('lean')
-        .once()
-        .returns({ _id: user.company });
+      companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: user.company }], ['lean']));
 
       await UsersHelper.createDriveFolder(user);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      CompanyMock.verify();
+      SinonMongoose.calledWithExactly(companyFindOne, [
+        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
+        { query: 'lean' },
+      ]);
       sinon.assert.notCalled(createFolder);
-      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(userUpdateOne);
     }
   });
 });

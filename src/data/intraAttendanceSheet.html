@@ -83,8 +83,14 @@
   .signature {
     font-style: italic;
   }
+  .tampon-container {
+    font-weight: 700;
+    flex-direction: row;
+    display: flex;
+    justify-content: space-between;
+  }
   .tampon {
-    font-weight: bold;
+    width: 168px;
   }
 </style>
 
@@ -132,7 +138,10 @@
           </tbody>
         </table>
       </div>
-      <div class="tampon">Signature et tampon de l'organisme de formation :</div>
+      <div class="tampon-container">
+        Signature et tampon de l'organisme de formation :
+        <img class="tampon" src="https://storage.googleapis.com/compani-main/tsb_signature.png">
+      </div>
     </div>
   {{/each}}
 </div>
