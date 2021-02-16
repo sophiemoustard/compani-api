@@ -1,3 +1,4 @@
+const has = require('lodash/has');
 const ActivityHistory = require('../models/ActivityHistory');
 const User = require('../models/User');
 const { STRICTLY_E_LEARNING } = require('./constants');
@@ -10,11 +11,13 @@ const filterCourses = activityHistory => ({
     ...activityHistory.activity,
     steps: activityHistory.activity.steps.map(step => ({
       ...step,
-      subProgram: {
-        ...step.subProgram,
-        courses: step.subProgram.courses.filter(course =>
-          course.trainees.map(trainee => trainee.toHexString()).includes(activityHistory.user._id.toHexString())),
-      },
+      subProgram: has(step, 'subProgram.courses')
+        ? {
+          ...step.subProgram,
+          courses: step.subProgram.courses.filter(course => course.trainees.map(trainee => trainee.toHexString())
+            .includes(activityHistory.user._id.toHexString())),
+        }
+        : { ...step.subProgram },
     })),
   },
 });
@@ -23,7 +26,8 @@ const filterSteps = activityHistory => ({
   ...activityHistory,
   activity: {
     ...activityHistory.activity,
-    steps: activityHistory.activity.steps.filter(step => step.subProgram.courses.length),
+    steps: activityHistory.activity.steps.filter(step =>
+      (has(step, 'subProgram.courses') ? step.subProgram.courses.length : 0)),
   },
 });
 
@@ -53,5 +57,6 @@ exports.list = async (query, credentials) => {
     .populate({ path: 'user', select: '_id identity picture' })
     .lean();
 
-  return activityHistories.map(h => filterSteps(filterCourses(h))).filter(h => h.activity.steps.length);
+  return activityHistories.map(h => filterSteps(filterCourses(h)))
+    .filter(h => (has(h, 'activity.steps') ? h.activity.steps.length : 0));
 };

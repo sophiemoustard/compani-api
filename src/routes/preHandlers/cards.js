@@ -22,6 +22,8 @@ const {
   FILL_THE_GAPS_MAX_ANSWERS_COUNT,
   FILL_THE_GAPS_MIN_ANSWERS_COUNT,
   QC_ANSWER_MAX_LENGTH,
+  SURVEY,
+  OPEN_QUESTION,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
 
@@ -54,6 +56,9 @@ const checkFillTheGap = (payload) => {
 exports.authorizeCardUpdate = async (req) => {
   const card = await Card.findOne({ _id: req.params._id }).lean();
   if (!card) throw Boom.notFound();
+  if (card.template !== FILL_THE_GAPS && has(req, 'payload.canSwitchAnswers')) throw Boom.forbidden();
+  if (![OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template) &&
+    has(req, 'payload.isMandatory')) throw Boom.forbidden();
 
   switch (card.template) {
     case FILL_THE_GAPS:
