@@ -76,10 +76,11 @@ exports.authorizeUpdate = async (req) => {
 
 exports.authorizeDeletion = async (req) => {
   try {
-    const courseId = get(req, 'pre.courseSlot.course') || '';
-    await formatAndCheckAuthorization(courseId, req.auth.credentials);
+    const { courseSlot } = req.pre;
 
-    const attendanceExists = await Attendance.countDocuments({ courseSlot: get(req, 'pre.courseSlot') });
+    await formatAndCheckAuthorization(courseSlot.course, req.auth.credentials);
+
+    const attendanceExists = await Attendance.countDocuments({ courseSlot: courseSlot._id });
     if (attendanceExists) throw Boom.conflict(translate[language].attendanceExists);
 
     return null;
