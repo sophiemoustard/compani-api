@@ -5,8 +5,9 @@ const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 const SubProgram = require('../../../src/models/SubProgram');
+const Attendance = require('../../../src/models/Attendance');
+const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const trainer = {
@@ -84,7 +85,20 @@ const courseSlotsList = [
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
+  { // slot with attendance
+    _id: new ObjectID(),
+    startDate: '2020-05-10T09:00:00',
+    endDate: '2020-05-10T12:00:00',
+    course: coursesList[1]._id,
+    step: stepsList[0]._id,
+  },
 ];
+
+const attendance = {
+  _id: new ObjectID(),
+  trainee: new ObjectID(),
+  courseSlot: courseSlotsList[4]._id,
+};
 
 const populateDB = async () => {
   await Course.deleteMany({});
@@ -93,6 +107,7 @@ const populateDB = async () => {
   await Program.deleteMany({});
   await User.deleteMany({});
   await Step.deleteMany({});
+  await Attendance.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -100,8 +115,9 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(courseSlotsList);
+  await Step.insertMany(stepsList);
   await User.create(trainer);
-  await Step.create(stepsList);
+  await Attendance.create(attendance);
 };
 
 module.exports = {
