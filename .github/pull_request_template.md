@@ -40,6 +40,10 @@
 
 - [ ] Je n'ai pas changé de constante
 
+- J'ai ajouté une variable d'environnement :
+  - [ ] J'ai précisé sur le slite de MES et MEP les modifications faites
+
+
 - Périmetre interface : 
 
 - Périmetre roles : 
