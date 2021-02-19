@@ -95,7 +95,7 @@ describe('DELETE /gdrive/file/:id', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
-      deleteFileStub = sinon.stub(Drive, 'deleteFile');
+      deleteFileStub = sinon.stub(GdriveStorage, 'deleteFile');
     });
 
     afterEach(() => {
