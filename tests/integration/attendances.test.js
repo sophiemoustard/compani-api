@@ -67,17 +67,6 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if trainee is not part of course trainees', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/attendances',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: new ObjectID(), courseSlot: slotsList[0]._id },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return 409 if trainee and courseSlot are already added', async () => {
       const response = await app.inject({
         method: 'POST',
