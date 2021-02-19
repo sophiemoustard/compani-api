@@ -2,7 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeSectorUpdate, authorizeSectorDeletion, getSector } = require('./preHandlers/sectors');
+const {
+  authorizeSectorUpdate,
+  authorizeSectorDeletion,
+  getSector,
+  authorizeSectorCreation,
+} = require('./preHandlers/sectors');
 const {
   create,
   update,
@@ -21,6 +26,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({ name: Joi.string().required() }),
         },
+        pre: [{ method: authorizeSectorCreation }],
       },
       handler: create,
     });

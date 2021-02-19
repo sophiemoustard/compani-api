@@ -7,15 +7,8 @@ const { language } = translate;
 
 exports.list = async credentials => Sector.find({ company: get(credentials, 'company._id') }).lean();
 
-exports.create = async (payload, credentials) => {
-  const company = get(credentials, 'company._id');
-  const existingSector = await Sector.countDocuments({ name: payload.name, company });
-  if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
-
-  const sector = await Sector.create({ ...payload, company });
-
-  return sector.toObject();
-};
+exports.create = async (payload, credentials) => Sector.create({ ...payload, company: get(credentials, 'company._id') })
+  .toObject();
 
 exports.update = async (sectorId, payload, credentials) => {
   const existingSector = await Sector.countDocuments({ name: payload.name, company: get(credentials, 'company._id') });

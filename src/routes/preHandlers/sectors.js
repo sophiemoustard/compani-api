@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const Boom = require('@hapi/boom');
 const Sector = require('../../models/Sector');
 const SectorHistory = require('../../models/SectorHistory');
@@ -16,6 +17,17 @@ exports.getSector = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.authorizeSectorCreation = async (req) => {
+  const { credentials } = req.auth;
+  const existingSector = await Sector.countDocuments({
+    name: req.payload.name,
+    company: get(credentials, 'company._id'),
+  });
+  if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
+
+  return null;
 };
 
 exports.authorizeSectorUpdate = (req) => {
