@@ -6,14 +6,11 @@ const SectorsHelper = require('../../../src/helpers/sectors');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
-  let countDocuments;
   let create;
   beforeEach(() => {
-    countDocuments = sinon.stub(Sector, 'countDocuments');
     create = sinon.stub(Sector, 'create');
   });
   afterEach(() => {
-    countDocuments.restore();
     create.restore();
   });
 
@@ -22,37 +19,16 @@ describe('create', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    countDocuments.returns(0);
-    create.returns(
-      SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['toObject'])
-    );
+    create.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['toObject']));
 
     const result = await SectorsHelper.create(payload, credentials);
 
     expect(result).toMatchObject({ name: 'toto', company: companyId });
 
-    sinon.assert.calledOnceWithExactly(countDocuments, { name: 'toto', company: companyId });
     SinonMongoose.calledWithExactly(create, [
       { query: 'create', args: [{ name: 'toto', company: companyId }] },
       { query: 'toObject' },
     ]);
-  });
-
-  it('should not create a new sector as name already exists', async () => {
-    const payload = { name: 'toto' };
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
-    countDocuments.returns(2);
-
-    try {
-      await SectorsHelper.create(payload, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
-    }
-
-    sinon.assert.calledOnceWithExactly(countDocuments, { name: 'toto', company: companyId });
-    sinon.assert.notCalled(create);
   });
 });
 
@@ -143,6 +119,6 @@ describe('remove', () => {
 
     await SectorsHelper.remove(sectorId);
 
-    sinon.assert.calledWithExactly(deleteOne, { _id: sectorId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: sectorId });
   });
 });

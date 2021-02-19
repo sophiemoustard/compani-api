@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, sectorsList } = require('./seed/sectorsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { populateDB, sectorsList, userFromOtherCompany } = require('./seed/sectorsSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -32,18 +32,16 @@ describe('POST /sectors', () => {
     });
 
     it('should return a 400 error if \'name\' params is missing', async () => {
-      const payload = { company: authCompany._id };
       const response = await app.inject({
         method: 'POST',
         url: '/sectors',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 409 error if sector name already exists', async () => {
+    it('should return a 409 error if sector name already exists in company', async () => {
       const payload = { name: sectorsList[0].name };
       const response = await app.inject({
         method: 'POST',
@@ -53,6 +51,19 @@ describe('POST /sectors', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should create company even if sector name already exists in other company', async () => {
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+      const payload = { name: sectorsList[2].name };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/sectors',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 
