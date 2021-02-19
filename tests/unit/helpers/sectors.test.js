@@ -57,14 +57,11 @@ describe('list', () => {
 });
 
 describe('update', () => {
-  let countDocuments;
   let findOneAndUpdate;
   beforeEach(() => {
-    countDocuments = sinon.stub(Sector, 'countDocuments');
     findOneAndUpdate = sinon.stub(Sector, 'findOneAndUpdate');
   });
   afterEach(() => {
-    countDocuments.restore();
     findOneAndUpdate.restore();
   });
 
@@ -74,34 +71,14 @@ describe('update', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    countDocuments.returns(0);
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await SectorsHelper.update(sectorId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(countDocuments, { name: 'Tutu', company: companyId });
     SinonMongoose.calledWithExactly(findOneAndUpdate, [
       { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
       { query: 'lean' },
     ]);
-  });
-
-  it('should not update sector as name already exists', async () => {
-    const payload = { name: 'Tutu' };
-    const sectorId = new ObjectID();
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
-    countDocuments.returns(3);
-
-    try {
-      await SectorsHelper.update(sectorId, payload, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
-    }
-
-    sinon.assert.calledOnceWithExactly(countDocuments, { name: 'Tutu', company: companyId });
-    sinon.assert.notCalled(findOneAndUpdate);
   });
 });
 
