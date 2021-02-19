@@ -38,8 +38,6 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
     throw Boom.forbidden();
   }
 
-  if (!courseSlot.course.trainees.map(t => t.toHexString()).includes(req.payload.trainee)) throw Boom.forbidden();
-
   return null;
 };
 
