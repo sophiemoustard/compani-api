@@ -105,6 +105,36 @@ describe('EVENTS ROUTES', () => {
         });
       });
 
+      it('should return a 200 if same id send twice - sectors', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?sector=${sectors[0]._id}&sector=${sectors[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('should return a 200 if same id send twice - auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?auxiliary=${auxiliaries[0]._id}&auxiliary=${auxiliaries[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('should return a 200 if same id send twice - customers', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?customer=${customerAuxiliary._id}&customer=${customerAuxiliary._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
       it('should return a 403 if customer is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
