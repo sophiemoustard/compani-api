@@ -7,8 +7,11 @@ const { language } = translate;
 
 exports.list = async credentials => Sector.find({ company: get(credentials, 'company._id') }).lean();
 
-exports.create = async (payload, credentials) => Sector.create({ ...payload, company: get(credentials, 'company._id') })
-  .toObject();
+exports.create = async (payload, credentials) => {
+  const sector = await Sector.create({ ...payload, company: get(credentials, 'company._id') });
+
+  return sector.toObject();
+};
 
 exports.update = async (sectorId, payload, credentials) => {
   const existingSector = await Sector.countDocuments({ name: payload.name, company: get(credentials, 'company._id') });
