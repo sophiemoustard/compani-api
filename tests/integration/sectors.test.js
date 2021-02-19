@@ -171,9 +171,9 @@ describe('PUT /sectors/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 409 error if sector name already exists', async () => {
+    it('should return a 409 error if sector name already exists in company', async () => {
       const sector = sectorsList[0];
-      const payload = { name: sectorsList[1].name };
+      const payload = { name: sectorsList[2].name };
       const response = await app.inject({
         method: 'PUT',
         url: `/sectors/${sector._id.toHexString()}`,
@@ -182,6 +182,20 @@ describe('PUT /sectors/:id', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should create company even if sector name already exists in other company', async () => {
+      const sector = sectorsList[1];
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+      const payload = { name: sectorsList[2].name };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/sectors/${sector._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 

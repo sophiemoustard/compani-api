@@ -30,10 +30,13 @@ exports.authorizeSectorCreation = async (req) => {
   return null;
 };
 
-exports.authorizeSectorUpdate = (req) => {
+exports.authorizeSectorUpdate = async (req) => {
   const { credentials } = req.auth;
   const sector = req.pre.sector || req.payload;
   if (sector.company.toHexString() !== credentials.company._id.toHexString()) throw Boom.forbidden();
+
+  const existingSector = await Sector.countDocuments({ name: req.payload.name, company: sector.company });
+  if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
 
   return null;
 };
