@@ -701,6 +701,28 @@ describe('GET /users/learners', () => {
         .toBeTruthy();
     });
 
+    it('should return 403 if is not a vendor', async () => {
+      authToken = await getToken('client_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 403 if ask all learners with company but ask a specific company', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}&&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

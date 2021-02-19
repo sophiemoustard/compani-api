@@ -301,6 +301,46 @@ describe('getLearnerList', () => {
       { query: 'lean' },
     ]);
   });
+
+  it('should get all learners with a company', async () => {
+    const query = { hasCompany: true };
+    const credentials = { role: { vendor: new ObjectID() } };
+    const users = [
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
+
+    findUser.returns(SinonMongoose.stubChainedQueries(
+      [users],
+      ['populate', 'setOptions', 'lean']
+    ));
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
+
+    expect(result).toEqual(usersWithVirtuals);
+    sinon.assert.notCalled(findRole);
+    SinonMongoose.calledWithExactly(findUser, [
+      { query: 'find',
+        args: [
+          { company: { $exists: true } },
+          'identity.firstname identity.lastname picture',
+          { autopopulate: false },
+        ] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+      {
+        query: 'populate',
+        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+      },
+      { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+      { query: 'lean' },
+    ]);
+  });
 });
 
 describe('getUser', () => {
