@@ -2,17 +2,17 @@ const flat = require('flat');
 const get = require('lodash/get');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
-const GdriveStorageHelper = require('./gdriveStorage');
-const { addFile } = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
+const { addFile } = require('./gDriveStorage');
 const drive = require('../models/Google/Drive');
 const { INTERVENTION } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
-  const companyFolder = await GdriveStorageHelper.createFolderForCompany(companyPayload.name);
+  const companyFolder = await GDriveStorageHelper.createFolderForCompany(companyPayload.name);
   const [directDebitsFolder, customersFolder, auxiliariesFolder] = await Promise.all([
-    GdriveStorageHelper.createFolder('direct debits', companyFolder.id),
-    GdriveStorageHelper.createFolder('customers', companyFolder.id),
-    GdriveStorageHelper.createFolder('auxiliaries', companyFolder.id),
+    GDriveStorageHelper.createFolder('direct debits', companyFolder.id),
+    GDriveStorageHelper.createFolder('customers', companyFolder.id),
+    GDriveStorageHelper.createFolder('auxiliaries', companyFolder.id),
   ]);
   const lastCompany = await Company.find().sort({ prefixNumber: -1 }).limit(1).lean();
 

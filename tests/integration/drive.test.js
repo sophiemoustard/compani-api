@@ -4,7 +4,7 @@ const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
 const sinon = require('sinon');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
@@ -26,7 +26,7 @@ describe('POST /gdrive/:id/upload', () => {
   let uploadFileSpy;
   beforeEach(() => {
     addFileStub = sinon
-      .stub(GdriveStorage, 'addFile')
+      .stub(GDriveStorageHelper, 'addFile')
       .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     uploadFileSpy = sinon.spy(DriveHelper, 'uploadFile');
   });
@@ -95,7 +95,7 @@ describe('DELETE /gdrive/file/:id', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
-      deleteFileStub = sinon.stub(GdriveStorage, 'deleteFile');
+      deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     });
 
     afterEach(() => {

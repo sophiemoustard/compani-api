@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const Boom = require('@hapi/boom');
 const Gdrive = require('../../../src/models/Google/Drive');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 
 describe('addFile', () => {
   it('should add file to google drive', async () => {
@@ -14,7 +14,7 @@ describe('addFile', () => {
       body: 'This is a file',
     };
 
-    const result = await GdriveStorageHelper.addFile(payload);
+    const result = await GDriveStorageHelper.addFile(payload);
 
     expect(result).toEqual({ id: '123456780' });
     sinon.assert.calledWithExactly(addStub, {
@@ -44,7 +44,7 @@ describe('createFolder', () => {
     const identity = 'Test SAS';
     addStub.returns({ id: '123456780' });
 
-    const result = await GdriveStorageHelper.createFolder(identity, parentFolderId);
+    const result = await GDriveStorageHelper.createFolder(identity, parentFolderId);
 
     expect(result).toEqual({ id: '123456780' });
     sinon.assert.calledWithExactly(addStub, {
@@ -58,7 +58,7 @@ describe('createFolder', () => {
     const identity = { firstname: 'Toto', lastname: 'Titi' };
     addStub.returns({ id: '123456780' });
 
-    const result = await GdriveStorageHelper.createFolder(identity, parentFolderId);
+    const result = await GDriveStorageHelper.createFolder(identity, parentFolderId);
 
     expect(result).toEqual({ id: '123456780' });
     sinon.assert.calledWithExactly(addStub, {
@@ -73,7 +73,7 @@ describe('createFolder', () => {
     addStub.returns(null);
 
     try {
-      await GdriveStorageHelper.createFolder(identity, parentFolderId);
+      await GDriveStorageHelper.createFolder(identity, parentFolderId);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive folder creation failed.'));
     } finally {
@@ -103,7 +103,7 @@ describe('createFolderForCompany', () => {
     const identity = 'Test SAS';
     addStub.returns({ id: '123456780' });
 
-    const result = await GdriveStorageHelper.createFolderForCompany(identity);
+    const result = await GDriveStorageHelper.createFolderForCompany(identity);
 
     expect(result).toEqual({ id: '123456780' });
     sinon.assert.calledWithExactly(addStub, {
@@ -117,7 +117,7 @@ describe('createFolderForCompany', () => {
     const identity = { firstname: 'Toto', lastname: 'Titi' };
     addStub.returns(null);
     try {
-      await GdriveStorageHelper.createFolderForCompany(identity);
+      await GDriveStorageHelper.createFolderForCompany(identity);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive folder creation failed.'));
     } finally {

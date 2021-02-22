@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const Customer = require('../../../src/models/Customer');
 const Drive = require('../../../src/models/Google/Drive');
 const ESign = require('../../../src/models/ESign');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const MandatesHelper = require('../../../src/helpers/mandates');
 const ESignHelper = require('../../../src/helpers/eSign');
 const FileHelper = require('../../../src/helpers/file');
@@ -161,7 +161,7 @@ describe('saveSignedMandate', () => {
     getDocument = sinon.stub(ESign, 'getDocument');
     downloadFinalDocument = sinon.stub(ESign, 'downloadFinalDocument');
     createAndReadFile = sinon.stub(FileHelper, 'createAndReadFile');
-    addFile = sinon.stub(GdriveStorageHelper, 'addFile');
+    addFile = sinon.stub(GDriveStorageHelper, 'addFile');
     getFileById = sinon.stub(Drive, 'getFileById');
   });
   afterEach(() => {

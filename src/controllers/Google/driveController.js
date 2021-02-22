@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 const drive = require('../../models/Google/Drive');
 const DriveHelper = require('../../helpers/drive');
 const DocxHelper = require('../../helpers/docx');
-const gDriveStorageHelper = require('../../helpers/gdriveStorage');
+const gDriveStorageHelper = require('../../helpers/gDriveStorage');
 
 const { language } = translate;
 

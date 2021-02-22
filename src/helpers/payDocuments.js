@@ -4,7 +4,7 @@ const snakeCase = require('lodash/snakeCase');
 const moment = require('../extensions/moment');
 const PayDocument = require('../models/PayDocument');
 const User = require('../models/User');
-const GdriveStorage = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const { PAY_DOCUMENT_NATURES } = require('./constants');
 
@@ -13,7 +13,7 @@ exports.create = async (payload, credentials) => {
   const user = await User.findOne({ _id: payload.user }, { identity: 1, 'administrative.driveFolder': 1 }).lean();
 
   const identity = UtilsHelper.formatIdentity(user.identity, 'FL');
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: get(user, 'administrative.driveFolder.driveId'),
     name: snakeCase(`${PAY_DOCUMENT_NATURES[nature]} ${moment(date).format('DD-MM-YYYY-HHmm')} ${identity}`),
     type: mimeType,
@@ -34,5 +34,5 @@ exports.create = async (payload, credentials) => {
 
 exports.removeFromDriveAndDb = async (payDocumentId) => {
   const deletedPayDocument = await PayDocument.findByIdAndRemove(payDocumentId);
-  return GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
+  return GDriveStorageHelper.deleteFile(deletedPayDocument.file.driveId);
 };
