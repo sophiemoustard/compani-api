@@ -701,6 +701,17 @@ describe('GET /users/learners', () => {
         .toBeTruthy();
     });
 
+    it('should return 200 if a vendor asks all learners with company', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
     it('should return 403 if is not a vendor', async () => {
       authToken = await getToken('client_admin');
       const res = await app.inject({
