@@ -12,7 +12,7 @@ const SinonMongoose = require('../sinonMongoose');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
@@ -517,7 +517,7 @@ describe('createAndSaveFile', () => {
   const uploadedFile = { id: '123456790', webViewLink: 'http://test.com' };
 
   beforeEach(() => {
-    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile').returns(uploadedFile);
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile').returns(uploadedFile);
     saveFileStub = sinon.stub(UsersHelper, 'saveFile');
     saveCertificateDriveIdStub = sinon.stub(UsersHelper, 'saveCertificateDriveId');
   });
@@ -1133,7 +1133,7 @@ describe('createDriveFolder', () => {
   let userUpdateOne;
   beforeEach(() => {
     companyFindOne = sinon.stub(Company, 'findOne');
-    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
     userUpdateOne = sinon.stub(User, 'updateOne');
   });
   afterEach(() => {

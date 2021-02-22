@@ -10,7 +10,7 @@ const Gdrive = require('../../src/models/Google/Drive');
 const PayDocument = require('../../src/models/PayDocument');
 const { populateDB, payDocumentsList, payDocumentUser, userFromOtherCompany } = require('./seed/payDocumentsSeed');
 const { getToken, getTokenByCredentials, authCompany, getUser } = require('./seed/authenticationSeed');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');
 
@@ -29,7 +29,7 @@ describe('POST /paydocuments', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
       addStub = sinon.stub(Gdrive, 'add');
-      addFileStub = sinon.stub(GdriveStorage, 'addFile');
+      addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
     });
     afterEach(() => {
       addFileStub.restore();
@@ -118,7 +118,7 @@ describe('POST /paydocuments', () => {
     let gDriveStorageAddFile;
     beforeEach(() => {
       gDriveAdd = sinon.stub(Gdrive, 'add');
-      gDriveStorageAddFile = sinon.stub(GdriveStorage, 'addFile').returns({
+      gDriveStorageAddFile = sinon.stub(GDriveStorageHelper, 'addFile').returns({
         id: '1234567890',
         webViewLink: 'http://test.com/file.pdf',
       });
@@ -249,7 +249,7 @@ describe('DELETE /paydocuments', () => {
     });
 
     it('should delete a pay document', async () => {
-      const deleteFileStub = sinon.stub(GdriveStorage, 'deleteFile');
+      const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
       const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id });
       const response = await app.inject({
         method: 'DELETE',

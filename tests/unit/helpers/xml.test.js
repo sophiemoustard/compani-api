@@ -11,7 +11,7 @@ const {
   generateSEPAXml,
 } = require('../../../src/helpers/xml');
 const utils = require('../../../src/helpers/utils');
-const gdriveStorage = require('../../../src/helpers/gdriveStorage');
+const gDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const { PAYMENT } = require('../../../src/helpers/constants');
 
 describe('XML helper', () => {
@@ -400,7 +400,7 @@ describe('XML helper', () => {
           },
         ],
       };
-      const addFileStub = sinon.stub(gdriveStorage, 'addFile').returns({ id: '1234567890' });
+      const addFileStub = sinon.stub(gDriveStorageHelper, 'addFile').returns({ id: '1234567890' });
       const result = await generateSEPAXml(docObj, header, '1234567890', paymentInfo);
 
       expect(result).toBeDefined();

@@ -40,7 +40,7 @@ const {
   rolesList,
 } = require('./seed/authenticationSeed');
 const { trainer, userList, noRoleNoCompany } = require('../seed/userSeed');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
@@ -1524,7 +1524,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   beforeEach(() => {
     docPayload = { fileName: 'mutual_fund_doc', type: 'mutualFund', file: 'true' };
     form = generateFormData(docPayload);
-    addFileStub = sinon.stub(GdriveStorage, 'addFile')
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile')
       .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
   });
   afterEach(() => {
@@ -1807,7 +1807,7 @@ describe('POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
   beforeEach(() => {
-    createFolderStub = sinon.stub(GdriveStorage, 'createFolder');
+    createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
   });
   afterEach(() => {
     createFolderStub.restore();
