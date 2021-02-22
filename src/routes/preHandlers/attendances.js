@@ -1,8 +1,9 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
+const Course = require('../../models/Course');
 const Attendance = require('../../models/Attendance');
-const { TRAINER } = require('../../helpers/constants');
+const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
@@ -35,6 +36,10 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   const { credentials } = req.auth;
   if (get(credentials, 'role.vendor.name') === TRAINER &&
     !UtilsHelper.areObjectIdsEquals(credentials._id, courseSlot.course.trainer)) {
+    throw Boom.forbidden();
+  }
+  const course = await Course.findOne({ _id: courseSlot.course._id }).lean();
+  if (course.type === INTRA && !courseSlot.course.trainees.map(t => t.toHexString()).includes(req.payload.trainee)) {
     throw Boom.forbidden();
   }
 

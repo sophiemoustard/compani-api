@@ -75,8 +75,7 @@ exports.getLearnerList = async (query, credentials) => {
   }
 
   if (query.hasCompany) {
-    userQuery = { ...omit(userQuery, 'hasCompany') };
-    userQuery = { ...userQuery, company: { $exists: true } };
+    userQuery = { ...omit(userQuery, 'hasCompany'), company: { $exists: true } };
   }
 
   const learnerList = await User
