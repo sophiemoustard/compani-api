@@ -14,186 +14,168 @@ describe('updateHistoryOnSectorUpdate', () => {
   const sector = new ObjectID();
   const companyId = new ObjectID();
 
-  let SectorHistoryMock;
-  let ContractMock;
+  let findOne;
+  let updateOne;
+  let find;
   let createHistoryStub;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectorHistory);
-    ContractMock = sinon.mock(Contract);
+    findOne = sinon.stub(SectorHistory, 'findOne');
+    updateOne = sinon.stub(SectorHistory, 'updateOne');
+    find = sinon.stub(Contract, 'find');
     createHistoryStub = sinon.stub(SectorHistoryHelper, 'createHistory');
   });
 
   afterEach(() => {
-    SectorHistoryMock.restore();
-    ContractMock.restore();
+    findOne.restore();
+    updateOne.restore();
+    find.restore();
     createHistoryStub.restore();
   });
 
   it('should create sector history if no previous one', async () => {
-    SectorHistoryMock.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(null);
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toBeUndefined();
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
     sinon.assert.calledWithExactly(
       createHistoryStub,
       { _id: auxiliaryId, sector: sector.toHexString() },
       companyId,
       moment().startOf('day').toDate()
     );
-    SectorHistoryMock.verify();
-    ContractMock.verify();
   });
 
   it('should return nothing if last sector history sector is same than new one', async () => {
     const sectorHistory = { _id: new ObjectID(), sector, startDate: '2019-09-10T00:00:00' };
-    SectorHistoryMock
-      .expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(sectorHistory);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual(null);
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
     sinon.assert.notCalled(createHistoryStub);
-    SectorHistoryMock.verify();
-    ContractMock.verify();
   });
 
   it('should update sector history if auxiliary does not have contract', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-09-10T00:00:00' };
-    SectorHistoryMock.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(sectorHistory);
 
-    ContractMock.expects('find')
-      .withExactArgs({
-        user: auxiliaryId,
-        company: companyId,
-        $or: [{ endDate: { $exists: false } }, { endDate: null }],
-      })
-      .chain('sort')
-      .withExactArgs({ startDate: -1 })
-      .chain('lean')
-      .returns([]);
-
-    SectorHistoryMock.expects('updateOne')
-      .withExactArgs(
-        { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { sector: sector.toHexString() } }
-      )
-      .returns({ sector });
+    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'lean']));
+    updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(find, [
+      {
+        query: 'find',
+        args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      updateOne, { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { sector: sector.toHexString() } }
+    );
     sinon.assert.notCalled(createHistoryStub);
-    SectorHistoryMock.verify();
-    ContractMock.verify();
   });
 
   it('should update sector history if auxiliary contract has not started yet', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-09-10T00:00:00' };
-    SectorHistoryMock.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(sectorHistory);
 
-    ContractMock.expects('find')
-      .withExactArgs({
-        user: auxiliaryId,
-        company: companyId,
-        $or: [{ endDate: { $exists: false } }, { endDate: null }],
-      })
-      .chain('sort')
-      .withExactArgs({ startDate: -1 })
-      .chain('lean')
-      .returns([{ startDate: moment().add(1, 'd') }]);
-
-    SectorHistoryMock.expects('updateOne')
-      .withExactArgs(
-        { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { sector: sector.toHexString() } }
-      )
-      .returns({ sector });
+    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[{ startDate: moment().add(1, 'd') }]], ['sort', 'lean']));
+    updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(find, [
+      {
+        query: 'find',
+        args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      updateOne, { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { sector: sector.toHexString() } }
+    );
     sinon.assert.notCalled(createHistoryStub);
-    SectorHistoryMock.verify();
-    ContractMock.verify();
   });
 
   it('should update sector history if many changes made on the same day', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: moment().startOf('day') };
-    SectorHistoryMock.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(sectorHistory);
 
-    ContractMock.expects('find')
-      .withExactArgs({
-        user: auxiliaryId,
-        company: companyId,
-        $or: [{ endDate: { $exists: false } }, { endDate: null }],
-      })
-      .chain('sort')
-      .withExactArgs({ startDate: -1 })
-      .chain('lean')
-      .returns([{ _id: new ObjectID() }]);
-
-    SectorHistoryMock.expects('updateOne')
-      .withExactArgs(
-        { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { sector: sector.toHexString() } }
-      )
-      .returns({ sector });
+    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectID() }]], ['sort', 'lean']));
+    updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(find, [
+      {
+        query: 'find',
+        args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      updateOne, { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { sector: sector.toHexString() } }
+    );
     sinon.assert.notCalled(createHistoryStub);
-    SectorHistoryMock.verify();
-    ContractMock.verify();
   });
 
   it('should update sector history and create new one', async () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-10-10' };
-    SectorHistoryMock.expects('findOne')
-      .withExactArgs({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .once()
-      .returns(sectorHistory);
 
-    ContractMock.expects('find')
-      .withExactArgs({
-        user: auxiliaryId,
-        company: companyId,
-        $or: [{ endDate: { $exists: false } }, { endDate: null }],
-      })
-      .chain('sort')
-      .withExactArgs({ startDate: -1 })
-      .chain('lean')
-      .returns([{ _id: new ObjectID(), startDate: moment('2019-10-12').toDate() }]);
-
-    SectorHistoryMock.expects('updateOne')
-      .withExactArgs(
-        { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
-      )
-      .returns({ sector });
+    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(
+      [[{ _id: new ObjectID(), startDate: moment('2019-10-12').toDate() }]],
+      ['sort', 'lean']
+    ));
+    updateOne.returns({ sector });
     createHistoryStub.returns({ auxiliary: auxiliaryId });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
@@ -205,8 +187,25 @@ describe('updateHistoryOnSectorUpdate', () => {
       companyId,
       moment().startOf('day').toDate()
     );
-    SectorHistoryMock.verify();
-    ContractMock.verify();
+    SinonMongoose.calledWithExactly(findOne, [
+      {
+        query: 'findOne',
+        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(find, [
+      {
+        query: 'find',
+        args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+      },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      updateOne, { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
+    );
   });
 });
 
