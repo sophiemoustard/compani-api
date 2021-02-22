@@ -110,7 +110,7 @@ describe('DELETE /gdrive/file/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledWithExactly(deleteFileStub, { fileId: userFileId });
+      sinon.assert.calledWithExactly(deleteFileStub, userFileId);
     });
   });
 });
