@@ -4,13 +4,13 @@ const translate = require('../../helpers/translate');
 const drive = require('../../models/Google/Drive');
 const DriveHelper = require('../../helpers/drive');
 const DocxHelper = require('../../helpers/docx');
-const gDriveStorageHelper = require('../../helpers/gDriveStorage');
+const GDriveStorageHelper = require('../../helpers/gDriveStorage');
 
 const { language } = translate;
 
 const deleteFile = async (req) => {
   try {
-    await gDriveStorageHelper.deleteFile(req.params.id);
+    await GDriveStorageHelper.deleteFile(req.params.id);
 
     return { message: translate[language].fileDeleted };
   } catch (e) {

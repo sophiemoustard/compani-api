@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
 const GDriveStorageHelper = require('./gDriveStorage');
-const { addFile } = require('./gDriveStorage');
 const drive = require('../models/Google/Drive');
 const { INTERVENTION } = require('./constants');
 
@@ -31,7 +30,7 @@ exports.list = async query => Company.find(query).lean();
 exports.uploadFile = async (payload, params) => {
   const { fileName, type, file } = payload;
 
-  const uploadedFile = await addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: fileName,
     type: payload['Content-Type'],
