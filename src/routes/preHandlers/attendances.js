@@ -5,6 +5,7 @@ const Course = require('../../models/Course');
 const Attendance = require('../../models/Attendance');
 const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
+const User = require('../../models/User');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
 
@@ -39,8 +40,12 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
     throw Boom.forbidden();
   }
   const course = await Course.findOne({ _id: courseSlot.course._id }).lean();
-  if (course.type === INTRA && !courseSlot.course.trainees.map(t => t.toHexString()).includes(req.payload.trainee)) {
-    throw Boom.forbidden();
+  if (course.type === INTRA) {
+    const companyTrainees = await User.find({ company: course.company }).lean();
+
+    if (!companyTrainees.map(trainee => trainee._id.toHexString()).includes(req.payload.trainee)) {
+      throw Boom.forbidden();
+    }
   }
 
   return null;
