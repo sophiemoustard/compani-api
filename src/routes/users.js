@@ -170,7 +170,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: Joi.object({ company: Joi.objectId(), hasCompany: Joi.boolean() }),
+          query: Joi.alternatives().try(
+            Joi.object({ company: Joi.objectId() }),
+            Joi.object({ hasCompany: Joi.boolean() })
+          ),
         },
         pre: [{ method: authorizeLearnersGet }],
       },

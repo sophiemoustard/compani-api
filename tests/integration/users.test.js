@@ -723,7 +723,7 @@ describe('GET /users/learners', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should return 403 if ask all learners with company but ask a specific company', async () => {
+    it('should return 400 if queries hasCompany and company are used together', async () => {
       authToken = await getToken('vendor_admin');
       const res = await app.inject({
         method: 'GET',
@@ -731,7 +731,7 @@ describe('GET /users/learners', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(400);
     });
 
     const roles = [
