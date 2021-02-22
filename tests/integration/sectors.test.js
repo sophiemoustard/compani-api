@@ -184,7 +184,7 @@ describe('PUT /sectors/:id', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should create company even if sector name already exists in other company', async () => {
+    it('should update company even if sector name already exists in other company', async () => {
       const sector = sectorsList[1];
       authToken = await getTokenByCredentials(userFromOtherCompany.local);
       const payload = { name: sectorsList[2].name };
