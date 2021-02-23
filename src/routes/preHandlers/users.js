@@ -217,6 +217,7 @@ exports.authorizeLearnersGet = async (req) => {
   if (!vendorRole && (!isClientRoleAllowed || !isQueryCompanyValid)) throw Boom.forbidden();
   if (!clientRole && !isVendorRoleAllowed) throw Boom.forbidden();
   if (!isClientRoleAllowed && !isVendorRoleAllowed) throw Boom.forbidden();
+  if (query.hasCompany && !vendorRole) throw Boom.forbidden();
 
   return null;
 };

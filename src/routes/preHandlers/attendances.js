@@ -2,8 +2,9 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
-const { TRAINER } = require('../../helpers/constants');
+const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
+const User = require('../../models/User');
 
 exports.checkAttendanceExists = async req => Attendance.countDocuments(req.payload);
 
@@ -28,7 +29,7 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   if (await this.checkAttendanceExists(req)) throw Boom.conflict();
 
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees' })
+    .populate({ path: 'course', select: 'trainer trainees type company' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -38,7 +39,13 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
     throw Boom.forbidden();
   }
 
-  if (!courseSlot.course.trainees.map(t => t.toHexString()).includes(req.payload.trainee)) throw Boom.forbidden();
+  const { course } = courseSlot;
+  if (course.type === INTRA) {
+    if (!course.company) throw Boom.badData();
+    const doesTraineeBelongToCompany = await User.countDocuments({ _id: req.payload.trainee, company: course.company });
+
+    if (!doesTraineeBelongToCompany) throw Boom.forbidden();
+  }
 
   return null;
 };
