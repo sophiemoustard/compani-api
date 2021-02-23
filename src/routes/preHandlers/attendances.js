@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
-const Course = require('../../models/Course');
 const Attendance = require('../../models/Attendance');
 const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
@@ -30,7 +29,7 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   if (await this.checkAttendanceExists(req)) throw Boom.conflict();
 
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees' })
+    .populate({ path: 'course', select: 'trainer trainees type company' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -39,11 +38,13 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
     !UtilsHelper.areObjectIdsEquals(credentials._id, courseSlot.course.trainer)) {
     throw Boom.forbidden();
   }
-  const course = await Course.findOne({ _id: courseSlot.course._id }).lean();
+
+  const { course } = courseSlot;
   if (course.type === INTRA) {
+    if (!course.company) throw Boom.badData();
     const companyTrainees = await User.find({ company: course.company }).lean();
 
-    if (!companyTrainees.map(trainee => trainee._id.toHexString()).includes(req.payload.trainee)) {
+    if (!companyTrainees.some(trainee => UtilsHelper.areObjectIdsEquals(trainee._id, req.payload.trainee))) {
       throw Boom.forbidden();
     }
   }

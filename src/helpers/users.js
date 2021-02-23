@@ -74,9 +74,7 @@ exports.getLearnerList = async (query, credentials) => {
     userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
   }
 
-  if (query.hasCompany) {
-    userQuery = { ...omit(userQuery, 'hasCompany'), company: { $exists: true } };
-  }
+  if (query.hasCompany) userQuery = { ...omit(userQuery, 'hasCompany'), company: { $exists: true } };
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
