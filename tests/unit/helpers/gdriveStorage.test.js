@@ -149,36 +149,11 @@ describe('deleteFile', () => {
     sinon.assert.calledWithExactly(deleteFile, { fileId: 'skusku' });
   });
 
-  it('should not throw an error if file doesn\'t exists', async () => {
-    try {
-      deleteFile.throws('File not found');
-      await GDriveStorageHelper.deleteFile('skusku');
-    } catch (e) {
-      expect(0).toBe(1);
-    } finally {
-      sinon.assert.calledWithExactly(deleteFile, { fileId: 'skusku' });
-    }
-  });
+  it('should not delete a file if process.env.NODE_ENV is test', async () => {
+    process.env.NODE_ENV = 'test';
 
-  it('should not throw an error if user can\'t access file', async () => {
-    try {
-      deleteFile.throws('The user does not have sufficient permissions for this file.');
-      await GDriveStorageHelper.deleteFile('skusku');
-    } catch (e) {
-      expect(0).toBe(1);
-    } finally {
-      sinon.assert.calledWithExactly(deleteFile, { fileId: 'skusku' });
-    }
-  });
+    await GDriveStorageHelper.deleteFile('skusku');
 
-  it('should throw a 424 error if file deletion throws unexpected error', async () => {
-    try {
-      deleteFile.throws('Unknown error');
-      await GDriveStorageHelper.deleteFile('skusku');
-    } catch (e) {
-      expect(e).toEqual(Boom.failedDependency('Google drive file deletion failed.'));
-    } finally {
-      sinon.assert.calledWithExactly(deleteFile, { fileId: 'skusku' });
-    }
+    sinon.assert.notCalled(deleteFile);
   });
 });
