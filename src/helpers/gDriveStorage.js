@@ -42,10 +42,8 @@ exports.deleteFile = async (driveFileId) => {
   try {
     if (process.env.NODE_ENV !== 'test') await Gdrive.deleteFile({ fileId: driveFileId });
   } catch (e) {
-    console.error(e);
-
-    if (e.toString().includes('The user does not have sufficient permissions for this file.')) return;
-    if (e.toString().includes('File not found')) return;
+    if (e.toString().includes('403')) return;
+    if (e.toString().includes('404')) return;
 
     throw Boom.failedDependency('Google drive file deletion failed.');
   }
