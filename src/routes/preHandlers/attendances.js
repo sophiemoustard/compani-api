@@ -42,8 +42,7 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   const { course } = courseSlot;
   if (course.type === INTRA) {
     if (!course.company) throw Boom.badData();
-    const doesTraineeBelongToCompany = await User.countDocuments({ _id: req.payload.trainee, company: course.company })
-      .lean();
+    const doesTraineeBelongToCompany = await User.countDocuments({ _id: req.payload.trainee, company: course.company });
 
     if (!doesTraineeBelongToCompany) throw Boom.forbidden();
   }
