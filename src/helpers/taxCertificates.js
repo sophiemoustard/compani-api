@@ -10,7 +10,7 @@ const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
 
-exports.generateTaxCertificatesList = async (customer, credentials) => {
+exports.list = async (customer, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
   return TaxCertificate.find({ customer, company: companyId }).lean();

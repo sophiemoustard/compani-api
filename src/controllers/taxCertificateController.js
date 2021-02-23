@@ -7,7 +7,7 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const { query, auth } = req;
-    const taxCertificates = await TaxCertificateHelper.generateTaxCertificatesList(query.customer, auth.credentials);
+    const taxCertificates = await TaxCertificateHelper.list(query.customer, auth.credentials);
 
     return {
       data: { taxCertificates },
