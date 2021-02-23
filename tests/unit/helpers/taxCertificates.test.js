@@ -14,7 +14,7 @@ const PaymentRepository = require('../../../src/repositories/PaymentRepository')
 
 require('sinon-mongoose');
 
-describe('generateTaxCertificatesList', () => {
+describe('list', () => {
   let TaxCertificateMock;
   beforeEach(() => {
     TaxCertificateMock = sinon.mock(TaxCertificate);
@@ -36,7 +36,7 @@ describe('generateTaxCertificatesList', () => {
       .once()
       .returns(taxCertificates);
 
-    const result = await TaxCertificateHelper.generateTaxCertificatesList(customer, { company: { _id: companyId } });
+    const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
     expect(result).toEqual(taxCertificates);
     TaxCertificateMock.verify();
