@@ -40,7 +40,7 @@ exports.deleteFile = async (params) => {
   return new Promise((resolve, reject) => drive.files.delete(
     { auth, fileId: params.fileId },
     (err, file) => {
-      if (err) reject(new Error(`Google Drive API ${err}`));
+      if (err) reject(new Error(`${err.response.status} - Google Drive API ${err}`));
       else resolve(file.data);
     }
   ));
