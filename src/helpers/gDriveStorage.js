@@ -39,12 +39,5 @@ exports.createFolderForCompany = async (companyName) => {
 };
 
 exports.deleteFile = async (driveFileId) => {
-  try {
-    if (process.env.NODE_ENV !== 'test') await Gdrive.deleteFile({ fileId: driveFileId });
-  } catch (e) {
-    if (e.toString().includes('403')) return;
-    if (e.toString().includes('404')) return;
-
-    throw Boom.failedDependency('Google drive file deletion failed.');
-  }
+  if (process.env.NODE_ENV !== 'test') await Gdrive.deleteFile({ fileId: driveFileId });
 };

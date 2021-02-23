@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { google } = require('googleapis');
+const get = require('lodash/get');
 
 const jwtClient = () => new google.auth.JWT(
   process.env.GOOGLE_DRIVE_API_EMAIL,
@@ -40,7 +41,8 @@ exports.deleteFile = async (params) => {
   return new Promise((resolve, reject) => drive.files.delete(
     { auth, fileId: params.fileId },
     (err, file) => {
-      if (err) reject(new Error(`${err.response.status} - Google Drive API ${err}`));
+      if ([403, 404].includes(get(err, 'response.status'))) resolve(null);
+      if (err) reject(new Error(`Google Drive API ${err}`));
       else resolve(file.data);
     }
   ));
