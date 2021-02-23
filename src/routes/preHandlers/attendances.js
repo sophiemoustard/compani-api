@@ -42,11 +42,9 @@ exports.authorizeTrainerAndCheckTrainees = async (req) => {
   const { course } = courseSlot;
   if (course.type === INTRA) {
     if (!course.company) throw Boom.badData();
-    const companyTrainees = await User.find({ company: course.company }).lean();
+    const DoesTraineeBelongToCompany = await User.findOne({ _id: req.payload.trainee, company: course.company }).lean();
 
-    if (!companyTrainees.some(trainee => UtilsHelper.areObjectIdsEquals(trainee._id, req.payload.trainee))) {
-      throw Boom.forbidden();
-    }
+    if (!DoesTraineeBelongToCompany) throw Boom.forbidden();
   }
 
   return null;
