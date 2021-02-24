@@ -437,52 +437,48 @@ describe('createHistory', () => {
   const sector = new ObjectID();
   const companyId = new ObjectID();
 
-  let SectorHistoryMock;
+  let create;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectorHistory);
+    create = sinon.stub(SectorHistory, 'create');
   });
 
   afterEach(() => {
-    SectorHistoryMock.verify();
+    create.restore();
   });
 
   it('should create SectorHistory without startDate', async () => {
-    const payloadSectorHistory = { auxiliary: auxiliaryId, sector, company: companyId };
-    const sectorHistory = new SectorHistory({ auxiliary: auxiliaryId, sector, company: companyId });
-    const sectorHistoryMock = sinon.mock(sectorHistory);
+    const sectorHistory = { auxiliary: auxiliaryId, sector, company: companyId };
 
-    SectorHistoryMock
-      .expects('create')
-      .withExactArgs(payloadSectorHistory)
-      .returns(sectorHistory);
-    sectorHistoryMock.expects('toObject').once().returns(payloadSectorHistory);
+    create.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['toObject']));
 
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId);
 
-    expect(result).toEqual(payloadSectorHistory);
-    sectorHistoryMock.verify();
+    expect(result).toEqual(sectorHistory);
+    SinonMongoose.calledWithExactly(
+      create,
+      [
+        { query: 'create', args: [{ auxiliary: auxiliaryId, sector, company: companyId }] },
+        { query: 'toObject' },
+      ]
+    );
   });
 
   it('should create SectorHistory with startDate', async () => {
-    const payloadSectorHistory = {
-      auxiliary: auxiliaryId,
-      sector,
-      company: companyId,
-      startDate: '2020-01-01',
-    };
-    const sectorHistory = new SectorHistory(payloadSectorHistory);
-    const sectorHistoryMock = sinon.mock(sectorHistory);
-    SectorHistoryMock
-      .expects('create')
-      .withExactArgs(payloadSectorHistory)
-      .returns(sectorHistory);
-    sectorHistoryMock.expects('toObject').once().returns(payloadSectorHistory);
+    const sectorHistory = { auxiliary: auxiliaryId, sector, company: companyId, startDate: '2020-01-01' };
+
+    create.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['toObject']));
 
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId, '2020-01-01');
 
-    expect(result).toEqual(payloadSectorHistory);
-    sectorHistoryMock.verify();
+    expect(result).toEqual(sectorHistory);
+    SinonMongoose.calledWithExactly(
+      create,
+      [
+        { query: 'create', args: [{ auxiliary: auxiliaryId, sector, company: companyId, startDate: '2020-01-01' }] },
+        { query: 'toObject' },
+      ]
+    );
   });
 });
 
