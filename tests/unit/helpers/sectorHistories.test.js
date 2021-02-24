@@ -7,8 +7,6 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 
-require('sinon-mongoose');
-
 describe('updateHistoryOnSectorUpdate', () => {
   const auxiliaryId = new ObjectID();
   const sector = new ObjectID();
