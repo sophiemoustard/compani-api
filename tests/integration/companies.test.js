@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const GetStream = require('get-stream');
 const { MONTH } = require('../../src/helpers/constants');
-const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
@@ -230,8 +230,8 @@ describe('COMPANIES ROUTES', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('vendor_admin');
-        createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
-        createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+        createFolderForCompany = sinon.stub(GDriveStorageHelper, 'createFolderForCompany');
+        createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
       });
       afterEach(() => {
         createFolderForCompany.restore();
@@ -341,8 +341,8 @@ describe('COMPANIES ROUTES', () => {
 
       beforeEach(async () => {
         authToken = await getToken('vendor_admin');
-        createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
-        createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+        createFolderForCompany = sinon.stub(GDriveStorageHelper, 'createFolderForCompany');
+        createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
       });
 
       afterEach(() => {

@@ -5,7 +5,7 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const moment = require('../extensions/moment');
-const GdriveStorage = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
@@ -78,11 +78,11 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
 
 exports.remove = async (taxCertificateId) => {
   const taxCertificate = await TaxCertificate.findOneAndDelete({ _id: taxCertificateId }).lean();
-  if (taxCertificate.driveFile) await GdriveStorage.deleteFile(taxCertificate.driveFile.driveId);
+  if (taxCertificate.driveFile) await GDriveStorageHelper.deleteFile(taxCertificate.driveFile.driveId);
 };
 
 exports.create = async (certificatePayload, credentials) => {
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: certificatePayload.driveFolderId,
     name: certificatePayload.fileName || certificatePayload.taxCertificate.hapi.fileName,
     type: certificatePayload.mimeType,

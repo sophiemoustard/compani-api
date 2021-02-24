@@ -5,7 +5,7 @@ const Boom = require('@hapi/boom');
 const Company = require('../../../src/models/Company');
 const Drive = require('../../../src/models/Google/Drive');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const AdministrativeDocumentHelper = require('../../../src/helpers/administrativeDocument');
 
 require('sinon-mongoose');
@@ -22,7 +22,7 @@ describe('createAdministrativeDocument', () => {
   beforeEach(() => {
     CompanyMock = sinon.mock(Company);
     AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
-    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
     createPermissionStub = sinon.stub(Drive, 'createPermission');
   });
 
@@ -120,7 +120,7 @@ describe('removeAdministrativeDocument', () => {
   let deleteFileStub;
   beforeEach(() => {
     AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
-    deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
+    deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
   });
 
   afterEach(() => {
