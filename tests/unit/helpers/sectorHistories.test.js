@@ -483,29 +483,27 @@ describe('createHistory', () => {
 });
 
 describe('updateEndDate', () => {
-  let SectorHistoryMock;
+  let updateOne;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectorHistory);
+    updateOne = sinon.stub(SectorHistory, 'updateOne');
   });
 
   afterEach(() => {
-    SectorHistoryMock.restore();
+    updateOne.restore();
   });
 
   it('should update sector history', async () => {
     const auxiliary = new ObjectID();
     const endDate = '2020-01-01';
-    SectorHistoryMock
-      .expects('updateOne')
-      .withExactArgs(
-        { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $set: { endDate: moment(endDate).endOf('day').toDate() } }
-      );
 
     await SectorHistoryHelper.updateEndDate(auxiliary, endDate);
 
-    SectorHistoryMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $set: { endDate: moment(endDate).endOf('day').toDate() } }
+    );
   });
 });
 
