@@ -389,41 +389,46 @@ describe('updateHistoryOnContractDeletion', () => {
   const contract = { user: new ObjectID(), startDate: '2020-01-01' };
   const companyId = new ObjectID();
 
-  let SectorHistoryMock;
+  let findOne;
+  let updateOne;
+  let remove;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectorHistory);
+    findOne = sinon.stub(SectorHistory, 'findOne');
+    updateOne = sinon.stub(SectorHistory, 'updateOne');
+    remove = sinon.stub(SectorHistory, 'remove');
   });
 
   afterEach(() => {
-    SectorHistoryMock.verify();
+    findOne.restore();
+    updateOne.restore();
+    remove.restore();
   });
 
   it('should remove sector histories and update last one', async () => {
-    SectorHistoryMock
-      .expects('findOne')
-      .withExactArgs({ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-      .chain('lean')
-      .returns({ startDate: '2020-10-10' });
-
-    SectorHistoryMock
-      .expects('remove')
-      .withExactArgs({
-        auxiliary: contract.user,
-        company: companyId,
-        startDate: { $gte: contract.startDate, $lt: '2020-10-10' },
-      })
-      .returns();
-
-    SectorHistoryMock
-      .expects('updateOne')
-      .withExactArgs(
-        { auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-        { $unset: { startDate: '' } }
-      )
-      .returns();
+    findOne.returns(SinonMongoose.stubChainedQueries([{ startDate: '2020-10-10' }], ['lean']));
 
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      remove,
+      { auxiliary: contract.user, company: companyId, startDate: { $gte: contract.startDate, $lt: '2020-10-10' } }
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { $unset: { startDate: '' } }
+    );
   });
 });
 
