@@ -905,132 +905,122 @@ describe('removeCreditNote', () => {
 });
 
 describe('generateCreditNotePdf', () => {
-  let CreditNoteModel;
-  let CompanyModel;
+  let creditNoteFindOne;
+  let companyNoteFindOne;
   let formatPDFStub;
   let generatePdfStub;
 
   const params = { _id: new ObjectID() };
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
-    CreditNoteModel = sinon.mock(CreditNote);
-    CompanyModel = sinon.mock(Company);
+    creditNoteFindOne = sinon.stub(CreditNote, 'findOne');
+    companyNoteFindOne = sinon.stub(Company, 'findOne');
     formatPDFStub = sinon.stub(CreditNoteHelper, 'formatPDF');
     generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
   });
 
   afterEach(() => {
-    CreditNoteModel.restore();
-    CompanyModel.restore();
+    creditNoteFindOne.restore();
+    companyNoteFindOne.restore();
     formatPDFStub.restore();
     generatePdfStub.restore();
   });
 
   it('should generate a pdf', async () => {
     const creditNote = { origin: COMPANI, number: '12345' };
-    CreditNoteModel
-      .expects('findOne')
-      .withExactArgs({ _id: params._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        select: '_id identity contact subscriptions',
-        populate: {
-          path: 'subscriptions.service',
-        },
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'thirdPartyPayer',
-        select: '_id name address',
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
-      .chain('lean')
-      .returns(creditNote);
-
     const company = { _id: credentials.company._id };
-    CompanyModel.expects('findOne')
-      .withExactArgs({ _id: credentials.company._id })
-      .chain('lean')
-      .returns(company);
-
     const data = { name: 'creditNotePdf' };
-    formatPDFStub.returns(data);
+
+    creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
+    companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
+    formatPDFStub.returns({ name: 'creditNotePdf' });
     generatePdfStub.returns({ title: 'creditNote' });
 
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
     expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: creditNote.number });
+    SinonMongoose.calledWithExactly(
+      creditNoteFindOne,
+      [
+        { query: 'find', args: [{ _id: params._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: '_id identity contact subscriptions',
+            populate: { path: 'subscriptions.service' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },
+        { query: 'populate', args: [{ path: 'events.auxiliary', select: 'identity' }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      companyNoteFindOne,
+      [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(formatPDFStub, creditNote, company);
     sinon.assert.calledOnceWithExactly(generatePdfStub, data, './src/data/creditNote.html');
-    CreditNoteModel.verify();
-    CompanyModel.verify();
   });
 
   it('should return a 404 if creditnote is not found', async () => {
     try {
-      CreditNoteModel
-        .expects('findOne')
-        .withExactArgs({ _id: params._id })
-        .chain('populate')
-        .withExactArgs({
-          path: 'customer',
-          select: '_id identity contact subscriptions',
-          populate: {
-            path: 'subscriptions.service',
-          },
-        })
-        .chain('populate')
-        .withExactArgs({
-          path: 'thirdPartyPayer',
-          select: '_id name address',
-        })
-        .chain('populate')
-        .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
-        .chain('lean')
-        .returns();
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([]));
+
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].creditNoteNotFound));
     } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
-      CreditNoteModel.verify();
-      CompanyModel.verify();
+      SinonMongoose.calledWithExactly(
+        creditNoteFindOne,
+        [
+          { query: 'find', args: [{ _id: params._id }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'customer',
+              select: '_id identity contact subscriptions',
+              populate: { path: 'subscriptions.service' },
+            }],
+          },
+          { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },
+          { query: 'populate', args: [{ path: 'events.auxiliary', select: 'identity' }] },
+          { query: 'lean' },
+        ]
+      );
     }
   });
 
   it('should return a 500 if creditnote origin is not compani', async () => {
     try {
-      CreditNoteModel
-        .expects('findOne')
-        .withExactArgs({ _id: params._id })
-        .chain('populate')
-        .withExactArgs({
-          path: 'customer',
-          select: '_id identity contact subscriptions',
-          populate: {
-            path: 'subscriptions.service',
-          },
-        })
-        .chain('populate')
-        .withExactArgs({
-          path: 'thirdPartyPayer',
-          select: '_id name address',
-        })
-        .chain('populate')
-        .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
-        .chain('lean')
-        .returns({ origin: OGUST });
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: OGUST }]));
+
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest(translate[language].creditNoteNotCompani));
     } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
-      CreditNoteModel.verify();
-      CompanyModel.verify();
+      SinonMongoose.calledWithExactly(
+        creditNoteFindOne,
+        [
+          { query: 'find', args: [{ _id: params._id }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'customer',
+              select: '_id identity contact subscriptions',
+              populate: { path: 'subscriptions.service' },
+            }],
+          },
+          { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },
+          { query: 'populate', args: [{ path: 'events.auxiliary', select: 'identity' }] },
+          { query: 'lean' },
+        ]
+      );
     }
   });
 });
