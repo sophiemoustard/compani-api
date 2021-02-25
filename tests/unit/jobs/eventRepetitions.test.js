@@ -104,6 +104,69 @@ describe('method', () => {
     });
   });
 
+  it('should only create J+90 event for a certain type of repetition object', async () => {
+    const repetitions = [
+      {
+        _id: '5d84f869b7e67963c6523704',
+        type: 'intervention',
+        customer: '5d4420d306ab3d00147caf11',
+        subscription: '5d4422b306ab3d00147caf13',
+        auxiliary: '5d121abe9ff937001403b6c6',
+        startDate: '2020-02-02T10:20:00',
+        endDate: '2020-02-02T12:20:00',
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+      {
+        _id: '5d84f869b7e67963c6523704',
+        type: 'internal_hour',
+        auxiliary: '5d121abe9ff937001403b6c6',
+        startDate: '2020-02-03T10:20:00',
+        endDate: '2020-02-03T12:20:00',
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+    ];
+    const companyId = new ObjectID();
+
+    CompanyMock.expects('find')
+      .withExactArgs({ 'subscriptions.erp': true })
+      .chain('lean')
+      .once()
+      .returns([{ _id: companyId }]);
+
+    RepetitionMock.expects('find')
+      .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
+      .chain('lean')
+      .once()
+      .returns(repetitions);
+
+    const futureEvent = new Event({
+      type: 'internal_hour',
+      company: new ObjectID(),
+      auxiliary: '5d121abe9ff937001403b6c6',
+      startDate: moment().add(90, 'd').set({ hours: 10, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
+      endDate: moment().add(90, 'd').set({ hours: 12, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
+      repetition: {
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+    });
+    formatEventBasedOnRepetitionStub.returns(futureEvent);
+    EventMock.expects('create')
+      .withArgs(futureEvent)
+      .once()
+      .returns(futureEvent);
+
+    const result = await eventRepetitions.method({ ...server, query: { type: 'internal_hour' } });
+
+    expect(result).toMatchObject({ results: [futureEvent], errors: [] });
+    sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetitions[1], new Date());
+    RepetitionMock.verify();
+    EventMock.verify();
+    CompanyMock.verify();
+  });
+
   it('should log repetitions ids which failed to create J+90 event', async () => {
     const error = new Error('Test error.');
     const repetition = [{
