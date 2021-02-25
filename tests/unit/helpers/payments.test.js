@@ -330,10 +330,10 @@ describe('createPayment', () => {
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
     expect(result).toEqual(formattedPayment);
-    sinon.assert.calledWithExactly(getPaymentNumberStub, payment, credentials.company._id);
-    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company, number);
-    sinon.assert.calledWithExactly(create, formattedPayment);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(getPaymentNumberStub, payment, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(formatPaymentStub, payment, credentials.company, number);
+    sinon.assert.calledOnceWithExactly(create, formattedPayment);
+    sinon.assert.calledOnceWithExactly(
       updateOne,
       { prefix: number.prefix, nature: number.nature, company: companyId },
       { $set: { seq: number.seq + 1 } }
