@@ -50,6 +50,7 @@ const createEventBasedOnRepetition = async (repetition, date) => {
 const eventRepetitions = {
   async method(server) {
     const date = get(server, 'query.date') || new Date();
+    const type = get(server, 'query.type') || '';
     const errors = [];
     const companies = await Company.find({ 'subscriptions.erp': true }).lean();
     const newSavedEvents = [];
@@ -64,11 +65,16 @@ const eventRepetitions = {
         continue;
       }
 
-      const orderedRepetitions = [ // order matters
-        ...repetitions.filter(rep => rep.type === INTERNAL_HOUR),
-        ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
-        ...repetitions.filter(rep => rep.type === INTERVENTION),
-      ];
+      let orderedRepetitions;
+      if (type) {
+        orderedRepetitions = repetitions.filter(rep => rep.type === type);
+      } else {
+        orderedRepetitions = [ // order matters
+          ...repetitions.filter(rep => rep.type === INTERNAL_HOUR),
+          ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
+          ...repetitions.filter(rep => rep.type === INTERVENTION),
+        ];
+      }
 
       for (const repetition of orderedRepetitions) {
         try {
