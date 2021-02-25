@@ -372,23 +372,38 @@ describe('formatPayment', () => {
 });
 
 describe('getPaymentNumber', () => {
+  let findOneAndUpdate;
+
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(PaymentNumber, 'findOneAndUpdate');
+  });
+
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
   it('should get payment number', async () => {
     const payment = { nature: 'payment', date: new Date('2019-12-01') };
     const companyId = new ObjectID();
-    const PaymentNumberMock = sinon.mock(PaymentNumber);
 
-    PaymentNumberMock
-      .expects('findOneAndUpdate')
-      .withExactArgs(
-        { nature: payment.nature, company: companyId, prefix: '1219' },
-        {},
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      )
-      .chain('lean');
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await PaymentsHelper.getPaymentNumber(payment, companyId);
 
-    PaymentNumberMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'find',
+          args: [
+            { nature: payment.nature, company: companyId, prefix: '1219' },
+            {},
+            { new: true, upsert: true, setDefaultsOnInsert: true },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
