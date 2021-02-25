@@ -111,10 +111,9 @@ exports.createPayment = async (payload, credentials) => {
   const { company } = credentials;
   const number = await exports.getPaymentNumber(payload, company._id);
   const payment = await Payment.create(exports.formatPayment(payload, company, number));
-  number.seq += 1;
   await PaymentNumber.updateOne(
     { prefix: number.prefix, nature: payload.nature, company: company._id },
-    { $set: { seq: number.seq } }
+    { $set: { seq: number.seq + 1 } }
   );
   return payment;
 };
