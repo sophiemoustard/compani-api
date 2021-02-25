@@ -203,10 +203,8 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML([], [], company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
     sinon.assert.calledOnce(generateSEPAXmlStub);
     sinon.assert.notCalled(generatePaymentInfoStub);
     sinon.assert.notCalled(addTransactionInfoStub);
@@ -221,15 +219,13 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML(firstPayments, [], company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 });
-
-    sinon.assert.calledOnce(generatePaymentInfoStub);
-    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
-    sinon.assert.calledOnce(addTransactionInfoStub);
-    sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(
+      generateSEPAHeaderStub,
+      { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 }
+    );
+    sinon.assert.calledOnceWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
+    sinon.assert.calledOnceWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
     sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 
@@ -242,16 +238,13 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML([], recurPayments, company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 });
-
-    sinon.assert.calledOnce(generatePaymentInfoStub);
-    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
-    sinon.assert.calledOnce(addTransactionInfoStub);
-    sinon.assert.calledWithExactly(addTransactionInfoStub, recurPaymentsInfo, recurPayments);
-
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(
+      generateSEPAHeaderStub,
+      { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 }
+    );
+    sinon.assert.calledOnceWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
+    sinon.assert.calledOnceWithExactly(addTransactionInfoStub, recurPaymentsInfo, recurPayments);
     sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 
@@ -267,10 +260,8 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML(firstPayments, recurPayments, company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, generateSEPAHeaderArgument);
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(generateSEPAHeaderStub, generateSEPAHeaderArgument);
 
     sinon.assert.calledTwice(generatePaymentInfoStub);
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
@@ -360,7 +351,7 @@ describe('formatPayment', () => {
     expect(result.number).toBe('REG-190410100001');
     expect(ObjectID.isValid(result._id)).toBe(true);
     expect(result.company).toBe(companyId);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       formatPaymentNumberStub,
       company.prefixNumber,
       number.prefix,
@@ -516,8 +507,7 @@ describe('savePayments', () => {
     sinon.assert.calledTwice(countDocuments);
     sinon.assert.calledOnceWithExactly(insertMany, payload);
     sinon.assert.calledTwice(formatPaymentStub);
-    sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
-    sinon.assert.calledOnce(generateXMLStub);
+    sinon.assert.calledOnceWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledWithExactly(
       getPaymentNumberStub.getCall(0),
       { nature: 'payment', date: sinon.match.date },
