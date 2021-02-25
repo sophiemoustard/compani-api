@@ -420,14 +420,16 @@ describe('savePayments', () => {
   let getPaymentNumberStub;
   let formatPaymentStub;
   let generateXMLStub;
-  let PaymentModel;
+  let insertMany;
+  let countDocuments;
   let updateOneStub;
   beforeEach(() => {
     getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
     formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
     generateXMLStub = sinon.stub(PaymentsHelper, 'generateXML');
     updateOneStub = sinon.stub(PaymentNumber, 'updateOne');
-    PaymentModel = sinon.mock(Payment);
+    insertMany = sinon.stub(Payment, 'insertMany');
+    countDocuments = sinon.stub(Payment, 'countDocuments');
   });
 
   afterEach(() => {
@@ -435,7 +437,8 @@ describe('savePayments', () => {
     formatPaymentStub.restore();
     generateXMLStub.restore();
     updateOneStub.restore();
-    PaymentModel.restore();
+    insertMany.restore();
+    countDocuments.restore();
   });
   const credentials = {
     company: {
@@ -473,7 +476,6 @@ describe('savePayments', () => {
   it('should return error if company is missing', async () => {
     try {
       const credentialsTmp = {};
-      PaymentModel.expects('insertMany').never();
 
       await PaymentsHelper.savePayments(payload, credentialsTmp);
     } catch (e) {
@@ -481,7 +483,7 @@ describe('savePayments', () => {
       sinon.assert.notCalled(getPaymentNumberStub);
       sinon.assert.notCalled(formatPaymentStub);
       sinon.assert.notCalled(updateOneStub);
-      PaymentModel.verify();
+      sinon.assert.notCalled(insertMany);
     }
   });
 
@@ -489,23 +491,20 @@ describe('savePayments', () => {
   params.forEach((param) => {
     it(`should return error if missing '${param}' `, async () => {
       try {
-        PaymentModel.expects('insertMany').never();
-
         await PaymentsHelper.savePayments(payload, omit(credentials, `company.${param}`));
       } catch (e) {
         expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
         sinon.assert.notCalled(getPaymentNumberStub);
         sinon.assert.notCalled(formatPaymentStub);
         sinon.assert.notCalled(updateOneStub);
-        PaymentModel.verify();
+        sinon.assert.notCalled(insertMany);
       }
     });
   });
 
   it('should save payments', async () => {
-    PaymentModel.expects('countDocuments').onCall(0).returns(0);
-    PaymentModel.expects('countDocuments').onCall(1).returns(1);
-    PaymentModel.expects('insertMany').withExactArgs(payload).once();
+    countDocuments.onCall(0).returns(0);
+    countDocuments.onCall(1).returns(1);
     getPaymentNumberStub.onCall(0).returns(paymentNumbers[0]);
     getPaymentNumberStub.onCall(1).returns(paymentNumbers[1]);
     formatPaymentStub.onCall(0).returns(payload[0]);
@@ -513,6 +512,9 @@ describe('savePayments', () => {
     generateXMLStub.returns('');
 
     await PaymentsHelper.savePayments(payload, credentials);
+
+    sinon.assert.calledTwice(countDocuments);
+    sinon.assert.calledOnceWithExactly(insertMany, payload);
     sinon.assert.calledTwice(formatPaymentStub);
     sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledOnce(generateXMLStub);
@@ -538,6 +540,5 @@ describe('savePayments', () => {
       { $set: { seq: 2 } }
     );
     sinon.assert.calledTwice(updateOneStub);
-    PaymentModel.verify();
   });
 });
