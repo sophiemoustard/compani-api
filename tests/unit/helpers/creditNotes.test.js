@@ -19,8 +19,6 @@ const SinonMongoose = require('../sinonMongoose');
 
 const { language } = translate;
 
-require('sinon-mongoose');
-
 describe('getCreditNotes', () => {
   let getDateQueryStub;
   let find;
@@ -329,7 +327,8 @@ describe('getCreditNoteNumber', () => {
           args: [
             { prefix: '0919', company: company._id },
             {},
-            { new: true, upsert: true, setDefaultsOnInsert: true }],
+            { new: true, upsert: true, setDefaultsOnInsert: true },
+          ],
         },
         { query: 'lean' },
       ]
@@ -927,10 +926,6 @@ describe('generateCreditNotePdf', () => {
   });
 
   it('should generate a pdf', async () => {
-    const creditNote = { origin: COMPANI, number: '12345' };
-    const company = { _id: credentials.company._id };
-    const data = { name: 'creditNotePdf' };
-
     creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
     companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
     formatPDFStub.returns({ name: 'creditNotePdf' });
@@ -938,7 +933,7 @@ describe('generateCreditNotePdf', () => {
 
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
-    expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: creditNote.number });
+    expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: '12345' });
     SinonMongoose.calledWithExactly(
       creditNoteFindOne,
       [
@@ -960,8 +955,12 @@ describe('generateCreditNotePdf', () => {
       companyNoteFindOne,
       [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(formatPDFStub, creditNote, company);
-    sinon.assert.calledOnceWithExactly(generatePdfStub, data, './src/data/creditNote.html');
+    sinon.assert.calledOnceWithExactly(
+      formatPDFStub,
+      { origin: COMPANI, number: '12345' },
+      { _id: credentials.company._id }
+    );
+    sinon.assert.calledOnceWithExactly(generatePdfStub, { name: 'creditNotePdf' }, './src/data/creditNote.html');
   });
 
   it('should return a 404 if creditnote is not found', async () => {
