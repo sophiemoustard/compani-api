@@ -305,29 +305,35 @@ describe('formatCreditNote', () => {
 });
 
 describe('getCreditNoteNumber', () => {
-  let CreditNoteNumberMock;
+  let findOneAndUpdate;
   beforeEach(() => {
-    CreditNoteNumberMock = sinon.mock(CreditNoteNumber);
+    findOneAndUpdate = sinon.stub(CreditNoteNumber, 'findOneAndUpdate');
   });
   afterEach(() => {
-    CreditNoteNumberMock.restore();
+    findOneAndUpdate.restore();
   });
 
   it('should get credit note number', async () => {
     const payload = { date: '2019-09-19T00:00:00' };
     const company = { _id: new ObjectID() };
 
-    CreditNoteNumberMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { prefix: '0919', company: company._id },
-        {},
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      )
-      .chain('lean')
-      .once();
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
-    CreditNoteNumberMock.verify();
+
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'find',
+          args: [
+            { prefix: '0919', company: company._id },
+            {},
+            { new: true, upsert: true, setDefaultsOnInsert: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
