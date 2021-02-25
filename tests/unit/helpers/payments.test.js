@@ -285,6 +285,25 @@ describe('generateXML', () => {
 });
 
 describe('createPayment', () => {
+  let create;
+  let updateOne;
+  let getPaymentNumberStub;
+  let formatPaymentStub;
+
+  beforeEach(() => {
+    create = sinon.stub(Payment, 'create');
+    updateOne = sinon.stub(PaymentNumber, 'updateOne');
+    getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
+    formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
+  });
+
+  afterEach(() => {
+    create.restore();
+    updateOne.restore();
+    getPaymentNumberStub.restore();
+    formatPaymentStub.restore();
+  });
+
   it('should create a payment', async () => {
     const payment = {
       date: '2019-11-28',
@@ -303,29 +322,22 @@ describe('createPayment', () => {
       number: 'REG-101121900001',
       company: companyId,
     };
-    const getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber').returns(number);
-    const formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment').returns(formattedPayment);
-    const PaymentMock = sinon.mock(Payment);
-    const PaymentNumberMock = sinon.mock(PaymentNumber);
-    PaymentMock.expects('create').withExactArgs(formattedPayment).returns(formattedPayment);
-    PaymentNumberMock
-      .expects('updateOne')
-      .withExactArgs(
-        { prefix: number.prefix, nature: number.nature, company: companyId },
-        { $set: { seq: number.seq + 1 } }
-      );
+
+    getPaymentNumberStub.returns(number);
+    formatPaymentStub.returns(formattedPayment);
+    create.returns(formattedPayment);
 
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
     expect(result).toEqual(formattedPayment);
     sinon.assert.calledWithExactly(getPaymentNumberStub, payment, credentials.company._id);
     sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company, number);
-    PaymentMock.verify();
-    PaymentNumberMock.verify();
-    getPaymentNumberStub.restore();
-    formatPaymentStub.restore();
-    PaymentMock.restore();
-    PaymentNumberMock.restore();
+    sinon.assert.calledWithExactly(create, formattedPayment);
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { prefix: number.prefix, nature: number.nature, company: companyId },
+      { $set: { seq: number.seq + 1 } }
+    );
   });
 });
 
