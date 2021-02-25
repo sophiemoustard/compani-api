@@ -15,6 +15,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
 const { COMPANI, OGUST } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 const { language } = translate;
 
@@ -22,7 +23,7 @@ require('sinon-mongoose');
 
 describe('getCreditNotes', () => {
   let getDateQueryStub;
-  let CreditNoteMock;
+  let find;
   let populateSubscriptionsServicesStub;
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
@@ -31,11 +32,11 @@ describe('getCreditNotes', () => {
   beforeEach(() => {
     getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
     populateSubscriptionsServicesStub = sinon.stub(SubscriptionHelper, 'populateSubscriptionsServices');
-    CreditNoteMock = sinon.mock(CreditNote);
+    find = sinon.stub(CreditNote, 'find');
   });
   afterEach(() => {
     getDateQueryStub.restore();
-    CreditNoteMock.restore();
+    find.restore();
     populateSubscriptionsServicesStub.restore();
   });
 
@@ -51,25 +52,29 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-
-    CreditNoteMock.expects('find')
-      .withExactArgs({ date: dateQuery, customer: customerId, company: companyId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        select: '_id identity subscriptions',
-        populate: { path: 'subscriptions.service' },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('lean')
-      .returns([{ customer: { _id: customerId } }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: '_id identity subscriptions',
+            populate: { path: 'subscriptions.service' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
   });
 
@@ -78,24 +83,29 @@ describe('getCreditNotes', () => {
       customer: customerId,
     };
 
-    CreditNoteMock.expects('find')
-      .withExactArgs({ customer: customerId, company: companyId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        select: '_id identity subscriptions',
-        populate: { path: 'subscriptions.service' },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('lean')
-      .returns([{ customer: { _id: customerId } }]);
+    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.notCalled(getDateQueryStub);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ customer: customerId, company: companyId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: '_id identity subscriptions',
+            populate: { path: 'subscriptions.service' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
   });
 
@@ -111,23 +121,28 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-    CreditNoteMock.expects('find')
-      .withExactArgs({ date: dateQuery, customer: customerId, company: companyId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        select: '_id identity subscriptions',
-        populate: { path: 'subscriptions.service' },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('lean')
-      .returns([]);
+    find.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: '_id identity subscriptions',
+            populate: { path: 'subscriptions.service' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(populateSubscriptionsServicesStub);
   });
 });

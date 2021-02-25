@@ -12,8 +12,6 @@ const Payment = require('../../../src/models/Payment');
 const xmlHelper = require('../../../src/helpers/xml');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('getPayments', () => {
   let getDateQueryStub;
   let find;
