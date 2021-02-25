@@ -10,40 +10,42 @@ const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Payment = require('../../../src/models/Payment');
 const xmlHelper = require('../../../src/helpers/xml');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
 describe('getPayments', () => {
   let getDateQueryStub;
-  let PaymentModel;
+  let find;
   beforeEach(() => {
     getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
-    PaymentModel = sinon.mock(Payment);
+    find = sinon.stub(Payment, 'find');
   });
 
   afterEach(() => {
     getDateQueryStub.restore();
-    PaymentModel.restore();
+    find.restore();
   });
 
   it('should return all payments ', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = {};
     const payment = { _id: new ObjectID() };
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
     sinon.assert.notCalled(getDateQueryStub);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should call getDateQuery if startDate is defined ', async () => {
@@ -52,21 +54,21 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectID() };
 
     getDateQueryStub.returns({ $lte: '2019-11-01' });
-
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, date: { $lte: '2019-11-01' } })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, date: { $lte: '2019-11-01' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should call getDateQuery if endDate is defined ', async () => {
@@ -75,21 +77,21 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectID() };
 
     getDateQueryStub.returns({ $gte: '2019-11-01' });
-
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, date: { $gte: '2019-11-01' } })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, date: { $gte: '2019-11-01' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
