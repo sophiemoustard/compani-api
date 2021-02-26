@@ -65,16 +65,13 @@ const eventRepetitions = {
         continue;
       }
 
-      let orderedRepetitions;
-      if (type) {
-        orderedRepetitions = repetitions.filter(rep => rep.type === type);
-      } else {
-        orderedRepetitions = [ // order matters
+      const orderedRepetitions = type
+        ? repetitions.filter(rep => rep.type === type)
+        : [ // order matters
           ...repetitions.filter(rep => rep.type === INTERNAL_HOUR),
           ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
           ...repetitions.filter(rep => rep.type === INTERVENTION),
         ];
-      }
 
       for (const repetition of orderedRepetitions) {
         try {
