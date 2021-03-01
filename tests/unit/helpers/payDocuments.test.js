@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -16,7 +16,7 @@ describe('create', () => {
   let formatIdentity;
 
   beforeEach(() => {
-    addFile = sinon.stub(GdriveStorageHelper, 'addFile');
+    addFile = sinon.stub(GDriveStorageHelper, 'addFile');
     create = sinon.stub(PayDocument, 'create');
     findOne = sinon.stub(User, 'findOne');
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
@@ -107,7 +107,7 @@ describe('removeFromDriveAndDb', () => {
   });
 
   it('should remove document from db and drive', async () => {
-    const deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
+    const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     const id = new ObjectID();
     const doc = { file: { driveId: '1234567890', link: 'http://test.com/test.pdf' } };
     findByIdAndRemoveStub.returns(doc);

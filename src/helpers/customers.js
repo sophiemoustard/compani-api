@@ -5,7 +5,7 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
-const GdriveStorageHelper = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -171,7 +171,7 @@ exports.createCustomer = async (payload, credentials) => {
   const companyId = company._id || null;
   const number = await exports.getRumNumber(company._id);
   const rum = exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq);
-  const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
+  const folder = await GDriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
 
   const customer = {
     ...payload,
@@ -214,7 +214,7 @@ const uploadFinancialCertificate = async (customerId, file) => Customer.updateOn
 );
 
 exports.createAndSaveFile = async (params, payload) => {
-  const uploadedFile = await GdriveStorageHelper.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload.file.hapi.filename,
     type: payload['Content-Type'],

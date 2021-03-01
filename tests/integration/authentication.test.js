@@ -7,7 +7,7 @@ const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
 const { getToken, getUser, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const { userList, noRoleNoCompany } = require('../seed/userSeed');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
@@ -308,7 +308,7 @@ describe('POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
   beforeEach(() => {
-    createFolderStub = sinon.stub(GdriveStorage, 'createFolder');
+    createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
   });
   afterEach(() => {
     createFolderStub.restore();

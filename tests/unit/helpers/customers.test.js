@@ -12,7 +12,7 @@ const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
@@ -698,7 +698,7 @@ describe('createCustomer', () => {
   beforeEach(() => {
     getRumNumberStub = sinon.stub(CustomerHelper, 'getRumNumber');
     formatRumNumberStub = sinon.stub(CustomerHelper, 'formatRumNumber');
-    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
     create = sinon.stub(Customer, 'create');
     updateOne = sinon.stub(Rum, 'updateOne');
     CompanyMock = sinon.mock(Company);

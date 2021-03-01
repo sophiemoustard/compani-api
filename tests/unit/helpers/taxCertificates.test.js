@@ -7,14 +7,14 @@ const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
 
 require('sinon-mongoose');
 
-describe('generateTaxCertificatesList', () => {
+describe('list', () => {
   let TaxCertificateMock;
   beforeEach(() => {
     TaxCertificateMock = sinon.mock(TaxCertificate);
@@ -36,7 +36,7 @@ describe('generateTaxCertificatesList', () => {
       .once()
       .returns(taxCertificates);
 
-    const result = await TaxCertificateHelper.generateTaxCertificatesList(customer, { company: { _id: companyId } });
+    const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
     expect(result).toEqual(taxCertificates);
     TaxCertificateMock.verify();
@@ -275,7 +275,7 @@ describe('create', () => {
   const newTaxCertificate = new TaxCertificate(createPayload);
 
   beforeEach(() => {
-    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
     TaxCertificateMock = sinon.mock(TaxCertificate);
   });
 
@@ -329,7 +329,7 @@ describe('remove', () => {
   let deleteFileStub;
   beforeEach(() => {
     TaxCertificateMock = sinon.mock(TaxCertificate);
-    deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
+    deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
   });
   afterEach(() => {
     TaxCertificateMock.restore();

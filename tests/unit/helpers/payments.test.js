@@ -10,40 +10,40 @@ const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Payment = require('../../../src/models/Payment');
 const xmlHelper = require('../../../src/helpers/xml');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getPayments', () => {
   let getDateQueryStub;
-  let PaymentModel;
+  let find;
   beforeEach(() => {
     getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
-    PaymentModel = sinon.mock(Payment);
+    find = sinon.stub(Payment, 'find');
   });
 
   afterEach(() => {
     getDateQueryStub.restore();
-    PaymentModel.restore();
+    find.restore();
   });
 
   it('should return all payments ', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = {};
     const payment = { _id: new ObjectID() };
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
     sinon.assert.notCalled(getDateQueryStub);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should call getDateQuery if startDate is defined ', async () => {
@@ -52,21 +52,21 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectID() };
 
     getDateQueryStub.returns({ $lte: '2019-11-01' });
-
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, date: { $lte: '2019-11-01' } })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, date: { $lte: '2019-11-01' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should call getDateQuery if endDate is defined ', async () => {
@@ -75,21 +75,21 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectID() };
 
     getDateQueryStub.returns({ $gte: '2019-11-01' });
-
-    PaymentModel
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id, date: { $gte: '2019-11-01' } })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: '_id identity' })
-      .chain('lean')
-      .returns([payment]);
+    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, date: { $gte: '2019-11-01' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'customer', select: '_id identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -201,10 +201,8 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML([], [], company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
     sinon.assert.calledOnce(generateSEPAXmlStub);
     sinon.assert.notCalled(generatePaymentInfoStub);
     sinon.assert.notCalled(addTransactionInfoStub);
@@ -219,15 +217,13 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML(firstPayments, [], company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 });
-
-    sinon.assert.calledOnce(generatePaymentInfoStub);
-    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
-    sinon.assert.calledOnce(addTransactionInfoStub);
-    sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(
+      generateSEPAHeaderStub,
+      { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 }
+    );
+    sinon.assert.calledOnceWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
+    sinon.assert.calledOnceWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
     sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 
@@ -240,16 +236,13 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML([], recurPayments, company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 });
-
-    sinon.assert.calledOnce(generatePaymentInfoStub);
-    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
-    sinon.assert.calledOnce(addTransactionInfoStub);
-    sinon.assert.calledWithExactly(addTransactionInfoStub, recurPaymentsInfo, recurPayments);
-
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(
+      generateSEPAHeaderStub,
+      { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 }
+    );
+    sinon.assert.calledOnceWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
+    sinon.assert.calledOnceWithExactly(addTransactionInfoStub, recurPaymentsInfo, recurPayments);
     sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 
@@ -265,10 +258,8 @@ describe('generateXML', () => {
 
     await PaymentsHelper.generateXML(firstPayments, recurPayments, company);
 
-    sinon.assert.calledOnce(createDocumentStub);
-    sinon.assert.calledWithExactly(createDocumentStub);
-    sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWithExactly(generateSEPAHeaderStub, generateSEPAHeaderArgument);
+    sinon.assert.calledOnceWithExactly(createDocumentStub);
+    sinon.assert.calledOnceWithExactly(generateSEPAHeaderStub, generateSEPAHeaderArgument);
 
     sinon.assert.calledTwice(generatePaymentInfoStub);
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
@@ -283,6 +274,25 @@ describe('generateXML', () => {
 });
 
 describe('createPayment', () => {
+  let create;
+  let updateOne;
+  let getPaymentNumberStub;
+  let formatPaymentStub;
+
+  beforeEach(() => {
+    create = sinon.stub(Payment, 'create');
+    updateOne = sinon.stub(PaymentNumber, 'updateOne');
+    getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
+    formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
+  });
+
+  afterEach(() => {
+    create.restore();
+    updateOne.restore();
+    getPaymentNumberStub.restore();
+    formatPaymentStub.restore();
+  });
+
   it('should create a payment', async () => {
     const payment = {
       date: '2019-11-28',
@@ -301,29 +311,22 @@ describe('createPayment', () => {
       number: 'REG-101121900001',
       company: companyId,
     };
-    const getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber').returns(number);
-    const formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment').returns(formattedPayment);
-    const PaymentMock = sinon.mock(Payment);
-    const PaymentNumberMock = sinon.mock(PaymentNumber);
-    PaymentMock.expects('create').withExactArgs(formattedPayment).returns(formattedPayment);
-    PaymentNumberMock
-      .expects('updateOne')
-      .withExactArgs(
-        { prefix: number.prefix, nature: number.nature, company: companyId },
-        { $set: { seq: number.seq + 1 } }
-      );
+
+    getPaymentNumberStub.returns(number);
+    formatPaymentStub.returns(formattedPayment);
+    create.returns(formattedPayment);
 
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
     expect(result).toEqual(formattedPayment);
-    sinon.assert.calledWithExactly(getPaymentNumberStub, payment, credentials.company._id);
-    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company, number);
-    PaymentMock.verify();
-    PaymentNumberMock.verify();
-    getPaymentNumberStub.restore();
-    formatPaymentStub.restore();
-    PaymentMock.restore();
-    PaymentNumberMock.restore();
+    sinon.assert.calledOnceWithExactly(getPaymentNumberStub, payment, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(formatPaymentStub, payment, credentials.company, number);
+    sinon.assert.calledOnceWithExactly(create, formattedPayment);
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { prefix: number.prefix, nature: number.nature, company: companyId },
+      { $set: { seq: number.seq + 1 } }
+    );
   });
 });
 
@@ -346,7 +349,7 @@ describe('formatPayment', () => {
     expect(result.number).toBe('REG-190410100001');
     expect(ObjectID.isValid(result._id)).toBe(true);
     expect(result.company).toBe(companyId);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       formatPaymentNumberStub,
       company.prefixNumber,
       number.prefix,
@@ -358,23 +361,38 @@ describe('formatPayment', () => {
 });
 
 describe('getPaymentNumber', () => {
+  let findOneAndUpdate;
+
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(PaymentNumber, 'findOneAndUpdate');
+  });
+
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
   it('should get payment number', async () => {
     const payment = { nature: 'payment', date: new Date('2019-12-01') };
     const companyId = new ObjectID();
-    const PaymentNumberMock = sinon.mock(PaymentNumber);
 
-    PaymentNumberMock
-      .expects('findOneAndUpdate')
-      .withExactArgs(
-        { nature: payment.nature, company: companyId, prefix: '1219' },
-        {},
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      )
-      .chain('lean');
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await PaymentsHelper.getPaymentNumber(payment, companyId);
 
-    PaymentNumberMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'find',
+          args: [
+            { nature: payment.nature, company: companyId, prefix: '1219' },
+            {},
+            { new: true, upsert: true, setDefaultsOnInsert: true },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -391,14 +409,16 @@ describe('savePayments', () => {
   let getPaymentNumberStub;
   let formatPaymentStub;
   let generateXMLStub;
-  let PaymentModel;
+  let insertMany;
+  let countDocuments;
   let updateOneStub;
   beforeEach(() => {
     getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
     formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
     generateXMLStub = sinon.stub(PaymentsHelper, 'generateXML');
     updateOneStub = sinon.stub(PaymentNumber, 'updateOne');
-    PaymentModel = sinon.mock(Payment);
+    insertMany = sinon.stub(Payment, 'insertMany');
+    countDocuments = sinon.stub(Payment, 'countDocuments');
   });
 
   afterEach(() => {
@@ -406,7 +426,8 @@ describe('savePayments', () => {
     formatPaymentStub.restore();
     generateXMLStub.restore();
     updateOneStub.restore();
-    PaymentModel.restore();
+    insertMany.restore();
+    countDocuments.restore();
   });
   const credentials = {
     company: {
@@ -444,7 +465,6 @@ describe('savePayments', () => {
   it('should return error if company is missing', async () => {
     try {
       const credentialsTmp = {};
-      PaymentModel.expects('insertMany').never();
 
       await PaymentsHelper.savePayments(payload, credentialsTmp);
     } catch (e) {
@@ -452,7 +472,7 @@ describe('savePayments', () => {
       sinon.assert.notCalled(getPaymentNumberStub);
       sinon.assert.notCalled(formatPaymentStub);
       sinon.assert.notCalled(updateOneStub);
-      PaymentModel.verify();
+      sinon.assert.notCalled(insertMany);
     }
   });
 
@@ -460,23 +480,20 @@ describe('savePayments', () => {
   params.forEach((param) => {
     it(`should return error if missing '${param}' `, async () => {
       try {
-        PaymentModel.expects('insertMany').never();
-
         await PaymentsHelper.savePayments(payload, omit(credentials, `company.${param}`));
       } catch (e) {
         expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
         sinon.assert.notCalled(getPaymentNumberStub);
         sinon.assert.notCalled(formatPaymentStub);
         sinon.assert.notCalled(updateOneStub);
-        PaymentModel.verify();
+        sinon.assert.notCalled(insertMany);
       }
     });
   });
 
   it('should save payments', async () => {
-    PaymentModel.expects('countDocuments').onCall(0).returns(0);
-    PaymentModel.expects('countDocuments').onCall(1).returns(1);
-    PaymentModel.expects('insertMany').withExactArgs(payload).once();
+    countDocuments.onCall(0).returns(0);
+    countDocuments.onCall(1).returns(1);
     getPaymentNumberStub.onCall(0).returns(paymentNumbers[0]);
     getPaymentNumberStub.onCall(1).returns(paymentNumbers[1]);
     formatPaymentStub.onCall(0).returns(payload[0]);
@@ -484,9 +501,11 @@ describe('savePayments', () => {
     generateXMLStub.returns('');
 
     await PaymentsHelper.savePayments(payload, credentials);
+
+    sinon.assert.calledTwice(countDocuments);
+    sinon.assert.calledOnceWithExactly(insertMany, payload);
     sinon.assert.calledTwice(formatPaymentStub);
-    sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
-    sinon.assert.calledOnce(generateXMLStub);
+    sinon.assert.calledOnceWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledWithExactly(
       getPaymentNumberStub.getCall(0),
       { nature: 'payment', date: sinon.match.date },
@@ -509,6 +528,5 @@ describe('savePayments', () => {
       { $set: { seq: 2 } }
     );
     sinon.assert.calledTwice(updateOneStub);
-    PaymentModel.verify();
   });
 });
