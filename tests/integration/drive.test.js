@@ -4,7 +4,8 @@ const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
 const sinon = require('sinon');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const { ObjectID } = require('mongodb');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
@@ -26,7 +27,7 @@ describe('POST /gdrive/:id/upload', () => {
   let uploadFileSpy;
   beforeEach(() => {
     addFileStub = sinon
-      .stub(GdriveStorage, 'addFile')
+      .stub(GDriveStorageHelper, 'addFile')
       .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     uploadFileSpy = sinon.spy(DriveHelper, 'uploadFile');
   });
@@ -95,7 +96,7 @@ describe('DELETE /gdrive/file/:id', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
-      deleteFileStub = sinon.stub(Drive, 'deleteFile');
+      deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     });
 
     afterEach(() => {
@@ -110,7 +111,20 @@ describe('DELETE /gdrive/file/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledWithExactly(deleteFileStub, { fileId: userFileId });
+      sinon.assert.calledWithExactly(deleteFileStub, userFileId);
+    });
+
+    it('should return 200 even if document is missing ', async () => {
+      const missingFileId = new ObjectID();
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/gdrive/file/${missingFileId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledWithExactly(deleteFileStub, missingFileId.toHexString());
     });
   });
 });

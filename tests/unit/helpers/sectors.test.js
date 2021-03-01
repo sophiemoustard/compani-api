@@ -3,73 +3,66 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Sector = require('../../../src/models/Sector');
 const SectorsHelper = require('../../../src/helpers/sectors');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(Sector, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
   it('should create a new sector', async () => {
     const payload = { name: 'toto' };
     const companyId = new ObjectID();
-    const payloadWithCompany = { ...payload, company: companyId };
     const credentials = { company: { _id: companyId } };
 
-    const newSector = new Sector({ ...payload, company: companyId });
-    const newSectorMock = sinon.mock(newSector);
-    const SectorMock = sinon.mock(Sector);
-
-    SectorMock.expects('countDocuments').once().returns(0);
-    SectorMock.expects('create')
-      .withExactArgs(payloadWithCompany)
-      .once()
-      .returns(newSector);
-    newSectorMock.expects('toObject').once().returns(payloadWithCompany);
+    create.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['toObject']));
 
     const result = await SectorsHelper.create(payload, credentials);
 
-    expect(result).toMatchObject(payloadWithCompany);
-    SectorMock.verify();
-    newSectorMock.verify();
-  });
+    expect(result).toMatchObject({ name: 'toto', company: companyId });
 
-  it('should not create a new sector as name already exists', async () => {
-    const payload = { name: 'toto' };
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
-    const SectorMock = sinon.mock(Sector);
-
-    SectorMock.expects('countDocuments').once().returns(2);
-    SectorMock.expects('create').never();
-
-    try {
-      await SectorsHelper.create(payload, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
-      SectorMock.verify();
-    }
+    SinonMongoose.calledWithExactly(create, [
+      { query: 'create', args: [{ name: 'toto', company: companyId }] },
+      { query: 'toObject' },
+    ]);
   });
 });
 
 describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(Sector, 'find');
+  });
+  afterEach(() => {
+    find.restore();
+  });
+
   it('should list sectors', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const SectorMock = sinon.mock(Sector);
+    const companyId = credentials.company._id;
 
-    SectorMock.expects('find').withExactArgs({ company: credentials.company._id }).chain('lean');
+    find.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['lean']));
 
     await SectorsHelper.list(credentials);
 
-    SectorMock.verify();
+    SinonMongoose.calledWithExactly(find, [
+      { query: 'find', args: [{ company: companyId }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
 describe('update', () => {
-  let SectorMock;
+  let findOneAndUpdate;
   beforeEach(() => {
-    SectorMock = sinon.mock(Sector);
+    findOneAndUpdate = sinon.stub(Sector, 'findOneAndUpdate');
   });
   afterEach(() => {
-    SectorMock.restore();
+    findOneAndUpdate.restore();
   });
 
   it('should update a sector', async () => {
@@ -78,42 +71,31 @@ describe('update', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    SectorMock.expects('countDocuments').withExactArgs({ name: 'Tutu', company: companyId }).once().returns(0);
-    SectorMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: sectorId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once();
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await SectorsHelper.update(sectorId, payload, credentials);
 
-    SectorMock.verify();
-  });
-
-  it('should not update sector as name already exists', async () => {
-    const payload = { name: 'Tutu' };
-    const sectorId = new ObjectID();
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
-    SectorMock.expects('countDocuments').withExactArgs({ name: 'Tutu', company: companyId }).once().returns(3);
-    SectorMock.expects('findOneAndUpdate').never();
-
-    try {
-      await SectorsHelper.update(sectorId, payload, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
-      SectorMock.verify();
-    }
+    SinonMongoose.calledWithExactly(findOneAndUpdate, [
+      { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
 describe('remove', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(Sector, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
   it('should remove an sector', async () => {
     const sectorId = new ObjectID();
-    const deleteOne = sinon.stub(Sector, 'deleteOne');
 
     await SectorsHelper.remove(sectorId);
 
-    sinon.assert.calledWithExactly(deleteOne, { _id: sectorId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: sectorId });
   });
 });

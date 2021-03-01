@@ -616,6 +616,16 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 409 if slot has an attendance', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {

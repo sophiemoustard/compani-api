@@ -1,10 +1,10 @@
 const path = require('path');
 const os = require('os');
-const GdriveStorage = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const drive = require('../models/Google/Drive');
 
 exports.uploadFile = async (driveId, docPayload) => {
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: driveId,
     name: docPayload.fileName,
     type: docPayload['Content-Type'],
