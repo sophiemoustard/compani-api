@@ -33,6 +33,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             date: Joi.date(),
+            type: Joi.string(),
           }),
         },
       },

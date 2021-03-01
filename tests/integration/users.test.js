@@ -40,7 +40,7 @@ const {
   rolesList,
 } = require('./seed/authenticationSeed');
 const { trainer, userList, noRoleNoCompany } = require('../seed/userSeed');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
 const { generateFormData } = require('./utils');
@@ -699,6 +699,39 @@ describe('GET /users/learners', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
         .toBeTruthy();
+    });
+
+    it('should return 200 if a vendor asks all learners with company', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 403 if is not a vendor', async () => {
+      authToken = await getToken('client_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 400 if queries hasCompany and company are used together', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}&&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
 
     const roles = [
@@ -1524,7 +1557,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   beforeEach(() => {
     docPayload = { fileName: 'mutual_fund_doc', type: 'mutualFund', file: 'true' };
     form = generateFormData(docPayload);
-    addFileStub = sinon.stub(GdriveStorage, 'addFile')
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile')
       .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
   });
   afterEach(() => {
@@ -1807,7 +1840,7 @@ describe('POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
   beforeEach(() => {
-    createFolderStub = sinon.stub(GdriveStorage, 'createFolder');
+    createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
   });
   afterEach(() => {
     createFolderStub.restore();

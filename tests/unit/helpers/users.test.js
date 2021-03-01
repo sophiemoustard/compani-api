@@ -12,7 +12,7 @@ const SinonMongoose = require('../sinonMongoose');
 const UsersHelper = require('../../../src/helpers/users');
 const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
@@ -301,6 +301,46 @@ describe('getLearnerList', () => {
       { query: 'lean' },
     ]);
   });
+
+  it('should get all learners with a company', async () => {
+    const query = { hasCompany: true };
+    const credentials = { role: { vendor: new ObjectID() } };
+    const users = [
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+      { _id: new ObjectID(), activityHistories: [{ _id: new ObjectID() }] },
+    ];
+    const usersWithVirtuals = [
+      { _id: users[0]._id, activityHistoryCount: 1, lastActivityHistory: users[0].activityHistories[0] },
+      { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
+    ];
+
+    findUser.returns(SinonMongoose.stubChainedQueries(
+      [users],
+      ['populate', 'setOptions', 'lean']
+    ));
+
+    const result = await UsersHelper.getLearnerList(query, credentials);
+
+    expect(result).toEqual(usersWithVirtuals);
+    sinon.assert.notCalled(findRole);
+    SinonMongoose.calledWithExactly(findUser, [
+      { query: 'find',
+        args: [
+          { company: { $exists: true } },
+          'identity.firstname identity.lastname picture',
+          { autopopulate: false },
+        ] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+      {
+        query: 'populate',
+        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+      },
+      { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+      { query: 'lean' },
+    ]);
+  });
 });
 
 describe('getUser', () => {
@@ -517,7 +557,7 @@ describe('createAndSaveFile', () => {
   const uploadedFile = { id: '123456790', webViewLink: 'http://test.com' };
 
   beforeEach(() => {
-    addFileStub = sinon.stub(GdriveStorageHelper, 'addFile').returns(uploadedFile);
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile').returns(uploadedFile);
     saveFileStub = sinon.stub(UsersHelper, 'saveFile');
     saveCertificateDriveIdStub = sinon.stub(UsersHelper, 'saveCertificateDriveId');
   });
@@ -1133,7 +1173,7 @@ describe('createDriveFolder', () => {
   let userUpdateOne;
   beforeEach(() => {
     companyFindOne = sinon.stub(Company, 'findOne');
-    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
     userUpdateOne = sinon.stub(User, 'updateOne');
   });
   afterEach(() => {

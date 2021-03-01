@@ -7,6 +7,11 @@
       - [ ] J'ai fait de nouveaux tests sans modifier les anciens pour s'assurer que les anciennes versions du mobile
       fonctionnent
 
+- [ ] J'ai testé que les anciennes versions maintenues de l'application mobile fonctionnent toujours (a minima):
+  - [ ] Affichage des pages explorer/mes formations/About/CourseProfile
+  - [ ] Inscription a une formation e-learning
+  - [ ] Possibilité de faire une activité
+
 - [ ] Mes changements n'impactent pas une route utilisée par l'autre plateforme (mobile/webapp)
 - Mes changements impactent une route utilisée par l'autre plateforme (mobile/webapp):
   - [ ] J'ai décrit dans le cas d'usage les choses a tester sur l'autre plateforme
@@ -39,6 +44,10 @@
     - [ ] Les anciennes versions mobiles + l'actuelle ne l'envoient pas
 
 - [ ] Je n'ai pas changé de constante
+
+- J'ai ajouté une variable d'environnement :
+  - [ ] J'ai précisé sur le slite de MES et MEP les modifications faites
+
 
 - Périmetre interface : 
 

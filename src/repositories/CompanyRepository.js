@@ -8,14 +8,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
   const aggregateHourlySubscriptions = [
     { $match: { _id: new ObjectID(customerId) } },
     { $unwind: { path: '$subscriptions' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscriptions.service',
-        foreignField: '_id',
-        as: 'service',
-      },
-    },
+    { $lookup: { from: 'services', localField: 'subscriptions.service', foreignField: '_id', as: 'service' } },
     { $unwind: { path: '$service' } },
     { $match: { 'service.nature': 'hourly' } },
     { $project: { subscriptionId: '$subscriptions._id' } },
@@ -63,14 +56,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
         'lastEvent.startDate': { $arrayElemAt: ['$events.startDate', 0] },
       },
     },
-    {
-      $lookup: {
-        from: 'users',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'auxiliary',
-      },
-    },
+    { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'auxiliary' } },
     { $unwind: { path: '$auxiliary' } },
     {
       $addFields: {
@@ -99,32 +85,16 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
           },
           { $sort: { startDate: -1 } },
           { $limit: 1 },
-          {
-            $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-          },
+          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
           { $unwind: { path: '$lastSector' } },
           { $replaceRoot: { newRoot: '$lastSector' } },
         ],
       },
     },
     { $unwind: { path: '$sector' } },
-    {
-      $lookup: {
-        from: 'roles',
-        localField: 'role.client',
-        foreignField: '_id',
-        as: 'role.client',
-      },
-    },
+    { $lookup: { from: 'roles', localField: 'role.client', foreignField: '_id', as: 'role.client' } },
     { $unwind: { path: '$role.client' } },
-    {
-      $lookup: {
-        from: 'contracts',
-        localField: 'contracts',
-        foreignField: '_id',
-        as: 'contracts',
-      },
-    },
+    { $lookup: { from: 'contracts', localField: 'contracts', foreignField: '_id', as: 'contracts' } },
   ];
 
   const pickFields = [{

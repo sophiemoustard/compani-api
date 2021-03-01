@@ -2,7 +2,14 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
 const app = require('../../server');
-const { populateDB, attendancesList, coursesList, slotsList, trainerList } = require('./seed/attendancesSeed');
+const {
+  populateDB,
+  attendancesList,
+  coursesList,
+  slotsList,
+  trainerList,
+  companyTraineesList,
+} = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -67,12 +74,12 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if trainee is not part of course trainees', async () => {
+    it('should return 403 if trainee is not part of the company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: new ObjectID(), courseSlot: slotsList[0]._id },
+        payload: { trainee: companyTraineesList[1]._id, courseSlot: slotsList[0]._id },
       });
 
       expect(response.statusCode).toBe(403);

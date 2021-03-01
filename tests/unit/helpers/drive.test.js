@@ -4,14 +4,14 @@ const path = require('path');
 const os = require('os');
 const DriveHelper = require('../../../src/helpers/drive');
 const Drive = require('../../../src/models/Google/Drive');
-const GdriveStorage = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 
 describe('uploadFile', () => {
   it('should upload file and return attachment info', async () => {
     const attachmentInfo = { id: '1234567890', webViewLink: 'https://test.com/1234567890' };
     const docPayload = { fileName: 'test', 'Content-Type': 'application/pdf', file: 'This is a file' };
     const driveFolderId = '0987654321';
-    const addFileStub = sinon.stub(GdriveStorage, 'addFile');
+    const addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
 
     addFileStub.returns(attachmentInfo);
 
