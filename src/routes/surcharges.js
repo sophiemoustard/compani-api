@@ -22,6 +22,7 @@ exports.plugin = {
             publicHoliday: Joi.number().allow('', null),
             twentyFifthOfDecember: Joi.number().allow('', null),
             firstOfMay: Joi.number().allow('', null),
+            firstOfJanuary: Joi.number().allow('', null),
             evening: Joi.number().allow('', null),
             eveningStartTime: Joi.string().allow('', null).when('evening', { is: Joi.number(), then: Joi.required() }),
             eveningEndTime: Joi.string().allow('', null).when('evening', { is: Joi.number(), then: Joi.required() }),
@@ -57,6 +58,7 @@ exports.plugin = {
             publicHoliday: Joi.number().allow('', null).default(null),
             twentyFifthOfDecember: Joi.number().allow('', null).default(null),
             firstOfMay: Joi.number().allow('', null).default(null),
+            firstOfJanuary: Joi.number().allow('', null).default(null),
             evening: Joi.number().allow('', null).default(null),
             eveningStartTime: Joi.string().allow('', null).default('')
               .when('evening', { is: Joi.number(), then: Joi.required() }),
