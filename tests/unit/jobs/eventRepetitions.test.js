@@ -2,8 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
-require('sinon-mongoose');
-
+const SinonMongoose = require('../sinonMongoose');
 const Repetition = require('../../../src/models/Repetition');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
@@ -12,9 +11,9 @@ const EmailHelper = require('../../../src/helpers/email');
 const eventRepetitions = require('../../../src/jobs/eventRepetitions');
 
 describe('method', () => {
-  let EventMock;
-  let RepetitionMock;
-  let CompanyMock;
+  let create;
+  let findRepetition;
+  let findCompany;
   let formatEventBasedOnRepetitionStub;
   let EmailHelperStub;
   let date;
@@ -22,18 +21,18 @@ describe('method', () => {
   const server = { log: (tags, text) => `${tags}, ${text}` };
   let serverLogStub;
   beforeEach(() => {
-    RepetitionMock = sinon.mock(Repetition);
-    CompanyMock = sinon.mock(Company);
-    EventMock = sinon.mock(Event);
+    create = sinon.stub(Event, 'create');
+    findRepetition = sinon.stub(Repetition, 'find');
+    findCompany = sinon.stub(Company, 'find');
     formatEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'formatEventBasedOnRepetition');
     EmailHelperStub = sinon.stub(EmailHelper, 'completeEventRepScriptEmail');
     date = sinon.useFakeTimers(fakeDate);
     serverLogStub = sinon.stub(server, 'log');
   });
   afterEach(() => {
-    EventMock.restore();
-    RepetitionMock.restore();
-    CompanyMock.restore();
+    create.restore();
+    findRepetition.restore();
+    findCompany.restore();
     formatEventBasedOnRepetitionStub.restore();
     EmailHelperStub.restore();
     date.restore();
@@ -63,16 +62,8 @@ describe('method', () => {
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
       const companyId = new ObjectID();
 
-      CompanyMock.expects('find')
-        .withExactArgs({ 'subscriptions.erp': true })
-        .chain('lean')
-        .once()
-        .returns([{ _id: companyId }]);
-      RepetitionMock.expects('find')
-        .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
-        .chain('lean')
-        .once()
-        .returns(repetition);
+      findRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['lean']));
+      findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
 
       const futureEvent = new Event({
         type: 'intervention',
@@ -89,19 +80,91 @@ describe('method', () => {
         },
       });
       formatEventBasedOnRepetitionStub.returns(futureEvent);
-      EventMock.expects('create')
-        .withArgs(futureEvent)
-        .once()
-        .returns(futureEvent);
+      create.returns(futureEvent);
 
       const result = await eventRepetitions.method(server);
 
       expect(result).toMatchObject({ results: [futureEvent], errors: [] });
       sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetition[0], new Date());
-      RepetitionMock.verify();
-      EventMock.verify();
-      CompanyMock.verify();
+      SinonMongoose.calledWithExactly(
+        findRepetition,
+        [
+          { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledWithExactly(
+        findCompany,
+        [
+          { query: 'find', args: [{ 'subscriptions.erp': true }] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.calledOnceWithExactly(create, futureEvent);
     });
+  });
+
+  it('should only create J+90 event for a certain type of repetition object', async () => {
+    const repetitions = [
+      {
+        _id: '5d84f869b7e67963c6523704',
+        type: 'intervention',
+        customer: '5d4420d306ab3d00147caf11',
+        subscription: '5d4422b306ab3d00147caf13',
+        auxiliary: '5d121abe9ff937001403b6c6',
+        startDate: '2020-02-02T10:20:00',
+        endDate: '2020-02-02T12:20:00',
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+      {
+        _id: '5d84f869b7e67963c6523704',
+        type: 'internal_hour',
+        auxiliary: '5d121abe9ff937001403b6c6',
+        startDate: '2020-02-03T10:20:00',
+        endDate: '2020-02-03T12:20:00',
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+    ];
+    const companyId = new ObjectID();
+
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions], ['lean']));
+    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+
+    const futureEvent = new Event({
+      type: 'internal_hour',
+      company: new ObjectID(),
+      auxiliary: '5d121abe9ff937001403b6c6',
+      startDate: moment().add(90, 'd').set({ hours: 10, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
+      endDate: moment().add(90, 'd').set({ hours: 12, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
+      repetition: {
+        frequency: 'every_day',
+        parentId: '5d84f869b7e67963c65236a9',
+      },
+    });
+    formatEventBasedOnRepetitionStub.returns(futureEvent);
+    create.returns(futureEvent);
+
+    const result = await eventRepetitions.method({ ...server, query: { type: 'internal_hour' } });
+
+    expect(result).toMatchObject({ results: [futureEvent], errors: [] });
+    sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetitions[1], new Date());
+    SinonMongoose.calledWithExactly(
+      findRepetition,
+      [
+        { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findCompany,
+      [
+        { query: 'find', args: [{ 'subscriptions.erp': true }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(create, futureEvent);
   });
 
   it('should log repetitions ids which failed to create J+90 event', async () => {
@@ -120,26 +183,29 @@ describe('method', () => {
     }];
 
     const companyId = new ObjectID();
-    CompanyMock.expects('find')
-      .withExactArgs({ 'subscriptions.erp': true })
-      .chain('lean')
-      .once()
-      .returns([{ _id: companyId }]);
 
-    RepetitionMock
-      .expects('find')
-      .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
-      .chain('lean')
-      .once()
-      .returns(repetition);
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['lean']));
+    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
 
     formatEventBasedOnRepetitionStub.returns(Promise.reject(error));
 
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [repetition[0]._id] });
-    RepetitionMock.verify();
-    CompanyMock.verify();
+    SinonMongoose.calledWithExactly(
+      findRepetition,
+      [
+        { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findCompany,
+      [
+        { query: 'find', args: [{ 'subscriptions.erp': true }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
   });
 });

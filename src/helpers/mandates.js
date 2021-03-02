@@ -7,7 +7,7 @@ const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const ESignHelper = require('./eSign');
-const GdriveStorageHelper = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const FileHelper = require('./file');
 const translate = require('./translate');
 
@@ -60,7 +60,7 @@ exports.saveSignedMandate = async (customerId, mandateId) => {
   const finalPDF = await ESign.downloadFinalDocument(mandate.everSignId);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
   const file = await FileHelper.createAndReadFile(finalPDF.data, tmpPath);
-  const uploadedFile = await GdriveStorageHelper.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: customer.driveFolder.driveId,
     name: mandate.rum,
     type: 'application/pdf',

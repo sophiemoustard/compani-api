@@ -2,14 +2,14 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const AdministrativeDocument = require('../models/AdministrativeDocument');
 const Company = require('../models/Company');
-const GdriveStorage = require('./gdriveStorage');
 const Drive = require('../models/Google/Drive');
+const GDriveStorageHelper = require('./gDriveStorage');
 
 exports.createAdministrativeDocument = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const company = await Company.findById(companyId).lean();
 
-  const uploadedFile = await GdriveStorage.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: company.folderId,
     name: payload.name,
     type: payload.mimeType,
@@ -41,5 +41,5 @@ exports.removeAdministrativeDocument = async (administrativeDocumentId) => {
   const administrativeDocument = await AdministrativeDocument
     .findOneAndDelete({ _id: administrativeDocumentId })
     .lean();
-  if (administrativeDocument.driveFile) await GdriveStorage.deleteFile(administrativeDocument.driveFile.driveId);
+  if (administrativeDocument.driveFile) await GDriveStorageHelper.deleteFile(administrativeDocument.driveFile.driveId);
 };

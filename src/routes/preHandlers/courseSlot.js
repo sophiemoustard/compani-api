@@ -4,6 +4,7 @@ const moment = require('moment');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const Step = require('../../models/Step');
+const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
 const { E_LEARNING } = require('../../helpers/constants');
@@ -75,8 +76,12 @@ exports.authorizeUpdate = async (req) => {
 
 exports.authorizeDeletion = async (req) => {
   try {
-    const courseId = get(req, 'pre.courseSlot.course') || '';
-    await formatAndCheckAuthorization(courseId, req.auth.credentials);
+    const { courseSlot } = req.pre;
+
+    await formatAndCheckAuthorization(courseSlot.course, req.auth.credentials);
+
+    const attendanceExists = await Attendance.countDocuments({ courseSlot: courseSlot._id });
+    if (attendanceExists) throw Boom.conflict(translate[language].attendanceExists);
 
     return null;
   } catch (e) {

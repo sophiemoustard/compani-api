@@ -72,6 +72,23 @@ const attendancesList = [
   },
 ];
 
+const companyTraineesList = [
+  {
+    _id: coursesList[0].trainees[1],
+    identity: { firstname: 'trainee', lastname: 'withCompany' },
+    local: { email: 'traineeWithCompany@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainee', lastname: 'withoutCompany' },
+    local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+  },
+
+];
+
 const populateDB = async () => {
   await Attendance.deleteMany({});
   await Course.deleteMany({});
@@ -86,6 +103,9 @@ const populateDB = async () => {
   for (const user of trainerList) {
     await (new User(user)).save();
   }
+  for (const user of companyTraineesList) {
+    await (new User(user)).save();
+  }
 };
 
 module.exports = {
@@ -94,4 +114,5 @@ module.exports = {
   coursesList,
   slotsList,
   trainerList,
+  companyTraineesList,
 };

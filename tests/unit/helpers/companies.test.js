@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
-const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const Drive = require('../../../src/models/Google/Drive');
 const { INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
@@ -18,8 +18,8 @@ describe('createCompany', () => {
   beforeEach(() => {
     find = sinon.stub(Company, 'find');
     createCompany = sinon.stub(Company, 'create');
-    createFolderForCompanyStub = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
-    createFolderStub = sinon.stub(GdriveStorageHelper, 'createFolder');
+    createFolderForCompanyStub = sinon.stub(GDriveStorageHelper, 'createFolderForCompany');
+    createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
   });
   afterEach(() => {
     find.restore();

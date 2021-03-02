@@ -8,7 +8,7 @@ const omit = require('lodash/omit');
 const app = require('../../server');
 const TaxCertificate = require('../../src/models/TaxCertificate');
 const Gdrive = require('../../src/models/Google/Drive');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { populateDB, customersList, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -163,7 +163,7 @@ describe('TAX CERTIFICATES - POST /', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
       addStub = sinon.stub(Gdrive, 'add');
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({
+      addFileStub = sinon.stub(GDriveStorageHelper, 'addFile').returns({
         id: '1234567890',
         webViewLink: 'http://test.com/file.pdf',
       });
@@ -289,7 +289,7 @@ describe('TAX CERTIFICATES - POST /', () => {
     let gDriveStorageAddFile;
     beforeEach(() => {
       gDriveAdd = sinon.stub(Gdrive, 'add');
-      gDriveStorageAddFile = sinon.stub(GdriveStorage, 'addFile').returns({
+      gDriveStorageAddFile = sinon.stub(GDriveStorageHelper, 'addFile').returns({
         id: '1234567890',
         webViewLink: 'http://test.com/file.pdf',
       });

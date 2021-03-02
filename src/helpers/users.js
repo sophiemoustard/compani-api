@@ -15,7 +15,7 @@ const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
 const SectorHistoriesHelper = require('./sectorHistories');
-const GdriveStorageHelper = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 
 const { language } = translate;
@@ -73,6 +73,8 @@ exports.getLearnerList = async (query, credentials) => {
     const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
     userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
   }
+
+  if (query.hasCompany) userQuery = { ...omit(userQuery, 'hasCompany'), company: { $exists: true } };
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
@@ -142,7 +144,7 @@ exports.saveFile = async (userId, administrativeKey, fileInfo) => {
 };
 
 exports.createAndSaveFile = async (params, payload) => {
-  const uploadedFile = await GdriveStorageHelper.addFile({
+  const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload.type.hapi.filename,
     type: payload['Content-Type'],
@@ -272,7 +274,7 @@ exports.createDriveFolder = async (user) => {
   const userCompany = await Company.findOne({ _id: user.company }, { auxiliariesFolderId: 1 }).lean();
   if (!userCompany || !userCompany.auxiliariesFolderId) throw Boom.badData();
 
-  const folder = await GdriveStorageHelper.createFolder(user.identity, userCompany.auxiliariesFolderId);
+  const folder = await GDriveStorageHelper.createFolder(user.identity, userCompany.auxiliariesFolderId);
 
   const administrative = { driveFolder: { link: folder.webViewLink, driveId: folder.id } };
 
