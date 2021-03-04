@@ -1056,6 +1056,7 @@ describe('formatSurchargedDetailsForExport', () => {
         publicHoliday: { percentage: 25, hours: 3 },
         twentyFifthOfDecember: { percentage: 35, hours: 4 },
         firstOfMay: { percentage: 32, hours: 5 },
+        firstOfJanuary: { percentage: 36, hours: 3 },
         evening: { percentage: 15, hours: 6 },
         custom: { percentage: 5, hours: 7 },
       },
@@ -1108,8 +1109,8 @@ describe('formatSurchargedDetailsForExport', () => {
 
   it('should returns all the details if several plans are provided', () => {
     const result = ExportHelper.formatSurchargedDetailsForExport(multiplePlans, 'plan');
-    sinon.assert.callCount(formatFloatForExportStub, 10);
-    expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h\r\n1er mai, 32%, 5.00h\r\nSoirée, 15%, 6.00h\r\nPersonnalisée, 5%, 7.00h');
+    sinon.assert.callCount(formatFloatForExportStub, 11);
+    expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h\r\n1er mai, 32%, 5.00h\r\n1er janvier, 36%, 3.00h\r\nSoirée, 15%, 6.00h\r\nPersonnalisée, 5%, 7.00h');
   });
 });
 

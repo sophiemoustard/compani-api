@@ -248,6 +248,36 @@ describe('getSurchargeSplit', () => {
     sinon.assert.notCalled(getSurchargeDetails);
   });
 
+  it('should apply 1st of January surcharge', () => {
+    const event = { startDate: '2019-01-01T09:00:00', endDate: '2019-01-01T11:00:00' };
+    const surcharge = { firstOfJanuary: 20 };
+    const paidTransport = { duration: 30, distance: 10 };
+    const details = { planId: { 10: { hours: 3 } } };
+
+    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
+
+    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'firstOfJanuary', details, paidTransport);
+    sinon.assert.notCalled(applyCustomSurcharge);
+    sinon.assert.notCalled(getSurchargeDetails);
+  });
+
+  it('should not apply 1st of January surcharge', () => {
+    const event = { startDate: '2019-01-01T09:00:00', endDate: '2019-01-01T11:00:00' };
+    const surcharge = { saturday: 20 };
+    const paidTransport = { duration: 30, distance: 10 };
+    const details = { planId: { 10: { hours: 3 } } };
+
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
+
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.notCalled(applySurcharge);
+    sinon.assert.notCalled(applyCustomSurcharge);
+    sinon.assert.notCalled(getSurchargeDetails);
+  });
+
   it('should apply holiday surcharge', () => {
     const event = { startDate: '2022-05-08T09:00:00', endDate: '2022-05-08T11:00:00' };
     const surcharge = { publicHoliday: 20 };

@@ -12,6 +12,7 @@ const surchargedDetailsValidation = Joi.object().required().pattern(Joi.string()
   publicHoliday: surchargedHoursValidation,
   twentyFifthOfDecember: surchargedHoursValidation,
   firstOfMay: surchargedHoursValidation,
+  firstOfJanuary: surchargedHoursValidation,
   evening: surchargedHoursValidation,
   custom: surchargedHoursValidation,
 });
