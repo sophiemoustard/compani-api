@@ -5,8 +5,9 @@ const {
   populateDB,
   coursesList,
   courseHistoriesList,
+  trainerAndClientAdmin,
 } = require('./seed/courseHistoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -135,6 +136,17 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
 
     it('should return 403 as user is client_admin and course is inter_b2b', async () => {
       authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return 200 as user is trainer, but not course trainer and client_admin', async () => {
+      authToken = await getTokenByCredentials(trainerAndClientAdmin.local);
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[2]._id}`,
