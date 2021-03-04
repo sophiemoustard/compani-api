@@ -61,13 +61,13 @@ const traineeWithoutCompany = {
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const trainerAndClientAdmin = {
+const trainerAndCoach = {
   _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndClientAdmin' },
+  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
   refreshToken: uuidv4(),
   local: { email: 'simonDu12@alenvi.io', password: '123456!eR' },
   role: {
-    client: rolesList.find(role => role.name === CLIENT_ADMIN)._id,
+    client: rolesList.find(role => role.name === COACH)._id,
     vendor: rolesList.find(role => role.name === TRAINER)._id,
   },
   company: authCompany._id,
@@ -296,7 +296,7 @@ const populateDB = async () => {
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
-  await User.create(trainerAndClientAdmin);
+  await new User(trainerAndCoach).save();
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
   await Activity.insertMany(activitiesList);
@@ -322,5 +322,5 @@ module.exports = {
   clientAdmin,
   trainerOrganisationManager,
   slots,
-  trainerAndClientAdmin,
+  trainerAndCoach,
 };

@@ -5,7 +5,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, userList } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
-const { SLOT_CREATION, WEBAPP, CLIENT_ADMIN, TRAINER } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
 
 const subProgramsList = [
   { _id: new ObjectID(), name: 'sous-programme A', steps: [] },
@@ -13,13 +13,13 @@ const subProgramsList = [
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const trainerAndClientAdmin = {
+const trainerAndCoach = {
   _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndClientAdmin' },
+  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
   refreshToken: uuidv4(),
   local: { email: 'simonDu77@alenvi.io', password: '123456!eR' },
   role: {
-    client: rolesList.find(role => role.name === CLIENT_ADMIN)._id,
+    client: rolesList.find(role => role.name === COACH)._id,
     vendor: rolesList.find(role => role.name === TRAINER)._id,
   },
   company: authCompany._id,
@@ -130,7 +130,7 @@ const populateDB = async () => {
 
   await Course.insertMany(coursesList);
   await CourseHistory.insertMany(courseHistoriesList);
-  await User.create(trainerAndClientAdmin);
+  await new User(trainerAndCoach).save();
 };
 
 module.exports = {
@@ -138,5 +138,5 @@ module.exports = {
   coursesList,
   courseHistoriesList,
   courseTrainer,
-  trainerAndClientAdmin,
+  trainerAndCoach,
 };

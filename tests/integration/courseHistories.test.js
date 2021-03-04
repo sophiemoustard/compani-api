@@ -5,7 +5,7 @@ const {
   populateDB,
   coursesList,
   courseHistoriesList,
-  trainerAndClientAdmin,
+  trainerAndCoach,
 } = require('./seed/courseHistoriesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
@@ -145,8 +145,8 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return 200 as user is trainer, but not course trainer and client_admin', async () => {
-      authToken = await getTokenByCredentials(trainerAndClientAdmin.local);
+    it('should return 200 as user is trainer, but not course trainer and coach', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,

@@ -26,7 +26,7 @@ const {
   clientAdmin,
   traineeFromOtherCompany,
   slots,
-  trainerAndClientAdmin,
+  trainerAndCoach,
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -552,8 +552,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 200 as user is trainer, but not course trainer and client_admin', async () => {
-      authToken = await getTokenByCredentials(trainerAndClientAdmin.local);
+    it('should return 200 as user is trainer, but not course trainer and coach', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[0]._id.toHexString()}/follow-up?company=${authCompany._id.toHexString()}`,
