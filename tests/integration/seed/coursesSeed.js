@@ -22,6 +22,7 @@ const {
   VIDEO,
   WEBAPP,
   QUESTIONNAIRE,
+  TRAINER,
 } = require('../../../src/helpers/constants.js');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
@@ -59,6 +60,19 @@ const traineeWithoutCompany = {
 };
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
+
+const trainerAndClientAdmin = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Simon', lastname: 'TrainerAndClientAdmin' },
+  refreshToken: uuidv4(),
+  local: { email: 'simonDu12@alenvi.io', password: '123456!eR' },
+  role: {
+    client: rolesList.find(role => role.name === CLIENT_ADMIN)._id,
+    vendor: rolesList.find(role => role.name === TRAINER)._id,
+  },
+  company: authCompany._id,
+  origin: WEBAPP,
+};
 
 const card = { _id: ObjectID(), template: 'title_text' };
 
@@ -282,6 +296,7 @@ const populateDB = async () => {
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
+  await User.create(trainerAndClientAdmin);
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
   await Activity.insertMany(activitiesList);
@@ -307,4 +322,5 @@ module.exports = {
   clientAdmin,
   trainerOrganisationManager,
   slots,
+  trainerAndClientAdmin,
 };

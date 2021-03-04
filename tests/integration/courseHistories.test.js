@@ -149,11 +149,11 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       authToken = await getTokenByCredentials(trainerAndClientAdmin.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/coursehistories?course=${coursesList[2]._id}`,
+        url: `/coursehistories?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(200);
     });
   });
 });
