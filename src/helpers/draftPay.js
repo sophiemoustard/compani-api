@@ -298,7 +298,7 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
 };
 
 exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
-  if (abs.absenceNature !== DAILY) return moment(abs.endDate).diff(abs.startDate, 'm') / 60;
+  if (abs.absenceNature !== DAILY) return acc + moment(abs.endDate).diff(abs.startDate, 'm') / 60;
 
   return acc + exports.getHoursFromDailyAbsence(abs, contract, query);
 }, 0);
