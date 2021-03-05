@@ -124,12 +124,14 @@ module.exports = {
   BANK_TRANSFER: 'bank_transfer',
   CHECK: 'check',
   CESU: 'cesu',
+  CASH: 'cash',
   get PAYMENT_TYPES_LIST() {
     return {
       [this.DIRECT_DEBIT]: 'Prélèvement',
       [this.BANK_TRANSFER]: 'Virement',
       [this.CHECK]: 'Chèque',
       [this.CESU]: 'Cesu',
+      [this.CASH]: 'Espèces',
     };
   },
   get PAYMENT_NATURE_LIST() {
