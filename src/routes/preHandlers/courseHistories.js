@@ -20,9 +20,7 @@ exports.authorizeGetCourseHistories = async (req) => {
     if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) return null;
 
     const isTrainer = await Course.countDocuments({ _id: courseId, trainer: credentials._id }) !== 0;
-    if (!isTrainer) throw Boom.forbidden();
-
-    return null;
+    if (isTrainer) return null;
   }
 
   if ([CLIENT_ADMIN, COACH].includes(clientRole)) {
