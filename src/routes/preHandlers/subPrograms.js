@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
 const Company = require('../../models/Company');
+const CourseSlot = require('../../models/CourseSlot');
 const { PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
@@ -11,6 +12,9 @@ exports.authorizeStepDetachment = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId }).lean();
   if (!subProgram) throw Boom.notFound();
   if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+
+  const courseSlot = await CourseSlot.countDocuments({ step: req.params.stepId });
+  if (courseSlot) throw Boom.conflict();
 
   return null;
 };
