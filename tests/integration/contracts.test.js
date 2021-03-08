@@ -461,7 +461,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
   });
 
   it('should update a contract startDate and update corresponding sectorhistory', async () => {
-    const payload = { startDate: '2018-11-28' };
+    const payload = { startDate: '2020-11-28T00:00:00' };
     const response = await app.inject({
       method: 'PUT',
       url: `/contracts/${contractsList[2]._id}/versions/${contractsList[2].versions[0]._id}`,
@@ -520,7 +520,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
   });
 
   const roles = [
-    { name: 'client_admin', expectedCode: 200 },
+    { name: 'coach', expectedCode: 200 },
     { name: 'auxiliary', expectedCode: 403 },
     { name: 'helper', expectedCode: 403 },
     { name: 'auxiliary_without_company', expectedCode: 403 },

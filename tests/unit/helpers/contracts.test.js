@@ -18,6 +18,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -630,11 +631,14 @@ describe('createVersion', () => {
 
 describe('canUpdateVersion', () => {
   let countAuxiliaryEventsBetweenDates;
+  let findContract;
   beforeEach(() => {
     countAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'countAuxiliaryEventsBetweenDates');
+    findContract = sinon.stub(Contract, 'find');
   });
   afterEach(() => {
     countAuxiliaryEventsBetweenDates.restore();
+    findContract.restore();
   });
 
   it('should return false if contract is ended', async () => {
@@ -644,19 +648,36 @@ describe('canUpdateVersion', () => {
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+    sinon.assert.notCalled(findContract);
   });
-  it('should return true if contract not ended and not first version', async () => {
-    const contract = { _id: new ObjectID() };
-    const versionToUpdate = {};
+
+  it('should return true if contract not ended and start date is after previous version startDate', async () => {
+    const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
+    const contract = { _id: new ObjectID(), versions: [{ startDate: '2020-09-03T00:00:00' }, versionToUpdate] };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
     expect(result).toBeTruthy();
     sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+    sinon.assert.notCalled(findContract);
   });
+
+  it('should return false if contract not ended and start date is before previous version startDate', async () => {
+    const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
+    const contract = { _id: new ObjectID(), versions: [versionToUpdate, { startDate: '2020-09-03T00:00:00' }] };
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+    sinon.assert.notCalled(findContract);
+  });
+
   it('should return true if first version and no event', async () => {
     const contract = { _id: new ObjectID(), user: new ObjectID() };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
+
     countAuxiliaryEventsBetweenDates.returns(0);
+    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
     expect(result).toBeTruthy();
@@ -664,11 +685,49 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
+    SinonMongoose.calledWithExactly(findContract, [
+      { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
   });
+
+  it('should return true if first version and no event since last contract', async () => {
+    const contract = { _id: new ObjectID(), user: new ObjectID(), startDate: '2020-06-02T00:00:00' };
+    const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
+
+    countAuxiliaryEventsBetweenDates.returns(0);
+    findContract.returns(SinonMongoose.stubChainedQueries(
+      [[contract, { startDate: '2018-06-02T00:00:00', endDate: '2018-10-02T23:59:59' }]],
+      ['sort', 'lean']
+    ));
+
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(
+      countAuxiliaryEventsBetweenDates,
+      {
+        auxiliary: contract.user,
+        endDate: versionToUpdate.startDate,
+        company: '1234567890',
+        startDate: '2018-10-02T23:59:59',
+      }
+    );
+    SinonMongoose.calledWithExactly(findContract, [
+      { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
+  });
+
   it('should return false if first version and existing events', async () => {
     const contract = { _id: new ObjectID(), user: new ObjectID() };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
+
     countAuxiliaryEventsBetweenDates.returns(5);
+    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
     expect(result).toBeFalsy();
@@ -676,6 +735,11 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
+    SinonMongoose.calledWithExactly(findContract, [
+      { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
+      { query: 'sort', args: [{ startDate: -1 }] },
+      { query: 'lean' },
+    ]);
   });
 });
 

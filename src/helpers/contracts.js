@@ -180,15 +180,21 @@ exports.createVersion = async (contractId, versionPayload) => {
 
 exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, companyId) => {
   if (contract.endDate) return false;
-  if (versionIndex !== 0) return true;
+  if (versionIndex !== 0) {
+    return new Date(contract.versions[versionIndex - 1].startDate) < new Date(versionToUpdate.startDate);
+  }
 
   const { user } = contract;
   const { startDate } = versionToUpdate;
-  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({
-    auxiliary: user,
-    endDate: startDate,
-    company: companyId,
-  });
+  const userContracts = await Contract.find({ user: contract.user, company: companyId })
+    .sort({ startDate: -1 })
+    .lean();
+  const eventsQuery = { auxiliary: user, endDate: startDate, company: companyId };
+  if (userContracts.length > 1) {
+    const pastContracts = userContracts.filter(c => new Date(c.startDate) < new Date(contract.startDate));
+    eventsQuery.startDate = pastContracts[0].endDate;
+  }
+  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates(eventsQuery);
 
   return eventsCount === 0;
 };
