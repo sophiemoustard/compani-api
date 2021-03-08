@@ -657,7 +657,12 @@ describe('getCourseFollowUp', () => {
           ],
         }],
       },
-      { query: 'populate', args: [{ path: 'trainees', select: 'identity.firstname identity.lastname', match: {} }] },
+      { query: 'populate',
+        args: [{
+          path: 'trainees',
+          select: 'identity.firstname identity.lastname firstMobileConnection',
+          match: {},
+        }] },
       { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
       { query: 'lean' },
     ], 1);
@@ -715,7 +720,11 @@ describe('getCourseFollowUp', () => {
       },
       {
         query: 'populate',
-        args: [{ path: 'trainees', select: 'identity.firstname identity.lastname', match: { company: companyId } }],
+        args: [{
+          path: 'trainees',
+          select: 'identity.firstname identity.lastname firstMobileConnection',
+          match: { company: companyId },
+        }],
       },
       { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
       { query: 'lean' },
