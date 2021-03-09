@@ -192,6 +192,8 @@ exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, compa
   const eventsQuery = { auxiliary: user, endDate: startDate, company: companyId };
   if (userContracts.length > 1) {
     const pastContracts = userContracts.filter(c => new Date(c.startDate) < new Date(contract.startDate));
+    if (new Date(pastContracts[0].endDate) >= new Date(versionToUpdate.startDate)) return false;
+
     eventsQuery.startDate = pastContracts[0].endDate;
   }
   const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates(eventsQuery);
