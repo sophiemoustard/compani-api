@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const moment = require('moment');
 const { pick } = require('lodash');
+const { ObjectID } = require('mongodb');
 const FileHelper = require('./file');
 const {
   MISTER,
@@ -74,6 +75,9 @@ const FS_MV_MOTIF_S = {
   [CDD_END]: 31,
   [OTHER]: 60,
 };
+const VA_SAI_REPORT = 'T';
+const MODE_BASE = 'base';
+const MODE_RESULTAT = 'resultat';
 
 exports.formatBirthDate = date => (date ? moment(date).format('DD/MM/YYYY') : '');
 
@@ -312,6 +316,52 @@ exports.exportAbsences = async (query, credentials) => {
         va_abs_nbh: HistoryExportHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
       });
     }
+  }
+
+  return data.length
+    ? FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
+    : FileHelper.exportToTxt([]);
+};
+
+const payVariables = [
+  { code: '090', mode: MODE_BASE, key: 'notSurchargedAndExempt', grille: 'Heures exo non majo' },
+  { code: '255', mode: MODE_BASE, key: '', grille: 'Heures exo total' },
+  { code: '145', mode: MODE_BASE, key: '', grille: 'Heures exo maj dimanche' },
+  { code: '167', mode: MODE_BASE, key: '', grille: 'Heures exo maj ferié' },
+  { code: '173', mode: MODE_BASE, key: '', grille: 'Heures exo maj 100%' },
+  { code: '200', mode: MODE_BASE, key: '', grille: 'Heures exo maj soirée' },
+  { code: '177', mode: MODE_BASE, key: 'notSurchargedAndNotExempt', grille: 'Heures non exo non majo' },
+  { code: '115', mode: MODE_BASE, key: 'overtimeHours', grille: 'Heures supplémentaires' },
+  { code: '100', mode: MODE_BASE, key: 'additionalHours', grille: 'Heures complémentaires' },
+  { code: '430', mode: MODE_RESULTAT, key: '', grille: 'Carte navigo' },
+  { code: '512', mode: MODE_RESULTAT, key: 'phoneFees', grille: 'Frais téléphoniques' },
+  { code: '489', mode: MODE_RESULTAT, key: 'transport', grille: 'Frais kilométriques' },
+];
+
+const computeKey = (pay, key) => (key ? get(pay, key) : 0);
+
+exports.exportPay = async () => {
+  const pay = await Pay.findOne({ auxiliary: new ObjectID('5e6a05e4dcb97a0014daa9c3'), month: '02-2021' })
+    .populate({
+      path: 'auxiliary',
+      populate: { path: 'contracts', select: '_id serialNumber' },
+      select: '_id serialNumber',
+    })
+    .lean();
+
+  const data = [];
+  for (const variable of payVariables) {
+    data.push({
+      ap_soc: process.env.AP_SOC,
+      ap_matr: get(pay, 'auxiliary.serialNumber') || '',
+      ap_contrat: get(pay, 'auxiliary.contract.serialNumber') || '',
+      va_sai_report: VA_SAI_REPORT,
+      va_sai_code: variable.code,
+      va_sai_lib: variable.grille,
+      va_sai_base: variable.mode === MODE_BASE ? computeKey(pay, variable.key) : '',
+      va_sai_resultat: variable.mode === MODE_RESULTAT ? computeKey(pay, variable.key) : '',
+      va_sai_taux: '',
+    });
   }
 
   return data.length

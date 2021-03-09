@@ -3,7 +3,7 @@ const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
 const DpaeHelper = require('../helpers/dpae');
 const { createPayList, hoursBalanceDetail, getHoursToWorkBySector } = require('../helpers/pay');
-const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END } = require('../helpers/constants');
+const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -75,6 +75,9 @@ const exportDsnInfo = async (req, h) => {
         break;
       case CONTRACT_END:
         txt = await DpaeHelper.exportContractEnds(req.query, req.auth.credentials);
+        break;
+      case PAY:
+        txt = await DpaeHelper.exportPay(req.query, req.auth.credentials);
         break;
     }
 
