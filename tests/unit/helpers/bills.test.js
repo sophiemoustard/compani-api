@@ -1400,7 +1400,7 @@ describe('formatAndCreateBills', () => {
     };
     const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
 
-    it('should not call functions if there is an error at Bill.insertMany', async () => {
+    it('should not call functions if there is an error at Bill.insertMany (order matters)', async () => {
       try {
         getBillNumberStub.returns(number);
         formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1420,7 +1420,7 @@ describe('formatAndCreateBills', () => {
       }
     });
 
-    it('should not call functions if there is an error at updateEvents', async () => {
+    it('should not call functions if there is an error at updateEvents (order matters)', async () => {
       try {
         getBillNumberStub.returns(number);
         formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1440,7 +1440,7 @@ describe('formatAndCreateBills', () => {
       }
     });
 
-    it('should not call functions if there is an error at updateFundingHistories', async () => {
+    it('should not call functions if there is an error at updateFundingHistories (order matters)', async () => {
       try {
         getBillNumberStub.returns(number);
         formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1460,7 +1460,7 @@ describe('formatAndCreateBills', () => {
       }
     });
 
-    it('should not call functions if there is an error at BillNumber.updateOne', async () => {
+    it('should not call functions if there is an error at BillNumber.updateOne (order matters)', async () => {
       try {
         getBillNumberStub.returns(number);
         formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1476,11 +1476,14 @@ describe('formatAndCreateBills', () => {
         sinon.assert.notCalled(createBillSlips);
         sinon.assert.notCalled(updateManyCreditNote);
         sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
-        sinon.assert.calledOnce(updateOneBillNumber);
+        sinon.assert.calledOnceWithExactly(
+          updateOneBillNumber,
+          { prefix: number.prefix, company: companyId }, { $set: { seq: number.seq } }
+        );
       }
     });
 
-    it('should not call functions if there is an error at createBillSlips', async () => {
+    it('should not call functions if there is an error at createBillSlips (order matters)', async () => {
       try {
         getBillNumberStub.returns(number);
         formatCustomerBillsStub.returns(customerBillingInfo);
@@ -1501,7 +1504,10 @@ describe('formatAndCreateBills', () => {
         );
         sinon.assert.notCalled(updateManyCreditNote);
         sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
-        sinon.assert.calledOnce(updateOneBillNumber);
+        sinon.assert.calledOnceWithExactly(
+          updateOneBillNumber,
+          { prefix: number.prefix, company: companyId }, { $set: { seq: number.seq } }
+        );
       }
     });
   });
