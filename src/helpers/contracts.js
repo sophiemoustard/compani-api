@@ -178,21 +178,21 @@ exports.createVersion = async (contractId, versionPayload) => {
   return Contract.findOneAndUpdate({ _id: contractId }, { $push: { versions: versionToAdd } }).lean();
 };
 
-exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, companyId) => {
+exports.canUpdateVersion = async (contract, versionPayload, versionIndex, companyId) => {
   if (contract.endDate) return false;
   if (versionIndex !== 0) {
-    return new Date(contract.versions[versionIndex - 1].startDate) < new Date(versionToUpdate.startDate);
+    return new Date(contract.versions[versionIndex - 1].startDate) < new Date(versionPayload.startDate);
   }
 
   const { user } = contract;
-  const { startDate } = versionToUpdate;
+  const { startDate } = versionPayload;
   const userContracts = await Contract.find({ user: contract.user, company: companyId })
     .sort({ startDate: -1 })
     .lean();
   const eventsQuery = { auxiliary: user, endDate: startDate, company: companyId };
   if (userContracts.length > 1) {
     const pastContracts = userContracts.filter(c => new Date(c.startDate) < new Date(contract.startDate));
-    if (new Date(pastContracts[0].endDate) >= new Date(versionToUpdate.startDate)) return false;
+    if (new Date(pastContracts[0].endDate) >= new Date(versionPayload.startDate)) return false;
 
     eventsQuery.startDate = pastContracts[0].endDate;
   }
@@ -235,19 +235,19 @@ exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionInde
   return payload;
 };
 
-exports.updateVersion = async (contractId, versionId, versionToUpdate, credentials) => {
+exports.updateVersion = async (contractId, versionId, versionPayload, credentials) => {
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const companyId = get(credentials, 'company._id', null);
   const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
 
-  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index, companyId);
+  const canUpdate = await exports.canUpdateVersion(contract, versionPayload, index, companyId);
   if (!canUpdate) throw Boom.badData();
 
-  if (index === 0 && versionToUpdate.startDate) {
-    await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, versionToUpdate, companyId);
+  if (index === 0 && versionPayload.startDate) {
+    await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, versionPayload, companyId);
   }
 
-  const payload = await exports.formatVersionEditionPayload(contract.versions[index], versionToUpdate, index);
+  const payload = await exports.formatVersionEditionPayload(contract.versions[index], versionPayload, index);
 
   if (payload.$unset && Object.keys(payload.$unset).length > 0) {
     await Contract.updateOne({ _id: contractId }, { $unset: payload.$unset });
