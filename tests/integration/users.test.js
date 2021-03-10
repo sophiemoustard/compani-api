@@ -484,7 +484,6 @@ describe('GET /users', () => {
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -672,6 +671,28 @@ describe('GET /users/learners', () => {
         expect.objectContaining({ _id: usersSeedList[0]._id, blendedCoursesCount: 2 }),
       ]));
     });
+
+    it('should return 200 if a vendor asks all learners with company', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 400 if queries hasCompany and company are used together', async () => {
+      authToken = await getToken('vendor_admin');
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?hasCompany=${true}&&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -701,47 +722,12 @@ describe('GET /users/learners', () => {
         .toBeTruthy();
     });
 
-    it('should return 200 if a vendor asks all learners with company', async () => {
-      authToken = await getToken('vendor_admin');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?hasCompany=${true}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should return 403 if is not a vendor', async () => {
-      authToken = await getToken('client_admin');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?hasCompany=${true}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
-
-    it('should return 400 if queries hasCompany and company are used together', async () => {
-      authToken = await getToken('vendor_admin');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?hasCompany=${true}&&company=${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(400);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
