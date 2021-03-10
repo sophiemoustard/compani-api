@@ -20,7 +20,6 @@ const {
   customerId: customerIdData,
   companyId: companyIdData,
 } = require('../data/bills');
-
 const SinonMongoose = require('../sinonMongoose');
 
 describe('formatBillNumber', () => {
@@ -1198,10 +1197,7 @@ describe('formatAndCreateBills', () => {
       { events: { $elemMatch: { eventId: { $in: Object.keys(eventsToUpdate) } } } },
       { isEditable: false }
     );
-    sinon.assert.calledOnceWithExactly(
-      insertManyBill,
-      [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-    );
+    sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
   });
 
   it('should create customer bill', async () => {
@@ -1268,10 +1264,7 @@ describe('formatAndCreateBills', () => {
       { events: { $elemMatch: { eventId: { $in: Object.keys({ ...customerBillingInfo.billedEvents }) } } } },
       { isEditable: false }
     );
-    sinon.assert.calledOnceWithExactly(
-      insertManyBill,
-      [customerBillingInfo.bill]
-    );
+    sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill]);
   });
 
   it('should create third party payer bill', async () => {
@@ -1339,10 +1332,7 @@ describe('formatAndCreateBills', () => {
       { events: { $elemMatch: { eventId: { $in: Object.keys({ ...tppBillingInfo.billedEvents }) } } } },
       { isEditable: false }
     );
-    sinon.assert.calledOnceWithExactly(
-      insertManyBill,
-      tppBillingInfo.tppBills
-    );
+    sinon.assert.calledOnceWithExactly(insertManyBill, tppBillingInfo.tppBills);
   });
 
   describe('Functions not called', () => {
@@ -1424,10 +1414,9 @@ describe('formatAndCreateBills', () => {
         sinon.assert.notCalled(updateEventsStub);
         sinon.assert.notCalled(updateFundingHistoriesStub);
         sinon.assert.notCalled(createBillSlips);
-        sinon.assert.calledOnceWithExactly(
-          insertManyBill,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-        );
+        sinon.assert.notCalled(updateOneBillNumber);
+        sinon.assert.notCalled(updateManyCreditNote);
+        sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
       }
     });
 
@@ -1445,10 +1434,9 @@ describe('formatAndCreateBills', () => {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.notCalled(updateFundingHistoriesStub);
         sinon.assert.notCalled(createBillSlips);
-        sinon.assert.calledOnceWithExactly(
-          insertManyBill,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-        );
+        sinon.assert.notCalled(updateOneBillNumber);
+        sinon.assert.notCalled(updateManyCreditNote);
+        sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
       }
     });
 
@@ -1466,10 +1454,9 @@ describe('formatAndCreateBills', () => {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
         sinon.assert.notCalled(createBillSlips);
-        sinon.assert.calledOnceWithExactly(
-          insertManyBill,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-        );
+        sinon.assert.notCalled(updateOneBillNumber);
+        sinon.assert.notCalled(updateManyCreditNote);
+        sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
       }
     });
 
@@ -1487,10 +1474,8 @@ describe('formatAndCreateBills', () => {
         sinon.assert.calledWithExactly(updateEventsStub, eventsToUpdate);
         sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
         sinon.assert.notCalled(createBillSlips);
-        sinon.assert.calledOnceWithExactly(
-          insertManyBill,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-        );
+        sinon.assert.notCalled(updateManyCreditNote);
+        sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
         sinon.assert.calledOnce(updateOneBillNumber);
       }
     });
@@ -1514,10 +1499,8 @@ describe('formatAndCreateBills', () => {
           billsData[0].endDate,
           credentials.company
         );
-        sinon.assert.calledOnceWithExactly(
-          insertManyBill,
-          [customerBillingInfo.bill, ...tppBillingInfo.tppBills]
-        );
+        sinon.assert.notCalled(updateManyCreditNote);
+        sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
         sinon.assert.calledOnce(updateOneBillNumber);
       }
     });

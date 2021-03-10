@@ -3,7 +3,6 @@ const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
-
 const SinonMongoose = require('../sinonMongoose');
 const Surcharge = require('../../../src/models/Surcharge');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
@@ -177,7 +176,7 @@ describe('populateFundings', () => {
     ];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
-    findFundingHistory.resolves(returnedHistories);
+    findFundingHistory.returns(SinonMongoose.stubChainedQueries([returnedHistories], ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'), tpps, companyId);
 
@@ -188,7 +187,10 @@ describe('populateFundings', () => {
     expect(addedHistory).toBeDefined();
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    sinon.assert.calledOnceWithExactly(findFundingHistory, { fundingId: fundings[0]._id, company: companyId });
+    SinonMongoose.calledWithExactly(findFundingHistory, [
+      { query: 'find', args: [{ fundingId: fundings[0]._id, company: companyId }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
