@@ -41,7 +41,7 @@ const refreshToken = async (req, h) => {
 
 const logout = async (req, h) => {
   try {
-    return h.response({ message: translate[language].userAuthentified })
+    return h.response({ message: translate[language].userLogout })
       .unstate('alenvi_token')
       .unstate('refresh_token')
       .unstate('user_id');
