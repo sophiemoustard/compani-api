@@ -81,7 +81,8 @@ const updateContractVersion = async (req) => {
     const contract = await ContractHelper.updateVersion(
       req.params._id,
       req.params.versionId,
-      req.payload, req.auth.credentials
+      req.payload,
+      req.auth.credentials
     );
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 

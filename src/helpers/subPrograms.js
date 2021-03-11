@@ -37,6 +37,7 @@ exports.listELearningDraft = async () => {
     .populate({ path: 'program', select: '_id name description image' })
     .populate({ path: 'steps', select: 'type' })
     .lean({ virtuals: true });
+
   return subPrograms.filter(sp => sp.steps.length && sp.isStrictlyELearning);
 };
 

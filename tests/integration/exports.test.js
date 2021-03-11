@@ -360,7 +360,7 @@ const exportTypes = [
     populate: populateSectorHistories,
     expectedRows: [
       '\ufeff"Equipe";"Id Auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
-      `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2018";`,
+      `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2020";`,
       `"Test";${userList[4]._id};"Test";"PlanningReferent";"10/12/2018";`,
       `"Etoile";${auxiliaryList[0]._id};"Uiui";"Lulu";"10/12/2018";`,
     ],
