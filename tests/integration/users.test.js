@@ -724,13 +724,15 @@ describe('GET /users/learners', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403, details: 'if not his company' },
+      { name: 'client_admin', expectedCode: 403, details: 'if not his company' },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} ${get(role, 'details') || ''}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',

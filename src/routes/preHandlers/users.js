@@ -216,7 +216,7 @@ exports.authorizeLearnersGet = async (req) => {
   const isQueryCompanyValid = query.company && UtilsHelper.areObjectIdsEquals(query.company, userCompanyId);
   if (!isClientRoleAllowed || !isQueryCompanyValid) throw Boom.forbidden();
 
-  if (query.hasCompany && !vendorRole) throw Boom.forbidden();
+  if (query.hasCompany) throw Boom.forbidden();
 
   return null;
 };
