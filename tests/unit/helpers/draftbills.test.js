@@ -917,7 +917,8 @@ describe('getDraftBillsList', () => {
     });
 
     const companyId = new ObjectID();
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    const thirdPartyPayersList = [{ id: new ObjectID() }];
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([thirdPartyPayersList], ['lean']));
 
     const credentials = { company: { _id: companyId } };
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
@@ -949,14 +950,14 @@ describe('getDraftBillsList', () => {
       populateFundings.firstCall,
       [{ nature: 'hourly' }],
       '2019-12-25T07:00:00',
-      null,
+      thirdPartyPayersList,
       companyId
     );
     sinon.assert.calledWithExactly(
       populateFundings.secondCall,
       [{ nature: 'fixed' }],
       '2019-12-25T07:00:00',
-      null,
+      thirdPartyPayersList,
       companyId
     );
     sinon.assert.calledWithExactly(
