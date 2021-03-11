@@ -208,7 +208,7 @@ exports.authorizeUsersGet = async (req) => {
 exports.authorizeLearnersGet = async (req) => {
   const { auth, query } = req;
   const vendorRole = get(auth, 'credentials.role.vendor.name');
-  if (vendorRole) return true;
+  if (vendorRole) return null;
 
   const clientRole = get(auth, 'credentials.role.client.name');
   const isClientRoleAllowed = [CLIENT_ADMIN, COACH].includes(clientRole);
