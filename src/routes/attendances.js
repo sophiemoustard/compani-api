@@ -4,9 +4,9 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, remove } = require('../controllers/attendanceController');
 const {
-  trainerHasAccessToAttendances,
-  authorizeTrainerAndCheckTrainees,
-  checkAttendanceExistsAndAuthorizeTrainer,
+  authorizeAttendancesGet,
+  authorizeAttendanceCreation,
+  authorizeAttendanceDeletion,
 } = require('./preHandlers/attendances');
 const { objectIdOrArray } = require('./validations/utils');
 
@@ -23,7 +23,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['attendancesheets:read'] },
-        pre: [{ method: trainerHasAccessToAttendances, assign: 'query' }],
+        pre: [{ method: authorizeAttendancesGet, assign: 'courseSlotsIds' }],
       },
       handler: list,
     });
@@ -39,7 +39,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: authorizeTrainerAndCheckTrainees }],
+        pre: [{ method: authorizeAttendanceCreation }],
       },
       handler: create,
     });
@@ -50,7 +50,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: checkAttendanceExistsAndAuthorizeTrainer }],
+        pre: [{ method: authorizeAttendanceDeletion }],
       },
       handler: remove,
     });
