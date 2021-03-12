@@ -446,75 +446,95 @@ describe('POST contract/:id/versions', () => {
   let generateSignatureRequest;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('client_admin');
     generateSignatureRequest = sinon.stub(EsignHelper, 'generateSignatureRequest');
   });
   afterEach(() => {
     generateSignatureRequest.restore();
   });
 
-  it('should create a new version', async () => {
-    const payload = {
-      grossHourlyRate: 35,
-      startDate: '2020-10-15T00:00:00',
-      weeklyHours: 24,
-      signature: {
-        templateId: 'lkjhgfdsaqwertyuiop',
-        fields: { yearlyHours: 1820 },
-        title: 'Avenant',
-        signers: [{ id: '1', name: 'Toto', email: 'toto@danslavion.fr' }],
-        meta: { auxiliaryDriveId: 'qwertyuiopoiuytrewq' },
-        redirect: 'http://localhost/jesuisuneurl',
-        redirectDecline: 'http://localhost/passympa',
-      },
-    };
-
-    generateSignatureRequest.returns({ data: { document_hash: 'qwertyuio' } });
-    const response = await app.inject({
-      method: 'POST',
-      url: `/contracts/${contractsList[5]._id}/versions`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
     });
 
-    expect(response.statusCode).toBe(200);
-    sinon.assert.calledOnceWithExactly(generateSignatureRequest, payload.signature);
-  });
+    it('should create a new version', async () => {
+      const payload = {
+        grossHourlyRate: 35,
+        startDate: '2020-10-15T00:00:00',
+        weeklyHours: 24,
+        signature: {
+          templateId: 'lkjhgfdsaqwertyuiop',
+          fields: { yearlyHours: 1820 },
+          title: 'Avenant',
+          signers: [{ id: '1', name: 'Toto', email: 'toto@danslavion.fr' }],
+          meta: { auxiliaryDriveId: 'qwertyuiopoiuytrewq' },
+          redirect: 'http://localhost/jesuisuneurl',
+          redirectDecline: 'http://localhost/passympa',
+        },
+      };
 
-  it('should return a 403 if contract is not from the same company', async () => {
-    const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
-    const response = await app.inject({
-      method: 'POST',
-      url: `/contracts/${otherContract._id}/versions`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+      generateSignatureRequest.returns({ data: { document_hash: 'qwertyuio' } });
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[5]._id}/versions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(generateSignatureRequest, payload.signature);
     });
 
-    expect(response.statusCode).toBe(403);
-  });
+    it('should return a 403 if contract is not from the same company', async () => {
+      const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${otherContract._id}/versions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
 
-  it('should return a 403 if contract has an endDate', async () => {
-    const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
-    const response = await app.inject({
-      method: 'POST',
-      url: `/contracts/${contractsList[3]._id}/versions`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+      expect(response.statusCode).toBe(403);
     });
 
-    expect(response.statusCode).toBe(403);
-  });
+    it('should return a 403 if contract has an endDate', async () => {
+      const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[3]._id}/versions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
 
-  it('should return a 422 if startDate if before previous version startDate ', async () => {
-    const payload = { grossHourlyRate: 10.12, startDate: '2018-07-02T00:00:00', weeklyHours: 24 };
-    const response = await app.inject({
-      method: 'POST',
-      url: `/contracts/${contractsList[5]._id}/versions`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+      expect(response.statusCode).toBe(403);
     });
 
-    expect(response.statusCode).toBe(422);
+    it('should return a 422 if startDate if before previous version startDate ', async () => {
+      const payload = { grossHourlyRate: 10.12, startDate: '2018-07-02T00:00:00', weeklyHours: 24 };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[5]._id}/versions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    const missingParams = ['startDate', 'grossHourlyRate', 'weeklyHours'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const payload = { grossHourlyRate: 10.12, startDate: '2018-07-02T00:00:00', weeklyHours: 24 };
+        const response = await app.inject({
+          method: 'POST',
+          url: `/contracts/${contractsList[5]._id}/versions`,
+          payload: omit(cloneDeep(payload), param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
   });
 
   const roles = [

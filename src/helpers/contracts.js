@@ -373,4 +373,4 @@ exports.uploadFile = async (params, payload) => {
 
 exports.auxiliaryHasActiveContractOnDay = (contracts, day) =>
   contracts.some(contract => moment(contract.startDate).isSameOrBefore(day, 'd') &&
-  (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
+    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
