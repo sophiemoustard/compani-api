@@ -23,7 +23,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['attendancesheets:read'] },
-        pre: [{ method: trainerHasAccessToAttendances, assign: 'query' }],
+        pre: [{ method: trainerHasAccessToAttendances, assign: 'courseSlotsIds' }],
       },
       handler: list,
     });
