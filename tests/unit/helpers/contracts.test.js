@@ -538,13 +538,16 @@ describe('endContract', () => {
 describe('createVersion', () => {
   let generateSignatureRequest;
   let ContractMock;
+  let canCreateVersion;
   beforeEach(() => {
     generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
     ContractMock = sinon.mock(Contract);
+    canCreateVersion = sinon.stub(ContractHelper, 'canCreateVersion');
   });
   afterEach(() => {
     generateSignatureRequest.restore();
     ContractMock.restore();
+    canCreateVersion.restore();
   });
 
   it('should create version and update previous one', async () => {
@@ -554,6 +557,8 @@ describe('createVersion', () => {
       startDate: '2019-09-09T00:00:00',
       versions: [{ startDate: '2019-09-01T00:00:00' }, { startDate: '2019-09-10T00:00:00' }],
     };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
     ContractMock.expects('findOne')
       .withExactArgs({ _id: contract._id.toHexString() })
@@ -572,18 +577,23 @@ describe('createVersion', () => {
       .withExactArgs({ _id: contract._id.toHexString() }, { $push: { versions: newVersion } })
       .chain('lean')
       .once();
+    canCreateVersion.returns(true);
 
-    await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
+    await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
     ContractMock.verify();
     sinon.assert.notCalled(generateSignatureRequest);
+    sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
   });
 
   it('should generate signature request', async () => {
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
     const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
-    generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
+    generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
+    canCreateVersion.returns(true);
     ContractMock.expects('findOne')
       .withExactArgs({ _id: contract._id.toHexString() })
       .chain('lean')
@@ -599,17 +609,20 @@ describe('createVersion', () => {
       .once()
       .returns(contract);
 
-    await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
+    await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
     ContractMock.verify();
-    sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
+    sinon.assert.calledOnceWithExactly(generateSignatureRequest, { templateId: '1234567890' });
+    sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
   });
 
   it('should throw on signature generation error', async () => {
-    try {
-      const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
-      const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
+    try {
       ContractMock.expects('findOne')
         .withExactArgs({ _id: contract._id.toHexString() })
         .chain('lean')
@@ -618,12 +631,40 @@ describe('createVersion', () => {
       ContractMock.expects('findOneAndUpdate').never();
       ContractMock.expects('updateOne').never();
       generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
+      canCreateVersion.returns(true);
 
-      await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
+      await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
+      sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
+      ContractMock.verify();
+    }
+  });
+
+  it('should throw if creation not allowed', async () => {
+    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    try {
+      ContractMock.expects('findOne')
+        .withExactArgs({ _id: contract._id.toHexString() })
+        .chain('lean')
+        .once()
+        .returns(contract);
+      ContractMock.expects('findOneAndUpdate').never();
+      ContractMock.expects('updateOne').never();
+      canCreateVersion.returns(false);
+
+      await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
+      sinon.assert.notCalled(generateSignatureRequest);
       ContractMock.verify();
     }
   });

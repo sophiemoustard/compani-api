@@ -191,16 +191,8 @@ const contractUsers = [{
 }];
 
 const sectorHistories = [
-  {
-    auxiliary: contractUsers[0]._id,
-    sector: sector._id,
-    company: authCompany._id,
-  },
-  {
-    auxiliary: contractUsers[1]._id,
-    sector: sector._id,
-    company: authCompany._id,
-  },
+  { auxiliary: contractUsers[0]._id, sector: sector._id, company: authCompany._id },
+  { auxiliary: contractUsers[1]._id, sector: sector._id, company: authCompany._id },
   {
     auxiliary: contractUsers[2]._id,
     sector: sector._id,
@@ -222,12 +214,7 @@ const sectorHistories = [
     startDate: '2017-01-01',
     endDate: '2017-11-30',
   },
-  {
-    auxiliary: contractUsers[3]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2018-09-03',
-  },
+  { auxiliary: contractUsers[3]._id, sector: sector._id, company: authCompany._id, startDate: '2018-09-03' },
 ];
 
 const otherContract = {
@@ -301,16 +288,16 @@ const contractsList = [
   {
     serialNumber: 'cacnxnkzlas',
     user: contractUsers[2]._id,
-    startDate: '2017-08-02T17:12:55.144Z',
-    endDate: '2017-09-02T17:12:55.144Z',
-    endNotificationDate: '2017-09-02T17:12:55.144Z',
+    startDate: '2017-08-02T00:00:00',
+    endDate: '2017-09-02T23:59:59',
+    endNotificationDate: '2017-09-02T17:12:55',
     endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [{
-      endDate: '2017-09-02T17:12:55.144Z',
+      endDate: '2017-09-02T17:12:55',
       grossHourlyRate: 10.12,
-      startDate: '2017-08-02T17:12:55.144Z',
+      startDate: '2017-08-02T00:00:00',
       weeklyHours: 15,
       _id: new ObjectID(),
     }],
@@ -318,18 +305,18 @@ const contractsList = [
   {
     serialNumber: 'sldfnasdlknfkds',
     user: contractUsers[3]._id,
-    startDate: '2018-08-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T17:12:55.144Z', weeklyHours: 15, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
   {
     serialNumber: 'lqwjrewjqpjefek',
     user: getUser('auxiliary_without_company')._id,
-    startDate: '2018-08-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T17:12:55.144Z', weeklyHours: 15, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
 ];
 
