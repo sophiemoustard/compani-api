@@ -537,17 +537,23 @@ describe('endContract', () => {
 
 describe('createVersion', () => {
   let generateSignatureRequest;
-  let ContractMock;
+  let findOneContract;
+  let updateOneContract;
+  let findOneAndUpdateContract;
   let canCreateVersion;
   beforeEach(() => {
     generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
-    ContractMock = sinon.mock(Contract);
+    findOneContract = sinon.stub(Contract, 'findOne');
+    updateOneContract = sinon.stub(Contract, 'updateOne');
+    findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
     canCreateVersion = sinon.stub(ContractHelper, 'canCreateVersion');
   });
   afterEach(() => {
     generateSignatureRequest.restore();
-    ContractMock.restore();
     canCreateVersion.restore();
+    findOneContract.restore();
+    updateOneContract.restore();
+    findOneAndUpdateContract.restore();
   });
 
   it('should create version and update previous one', async () => {
@@ -560,28 +566,25 @@ describe('createVersion', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contract._id.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('updateOne')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        {
-          $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() },
-        }
-      )
-      .once();
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract._id.toHexString() }, { $push: { versions: newVersion } })
-      .chain('lean')
-      .once();
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
     canCreateVersion.returns(true);
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    ContractMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneContract,
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOneContract,
+      { _id: contract._id.toHexString() },
+      { $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() } }
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateContract,
+      [{ query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] }]
+    );
     sinon.assert.notCalled(generateSignatureRequest);
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
   });
@@ -594,26 +597,28 @@ describe('createVersion', () => {
 
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
     canCreateVersion.returns(true);
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contract._id.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('updateOne').never();
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } }
-      )
-      .chain('lean')
-      .once()
-      .returns(contract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    ContractMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneContract,
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateContract,
+      [{
+        query: 'findOneAndUpdate',
+        args: [
+          { _id: contract._id.toHexString() },
+          { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } },
+        ],
+      }]
+    );
     sinon.assert.calledOnceWithExactly(generateSignatureRequest, { templateId: '1234567890' });
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
+    sinon.assert.notCalled(updateOneContract);
   });
 
   it('should throw on signature generation error', async () => {
@@ -623,13 +628,7 @@ describe('createVersion', () => {
     const credentials = { company: { _id: companyId } };
 
     try {
-      ContractMock.expects('findOne')
-        .withExactArgs({ _id: contract._id.toHexString() })
-        .chain('lean')
-        .once()
-        .returns(contract);
-      ContractMock.expects('findOneAndUpdate').never();
-      ContractMock.expects('updateOne').never();
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
       canCreateVersion.returns(true);
 
@@ -637,9 +636,14 @@ describe('createVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
+      SinonMongoose.calledWithExactly(
+        findOneContract,
+        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      );
       sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
-      ContractMock.verify();
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.notCalled(findOneAndUpdateContract);
     }
   });
 
@@ -650,13 +654,7 @@ describe('createVersion', () => {
     const credentials = { company: { _id: companyId } };
 
     try {
-      ContractMock.expects('findOne')
-        .withExactArgs({ _id: contract._id.toHexString() })
-        .chain('lean')
-        .once()
-        .returns(contract);
-      ContractMock.expects('findOneAndUpdate').never();
-      ContractMock.expects('updateOne').never();
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       canCreateVersion.returns(false);
 
       await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
@@ -665,7 +663,8 @@ describe('createVersion', () => {
     } finally {
       sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.notCalled(generateSignatureRequest);
-      ContractMock.verify();
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.notCalled(findOneAndUpdateContract);
     }
   });
 });
