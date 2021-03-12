@@ -8,6 +8,7 @@ const User = require('../../models/User');
 
 const isTrainerAuthorized = (loggedUserId, courseSlot) => {
   if (!UtilsHelper.areObjectIdsEquals(loggedUserId, courseSlot.course.trainer)) throw Boom.forbidden();
+
   return null;
 };
 
