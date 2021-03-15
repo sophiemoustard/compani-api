@@ -191,16 +191,8 @@ const contractUsers = [{
 }];
 
 const sectorHistories = [
-  {
-    auxiliary: contractUsers[0]._id,
-    sector: sector._id,
-    company: authCompany._id,
-  },
-  {
-    auxiliary: contractUsers[1]._id,
-    sector: sector._id,
-    company: authCompany._id,
-  },
+  { auxiliary: contractUsers[0]._id, sector: sector._id, company: authCompany._id },
+  { auxiliary: contractUsers[1]._id, sector: sector._id, company: authCompany._id },
   {
     auxiliary: contractUsers[2]._id,
     sector: sector._id,
@@ -222,31 +214,16 @@ const sectorHistories = [
     startDate: '2017-01-01',
     endDate: '2017-11-30',
   },
-  {
-    auxiliary: contractUsers[3]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2018-09-03',
-  },
+  { auxiliary: contractUsers[3]._id, sector: sector._id, company: authCompany._id, startDate: '2018-09-03' },
 ];
 
 const otherContract = {
-  createdAt: '2018-12-04T16:34:04.144Z',
   serialNumber: 'wfjefajsdklvcmkdmck',
   user: otherContractUser._id,
   startDate: '2018-12-03T23:00:00.000Z',
   _id: otherContractUser.contracts[0],
   company: otherCompany._id,
-  versions: [
-    {
-      createdAt: '2018-12-04T16:34:04.144Z',
-      endDate: null,
-      grossHourlyRate: 10.28,
-      startDate: '2018-12-03T23:00:00.000Z',
-      weeklyHours: 9,
-      _id: new ObjectID(),
-    },
-  ],
+  versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
 };
 
 const userFromOtherCompany = {
@@ -264,24 +241,14 @@ const userFromOtherCompany = {
 
 const contractsList = [
   {
-    createdAt: '2018-12-04T16:34:04.144Z',
     serialNumber: 'mnbvcxzaserfghjiu',
     user: contractUsers[0]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     _id: contractUsers[0].contracts[0],
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2018-12-04T16:34:04.144Z',
-        grossHourlyRate: 10.28,
-        startDate: '2018-12-03T23:00:00.000Z',
-        weeklyHours: 9,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
   },
   {
-    createdAt: '2018-12-04T16:34:04.144Z',
     serialNumber: 'sdfgtresddbgr',
     user: contractUsers[1]._id,
     startDate: '2018-12-03T23:00:00.000Z',
@@ -290,109 +257,77 @@ const contractsList = [
     endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2018-12-04T16:34:04.144Z',
-        grossHourlyRate: 10.28,
-        startDate: '2018-12-03T23:00:00.000Z',
-        weeklyHours: 9,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
   },
   {
-    createdAt: '2018-08-02T17:12:55.144Z',
     serialNumber: 'qwdfgbnhygfc',
     endDate: null,
     company: authCompany._id,
     user: getUser('auxiliary')._id,
-    startDate: '2018-08-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
-    versions: [
-      {
-        createdAt: '2018-08-02T17:12:55.144Z',
-        endDate: null,
-        grossHourlyRate: 10.12,
-        startDate: '2018-08-02T17:12:55.144Z',
-        weeklyHours: 15,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
   {
-    createdAt: '2018-08-02T17:12:55.144Z',
     serialNumber: 'cvfdjsbjknvkaskdj',
     user: getUser('auxiliary')._id,
-    startDate: '2018-08-02T17:12:55.144Z',
-    endDate: '2018-09-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
+    endDate: '2018-09-02T23:59:59',
     endNotificationDate: '2018-02-03T23:00:00.000Z',
     endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2018-08-02T17:12:55.144Z',
-        endDate: '2018-09-02T17:12:55.144Z',
-        grossHourlyRate: 10.12,
-        startDate: '2018-08-02T17:12:55.144Z',
-        weeklyHours: 15,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{
+      endDate: '2018-09-02T23:59:59',
+      grossHourlyRate: 10.12,
+      startDate: '2018-08-02T00:00:00',
+      weeklyHours: 15,
+      _id: new ObjectID(),
+    }],
   },
   {
-    createdAt: '2017-08-02T17:12:55.144Z',
     serialNumber: 'cacnxnkzlas',
     user: contractUsers[2]._id,
-    startDate: '2017-08-02T17:12:55.144Z',
-    endDate: '2017-09-02T17:12:55.144Z',
-    endNotificationDate: '2017-09-02T17:12:55.144Z',
+    startDate: '2017-08-02T00:00:00',
+    endDate: '2017-09-02T23:59:59',
+    endNotificationDate: '2017-09-02T17:12:55',
     endReason: 'mutation',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2017-08-02T17:12:55.144Z',
-        endDate: '2017-09-02T17:12:55.144Z',
-        grossHourlyRate: 10.12,
-        startDate: '2017-08-02T17:12:55.144Z',
-        weeklyHours: 15,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{
+      endDate: '2017-09-02T17:12:55',
+      grossHourlyRate: 10.12,
+      startDate: '2017-08-02T00:00:00',
+      weeklyHours: 15,
+      _id: new ObjectID(),
+    }],
   },
   {
-    createdAt: '2018-08-02T17:12:55.144Z',
     serialNumber: 'sldfnasdlknfkds',
     user: contractUsers[3]._id,
-    startDate: '2018-08-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2018-08-02T17:12:55.144Z',
-        grossHourlyRate: 10.12,
-        startDate: '2018-08-02T17:12:55.144Z',
-        weeklyHours: 15,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
   {
-    createdAt: '2018-08-02T17:12:55.144Z',
     serialNumber: 'lqwjrewjqpjefek',
     user: getUser('auxiliary_without_company')._id,
-    startDate: '2018-08-02T17:12:55.144Z',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
     company: authCompany._id,
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
+  },
+  {
+    serialNumber: 'xbcbdsvknsdk',
+    endDate: null,
+    company: authCompany._id,
+    user: getUser('auxiliary')._id,
+    startDate: '2017-10-12T00:00:00',
+    _id: new ObjectID(),
     versions: [
-      {
-        createdAt: '2018-08-02T17:12:55.144Z',
-        grossHourlyRate: 10.12,
-        startDate: '2018-08-02T17:12:55.144Z',
-        weeklyHours: 15,
-        _id: new ObjectID(),
-      },
+      { grossHourlyRate: 10.12, startDate: '2017-10-12T00:00:00', weeklyHours: 23, _id: new ObjectID() },
+      { grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() },
     ],
   },
 ];
@@ -406,7 +341,6 @@ const contractEvents = [
     startDate: '2019-08-08T14:00:18.653Z',
     endDate: '2019-08-08T16:00:18.653Z',
     auxiliary: contractUsers[0]._id,
-    createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: { _id: new ObjectID(), name: 'Formation' },
   },
   {
@@ -419,7 +353,6 @@ const contractEvents = [
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary: contractUsers[0]._id,
-    createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
     _id: new ObjectID(),
@@ -431,7 +364,6 @@ const contractEvents = [
     startDate: '2019-07-06T14:00:18.653Z',
     endDate: '2019-07-10T17:00:18.653Z',
     auxiliary: contractUsers[0]._id,
-    createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
     _id: new ObjectID(),
@@ -442,7 +374,6 @@ const contractEvents = [
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: contractUsers[0]._id,
     customer: customer._id,
-    createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -461,7 +392,6 @@ const contractEvents = [
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: contractUsers[0]._id,
     customer: customer._id,
-    createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customer.subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',

@@ -45,7 +45,7 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
       if (history) funding.history = [history];
       else funding.history = [{ careHours: 0, amountTTC: 0, fundingId: funding._id }];
     } else {
-      const history = await FundingHistory.find({ fundingId: funding._id, company: companyId });
+      const history = await FundingHistory.find({ fundingId: funding._id, company: companyId }).lean();
       if (history) funding.history = history;
       if (history.length === 0 || !history) funding.history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {

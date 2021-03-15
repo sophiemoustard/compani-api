@@ -8,6 +8,7 @@ const SurchargeSchema = mongoose.Schema({
   publicHoliday: { type: Number },
   twentyFifthOfDecember: { type: Number },
   firstOfMay: { type: Number },
+  firstOfJanuary: { type: Number },
   evening: { type: Number },
   eveningStartTime: { type: String },
   eveningEndTime: { type: String },

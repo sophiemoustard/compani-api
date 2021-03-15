@@ -25,7 +25,7 @@ const {
   getUser,
   authorizeUserUpdate,
   authorizeUserGetById,
-  authorizeUserGet,
+  authorizeUsersGet,
   authorizeUserCreation,
   authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
@@ -103,7 +103,7 @@ exports.plugin = {
             company: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeUserGet }],
+        pre: [{ method: authorizeUsersGet }],
       },
       handler: list,
     });
@@ -114,7 +114,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: { query: Joi.object({ company: Joi.objectId() }) },
-        pre: [{ method: authorizeUserGet }],
+        pre: [{ method: authorizeUsersGet }],
       },
       handler: listWithSectorHistories,
     });
@@ -131,7 +131,7 @@ exports.plugin = {
             company: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeUserGet }],
+        pre: [{ method: authorizeUsersGet }],
       },
       handler: activeList,
     });
