@@ -537,14 +537,23 @@ describe('endContract', () => {
 
 describe('createVersion', () => {
   let generateSignatureRequest;
-  let ContractMock;
+  let findOneContract;
+  let updateOneContract;
+  let findOneAndUpdateContract;
+  let canCreateVersion;
   beforeEach(() => {
     generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
-    ContractMock = sinon.mock(Contract);
+    findOneContract = sinon.stub(Contract, 'findOne');
+    updateOneContract = sinon.stub(Contract, 'updateOne');
+    findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
+    canCreateVersion = sinon.stub(ContractHelper, 'canCreateVersion');
   });
   afterEach(() => {
     generateSignatureRequest.restore();
-    ContractMock.restore();
+    canCreateVersion.restore();
+    findOneContract.restore();
+    updateOneContract.restore();
+    findOneAndUpdateContract.restore();
   });
 
   it('should create version and update previous one', async () => {
@@ -554,77 +563,108 @@ describe('createVersion', () => {
       startDate: '2019-09-09T00:00:00',
       versions: [{ startDate: '2019-09-01T00:00:00' }, { startDate: '2019-09-10T00:00:00' }],
     };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contract._id.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('updateOne')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        {
-          $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() },
-        }
-      )
-      .once();
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract._id.toHexString() }, { $push: { versions: newVersion } })
-      .chain('lean')
-      .once();
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    canCreateVersion.returns(true);
 
-    await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
+    await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    ContractMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneContract,
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOneContract,
+      { _id: contract._id.toHexString() },
+      { $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() } }
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateContract,
+      [{ query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] }]
+    );
     sinon.assert.notCalled(generateSignatureRequest);
+    sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
   });
 
   it('should generate signature request', async () => {
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
     const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
+    canCreateVersion.returns(true);
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contract._id.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('updateOne').never();
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } }
-      )
-      .chain('lean')
-      .once()
-      .returns(contract);
+    await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
-
-    ContractMock.verify();
-    sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
+    SinonMongoose.calledWithExactly(
+      findOneContract,
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateContract,
+      [{
+        query: 'findOneAndUpdate',
+        args: [
+          { _id: contract._id.toHexString() },
+          { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } },
+        ],
+      }]
+    );
+    sinon.assert.calledOnceWithExactly(generateSignatureRequest, { templateId: '1234567890' });
+    sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
+    sinon.assert.notCalled(updateOneContract);
   });
 
   it('should throw on signature generation error', async () => {
+    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
     try {
-      const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
-      const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-
-      ContractMock.expects('findOne')
-        .withExactArgs({ _id: contract._id.toHexString() })
-        .chain('lean')
-        .once()
-        .returns(contract);
-      ContractMock.expects('findOneAndUpdate').never();
-      ContractMock.expects('updateOne').never();
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
+      canCreateVersion.returns(true);
 
-      await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
+      await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
+      SinonMongoose.calledWithExactly(
+        findOneContract,
+        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      );
+      sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
-      ContractMock.verify();
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.notCalled(findOneAndUpdateContract);
+    }
+  });
+
+  it('should throw if creation not allowed', async () => {
+    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    try {
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      canCreateVersion.returns(false);
+
+      await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
+      sinon.assert.notCalled(generateSignatureRequest);
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.notCalled(findOneAndUpdateContract);
     }
   });
 });
@@ -642,9 +682,22 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract is ended', async () => {
-    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00' };
-    const versionToUpdate = {};
+    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectID() }] };
+    const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+    sinon.assert.notCalled(findContract);
+  });
+
+  it('should return false if not last version', async () => {
+    const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
+    const contract = {
+      _id: new ObjectID(),
+      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+    };
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
@@ -662,10 +715,10 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract not ended and start date is before previous version startDate', async () => {
-    const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
+    const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
       _id: new ObjectID(),
-      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+      versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -678,7 +731,7 @@ describe('canUpdateVersion', () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
       _id: new ObjectID(),
-      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+      versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -688,7 +741,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
@@ -709,7 +762,12 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event since last contract', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), startDate: '2020-06-02T00:00:00' };
+    const contract = {
+      _id: new ObjectID(),
+      user: new ObjectID(),
+      startDate: '2020-06-02T00:00:00',
+      versions: [{ _id: new ObjectID() }],
+    };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
@@ -738,7 +796,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if first version and existing events', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(5);

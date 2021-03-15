@@ -154,8 +154,15 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   return updatedContract;
 };
 
-exports.createVersion = async (contractId, versionPayload) => {
+exports.canCreateVersion = async (contract, versionPayload, companyId) =>
+  exports.canUpdateVersion(contract, versionPayload, contract.versions.length, companyId);
+
+exports.createVersion = async (contractId, versionPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const contract = await Contract.findOne({ _id: contractId }).lean();
+
+  const canCreate = await exports.canCreateVersion(contract, versionPayload, companyId);
+  if (!canCreate) throw Boom.badData();
 
   const versionToAdd = { ...versionPayload };
   if (versionPayload.signature) {
@@ -179,7 +186,8 @@ exports.createVersion = async (contractId, versionPayload) => {
 };
 
 exports.canUpdateVersion = async (contract, versionPayload, versionIndex, companyId) => {
-  if (contract.endDate) return false;
+  const lastVersionIndex = contract.versions.length - 1;
+  if (contract.endDate || versionIndex < lastVersionIndex) return false;
   if (versionIndex !== 0) {
     return new Date(contract.versions[versionIndex - 1].startDate) < new Date(versionPayload.startDate);
   }

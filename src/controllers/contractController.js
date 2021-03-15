@@ -66,7 +66,7 @@ const exportDpae = async (req, h) => {
 
 const createContractVersion = async (req) => {
   try {
-    const contract = await ContractHelper.createVersion(req.params._id, req.payload);
+    const contract = await ContractHelper.createVersion(req.params._id, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return { message: translate[language].contractVersionAdded, data: { contract } };
