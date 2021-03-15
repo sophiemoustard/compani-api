@@ -186,7 +186,8 @@ exports.createVersion = async (contractId, versionPayload, credentials) => {
 };
 
 exports.canUpdateVersion = async (contract, versionPayload, versionIndex, companyId) => {
-  if (contract.endDate) return false;
+  const lastVersionIndex = contract.versions.length - 1;
+  if (contract.endDate || versionIndex < lastVersionIndex) return false;
   if (versionIndex !== 0) {
     return new Date(contract.versions[versionIndex - 1].startDate) < new Date(versionPayload.startDate);
   }

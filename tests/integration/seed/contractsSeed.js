@@ -264,7 +264,7 @@ const contractsList = [
     endDate: null,
     company: authCompany._id,
     user: getUser('auxiliary')._id,
-    startDate: '2020-08-02T00:00:00',
+    startDate: '2018-08-02T00:00:00',
     _id: new ObjectID(),
     versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
@@ -317,6 +317,18 @@ const contractsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
+  },
+  {
+    serialNumber: 'xbcbdsvknsdk',
+    endDate: null,
+    company: authCompany._id,
+    user: getUser('auxiliary')._id,
+    startDate: '2017-10-12T00:00:00',
+    _id: new ObjectID(),
+    versions: [
+      { grossHourlyRate: 10.12, startDate: '2017-10-12T00:00:00', weeklyHours: 23, _id: new ObjectID() },
+      { grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() },
+    ],
   },
 ];
 

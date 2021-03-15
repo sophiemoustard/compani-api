@@ -612,6 +612,18 @@ describe('PUT contract/:id/versions/:versionId', () => {
     expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
   });
 
+  it('should return 422 if not last version updated', async () => {
+    const payload = { startDate: '2020-02-01' };
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/contracts/${contractsList[7]._id}/versions/${contractsList[7].versions[0]._id}`,
+      headers: { Cookie: `alenvi_token=${authToken}` },
+      payload,
+    });
+
+    expect(response.statusCode).toBe(422);
+  });
+
   it('should return a 403 if contract is not from the same company', async () => {
     const payload = { startDate: '2020-02-01' };
     const response = await app.inject({

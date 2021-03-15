@@ -27,11 +27,7 @@ exports.createFolder = async (identity, parentFolderId) => {
 
 exports.createFolderForCompany = async (companyName) => {
   const parentFolderId = process.env.GOOGLE_DRIVE_COMPANY_FOLDER_ID;
-  const folder = await Gdrive.add({
-    name: companyName,
-    parentFolderId,
-    folder: true,
-  });
+  const folder = await Gdrive.add({ name: companyName, parentFolderId, folder: true });
 
   if (!folder) throw Boom.failedDependency('Google drive folder creation failed.');
 

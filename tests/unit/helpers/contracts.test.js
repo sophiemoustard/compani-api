@@ -682,9 +682,22 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract is ended', async () => {
-    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00' };
-    const versionToUpdate = {};
+    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectID() }] };
+    const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
+    sinon.assert.notCalled(findContract);
+  });
+
+  it('should return false if not last version', async () => {
+    const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
+    const contract = {
+      _id: new ObjectID(),
+      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+    };
+    const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
     expect(result).toBeFalsy();
     sinon.assert.notCalled(countAuxiliaryEventsBetweenDates);
@@ -702,10 +715,10 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract not ended and start date is before previous version startDate', async () => {
-    const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
+    const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
       _id: new ObjectID(),
-      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+      versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -718,7 +731,7 @@ describe('canUpdateVersion', () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
       _id: new ObjectID(),
-      versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
+      versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -728,7 +741,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
@@ -749,7 +762,12 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event since last contract', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), startDate: '2020-06-02T00:00:00' };
+    const contract = {
+      _id: new ObjectID(),
+      user: new ObjectID(),
+      startDate: '2020-06-02T00:00:00',
+      versions: [{ _id: new ObjectID() }],
+    };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
@@ -778,7 +796,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if first version and existing events', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID() };
+    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(5);
