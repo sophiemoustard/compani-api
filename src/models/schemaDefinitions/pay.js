@@ -13,6 +13,7 @@ const surchargedDetails = [{
   publicHoliday: surchargedHours,
   twentyFifthOfDecember: surchargedHours,
   firstOfMay: surchargedHours,
+  firstOfJanuary: surchargedHours,
   evening: surchargedHours,
   custom: surchargedHours,
 }];

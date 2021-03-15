@@ -5,6 +5,7 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const cardsList = [
@@ -34,6 +35,7 @@ const stepsList = [
   { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
   { _id: new ObjectID(), name: 'step 4', type: 'e_learning' },
   { _id: new ObjectID(), name: 'step 5', type: 'e_learning', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), name: 'step 6 - linked to courseSlot', type: 'on_site' },
 ];
 
 const subProgramsList = [
@@ -44,7 +46,7 @@ const subProgramsList = [
   { _id: new ObjectID(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
   { _id: new ObjectID(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
   { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id] },
-  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id] },
+  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]] },
 ];
 
 const programsList = [
@@ -65,6 +67,16 @@ const coursesList = [{
   company: new ObjectID(),
 }];
 
+const courseSlotsList = [
+  {
+    _id: new ObjectID(),
+    startDate: '2020-03-10T09:00:00',
+    endDate: '2020-03-10T12:00:00',
+    course: coursesList[0]._id,
+    step: stepsList[5]._id,
+  },
+];
+
 const populateDB = async () => {
   await Program.deleteMany({});
   await SubProgram.deleteMany({});
@@ -72,6 +84,7 @@ const populateDB = async () => {
   await Activity.deleteMany({});
   await Course.deleteMany({});
   await Card.deleteMany({});
+  await CourseSlot.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -81,6 +94,7 @@ const populateDB = async () => {
   await Activity.insertMany(activitiesList);
   await Course.insertMany(coursesList);
   await Card.insertMany(cardsList);
+  await CourseSlot.insertMany(courseSlotsList);
 };
 
 module.exports = {

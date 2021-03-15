@@ -86,7 +86,7 @@ exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidTrans
 
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) => {
   const {
-    saturday, sunday, publicHoliday, firstOfMay, twentyFifthOfDecember, evening,
+    saturday, sunday, publicHoliday, firstOfJanuary, firstOfMay, twentyFifthOfDecember, evening,
     eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime,
   } = surcharge;
 
@@ -95,6 +95,8 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails, paidTransport);
   } if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
     return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails, paidTransport);
+  } if (firstOfJanuary && firstOfJanuary > 0 && moment(event.startDate).format('DD/MM') === '01/01') {
+    return exports.applySurcharge(paidHours, surcharge, 'firstOfJanuary', surchargeDetails, paidTransport);
   } if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
     return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails, paidTransport);
   } if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
@@ -296,7 +298,7 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
 };
 
 exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
-  if (abs.absenceNature !== DAILY) return moment(abs.endDate).diff(abs.startDate, 'm') / 60;
+  if (abs.absenceNature !== DAILY) return acc + moment(abs.endDate).diff(abs.startDate, 'm') / 60;
 
   return acc + exports.getHoursFromDailyAbsence(abs, contract, query);
 }, 0);

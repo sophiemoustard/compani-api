@@ -172,7 +172,10 @@ describe('getProgram', () => {
           query: 'populate',
           args: [{
             path: 'subPrograms',
-            populate: { path: 'steps', populate: { path: 'activities', populate: 'cards' } },
+            populate: {
+              path: 'steps',
+              populate: [{ path: 'activities ', populate: 'cards' }, { path: 'courseSlotsCount' }],
+            },
           }],
         },
         { query: 'populate', args: [{ path: 'categories' }] },
