@@ -463,6 +463,16 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 409 step is linked to a courseSlot', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/subprograms/${subProgramsList[7]._id}/steps/${subProgramsList[7].steps[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {

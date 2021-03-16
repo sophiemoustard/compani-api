@@ -5,8 +5,9 @@ const {
   populateDB,
   coursesList,
   courseHistoriesList,
+  trainerAndCoach,
 } = require('./seed/courseHistoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -142,6 +143,17 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       });
 
       expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return 200 as user is trainer, but not course trainer and coach', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursehistories?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
     });
   });
 });

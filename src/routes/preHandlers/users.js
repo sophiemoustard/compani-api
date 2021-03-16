@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const has = require('lodash/has');
 const flat = require('flat');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
@@ -191,14 +190,16 @@ exports.authorizeUserCreation = async (req) => {
   return null;
 };
 
-exports.authorizeUserGet = async (req) => {
+exports.authorizeUsersGet = async (req) => {
   const { auth, query } = req;
   const userCompanyId = get(auth, 'credentials.company._id', null);
   const queryCompanyId = query.company;
-  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
+  const vendorRole = get(req, 'auth.credentials.role.vendor.name');
+  const clientRole = get(req, 'auth.credentials.role.client.name');
 
-  if (!has(authenticatedUser, 'role.vendor') && !queryCompanyId) throw Boom.forbidden();
-  if (!has(authenticatedUser, 'role.vendor') && queryCompanyId !== userCompanyId.toHexString()) throw Boom.forbidden();
+  if (!vendorRole && !queryCompanyId) throw Boom.forbidden();
+  if (!vendorRole && !UtilsHelper.areObjectIdsEquals(queryCompanyId, userCompanyId)) throw Boom.forbidden();
+  if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
 
   if (query.customers) {
     const customers = UtilsHelper.formatIdsArray(query.customers);
@@ -211,18 +212,16 @@ exports.authorizeUserGet = async (req) => {
 
 exports.authorizeLearnersGet = async (req) => {
   const { auth, query } = req;
-  const userCompanyId = get(auth, 'credentials.company._id', null);
-  const authenticatedUser = await User.findById(get(auth, 'credentials._id')).lean({ autopopulate: true });
-  const vendorRole = get(authenticatedUser.role, 'vendor.name');
-  const clientRole = get(authenticatedUser.role, 'client.name');
-  const isVendorRoleAllowed = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole);
-  const isClientRoleAllowed = [CLIENT_ADMIN, COACH].includes(clientRole);
-  const isQueryCompanyValid = query.company && UtilsHelper.areObjectIdsEquals(query.company, userCompanyId);
+  const vendorRole = get(auth, 'credentials.role.vendor.name');
+  if (vendorRole) return null;
 
-  if (!vendorRole && (!isClientRoleAllowed || !isQueryCompanyValid)) throw Boom.forbidden();
-  if (!clientRole && !isVendorRoleAllowed) throw Boom.forbidden();
-  if (!isClientRoleAllowed && !isVendorRoleAllowed) throw Boom.forbidden();
-  if (query.hasCompany && !vendorRole) throw Boom.forbidden();
+  const clientRole = get(auth, 'credentials.role.client.name');
+  const isClientRoleAllowed = [CLIENT_ADMIN, COACH].includes(clientRole);
+  const userCompanyId = get(auth, 'credentials.company._id', null);
+  const isQueryCompanyValid = query.company && UtilsHelper.areObjectIdsEquals(query.company, userCompanyId);
+  if (!isClientRoleAllowed || !isQueryCompanyValid) throw Boom.forbidden();
+
+  if (query.hasCompany) throw Boom.forbidden();
 
   return null;
 };

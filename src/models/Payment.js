@@ -8,10 +8,11 @@ const {
   BANK_TRANSFER,
   CHECK,
   CESU,
+  CASH,
 } = require('../helpers/constants');
 
 const PAYMENT_NATURES = [REFUND, PAYMENT];
-const PAYMENT_TYPES = [DIRECT_DEBIT, BANK_TRANSFER, CHECK, CESU];
+const PAYMENT_TYPES = [DIRECT_DEBIT, BANK_TRANSFER, CHECK, CESU, CASH];
 
 const PaymentSchema = mongoose.Schema({
   number: { type: String, unique: true },

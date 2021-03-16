@@ -193,7 +193,11 @@ exports.getCourseFollowUp = async (course, company) => {
         },
       ],
     })
-    .populate({ path: 'trainees', select: 'identity.firstname identity.lastname', match: traineeCompanyMatch })
+    .populate({
+      path: 'trainees',
+      select: 'identity.firstname identity.lastname firstMobileConnection',
+      match: traineeCompanyMatch,
+    })
     .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 

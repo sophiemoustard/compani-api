@@ -48,7 +48,7 @@ const rights = [
   { permission: 'taxcertificates:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Consulter une attestation fiscale' },
   { permission: 'users:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer un utilisateur' },
   { permission: 'users:exist', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Verifier si un email existe déjà en base' },
-  { permission: 'users:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Accéder à la liste des utilisateurs' },
+  { permission: 'users:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Accéder à la liste des utilisateurs' },
 ];
 
 module.exports = { rights };
