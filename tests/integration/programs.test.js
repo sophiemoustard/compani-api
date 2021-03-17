@@ -12,6 +12,7 @@ const {
   populateDB,
   programsList,
   categoriesList,
+  vendorAdmin,
 } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -780,6 +781,115 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
           method: 'DELETE',
           url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
+  let authToken;
+  beforeEach(populateDB);
+  describe('ROF', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should add a tester to a program', async () => {
+      const programId = programsList[0]._id;
+      const payload = {
+        identity: { lastname: 'test', firstname: 'test' },
+        local: { email: 'test@alenvi.io' },
+        contact: { phone: '0123456789' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/tester`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const program = await Program.findById(programId);
+      expect(program.testers).toHaveLength(1);
+    });
+
+    it('should add an existing user a program', async () => {
+      const programId = programsList[0]._id;
+      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/tester`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const program = await Program.findById(programId);
+      expect(program.testers).toHaveLength(1);
+    });
+
+    it('should return a 404 if program does not exist', async () => {
+      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${new ObjectID()}/tester`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    let payload = {
+      identity: { lastname: 'test', firstname: 'test' },
+      local: { email: 'test@alenvi.io' },
+      contact: { phone: '0123456789' },
+    };
+    const missingParams = ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 if missing ${param}`, async () => {
+        const programId = programsList[0]._id;
+        payload = omit(payload, param);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${programId.toHexString()}/tester`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    const payload = {
+      identity: { lastname: 'test', firstname: 'test' },
+      local: { email: 'test@alenvi.io' },
+      contact: { phone: '0123456789' },
+    };
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const programId = programsList[0]._id;
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${programId.toHexString()}/tester`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

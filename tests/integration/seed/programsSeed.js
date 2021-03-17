@@ -104,4 +104,5 @@ module.exports = {
   activitiesList,
   activityHistoriesList,
   categoriesList,
+  vendorAdmin,
 };
