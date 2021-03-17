@@ -1,6 +1,6 @@
 const get = require('lodash/get');
 const { getLastVersion } = require('./utils');
-const { PAYMENT } = require('./constants');
+const { PAYMENT, CESU } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
@@ -71,6 +71,9 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
   const billed = bill.billed - (correspondingCreditNote ? correspondingCreditNote.refund : 0);
   const balance = paid - billed;
 
+  const lastCesuPayment = correspondingPayment && correspondingPayment.payments.filter(p => p.type === CESU)
+    .sort((a, b) => b.date - a.date)[0];
+
   return {
     ...bill,
     participationRate: exports.formatParticipationRate(bill, tppList),
@@ -78,6 +81,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
     paid,
     balance,
     toPay: exports.canBeDirectDebited(bill) && balance < 0 ? Math.abs(paid - billed) : 0,
+    lastCesuPaymentDate: get(lastCesuPayment, 'date', null),
   };
 };
 
