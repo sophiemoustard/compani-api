@@ -115,10 +115,10 @@ exports.plugin = {
             endDate: Joi.date().required(),
             customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
-            isBilled: Joi.boolean().required(),
+            creditNoteId: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeEventForCreditNoteGet }],
+        pre: [{ method: authorizeEventForCreditNoteGet, assign: 'creditNote' }],
       },
       handler: listForCreditNotes,
     });
