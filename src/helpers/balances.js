@@ -48,7 +48,7 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
   if (!fundings) return 100;
 
   const sortedFundings = fundings
-    .filter(fund => tppList.some(tpp => tpp._id.toHexString() === fund.thirdPartyPayer.toHexString() && tpp.isApa))
+    .filter(fund => tppList.some(tpp => UtilsHelper.areObjectIdsEquals(tpp._id, fund.thirdPartyPayer) && tpp.isApa))
     .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
     .sort((a, b) => b.customerParticipationRate - a.customerParticipationRate);
 
@@ -57,13 +57,13 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
 
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
   const correspondingCreditNote = !bill._id.tpp
-    ? customerAggregation.find(cn => cn._id.customer.toHexString() === bill._id.customer.toHexString() && !cn._id.tpp)
-    : tppAggregation.find(cn => cn._id.tpp && cn._id.tpp.toHexString() === bill._id.tpp.toHexString() &&
-      cn._id.customer.toHexString() === bill._id.customer.toHexString());
+    ? customerAggregation.find(cn => UtilsHelper.areObjectIdsEquals(cn._id.customer, bill._id.customer) && !cn._id.tpp)
+    : tppAggregation.find(cn => cn._id.tpp && UtilsHelper.areObjectIdsEquals(cn._id.tpp, bill._id.tpp) &&
+    UtilsHelper.areObjectIdsEquals(cn._id.customer, bill._id.customer));
   const correspondingPayment = !bill._id.tpp
-    ? payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString() && !pay._id.tpp)
-    : payments.find(pay => pay._id.customer.toHexString() === bill._id.customer.toHexString() &&
-      pay._id.tpp && pay._id.tpp.toHexString() === bill._id.tpp.toHexString());
+    ? payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, bill._id.customer) && !pay._id.tpp)
+    : payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, bill._id.customer) &&
+      pay._id.tpp && UtilsHelper.areObjectIdsEquals(pay._id.tpp, bill._id.tpp));
 
   const paid = correspondingPayment && correspondingPayment.payments
     ? exports.computePayments(correspondingPayment.payments)
@@ -83,9 +83,9 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 
 exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
   const correspondingPayment = !creditNote._id.tpp
-    ? payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString() && !pay._id.tpp)
-    : payments.find(pay => pay._id.customer.toHexString() === creditNote._id.customer.toHexString() &&
-      pay._id.tpp && pay._id.tpp.toHexString() === creditNote._id.tpp.toHexString());
+    ? payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) && !pay._id.tpp)
+    : payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) &&
+      pay._id.tpp && UtilsHelper.areObjectIdsEquals(pay._id.tpp, creditNote._id.tpp));
 
   const bill = {
     customer: creditNote.customer,
@@ -132,9 +132,9 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   }
 
   const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation].filter(cn => !clients.some((cl) => {
-    const isCustomerCreditNote = cl.customer.toHexString() === cn._id.customer.toHexString();
+    const isCustomerCreditNote = UtilsHelper.areObjectIdsEquals(cl.customer, cn._id.customer);
     const noTpp = !cl.tpp && !cn._id.tpp;
-    const isClientCreditNote = cl.tpp && cn._id.tpp && cl.tpp.toHexString() === cn._id.tpp.toHexString();
+    const isClientCreditNote = cl.tpp && cn._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, cn._id.tpp);
 
     return isCustomerCreditNote && (noTpp || isClientCreditNote);
   }));
@@ -145,9 +145,9 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   }
 
   const remainingPayments = payments.filter(payment => !clients.some((cl) => {
-    const isCustomerPayment = cl.customer.toHexString() === payment._id.customer.toHexString();
+    const isCustomerPayment = UtilsHelper.areObjectIdsEquals(cl.customer, payment._id.customer);
     const noTpp = !cl.tpp && !payment._id.tpp;
-    const isTppPayment = cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString();
+    const isTppPayment = cl.tpp && payment._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, payment._id.tpp);
 
     return isCustomerPayment && (noTpp || isTppPayment);
   }));
