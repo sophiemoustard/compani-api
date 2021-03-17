@@ -846,26 +846,22 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    let payload = {
-      identity: { lastname: 'test', firstname: 'test' },
-      local: { email: 'test@alenvi.io' },
-      contact: { phone: '0123456789' },
-    };
-    const missingParams = ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 if missing ${param}`, async () => {
-        const programId = programsList[0]._id;
-        payload = omit(payload, param);
+    it('should return a 400 if missing email', async () => {
+      const programId = programsList[0]._id;
+      const payload = {
+        identity: { lastname: 'test', firstname: 'test' },
+        local: { email: 'test@alenvi.io' },
+        contact: { phone: '0123456789' },
+      };
 
-        const response = await app.inject({
-          method: 'POST',
-          url: `/programs/${programId.toHexString()}/tester`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(400);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/tester`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: omit(payload, 'local.email'),
       });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
