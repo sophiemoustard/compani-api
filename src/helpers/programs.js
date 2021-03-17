@@ -2,8 +2,10 @@ const flat = require('flat');
 const { get } = require('lodash');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
+const User = require('../models/User');
 const GCloudStorageHelper = require('./gCloudStorage');
-const { STRICTLY_E_LEARNING } = require('./constants');
+const UsersHelper = require('./users');
+const { STRICTLY_E_LEARNING, WEBAPP } = require('./constants');
 
 exports.createProgram = async payload => Program.create(payload);
 
@@ -81,3 +83,11 @@ exports.addCategory = async (programId, payload) =>
 
 exports.removeCategory = async (programId, categoryId) =>
   Program.updateOne({ _id: programId }, { $pull: { categories: categoryId } });
+
+exports.addTester = async (programId, payload) => {
+  const user = await User.findOne({ 'local.email': payload.local.email }).lean();
+  const addedTester = user || await UsersHelper.createUser({ ...payload, origin: WEBAPP });
+
+  return Program.findOneAndUpdate({ _id: programId }, { $addToSet: { testers: addedTester._id } }, { new: true })
+    .lean();
+};
