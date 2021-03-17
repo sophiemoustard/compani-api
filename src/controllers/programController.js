@@ -128,6 +128,17 @@ const removeCategory = async (req) => {
   }
 };
 
+const addTester = async (req) => {
+  try {
+    await ProgramHelper.addTester(req.params._id, req.payload);
+
+    return { message: translate[language].testerAdded };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listELearning,
@@ -139,4 +150,5 @@ module.exports = {
   deleteImage,
   addCategory,
   removeCategory,
+  addTester,
 };
