@@ -15,12 +15,23 @@ const isTrainerAuthorized = (loggedUserId, courseSlot) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsIds = [...new Set(UtilsHelper.formatObjectIdsArray(req.query.courseSlots))];
   const courseSlots = await CourseSlot.find({ _id: { $in: courseSlotsIds } }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees' })
+    .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
   if (courseSlots.length !== courseSlotsIds.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
+
+  if (!get(credentials, 'role.vendor')) {
+    const { course } = courseSlots[0];
+    if (course.type === INTRA) {
+      if (!course.company) throw Boom.badData();
+
+      const userBelongToCompany = await User.countDocuments({ _id: credentials._id, company: course.company });
+      if (!userBelongToCompany) throw Boom.forbidden();
+    }
+  }
+
   if (get(credentials, 'role.vendor.name') === TRAINER) {
     courseSlots.forEach(cs => isTrainerAuthorized(credentials._id, cs));
   }
