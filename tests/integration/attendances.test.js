@@ -205,10 +205,33 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if user is coach and course is intra and not from user company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?courseSlots=${slotsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if user is client_admin and course is intra and not from user company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?courseSlots=${slotsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
