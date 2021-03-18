@@ -63,20 +63,20 @@ const getCustomerAndTppMatchingInfo = (bill, info) => info._id.tpp &&
   UtilsHelper.areObjectIdsEquals(info._id.customer, bill._id.customer);
 
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
-  const correspondingCreditNote = !bill._id.tpp
+  const matchingCreditNote = !bill._id.tpp
     ? customerAggregation.find(cn => getCustomerMatchingInfo(bill, cn))
     : tppAggregation.find(cn => getCustomerAndTppMatchingInfo(bill, cn));
-  const correspondingPayment = !bill._id.tpp
+  const matchingPayment = !bill._id.tpp
     ? payments.find(pay => getCustomerMatchingInfo(bill, pay))
     : payments.find(pay => getCustomerAndTppMatchingInfo(bill, pay));
 
-  const paid = correspondingPayment && correspondingPayment.payments
-    ? exports.computePayments(correspondingPayment.payments)
+  const paid = matchingPayment && matchingPayment.payments
+    ? exports.computePayments(matchingPayment.payments)
     : 0;
-  const billed = bill.billed - (correspondingCreditNote ? correspondingCreditNote.refund : 0);
+  const billed = bill.billed - (matchingCreditNote ? matchingCreditNote.refund : 0);
   const balance = paid - billed;
 
-  const lastCesuPayment = correspondingPayment && correspondingPayment.payments.filter(p => p.type === CESU)
+  const lastCesuPayment = matchingPayment && matchingPayment.payments.filter(p => p.type === CESU)
     .sort((a, b) => b.date - a.date)[0];
 
   return {
@@ -91,7 +91,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 };
 
 exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
-  const correspondingPayment = !creditNote._id.tpp
+  const matchingPayment = !creditNote._id.tpp
     ? payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) && !pay._id.tpp)
     : payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) &&
       pay._id.tpp && UtilsHelper.areObjectIdsEquals(pay._id.tpp, creditNote._id.tpp));
@@ -100,8 +100,8 @@ exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
     customer: creditNote.customer,
     participationRate: exports.formatParticipationRate(creditNote, tppList),
     billed: -creditNote.refund,
-    paid: correspondingPayment && correspondingPayment.payments
-      ? exports.computePayments(correspondingPayment.payments)
+    paid: matchingPayment && matchingPayment.payments
+      ? exports.computePayments(matchingPayment.payments)
       : 0,
     toPay: 0,
   };
