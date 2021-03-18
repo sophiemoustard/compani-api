@@ -2,7 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { checkProgramExists, getProgramImagePublicId, checkCategoryExists } = require('./preHandlers/programs');
+const {
+  checkProgramExists,
+  getProgramImagePublicId,
+  checkCategoryExists,
+  authorizeTesterAddition,
+} = require('./preHandlers/programs');
 const {
   list,
   listELearning,
@@ -181,7 +186,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkProgramExists }],
+        pre: [{ method: checkProgramExists }, { method: authorizeTesterAddition }],
       },
       handler: addTester,
     });
