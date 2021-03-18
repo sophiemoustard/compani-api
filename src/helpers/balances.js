@@ -55,20 +55,20 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
   return sortedFundings.length ? sortedFundings[0].customerParticipationRate : 100;
 };
 
-const getCustomerMatchingInfo = (field1, field2) => !field2._id.tpp &&
-  UtilsHelper.areObjectIdsEquals(field2._id.customer, field1._id.customer);
+const isCustomerDoc = (base, doc) => !doc._id.tpp &&
+  UtilsHelper.areObjectIdsEquals(doc._id.customer, base._id.customer);
 
-const getCustomerAndTppMatchingInfo = (field1, field2) => field2._id.tpp &&
-  UtilsHelper.areObjectIdsEquals(field2._id.tpp, field1._id.tpp) &&
-  UtilsHelper.areObjectIdsEquals(field2._id.customer, field1._id.customer);
+const isCustomerAndTppDoc = (base, doc) => doc._id.tpp &&
+  UtilsHelper.areObjectIdsEquals(doc._id.tpp, base._id.tpp) &&
+  UtilsHelper.areObjectIdsEquals(doc._id.customer, base._id.customer);
 
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
   const matchingCreditNote = !bill._id.tpp
-    ? customerAggregation.find(cn => getCustomerMatchingInfo(bill, cn))
-    : tppAggregation.find(cn => getCustomerAndTppMatchingInfo(bill, cn));
+    ? customerAggregation.find(cn => isCustomerDoc(bill, cn))
+    : tppAggregation.find(cn => isCustomerAndTppDoc(bill, cn));
   const matchingPayment = !bill._id.tpp
-    ? payments.find(pay => getCustomerMatchingInfo(bill, pay))
-    : payments.find(pay => getCustomerAndTppMatchingInfo(bill, pay));
+    ? payments.find(pay => isCustomerDoc(bill, pay))
+    : payments.find(pay => isCustomerAndTppDoc(bill, pay));
 
   const paid = matchingPayment && matchingPayment.payments
     ? exports.computePayments(matchingPayment.payments)
@@ -77,7 +77,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
   const balance = paid - billed;
 
   const lastCesu = matchingPayment && matchingPayment.payments.filter(p => p.type === CESU)
-    .sort((a, b) => b.date - a.date)[0];
+    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
   return {
     ...bill,
@@ -92,16 +92,14 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 
 exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
   const matchingPayment = !creditNote._id.tpp
-    ? payments.find(pay => getCustomerMatchingInfo(creditNote, pay))
-    : payments.find(pay => getCustomerAndTppMatchingInfo(creditNote, pay));
+    ? payments.find(pay => isCustomerDoc(creditNote, pay))
+    : payments.find(pay => isCustomerAndTppDoc(creditNote, pay));
 
   const bill = {
     customer: creditNote.customer,
     participationRate: exports.formatParticipationRate(creditNote, tppList),
     billed: -creditNote.refund,
-    paid: matchingPayment && matchingPayment.payments
-      ? exports.computePayments(matchingPayment.payments)
-      : 0,
+    paid: matchingPayment && matchingPayment.payments ? exports.computePayments(matchingPayment.payments) : 0,
     toPay: 0,
   };
   if (creditNote.thirdPartyPayer) bill.thirdPartyPayer = { ...creditNote.thirdPartyPayer };
@@ -124,12 +122,12 @@ exports.getBalancesFromPayments = (payment, tppList) => {
   return bill;
 };
 
-const getRemainingPaymentType = (clients, paymentType) => !clients.some((cl) => {
-  const isCustomerPaymentType = UtilsHelper.areObjectIdsEquals(cl.customer, paymentType._id.customer);
-  const noTpp = !cl.tpp && !paymentType._id.tpp;
-  const isTppPaymentType = cl.tpp && paymentType._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, paymentType._id.tpp);
+const isAlreadyProcessed = (clients, doc) => clients.some((cl) => {
+  const isCustomerDocument = UtilsHelper.areObjectIdsEquals(cl.customer, doc._id.customer);
+  const noTpp = !cl.tpp && !doc._id.tpp;
+  const isTppDoc = cl.tpp && doc._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, doc._id.tpp);
 
-  return isCustomerPaymentType && (noTpp || isTppPaymentType);
+  return isCustomerDocument && (noTpp || isTppDoc);
 });
 
 exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
@@ -148,14 +146,14 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   }
 
   const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation]
-    .filter(cn => getRemainingPaymentType(clients, cn));
+    .filter(cn => !isAlreadyProcessed(clients, cn));
 
   for (const cn of remainingCreditNotes) {
     clients.push({ ...cn._id });
     balances.push(exports.getBalancesFromCreditNotes(cn, payments, tppList));
   }
 
-  const remainingPayments = payments.filter(payment => getRemainingPaymentType(clients, payment));
+  const remainingPayments = payments.filter(payment => !isAlreadyProcessed(clients, payment));
 
   for (const payment of remainingPayments) {
     balances.push(exports.getBalancesFromPayments(payment, tppList));

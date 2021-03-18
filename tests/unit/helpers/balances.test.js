@@ -410,13 +410,16 @@ describe('getBalance', () => {
       {
         _id: { customer: customerId, tpp: tppId },
         payments: [
-          { nature: 'refund', netInclTaxes: 80 },
-          { nature: 'payment', netInclTaxes: 30 },
+          { nature: 'refund', netInclTaxes: 80, type: 'direct_debit' },
+          { nature: 'payment', netInclTaxes: 30, type: 'direct_debit' },
           { nature: 'payment', type: 'cesu', date: '2021-06-25T14:00:18' },
-          { nature: 'payment', type: 'cesu', date: '2021-06-27T14:00:18' },
+          { nature: 'payment', type: 'cesu', date: '2021-07-27T14:00:18' },
         ],
       },
-      { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
+      {
+        _id: { customer: customerId, tpp: tppId },
+        payments: [{ nature: 'payment', netInclTaxes: 50, type: 'direct_debit' }],
+      },
     ];
     const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
     canBeDirectDebited.returns(false);
@@ -431,7 +434,7 @@ describe('getBalance', () => {
     expect(result.balance).toEqual(-80);
     expect(result.toPay).toEqual(0);
     expect(result.participationRate).toEqual(10);
-    expect(result.lastCesuDate).toEqual('2021-06-25T14:00:18');
+    expect(result.lastCesuDate).toEqual('2021-07-27T14:00:18');
     sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
   });
 });
