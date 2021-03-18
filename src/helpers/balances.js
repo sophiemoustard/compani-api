@@ -55,12 +55,12 @@ exports.formatParticipationRate = (balanceDocument, tppList) => {
   return sortedFundings.length ? sortedFundings[0].customerParticipationRate : 100;
 };
 
-const getCustomerMatchingInfo = (bill, info) => UtilsHelper.areObjectIdsEquals(info._id.customer, bill._id.customer) &&
-  !info._id.tpp;
+const getCustomerMatchingInfo = (field1, field2) => !field2._id.tpp &&
+  UtilsHelper.areObjectIdsEquals(field2._id.customer, field1._id.customer);
 
-const getCustomerAndTppMatchingInfo = (bill, info) => info._id.tpp &&
-  UtilsHelper.areObjectIdsEquals(info._id.tpp, bill._id.tpp) &&
-  UtilsHelper.areObjectIdsEquals(info._id.customer, bill._id.customer);
+const getCustomerAndTppMatchingInfo = (field1, field2) => field2._id.tpp &&
+  UtilsHelper.areObjectIdsEquals(field2._id.tpp, field1._id.tpp) &&
+  UtilsHelper.areObjectIdsEquals(field2._id.customer, field1._id.customer);
 
 exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppList) => {
   const matchingCreditNote = !bill._id.tpp
@@ -92,9 +92,8 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
 
 exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
   const matchingPayment = !creditNote._id.tpp
-    ? payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) && !pay._id.tpp)
-    : payments.find(pay => UtilsHelper.areObjectIdsEquals(pay._id.customer, creditNote._id.customer) &&
-      pay._id.tpp && UtilsHelper.areObjectIdsEquals(pay._id.tpp, creditNote._id.tpp));
+    ? payments.find(pay => getCustomerMatchingInfo(creditNote, pay))
+    : payments.find(pay => getCustomerAndTppMatchingInfo(creditNote, pay));
 
   const bill = {
     customer: creditNote.customer,
