@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Program = require('../../models/Program');
 const Category = require('../../models/Category');
 const User = require('../../models/User');
-const Utils = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
