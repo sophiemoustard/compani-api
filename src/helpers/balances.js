@@ -76,7 +76,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
   const billed = bill.billed - (matchingCreditNote ? matchingCreditNote.refund : 0);
   const balance = paid - billed;
 
-  const lastCesuPayment = matchingPayment && matchingPayment.payments.filter(p => p.type === CESU)
+  const lastCesu = matchingPayment && matchingPayment.payments.filter(p => p.type === CESU)
     .sort((a, b) => b.date - a.date)[0];
 
   return {
@@ -86,7 +86,7 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments, tppLi
     paid,
     balance,
     toPay: exports.canBeDirectDebited(bill) && balance < 0 ? Math.abs(paid - billed) : 0,
-    lastCesuPaymentDate: get(lastCesuPayment, 'date', null),
+    lastCesuDate: get(lastCesu, 'date', null),
   };
 };
 
