@@ -23,12 +23,15 @@ exports.authorizeAttendancesGet = async (req) => {
   const { credentials } = req.auth;
 
   if (!get(credentials, 'role.vendor')) {
+    if (courseSlots.some(cs => get(cs, 'course.company') !== get(courseSlots[0], 'course.company'))) {
+      throw Boom.badData();
+    }
+
     const { course } = courseSlots[0];
     if (course.type === INTRA) {
       if (!course.company) throw Boom.badData();
 
-      const userBelongToCompany = await User.countDocuments({ _id: credentials._id, company: course.company });
-      if (!userBelongToCompany) throw Boom.forbidden();
+      if (!UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), course.company)) throw Boom.forbidden();
     }
   }
 

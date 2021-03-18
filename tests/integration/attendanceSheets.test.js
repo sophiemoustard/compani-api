@@ -225,7 +225,6 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     beforeEach(populateDB);
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
