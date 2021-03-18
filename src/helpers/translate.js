@@ -224,6 +224,7 @@ module.exports = {
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
     testerAdded: 'Tester added to program.',
+    testerConflict: 'Tester already added to program.',
     /* Categories */
     categoriesFound: 'Categories found.',
     categoriesNotFound: 'Categories not found.',
@@ -505,6 +506,7 @@ module.exports = {
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
     testerAdded: 'Testeur ajouté au programme.',
+    testerConflict: 'Testeur déjà ajouté au programme.',
     /* Categories */
     categoriesFound: 'Catégories trouvées.',
     categoriesNotFound: 'Catégories non trouvées.',
