@@ -48,7 +48,8 @@ exports.getProgram = async (programId) => {
       path: 'subPrograms',
       populate: { path: 'steps', populate: [{ path: 'activities ', populate: 'cards' }, { path: 'courseSlotsCount' }] },
     })
-    .populate({ path: 'categories' })
+    .populate({ path: 'testers', select: 'identity.firstname identity.lastname local.email contact.phone' })
+    .populate('categories')
     .lean({ virtuals: true });
 
   return {
