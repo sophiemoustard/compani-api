@@ -38,10 +38,8 @@ exports.authorizeTesterAddition = async (req) => {
   if (!user && !(get(payload, 'identity.lastname') && get(payload, 'contact.phone'))) throw Boom.badRequest();
 
   if (user) {
-    const program = await Program.findOne({ _id: req.params._id }).lean();
-    if (program.testers.some(tester => Utils.areObjectIdsEquals(tester._id, user._id))) {
-      throw Boom.conflict(translate[language].testerConflict);
-    }
+    const program = await Program.countDocuments({ _id: req.params._id, testers: user._id });
+    if (program) throw Boom.conflict(translate[language].testerConflict);
   }
 
   return null;

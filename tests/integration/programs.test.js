@@ -789,7 +789,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
+describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
   let authToken;
   beforeEach(populateDB);
   describe('ROF', () => {
@@ -807,7 +807,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/tester`,
+        url: `/programs/${programId.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -823,7 +823,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/tester`,
+        url: `/programs/${programId.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -838,7 +838,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/tester`,
+        url: `/programs/${new ObjectID()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -854,7 +854,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/tester`,
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -871,7 +871,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/tester`,
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -887,7 +887,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/tester`,
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -898,7 +898,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
     it('should return a 409 if user already is a tester for this program', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[1]._id.toHexString()}/tester`,
+        url: `/programs/${programsList[1]._id.toHexString()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: pick(vendorAdmin, 'local.email'),
       });
@@ -924,7 +924,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/tester', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${programsList[0]._id.toHexString()}/tester`,
+          url: `/programs/${programsList[0]._id.toHexString()}/testers`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
