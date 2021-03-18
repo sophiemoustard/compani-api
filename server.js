@@ -52,15 +52,6 @@ const init = async () => {
     domain: process.env.TOKEN_DOMAIN,
   });
 
-  server.state('user_id', {
-    isHttpOnly: false,
-    ttl: 24 * 60 * 60 * 1000,
-    isSecure: process.env.NODE_ENV !== 'development',
-    isSameSite: 'Strict',
-    path: '/',
-    domain: process.env.TOKEN_DOMAIN,
-  });
-
   mongooseConnection(server);
 
   await server.start();
