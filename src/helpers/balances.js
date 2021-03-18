@@ -124,6 +124,14 @@ exports.getBalancesFromPayments = (payment, tppList) => {
   return bill;
 };
 
+const getRemainingPaymentType = (clients, paymentType) => !clients.some((cl) => {
+  const isCustomerPaymentType = UtilsHelper.areObjectIdsEquals(cl.customer, paymentType._id.customer);
+  const noTpp = !cl.tpp && !paymentType._id.tpp;
+  const isTppPaymentType = cl.tpp && paymentType._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, paymentType._id.tpp);
+
+  return isCustomerPaymentType && (noTpp || isTppPaymentType);
+});
+
 exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
   const companyId = get(credentials, 'company._id', null);
   const bills = await BillRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
@@ -139,26 +147,15 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
     balances.push(exports.getBalance(bill, customerCNAggregation, tppCNAggregation, payments, tppList));
   }
 
-  const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation].filter(cn => !clients.some((cl) => {
-    const isCustomerCreditNote = UtilsHelper.areObjectIdsEquals(cl.customer, cn._id.customer);
-    const noTpp = !cl.tpp && !cn._id.tpp;
-    const isClientCreditNote = cl.tpp && cn._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, cn._id.tpp);
-
-    return isCustomerCreditNote && (noTpp || isClientCreditNote);
-  }));
+  const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation]
+    .filter(cn => getRemainingPaymentType(clients, cn));
 
   for (const cn of remainingCreditNotes) {
     clients.push({ ...cn._id });
     balances.push(exports.getBalancesFromCreditNotes(cn, payments, tppList));
   }
 
-  const remainingPayments = payments.filter(payment => !clients.some((cl) => {
-    const isCustomerPayment = UtilsHelper.areObjectIdsEquals(cl.customer, payment._id.customer);
-    const noTpp = !cl.tpp && !payment._id.tpp;
-    const isTppPayment = cl.tpp && payment._id.tpp && UtilsHelper.areObjectIdsEquals(cl.tpp, payment._id.tpp);
-
-    return isCustomerPayment && (noTpp || isTppPayment);
-  }));
+  const remainingPayments = payments.filter(payment => getRemainingPaymentType(clients, payment));
 
   for (const payment of remainingPayments) {
     balances.push(exports.getBalancesFromPayments(payment, tppList));
