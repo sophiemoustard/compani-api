@@ -178,10 +178,7 @@ exports.listForCreditNotes = (payload, credentials, creditNote) => {
       $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
     };
   } else {
-    query = {
-      ...query,
-      isBilled: true,
-    };
+    query = { ...query, isBilled: true };
   }
   return Event.find(query).lean();
 };

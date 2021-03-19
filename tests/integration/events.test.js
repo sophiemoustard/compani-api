@@ -368,7 +368,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate}
-              &endDate=${endDate}`,
+            &endDate=${endDate}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
