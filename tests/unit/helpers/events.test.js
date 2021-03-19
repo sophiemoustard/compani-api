@@ -495,20 +495,19 @@ describe('listForCreditNotes', () => {
   afterEach(() => {
     EventModel.restore();
   });
-  it('should return events with creditNotes', async () => {
+  it('should return events with creditNotes at creation', async () => {
     const events = [{
       type: 'intervention',
-      isBilled: true,
     }];
     const companyId = new ObjectID();
-    const payload = { customer: new ObjectID(), isBilled: true };
+    const payload = { customer: new ObjectID() };
     const credentials = { company: { _id: companyId } };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
       endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
       customer: payload.customer,
-      isBilled: payload.isBilled,
+      isBilled: true,
       type: INTERVENTION,
       company: companyId,
       'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
@@ -528,17 +527,16 @@ describe('listForCreditNotes', () => {
   it('should query with thirdPartyPayer', async () => {
     const events = [{
       type: 'intervention',
-      isBilled: true,
     }];
     const companyId = new ObjectID();
-    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID(), isBilled: true };
+    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID() };
     const credentials = { company: { _id: companyId } };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
       endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
       customer: payload.customer,
-      isBilled: payload.isBilled,
+      isBilled: true,
       type: INTERVENTION,
       company: companyId,
       'bills.thirdPartyPayer': payload.thirdPartyPayer,
@@ -550,6 +548,36 @@ describe('listForCreditNotes', () => {
       .returns(events);
 
     const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+  it('should return events with creditNotes at edition', async () => {
+    const events = [{
+      type: 'intervention',
+    }];
+    const companyId = new ObjectID();
+    const payload = { customer: new ObjectID() };
+    const credentials = { company: { _id: companyId } };
+    const creditNote = { events: [{ eventId: new ObjectID() }] };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
+      'bills.inclTaxesTpp': { $exists: false },
+      $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials, creditNote);
     expect(result).toBeDefined();
     expect(result).toBe(events);
   });

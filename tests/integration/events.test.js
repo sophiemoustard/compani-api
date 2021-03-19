@@ -20,6 +20,7 @@ const {
   eventFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
   INTERVENTION,
@@ -210,7 +211,7 @@ describe('EVENTS ROUTES', () => {
           startDate: moment('2019-01-01').toDate(),
           endDate: moment('2019-01-20').toDate(),
           customer: customerAuxiliary._id.toHexString(),
-          isBilled: true,
+          creditNoteId: creditNotesList._id,
         };
 
         const response = await app.inject({
@@ -231,7 +232,7 @@ describe('EVENTS ROUTES', () => {
           endDate: moment('2019-01-20').toDate(),
           customer: customerAuxiliary._id.toHexString(),
           thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-          isBilled: true,
+          creditNoteId: creditNotesList._id,
         };
 
         const response = await app.inject({
@@ -243,14 +244,13 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toEqual(200);
       });
 
-      const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
+      const wrongParams = ['startDate', 'endDate', 'customer'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
           const query = {
             startDate: moment('2019-01-01').toDate(),
             endDate: moment('2019-01-20').toDate(),
             customer: customerAuxiliary._id.toHexString(),
-            isBilled: true,
           };
           const wrongQuery = omit(query, param);
 
@@ -270,7 +270,7 @@ describe('EVENTS ROUTES', () => {
           endDate: moment('2019-01-20').toDate(),
           customer: customerFromOtherCompany._id.toHexString(),
           thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-          isBilled: true,
+          creditNoteId: creditNotesList._id,
         };
 
         const response = await app.inject({
@@ -288,7 +288,7 @@ describe('EVENTS ROUTES', () => {
           endDate: moment('2019-01-20').toDate(),
           customer: customerAuxiliary._id.toHexString(),
           thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
-          isBilled: true,
+          creditNoteId: creditNotesList._id,
         };
 
         const response = await app.inject({
@@ -313,7 +313,7 @@ describe('EVENTS ROUTES', () => {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliary._id.toHexString(),
-        isBilled: true,
+        creditNoteId: creditNotesList._id,
       };
 
       roles.forEach((role) => {
@@ -368,7 +368,7 @@ describe('EVENTS ROUTES', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate}
-            &endDate=${endDate}`,
+              &endDate=${endDate}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
