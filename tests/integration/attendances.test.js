@@ -153,20 +153,39 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should get courseSlot attendances', async () => {
+    it('should get course attendances', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
+        url: `/attendances?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendances.length).toEqual(attendancesList.length);
     });
 
+    it('should get courseSlot attendances', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?courseSlot=${slotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.attendances.length).toEqual(attendancesList.length);
+    });
+
+    it('should return 404 if wrong course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances?course=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return 404 if wrong courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlots=${new ObjectID()}&courseSlots=${slotsList[1]._id}`,
+        url: `/attendances?courseSlot=${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
@@ -180,6 +199,15 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 404 if query has course and courseSlot', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/course=${coursesList[0]._id}&&courseSlot=${slotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
@@ -187,7 +215,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       authToken = await getTokenByCredentials(trainerList[0].local);
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
+        url: `/attendances?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -198,29 +226,18 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       authToken = await getTokenByCredentials(trainerList[1].local);
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
+        url: `/attendances?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 422 if slots aren\'t from the same company', async () => {
-      authToken = await getToken('coach');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[2]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(422);
-    });
-
     it('should return 403 if user is client_admin and course is intra and not from user company', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlots=${slotsList[2]._id}`,
+        url: `/attendances?courseSlot=${slotsList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -238,7 +255,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/attendances?courseSlots=${slotsList[0]._id}&courseSlots=${slotsList[1]._id}`,
+          url: `/attendances?course=${coursesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

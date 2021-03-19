@@ -13,20 +13,16 @@ const isTrainerAuthorized = (loggedUserId, courseSlot) => {
 };
 
 exports.authorizeAttendancesGet = async (req) => {
-  const courseSlotsIds = [...new Set(UtilsHelper.formatObjectIdsArray(req.query.courseSlots))];
-  const courseSlots = await CourseSlot.find({ _id: { $in: courseSlotsIds } }, { course: 1 })
+  const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
+  const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
     .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
-  if (courseSlots.length !== courseSlotsIds.length) throw Boom.notFound();
+  if (!courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
 
   if (!get(credentials, 'role.vendor')) {
-    if (courseSlots.some(cs => get(cs, 'course.company') !== get(courseSlots[0], 'course.company'))) {
-      throw Boom.badData();
-    }
-
     const { course } = courseSlots[0];
     if (course.type === INTRA) {
       if (!course.company) throw Boom.badData();
@@ -39,7 +35,7 @@ exports.authorizeAttendancesGet = async (req) => {
     courseSlots.forEach(cs => isTrainerAuthorized(credentials._id, cs));
   }
 
-  return courseSlotsIds;
+  return courseSlots.map(cs => cs._id);
 };
 
 exports.authorizeAttendanceCreation = async (req) => {
