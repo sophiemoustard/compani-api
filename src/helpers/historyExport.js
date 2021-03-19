@@ -471,12 +471,8 @@ exports.formatSurchargedDetailsForExport = (pay, key) => {
   return formattedPlans.join('\r\n\r\n');
 };
 
-exports.formatHoursWithDiff = (pay, key) => {
-  let hours = pay[key];
-  if (pay.diff && pay.diff[key]) hours += pay.diff[key];
-
-  return UtilsHelper.formatFloatForExport(hours);
-};
+exports.formatHoursWithDiff = (pay, key) =>
+  UtilsHelper.formatFloatForExport(UtilsHelper.computeHoursWithDiff(pay, key));
 
 exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id', null);

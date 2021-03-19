@@ -174,3 +174,5 @@ exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
 exports.formatPhoneNumber = phoneNumber => (phoneNumber
   ? phoneNumber.replace(/^(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 $5')
   : '');
+
+exports.computeHoursWithDiff = (pay, key) => (pay.diff && pay.diff[key] ? pay[key] + pay.diff[key] : pay[key]);
