@@ -164,6 +164,7 @@ exports.listForCreditNotes = (payload, credentials, creditNote) => {
     type: INTERVENTION,
     company: get(credentials, 'company._id', null),
   };
+
   if (payload.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': payload.thirdPartyPayer };
   else {
     query = {
@@ -172,14 +173,13 @@ exports.listForCreditNotes = (payload, credentials, creditNote) => {
       'bills.inclTaxesTpp': { $exists: false },
     };
   }
+
   if (creditNote) {
-    query = {
-      ...query,
-      $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
-    };
+    query = { ...query, $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }] };
   } else {
     query = { ...query, isBilled: true };
   }
+
   return Event.find(query).lean();
 };
 

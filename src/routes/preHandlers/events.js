@@ -61,9 +61,10 @@ exports.authorizeEventGet = async (req) => {
 exports.authorizeEventForCreditNoteGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const { creditNoteId, startDate, endDate } = req.query;
-  let creditNote = null;
   const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
   if (!customer) throw Boom.forbidden();
+
+  let creditNote = null;
   if (creditNoteId) {
     creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId });
     if (creditNote.events.some(e => e.startDate < startDate && e.endDate > endDate)) throw Boom.badData();

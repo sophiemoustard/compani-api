@@ -488,12 +488,12 @@ describe('updateEvent', () => {
 });
 
 describe('listForCreditNotes', () => {
-  let EventModel;
+  let findEvent;
   beforeEach(() => {
-    EventModel = sinon.mock(Event);
+    findEvent = sinon.stub(Event, 'find');
   });
   afterEach(() => {
-    EventModel.restore();
+    findEvent.restore();
   });
   it('should return events with creditNotes at creation', async () => {
     const events = [{
@@ -501,7 +501,6 @@ describe('listForCreditNotes', () => {
     }];
     const companyId = new ObjectID();
     const payload = { customer: new ObjectID() };
-    const credentials = { company: { _id: companyId } };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
@@ -514,14 +513,17 @@ describe('listForCreditNotes', () => {
       'bills.inclTaxesTpp': { $exists: false },
     };
 
-    EventModel.expects('find')
-      .withArgs(query)
-      .chain('lean')
-      .returns(events);
+    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
-    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
+
     expect(result).toBeDefined();
     expect(result).toBe(events);
+
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should query with thirdPartyPayer', async () => {
@@ -530,7 +532,6 @@ describe('listForCreditNotes', () => {
     }];
     const companyId = new ObjectID();
     const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID() };
-    const credentials = { company: { _id: companyId } };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
@@ -542,14 +543,17 @@ describe('listForCreditNotes', () => {
       'bills.thirdPartyPayer': payload.thirdPartyPayer,
     };
 
-    EventModel.expects('find')
-      .withArgs(query)
-      .chain('lean')
-      .returns(events);
+    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
-    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
+
     expect(result).toBeDefined();
     expect(result).toBe(events);
+
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should return events with creditNotes at edition', async () => {
@@ -558,7 +562,6 @@ describe('listForCreditNotes', () => {
     }];
     const companyId = new ObjectID();
     const payload = { customer: new ObjectID() };
-    const credentials = { company: { _id: companyId } };
     const creditNote = { events: [{ eventId: new ObjectID() }] };
 
     const query = {
@@ -572,14 +575,17 @@ describe('listForCreditNotes', () => {
       $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
     };
 
-    EventModel.expects('find')
-      .withArgs(query)
-      .chain('lean')
-      .returns(events);
+    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
-    const result = await EventHelper.listForCreditNotes(payload, credentials, creditNote);
+    const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } }, creditNote);
+
     expect(result).toBeDefined();
     expect(result).toBe(events);
+
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'lean' },
+    ]);
   });
 });
 
