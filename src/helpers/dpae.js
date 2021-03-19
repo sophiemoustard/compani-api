@@ -324,25 +324,65 @@ exports.exportAbsences = async (query, credentials) => {
     : FileHelper.exportToTxt([]);
 };
 
-const payVariables = [
-  { code: '090', mode: MODE_BASE, keys: ['notSurchargedAndExempt'], grille: 'Heures exo non majo' },
-  { code: '255', mode: MODE_BASE, keys: ['notSurchargedAndExempt', 'surchargedAndExempt'], grille: 'Heures exo total' },
-  { code: '145', mode: MODE_BASE, keys: [''], grille: 'Heures exo maj dimanche' },
-  { code: '167', mode: MODE_BASE, keys: [''], grille: 'Heures exo maj ferié' },
-  { code: '173', mode: MODE_BASE, keys: [''], grille: 'Heures exo maj 100%' },
-  { code: '200', mode: MODE_BASE, keys: [''], grille: 'Heures exo maj soirée' },
-  { code: '177', mode: MODE_BASE, keys: ['notSurchargedAndNotExempt'], grille: 'Heures non exo non majo' },
-  { code: '115', mode: MODE_BASE, keys: ['overtimeHours'], grille: 'Heures supplémentaires' },
-  { code: '100', mode: MODE_BASE, keys: ['additionalHours'], grille: 'Heures complémentaires' },
-  { code: '430', mode: MODE_RESULTAT, keys: [''], grille: 'Carte navigo' },
-  { code: '512', mode: MODE_RESULTAT, keys: ['phoneFees'], grille: 'Frais téléphoniques' },
-  { code: '489', mode: MODE_RESULTAT, keys: ['transport'], grille: 'Frais kilométriques' },
-];
+const compute = (pay, variable, mode) => {
+  if (variable.mode !== mode) return '';
+
+  if (variable.keys) return computeKeys(pay, variable.keys);
+
+  if (variable.func) return variable.func(pay);
+
+  return '';
+};
+
+const computeDetailWithDiff = (details, keys) => details.reduce(
+  (acc, d) => acc + keys.reduce(
+    (sum, k) => sum + get(d[k], 'hours') || 0,
+    0
+  ),
+  0
+);
+
+const computeSurchargeAndExempt = (pay, keys) => {
+  const surchargedAndExempt = get(pay, 'surchargedAndExemptDetails') || [];
+  const surchargedAndExemptDiff = get(pay, 'diff.surchargedAndExemptDetails') || [];
+
+  return computeDetailWithDiff(surchargedAndExempt, keys) + computeDetailWithDiff(surchargedAndExemptDiff, keys);
+};
 
 const computeKeys = (pay, keys) => keys.reduce((acc, key) => acc + UtilsHelper.computeHoursWithDiff(pay, key), 0);
 
+const payVariables = [
+  { code: '090', mode: MODE_BASE, keys: ['notSurchargedAndExempt'], name: 'Heures exo non majo' },
+  { code: '255', mode: MODE_BASE, keys: ['notSurchargedAndExempt', 'surchargedAndExempt'], name: 'Heures exo total' },
+  {
+    code: '145',
+    mode: MODE_BASE,
+    func: p => computeSurchargeAndExempt(p, ['sunday']),
+    name: 'Heures exo maj dimanche',
+  },
+  {
+    code: '167',
+    mode: MODE_BASE,
+    func: p => computeSurchargeAndExempt(p, ['publicHoliday']),
+    name: 'Heures exo maj ferié',
+  },
+  {
+    code: '173',
+    mode: MODE_BASE,
+    func: p => computeSurchargeAndExempt(p, ['firstOfMay', 'firstOfJanuary', 'twentyFifthOfDecember']),
+    name: 'Heures exo maj 100%',
+  },
+  { code: '200', mode: MODE_BASE, func: p => computeSurchargeAndExempt(p, ['evening']), name: 'Heures exo maj soirée' },
+  { code: '177', mode: MODE_BASE, keys: ['notSurchargedAndNotExempt'], name: 'Heures non exo non majo' },
+  { code: '115', mode: MODE_BASE, keys: ['overtimeHours'], name: 'Heures supplémentaires' },
+  { code: '100', mode: MODE_BASE, keys: ['additionalHours'], name: 'Heures complémentaires' },
+  { code: '430', mode: MODE_RESULTAT, keys: [''], name: 'Carte navigo' },
+  { code: '512', mode: MODE_RESULTAT, keys: ['phoneFees'], name: 'Frais téléphoniques' },
+  { code: '489', mode: MODE_RESULTAT, keys: ['transport'], name: 'Frais kilométriques' },
+];
+
 exports.exportPay = async () => {
-  const pay = await Pay.findOne({ auxiliary: new ObjectID('5e6a05e4dcb97a0014daa9c3'), month: '02-2021' })
+  const pay = await Pay.findOne({ auxiliary: new ObjectID('5f50d5157a1fca0015829169'), month: '02-2021' })
     .populate({
       path: 'auxiliary',
       populate: { path: 'contracts', select: '_id serialNumber' },
@@ -358,9 +398,9 @@ exports.exportPay = async () => {
       ap_contrat: get(pay, 'auxiliary.contract.serialNumber') || '',
       va_sai_report: VA_SAI_REPORT,
       va_sai_code: variable.code,
-      va_sai_lib: variable.grille,
-      va_sai_base: variable.mode === MODE_BASE ? computeKeys(pay, variable.keys) : '',
-      va_sai_resultat: variable.mode === MODE_RESULTAT ? computeKeys(pay, variable.keys) : '',
+      va_sai_lib: variable.name,
+      va_sai_base: compute(pay, variable, MODE_BASE),
+      va_sai_resultat: compute(pay, variable, MODE_RESULTAT),
       va_sai_taux: '',
     });
   }
