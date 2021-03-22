@@ -496,9 +496,7 @@ describe('listForCreditNotes', () => {
     findEvent.restore();
   });
   it('should return events with creditNotes at creation', async () => {
-    const events = [{
-      type: 'intervention',
-    }];
+    const events = [{ type: 'intervention' }];
     const companyId = new ObjectID();
     const payload = { customer: new ObjectID() };
 
@@ -520,16 +518,10 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
 
   it('should query with thirdPartyPayer', async () => {
-    const events = [{
-      type: 'intervention',
-    }];
     const companyId = new ObjectID();
     const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID() };
 
@@ -543,23 +535,18 @@ describe('listForCreditNotes', () => {
       'bills.thirdPartyPayer': payload.thirdPartyPayer,
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([[{ type: 'intervention' }]], ['lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
 
     expect(result).toBeDefined();
-    expect(result).toBe(events);
+    expect(result).toEqual([{ type: 'intervention' }]);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
 
   it('should return events with creditNotes at edition', async () => {
-    const events = [{
-      type: 'intervention',
-    }];
+    const events = [{ type: 'intervention' }];
     const companyId = new ObjectID();
     const payload = { customer: new ObjectID() };
     const creditNote = { events: [{ eventId: new ObjectID() }] };
@@ -582,10 +569,7 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
 });
 
@@ -623,9 +607,7 @@ describe('populateEventSubscription', () => {
   });
 
   it('should not modify the input as event is not an intervention', async () => {
-    const event = {
-      type: 'absence',
-    };
+    const event = { type: 'absence' };
 
     const result = await EventHelper.populateEventSubscription(event);
     expect(result.subscription).toBeUndefined();
@@ -633,9 +615,7 @@ describe('populateEventSubscription', () => {
   });
 
   it('should return an error as event is intervention but customer is undefined', async () => {
-    const event = {
-      type: 'intervention',
-    };
+    const event = { type: 'intervention' };
 
     try {
       await EventHelper.populateEventSubscription(event);
