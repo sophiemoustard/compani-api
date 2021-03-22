@@ -549,7 +549,7 @@ describe('generateFile', () => {
   });
 
   it('should return generated pdf and bill slip number', async () => {
-    findByIdBillSlip.returns(SinonMongoose.stubChainedQueries([billSlip], ['populate', 'lean']));
+    findByIdBillSlip.returns(SinonMongoose.stubChainedQueries([billSlip]));
     getBillsFromBillSlip.returns(billList);
     getCreditNoteFromBillSlip.returns(creditNoteList);
     createDocxStub.returns(docx);

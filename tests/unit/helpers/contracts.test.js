@@ -24,60 +24,68 @@ require('sinon-mongoose');
 
 describe('getContractList', () => {
   const contracts = [{ _id: new ObjectID() }];
-  let ContractMock;
+  let findContract;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findContract = sinon.stub(Contract, 'find');
   });
   afterEach(() => {
-    ContractMock.restore();
+    findContract.restore();
   });
 
   it('should return contract list', async () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { user: '1234567890' };
-    ContractMock.expects('find')
-      .withExactArgs({ $and: [{ company: '1234567890' }, { user: '1234567890' }] })
-      .chain('populate')
-      .withExactArgs({
-        path: 'user',
-        select: 'identity administrative.driveFolder sector contact local',
-        populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .returns(contracts);
+
+    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ContractHelper.getContractList(query, credentials);
     expect(result).toEqual(contracts);
-    ContractMock.verify();
+
+    SinonMongoose.calledWithExactly(findContract, [
+      { query: 'find', args: [{ $and: [{ company: '1234567890' }, { user: '1234567890' }] }] },
+      {
+        query: 'populate',
+        args: [
+          {
+            path: 'user',
+            select: 'identity administrative.driveFolder sector contact local',
+            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          },
+        ],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should format query with dates', async () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
-    ContractMock.expects('find')
-      .withExactArgs({
-        $and: [
-          { company: '1234567890' },
-          {
-            $or: [
-              { versions: { $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } } } },
-              { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
-            ],
-          },
-        ],
-      })
-      .chain('populate')
-      .withExactArgs({
-        path: 'user',
-        select: 'identity administrative.driveFolder sector contact local',
-        populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .returns(contracts);
+
+    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ContractHelper.getContractList(query, credentials);
     expect(result).toEqual(contracts);
-    ContractMock.verify();
+
+    SinonMongoose.calledWithExactly(findContract, [
+      { query: 'find',
+        args: [
+          {
+            $and: [
+              { company: '1234567890' },
+              {
+                $or: [
+                  {
+                    versions: {
+                      $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
+                    },
+                  },
+                  { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
+                ],
+              },
+            ],
+          },
+        ] },
+    ]);
   });
 });
 
@@ -183,10 +191,11 @@ describe('isCreationAllowed', () => {
 
 describe('createContract', () => {
   let isCreationAllowed;
-  let ContractMock;
+  let createContract;
+  let findOneUser;
+  let updateOneUser;
+  let findOneRole;
   let generateSignatureRequestStub;
-  let UserMock;
-  let RoleMock;
   let createHistoryOnContractCreation;
   let formatSerialNumber;
 
@@ -195,9 +204,10 @@ describe('createContract', () => {
     formatSerialNumber = sinon.stub(ContractHelper, 'formatSerialNumber');
     generateSignatureRequestStub = sinon.stub(ESignHelper, 'generateSignatureRequest');
     createHistoryOnContractCreation = sinon.stub(SectorHistoryHelper, 'createHistoryOnContractCreation');
-    ContractMock = sinon.mock(Contract);
-    UserMock = sinon.mock(User);
-    RoleMock = sinon.mock(Role);
+    createContract = sinon.stub(Contract, 'create');
+    findOneUser = sinon.stub(User, 'findOne');
+    updateOneUser = sinon.stub(User, 'updateOne');
+    findOneRole = sinon.stub(Role, 'findOne');
   });
 
   afterEach(() => {
@@ -205,9 +215,10 @@ describe('createContract', () => {
     formatSerialNumber.restore();
     generateSignatureRequestStub.restore();
     createHistoryOnContractCreation.restore();
-    ContractMock.restore();
-    UserMock.restore();
-    RoleMock.restore();
+    createContract.restore();
+    findOneUser.restore();
+    updateOneUser.restore();
+    findOneRole.restore();
   });
 
   it('should create a new contract', async () => {
@@ -225,27 +236,10 @@ describe('createContract', () => {
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
-    ContractMock.expects('create')
-      .withExactArgs(contract)
-      .returns(contract);
-    RoleMock.expects('findOne')
-      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(role);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: payload.user })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(user)
-      .once();
-    UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
-      )
-      .once();
+
+    createContract.returns(contract);
+    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -253,8 +247,21 @@ describe('createContract', () => {
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
-    ContractMock.verify();
-    UserMock.verify();
+    sinon.assert.calledWithExactly(createContract, contract);
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: payload.user },
+      { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [
+      { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneUser, [
+      { query: 'findOne', args: [{ _id: payload.user }] },
+      { query: 'populate', args: [{ path: 'sector', match: { company: credentials.company._id } }] },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
     expect(result).toEqual(expect.objectContaining(contract));
   });
 
@@ -284,27 +291,10 @@ describe('createContract', () => {
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
-    ContractMock.expects('create')
-      .withExactArgs(contractWithDoc)
-      .returns(contractWithDoc);
-    RoleMock.expects('findOne')
-      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(role);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: payload.user })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(user)
-      .once();
-    UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
-      )
-      .once();
+
+    createContract.returns(contractWithDoc);
+    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -312,8 +302,21 @@ describe('createContract', () => {
     sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.notCalled(createHistoryOnContractCreation);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
-    ContractMock.verify();
-    UserMock.verify();
+    sinon.assert.calledWithExactly(createContract, contractWithDoc);
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: payload.user },
+      { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [
+      { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneUser, [
+      { query: 'findOne', args: [{ _id: payload.user }] },
+      { query: 'populate', args: [{ path: 'sector', match: { company: credentials.company._id } }] },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
     expect(result).toEqual(expect.objectContaining(contractWithDoc));
   });
 
@@ -337,27 +340,10 @@ describe('createContract', () => {
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
-    ContractMock.expects('create')
-      .withExactArgs(contract)
-      .returns(contract);
-    RoleMock.expects('findOne')
-      .withExactArgs({ name: AUXILIARY }, { _id: 1, interface: 1 })
-      .chain('lean')
-      .returns(role);
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: payload.user })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(user)
-      .once();
-    UserMock.expects('updateOne')
-      .withExactArgs(
-        { _id: payload.user },
-        { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
-      )
-      .once();
+
+    createContract.returns(contract);
+    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -366,8 +352,21 @@ describe('createContract', () => {
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
     sinon.assert.calledWithExactly(createHistoryOnContractCreation, user, contract, credentials.company._id);
-    ContractMock.verify();
-    UserMock.verify();
+    sinon.assert.calledWithExactly(createContract, contract);
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: payload.user },
+      { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [
+      { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneUser, [
+      { query: 'findOne', args: [{ _id: payload.user }] },
+      { query: 'populate', args: [{ path: 'sector', match: { company: credentials.company._id } }] },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
@@ -383,16 +382,8 @@ describe('createContract', () => {
 
     try {
       isCreationAllowed.returns(false);
-      UserMock.expects('findOne')
-        .withExactArgs({ _id: payload.user })
-        .chain('populate')
-        .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
-        .chain('lean')
-        .withExactArgs({ autopopulate: true, virtuals: true })
-        .returns(user)
-        .once();
-      UserMock.expects('updateOne').never();
-      ContractMock.expects('create').never();
+
+      findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
       await ContractHelper.createContract(payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
@@ -401,14 +392,21 @@ describe('createContract', () => {
       sinon.assert.notCalled(generateSignatureRequestStub);
       sinon.assert.notCalled(createHistoryOnContractCreation);
       sinon.assert.notCalled(formatSerialNumber);
-      ContractMock.verify();
-      UserMock.verify();
+      sinon.assert.notCalled(updateOneUser);
+      sinon.assert.notCalled(findOneRole);
+      sinon.assert.notCalled(createContract);
+      SinonMongoose.calledWithExactly(findOneUser, [
+        { query: 'findOne', args: [{ _id: payload.user }] },
+        { query: 'populate', args: [{ path: 'sector', match: { company: credentials.company._id } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]);
     }
   });
 });
 
 describe('endContract', () => {
-  let ContractMock;
+  let findOneContract;
+  let findOneAndUpdateContract;
   let updateUserInactivityDate;
   let removeRepetitionsOnContractEnd;
   let unassignInterventionsOnContractEnd;
@@ -417,7 +415,8 @@ describe('endContract', () => {
   let unassignReferentOnContractEnd;
   let updateEndDateStub;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findOneContract = sinon.stub(Contract, 'findOne');
+    findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
     removeRepetitionsOnContractEnd = sinon.stub(EventHelper, 'removeRepetitionsOnContractEnd');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
@@ -430,7 +429,8 @@ describe('endContract', () => {
     updateEndDateStub = sinon.stub(SectorHistoryHelper, 'updateEndDate');
   });
   afterEach(() => {
-    ContractMock.restore();
+    findOneContract.restore();
+    findOneAndUpdateContract.restore();
     updateUserInactivityDate.restore();
     removeRepetitionsOnContractEnd.restore();
     unassignInterventionsOnContractEnd.restore();
@@ -462,20 +462,8 @@ describe('endContract', () => {
     };
     const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
 
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contract._id.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        { $set: flat({ ...payload, [`versions.${contract.versions.length - 1}.endDate`]: payload.endDate }) },
-        { new: true }
-      )
-      .chain('lean')
-      .once()
-      .returns(updatedContract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
 
     const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
 
@@ -492,32 +480,51 @@ describe('endContract', () => {
     );
     sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user._id, updatedContract.endDate);
     expect(result).toMatchObject(updatedContract);
-    ContractMock.verify();
+
+    SinonMongoose.calledWithExactly(findOneContract, [
+      { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneAndUpdateContract, [
+      {
+        query: 'findOneAndUpdate',
+        args: [
+          { _id: contract._id.toHexString() },
+          { $set: flat({ ...payload, [`versions.${contract.versions.length - 1}.endDate`]: payload.endDate }) },
+          { new: true }],
+      },
+      {
+        query: 'populate',
+        args: [
+          {
+            path: 'user',
+            select: 'sector',
+            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          },
+        ],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+    ]);
   });
 
   it('should throw an error if contract end date is before last version start date', async () => {
+    const contractId = new ObjectID();
+    const payload = {
+      endDate: '2018-12-03T23:00:00',
+      endNotificationDate: '2018-12-02T23:00:00',
+      endReason: RESIGNATION,
+      otherMisc: 'test',
+    };
+    const contract = {
+      _id: new ObjectID(),
+      endDate: null,
+      user: new ObjectID(),
+      startDate: '2018-12-05T23:00:00',
+      versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
+    };
+    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
     try {
-      const contractId = new ObjectID();
-      const payload = {
-        endDate: '2018-12-03T23:00:00',
-        endNotificationDate: '2018-12-02T23:00:00',
-        endReason: RESIGNATION,
-        otherMisc: 'test',
-      };
-      const contract = {
-        _id: new ObjectID(),
-        endDate: null,
-        user: new ObjectID(),
-        startDate: '2018-12-05T23:00:00',
-        versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
-      };
-      const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
-
-      ContractMock.expects('findOne')
-        .chain('lean')
-        .returns(contract)
-        .once();
-      ContractMock.expects('findOneAndUpdate').never();
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
 
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
     } catch (e) {
@@ -530,7 +537,11 @@ describe('endContract', () => {
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
       sinon.assert.notCalled(updateEndDateStub);
-      ContractMock.verify();
+      sinon.assert.notCalled(findOneAndUpdateContract);
+      SinonMongoose.calledWithExactly(findOneContract, [
+        { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
+        { query: 'lean' },
+      ]);
     }
   });
 });
@@ -900,18 +911,24 @@ describe('updateVersion', () => {
   const versionId = new ObjectID();
   const credentials = { company: { _id: new ObjectID() } };
   const companyId = credentials.company._id;
-  let ContractMock;
+  let findOneContract;
+  let findOneAndUpdateContract;
+  let updateOneContract;
   let canUpdateVersion;
   let formatVersionEditionPayload;
   let updateHistoryOnContractUpdateStub;
   beforeEach(() => {
-    ContractMock = sinon.mock(Contract);
+    findOneContract = sinon.stub(Contract, 'findOne');
+    findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
+    updateOneContract = sinon.stub(Contract, 'updateOne');
     canUpdateVersion = sinon.stub(ContractHelper, 'canUpdateVersion');
     formatVersionEditionPayload = sinon.stub(ContractHelper, 'formatVersionEditionPayload');
     updateHistoryOnContractUpdateStub = sinon.stub(SectorHistoryHelper, 'updateHistoryOnContractUpdate');
   });
   afterEach(() => {
-    ContractMock.restore();
+    findOneContract.restore();
+    findOneAndUpdateContract.restore();
+    updateOneContract.restore();
     formatVersionEditionPayload.restore();
     canUpdateVersion.restore();
     updateHistoryOnContractUpdateStub.restore();
@@ -929,16 +946,9 @@ describe('updateVersion', () => {
     };
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {} });
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contractId.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contractId.toHexString() }, { $set: {}, $push: {} })
-      .chain('lean')
-      .once()
-      .returns(contract);
+
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
 
     updateHistoryOnContractUpdateStub.returns();
 
@@ -957,7 +967,15 @@ describe('updateVersion', () => {
       versionToUpdate,
       companyId
     );
-    ContractMock.verify();
+    sinon.assert.notCalled(updateOneContract);
+    SinonMongoose.calledWithExactly(findOneContract, [
+      { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneAndUpdateContract, [
+      { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should update version and unset', async () => {
@@ -975,19 +993,9 @@ describe('updateVersion', () => {
     };
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {}, $unset: { auxiliaryDoc: '' } });
-    ContractMock.expects('findOne')
-      .withExactArgs({ _id: contractId.toHexString() })
-      .chain('lean')
-      .once()
-      .returns(contract);
-    ContractMock.expects('updateOne')
-      .withExactArgs({ _id: contractId.toHexString() }, { $unset: { auxiliaryDoc: '' } })
-      .once();
-    ContractMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contractId.toHexString() }, { $set: {}, $push: {} })
-      .chain('lean')
-      .once()
-      .returns(contract);
+
+    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
@@ -999,7 +1007,18 @@ describe('updateVersion', () => {
       1
     );
     sinon.assert.notCalled(updateHistoryOnContractUpdateStub);
-    ContractMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      updateOneContract,
+      { _id: contractId.toHexString() }, { $unset: { auxiliaryDoc: '' } }
+    );
+    SinonMongoose.calledWithExactly(findOneContract, [
+      { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
+      { query: 'lean' },
+    ]);
+    SinonMongoose.calledWithExactly(findOneAndUpdateContract, [
+      { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should update first version and contract', async () => {
@@ -1009,11 +1028,8 @@ describe('updateVersion', () => {
         startDate: '2019-09-09T00:00:00',
         versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
       };
-      ContractMock.expects('findOne')
-        .chain('lean')
-        .once()
-        .returns(contract);
-      ContractMock.expects('findOneAndUpdate').never();
+
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       canUpdateVersion.returns(false);
       updateHistoryOnContractUpdateStub.returns();
 
@@ -1033,7 +1049,12 @@ describe('updateVersion', () => {
       expect(e.output.statusCode).toEqual(422);
     } finally {
       sinon.assert.notCalled(formatVersionEditionPayload);
-      ContractMock.verify();
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.notCalled(findOneAndUpdateContract);
+      SinonMongoose.calledWithExactly(findOneContract, [
+        { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
+        { query: 'lean' },
+      ]);
     }
   });
 });
