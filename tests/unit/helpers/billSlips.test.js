@@ -10,6 +10,7 @@ const CreditNoteRepository = require('../../../src/repositories/CreditNoteReposi
 const BillSlip = require('../../../src/models/BillSlip');
 const DocxHelper = require('../../../src/helpers/docx');
 const UtilsHelper = require('../../../src/helpers/utils');
+const SinonMongoose = require('../sinonMongoose');
 
 require('sinon-mongoose');
 
@@ -90,47 +91,50 @@ describe('formatBillSlipNumber', () => {
 });
 
 describe('getBillSlipNumber', () => {
-  let BillSlipNumberMock;
+  let findOneAndUpdate;
   beforeEach(() => {
-    BillSlipNumberMock = sinon.mock(BillSlipNumber);
+    findOneAndUpdate = sinon.stub(BillSlipNumber, 'findOneAndUpdate');
   });
   afterEach(() => {
-    BillSlipNumberMock.restore();
+    findOneAndUpdate.restore();
   });
 
   it('should return bill slip number', async () => {
     const endDate = '2019-09-12T06:00:00';
     const company = { _id: new ObjectID() };
-    BillSlipNumberMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { prefix: '0919', company: company._id },
-        {},
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      )
-      .chain('lean')
-      .once()
-      .returns('1234567890');
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(['1234567890'], ['lean']));
 
     const result = await BillSlipHelper.getBillSlipNumber(endDate, company._id);
 
     expect(result).toEqual('1234567890');
-    BillSlipNumberMock.verify();
+
+    SinonMongoose.calledWithExactly(findOneAndUpdate, [
+      {
+        query: 'findOneAndUpdate',
+        args: [{ prefix: '0919', company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }],
+      },
+      { query: 'lean' },
+    ]);
   });
 });
 
 describe('createBillSlips', () => {
-  let BillSlipMock;
+  let findBillSlip;
+  let insertManyBillSlip;
   let getBillSlipNumber;
   let formatBillSlipNumber;
   let updateOneBillSlipNumber;
   beforeEach(() => {
-    BillSlipMock = sinon.mock(BillSlip);
+    findBillSlip = sinon.stub(BillSlip, 'find');
+    insertManyBillSlip = sinon.stub(BillSlip, 'insertMany');
     getBillSlipNumber = sinon.stub(BillSlipHelper, 'getBillSlipNumber');
     formatBillSlipNumber = sinon.stub(BillSlipHelper, 'formatBillSlipNumber');
     updateOneBillSlipNumber = sinon.stub(BillSlipNumber, 'updateOne');
   });
   afterEach(() => {
-    BillSlipMock.restore();
+    findBillSlip.restore();
+    insertManyBillSlip.restore();
     getBillSlipNumber.restore();
     formatBillSlipNumber.restore();
     updateOneBillSlipNumber.restore();
@@ -141,14 +145,11 @@ describe('createBillSlips', () => {
     const thirdPartyPayer2 = new ObjectID();
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID() };
-    BillSlipMock.expects('find')
-      .withExactArgs(
-        { thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] }, month: '09-2019', company: company._id }
-      )
-      .chain('lean')
-      .once()
-      .returns([{ _id: new ObjectID() }, { _id: new ObjectID() }]);
-    BillSlipMock.expects('insertMany').never();
+
+    findBillSlip.returns(SinonMongoose.stubChainedQueries(
+      [[{ _id: new ObjectID() }, { _id: new ObjectID() }]],
+      ['lean']
+    ));
 
     const result = await BillSlipHelper.createBillSlips(billList, '2019-09-12T00:00:00', company);
 
@@ -156,7 +157,18 @@ describe('createBillSlips', () => {
     sinon.assert.notCalled(getBillSlipNumber);
     sinon.assert.notCalled(formatBillSlipNumber);
     sinon.assert.notCalled(updateOneBillSlipNumber);
-    BillSlipMock.verify();
+    sinon.assert.notCalled(insertManyBillSlip);
+    SinonMongoose.calledWithExactly(findBillSlip, [
+      {
+        query: 'find',
+        args: [
+          { thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+            month: '09-2019',
+            company: company._id },
+        ],
+      },
+      { query: 'lean' },
+    ]);
   });
   it('should create new bill slips', async () => {
     const thirdPartyPayer1 = new ObjectID();
@@ -164,24 +176,14 @@ describe('createBillSlips', () => {
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
-    BillSlipMock.expects('find')
-      .withExactArgs({
-        thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-        month: '09-2019',
-        company: company._id,
-      })
-      .chain('lean')
-      .once()
-      .returns([]);
+
+    findBillSlip.returns(SinonMongoose.stubChainedQueries(
+      [[]],
+      ['lean']
+    ));
     getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
     formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
-    BillSlipMock.expects('insertMany')
-      .withExactArgs([
-        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
-        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
-      ])
-      .once();
 
     await BillSlipHelper.createBillSlips(billList, endDate, company);
 
@@ -193,7 +195,22 @@ describe('createBillSlips', () => {
       { prefix: '0919', company: company._id },
       { $set: { seq: 14 } }
     );
-    BillSlipMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      insertManyBillSlip,
+      [
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findBillSlip, [
+      {
+        query: 'find',
+        args: [{
+          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+          month: '09-2019',
+          company: company._id,
+        }],
+      }]);
   });
 
   it('should create new bill slips from a creditNote', async () => {
@@ -202,24 +219,11 @@ describe('createBillSlips', () => {
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
-    BillSlipMock.expects('find')
-      .withExactArgs({
-        thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-        month: '09-2019',
-        company: company._id,
-      })
-      .chain('lean')
-      .once()
-      .returns([]);
+
+    findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
     getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
     formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
-    BillSlipMock.expects('insertMany')
-      .withExactArgs([
-        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
-        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
-      ])
-      .once();
 
     await BillSlipHelper.createBillSlips(billList, endDate, company);
 
@@ -231,7 +235,23 @@ describe('createBillSlips', () => {
       { prefix: '0919', company: company._id },
       { $set: { seq: 14 } }
     );
-    BillSlipMock.verify();
+    sinon.assert.calledOnceWithExactly(
+      insertManyBillSlip,
+      [
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findBillSlip, [
+      {
+        query: 'find',
+        args: [{
+          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+          month: '09-2019',
+          company: company._id,
+        }],
+      },
+    ]);
   });
 });
 
@@ -502,7 +522,7 @@ describe('formatFile', () => {
 });
 
 describe('generateFile', () => {
-  let BillSlipMock;
+  let findByIdBillSlip;
   let createDocxStub;
   let formatFileStub;
   let getBillsFromBillSlip;
@@ -514,14 +534,14 @@ describe('generateFile', () => {
   const billList = [{ _id: new ObjectID() }];
   const creditNoteList = [{ _id: new ObjectID() }];
   beforeEach(() => {
-    BillSlipMock = sinon.mock(BillSlip);
+    findByIdBillSlip = sinon.stub(BillSlip, 'findById');
     getBillsFromBillSlip = sinon.stub(BillRepository, 'getBillsFromBillSlip');
     getCreditNoteFromBillSlip = sinon.stub(CreditNoteRepository, 'getCreditNoteFromBillSlip');
     createDocxStub = sinon.stub(DocxHelper, 'createDocx');
     formatFileStub = sinon.stub(BillSlipHelper, 'formatFile');
   });
   afterEach(() => {
-    BillSlipMock.restore();
+    findByIdBillSlip.restore();
     createDocxStub.restore();
     formatFileStub.restore();
     getBillsFromBillSlip.restore();
@@ -529,13 +549,7 @@ describe('generateFile', () => {
   });
 
   it('should return generated pdf and bill slip number', async () => {
-    BillSlipMock.expects('findById')
-      .withExactArgs(billSlip._id)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .once()
-      .returns(billSlip);
+    findByIdBillSlip.returns(SinonMongoose.stubChainedQueries([billSlip], ['populate', 'lean']));
     getBillsFromBillSlip.returns(billList);
     getCreditNoteFromBillSlip.returns(creditNoteList);
     createDocxStub.returns(docx);
@@ -547,7 +561,6 @@ describe('generateFile', () => {
       billSlipNumber: billSlip.number,
       file: docx,
     });
-    BillSlipMock.restore();
     sinon.assert.calledWithExactly(formatFileStub, billSlip, billList, creditNoteList, credentials.company);
     sinon.assert.calledWithExactly(getBillsFromBillSlip, billSlip, credentials.company._id);
     sinon.assert.calledWithExactly(
@@ -555,6 +568,10 @@ describe('generateFile', () => {
       path.join(process.cwd(), 'src/data/billSlip.docx'),
       billSlipData
     );
-    BillSlipMock.verify();
+    SinonMongoose.calledWithExactly(findByIdBillSlip, [
+      { query: 'findById', args: [billSlip._id] },
+      { query: 'populate', args: ['thirdPartyPayer'] },
+      { query: 'lean' },
+    ]);
   });
 });
