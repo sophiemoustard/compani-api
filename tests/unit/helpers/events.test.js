@@ -511,14 +511,18 @@ describe('listForCreditNotes', () => {
       'bills.inclTaxesTpp': { $exists: false },
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
 
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'sort', args: [{ startDate: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should query with thirdPartyPayer', async () => {
@@ -535,14 +539,18 @@ describe('listForCreditNotes', () => {
       'bills.thirdPartyPayer': payload.thirdPartyPayer,
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([[{ type: 'intervention' }]], ['lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([[{ type: 'intervention' }]], ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ type: 'intervention' }]);
 
-    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'sort', args: [{ startDate: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 
   it('should return events with creditNotes at edition', async () => {
@@ -562,14 +570,18 @@ describe('listForCreditNotes', () => {
       $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } }, creditNote);
 
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(findEvent, [
+      { query: 'find', args: [query] },
+      { query: 'sort', args: [{ startDate: 1 }] },
+      { query: 'lean' },
+    ]);
   });
 });
 
