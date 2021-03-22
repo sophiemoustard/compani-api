@@ -383,25 +383,25 @@ describe('addTester', () => {
 });
 
 describe('removeTester', () => {
-  let findOneAndUpdate;
+  let updateOne;
 
   beforeEach(() => {
-    findOneAndUpdate = sinon.stub(Program, 'findOneAndUpdate');
+    updateOne = sinon.stub(Program, 'updateOne');
   });
 
   afterEach(() => {
-    findOneAndUpdate.restore();
+    updateOne.restore();
   });
 
   it('should remove tester', async () => {
     const programId = new ObjectID();
     const testerId = new ObjectID();
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+    updateOne.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
 
     await ProgramHelper.removeTester(programId, testerId);
 
     SinonMongoose.calledWithExactly(
-      findOneAndUpdate,
+      updateOne,
       [
         { query: 'findOne', args: [{ _id: programId }, { $pull: { testers: testerId } }, { new: true }] },
         { query: 'lean' },

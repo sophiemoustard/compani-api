@@ -311,7 +311,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId);
+      const programUpdated = await Program.findById(programId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
@@ -408,7 +408,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId);
+      const programUpdated = await Program.findById(programId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
@@ -656,7 +656,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId);
+      const programUpdated = await Program.findById(programId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated._id).toEqual(programId);
@@ -731,7 +731,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      await Program.findById(programId);
+      await Program.findById(programId).lean();
 
       expect(response.statusCode).toBe(200);
       const programUpdated = await Program.findOne({ _id: programId }).lean();
@@ -813,7 +813,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId);
+      const program = await Program.findById(programId).lean();
       expect(program.testers).toHaveLength(1);
     });
 
@@ -829,7 +829,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId);
+      const program = await Program.findById(programId).lean();
       expect(program.testers).toHaveLength(1);
     });
 
@@ -945,7 +945,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
 
     it('should remove a tester to a program', async () => {
       const programId = programsList[1]._id;
-      const programBefore = await Program.findById(programId);
+      const programBefore = await Program.findById(programId).lean();
 
       const response = await app.inject({
         method: 'DELETE',
@@ -954,7 +954,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId);
+      const program = await Program.findById(programId).lean();
       expect(programBefore.testers).toHaveLength(1);
       expect(program.testers).toHaveLength(0);
     });
