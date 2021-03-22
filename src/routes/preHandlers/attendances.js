@@ -18,6 +18,8 @@ exports.authorizeAttendancesGet = async (req) => {
     .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
+  if (!courseSlots.length) return null;
+
   const { credentials } = req.auth;
   const { course } = courseSlots[0];
 
