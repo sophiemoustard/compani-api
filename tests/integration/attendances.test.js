@@ -159,6 +159,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         url: `/attendances?course=${coursesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendances.length).toEqual(attendancesList.length);
     });
@@ -169,25 +170,28 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         url: `/attendances?courseSlot=${slotsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendances.length).toEqual(attendancesList.length);
     });
 
-    it('should return 404 if wrong course', async () => {
+    it('should return 404 if invalid course', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?course=${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if wrong courseSlot', async () => {
+    it('should return 404 if invalid courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?courseSlot=${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(404);
     });
 
@@ -197,6 +201,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         url: '/attendances',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(400);
     });
 
@@ -206,6 +211,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
         url: `/attendances/course=${coursesList[0]._id}&&courseSlot=${slotsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(404);
     });
   });

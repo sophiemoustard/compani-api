@@ -18,12 +18,10 @@ exports.authorizeAttendancesGet = async (req) => {
     .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
-  if (!courseSlots.length) throw Boom.notFound();
-
   const { credentials } = req.auth;
+  const { course } = courseSlots[0];
 
   if (!get(credentials, 'role.vendor')) {
-    const { course } = courseSlots[0];
     if (course.type === INTRA) {
       if (!course.company) throw Boom.badData();
 
@@ -31,9 +29,9 @@ exports.authorizeAttendancesGet = async (req) => {
     }
   }
 
-  if (get(credentials, 'role.vendor.name') === TRAINER) {
-    courseSlots.forEach(cs => isTrainerAuthorized(credentials._id, cs));
-  }
+  const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
+    !UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  if (isTrainerButNotCourseTainer) throw Boom.forbidden();
 
   return courseSlots.map(cs => cs._id);
 };
