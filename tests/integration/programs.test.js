@@ -945,6 +945,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
 
     it('should remove a tester to a program', async () => {
       const programId = programsList[1]._id;
+      const programBefore = await Program.findById(programId);
 
       const response = await app.inject({
         method: 'DELETE',
@@ -954,6 +955,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
 
       expect(response.statusCode).toBe(200);
       const program = await Program.findById(programId);
+      expect(programBefore.testers).toHaveLength(1);
       expect(program.testers).toHaveLength(0);
     });
 
@@ -965,6 +967,16 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 422 if tester is not in program', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programsList[0]._id}/testers/${vendorAdmin._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
   });
 

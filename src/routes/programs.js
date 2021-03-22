@@ -7,6 +7,7 @@ const {
   getProgramImagePublicId,
   checkCategoryExists,
   authorizeTesterAddition,
+  checkTesterInProgram,
 } = require('./preHandlers/programs');
 const {
   list,
@@ -200,7 +201,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required(), testerId: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkProgramExists }],
+        pre: [{ method: checkProgramExists }, { method: checkTesterInProgram }],
       },
       handler: removeTester,
     });
