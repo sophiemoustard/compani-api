@@ -976,7 +976,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(422);
+      expect(response.statusCode).toBe(409);
     });
   });
 

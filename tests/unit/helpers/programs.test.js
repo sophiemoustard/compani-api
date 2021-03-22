@@ -403,7 +403,7 @@ describe('removeTester', () => {
     SinonMongoose.calledWithExactly(
       updateOne,
       [
-        { query: 'findOne', args: [{ _id: programId }, { $pull: { testers: testerId } }, { new: true }] },
+        { query: 'findOne', args: [{ _id: programId }, { $pull: { testers: testerId } }] },
         { query: 'lean' },
       ]
     );

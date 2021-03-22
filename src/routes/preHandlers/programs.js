@@ -47,7 +47,7 @@ exports.authorizeTesterAddition = async (req) => {
 exports.checkTesterInProgram = async (req) => {
   const { _id: programId, testerId } = req.params;
   const program = await Program.countDocuments({ _id: programId, testers: testerId });
-  if (!program) throw Boom.badData(translate[language].testerNotFound);
+  if (!program) throw Boom.conflict(translate[language].testerNotFound);
 
   return null;
 };
