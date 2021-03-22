@@ -381,3 +381,31 @@ describe('addTester', () => {
     sinon.assert.calledWithExactly(createUser, { ...payload, origin: 'webapp' });
   });
 });
+
+describe('removeTester', () => {
+  let findOneAndUpdate;
+
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Program, 'findOneAndUpdate');
+  });
+
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
+  it('should remove tester', async () => {
+    const programId = new ObjectID();
+    const testerId = new ObjectID();
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+
+    await ProgramHelper.removeTester(programId, testerId);
+
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOne', args: [{ _id: programId }, { $pull: { testers: testerId } }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});

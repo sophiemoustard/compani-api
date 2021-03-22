@@ -92,3 +92,6 @@ exports.addTester = async (programId, payload) => {
   return Program.findOneAndUpdate({ _id: programId }, { $addToSet: { testers: addedTester._id } }, { new: true })
     .lean();
 };
+
+exports.removeTester = async (programId, testerId) =>
+  Program.findOneAndUpdate({ _id: programId }, { $pull: { testers: testerId } }, { new: true }).lean();

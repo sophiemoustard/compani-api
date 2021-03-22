@@ -139,6 +139,17 @@ const addTester = async (req) => {
   }
 };
 
+const removeTester = async (req) => {
+  try {
+    await ProgramHelper.removeester(req.params._id, req.params.testerId);
+
+    return { message: translate[language].testerRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listELearning,
@@ -151,4 +162,5 @@ module.exports = {
   addCategory,
   removeCategory,
   addTester,
+  removeTester,
 };
