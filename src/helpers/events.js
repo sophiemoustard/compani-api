@@ -180,7 +180,7 @@ exports.listForCreditNotes = (payload, credentials, creditNote) => {
     query = { ...query, isBilled: true };
   }
 
-  return Event.find(query).sort({ startDate: -1 }).lean();
+  return Event.find(query).sort({ startDate: 1 }).lean();
 };
 
 exports.populateEventSubscription = (event) => {

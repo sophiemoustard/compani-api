@@ -21,6 +21,7 @@ const list = async (req) => {
 const listForCreditNotes = async (req) => {
   try {
     const events = await EventsHelper.listForCreditNotes(req.query, req.auth.credentials, req.pre.creditNote);
+    console.log(events);
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
       data: { events },
