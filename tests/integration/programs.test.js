@@ -969,7 +969,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 422 if tester is not in program', async () => {
+    it('should return a 409 if tester is not in program', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/programs/${programsList[0]._id}/testers/${vendorAdmin._id}`,

@@ -94,4 +94,4 @@ exports.addTester = async (programId, payload) => {
 };
 
 exports.removeTester = async (programId, testerId) =>
-  Program.updateOne({ _id: programId }, { $pull: { testers: testerId } }).lean();
+  Program.updateOne({ _id: programId }, { $pull: { testers: testerId } });

@@ -396,16 +396,10 @@ describe('removeTester', () => {
   it('should remove tester', async () => {
     const programId = new ObjectID();
     const testerId = new ObjectID();
-    updateOne.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+    updateOne.returns({ _id: programId });
 
     await ProgramHelper.removeTester(programId, testerId);
 
-    SinonMongoose.calledWithExactly(
-      updateOne,
-      [
-        { query: 'findOne', args: [{ _id: programId }, { $pull: { testers: testerId } }] },
-        { query: 'lean' },
-      ]
-    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { testers: testerId } });
   });
 });
