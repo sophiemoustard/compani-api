@@ -12,6 +12,7 @@ const {
   populateDB,
   programsList,
   categoriesList,
+  vendorAdmin,
 } = require('./seed/programsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
@@ -780,6 +781,152 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
           method: 'DELETE',
           url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
+  let authToken;
+  beforeEach(populateDB);
+  describe('ROF', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should add a tester to a program', async () => {
+      const programId = programsList[0]._id;
+      const payload = {
+        identity: { lastname: 'test', firstname: 'test' },
+        local: { email: 'test@alenvi.io' },
+        contact: { phone: '0123456789' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const program = await Program.findById(programId);
+      expect(program.testers).toHaveLength(1);
+    });
+
+    it('should add an existing user to a program', async () => {
+      const programId = programsList[0]._id;
+      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programId.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const program = await Program.findById(programId);
+      expect(program.testers).toHaveLength(1);
+    });
+
+    it('should return a 404 if program does not exist', async () => {
+      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${new ObjectID()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 400 if missing email', async () => {
+      const payload = {
+        identity: { lastname: 'test', firstname: 'test' },
+        contact: { phone: '0123456789' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if user does not exist and missing lastname', async () => {
+      const payload = {
+        identity: { firstname: 'test' },
+        local: { email: 'test@alenvi.io' },
+        contact: { phone: '0123456789' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if user does not exist and missing phone', async () => {
+      const payload = {
+        identity: { firstname: 'test', lastname: 'oiuy' },
+        local: { email: 'test@alenvi.io' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 409 if user already is a tester for this program', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/programs/${programsList[1]._id.toHexString()}/testers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: pick(vendorAdmin, 'local.email'),
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    const payload = {
+      identity: { lastname: 'test', firstname: 'test' },
+      local: { email: 'test@alenvi.io' },
+      contact: { phone: '0123456789' },
+    };
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

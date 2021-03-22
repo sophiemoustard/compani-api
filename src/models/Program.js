@@ -10,6 +10,7 @@ const ProgramSchema = mongoose.Schema({
     publicId: String,
     link: { type: String, trim: true },
   },
+  testers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Program', ProgramSchema);
