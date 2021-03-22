@@ -141,7 +141,7 @@ const addTester = async (req) => {
 
 const removeTester = async (req) => {
   try {
-    await ProgramHelper.removeester(req.params._id, req.params.testerId);
+    await ProgramHelper.removeTester(req.params._id, req.params.testerId);
 
     return { message: translate[language].testerRemoved };
   } catch (e) {

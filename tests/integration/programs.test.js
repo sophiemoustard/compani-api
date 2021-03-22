@@ -934,3 +934,58 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
     });
   });
 });
+
+describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
+  let authToken;
+  beforeEach(populateDB);
+  describe('ROF', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should remove a tester to a program', async () => {
+      const programId = programsList[1]._id;
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${programId.toHexString()}/testers/${vendorAdmin._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const program = await Program.findById(programId);
+      expect(program.testers).toHaveLength(0);
+    });
+
+    it('should return a 404 if program does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${new ObjectID()}/testers/${vendorAdmin._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/programs/${programsList[1]._id.toHexString()}/testers/${vendorAdmin._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
