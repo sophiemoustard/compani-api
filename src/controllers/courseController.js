@@ -79,7 +79,7 @@ const getQuestionnaireAnswers = async (req) => {
     const questionnaireAnswers = await CoursesHelper.getQuestionnaireAnswers(req.params._id);
 
     return {
-      message: translate[language].courseFound,
+      message: translate[language].courseQuestionnairesFound,
       data: { questionnaireAnswers },
     };
   } catch (e) {
