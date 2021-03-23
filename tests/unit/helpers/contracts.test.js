@@ -253,7 +253,7 @@ describe('createContract', () => {
 
     const result = await ContractHelper.createContract(payload, credentials);
 
-    expect(result).toEqual(expect.objectContaining(contract));
+    expect(result).toEqual(contract);
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
@@ -368,7 +368,7 @@ describe('createContract', () => {
 
     const result = await ContractHelper.createContract(payload, credentials);
 
-    expect(result).toEqual(expect.objectContaining(contract));
+    expect(result).toEqual(contract);
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(isCreationAllowed, payload, user, '1234567890');
     sinon.assert.calledWithExactly(formatSerialNumber, '1234567890');
