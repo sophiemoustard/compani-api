@@ -215,7 +215,7 @@ exports.getCourseFollowUp = async (course, company) => {
 };
 
 exports.getQuestionnaireAnswers = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId }, { misc: 1, trainees: 1 })
+  const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',
       select: 'steps',

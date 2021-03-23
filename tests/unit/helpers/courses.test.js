@@ -732,84 +732,193 @@ describe('getCourseFollowUp', () => {
   });
 });
 
-describe('get questionnaire answers', () => {
+describe('getQuestionnaireAnswers', () => {
   let findOneCourse;
-  let findOneActivity;
   let formatActivity;
   beforeEach(() => {
     findOneCourse = sinon.stub(Course, 'findOne');
-    findOneActivity = sinon.stub(Activity, 'findOne');
     formatActivity = sinon.stub(CourseHelper, 'formatActivity');
   });
   afterEach(() => {
     findOneCourse.restore();
-    findOneActivity.restore();
     formatActivity.restore();
   });
 
   it('should return questionnaire answers', async () => {
     const courseId = new ObjectID();
-    const activityId = new ObjectID();
     const userId = new ObjectID();
+    const activities = [
+      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
+      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
+    ];
+
+    const followUps = [
+      { question: 'test', answers: ['1', '2'] },
+      { question: 'test2', answers: ['3', '4'] },
+    ];
+
     const course = {
       _id: courseId,
       misc: 'Groupe 3',
       trainees: [userId],
-      subProgram: { steps: [{ _id: ObjectID(), program: { name: 'nom du programme' } }] },
+      subProgram: {
+        steps: [
+          {
+            _id: ObjectID(),
+            program: { name: 'nom du programme' },
+            activities: [activities[0]],
+          },
+          {
+            _id: ObjectID(),
+            program: { name: 'nom du programme' },
+            activities: [activities[1]],
+          },
+        ],
+      },
     };
-    const activity = {
-      _id: activityId,
-      name: 'le nom de l\'activité',
-      activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }],
-      steps: [{
-        id: new ObjectID(),
-        name: 'le nom de l\'étape',
-        subProgram: { _id: new ObjectID(), program: { name: 'le nom du programme' } },
-      }],
-    };
-    const questionnaireAnswers = {
-      ...course,
-      ...activity,
-      followUp: [{ template: 'survey', question: 'la question', answers: ['une réponse'] }],
-    };
+
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
-    findOneActivity.returns(SinonMongoose.stubChainedQueries([activity]));
-    formatActivity.returns(questionnaireAnswers);
+    formatActivity.onCall(0).returns({ followUp: [followUps[0]] });
+    formatActivity.onCall(1).returns({ followUp: [followUps[1]] });
 
-    const result = await CourseHelper.getQuestionnaireAnswers(activityId, courseId);
+    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
-    expect(result).toMatchObject(questionnaireAnswers);
+    expect(result).toMatchObject(followUps);
     SinonMongoose.calledWithExactly(findOneCourse, [
-      { query: 'findOne', args: [{ _id: courseId }, { misc: 1, trainees: 1 }] },
-      {
-        query: 'populate',
-        args: [{ path: 'subProgram', select: 'steps', populate: [{ path: 'program', select: 'name' }] }],
-      },
-      { query: 'lean' },
-    ]);
-
-    SinonMongoose.calledWithExactly(findOneActivity, [
-      { query: 'findOne', args: [{ _id: activityId }, { name: 1 }] },
+      { query: 'findOne', args: [{ _id: courseId }] },
       {
         query: 'populate',
         args: [{
-          path: 'activityHistories',
-          populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-          match: { user: { $in: course.trainees.map(t => t.toHexString()) } },
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'steps',
-          select: 'name',
-          match: { _id: { $in: course.subProgram.steps.map(s => s._id.toHexString()) } },
+          path: 'subProgram',
+          select: 'steps',
+          populate: [
+            { path: 'program', select: 'name' },
+            {
+              path: 'steps',
+              select: 'activities',
+              populate: {
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
+              },
+            },
+          ],
         }],
       },
       { query: 'lean' },
     ]);
+    sinon.assert.calledWithExactly(formatActivity.getCall(0), activities[0]);
+    sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
+  });
 
-    sinon.assert.calledOnceWithExactly(formatActivity, omit(activity, 'steps'));
+  it('should return questionnaire answers', async () => {
+    const courseId = new ObjectID();
+    const userId = new ObjectID();
+    const activities = [
+      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
+      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
+    ];
+
+    const course = {
+      _id: courseId,
+      misc: 'Groupe 3',
+      trainees: [userId],
+      subProgram: {
+        steps: [
+          {
+            _id: ObjectID(),
+            program: { name: 'nom du programme' },
+            activities: [activities[0]],
+          },
+          {
+            _id: ObjectID(),
+            program: { name: 'nom du programme' },
+            activities: [activities[1]],
+          },
+        ],
+      },
+    };
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    formatActivity.onCall(0).returns({ followUp: [] });
+    formatActivity.onCall(1).returns({ followUp: [] });
+
+    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
+
+    expect(result).toMatchObject([]);
+    SinonMongoose.calledWithExactly(findOneCourse, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'subProgram',
+          select: 'steps',
+          populate: [
+            { path: 'program', select: 'name' },
+            {
+              path: 'steps',
+              select: 'activities',
+              populate: {
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
+              },
+            },
+          ],
+        }],
+      },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledWithExactly(formatActivity.getCall(0), activities[0]);
+    sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
+  });
+
+  it('should return questionnaire answers', async () => {
+    const courseId = new ObjectID();
+    const userId = new ObjectID();
+
+    const course = {
+      _id: courseId,
+      misc: 'Groupe 3',
+      trainees: [userId],
+      subProgram: {},
+    };
+
+    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+
+    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
+
+    expect(result).toMatchObject([]);
+    SinonMongoose.calledWithExactly(findOneCourse, [
+      { query: 'findOne', args: [{ _id: courseId }] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'subProgram',
+          select: 'steps',
+          populate: [
+            { path: 'program', select: 'name' },
+            {
+              path: 'steps',
+              select: 'activities',
+              populate: {
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
+              },
+            },
+          ],
+        }],
+      },
+      { query: 'lean' },
+    ]);
+    sinon.assert.notCalled(formatActivity);
   });
 });
 
