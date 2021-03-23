@@ -174,6 +174,7 @@ describe('createBillSlips', () => {
       ]
     );
   });
+
   it('should create new bill slips', async () => {
     const thirdPartyPayer1 = new ObjectID();
     const thirdPartyPayer2 = new ObjectID();

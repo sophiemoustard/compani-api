@@ -37,8 +37,8 @@ describe('getContractList', () => {
     findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ContractHelper.getContractList(query, credentials);
-    expect(result).toEqual(contracts);
 
+    expect(result).toEqual(contracts);
     SinonMongoose.calledWithExactly(
       findContract,
       [
@@ -63,8 +63,8 @@ describe('getContractList', () => {
     findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ContractHelper.getContractList(query, credentials);
-    expect(result).toEqual(contracts);
 
+    expect(result).toEqual(contracts);
     SinonMongoose.calledWithExactly(
       findContract,
       [
