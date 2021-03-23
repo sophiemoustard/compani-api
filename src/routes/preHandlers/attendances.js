@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
+const Course = require('../../models/Course');
 const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
@@ -18,7 +19,12 @@ exports.authorizeAttendancesGet = async (req) => {
     .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
-  if (!courseSlots.length) return null;
+  if (req.query.course) {
+    const courseExist = await Course.countDocuments({ _id: req.query.course });
+    if (!courseExist) throw Boom.notFound();
+  }
+
+  if (req.query.courseSlot && !courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
   const { course } = courseSlots[0];
