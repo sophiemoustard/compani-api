@@ -220,7 +220,6 @@ exports.getQuestionnaireAnswers = async (courseId) => {
       path: 'subProgram',
       select: 'steps',
       populate: [
-        { path: 'program', select: 'name' },
         {
           path: 'steps',
           select: 'activities',

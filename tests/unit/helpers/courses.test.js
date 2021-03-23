@@ -792,7 +792,6 @@ describe('getQuestionnaireAnswers', () => {
           path: 'subProgram',
           select: 'steps',
           populate: [
-            { path: 'program', select: 'name' },
             {
               path: 'steps',
               select: 'activities',
@@ -813,13 +812,10 @@ describe('getQuestionnaireAnswers', () => {
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
 
-  it('should return questionnaire answers', async () => {
+  it('should return [] if no followUp', async () => {
     const courseId = new ObjectID();
     const userId = new ObjectID();
-    const activities = [
-      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
-      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
-    ];
+    const activities = [{ activityHistories: [] }, { activityHistories: [] }];
 
     const course = {
       _id: courseId,
@@ -856,7 +852,6 @@ describe('getQuestionnaireAnswers', () => {
           path: 'subProgram',
           select: 'steps',
           populate: [
-            { path: 'program', select: 'name' },
             {
               path: 'steps',
               select: 'activities',
@@ -877,7 +872,7 @@ describe('getQuestionnaireAnswers', () => {
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
 
-  it('should return questionnaire answers', async () => {
+  it('should return [] if no stepss', async () => {
     const courseId = new ObjectID();
     const userId = new ObjectID();
 
@@ -901,7 +896,6 @@ describe('getQuestionnaireAnswers', () => {
           path: 'subProgram',
           select: 'steps',
           populate: [
-            { path: 'program', select: 'name' },
             {
               path: 'steps',
               select: 'activities',
