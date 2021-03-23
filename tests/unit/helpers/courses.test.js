@@ -761,16 +761,8 @@ describe('getQuestionnaireAnswers', () => {
       trainees: [userId],
       subProgram: {
         steps: [
-          {
-            _id: ObjectID(),
-            program: { name: 'nom du programme' },
-            activities: [activities[0]],
-          },
-          {
-            _id: ObjectID(),
-            program: { name: 'nom du programme' },
-            activities: [activities[1]],
-          },
+          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[0]] },
+          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[1]] },
         ],
       },
     };
@@ -789,19 +781,17 @@ describe('getQuestionnaireAnswers', () => {
         args: [{
           path: 'subProgram',
           select: 'steps',
-          populate: [
-            {
-              path: 'steps',
-              select: 'activities',
+          populate: [{
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
               populate: {
-                path: 'activities',
-                populate: {
-                  path: 'activityHistories',
-                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-                },
+                path: 'activityHistories',
+                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               },
             },
-          ],
+          }],
         }],
       },
       { query: 'lean' },
@@ -821,16 +811,8 @@ describe('getQuestionnaireAnswers', () => {
       trainees: [userId],
       subProgram: {
         steps: [
-          {
-            _id: ObjectID(),
-            program: { name: 'nom du programme' },
-            activities: [activities[0]],
-          },
-          {
-            _id: ObjectID(),
-            program: { name: 'nom du programme' },
-            activities: [activities[1]],
-          },
+          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[0]] },
+          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[1]] },
         ],
       },
     };
@@ -849,19 +831,17 @@ describe('getQuestionnaireAnswers', () => {
         args: [{
           path: 'subProgram',
           select: 'steps',
-          populate: [
-            {
-              path: 'steps',
-              select: 'activities',
+          populate: [{
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
               populate: {
-                path: 'activities',
-                populate: {
-                  path: 'activityHistories',
-                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-                },
+                path: 'activityHistories',
+                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               },
             },
-          ],
+          }],
         }],
       },
       { query: 'lean' },
@@ -870,7 +850,7 @@ describe('getQuestionnaireAnswers', () => {
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
 
-  it('should return [] if no stepss', async () => {
+  it('should return [] if no steps', async () => {
     const courseId = new ObjectID();
     const userId = new ObjectID();
 
@@ -893,19 +873,17 @@ describe('getQuestionnaireAnswers', () => {
         args: [{
           path: 'subProgram',
           select: 'steps',
-          populate: [
-            {
-              path: 'steps',
-              select: 'activities',
+          populate: [{
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
               populate: {
-                path: 'activities',
-                populate: {
-                  path: 'activityHistories',
-                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-                },
+                path: 'activityHistories',
+                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               },
             },
-          ],
+          }],
         }],
       },
       { query: 'lean' },
