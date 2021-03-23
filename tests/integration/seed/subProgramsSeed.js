@@ -7,6 +7,11 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication } = require('./authenticationSeed');
+const { userList } = require('../../seed/userSeed');
+const { rolesList } = require('../../seed/roleSeed');
+
+const clientAdminRole = rolesList.find(role => role.name === 'client_admin')._id;
+const clientAdmin = userList.find(user => user.role.client === clientAdminRole);
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
@@ -56,6 +61,7 @@ const programsList = [
     name: 'program 2',
     subPrograms: [subProgramsList[3]._id, subProgramsList[4]._id],
     image: 'link',
+    testers: [clientAdmin._id],
   },
 ];
 
@@ -103,4 +109,5 @@ module.exports = {
   stepsList,
   activitiesList,
   cardsList,
+  clientAdmin,
 };

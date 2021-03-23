@@ -519,7 +519,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.subPrograms.length).toEqual(4);
+      expect(response.result.data.subPrograms.length).toEqual(2);
       const { subPrograms } = response.result.data;
       const stepsIds = subPrograms[0].steps.map(step => step._id);
       const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
@@ -528,26 +528,32 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/subprograms/draft-e-learning',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
+    it('should get draft and e-learning subprograms for which user is a tester', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: '/subprograms/draft-e-learning',
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subPrograms.length).toEqual(1);
+      const { subPrograms } = response.result.data;
+      const stepsIds = subPrograms[0].steps.map(step => step._id);
+      const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
+      expect(steps.every(step => step.type === 'e_learning')).toBeTruthy();
+    });
+
+    it('should return an empty array if user is not a tester', async () => {
+      authToken = await getToken('helper');
+      const response = await app.inject({
+        method: 'GET',
+        url: '/subprograms/draft-e-learning',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subPrograms.length).toEqual(0);
     });
   });
 });
