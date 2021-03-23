@@ -1,9 +1,10 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
 const Company = require('../../models/Company');
 const CourseSlot = require('../../models/CourseSlot');
-const { PUBLISHED } = require('../../helpers/constants');
+const { PUBLISHED, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -74,4 +75,14 @@ exports.checkSubProgramExists = async (req) => {
   if (!subProgram) throw Boom.notFound();
 
   return null;
+};
+
+exports.authorizeGetDraftELearningSubPrograms = async (req) => {
+  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return null;
+
+  const userId = get(req, 'auth.credentials._id');
+  const userRestrictedTestedPrograms = await Program.find({ testers: userId });
+
+  return userRestrictedTestedPrograms;
 };

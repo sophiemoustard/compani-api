@@ -7,6 +7,7 @@ const {
   authorizeStepAdd,
   authorizeSubProgramUpdate,
   checkSubProgramExists,
+  authorizeGetDraftELearningSubPrograms,
 } = require('./preHandlers/subPrograms');
 const { update, addStep, detachStep, listELearningDraft, getById } = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
@@ -66,7 +67,8 @@ exports.plugin = {
       method: 'GET',
       path: '/draft-e-learning',
       options: {
-        auth: { scope: ['programs:read'] },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeGetDraftELearningSubPrograms, assign: 'userRestrictedTestedPrograms' }],
       },
       handler: listELearningDraft,
     });
