@@ -596,21 +596,11 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
     it('should get questionnaire answers', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 400 if the activity is not a questionnaire', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -628,7 +618,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires?activity=${activitiesList[1]._id}`,
+          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

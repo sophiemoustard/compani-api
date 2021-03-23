@@ -214,29 +214,32 @@ exports.getCourseFollowUp = async (course, company) => {
   };
 };
 
-exports.getQuestionnaireAnswers = async (activityId, courseId) => {
+exports.getQuestionnaireAnswers = async (courseId) => {
   const course = await Course.findOne({ _id: courseId }, { misc: 1, trainees: 1 })
-    .populate({ path: 'subProgram', select: 'steps', populate: [{ path: 'program', select: 'name' }] })
+    .populate({
+      path: 'subProgram',
+      select: 'steps',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'activities',
+          populate: {
+            path: 'activities',
+            populate: {
+              path: 'activityHistories',
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
+          },
+        },
+      ],
+    })
     .lean();
 
-  const activity = await Activity.findOne({ _id: activityId }, { name: 1 })
-    .populate({
-      path: 'activityHistories',
-      populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-      match: { user: { $in: course.trainees.map(t => t.toHexString()) } },
-    })
-    .populate({
-      path: 'steps',
-      select: 'name',
-      match: { _id: { $in: course.subProgram.steps.map(s => s._id.toHexString()) } },
-    })
-    .lean();
+  const courseActivities = get(course, 'subProgram.steps', []).map(step => step.activities).flat();
+  const activitiesWithFollowUp = courseActivities.map(activity => exports.formatActivity(activity));
 
-  return {
-    ...exports.formatActivity(omit(activity, 'steps')),
-    course: { ...course, subProgram: omit(course.subProgram, 'steps') },
-    step: activity.steps[0],
-  };
+  return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
 exports.getTraineeProgress = (traineeId, steps, slots) => {
