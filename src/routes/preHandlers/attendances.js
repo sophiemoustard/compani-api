@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
+const Course = require('../../models/Course');
 const { TRAINER, INTRA } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
@@ -13,19 +14,34 @@ const isTrainerAuthorized = (loggedUserId, courseSlot) => {
 };
 
 exports.authorizeAttendancesGet = async (req) => {
-  const courseSlotsIds = [...new Set(UtilsHelper.formatObjectIdsArray(req.query.courseSlots))];
-  const courseSlots = await CourseSlot.find({ _id: { $in: courseSlotsIds } }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees' })
+  const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
+  const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
+    .populate({ path: 'course', select: 'trainer trainees company type' })
     .lean();
 
-  if (courseSlots.length !== courseSlotsIds.length) throw Boom.notFound();
-
-  const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) {
-    courseSlots.forEach(cs => isTrainerAuthorized(credentials._id, cs));
+  if (req.query.course) {
+    const courseExist = await Course.countDocuments({ _id: req.query.course });
+    if (!courseExist) throw Boom.notFound();
   }
 
-  return courseSlotsIds;
+  if (req.query.courseSlot && !courseSlots.length) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const { course } = courseSlots[0];
+
+  if (!get(credentials, 'role.vendor')) {
+    if (course.type === INTRA) {
+      if (!course.company) throw Boom.badData();
+
+      if (!UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), course.company)) throw Boom.forbidden();
+    }
+  }
+
+  const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
+    !UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  if (isTrainerButNotCourseTainer) throw Boom.forbidden();
+
+  return courseSlots.map(cs => cs._id);
 };
 
 exports.authorizeAttendanceCreation = async (req) => {
