@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const cloneDeep = require('lodash/cloneDeep');
 const Event = require('../../models/Event');
+const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
@@ -62,12 +63,19 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
   const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
   if (!customer) throw Boom.forbidden();
 
+  const { creditNoteId, startDate, endDate } = req.query;
+  let creditNote = null;
+  if (creditNoteId) {
+    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId });
+    if (creditNote.events.some(e => e.startDate < startDate && e.endDate > endDate)) throw Boom.badData();
+  }
+
   if (req.query.thirdPartyPayer) {
     const tpp = await ThirdPartyPayer.findOne({ _id: req.query.thirdPartyPayer, company: companyId }).lean();
     if (!tpp) throw Boom.forbidden();
   }
 
-  return null;
+  return creditNote;
 };
 
 const checkAuxiliaryPermission = (credentials, event) => {

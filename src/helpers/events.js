@@ -156,15 +156,15 @@ exports.getListQuery = (query, credentials) => {
   return { $and: rules };
 };
 
-exports.listForCreditNotes = (payload, credentials) => {
+exports.listForCreditNotes = (payload, credentials, creditNote) => {
   let query = {
     startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
     endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
     customer: payload.customer,
-    isBilled: payload.isBilled,
     type: INTERVENTION,
     company: get(credentials, 'company._id', null),
   };
+
   if (payload.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': payload.thirdPartyPayer };
   else {
     query = {
@@ -173,7 +173,14 @@ exports.listForCreditNotes = (payload, credentials) => {
       'bills.inclTaxesTpp': { $exists: false },
     };
   }
-  return Event.find(query).lean();
+
+  if (creditNote) {
+    query = { ...query, $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }] };
+  } else {
+    query = { ...query, isBilled: true };
+  }
+
+  return Event.find(query).sort({ startDate: 1 }).lean();
 };
 
 exports.populateEventSubscription = (event) => {
