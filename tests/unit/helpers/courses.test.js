@@ -1,4 +1,3 @@
-const omit = require('lodash/omit');
 const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
@@ -8,7 +7,6 @@ const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
 const Course = require('../../../src/models/Course');
-const Activity = require('../../../src/models/Activity');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const CourseHelper = require('../../../src/helpers/courses');
