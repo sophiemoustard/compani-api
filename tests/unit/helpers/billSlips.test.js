@@ -12,8 +12,6 @@ const DocxHelper = require('../../../src/helpers/docx');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('getBillSlips', () => {
   let getBillsSlipList;
   let getCreditNoteList;
@@ -109,13 +107,16 @@ describe('getBillSlipNumber', () => {
 
     expect(result).toEqual('1234567890');
 
-    SinonMongoose.calledWithExactly(findOneAndUpdate, [
-      {
-        query: 'findOneAndUpdate',
-        args: [{ prefix: '0919', company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }],
-      },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ prefix: '0919', company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -158,17 +159,20 @@ describe('createBillSlips', () => {
     sinon.assert.notCalled(formatBillSlipNumber);
     sinon.assert.notCalled(updateOneBillSlipNumber);
     sinon.assert.notCalled(insertManyBillSlip);
-    SinonMongoose.calledWithExactly(findBillSlip, [
-      {
-        query: 'find',
-        args: [{
-          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-          month: '09-2019',
-          company: company._id,
-        }],
-      },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findBillSlip,
+      [
+        {
+          query: 'find',
+          args: [{
+            thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+            month: '09-2019',
+            company: company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
   it('should create new bill slips', async () => {
     const thirdPartyPayer1 = new ObjectID();
@@ -199,15 +203,18 @@ describe('createBillSlips', () => {
         { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ]
     );
-    SinonMongoose.calledWithExactly(findBillSlip, [
-      {
-        query: 'find',
-        args: [{
-          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-          month: '09-2019',
-          company: company._id,
-        }],
-      }]);
+    SinonMongoose.calledWithExactly(
+      findBillSlip,
+      [
+        {
+          query: 'find',
+          args: [{
+            thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+            month: '09-2019',
+            company: company._id,
+          }],
+        }]
+    );
   });
 
   it('should create new bill slips from a creditNote', async () => {
@@ -239,16 +246,19 @@ describe('createBillSlips', () => {
         { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ]
     );
-    SinonMongoose.calledWithExactly(findBillSlip, [
-      {
-        query: 'find',
-        args: [{
-          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-          month: '09-2019',
-          company: company._id,
-        }],
-      },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findBillSlip,
+      [
+        {
+          query: 'find',
+          args: [{
+            thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+            month: '09-2019',
+            company: company._id,
+          }],
+        },
+      ]
+    );
   });
 });
 
@@ -565,10 +575,13 @@ describe('generateFile', () => {
       path.join(process.cwd(), 'src/data/billSlip.docx'),
       billSlipData
     );
-    SinonMongoose.calledWithExactly(findByIdBillSlip, [
-      { query: 'findById', args: [billSlip._id] },
-      { query: 'populate', args: ['thirdPartyPayer'] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findByIdBillSlip,
+      [
+        { query: 'findById', args: [billSlip._id] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
