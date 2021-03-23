@@ -169,7 +169,7 @@ describe('getCourseProgress', () => {
     expect(result).toBe(1);
   });
 
-  it('should return 0 if no steps', async () => {
+  it('should return 0 if no step', async () => {
     const steps = [];
 
     const result = await CourseHelper.getCourseProgress(steps);
@@ -538,24 +538,25 @@ describe('formatActivity', () => {
           _id: 'rfvgtgb',
           user: 'qwertyuiop',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [2] },
-            { card: { _id: '0987654', title: 'Hello' }, answerList: [3] },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['2'] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: ['3'] },
           ],
         },
         {
           _id: 'yhnjujm',
           user: 'poiuytre',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [3] },
-            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['3'] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: ['', '4'] },
           ],
         },
         {
           _id: 'zxcvbnm',
           user: 'xzcvbnm',
           questionnaireAnswersList: [
-            { card: { _id: '1234567', title: 'Bonjour' }, answerList: [1] },
-            { card: { _id: '0987654', title: 'Hello' }, answerList: [4] },
+            { card: { _id: '1234567', title: 'Bonjour' }, answerList: ['1'] },
+            { card: { _id: '0987654', title: 'Hello' }, answerList: ['4'] },
+            { card: { _id: '0987622', title: 'Coucou' }, answerList: [''] },
           ],
         },
       ],
@@ -566,8 +567,8 @@ describe('formatActivity', () => {
     expect(result).toEqual({
       activityHistories: ['rfvgtgb', 'yhnjujm', 'zxcvbnm'],
       followUp: [
-        { _id: '1234567', title: 'Bonjour', answers: [2, 3, 1] },
-        { _id: '0987654', title: 'Hello', answers: [3, 4, 4] },
+        { _id: '1234567', title: 'Bonjour', answers: ['2', '3', '1'] },
+        { _id: '0987654', title: 'Hello', answers: ['3', '', '4', '4'] },
       ],
     });
   });
@@ -850,7 +851,7 @@ describe('getQuestionnaireAnswers', () => {
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
 
-  it('should return [] if no steps', async () => {
+  it('should return [] if no step', async () => {
     const courseId = new ObjectID();
     const userId = new ObjectID();
 
