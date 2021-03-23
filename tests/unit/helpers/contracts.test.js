@@ -45,13 +45,11 @@ describe('getContractList', () => {
       { query: 'find', args: [{ $and: [{ company: '1234567890' }, { user: '1234567890' }] }] },
       {
         query: 'populate',
-        args: [
-          {
-            path: 'user',
-            select: 'identity administrative.driveFolder sector contact local',
-            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          },
-        ],
+        args: [{
+          path: 'user',
+          select: 'identity administrative.driveFolder sector contact local',
+          populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+        }],
       },
       { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
     ]);
@@ -67,24 +65,33 @@ describe('getContractList', () => {
     expect(result).toEqual(contracts);
 
     SinonMongoose.calledWithExactly(findContract, [
-      { query: 'find',
-        args: [
-          {
-            $and: [
-              { company: '1234567890' },
-              {
-                $or: [
-                  {
-                    versions: {
-                      $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
-                    },
+      {
+        query: 'find',
+        args: [{
+          $and: [
+            { company: '1234567890' },
+            {
+              $or: [
+                {
+                  versions: {
+                    $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
                   },
-                  { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
-                ],
-              },
-            ],
-          },
-        ] },
+                },
+                { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
+              ],
+            },
+          ],
+        }],
+      },
+      {
+        query: 'populate',
+        args: [{
+          path: 'user',
+          select: 'identity administrative.driveFolder sector contact local',
+          populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+        }],
+      },
+      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
     ]);
   });
 });
@@ -495,13 +502,11 @@ describe('endContract', () => {
       },
       {
         query: 'populate',
-        args: [
-          {
-            path: 'user',
-            select: 'sector',
-            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          },
-        ],
+        args: [{
+          path: 'user',
+          select: 'sector',
+          populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+        }],
       },
       { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
     ]);

@@ -161,11 +161,11 @@ describe('createBillSlips', () => {
     SinonMongoose.calledWithExactly(findBillSlip, [
       {
         query: 'find',
-        args: [
-          { thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
-            month: '09-2019',
-            company: company._id },
-        ],
+        args: [{
+          thirdPartyPayer: { $in: [thirdPartyPayer1, thirdPartyPayer2] },
+          month: '09-2019',
+          company: company._id,
+        }],
       },
       { query: 'lean' },
     ]);
@@ -177,10 +177,7 @@ describe('createBillSlips', () => {
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
 
-    findBillSlip.returns(SinonMongoose.stubChainedQueries(
-      [[]],
-      ['lean']
-    ));
+    findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
     getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
     formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
