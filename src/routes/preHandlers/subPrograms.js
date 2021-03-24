@@ -82,7 +82,7 @@ exports.authorizeGetDraftELearningSubPrograms = async (req) => {
   if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return null;
 
   const userId = get(req, 'auth.credentials._id');
-  const userRestrictedTestedPrograms = await Program.find({ testers: userId }, { _id: 1 }).lean();
+  const testerRestrictedPrograms = await Program.find({ testers: userId }, { _id: 1 }).lean();
 
-  return userRestrictedTestedPrograms.map(program => program._id);
+  return testerRestrictedPrograms.map(program => program._id);
 };
