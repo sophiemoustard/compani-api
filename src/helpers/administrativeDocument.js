@@ -29,9 +29,9 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
     company: companyId,
     name: payload.name,
     driveFile: { driveId, link },
-  });
+  }).toObject();
 
-  return administrativeDocument.toObject();
+  return administrativeDocument;
 };
 
 exports.listAdministrativeDocuments = async credentials =>
