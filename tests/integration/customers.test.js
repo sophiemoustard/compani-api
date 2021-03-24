@@ -1656,7 +1656,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('client_admin');
+    authToken = await getToken('coach');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1714,7 +1714,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(409);
     });
 
-    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
+    it('should return a 400 error if \'subscriptions\' is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayer._id,
@@ -1765,7 +1765,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 error if \'thirdPartyPayer\' object is missing from payload', async () => {
+    it('should return a 400 error if \'thirdPartyPayer\' is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         subscription: customersList[0].subscriptions[0]._id,
@@ -1862,8 +1862,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1984,8 +1982,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -2034,8 +2030,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
