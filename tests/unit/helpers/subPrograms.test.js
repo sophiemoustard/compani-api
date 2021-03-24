@@ -241,7 +241,7 @@ describe('listELearningDraft', () => {
   });
 
   it('should return draft subprograms with elearning steps for tester', async () => {
-    const userRestrictedTestedPrograms = [{ _id: new ObjectID(), name: 'name' }];
+    const testerRestrictedPrograms = [new ObjectID()];
     const subProgramsList = [
       {
         _id: new ObjectID(),
@@ -255,13 +255,18 @@ describe('listELearningDraft', () => {
         steps: [{ type: 'on_site' }],
         program: [{ _id: new ObjectID(), name: 'test' }],
       },
+      {
+        _id: new ObjectID(),
+        status: 'draft',
+        steps: [{ type: 'e_learning' }],
+      },
     ];
     const elearningSubProgramList = subProgramsList
       .filter(subProgram => subProgram.steps.length && subProgram.isStrictlyELearning && subProgram.program);
 
     find.returns(SinonMongoose.stubChainedQueries([subProgramsList]));
 
-    const result = await SubProgramHelper.listELearningDraft(userRestrictedTestedPrograms);
+    const result = await SubProgramHelper.listELearningDraft(testerRestrictedPrograms);
 
     expect(result).toMatchObject(elearningSubProgramList);
     SinonMongoose.calledWithExactly(find, [
@@ -271,7 +276,7 @@ describe('listELearningDraft', () => {
         args: [{
           path: 'program',
           select: '_id name description image',
-          match: { _id: { $in: [userRestrictedTestedPrograms[0]._id] } },
+          match: { _id: { $in: testerRestrictedPrograms } },
         }],
       },
       { query: 'populate', args: [{ path: 'steps', select: 'type' }] },
