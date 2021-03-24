@@ -541,8 +541,9 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       expect(response.result.data.subPrograms.length).toEqual(1);
       const { subPrograms } = response.result.data;
       const stepsIds = subPrograms[0].steps.map(step => step._id);
+      const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
       const eLearningSteps = await Step.countDocuments({ type: E_LEARNING, _id: { $in: stepsIds } });
-      expect(!!eLearningSteps).toBeTruthy();
+      expect(eLearningSteps).toEqual(steps.length);
     });
 
     it('should return an empty array if user is not a tester', async () => {
