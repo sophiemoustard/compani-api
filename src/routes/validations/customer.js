@@ -1,7 +1,5 @@
 const Joi = require('joi');
 
-exports.fundingVersionValidation = Joi.object().keys({ ...exports.fundingValidation });
-
 exports.fundingValidation = {
   folderNumber: Joi.string(),
   startDate: Joi.date().required(),

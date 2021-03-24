@@ -43,7 +43,7 @@ const {
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { addressValidation, objectIdOrArray, phoneNumberValidation, formDataPayload } = require('./validations/utils');
-const { fundingValidation, fundingVersionValidation } = require('./validations/customer');
+const { fundingValidation } = require('./validations/customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -454,7 +454,7 @@ exports.plugin = {
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
             frequency: Joi.string().valid(...FUNDING_FREQUENCIES).required(),
-            versions: Joi.array().items(fundingVersionValidation),
+            versions: Joi.array().items(Joi.object().keys({ ...fundingValidation })),
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
