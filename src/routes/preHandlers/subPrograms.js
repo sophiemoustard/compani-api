@@ -76,22 +76,22 @@ exports.authorizeGetSubProgram = async (req) => {
     .lean();
   if (!subProgram) throw Boom.notFound();
 
-  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return null;
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
 
-  const userId = get(req, 'auth.credentials._id');
+  const loggedUserId = get(req, 'auth.credentials._id');
   const testerList = subProgram.program.testers.map(tester => tester.toHexString());
-  if (!testerList.includes(userId)) throw Boom.forbidden();
+  if (!testerList.includes(loggedUserId)) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeGetDraftELearningSubPrograms = async (req) => {
-  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return null;
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
 
-  const userId = get(req, 'auth.credentials._id');
-  const testerRestrictedPrograms = await Program.find({ testers: userId }, { _id: 1 }).lean();
+  const loggedUserId = get(req, 'auth.credentials._id');
+  const testerRestrictedPrograms = await Program.find({ testers: loggedUserId }, { _id: 1 }).lean();
 
   return testerRestrictedPrograms.map(program => program._id);
 };
