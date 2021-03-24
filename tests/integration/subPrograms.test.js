@@ -5,8 +5,8 @@ const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
 const Step = require('../../src/models/Step');
-const { populateDB, subProgramsList, stepsList, activitiesList } = require('./seed/subProgramsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { populateDB, subProgramsList, stepsList, activitiesList, tester } = require('./seed/subProgramsSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -529,7 +529,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
 
   describe('Other roles', () => {
     it('should get draft and e-learning subprograms for which user is a tester', async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(tester.local);
       const response = await app.inject({
         method: 'GET',
         url: '/subprograms/draft-e-learning',

@@ -32,12 +32,9 @@ exports.updateSubProgram = async (subProgramId, payload) => {
   return Activity.updateMany({ _id: { $in: activities } }, { status: payload.status });
 };
 
-exports.listELearningDraft = async (userRestrictedTestedPrograms) => {
+exports.listELearningDraft = async (testerRestrictedPrograms) => {
   let query = { path: 'program', select: '_id name description image' };
-  if (userRestrictedTestedPrograms) {
-    const userRestrictedTestedProgramsIds = userRestrictedTestedPrograms.map(program => program._id);
-    query = { ...query, match: { _id: { $in: userRestrictedTestedProgramsIds } } };
-  }
+  if (testerRestrictedPrograms) query = { ...query, match: { _id: { $in: testerRestrictedPrograms } } };
 
   const subPrograms = await SubProgram.find({ status: DRAFT })
     .populate(query)
