@@ -575,8 +575,8 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
         url: `/subprograms/${subProgramId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
-      expect(response.statusCode).toBe(200);
 
+      expect(response.statusCode).toBe(200);
       expect(response.result.data.subProgram).toMatchObject({
         _id: subProgramId,
         name: 'subProgram 4',
@@ -610,28 +610,37 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const subProgramId = subProgramsList[3]._id;
-        const response = await app.inject({
-          method: 'GET',
-          url: `/subprograms/${subProgramId.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
+    it('should get subprogram if user is tester', async () => {
+      authToken = await getTokenByCredentials(tester.local);
+      const subProgramId = subProgramsList[3]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subProgram).toMatchObject({
+        _id: subProgramId,
+        name: 'subProgram 4',
+        status: 'draft',
+        program: { name: 'program 2' },
+        steps: [
+          { _id: stepsList[2]._id, name: 'step 3', type: 'e_learning', activities: [activitiesList[0]] },
+        ],
+      });
+    });
+
+    it('should return 403 if user is not allowed to access this subprogram', async () => {
+      authToken = await getTokenByCredentials(tester.local);
+      const subProgramId = subProgramsList[0]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });
