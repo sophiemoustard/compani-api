@@ -247,6 +247,7 @@ describe('listELearningDraft', () => {
         _id: new ObjectID(),
         status: 'draft',
         steps: [{ type: 'e_learning' }],
+        isStrictlyELearning: true,
         program: [{ _id: new ObjectID(), name: 'name' }],
       },
       {
@@ -261,14 +262,12 @@ describe('listELearningDraft', () => {
         steps: [{ type: 'e_learning' }],
       },
     ];
-    const elearningSubProgramList = subProgramsList
-      .filter(subProgram => subProgram.steps.length && subProgram.isStrictlyELearning && subProgram.program);
 
     find.returns(SinonMongoose.stubChainedQueries([subProgramsList]));
 
     const result = await SubProgramHelper.listELearningDraft(testerRestrictedPrograms);
 
-    expect(result).toMatchObject(elearningSubProgramList);
+    expect(result).toMatchObject([subProgramsList[0]]);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ status: 'draft' }] },
       {

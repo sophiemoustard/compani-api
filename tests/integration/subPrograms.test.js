@@ -5,6 +5,7 @@ const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
 const Step = require('../../src/models/Step');
+const { E_LEARNING } = require('../../src/helpers/constants');
 const { populateDB, subProgramsList, stepsList, activitiesList, tester } = require('./seed/subProgramsSeed');
 const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
@@ -540,8 +541,8 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       expect(response.result.data.subPrograms.length).toEqual(1);
       const { subPrograms } = response.result.data;
       const stepsIds = subPrograms[0].steps.map(step => step._id);
-      const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
-      expect(steps.every(step => step.type === 'e_learning')).toBeTruthy();
+      const eLearningSteps = await Step.countDocuments({ type: E_LEARNING, _id: { $in: stepsIds } });
+      expect(!!eLearningSteps).toBeTruthy();
     });
 
     it('should return an empty array if user is not a tester', async () => {
