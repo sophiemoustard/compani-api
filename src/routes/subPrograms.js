@@ -68,7 +68,7 @@ exports.plugin = {
       path: '/draft-e-learning',
       options: {
         auth: { mode: 'required' },
-        pre: [{ method: authorizeGetDraftELearningSubPrograms, assign: 'userRestrictedTestedPrograms' }],
+        pre: [{ method: authorizeGetDraftELearningSubPrograms, assign: 'testerRestrictedPrograms' }],
       },
       handler: listELearningDraft,
     });
