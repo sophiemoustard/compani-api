@@ -265,6 +265,7 @@ module.exports = {
     courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
     courseAccessRuleAdded: 'Access rule added.',
     courseAccessRuleDeleted: 'Access rule deleted.',
+    courseQuestionnairesFound: 'Questionnaires found.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -549,6 +550,7 @@ module.exports = {
     courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
     courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
+    courseQuestionnairesFound: 'Questionnaires trouvés.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

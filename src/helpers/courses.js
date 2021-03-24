@@ -8,7 +8,6 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
-const Activity = require('../models/Activity');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -153,8 +152,11 @@ exports.formatActivity = (activity) => {
   const filteredHistories = exports.selectUserHistory(activity.activityHistories);
   for (const history of filteredHistories) {
     for (const answer of history.questionnaireAnswersList) {
+      const { answerList } = answer;
+      if (answerList.length === 1 && !answerList[0].trim()) continue;
+
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(...answer.answerList);
+      followUp[answer.card._id].answers.push(...answerList);
     }
   }
 
@@ -214,29 +216,31 @@ exports.getCourseFollowUp = async (course, company) => {
   };
 };
 
-exports.getQuestionnaireAnswers = async (activityId, courseId) => {
-  const course = await Course.findOne({ _id: courseId }, { misc: 1, trainees: 1 })
-    .populate({ path: 'subProgram', select: 'steps', populate: [{ path: 'program', select: 'name' }] })
+exports.getQuestionnaireAnswers = async (courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({
+      path: 'subProgram',
+      select: 'steps',
+      populate: [
+        {
+          path: 'steps',
+          select: 'activities',
+          populate: {
+            path: 'activities',
+            populate: {
+              path: 'activityHistories',
+              populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            },
+          },
+        },
+      ],
+    })
     .lean();
 
-  const activity = await Activity.findOne({ _id: activityId }, { name: 1 })
-    .populate({
-      path: 'activityHistories',
-      populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-      match: { user: { $in: course.trainees.map(t => t.toHexString()) } },
-    })
-    .populate({
-      path: 'steps',
-      select: 'name',
-      match: { _id: { $in: course.subProgram.steps.map(s => s._id.toHexString()) } },
-    })
-    .lean();
+  const courseActivities = get(course, 'subProgram.steps', []).map(step => step.activities).flat();
+  const activitiesWithFollowUp = courseActivities.map(activity => exports.formatActivity(activity));
 
-  return {
-    ...exports.formatActivity(omit(activity, 'steps')),
-    course: { ...course, subProgram: omit(course.subProgram, 'steps') },
-    step: activity.steps[0],
-  };
+  return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
 exports.getTraineeProgress = (traineeId, steps, slots) => {
