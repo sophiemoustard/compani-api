@@ -23,12 +23,12 @@ exports.authorizeAttendancesGet = async (req) => {
     })
     .lean();
 
+  if (!courseSlots.length) throw Boom.notFound();
+
   if (req.query.course) {
     const courseExist = await Course.countDocuments({ _id: req.query.course });
     if (!courseExist) throw Boom.notFound();
   }
-
-  if (req.query.courseSlot && !courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');

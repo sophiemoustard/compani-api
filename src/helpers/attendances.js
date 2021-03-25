@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const Attendance = require('../models/Attendance');
 const UtilsHelper = require('./utils');
 
@@ -8,7 +9,9 @@ exports.list = async (query, company) => {
     .populate({ path: 'trainee', select: 'company' })
     .lean();
 
-  return company ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(a.trainee.company, company)) : attendances;
+  return company
+    ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), company))
+    : attendances;
 };
 
 exports.delete = async attendanceId => Attendance.deleteOne({ _id: attendanceId });

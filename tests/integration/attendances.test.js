@@ -161,7 +161,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(attendancesList.length);
+      expect(response.result.data.attendances.length).toEqual(1);
     });
 
     it('should get courseSlot attendances', async () => {
@@ -172,7 +172,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(attendancesList.length);
+      expect(response.result.data.attendances.length).toEqual(1);
     });
 
     it('should return 400 if query is empty', async () => {
@@ -285,7 +285,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?course=${coursesList[3]._id}`,
+        url: `/attendances?course=${coursesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

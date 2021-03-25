@@ -54,12 +54,20 @@ const coursesList = [
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
   },
-  { // interb2b with trainees from otherCompany
+  { // interb2b
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [new ObjectID(), new ObjectID()],
+    trainer: trainerList[0]._id,
+  },
+  { // interb2b with only trainees from otherCompany
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: authCompany._id,
+    type: 'inter_b2b',
+    trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
   },
 ];
@@ -91,6 +99,13 @@ const slotsList = [
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[3],
+    step: new ObjectID(),
+  },
+  { // slot for coursesList[4]
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[4],
     step: new ObjectID(),
   },
 ];
@@ -140,6 +155,13 @@ const companyTraineesList = [
     local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
     company: authCompany._id,
+  },
+  {
+    _id: coursesList[4].trainees[0],
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+    company: otherCompany._id,
   },
 ];
 
