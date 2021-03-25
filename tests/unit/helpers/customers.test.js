@@ -6,7 +6,6 @@ const crypto = require('crypto');
 const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
-const Company = require('../../../src/models/Company');
 const Rum = require('../../../src/models/Rum');
 const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
@@ -15,8 +14,7 @@ const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getCustomersBySector', () => {
   let getCustomersFromEvent;
@@ -57,16 +55,16 @@ describe('getCustomersWithBilledEvents', () => {
 });
 
 describe('getCustomers', () => {
-  let CustomerMock;
+  let findCustomer;
   let subscriptionsAccepted;
   let populateSubscriptionsServices;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findCustomer = sinon.stub(Customer, 'find');
     subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
     populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findCustomer.restore();
     subscriptionsAccepted.restore();
     populateSubscriptionsServices.restore();
   });
@@ -74,18 +72,22 @@ describe('getCustomers', () => {
   it('should return empty array if no customer', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    CustomerMock.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .withExactArgs({ path: 'subscriptions.service' })
-      .chain('lean')
-      .returns([]);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
+
     const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([]);
-    CustomerMock.verify();
     sinon.assert.notCalled(subscriptionsAccepted);
     sinon.assert.notCalled(populateSubscriptionsServices);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return customers', async () => {
@@ -95,12 +97,8 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, company: companyId },
       { company: companyId },
     ];
-    CustomerMock.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .withExactArgs({ path: 'subscriptions.service' })
-      .chain('lean')
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
     populateSubscriptionsServices.returnsArg(0);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
@@ -110,19 +108,26 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
-    CustomerMock.verify();
     sinon.assert.calledTwice(subscriptionsAccepted);
     sinon.assert.calledTwice(populateSubscriptionsServices);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('getCustomersFirstIntervention', () => {
-  let CustomerMock;
+  let findCustomer;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findCustomer = sinon.stub(Customer, 'find');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findCustomer.restore();
   });
 
   it('should return customers with first intervention info', async () => {
@@ -134,21 +139,26 @@ describe('getCustomersFirstIntervention', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
-    CustomerMock
-      .expects('find')
-      .withExactArgs(query, { _id: 1 })
-      .chain('populate')
-      .withExactArgs({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
-      .chain('lean')
-      .returns(customers)
-      .once();
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
     const result = await CustomerHelper.getCustomersFirstIntervention(query, credentials);
+
     expect(result).toEqual({
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     });
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [query, { _id: 1 }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -174,18 +184,18 @@ describe('getCustomersWithIntervention', () => {
 });
 
 describe('getCustomer', () => {
-  let CustomerMock;
+  let findOneCustomer;
   let populateSubscriptionsServices;
   let subscriptionsAccepted;
   let populateFundingsList;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findOneCustomer = sinon.stub(Customer, 'findOne');
     populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
     subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
     populateFundingsList = sinon.stub(FundingsHelper, 'populateFundingsList');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findOneCustomer.restore();
     populateSubscriptionsServices.restore();
     subscriptionsAccepted.restore();
     populateFundingsList.restore();
@@ -193,69 +203,98 @@ describe('getCustomer', () => {
 
   it('should return null if no customer', async () => {
     const customerId = 'qwertyuiop';
+    const credentials = { company: { _id: new ObjectID() } };
 
-    CustomerMock.expects('findOne')
-      .withExactArgs({ _id: customerId })
-      .chain('populate')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(null);
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([null]));
 
-    const result = await CustomerHelper.getCustomer(customerId);
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
-    CustomerMock.verify();
     expect(result).toBeNull();
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: customerId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: credentials.company._id } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return customer', async () => {
     const customerId = 'qwertyuiop';
-
+    const credentials = { company: { _id: new ObjectID() } };
     const customer = { identity: { firstname: 'Emmanuel' } };
-    CustomerMock.expects('findOne')
-      .withExactArgs({ _id: customerId })
-      .chain('populate')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
+
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomer(customerId);
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
-    CustomerMock.verify();
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: customerId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: credentials.company._id } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return customer with fundings', async () => {
     const customerId = 'qwertyuiop';
-
+    const credentials = { company: { _id: new ObjectID() } };
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
-    CustomerMock.expects('findOne')
-      .withExactArgs({ _id: customerId })
-      .chain('populate')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
+
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundingsList.returnsArg(0);
 
-    await CustomerHelper.getCustomer(customerId);
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
-    CustomerMock.verify();
+    expect(result).toEqual(
+      {
+        identity: { firstname: 'Emmanuel' },
+        fundings: [{ _id: '1234' }, { _id: '09876' }],
+        subscriptions: 2,
+        subscriptionsAccepted: true,
+      }
+    );
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
     sinon.assert.calledWithExactly(subscriptionsAccepted, { ...customer, subscriptions: 2 });
     sinon.assert.calledWithExactly(
       populateFundingsList,
       { ...customer, subscriptions: 2, subscriptionsAccepted: true }
+    );
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: customerId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: credentials.company._id } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
     );
   });
 });
@@ -263,21 +302,25 @@ describe('getCustomer', () => {
 describe('getRumNumber', () => {
   it('should get RUM number', async () => {
     const companyId = new ObjectID();
-    const RumMock = sinon.mock(Rum);
+    const findOneAndUpdateRum = sinon.stub(Rum, 'findOneAndUpdate');
 
-    RumMock
-      .expects('findOneAndUpdate')
-      .withExactArgs(
-        { prefix: moment().format('YYMM'), company: companyId },
-        {},
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      )
-      .chain('lean');
+    findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await CustomerHelper.getRumNumber(companyId);
 
-    RumMock.verify();
-    RumMock.restore();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateRum,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { prefix: moment().format('YYMM'), company: companyId },
+            {},
+            { new: true, upsert: true, setDefaultsOnInsert: true },
+          ],
+        },
+      ]
+    );
   });
 });
 
@@ -310,18 +353,18 @@ describe('formatRumNumber', () => {
 });
 
 describe('formatPaymentPayload', () => {
-  let CustomerMock;
+  let findByIdCustomer;
   let getRumNumber;
   let formatRumNumber;
   let updateOne;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findByIdCustomer = sinon.stub(Customer, 'findById');
     getRumNumber = sinon.stub(CustomerHelper, 'getRumNumber');
     formatRumNumber = sinon.stub(CustomerHelper, 'formatRumNumber');
     updateOne = sinon.stub(Rum, 'updateOne');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findByIdCustomer.restore();
     getRumNumber.restore();
     formatRumNumber.restore();
     updateOne.restore();
@@ -335,11 +378,7 @@ describe('formatPaymentPayload', () => {
     const customer = { payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
     getRumNumber.returns(rumNumber);
     formatRumNumber.returns(formattedRumNumber);
 
@@ -350,10 +389,10 @@ describe('formatPaymentPayload', () => {
       $unset: { 'payment.bic': '' },
       $push: { 'payment.mandates': { rum: formattedRumNumber } },
     });
-    CustomerMock.verify();
     sinon.assert.calledWithExactly(getRumNumber, company._id);
     sinon.assert.calledWithExactly(formatRumNumber, company.prefixNumber, rumNumber.prefix, 1);
     sinon.assert.calledWithExactly(updateOne, { prefix: rumNumber.prefix, company: company._id }, { $inc: { seq: 1 } });
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'finById', args: [customerId] }, { query: 'lean' }]);
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
@@ -362,43 +401,38 @@ describe('formatPaymentPayload', () => {
     const customer = { payment: { bankAccountNumber: '', iban: '', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
     const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
 
-    CustomerMock.verify();
     sinon.assert.notCalled(getRumNumber);
     sinon.assert.notCalled(formatRumNumber);
     sinon.assert.notCalled(updateOne);
     expect(result).toEqual({ $set: { 'payment.iban': 'FR4717569000303461796573B36' } });
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 });
 
 describe('updateCustomerEvents', () => {
   let updateMany;
-  let CustomerMock;
+  let findByIdCustomer;
   const customerId = new ObjectID();
   beforeEach(() => {
     updateMany = sinon.stub(Event, 'updateMany');
-    CustomerMock = sinon.mock(Customer);
+    findByIdCustomer = sinon.stub(Customer, 'findById');
   });
   afterEach(() => {
     updateMany.restore();
-    CustomerMock.restore();
+    findByIdCustomer.restore();
   });
 
   it('should update events if primaryAddress is changed', async () => {
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns({ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
+      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      ['lean']
+    ));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
@@ -411,17 +445,16 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.primaryAddress } }
     );
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 
   it('should update events if secondaryAddress is changed', async () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns({ contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
+      [{ contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      ['lean']
+    ));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
@@ -434,22 +467,21 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.secondaryAddress } }
     );
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns({ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } });
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
+      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      ['lean']
+    ));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
-    CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
@@ -461,11 +493,7 @@ describe('updateCustomerEvents', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
@@ -478,24 +506,27 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: customer.contact.primaryAddress } }
     );
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 });
 
 describe('updateCustomer', () => {
-  let CustomerMock;
+  let findOneCustomer;
+  let findOneAndUpdateCustomer;
   let formatPaymentPayload;
   let updateCustomerEvents;
   let updateCustomerReferent;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findOneCustomer = sinon.stub(Customer, 'findOne');
+    findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findOneCustomer.restore();
+    findOneAndUpdateCustomer.restore();
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
     updateCustomerReferent.restore();
@@ -507,19 +538,19 @@ describe('updateCustomer', () => {
 
     const customerResult = { _id: customer._id };
 
-    CustomerMock.expects('findOne')
-      .withExactArgs({ _id: customer._id })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
-    CustomerMock.verify();
+    expect(result).toEqual(customerResult);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(findOneAndUpdateCustomer);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
-    expect(result).toEqual(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [{ query: 'findOne', args: [{ _id: customer._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should generate a new mandate', async () => {
@@ -530,19 +561,7 @@ describe('updateCustomer', () => {
       payment: { bankAccountNumber: '', iban: 'FR8312739000501844178231W37', bic: '', mandates: [formattedRumNumber] },
     };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: customerId },
-        {
-          $set: flat(payload, { safe: true }),
-          $push: { 'payment.mandates': { rum: formattedRumNumber } },
-          $unset: { 'payment.bic': '' },
-        },
-        { new: true }
-      )
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     formatPaymentPayload.returns({
       $set: flat(payload, { safe: true }),
@@ -553,10 +572,28 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     expect(result).toEqual(customerResult);
-    CustomerMock.verify();
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(findOneCustomer);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId },
+            {
+              $set: flat(payload, { safe: true }),
+              $push: { 'payment.mandates': { rum: formattedRumNumber } },
+              $unset: { 'payment.bic': '' },
+            },
+            { new: true },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
@@ -567,19 +604,20 @@ describe('updateCustomer', () => {
     };
 
     formatPaymentPayload.returns(payload);
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, payload, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    CustomerMock.verify();
-    sinon.assert.notCalled(updateCustomerEvents);
     expect(result).toBe(customerResult);
+    sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(findOneCustomer);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [{ query: 'findOneAndUpdate', args: [{ _id: customerId }, payload, { new: true }] }, { query: 'lean' }]
+    );
   });
 
   it('should update events if primaryAddress is changed', async () => {
@@ -587,19 +625,24 @@ describe('updateCustomer', () => {
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
+    expect(result).toBe(customerResult);
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
-    CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
-    expect(result).toBe(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should update events if secondaryAddress is changed', async () => {
@@ -607,19 +650,24 @@ describe('updateCustomer', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
+    expect(result).toBe(customerResult);
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
-    CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
-    expect(result).toBe(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
@@ -627,19 +675,24 @@ describe('updateCustomer', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    CustomerMock.verify();
+    expect(result).toBe(customerResult);
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
-    expect(result).toBe(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
@@ -652,39 +705,49 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
+    expect(result).toBe(customerResult);
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
-    CustomerMock.verify();
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
-    expect(result).toBe(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should update a customer', async () => {
     const customerId = 'qwertyuiop';
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
-
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
-      .chain('lean')
-      .once()
-      .returns(customerResult);
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
-    CustomerMock.verify();
+    expect(result).toBe(customerResult);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
-    expect(result).toBe(customerResult);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -694,14 +757,12 @@ describe('createCustomer', () => {
   let createFolder;
   let create;
   let updateOne;
-  let CompanyMock;
   beforeEach(() => {
     getRumNumberStub = sinon.stub(CustomerHelper, 'getRumNumber');
     formatRumNumberStub = sinon.stub(CustomerHelper, 'formatRumNumber');
     createFolder = sinon.stub(GDriveStorageHelper, 'createFolder');
     create = sinon.stub(Customer, 'create');
     updateOne = sinon.stub(Rum, 'updateOne');
-    CompanyMock = sinon.mock(Company);
   });
   afterEach(() => {
     getRumNumberStub.restore();
@@ -709,7 +770,6 @@ describe('createCustomer', () => {
     createFolder.restore();
     create.restore();
     updateOne.restore();
-    CompanyMock.restore();
   });
 
   it('should create customer and drive folder', async () => {
@@ -741,7 +801,6 @@ describe('createCustomer', () => {
       { prefix: rumNumber.prefix, company: credentials.company._id },
       { $set: { seq: 2 } }
     );
-    CompanyMock.verify();
   });
 });
 
