@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
 const Course = require('../../models/Course');
-const { TRAINER, INTRA } = require('../../helpers/constants');
+const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
 
@@ -16,7 +16,9 @@ const isTrainerAuthorized = (loggedUserId, courseSlot) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees company type' })
+    .populate({ path: 'course',
+      select: 'trainer trainees company type',
+      populate: { path: 'trainees', select: 'company' } })
     .lean();
 
   if (req.query.course) {
@@ -27,21 +29,29 @@ exports.authorizeAttendancesGet = async (req) => {
   if (req.query.courseSlot && !courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
+  const loggedUserCompany = get(credentials, 'company._id');
   const { course } = courseSlots[0];
 
-  if (!get(credentials, 'role.vendor')) {
-    if (course.type === INTRA) {
-      if (!course.company) throw Boom.badData();
+  if (course.type === INTRA && !get(credentials, 'role.vendor')) {
+    if (!course.company) throw Boom.badData();
 
-      if (!UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), course.company)) throw Boom.forbidden();
-    }
+    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
+  }
+
+  if (course.type === INTER_B2B) {
+    const companyTraineeInCourse = course.trainees.some(t =>
+      UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
+    if (!companyTraineeInCourse) throw Boom.forbidden();
   }
 
   const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
     !UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   if (isTrainerButNotCourseTainer) throw Boom.forbidden();
 
-  return courseSlots.map(cs => cs._id);
+  return {
+    courseSlotsIds: courseSlots.map(cs => cs._id),
+    company: course.type === INTER_B2B ? loggedUserCompany : null,
+  };
 };
 
 exports.authorizeAttendanceCreation = async (req) => {
