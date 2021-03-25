@@ -60,7 +60,7 @@ const programsList = [
     image: { link: 'bonjour', publicId: 'au revoir' },
     categories: [categoriesList[0]._id],
   },
-  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[2]._id] },
+  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[2]._id], testers: [vendorAdmin._id] },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
 ];
 
@@ -104,4 +104,5 @@ module.exports = {
   activitiesList,
   activityHistoriesList,
   categoriesList,
+  vendorAdmin,
 };

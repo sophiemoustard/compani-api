@@ -3,8 +3,10 @@ const flat = require('flat');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
+const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
 const ProgramHelper = require('../../../src/helpers/programs');
+const UserHelper = require('../../../src/helpers/users');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -178,7 +180,11 @@ describe('getProgram', () => {
             },
           }],
         },
-        { query: 'populate', args: [{ path: 'categories' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'testers', select: 'identity.firstname identity.lastname local.email contact.phone' }],
+        },
+        { query: 'populate', args: ['categories'] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -308,5 +314,70 @@ describe('removeCategory', () => {
     await ProgramHelper.removeCategory(programId, categoryId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { categories: categoryId } });
+  });
+});
+
+describe('addTester', () => {
+  let findOne;
+  let findOneAndUpdate;
+  let createUser;
+
+  beforeEach(() => {
+    findOne = sinon.stub(User, 'findOne');
+    findOneAndUpdate = sinon.stub(Program, 'findOneAndUpdate');
+    createUser = sinon.stub(UserHelper, 'createUser');
+  });
+
+  afterEach(() => {
+    findOne.restore();
+    findOneAndUpdate.restore();
+    createUser.restore();
+  });
+
+  it('should add existing user to program as tester', async () => {
+    const programId = new ObjectID();
+    const user = { _id: new ObjectID(), local: { email: 'test@test.fr' } };
+    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+
+    await ProgramHelper.addTester(programId, user);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': 'test@test.fr' }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: user._id } }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(createUser);
+  });
+
+  it('should create a user and add it to program as tester', async () => {
+    const programId = new ObjectID();
+    const userId = new ObjectID();
+    const payload = { local: { email: 'test@test.fr' } };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    createUser.returns({ ...payload, _id: userId });
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+
+    await ProgramHelper.addTester(programId, payload);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': 'test@test.fr' }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: userId } }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledWithExactly(createUser, { ...payload, origin: 'webapp' });
   });
 });

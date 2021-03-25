@@ -7,6 +7,9 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication } = require('./authenticationSeed');
+const { userList } = require('../../seed/userSeed');
+
+const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
@@ -56,6 +59,7 @@ const programsList = [
     name: 'program 2',
     subPrograms: [subProgramsList[3]._id, subProgramsList[4]._id],
     image: 'link',
+    testers: [tester._id],
   },
 ];
 
@@ -103,4 +107,5 @@ module.exports = {
   stepsList,
   activitiesList,
   cardsList,
+  tester,
 };

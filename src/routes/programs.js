@@ -2,7 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { checkProgramExists, getProgramImagePublicId, checkCategoryExists } = require('./preHandlers/programs');
+const {
+  checkProgramExists,
+  getProgramImagePublicId,
+  checkCategoryExists,
+  authorizeTesterAddition,
+} = require('./preHandlers/programs');
 const {
   list,
   listELearning,
@@ -14,8 +19,9 @@ const {
   deleteImage,
   addCategory,
   removeCategory,
+  addTester,
 } = require('../controllers/programController');
-const { formDataPayload } = require('./validations/utils');
+const { formDataPayload, phoneNumberValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-programs',
@@ -165,6 +171,24 @@ exports.plugin = {
         auth: { scope: ['programs:edit'] },
         pre: [{ method: getProgramImagePublicId, assign: 'publicId' }],
       },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/testers',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            identity: Joi.object().keys({ firstname: Joi.string().allow(''), lastname: Joi.string() }),
+            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
+            contact: Joi.object().keys({ phone: phoneNumberValidation }),
+          }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgramExists }, { method: authorizeTesterAddition }],
+      },
+      handler: addTester,
     });
   },
 };
