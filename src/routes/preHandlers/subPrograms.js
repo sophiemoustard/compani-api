@@ -1,9 +1,10 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
 const Company = require('../../models/Company');
 const CourseSlot = require('../../models/CourseSlot');
-const { PUBLISHED } = require('../../helpers/constants');
+const { PUBLISHED, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -69,9 +70,28 @@ exports.authorizeSubProgramUpdate = async (req) => {
   return null;
 };
 
-exports.checkSubProgramExists = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
+exports.authorizeGetSubProgram = async (req) => {
+  const subProgram = await SubProgram.findOne({ _id: req.params._id })
+    .populate({ path: 'program', select: 'testers' })
+    .lean();
   if (!subProgram) throw Boom.notFound();
 
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
+
+  const loggedUserId = get(req, 'auth.credentials._id');
+  const testerList = subProgram.program.testers.map(tester => tester.toHexString());
+  if (!testerList.includes(loggedUserId)) throw Boom.forbidden();
+
   return null;
+};
+
+exports.authorizeGetDraftELearningSubPrograms = async (req) => {
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
+
+  const loggedUserId = get(req, 'auth.credentials._id');
+  const testerRestrictedPrograms = await Program.find({ testers: loggedUserId }, { _id: 1 }).lean();
+
+  return testerRestrictedPrograms.map(program => program._id);
 };
