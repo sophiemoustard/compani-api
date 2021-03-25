@@ -507,9 +507,9 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get all draft and e-learning subprograms', async () => {
@@ -545,16 +545,20 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       expect(eLearningSteps).toEqual(stepsIds.length);
     });
 
-    it('should return an empty array if user is not a tester', async () => {
-      authToken = await getToken('helper');
-      const response = await app.inject({
-        method: 'GET',
-        url: '/subprograms/draft-e-learning',
-        headers: { 'x-access-token': authToken },
-      });
+    const roles = ['helper', 'client_admin', 'trainer'];
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.subPrograms.length).toEqual(0);
+    roles.forEach((role) => {
+      it(`should return an empty array if ${role} is not a tester`, async () => {
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/subprograms/draft-e-learning',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.subPrograms.length).toEqual(0);
+      });
     });
   });
 });
@@ -563,9 +567,9 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get subprogram', async () => {
@@ -631,16 +635,24 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
       });
     });
 
-    it('should return 403 if user is not allowed to access this subprogram', async () => {
-      authToken = await getTokenByCredentials(tester.local);
-      const subProgramId = subProgramsList[0]._id;
-      const response = await app.inject({
-        method: 'GET',
-        url: `/subprograms/${subProgramId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
 
-      expect(response.statusCode).toBe(403);
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} if ${role.name} is not allowed to access this subprogram`, async () => {
+        authToken = await getToken(role.name);
+        const subProgramId = subProgramsList[0]._id;
+        const response = await app.inject({
+          method: 'GET',
+          url: `/subprograms/${subProgramId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
