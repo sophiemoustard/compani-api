@@ -41,11 +41,7 @@ exports.authorizeAttendancesGet = async (req) => {
     if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
   }
 
-  if (course.type === INTER_B2B && req.query.company) {
-    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, req.query.company)) {
-      throw Boom.forbidden();
-    }
-
+  if (course.type === INTER_B2B && !loggedUserHasVendorRole) {
     const companyTraineeInCourse = course.trainees.some(t =>
       UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
     if (!companyTraineeInCourse) throw Boom.forbidden();
@@ -57,7 +53,7 @@ exports.authorizeAttendancesGet = async (req) => {
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
-    company: req.query.company ? loggedUserCompany : null,
+    company: !loggedUserHasVendorRole ? loggedUserCompany : null,
   };
 };
 

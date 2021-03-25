@@ -19,7 +19,7 @@ exports.plugin = {
         validate: {
           query: Joi.alternatives().try(
             Joi.object({ courseSlot: Joi.objectId().required() }),
-            Joi.object({ course: Joi.objectId().required(), company: Joi.objectId() })
+            Joi.object({ course: Joi.objectId().required() })
           ),
         },
         auth: { scope: ['attendancesheets:read'] },
