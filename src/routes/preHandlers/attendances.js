@@ -30,9 +30,10 @@ exports.authorizeAttendancesGet = async (req) => {
 
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  if (course.type === INTRA && !get(credentials, 'role.vendor')) {
+  if (course.type === INTRA && !loggedUserHasVendorRole) {
     if (!course.company) throw Boom.badData();
 
     if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
@@ -42,6 +43,8 @@ exports.authorizeAttendancesGet = async (req) => {
     const companyTraineeInCourse = course.trainees.some(t =>
       UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
     if (!companyTraineeInCourse) throw Boom.forbidden();
+
+    if (!loggedUserHasVendorRole && !req.query.company) throw Boom.forbidden();
   }
 
   const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
@@ -50,7 +53,7 @@ exports.authorizeAttendancesGet = async (req) => {
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
-    company: course.type === INTER_B2B ? loggedUserCompany : null,
+    company: req.query.company ? loggedUserCompany : null,
   };
 };
 
