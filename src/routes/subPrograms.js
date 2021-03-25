@@ -6,7 +6,7 @@ const {
   authorizeStepDetachment,
   authorizeStepAdd,
   authorizeSubProgramUpdate,
-  checkSubProgramExists,
+  authorizeGetSubProgram,
   authorizeGetDraftELearningSubPrograms,
 } = require('./preHandlers/subPrograms');
 const { update, addStep, detachStep, listELearningDraft, getById } = require('../controllers/subProgramController');
@@ -77,11 +77,11 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { scope: ['programs:read'] },
+        auth: { mode: 'required' },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: checkSubProgramExists }],
+        pre: [{ method: authorizeGetSubProgram }],
       },
       handler: getById,
     });

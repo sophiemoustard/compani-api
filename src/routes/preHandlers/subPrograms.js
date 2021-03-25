@@ -70,19 +70,28 @@ exports.authorizeSubProgramUpdate = async (req) => {
   return null;
 };
 
-exports.checkSubProgramExists = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
+exports.authorizeGetSubProgram = async (req) => {
+  const subProgram = await SubProgram.findOne({ _id: req.params._id })
+    .populate({ path: 'program', select: 'testers' })
+    .lean();
   if (!subProgram) throw Boom.notFound();
+
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
+
+  const loggedUserId = get(req, 'auth.credentials._id');
+  const testerList = subProgram.program.testers.map(tester => tester.toHexString());
+  if (!testerList.includes(loggedUserId)) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeGetDraftELearningSubPrograms = async (req) => {
-  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return null;
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if ([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole)) return null;
 
-  const userId = get(req, 'auth.credentials._id');
-  const testerRestrictedPrograms = await Program.find({ testers: userId }, { _id: 1 }).lean();
+  const loggedUserId = get(req, 'auth.credentials._id');
+  const testerRestrictedPrograms = await Program.find({ testers: loggedUserId }, { _id: 1 }).lean();
 
   return testerRestrictedPrograms.map(program => program._id);
 };
