@@ -1,7 +1,10 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
-const DpaeHelper = require('../helpers/dpae');
+const Absences123PayHelper = require('../helpers/123paie/absences');
+const Contracts123PayHelper = require('../helpers/123paie/contracts');
+const Identification123PayHelper = require('../helpers/123paie/identification');
+const Pay123PayHelper = require('../helpers/123paie/pay');
 const { createPayList, hoursBalanceDetail, getHoursToWorkBySector } = require('../helpers/pay');
 const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY } = require('../helpers/constants');
 
@@ -65,19 +68,19 @@ const exportDsnInfo = async (req, h) => {
     let txt = '';
     switch (req.params.type) {
       case IDENTIFICATION:
-        txt = await DpaeHelper.exportIdentification(req.query, req.auth.credentials);
+        txt = await Identification123PayHelper.exportIdentification(req.query, req.auth.credentials);
         break;
       case CONTRACT_VERSION:
-        txt = await DpaeHelper.exportContractVersions(req.query, req.auth.credentials);
+        txt = await Contracts123PayHelper.exportContractVersions(req.query, req.auth.credentials);
         break;
       case ABSENCE:
-        txt = await DpaeHelper.exportAbsences(req.query, req.auth.credentials);
+        txt = await Absences123PayHelper.exportAbsences(req.query, req.auth.credentials);
         break;
       case CONTRACT_END:
-        txt = await DpaeHelper.exportContractEnds(req.query, req.auth.credentials);
+        txt = await Contracts123PayHelper.exportContractEnds(req.query, req.auth.credentials);
         break;
       case PAY:
-        txt = await DpaeHelper.exportPay(req.query, req.auth.credentials);
+        txt = await Pay123PayHelper.exportPay(req.query, req.auth.credentials);
         break;
     }
 
