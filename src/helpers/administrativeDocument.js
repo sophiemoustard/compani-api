@@ -25,11 +25,11 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
     permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false },
   });
 
-  const administrativeDocument = await AdministrativeDocument.create({
+  const administrativeDocument = (await AdministrativeDocument.create({
     company: companyId,
     name: payload.name,
     driveFile: { driveId, link },
-  }).toObject();
+  })).toObject();
 
   return administrativeDocument;
 };
