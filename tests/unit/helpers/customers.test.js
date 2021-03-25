@@ -31,6 +31,7 @@ describe('getCustomersBySector', () => {
     const credentials = { company: { _id: companyId } };
 
     await CustomerHelper.getCustomersBySector(query, credentials);
+
     sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
   });
 });
@@ -46,7 +47,9 @@ describe('getCustomersWithBilledEvents', () => {
 
   it('should return customer by sector', async () => {
     const credentials = { company: { _id: new ObjectID() } };
+
     await CustomerHelper.getCustomersWithBilledEvents(credentials);
+
     sinon.assert.calledWithExactly(
       getCustomersWithBilledEvents,
       { isBilled: true, type: 'intervention' }, credentials.company._id
@@ -175,11 +178,12 @@ describe('getCustomersWithIntervention', () => {
     const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } };
     getCustomersWithInterventionStub.returns([customer]);
     const credentials = { company: { _id: new ObjectID() } };
+
     const result = await CustomerHelper.getCustomersWithIntervention(credentials);
 
+    expect(result).toEqual([customer]);
     sinon.assert.calledOnce(getCustomersWithInterventionStub);
     sinon.assert.calledWithExactly(getCustomersWithInterventionStub, credentials.company._id);
-    expect(result).toEqual([customer]);
   });
 });
 
@@ -405,10 +409,10 @@ describe('formatPaymentPayload', () => {
 
     const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
 
+    expect(result).toEqual({ $set: { 'payment.iban': 'FR4717569000303461796573B36' } });
     sinon.assert.notCalled(getRumNumber);
     sinon.assert.notCalled(formatRumNumber);
     sinon.assert.notCalled(updateOne);
-    expect(result).toEqual({ $set: { 'payment.iban': 'FR4717569000303461796573B36' } });
     SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
   });
 });
@@ -790,12 +794,7 @@ describe('createCustomer', () => {
     expect(result.driveFolder.driveId).toEqual('1234567890');
     sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, '12345');
     sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
-    sinon.assert.calledWithExactly(
-      formatRumNumberStub,
-      credentials.company.prefixNumber,
-      rumNumber.prefix,
-      1
-    );
+    sinon.assert.calledWithExactly(formatRumNumberStub, credentials.company.prefixNumber, rumNumber.prefix, 1);
     sinon.assert.calledWithExactly(
       updateOne,
       { prefix: rumNumber.prefix, company: credentials.company._id },
