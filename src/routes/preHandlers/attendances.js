@@ -16,9 +16,11 @@ const isTrainerAuthorized = (loggedUserId, courseSlot) => {
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course',
+    .populate({
+      path: 'course',
       select: 'trainer trainees company type',
-      populate: { path: 'trainees', select: 'company' } })
+      populate: { path: 'trainees', select: 'company' },
+    })
     .lean();
 
   if (req.query.course) {
@@ -39,12 +41,14 @@ exports.authorizeAttendancesGet = async (req) => {
     if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
   }
 
-  if (course.type === INTER_B2B) {
+  if (course.type === INTER_B2B && req.query.company) {
+    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, req.query.company)) {
+      throw Boom.forbidden();
+    }
+
     const companyTraineeInCourse = course.trainees.some(t =>
       UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
     if (!companyTraineeInCourse) throw Boom.forbidden();
-
-    if (!loggedUserHasVendorRole && !req.query.company) throw Boom.forbidden();
   }
 
   const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
