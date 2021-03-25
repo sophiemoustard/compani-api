@@ -530,3 +530,21 @@ describe('savePayments', () => {
     sinon.assert.calledTwice(updateOneStub);
   });
 });
+
+describe('remove', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(Payment, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should remove a payment', async () => {
+    const paymentId = new ObjectID();
+
+    await PaymentsHelper.remove(paymentId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: paymentId });
+  });
+});
