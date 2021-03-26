@@ -4,7 +4,11 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, deleteAttendanceSheet } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
-const { checkCourseType, attendanceSheetExists } = require('./preHandlers/attendanceSheets');
+const {
+  checkCourseType,
+  attendanceSheetExists,
+  authorizeAttendanceSheetsGet,
+} = require('./preHandlers/attendanceSheets');
 
 exports.plugin = {
   name: 'routes-attendancesheets',
@@ -17,6 +21,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ course: Joi.objectId() }),
         },
+        pre: [{ method: authorizeAttendanceSheetsGet, assign: 'company' }],
       },
       handler: list,
     });
