@@ -215,7 +215,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if invalid courseSlot', async () => {
+    it('should return 404 if no courseSlot found', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?courseSlot=${new ObjectID()}`,
