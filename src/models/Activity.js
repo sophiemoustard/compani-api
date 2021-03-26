@@ -7,11 +7,10 @@ const {
   VIDEO,
   DRAFT,
   CARD_TEMPLATES,
-  QUESTIONNAIRE,
 } = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
 
-const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO, QUESTIONNAIRE];
+const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO];
 
 const ActivitySchema = mongoose.Schema({
   name: { type: String, required: true },

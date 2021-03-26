@@ -285,6 +285,7 @@ module.exports = {
   QUIZ: 'quiz',
   SHARING_EXPERIENCE: 'sharing_experience',
   VIDEO: 'video',
+  // CARDS CATEGORY
   QUESTIONNAIRE: 'questionnaire',
   // E-LEARNING CARDS
   TRANSITION: 'transition',
