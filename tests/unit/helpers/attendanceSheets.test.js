@@ -30,10 +30,14 @@ describe('list', () => {
     const result = await attendanceSheetHelper.list(courseId, null);
 
     expect(result).toMatchObject(attendanceSheets);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ course: courseId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return course attendance sheets from logged user company', async () => {
@@ -58,10 +62,14 @@ describe('list', () => {
     const result = await attendanceSheetHelper.list(courseId, authCompanyId);
 
     expect(result).toMatchObject([attendanceSheets[0]]);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ course: courseId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -111,10 +119,13 @@ describe('create', () => {
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: '', args: [{ _id: 'id de quelqun' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: '', args: [{ _id: 'id de quelqun' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       formatIdentity,
       { firstName: 'monsieur', lastname: 'patate' },

@@ -45,6 +45,7 @@ describe('list', () => {
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
+      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
       { query: 'lean' },
     ]);
   });
@@ -63,6 +64,7 @@ describe('list', () => {
     expect(result).toMatchObject(attendancesList);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
       { query: 'lean' },
     ]);
   });
@@ -83,6 +85,7 @@ describe('list', () => {
     expect(result).toMatchObject([attendancesList[0]]);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
       { query: 'lean' },
     ]);
   });

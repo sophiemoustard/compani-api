@@ -244,7 +244,18 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
 
-    it('should get only authComapny\'s attendance sheets for interB2B course if user does not have vendor role',
+    it('should return a 403 if course is not from userCompany and user has no vendor role', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendancesheets?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should get only authCompany\'s attendance sheets for interB2B course if user does not have vendor role',
       async () => {
         authToken = await getToken('coach');
 

@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const get = require('lodash/get');
+const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
 const { INTRA, INTER_B2B } = require('../../helpers/constants');
@@ -12,6 +13,10 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
+  if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company) && !loggedUserHasVendorRole) {
+    throw Boom.forbidden();
+  }
+
   return (course.type === INTER_B2B && !loggedUserHasVendorRole) ? loggedUserCompany : null;
 };
 

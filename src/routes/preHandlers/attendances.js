@@ -7,10 +7,24 @@ const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
 
-const isTrainerAuthorized = (loggedUserId, courseSlot) => {
-  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, courseSlot.course.trainer)) throw Boom.forbidden();
+const isTrainerAuthorized = (loggedUserId, trainer) => {
+  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
 
   return null;
+};
+
+const authorizeUserWithoutVendorRole = (loggedUserCompany, course) => {
+  if (course.type === INTRA) {
+    if (!course.company) throw Boom.badData();
+
+    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
+  }
+
+  if (course.type === INTER_B2B) {
+    const companyTraineeInCourse = course.trainees.some(t =>
+      UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
+    if (!companyTraineeInCourse) throw Boom.forbidden();
+  }
 };
 
 exports.authorizeAttendancesGet = async (req) => {
@@ -35,21 +49,9 @@ exports.authorizeAttendancesGet = async (req) => {
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  if (course.type === INTRA && !loggedUserHasVendorRole) {
-    if (!course.company) throw Boom.badData();
+  if (!loggedUserHasVendorRole) authorizeUserWithoutVendorRole(loggedUserCompany, course);
 
-    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
-  }
-
-  if (course.type === INTER_B2B && !loggedUserHasVendorRole) {
-    const companyTraineeInCourse = course.trainees.some(t =>
-      UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
-    if (!companyTraineeInCourse) throw Boom.forbidden();
-  }
-
-  const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
-    !UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
-  if (isTrainerButNotCourseTainer) throw Boom.forbidden();
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, course.trainer);
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
@@ -67,7 +69,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (!courseSlot) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot);
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
 
   const { course } = courseSlot;
   if (course.type === INTRA) {
@@ -87,7 +89,9 @@ exports.authorizeAttendanceDeletion = async (req) => {
   if (!attendance) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, attendance.courseSlot);
+  if (get(credentials, 'role.vendor.name') === TRAINER) {
+    isTrainerAuthorized(credentials._id, attendance.courseSlot.course.trainer);
+  }
 
   return null;
 };
