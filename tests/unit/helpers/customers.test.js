@@ -304,9 +304,15 @@ describe('getCustomer', () => {
 });
 
 describe('getRumNumber', () => {
+  let findOneAndUpdateRum;
+  beforeEach(() => {
+    findOneAndUpdateRum = sinon.stub(Rum, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    findOneAndUpdateRum.restore();
+  });
   it('should get RUM number', async () => {
     const companyId = new ObjectID();
-    const findOneAndUpdateRum = sinon.stub(Rum, 'findOneAndUpdate');
 
     findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
