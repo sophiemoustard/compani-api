@@ -7,46 +7,38 @@ const Drive = require('../../../src/models/Google/Drive');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const AdministrativeDocumentHelper = require('../../../src/helpers/administrativeDocument');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('createAdministrativeDocument', () => {
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
   const payload = { name: 'test', mimeType: 'pdf', file: 'file' };
 
-  let CompanyMock;
-  let AdministrativeDocumentMock;
+  let findByIdCompany;
+  let createAdministrativeDocument;
   let addFileStub;
   let createPermissionStub;
   beforeEach(() => {
-    CompanyMock = sinon.mock(Company);
-    AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
+    findByIdCompany = sinon.stub(Company, 'findById');
+    createAdministrativeDocument = sinon.stub(AdministrativeDocument, 'create');
     addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
     createPermissionStub = sinon.stub(Drive, 'createPermission');
   });
 
   afterEach(() => {
-    CompanyMock.restore();
-    AdministrativeDocumentMock.restore();
+    findByIdCompany.restore();
+    createAdministrativeDocument.restore();
     addFileStub.restore();
     createPermissionStub.restore();
   });
 
   it('should create an administrative document', async () => {
-    CompanyMock.expects('findById').withExactArgs(companyId).chain('lean').returns({ folderId: '1234' });
     const uploadedFile = { id: '12345', webViewLink: 'www.12345.fr' };
     addFileStub.returns(uploadedFile);
     const administrativeDocument = { company: companyId, name: payload.name };
-    const administrativeDocumentModel = new AdministrativeDocument(administrativeDocument);
-    const administrativeDocumentMock = sinon.mock(administrativeDocumentModel);
 
-    AdministrativeDocumentMock
-      .expects('create')
-      .withExactArgs({ company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } })
-      .returns(administrativeDocumentModel);
-
-    administrativeDocumentMock.expects('toObject').returns(administrativeDocument);
+    findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
+    createAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocument], ['toObject']));
 
     const res = await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
 
@@ -59,16 +51,23 @@ describe('createAdministrativeDocument', () => {
       createPermissionStub,
       { fileId: uploadedFile.id, permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false } }
     );
-    administrativeDocumentMock.verify();
-    AdministrativeDocumentMock.verify();
-    CompanyMock.verify();
+    SinonMongoose.calledWithExactly(
+      createAdministrativeDocument,
+      [
+        {
+          query: 'create',
+          args: [{ company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } }],
+        },
+        { query: 'toObject' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
   });
 
   it('should return an error if uploaded file is not defined', async () => {
     try {
-      CompanyMock.expects('findById').withExactArgs(companyId).chain('lean').returns({ folderId: '1234' });
       addFileStub.returns();
-      AdministrativeDocumentMock.expects('create').never();
+      findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
 
       await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
     } catch (e) {
@@ -79,8 +78,8 @@ describe('createAdministrativeDocument', () => {
         { driveFolderId: '1234', name: payload.name, type: payload.mimeType, body: payload.file }
       );
       sinon.assert.notCalled(createPermissionStub);
-      AdministrativeDocumentMock.verify();
-      CompanyMock.verify();
+      sinon.assert.notCalled(createAdministrativeDocument);
+      SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
     }
   });
 });
@@ -89,56 +88,55 @@ describe('listAdministrativeDocuments', () => {
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
 
-  let AdministrativeDocumentMock;
+  let findAdministrativeDocument;
   beforeEach(() => {
-    AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
+    findAdministrativeDocument = sinon.stub(AdministrativeDocument, 'find');
   });
 
   afterEach(() => {
-    AdministrativeDocumentMock.restore();
+    findAdministrativeDocument.restore();
   });
 
   it('should create an administrative document', async () => {
     const administrativeDocuments = [{ _id: new ObjectID() }];
-    AdministrativeDocumentMock
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(administrativeDocuments);
+
+    findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocuments], ['lean']));
 
     const res = await AdministrativeDocumentHelper.listAdministrativeDocuments(credentials);
 
     expect(res).toEqual(administrativeDocuments);
-    AdministrativeDocumentMock.verify();
+    SinonMongoose.calledWithExactly(
+      findAdministrativeDocument,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 });
 
 describe('removeAdministrativeDocument', () => {
   const administrativeDocumentId = new ObjectID();
 
-  let AdministrativeDocumentMock;
+  let findOneAndDelete;
   let deleteFileStub;
   beforeEach(() => {
-    AdministrativeDocumentMock = sinon.mock(AdministrativeDocument);
+    findOneAndDelete = sinon.stub(AdministrativeDocument, 'findOneAndDelete');
     deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
   });
 
   afterEach(() => {
-    AdministrativeDocumentMock.restore();
+    findOneAndDelete.restore();
     deleteFileStub.restore();
   });
 
   it('should remove a document from bdd + drive', async () => {
     deleteFileStub.returns();
-    AdministrativeDocumentMock
-      .expects('findOneAndDelete')
-      .withExactArgs({ _id: administrativeDocumentId })
-      .chain('lean')
-      .returns({ driveFile: { driveId: '1234' } });
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ driveFile: { driveId: '1234' } }], ['lean']));
 
     await AdministrativeDocumentHelper.removeAdministrativeDocument(administrativeDocumentId);
 
     sinon.assert.calledWithExactly(deleteFileStub, '1234');
-    AdministrativeDocumentMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndDelete,
+      [{ query: 'findOneAndDelete', args: [{ _id: administrativeDocumentId }] }, { query: 'lean' }]
+    );
   });
 });
