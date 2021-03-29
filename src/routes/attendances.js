@@ -8,7 +8,6 @@ const {
   authorizeAttendanceCreation,
   authorizeAttendanceDeletion,
 } = require('./preHandlers/attendances');
-const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-attendances',
@@ -18,9 +17,10 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          query: Joi.object({
-            courseSlots: objectIdOrArray.required(),
-          }),
+          query: Joi.alternatives().try(
+            Joi.object({ courseSlot: Joi.objectId().required() }),
+            Joi.object({ course: Joi.objectId().required() })
+          ),
         },
         auth: { scope: ['attendancesheets:read'] },
         pre: [{ method: authorizeAttendancesGet, assign: 'courseSlotsIds' }],

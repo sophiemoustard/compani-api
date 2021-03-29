@@ -21,7 +21,6 @@ const {
   COACH,
   VIDEO,
   WEBAPP,
-  QUESTIONNAIRE,
   TRAINER,
 } = require('../../../src/helpers/constants.js');
 
@@ -76,10 +75,7 @@ const trainerAndCoach = {
 
 const card = { _id: ObjectID(), template: 'title_text' };
 
-const activitiesList = [
-  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] },
-  { _id: new ObjectID(), name: 'other activity', type: QUESTIONNAIRE, cards: [card._id] },
-];
+const activitiesList = [{ _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] }];
 const activitiesHistory = [
   { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: clientAdmin._id, activity: activitiesList[0]._id },
