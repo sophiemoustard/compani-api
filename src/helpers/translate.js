@@ -186,6 +186,7 @@ module.exports = {
     paymentNotFound: 'Payment not found.',
     paymentCreated: 'Payment created.',
     paymentUpated: 'Payment updated.',
+    paymentRemoved: 'Payment removed.',
     /* Pay */
     payListCreated: 'Pay list created.',
     hoursToWorkFound: 'Hours to work found.',
@@ -471,6 +472,7 @@ module.exports = {
     paymentCreated: 'Règlement créé.',
     paymentNotFound: 'Règlement non trouvé.',
     paymentUpated: 'Règlement modifié.',
+    paymentRemoved: 'Règlement supprimé.',
     /* Pay */
     payListCreated: 'Liste de paie créée',
     hoursToWorkFound: 'Heures à travailler trouvées.',

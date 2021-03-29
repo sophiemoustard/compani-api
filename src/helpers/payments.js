@@ -163,3 +163,5 @@ exports.savePayments = async (payload, credentials) => {
   );
   return exports.generateXML(firstPayments, recurPayments, company);
 };
+
+exports.remove = async paymentId => Payment.deleteOne({ _id: paymentId });

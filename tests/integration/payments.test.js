@@ -411,3 +411,81 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
     });
   });
 });
+
+describe('PAYMENTS ROUTES - DELETE /payments/_id', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should remove payment', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/payments/${paymentsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const paymentCount = await Payment.countDocuments();
+      expect(paymentCount).toBe(2);
+    });
+
+    it('should return 404 if payment does not exist', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/payments/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should not remove payment if it is not refund', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/payments/${paymentsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not remove payment if user is not from the same company', async () => {
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/payments/${paymentsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const payload = { netInclTaxes: 200, date: '2019-04-16T22:00:00', type: 'direct_debit' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/payments/${paymentsList[2]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
