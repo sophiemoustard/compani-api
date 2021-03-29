@@ -2,11 +2,19 @@ const { ObjectID } = require('mongodb');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication, authCompany, rolesList, userList } = require('./authenticationSeed');
-const { COACH } = require('../../../src/helpers/constants.js');
+const { populateDBForAuthentication, authCompany, rolesList, userList, otherCompany } = require('./authenticationSeed');
+const { COACH, WEBAPP } = require('../../../src/helpers/constants.js');
 
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
+
+const traineeFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+  local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+  origin: WEBAPP,
+  company: otherCompany._id,
+};
 
 const coursesList = [
   {
@@ -19,7 +27,15 @@ const coursesList = [
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
+    company: authCompany._id,
     type: 'inter_b2b',
+    trainees: [coachFromAuthCompany._id],
+  },
+  {
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    type: 'intra',
+    company: otherCompany._id,
     trainees: [coachFromAuthCompany._id],
   },
 ];
@@ -36,6 +52,18 @@ const attendanceSheetsList = [
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: coachFromAuthCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    course: coursesList[1],
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: coachFromAuthCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    course: coursesList[1],
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: traineeFromOtherCompany._id,
   },
 ];
 

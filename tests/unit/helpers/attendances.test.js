@@ -31,22 +31,50 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return some courseSlots attendances', async () => {
-    const courseSlot = new ObjectID();
+  it('should return courseSlots\' attendances', async () => {
+    const courseSlots = [new ObjectID(), new ObjectID()];
     const attendancesList = [
-      { trainee: new ObjectID(), courseSlot },
-      { trainee: new ObjectID(), courseSlot },
+      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot: courseSlots[0] },
+      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendancesList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
 
-    const result = await AttendanceHelper.list([courseSlot]);
+    const result = await AttendanceHelper.list([courseSlots], null);
 
     expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return all courseSlots attendances for a company', async () => {
+    const companyId = new ObjectID();
+    const otherCompanyId = new ObjectID();
+    const courseSlots = [new ObjectID(), new ObjectID()];
+    const attendancesList = [
+      { trainee: { _id: new ObjectID(), company: companyId }, courseSlot: courseSlots[0] },
+      { trainee: { _id: new ObjectID(), company: otherCompanyId }, courseSlot: courseSlots[1] },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
+
+    const result = await AttendanceHelper.list([courseSlots], companyId);
+
+    expect(result).toMatchObject([attendancesList[0]]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

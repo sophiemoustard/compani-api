@@ -21,22 +21,55 @@ describe('list', () => {
     const courseId = new ObjectID();
     const attendanceSheets = [{
       course: courseId,
-      file: {
-        publicId: 'mon premier upload',
-        link: 'www.test.com',
-      },
+      file: { publicId: 'mon premier upload', link: 'www.test.com' },
       date: '2020-04-03T10:00:00',
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
 
-    const result = await attendanceSheetHelper.list({ course: courseId });
+    const result = await attendanceSheetHelper.list(courseId, null);
 
     expect(result).toMatchObject(attendanceSheets);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ course: courseId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return course attendance sheets from logged user company', async () => {
+    const courseId = new ObjectID();
+    const authCompanyId = new ObjectID();
+    const otherCompanyId = new ObjectID();
+    const attendanceSheets = [
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
+        trainee: { _id: new ObjectID(), company: authCompanyId },
+      },
+      {
+        course: courseId,
+        file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
+        trainee: { _id: new ObjectID(), company: otherCompanyId },
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+
+    const result = await attendanceSheetHelper.list(courseId, authCompanyId);
+
+    expect(result).toMatchObject([attendanceSheets[0]]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -86,10 +119,13 @@ describe('create', () => {
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: '', args: [{ _id: 'id de quelqun' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: '', args: [{ _id: 'id de quelqun' }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       formatIdentity,
       { firstName: 'monsieur', lastname: 'patate' },

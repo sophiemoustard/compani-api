@@ -219,10 +219,69 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
     });
+
+    it('should return a 400 if query course is not ObjectID', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/attendancesheets?course=skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendancesheets?course=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
     beforeEach(populateDB);
+
+    it('should return a 403 if course is not from userCompany and user has no vendor role', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendancesheets?course=${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should get only authCompany\'s attendance sheets for interB2B course if user does not have vendor role',
+      async () => {
+        authToken = await getToken('coach');
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendancesheets?course=${coursesList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.attendanceSheets.length).toEqual(1);
+      });
+
+    it('should get all course\'s attendance sheets for interB2B course if user has vendor role', async () => {
+      authToken = await getToken('trainer');
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendancesheets?course=${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.attendanceSheets.length).toEqual(2);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
