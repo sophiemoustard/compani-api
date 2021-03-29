@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const UtilsHelper = require('../utils');
 const FileHelper = require('../file');
 const Pay = require('../../models/Pay');
+const { PRIVATE_TRANSPORT, PUBLIC_TRANSPORT } = require('../constants');
 
 const VA_SAI_REPORT = 'T';
 const MODE_BASE = 'base';
@@ -13,7 +14,7 @@ const compute = (pay, variable, mode) => {
 
   if (variable.keys) return computeKeys(pay, variable.keys);
 
-  if (variable.func) return variable.func(pay);
+  if (variable.func) return variable.func(pay, variable);
 
   return '';
 };
@@ -31,6 +32,17 @@ const computeSurchargeAndExempt = (pay, keys) => {
 };
 
 const computeKeys = (pay, keys) => keys.reduce((acc, key) => acc + UtilsHelper.computeHoursWithDiff(pay, key), 0);
+
+const computeTransport = (pay, variable) => {
+  const transportType = get(pay, 'auxiliary.administrative.transportInvoice.transportType');
+  if (!transportType) return 0;
+
+  if (transportType === PRIVATE_TRANSPORT && variable.code === '489') return pay.transport;
+
+  if (transportType === PUBLIC_TRANSPORT && variable.code === '430') return pay.transport;
+
+  return 0;
+};
 
 const payVariables = [
   { code: '090', mode: MODE_BASE, keys: ['notSurchargedAndExempt'], name: 'Heures exo non majo' },
@@ -57,9 +69,9 @@ const payVariables = [
   { code: '177', mode: MODE_BASE, keys: ['notSurchargedAndNotExempt'], name: 'Heures non exo non majo' },
   { code: '115', mode: MODE_BASE, keys: ['overtimeHours'], name: 'Heures supplémentaires' },
   { code: '100', mode: MODE_BASE, keys: ['additionalHours'], name: 'Heures complémentaires' },
-  { code: '430', mode: MODE_RESULTAT, keys: [''], name: 'Carte navigo' },
+  { code: '430', mode: MODE_RESULTAT, func: computeTransport, name: 'Carte navigo' },
   { code: '512', mode: MODE_RESULTAT, keys: ['phoneFees'], name: 'Frais téléphoniques' },
-  { code: '489', mode: MODE_RESULTAT, keys: ['transport'], name: 'Frais kilométriques' },
+  { code: '489', mode: MODE_RESULTAT, func: computeTransport, name: 'Frais kilométriques' },
 ];
 
 exports.exportPay = async () => {
@@ -67,7 +79,7 @@ exports.exportPay = async () => {
     .populate({
       path: 'auxiliary',
       populate: { path: 'contracts', select: '_id serialNumber' },
-      select: '_id serialNumber',
+      select: '_id serialNumber administrative.transportInvoice.transportType',
     })
     .lean();
 
