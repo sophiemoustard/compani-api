@@ -4,6 +4,8 @@ const Payment = require('../../models/Payment');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
+const { REFUND } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -23,7 +25,7 @@ exports.authorizePaymentUpdate = (req) => {
   try {
     const { credentials } = req.auth;
     const { payment } = req.pre;
-    if (payment.company.toHexString() === get(credentials, 'company._id', null).toHexString()) return null;
+    if (UtilsHelper.areObjectIdsEquals(payment.company, get(credentials, 'company._id', null))) return null;
 
     throw Boom.forbidden();
   } catch (e) {
@@ -69,4 +71,11 @@ exports.authorizePaymentCreation = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.authorizePaymentDeletion = async (req) => {
+  const { payment } = req.pre;
+  if (payment.nature !== REFUND) throw Boom.forbidden();
+
+  return null;
 };

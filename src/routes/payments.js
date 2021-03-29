@@ -3,16 +3,13 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const {
-  create,
-  createList,
-  update,
-} = require('../controllers/paymentController');
+const { create, createList, update, remove } = require('../controllers/paymentController');
 const {
   getPayment,
   authorizePaymentUpdate,
   authorizePaymentsListCreation,
   authorizePaymentCreation,
+  authorizePaymentDeletion,
 } = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
@@ -74,12 +71,24 @@ exports.plugin = {
             nature: Joi.string(),
           }),
         },
+        pre: [{ method: getPayment, assign: 'payment' }, { method: authorizePaymentUpdate }],
+      },
+      handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['payments:edit'] },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         pre: [
           { method: getPayment, assign: 'payment' },
           { method: authorizePaymentUpdate },
+          { method: authorizePaymentDeletion },
         ],
       },
-      handler: update,
+      handler: remove,
     });
   },
 };
