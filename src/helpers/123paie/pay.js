@@ -74,7 +74,7 @@ const payVariables = [
 ];
 
 exports.exportPay = async (query, credentials) => {
-  const payList = await Pay.find({ month: '02-2021', company: get(credentials, 'company._id') })
+  const payList = await Pay.find({ month: query.month, company: get(credentials, 'company._id') })
     .populate({
       path: 'auxiliary',
       populate: { path: 'contracts', select: '_id serialNumber' },
