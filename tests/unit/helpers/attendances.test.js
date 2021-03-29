@@ -31,29 +31,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return a courseSlot attendances', async () => {
-    const courseSlot = new ObjectID();
-    const attendancesList = [
-      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot },
-      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot },
-    ];
-
-    find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
-
-    const result = await AttendanceHelper.list([courseSlot], null);
-
-    expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(
-      find,
-      [
-        { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return all courseSlots attendances', async () => {
+  it('should return courseSlots\' attendances', async () => {
     const courseSlots = [new ObjectID(), new ObjectID()];
     const attendancesList = [
       { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot: courseSlots[0] },
