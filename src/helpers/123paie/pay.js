@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
 const UtilsHelper = require('../utils');
 const FileHelper = require('../file');
 const Pay = require('../../models/Pay');
@@ -74,8 +73,8 @@ const payVariables = [
   { code: '489', mode: MODE_RESULTAT, func: computeTransport, name: 'Frais kilométriques' },
 ];
 
-exports.exportPay = async () => {
-  const pay = await Pay.findOne({ auxiliary: new ObjectID('5f50d5157a1fca0015829169'), month: '02-2021' })
+exports.exportPay = async (query, credentials) => {
+  const payList = await Pay.find({ month: '02-2021', company: get(credentials, 'company._id') })
     .populate({
       path: 'auxiliary',
       populate: { path: 'contracts', select: '_id serialNumber' },
@@ -84,18 +83,20 @@ exports.exportPay = async () => {
     .lean();
 
   const data = [];
-  for (const variable of payVariables) {
-    data.push({
-      ap_soc: process.env.AP_SOC,
-      ap_matr: get(pay, 'auxiliary.serialNumber') || '',
-      ap_contrat: get(pay, 'auxiliary.contract.serialNumber') || '',
-      va_sai_report: VA_SAI_REPORT,
-      va_sai_code: variable.code,
-      va_sai_lib: variable.name,
-      va_sai_base: compute(pay, variable, MODE_BASE),
-      va_sai_resultat: compute(pay, variable, MODE_RESULTAT),
-      va_sai_taux: '',
-    });
+  for (const pay of payList) {
+    for (const variable of payVariables) {
+      data.push({
+        ap_soc: process.env.AP_SOC,
+        ap_matr: get(pay, 'auxiliary.serialNumber') || '',
+        ap_contrat: get(pay, 'auxiliary.contract.serialNumber') || '',
+        va_sai_report: VA_SAI_REPORT,
+        va_sai_code: variable.code,
+        va_sai_lib: variable.name,
+        va_sai_base: compute(pay, variable, MODE_BASE),
+        va_sai_resultat: compute(pay, variable, MODE_RESULTAT),
+        va_sai_taux: '',
+      });
+    }
   }
 
   return data.length
