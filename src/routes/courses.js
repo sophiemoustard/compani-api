@@ -34,7 +34,6 @@ const {
   authorizeCourseGetByTrainee,
   authorizeRegisterToELearning,
   getCourse,
-  isQuestionnaire,
   authorizeAccessRuleAddition,
   authorizeAccessRuleDeletion,
   authorizeAndGetTrainee,
@@ -130,10 +129,9 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          query: Joi.object({ activity: Joi.objectId().required() }),
         },
         auth: { scope: ['courses:read'] },
-        pre: [{ method: isQuestionnaire }, { method: authorizeGetFollowUp }],
+        pre: [{ method: authorizeGetFollowUp }],
       },
       handler: getQuestionnaireAnswers,
     });

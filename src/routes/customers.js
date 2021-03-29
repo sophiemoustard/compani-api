@@ -43,6 +43,7 @@ const {
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { addressValidation, objectIdOrArray, phoneNumberValidation, formDataPayload } = require('./validations/utils');
+const { fundingValidation } = require('./validations/customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -453,16 +454,7 @@ exports.plugin = {
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
             frequency: Joi.string().valid(...FUNDING_FREQUENCIES).required(),
-            versions: Joi.array().items(Joi.object().keys({
-              folderNumber: Joi.string(),
-              startDate: Joi.date().required(),
-              endDate: Joi.date(),
-              amountTTC: Joi.number(),
-              unitTTCRate: Joi.number(),
-              careHours: Joi.number(),
-              careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
-              customerParticipationRate: Joi.number().default(0),
-            })),
+            versions: Joi.array().items(Joi.object().keys({ ...fundingValidation })),
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
@@ -482,14 +474,7 @@ exports.plugin = {
           }),
           payload: Joi.object().keys({
             subscription: Joi.objectId().required(),
-            folderNumber: Joi.string(),
-            endDate: Joi.date(),
-            startDate: Joi.date().required(),
-            amountTTC: Joi.number(),
-            unitTTCRate: Joi.number(),
-            careHours: Joi.number(),
-            careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
-            customerParticipationRate: Joi.number().default(0),
+            ...fundingValidation,
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],

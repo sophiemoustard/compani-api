@@ -7,6 +7,7 @@ const {
   getProgramImagePublicId,
   checkCategoryExists,
   authorizeTesterAddition,
+  checkTesterInProgram,
 } = require('./preHandlers/programs');
 const {
   list,
@@ -20,6 +21,7 @@ const {
   addCategory,
   removeCategory,
   addTester,
+  removeTester,
 } = require('../controllers/programController');
 const { formDataPayload, phoneNumberValidation } = require('./validations/utils');
 
@@ -189,6 +191,19 @@ exports.plugin = {
         pre: [{ method: checkProgramExists }, { method: authorizeTesterAddition }],
       },
       handler: addTester,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/testers/{testerId}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), testerId: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgramExists }, { method: checkTesterInProgram }],
+      },
+      handler: removeTester,
     });
   },
 };

@@ -224,6 +224,8 @@ module.exports = {
     programFound: 'Program found.',
     programUpdated: 'Program updated.',
     testerAdded: 'Tester added to program.',
+    testerRemoved: 'Tester removed from program.',
+    testerNotFound: 'Tester not found in program.',
     testerConflict: 'Tester already added to program.',
     /* Categories */
     categoriesFound: 'Categories found.',
@@ -263,6 +265,7 @@ module.exports = {
     courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
     courseAccessRuleAdded: 'Access rule added.',
     courseAccessRuleDeleted: 'Access rule deleted.',
+    courseQuestionnairesFound: 'Questionnaires found.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -506,6 +509,8 @@ module.exports = {
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
     testerAdded: 'Testeur ajouté au programme.',
+    testerRemoved: 'Testeur supprimé du programme.',
+    testerNotFound: 'Testeur non trouvé dans le programme.',
     testerConflict: 'Testeur déjà ajouté au programme.',
     /* Categories */
     categoriesFound: 'Catégories trouvées.',
@@ -545,6 +550,7 @@ module.exports = {
     courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
     courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
+    courseQuestionnairesFound: 'Questionnaires trouvés.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',
