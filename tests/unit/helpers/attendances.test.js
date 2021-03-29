@@ -43,11 +43,14 @@ describe('list', () => {
     const result = await AttendanceHelper.list([courseSlot], null);
 
     expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
-      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlot] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return all courseSlots attendances', async () => {
@@ -62,11 +65,14 @@ describe('list', () => {
     const result = await AttendanceHelper.list([courseSlots], null);
 
     expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return all courseSlots attendances for a company', async () => {
@@ -83,11 +89,14 @@ describe('list', () => {
     const result = await AttendanceHelper.list([courseSlots], companyId);
 
     expect(result).toMatchObject([attendancesList[0]]);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-      { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

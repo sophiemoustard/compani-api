@@ -4,13 +4,13 @@ const UtilsHelper = require('./utils');
 
 exports.create = payload => (new Attendance(payload)).save();
 
-exports.list = async (query, company) => {
+exports.list = async (query, companyId) => {
   const attendances = await Attendance.find({ courseSlot: { $in: query } })
     .populate({ path: 'trainee', select: 'company' })
     .lean();
 
-  return company
-    ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), company))
+  return companyId
+    ? attendances.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
     : attendances;
 };
 

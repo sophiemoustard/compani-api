@@ -34,7 +34,7 @@ const coursesList = [
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
-    type: 'inter_b2b',
+    type: 'intra',
     company: otherCompany._id,
     trainees: [coachFromAuthCompany._id],
   },

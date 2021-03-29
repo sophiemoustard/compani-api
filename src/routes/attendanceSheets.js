@@ -21,7 +21,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ course: Joi.objectId() }),
         },
-        pre: [{ method: authorizeAttendanceSheetsGet, assign: 'company' }],
+        pre: [{ method: authorizeAttendanceSheetsGet, assign: 'companyId' }],
       },
       handler: list,
     });

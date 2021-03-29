@@ -269,7 +269,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
         expect(response.result.data.attendanceSheets.length).toEqual(1);
       });
 
-    it('should get course\'s attendance sheets for interB2B course if user has vendor role', async () => {
+    it('should get all course\'s attendance sheets for interB2B course if user has vendor role', async () => {
       authToken = await getToken('trainer');
 
       const response = await app.inject({

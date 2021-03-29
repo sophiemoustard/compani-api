@@ -216,14 +216,14 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if query has course and courseSlot but return a 404 and I have no idea why', async () => {
+    it('should return 400 if query has course and courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances/course=${coursesList[0]._id}&courseSlot=${slotsList[0]._id}`,
+        url: `/attendances?course=${coursesList[0]._id}&courseSlot=${slotsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 404 if invalid course', async () => {
@@ -236,7 +236,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if no courseSlot found', async () => {
+    it('should return 404 if invalid courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?courseSlot=${new ObjectID()}`,

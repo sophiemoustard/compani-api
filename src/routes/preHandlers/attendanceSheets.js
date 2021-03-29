@@ -11,13 +11,18 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
-  if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company) && !loggedUserHasVendorRole) {
+  if (loggedUserHasVendorRole) return null;
+
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) {
     throw Boom.forbidden();
   }
 
-  return (course.type === INTER_B2B && !loggedUserHasVendorRole) ? loggedUserCompany : null;
+  if (course.type === INTER_B2B) return loggedUserCompany;
+
+  return null;
 };
 
 exports.checkCourseType = async (req) => {

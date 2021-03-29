@@ -2,7 +2,6 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
-const Course = require('../../models/Course');
 const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
@@ -21,8 +20,8 @@ const authorizeUserWithoutVendorRole = (loggedUserCompany, course) => {
   }
 
   if (course.type === INTER_B2B) {
-    const companyTraineeInCourse = course.trainees.some(t =>
-      UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
+    const companyTraineeInCourse = course.trainees
+      .some(t => UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
     if (!companyTraineeInCourse) throw Boom.forbidden();
   }
 };
@@ -38,11 +37,6 @@ exports.authorizeAttendancesGet = async (req) => {
     .lean();
 
   if (!courseSlots.length) throw Boom.notFound();
-
-  if (req.query.course) {
-    const courseExist = await Course.countDocuments({ _id: req.query.course });
-    if (!courseExist) throw Boom.notFound();
-  }
 
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');

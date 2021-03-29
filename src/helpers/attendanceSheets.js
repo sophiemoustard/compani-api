@@ -21,13 +21,13 @@ exports.create = async (payload) => {
   return AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
 
-exports.list = async (course, company) => {
-  const attendanceSheets = await AttendanceSheet.find({ course })
+exports.list = async (courseId, companyId) => {
+  const attendanceSheets = await AttendanceSheet.find({ course: courseId })
     .populate({ path: 'trainee', select: 'company' })
     .lean();
 
-  return company
-    ? attendanceSheets.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), company))
+  return companyId
+    ? attendanceSheets.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
     : attendanceSheets;
 };
 
