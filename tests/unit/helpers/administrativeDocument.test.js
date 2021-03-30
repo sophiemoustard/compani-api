@@ -35,14 +35,11 @@ describe('createAdministrativeDocument', () => {
   it('should create an administrative document', async () => {
     const uploadedFile = { id: '12345', webViewLink: 'www.12345.fr' };
     addFileStub.returns(uploadedFile);
-    const administrativeDocument = { company: companyId, name: payload.name };
 
     findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
-    createAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocument], ['toObject']));
 
-    const res = await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
+    await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
 
-    expect(res).toEqual(administrativeDocument);
     sinon.assert.calledWithExactly(
       addFileStub,
       { driveFolderId: '1234', name: payload.name, type: payload.mimeType, body: payload.file }
@@ -51,15 +48,9 @@ describe('createAdministrativeDocument', () => {
       createPermissionStub,
       { fileId: uploadedFile.id, permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false } }
     );
-    SinonMongoose.calledWithExactly(
+    sinon.assert.calledWithExactly(
       createAdministrativeDocument,
-      [
-        {
-          query: 'create',
-          args: [{ company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } }],
-        },
-        { query: 'toObject' },
-      ]
+      { company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } }
     );
     SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
   });

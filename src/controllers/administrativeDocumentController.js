@@ -37,11 +37,10 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    const administrativeDocument = await AdministrativeDocumentHelper.removeAdministrativeDocument(req.params._id);
+    await AdministrativeDocumentHelper.removeAdministrativeDocument(req.params._id);
 
     return {
       message: translate[language].administrativeDocumentRemoved,
-      data: { administrativeDocument },
     };
   } catch (e) {
     req.log('error', e);
