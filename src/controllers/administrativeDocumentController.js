@@ -6,15 +6,9 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const administrativeDocument = await AdministrativeDocumentHelper.createAdministrativeDocument(
-      req.payload,
-      req.auth.credentials
-    );
+    await AdministrativeDocumentHelper.createAdministrativeDocument(req.payload, req.auth.credentials);
 
-    return {
-      message: translate[language].administrativeDocumentCreated,
-      data: { administrativeDocument },
-    };
+    return { message: translate[language].administrativeDocumentCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -37,12 +31,9 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    const administrativeDocument = await AdministrativeDocumentHelper.removeAdministrativeDocument(req.params._id);
+    await AdministrativeDocumentHelper.removeAdministrativeDocument(req.params._id);
 
-    return {
-      message: translate[language].administrativeDocumentRemoved,
-      data: { administrativeDocument },
-    };
+    return { message: translate[language].administrativeDocumentRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
