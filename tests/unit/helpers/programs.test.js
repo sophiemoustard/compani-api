@@ -381,3 +381,25 @@ describe('addTester', () => {
     sinon.assert.calledWithExactly(createUser, { ...payload, origin: 'webapp' });
   });
 });
+
+describe('removeTester', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(Program, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove tester', async () => {
+    const programId = new ObjectID();
+    const testerId = new ObjectID();
+    updateOne.returns({ _id: programId });
+
+    await ProgramHelper.removeTester(programId, testerId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { testers: testerId } });
+  });
+});

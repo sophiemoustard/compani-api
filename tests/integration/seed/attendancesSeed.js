@@ -5,6 +5,7 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const { rolesList } = require('../../seed/roleSeed');
+const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
 
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
@@ -45,6 +46,14 @@ const coursesList = [
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
   },
+  {
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: otherCompany._id,
+    type: 'intra',
+    trainees: [new ObjectID()],
+    trainer: trainerList[0]._id,
+  },
 ];
 
 const slotsList = [
@@ -60,6 +69,13 @@ const slotsList = [
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
+    step: new ObjectID(),
+  },
+  { // slot from other company's course
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[2],
     step: new ObjectID(),
   },
 ];

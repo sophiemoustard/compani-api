@@ -1656,7 +1656,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('client_admin');
+    authToken = await getToken('coach');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1669,8 +1669,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1685,12 +1685,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customer._id);
-      expect(res.result.data.customer.fundings[1].thirdPartyPayer.name).toEqual(customerThirdPartyPayer.name);
-      expect(res.result.data.customer.fundings[1].nature).toEqual(payload.nature);
-      expect(res.result.data.customer.fundings[1].subscription._id).toEqual(payload.subscription);
-      expect(res.result.data.customer.fundings[1].versions[0]).toMatchObject(payload.versions[0]);
+      expect(res.result.data.customer.fundings.length).toEqual(2);
     });
 
     it('should return a 409 error if subscription is used by another funding', async () => {
@@ -1702,8 +1697,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1720,15 +1714,15 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(409);
     });
 
-    it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
+    it('should return a 400 error if \'subscriptions\' is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayer._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1745,15 +1739,41 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 error if \'thirdPartyPayer\' object is missing from payload', async () => {
+    it('should return a 400 error if \'endDate\' is before \'startDate\'', async () => {
+      const payload = {
+        nature: FIXED,
+        subscription: customersList[0].subscriptions[0]._id,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        frequency: MONTHLY,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2020-03-01T23:59:59',
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+        }],
+      };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if \'thirdPartyPayer\' is missing from payload', async () => {
       const payload = {
         nature: FIXED,
         subscription: customersList[0].subscriptions[0]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months'),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1779,8 +1799,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1805,8 +1825,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1832,8 +1852,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -1842,8 +1862,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1869,8 +1887,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         subscription: customer.subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
-        endDate: moment.utc().add(4, 'years').toDate(),
-        startDate: moment.utc().add(3, 'years').toDate(),
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
       };
 
@@ -1888,22 +1906,45 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer.fundings[0].versions.length).toBe(2);
     });
 
+    it('should return 400 if endDate is before startDate', async () => {
+      const customer = customersList[0];
+      const payload = {
+        subscription: customer.subscriptions[0]._id,
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2020-03-01T23:59:59',
+        careDays: [1, 3],
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
-        startDate: moment.utc().add(6, 'months').toDate(),
-        endDate: moment.utc().add(1, 'year').toDate(),
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
       };
+
       const res = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -1912,8 +1953,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         subscription: otherCompanyCustomer.subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
-        startDate: moment.utc().add(6, 'months').toDate(),
-        endDate: moment.utc().add(1, 'year').toDate(),
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
       };
 
@@ -1933,15 +1974,14 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         subscription: customer.subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
-        endDate: moment.utc().add(4, 'years').toDate(),
-        startDate: moment.utc().add(3, 'years').toDate(),
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
       };
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1990,8 +2030,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
