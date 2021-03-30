@@ -184,9 +184,9 @@ describe('updateCustomerReferent', () => {
       const lastHistory = { startDate: moment().startOf('d').toDate(), _id: new ObjectID() };
 
       findReferentHistory.returns(SinonMongoose.stubChainedQueries([[lastHistory]], ['sort', 'limit', 'lean']));
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-        [{ firstIntervention: { startDate: moment().toDate() } }]
-      ));
+      findOneCustomer.returns(
+        SinonMongoose.stubChainedQueries([{ firstIntervention: { startDate: moment().toDate() } }])
+      );
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, null, company);
       sinon.assert.notCalled(updateLastHistory);
@@ -248,9 +248,9 @@ describe('updateCustomerReferent', () => {
       const lastHistory = { startDate: moment().subtract(1, 'month').startOf('d').toDate(), _id: new ObjectID() };
 
       findReferentHistory.returns(SinonMongoose.stubChainedQueries([[lastHistory]], ['sort', 'limit', 'lean']));
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-        [{ firstIntervention: { startDate: moment().toDate() } }]
-      ));
+      findOneCustomer.returns(
+        SinonMongoose.stubChainedQueries([{ firstIntervention: { startDate: moment().toDate() } }])
+      );
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, null, company);
       sinon.assert.calledOnceWithExactly(
@@ -286,9 +286,9 @@ describe('updateCustomerReferent', () => {
       const lastHistory = { auxiliary: { _id: referent }, _id: new ObjectID() };
 
       findReferentHistory.returns(SinonMongoose.stubChainedQueries([[lastHistory]], ['sort', 'limit', 'lean']));
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-        [{ firstIntervention: { startDate: moment().toDate() } }]
-      ));
+      findOneCustomer.returns(
+        SinonMongoose.stubChainedQueries([{ firstIntervention: { startDate: moment().toDate() } }])
+      );
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.notCalled(updateLastHistory);
@@ -360,9 +360,9 @@ describe('updateCustomerReferent', () => {
       };
 
       findReferentHistory.returns(SinonMongoose.stubChainedQueries([[lastHistory]], ['sort', 'limit', 'lean']));
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-        [{ firstIntervention: { startDate: moment().toDate() } }]
-      ));
+      findOneCustomer.returns(
+        SinonMongoose.stubChainedQueries([{ firstIntervention: { startDate: moment().toDate() } }])
+      );
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.calledOnceWithExactly(updateLastHistory, lastHistory, { auxiliary: referent.toHexString() });
@@ -394,9 +394,9 @@ describe('updateCustomerReferent', () => {
       const lastHistory = { auxiliary: { _id: new ObjectID() }, _id: new ObjectID() };
 
       findReferentHistory.returns(SinonMongoose.stubChainedQueries([[lastHistory]], ['sort', 'limit', 'lean']));
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-        [{ firstIntervention: { startDate: moment().toDate() } }]
-      ));
+      findOneCustomer.returns(
+        SinonMongoose.stubChainedQueries([{ firstIntervention: { startDate: moment().toDate() } }])
+      );
 
       await ReferentHistoriesHelper.updateCustomerReferent(customerId, referent.toHexString(), company);
       sinon.assert.calledOnceWithExactly(
