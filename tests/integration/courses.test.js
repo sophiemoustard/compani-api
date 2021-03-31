@@ -41,7 +41,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSES ROUTES - POST /courses #newTests', () => {
+describe('COURSES ROUTES - POST /courses', () => {
   let authToken;
   beforeEach(populateDB);
 
