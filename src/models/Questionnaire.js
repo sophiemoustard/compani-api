@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const { DRAFT, PUBLISHED, EXPECTATIONS_COLLECTION } = require('../helpers/constants');
+const { DRAFT, PUBLISHED, EXPECTATIONS } = require('../helpers/constants');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
-const QUESTIONNAIRE_TYPES = [EXPECTATIONS_COLLECTION];
+const QUESTIONNAIRE_TYPES = [EXPECTATIONS];
 
 const QuestionnaireSchema = mongoose.Schema({
   title: { type: String, required: true },

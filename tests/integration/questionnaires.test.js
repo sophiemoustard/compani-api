@@ -23,18 +23,18 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations_collection' },
+        payload: { title: 'test', type: 'expectations' },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 400 if no name', async () => {
+    it('should return 400 if no title', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: '', type: 'expectations_collection' },
+        payload: { title: '', type: 'expectations' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -56,8 +56,6 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
@@ -70,7 +68,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
           method: 'POST',
           url: '/questionnaires',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { title: 'test', type: 'expectations_collection' },
+          payload: { title: 'test', type: 'expectations' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -105,8 +103,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },

@@ -14,7 +14,7 @@ describe('createQuestionnaire', () => {
   });
 
   it('should create questionnaire', async () => {
-    const newQuestionnaire = { title: 'test', type: 'expectations_collection' };
+    const newQuestionnaire = { title: 'test', type: 'expectations' };
     await QuestionnaireHelper.createQuestionnaire(newQuestionnaire);
 
     sinon.assert.calledOnceWithExactly(create, newQuestionnaire);

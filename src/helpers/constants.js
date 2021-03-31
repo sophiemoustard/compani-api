@@ -332,7 +332,7 @@ module.exports = {
     ];
   },
   // QUESTIONNAIRE_TYPES
-  EXPECTATIONS_COLLECTION: 'expectations_collection',
+  EXPECTATIONS: 'expectations',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
