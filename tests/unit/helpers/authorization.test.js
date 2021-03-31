@@ -135,6 +135,8 @@ describe('validate', () => {
           'programs:edit',
           'programs:read',
           'scripts:run',
+          'questionnaires:edit',
+          'questionnaires:read',
           `company-${user.company._id}`,
         ],
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
