@@ -287,6 +287,10 @@ module.exports = {
     attendancesNotFound: 'Attendances not found.',
     attendanceDeleted: 'Attendance deleted.',
     attendanceExists: 'An attendance exist.',
+    /* Questionnaires */
+    questionnairesFound: 'Questionnaires found.',
+    questionnairesNotFound: 'Questionnaires not found.',
+    questionnaireCreated: 'Questionnaire created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -573,5 +577,9 @@ module.exports = {
     attendancesNotFound: 'Émargements non trouvés.',
     attendanceDeleted: 'Émargement supprimé.',
     attendanceExists: 'Un émargement existe.',
+    /* Questionnaires */
+    questionnairesFound: 'Liste des questionnaires trouvée.',
+    questionnairesNotFound: 'Liste des questionnaires non trouvée.',
+    questionnaireCreated: 'Questionnaire créé.',
   },
 };
