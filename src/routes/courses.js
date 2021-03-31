@@ -41,7 +41,7 @@ const {
   authorizeGetFollowUp,
   authorizeCourseCreation,
 } = require('./preHandlers/courses');
-const { INTRA } = require('../helpers/constants');
+const { INTRA, BLENDED } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-courses',

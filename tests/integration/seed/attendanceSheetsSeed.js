@@ -16,6 +16,9 @@ const traineeFromOtherCompany = {
   company: otherCompany._id,
 };
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const coursesList = [
   {
     _id: new ObjectID(),
@@ -23,6 +26,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -30,6 +34,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -37,6 +42,7 @@ const coursesList = [
     type: 'intra',
     company: otherCompany._id,
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

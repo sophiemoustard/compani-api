@@ -72,6 +72,7 @@ const course = {
   trainer: new ObjectID(),
   format: 'strictly_e_learning',
   trainees: [userList[0]._id],
+  salesRepresentative: vendorAdmin._id,
 };
 
 const populateDB = async () => {

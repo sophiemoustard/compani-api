@@ -8,7 +8,7 @@ const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
 
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
 
 const trainerList = [
   {
@@ -29,6 +29,9 @@ const trainerList = [
   },
 ];
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const coursesList = [
   {
     _id: new ObjectID(),
@@ -37,6 +40,7 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID(), new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -45,6 +49,7 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -53,6 +58,7 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   { // interb2b
     _id: new ObjectID(),
@@ -61,6 +67,7 @@ const coursesList = [
     type: 'inter_b2b',
     trainees: [new ObjectID(), new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   { // interb2b with only trainees from otherCompany
     _id: new ObjectID(),
@@ -69,6 +76,7 @@ const coursesList = [
     type: 'inter_b2b',
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

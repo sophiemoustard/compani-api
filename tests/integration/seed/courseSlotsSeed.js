@@ -7,7 +7,7 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const trainer = {
@@ -37,6 +37,9 @@ const programsList = [
   { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[1]] },
 ];
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const coursesList = [
   {
     _id: new ObjectID(),
@@ -45,6 +48,7 @@ const coursesList = [
     misc: 'first session',
     type: 'intra',
     trainer: new ObjectID(),
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -53,6 +57,7 @@ const coursesList = [
     misc: 'team formation',
     type: 'intra',
     trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

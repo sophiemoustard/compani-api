@@ -26,6 +26,9 @@ const trainerAndCoach = {
   origin: WEBAPP,
 };
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const coursesList = [{
   _id: new ObjectID(),
   subProgram: subProgramsList[0]._id,
@@ -34,6 +37,7 @@ const coursesList = [{
   type: 'intra',
   trainer: courseTrainer._id,
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 },
 {
   _id: new ObjectID(),
@@ -43,6 +47,7 @@ const coursesList = [{
   type: 'intra',
   trainer: new ObjectID(),
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 },
 {
   _id: new ObjectID(),
@@ -52,6 +57,7 @@ const coursesList = [{
   format: 'blended',
   trainer: courseTrainer._id,
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 }];
 
 const courseHistoriesList = [{

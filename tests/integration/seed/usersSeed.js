@@ -7,7 +7,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
-const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, otherCompany, authCompany, userList } = require('./authenticationSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
 const { WEBAPP } = require('../../../src/helpers/constants');
@@ -247,12 +247,16 @@ const sectorHistories = usersSeedList
     startDate: '2018-12-10',
   }));
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const followingCourses = [
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     type: 'inter_b2b',
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -260,6 +264,7 @@ const followingCourses = [
     type: 'intra',
     company: new ObjectID(),
     trainees: [usersSeedList[0]._id],
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

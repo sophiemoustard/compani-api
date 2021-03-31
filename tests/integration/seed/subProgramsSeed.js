@@ -6,7 +6,7 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
 
 const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
@@ -63,12 +63,16 @@ const programsList = [
   },
 ];
 
+const vendorAdmin = userList
+  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
+
 const coursesList = [{
   _id: new ObjectID(),
   format: 'strictly_e_learning',
   subProgram: subProgramsList[4]._id,
   type: 'intra',
   company: new ObjectID(),
+  salesRepresentative: vendorAdmin._id,
 }];
 
 const courseSlotsList = [
