@@ -32,6 +32,16 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
 
+exports.authorizeCourseCreation = async (req) => {
+  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative });
+
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
+
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;

@@ -39,6 +39,7 @@ const {
   authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
+  authorizeCourseCreation,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -89,6 +90,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
+        pre: [{ method: authorizeCourseCreation }],
       },
       handler: create,
     });
