@@ -291,6 +291,7 @@ module.exports = {
     questionnairesFound: 'Questionnaires found.',
     questionnairesNotFound: 'Questionnaires not found.',
     questionnaireCreated: 'Questionnaire created.',
+    draftQuestionnaireAlreadyExists: 'A draft questionnaire already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -581,5 +582,6 @@ module.exports = {
     questionnairesFound: 'Liste des questionnaires trouvée.',
     questionnairesNotFound: 'Liste des questionnaires non trouvée.',
     questionnaireCreated: 'Questionnaire créé.',
+    draftQuestionnaireAlreadyExists: 'Il existe déjà un questionnaire en brouillon.',
   },
 };

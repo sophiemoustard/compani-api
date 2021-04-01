@@ -53,7 +53,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if already exists a draft questionnaire with same type', async () => {
+    it('should return 409 if already exists a draft questionnaire with same type', async () => {
       await Questionnaire.insertMany([{ _id: new ObjectID(), title: 'test', status: 'draft', type: 'expectations' }]);
 
       const response = await app.inject({
@@ -63,7 +63,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         payload: { title: 'test', type: 'expectations' },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
   });
 
