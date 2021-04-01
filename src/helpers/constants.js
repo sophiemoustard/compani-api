@@ -331,6 +331,8 @@ module.exports = {
       { label: 'Question\t&\tRéponse', value: this.QUESTION_ANSWER, type: this.QUESTIONNAIRE },
     ];
   },
+  // QUESTIONNAIRE_TYPES
+  EXPECTATIONS: 'expectations',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',
