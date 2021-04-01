@@ -88,7 +88,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
     });
 
     it('should get all questionnaires', async () => {
-      const questionnairesNumber = questionnairesList.length;
       const response = await app.inject({
         method: 'GET',
         url: '/questionnaires',
@@ -96,7 +95,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires.length).toEqual(questionnairesNumber);
+      expect(response.result.data.questionnaires.length).toEqual(questionnairesList.length);
     });
   });
 

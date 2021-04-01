@@ -22,11 +22,9 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await QuestionnaireHelper.createQuestionnaire(req.payload);
+    await QuestionnaireHelper.create(req.payload);
 
-    return {
-      message: translate[language].questionnaireCreated,
-    };
+    return { message: translate[language].questionnaireCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

@@ -4,7 +4,7 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const SinonMongoose = require('../sinonMongoose');
 
-describe('createQuestionnaire', () => {
+describe('create', () => {
   let create;
   beforeEach(() => {
     create = sinon.stub(Questionnaire, 'create');
@@ -15,7 +15,7 @@ describe('createQuestionnaire', () => {
 
   it('should create questionnaire', async () => {
     const newQuestionnaire = { title: 'test', type: 'expectations' };
-    await QuestionnaireHelper.createQuestionnaire(newQuestionnaire);
+    await QuestionnaireHelper.create(newQuestionnaire);
 
     sinon.assert.calledOnceWithExactly(create, newQuestionnaire);
   });
@@ -37,12 +37,6 @@ describe('list', () => {
 
     const result = await QuestionnaireHelper.list();
     expect(result).toMatchObject(questionnairesList);
-    SinonMongoose.calledWithExactly(
-      find,
-      [
-        { query: 'find', args: [{}] },
-        { query: 'lean' },
-      ]
-    );
+    SinonMongoose.calledWithExactly(find, [{ query: 'find' }, { query: 'lean' }]);
   });
 });

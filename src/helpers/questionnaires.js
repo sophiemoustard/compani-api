@@ -1,5 +1,5 @@
 const Questionnaire = require('../models/Questionnaire');
 
-exports.createQuestionnaire = async payload => Questionnaire.create(payload);
+exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async () => Questionnaire.find({}).lean();
+exports.list = async () => Questionnaire.find().lean();
