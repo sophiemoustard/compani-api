@@ -1,5 +1,7 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const Questionnaire = require('../../src/models/Questionnaire');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -49,6 +51,19 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if already exists a draft questionnaire with same type', async () => {
+      await Questionnaire.insertMany([{ _id: new ObjectID(), title: 'test', status: 'draft', type: 'expectations' }]);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { title: 'test', type: 'expectations' },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
