@@ -7,8 +7,9 @@ const User = require('../../../src/models/User');
 const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
+const { vendorAdmin } = require('../../seed/userSeed');
 
-const { populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const trainerList = [
   {
@@ -28,9 +29,6 @@ const trainerList = [
     origin: WEBAPP,
   },
 ];
-
-const vendorAdmin = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
 
 const coursesList = [
   {

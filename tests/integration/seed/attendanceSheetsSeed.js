@@ -4,6 +4,7 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication, authCompany, rolesList, userList, otherCompany } = require('./authenticationSeed');
 const { COACH, WEBAPP } = require('../../../src/helpers/constants.js');
+const { vendorAdmin } = require('../../seed/userSeed');
 
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
@@ -15,9 +16,6 @@ const traineeFromOtherCompany = {
   origin: WEBAPP,
   company: otherCompany._id,
 };
-
-const vendorAdmin = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
 
 const coursesList = [
   {

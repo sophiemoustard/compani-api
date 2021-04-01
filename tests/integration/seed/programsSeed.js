@@ -8,8 +8,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { populateDBForAuthentication } = require('./authenticationSeed');
-const { userList } = require('../../seed/userSeed');
-const { rolesList } = require('../../seed/roleSeed');
+const { userList, vendorAdmin } = require('../../seed/userSeed');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },
@@ -26,8 +25,6 @@ const categoriesList = [
   { _id: new ObjectID(), name: 'ma seconde catégorie' },
 ];
 
-const vendorAdminRole = rolesList.find(role => role.name === 'vendor_admin')._id;
-const vendorAdmin = userList.find(user => user.role.vendor === vendorAdminRole);
 const activityHistoriesList = [
   { _id: new ObjectID(), user: vendorAdmin._id, activity: activitiesList[0]._id },
 ];

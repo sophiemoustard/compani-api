@@ -6,8 +6,8 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
-const { userList } = require('../../seed/userSeed');
+const { populateDBForAuthentication } = require('./authenticationSeed');
+const { userList, vendorAdmin } = require('../../seed/userSeed');
 
 const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
 
@@ -62,9 +62,6 @@ const programsList = [
     testers: [tester._id],
   },
 ];
-
-const vendorAdmin = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
 
 const coursesList = [{
   _id: new ObjectID(),

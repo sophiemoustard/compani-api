@@ -5,6 +5,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, userList } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
+const { vendorAdmin } = require('../../seed/userSeed');
 const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
 
 const subProgramsList = [
@@ -25,9 +26,6 @@ const trainerAndCoach = {
   company: authCompany._id,
   origin: WEBAPP,
 };
-
-const vendorAdmin = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
 
 const coursesList = [{
   _id: new ObjectID(),

@@ -33,7 +33,8 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
 };
 
 exports.authorizeCourseCreation = async (req) => {
-  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative });
+  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
+    .lean({ autopopulate: true });
 
   if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
     throw Boom.forbidden();

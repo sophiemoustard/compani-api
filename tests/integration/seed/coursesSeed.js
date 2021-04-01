@@ -12,6 +12,7 @@ const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
+const { vendorAdmin, noRoleNoCompany } = require('../../seed/userSeed');
 const {
   AUXILIARY,
   HELPER,
@@ -34,9 +35,6 @@ const trainerOrganisationManager = userList
   .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
-const noRoleNoCompany = userList[11];
-const vendorAdmin = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === 'vendor_admin')._id);
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
