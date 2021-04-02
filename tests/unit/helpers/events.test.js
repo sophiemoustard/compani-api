@@ -982,7 +982,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
 describe('deleteList', () => {
   let deleteEventsStub;
   let deleteRepetitionStub;
-  let EventModel;
+  let countDocuments;
   let getEventsGroupedByParentIdStub;
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -991,13 +991,13 @@ describe('deleteList', () => {
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
     deleteRepetitionStub = sinon.stub(EventsRepetitionHelper, 'deleteRepetition');
-    EventModel = sinon.mock(Event);
+    countDocuments = sinon.stub(Event, 'countDocuments');
     getEventsGroupedByParentIdStub = sinon.stub(EventRepository, 'getEventsGroupedByParentId');
   });
   afterEach(() => {
     deleteEventsStub.restore();
     deleteRepetitionStub.restore();
-    EventModel.restore();
+    countDocuments.restore();
     getEventsGroupedByParentIdStub.restore();
   });
 
@@ -1045,16 +1045,14 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [{ _id: new ObjectID(), events: [events[0]] }];
 
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, endDate, credentials);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
     sinon.assert.calledOnceWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.notCalled(deleteRepetitionStub);
@@ -1104,18 +1102,17 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [
       { _id: null, events: [events[0]] },
       { _id: repetitionParentId, events: [events[1], events[2]] },
     ];
+
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
     sinon.assert.calledOnceWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.calledOnceWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
@@ -1148,17 +1145,16 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [
       { _id: repetitionParentId, events: [events[0], events[1]] },
     ];
+
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
     sinon.assert.notCalled(deleteEventsStub);
     sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.calledOnceWithExactly(
