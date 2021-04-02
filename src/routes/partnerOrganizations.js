@@ -5,7 +5,6 @@ const { phoneNumberValidation, addressValidation } = require('./validations/util
 const { create } = require('../controllers/partnerOrganizationsController');
 const { authorizePartnerOrganizationCreation } = require('./preHandlers/partnerOrganizations');
 
-
 exports.plugin = {
   name: 'routes-partnerorganizations',
   register: async (server) => {
