@@ -32,7 +32,7 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
 
-exports.checkSalesRepresentative = async (req) => {
+exports.checkSalesRepresentativeExists = async (req) => {
   const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
     .lean({ autopopulate: true });
 
@@ -53,7 +53,7 @@ exports.authorizeCourseEdit = async (req) => {
     const courseCompanyId = course.company ? course.company.toHexString() : null;
     this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
-    if (req.payload.salesRepresentative) await this.checkSalesRepresentative(req);
+    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
 
     return null;
   } catch (e) {

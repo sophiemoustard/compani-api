@@ -39,7 +39,7 @@ const {
   authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
-  checkSalesRepresentative,
+  checkSalesRepresentativeExists,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -90,7 +90,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
-        pre: [{ method: checkSalesRepresentative }],
+        pre: [{ method: checkSalesRepresentativeExists }],
       },
       handler: create,
     });
