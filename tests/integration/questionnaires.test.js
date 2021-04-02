@@ -4,7 +4,6 @@ const app = require('../../server');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
-const Questionnaire = require('../../src/models/Questionnaire');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -163,6 +162,16 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
       expect(response.result.data.questionnaire._id).toEqual(questionnairesList[0]._id);
     });
 
+    it('should return 400 if invalid _id', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/blabla',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 404 if questionnaire does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -171,16 +180,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 400 if questionnaire query has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/questionnaires/blabla',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -236,34 +235,6 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-
-      const questionnaire = await Questionnaire.findOne({ _id: questionnairesList[0]._id }).lean();
-
-      expect(questionnaire.title).toEqual(payload.title);
-    });
-
-    it('should return 404 if questionnaire does not exist', async () => {
-      const payload = { title: 'test2' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/questionnaires/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 403 if questionnaire is published', async () => {
-      const payload = { title: 'test2' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/questionnaires/${questionnairesList[1]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
     });
 
     it('should return 400 if title is not a string', async () => {
@@ -288,6 +259,30 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if questionnaire does not exist', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if questionnaire is published', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
