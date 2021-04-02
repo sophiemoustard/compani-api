@@ -1909,7 +1909,7 @@ describe('workingStats', () => {
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
-    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
+    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto', contracts }]]));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
 
     const result = await EventHelper.workingStats(query, credentials);
