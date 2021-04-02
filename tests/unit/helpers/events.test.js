@@ -1756,16 +1756,16 @@ describe('workingStats', () => {
   };
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
-  let UserModel;
-  let DistanceMatrixModel;
+  let findUser;
+  let findDistanceMatrix;
   let getEventsToPayStub;
   let getContractStub;
   let getContractWeekInfoStub;
   let getPayFromEventsStub;
   let getPayFromAbsencesStub;
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+    findUser = sinon.stub(User, 'find');
+    findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
     getContractStub = sinon.stub(EventHelper, 'getContract');
     getContractWeekInfoStub = sinon.stub(EventHelper, 'getContractWeekInfo');
@@ -1773,8 +1773,8 @@ describe('workingStats', () => {
     getPayFromAbsencesStub = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
   });
   afterEach(() => {
-    UserModel.restore();
-    DistanceMatrixModel.restore();
+    findUser.restore();
+    findDistanceMatrix.restore();
     getEventsToPayStub.restore();
     getContractStub.restore();
     getContractWeekInfoStub.restore();
@@ -1786,28 +1786,18 @@ describe('workingStats', () => {
     const contractId = new ObjectID();
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     const contract = { startDate: '2018-11-11', _id: contractId };
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
 
     const result = await EventHelper.workingStats(query, credentials);
 
@@ -1823,8 +1813,18 @@ describe('workingStats', () => {
     sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
     sinon.assert.calledOnceWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, query);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should return workingstats for all auxiliaries if no auxiliary is specified', async () => {
@@ -1832,28 +1832,18 @@ describe('workingStats', () => {
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     const queryWithoutAuxiliary = omit(query, 'auxiliary');
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     const contract = { startDate: '2018-11-11', _id: contractId };
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
     const expectedResult = {};
@@ -1875,66 +1865,75 @@ describe('workingStats', () => {
       queryWithoutAuxiliary
     );
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should return {} if no contract in auxiliaries', async () => {
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(getContractWeekInfoStub);
     sinon.assert.notCalled(getPayFromEventsStub);
     sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
   });
 
   it('should return {} if contract not found', async () => {
     const contracts = [{ _id: new ObjectID() }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
+    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(getContractWeekInfoStub);
     sinon.assert.notCalled(getPayFromEventsStub);
     sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
   });
 });
 
