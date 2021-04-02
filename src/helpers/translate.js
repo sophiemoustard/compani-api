@@ -286,7 +286,7 @@ module.exports = {
     attendancesFound: 'Attendances found.',
     attendancesNotFound: 'Attendances not found.',
     attendanceDeleted: 'Attendance deleted.',
-    attendanceExists: 'An attendance exist.',
+    attendanceExists: 'An attendance exists.',
     /* Questionnaires */
     questionnairesFound: 'Questionnaires found.',
     questionnairesNotFound: 'Questionnaires not found.',
