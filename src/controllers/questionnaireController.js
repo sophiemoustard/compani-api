@@ -31,4 +31,18 @@ const create = async (req) => {
   }
 };
 
-module.exports = { list, create };
+const getById = async (req) => {
+  try {
+    const questionnaire = await QuestionnaireHelper.getQuestionnaire(req.params._id);
+
+    return {
+      message: translate[language].questionnaireFound,
+      data: { questionnaire },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById };

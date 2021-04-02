@@ -2,8 +2,8 @@
 
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
-const { list, create } = require('../controllers/questionnaireController');
-const { authorizeQuestionnaireCreation } = require('./preHandlers/questionnaires');
+const { list, create, getById } = require('../controllers/questionnaireController');
+const { authorizeQuestionnaireGet, authorizeQuestionnaireCreation } = require('./preHandlers/questionnaires');
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -15,6 +15,19 @@ exports.plugin = {
         auth: { scope: ['questionnaires:read'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeQuestionnaireGet }],
+      },
+      handler: getById,
     });
 
     server.route({
