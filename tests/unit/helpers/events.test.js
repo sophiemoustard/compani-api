@@ -181,7 +181,8 @@ describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
   let updateRepetition;
   let formatEditionPayload;
-  let EventMock;
+  let findOne;
+  let updateOne;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
   let populateEventSubscription;
@@ -193,7 +194,8 @@ describe('updateEvent', () => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
-    EventMock = sinon.mock(Event);
+    findOne = sinon.stub(Event, 'findOne');
+    updateOne = sinon.stub(Event, 'updateOne');
     deleteConflictInternalHoursAndUnavailabilities = sinon.stub(
       EventHelper,
       'deleteConflictInternalHoursAndUnavailabilities'
@@ -208,7 +210,8 @@ describe('updateEvent', () => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetition.restore();
-    EventMock.restore();
+    findOne.restore();
+    updateOne.restore();
     deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
     formatEditionPayload.restore();
@@ -231,28 +234,32 @@ describe('updateEvent', () => {
     };
 
     isUpdateAllowed.returns(true);
-    EventMock.expects('updateOne').never();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(isRepetition);
-    EventMock.verify();
+    sinon.assert.notCalled(updateOne);
   });
 
   it('should update event', async () => {
@@ -272,26 +279,30 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(false);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns({ ...event, updated: 1 });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ ...event, updated: 1 }]));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(populateEventSubscription, { ...event, updated: 1 });
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
@@ -314,25 +325,30 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
   });
@@ -349,25 +365,30 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(false);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
@@ -384,25 +405,30 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(true);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
@@ -424,25 +450,31 @@ describe('updateEvent', () => {
     isUpdateAllowed.returns(true);
     isMiscOnlyUpdated.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'auxiliary',
+              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+            },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
       event.auxiliary,
@@ -454,8 +486,8 @@ describe('updateEvent', () => {
       event.auxiliary,
       credentials
     );
+    sinon.assert.calledWithExactly(deleteConflictInternalHoursAndUnavailabilities, event, event.auxiliary, credentials);
     sinon.assert.notCalled(isMiscOnlyUpdated);
-    EventMock.verify();
   });
 
   it('should not update as event is scheduled on several days', async () => {
@@ -470,19 +502,17 @@ describe('updateEvent', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
 
-    EventMock.expects('updateOne').never();
-
     try {
       await EventHelper.updateEvent(event, payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
       expect(e.output.payload.message).toEqual('Les dates de début et de fin devraient être le même jour.');
     } finally {
+      sinon.assert.notCalled(updateOne);
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
       sinon.assert.notCalled(isMiscOnlyUpdated);
-      EventMock.verify();
     }
   });
 });
