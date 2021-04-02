@@ -41,8 +41,4 @@ const addCard = async (req) => {
   }
 };
 
-module.exports = {
-  getById,
-  update,
-  addCard,
-};
+module.exports = { getById, update, addCard };

@@ -15,6 +15,4 @@ const create = async (req) => {
   }
 };
 
-module.exports = {
-  create,
-};
+module.exports = { create };

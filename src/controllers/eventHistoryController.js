@@ -18,6 +18,4 @@ const list = async (req) => {
   }
 };
 
-module.exports = {
-  list,
-};
+module.exports = { list };

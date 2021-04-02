@@ -41,8 +41,4 @@ const remove = async (req) => {
   }
 };
 
-module.exports = {
-  list,
-  create,
-  remove,
-};
+module.exports = { list, create, remove };

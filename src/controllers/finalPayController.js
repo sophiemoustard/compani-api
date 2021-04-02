@@ -30,7 +30,4 @@ const createList = async (req) => {
   }
 };
 
-module.exports = {
-  draftFinalPayList,
-  createList,
-};
+module.exports = { draftFinalPayList, createList };
