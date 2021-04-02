@@ -518,11 +518,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should query with thirdPartyPayer', async () => {
@@ -546,11 +549,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ type: 'intervention' }]);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return events with creditNotes at edition', async () => {
@@ -577,11 +583,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
