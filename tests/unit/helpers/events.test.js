@@ -31,8 +31,6 @@ const {
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('list', () => {
   let getEventsGroupedByCustomersStub;
   let getEventsGroupedByAuxiliariesStub;
