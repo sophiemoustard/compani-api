@@ -53,7 +53,7 @@ exports.authorizeCourseEdit = async (req) => {
     const courseCompanyId = course.company ? course.company.toHexString() : null;
     this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 
-    if (req.payload.salesRepresentative) this.checkSalesRepresentative(req);
+    if (req.payload.salesRepresentative) await this.checkSalesRepresentative(req);
 
     return null;
   } catch (e) {

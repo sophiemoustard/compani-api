@@ -972,7 +972,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if invalid salesRepresentative #tag', async () => {
+    it('should return 403 if invalid salesRepresentative', async () => {
       const payload = { salesRepresentative: clientAdmin._id };
       const response = await app.inject({
         method: 'PUT',
