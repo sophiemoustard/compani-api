@@ -5,9 +5,11 @@ const Questionnaire = require('../../models/Questionnaire');
 
 const { language } = translate;
 
-exports.authorizeQuestionnaireCreation = async () => {
-  const draftQuestionnaires = await Questionnaire.countDocuments({ type: EXPECTATIONS, status: DRAFT });
+exports.authorizeQuestionnaireCreation = async (req) => {
+  const { type } = req.payload;
+  if (type !== EXPECTATIONS) return null;
 
+  const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
   if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
