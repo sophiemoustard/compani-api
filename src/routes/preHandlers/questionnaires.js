@@ -10,7 +10,7 @@ exports.authorizeQuestionnaireCreation = async (req) => {
   if (type !== EXPECTATIONS) return null;
 
   const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
-  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
+  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftExpectationQuestionnaireAlreadyExists);
 
   return null;
 };
