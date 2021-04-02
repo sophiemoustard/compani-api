@@ -65,3 +65,30 @@ describe('getQuestionnaire', () => {
     );
   });
 });
+
+describe('editQuestionnaire', () => {
+  let findOneAndUpdate;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Questionnaire, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
+  it('should update questionnaire', async () => {
+    const questionnaireId = new ObjectID();
+    const questionnaire = { _id: questionnaireId, title: 'test2' };
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
+
+    const result = await QuestionnaireHelper.edit(questionnaireId, { title: 'test2' });
+    expect(result).toMatchObject(questionnaire);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2' } }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});

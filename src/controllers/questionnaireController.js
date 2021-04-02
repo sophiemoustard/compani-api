@@ -45,4 +45,15 @@ const getById = async (req) => {
   }
 };
 
-module.exports = { list, create, getById };
+const edit = async (req) => {
+  try {
+    await QuestionnaireHelper.edit(req.params._id, req.payload);
+
+    return { message: translate[language].questionnaireFound };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, edit };
