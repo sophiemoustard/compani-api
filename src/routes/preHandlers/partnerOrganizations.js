@@ -6,7 +6,7 @@ const { language } = translate;
 
 exports.authorizePartnerOrganizationCreation = async (req) => {
   const partnerOrganizationAlreadyExist = await PartnerOrganization.countDocuments({ name: req.payload.name });
-  if (partnerOrganizationAlreadyExist) throw Boom.conflict(translate[language].partnerOrganizationConflict);
+  if (partnerOrganizationAlreadyExist) throw Boom.conflict(translate[language].partnerOrganizationAlreadyExists);
 
   return null;
 };
