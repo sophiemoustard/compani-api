@@ -37,6 +37,7 @@ describe('list', () => {
     find.returns(SinonMongoose.stubChainedQueries([questionnairesList], ['lean']));
 
     const result = await QuestionnaireHelper.list();
+
     expect(result).toMatchObject(questionnairesList);
     SinonMongoose.calledWithExactly(find, [{ query: 'find' }, { query: 'lean' }]);
   });
@@ -58,6 +59,7 @@ describe('getQuestionnaire', () => {
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
 
     const result = await QuestionnaireHelper.getQuestionnaire(questionnaireId);
+
     expect(result).toMatchObject(questionnaire);
     SinonMongoose.calledWithExactly(
       findOne,
@@ -81,12 +83,13 @@ describe('editQuestionnaire', () => {
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
 
-    const result = await QuestionnaireHelper.edit(questionnaireId, { title: 'test2' });
+    const result = await QuestionnaireHelper.update(questionnaireId, { title: 'test2' });
+
     expect(result).toMatchObject(questionnaire);
     SinonMongoose.calledWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2' } }, { new: true }] },
+        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2' } }] },
         { query: 'lean' },
       ]
     );

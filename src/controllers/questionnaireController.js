@@ -45,9 +45,9 @@ const getById = async (req) => {
   }
 };
 
-const edit = async (req) => {
+const update = async (req) => {
   try {
-    await QuestionnaireHelper.edit(req.params._id, req.payload);
+    await QuestionnaireHelper.update(req.params._id, req.payload);
 
     return { message: translate[language].questionnaireFound };
   } catch (e) {
@@ -56,4 +56,4 @@ const edit = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, edit };
+module.exports = { list, create, getById, update };

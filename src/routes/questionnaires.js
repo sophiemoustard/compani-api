@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
-const { list, create, getById, edit } = require('../controllers/questionnaireController');
+const { list, create, getById, update } = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
   authorizeQuestionnaireCreation,
@@ -55,12 +55,13 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ title: Joi.string().required() }),
         },
         auth: { scope: ['questionnaires:edit'] },
         pre: [{ method: authorizeQuestionnaireEdit }],
       },
-      handler: edit,
+      handler: update,
     });
   },
 };

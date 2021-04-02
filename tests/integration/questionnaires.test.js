@@ -172,6 +172,16 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 400 if questionnaire query has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/blabla',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -193,7 +203,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} and questionnaire is not published`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name} and questionnaire is draft`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
@@ -209,7 +219,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
 
 describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
   let authToken = null;
-  let payload = { title: 'test2' };
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -217,7 +226,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should edit questionnaire title', async () => {
+    it('should update questionnaire title', async () => {
+      const payload = { title: 'test2' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -233,6 +243,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
     });
 
     it('should return 404 if questionnaire does not exist', async () => {
+      const payload = { title: 'test2' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${new ObjectID()}`,
@@ -244,6 +255,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
     });
 
     it('should return 403 if questionnaire is published', async () => {
+      const payload = { title: 'test2' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[1]._id}`,
@@ -254,8 +266,20 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 400 if try to edit another field', async () => {
-      payload = { type: 'new_type' };
+    it('should return 400 if title is not a string', async () => {
+      const payload = { title: 123 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if try to update another field', async () => {
+      const payload = { type: 'new_type' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -268,7 +292,6 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
   });
 
   describe('Other roles', () => {
-    payload = { title: 'test2' };
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
@@ -276,7 +299,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} #tag`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { title: 'test2' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
