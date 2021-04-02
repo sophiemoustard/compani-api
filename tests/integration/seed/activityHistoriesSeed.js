@@ -5,7 +5,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, vendorAdmin } = require('../../seed/userSeed');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -45,6 +45,7 @@ const coursesList = [
     type: 'intra',
     trainer: new ObjectID(),
     trainees: [userList[6]._id],
+    salesRepresentative: vendorAdmin._id,
   }];
 
 const populateDB = async () => {

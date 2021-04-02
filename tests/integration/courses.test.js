@@ -27,6 +27,7 @@ const {
   traineeFromOtherCompany,
   slots,
   trainerAndCoach,
+  vendorAdmin,
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -50,7 +51,12 @@ describe('COURSES ROUTES - POST /courses', () => {
     });
 
     it('should create inter_b2b course', async () => {
-      const payload = { misc: 'course', type: 'inter_b2b', subProgram: subProgramsList[0]._id };
+      const payload = {
+        misc: 'course',
+        type: 'inter_b2b',
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -61,8 +67,31 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
-    ['company', 'subProgram', 'type'].forEach((param) => {
+    it('should return 403 if invalid salesRepresentative', async () => {
+      const payload = {
+        misc: 'course',
+        type: 'inter_b2b',
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: clientAdmin._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    const payload = {
+      misc: 'course',
+      type: 'intra',
+      company: authCompany._id,
+      subProgram: subProgramsList[0]._id,
+      salesRepresentative: vendorAdmin._id,
+    };
+    ['company', 'subProgram', 'type', 'salesRepresentative'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
@@ -88,7 +117,13 @@ describe('COURSES ROUTES - POST /courses', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { misc: 'course', type: 'intra', company: authCompany._id, subProgram: subProgramsList[0]._id };
+        const payload = {
+          misc: 'course',
+          type: 'intra',
+          company: authCompany._id,
+          subProgram: subProgramsList[0]._id,
+          salesRepresentative: vendorAdmin._id,
+        };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',

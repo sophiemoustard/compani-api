@@ -4,6 +4,7 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication, authCompany, rolesList, userList, otherCompany } = require('./authenticationSeed');
 const { COACH, WEBAPP } = require('../../../src/helpers/constants.js');
+const { vendorAdmin } = require('../../seed/userSeed');
 
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
@@ -23,6 +24,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -30,6 +32,7 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -37,6 +40,7 @@ const coursesList = [
     type: 'intra',
     company: otherCompany._id,
     trainees: [coachFromAuthCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

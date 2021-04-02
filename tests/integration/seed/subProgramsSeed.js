@@ -7,7 +7,7 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication } = require('./authenticationSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, vendorAdmin } = require('../../seed/userSeed');
 
 const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
 
@@ -69,6 +69,7 @@ const coursesList = [{
   subProgram: subProgramsList[4]._id,
   type: 'intra',
   company: new ObjectID(),
+  salesRepresentative: vendorAdmin._id,
 }];
 
 const courseSlotsList = [

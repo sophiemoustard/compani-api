@@ -39,6 +39,7 @@ const {
   authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
+  authorizeCourseCreation,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -85,9 +86,11 @@ exports.plugin = {
             subProgram: Joi.objectId().required(),
             misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
+            salesRepresentative: Joi.objectId().required(),
           }),
         },
         auth: { scope: ['courses:create'] },
+        pre: [{ method: authorizeCourseCreation }],
       },
       handler: create,
     });
