@@ -1,7 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const Questionnaire = require('../../src/models/Questionnaire');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -53,9 +51,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 409 if already exists a draft questionnaire with same type', async () => {
-      await Questionnaire.insertMany([{ _id: new ObjectID(), title: 'test', status: 'draft', type: 'expectations' }]);
-
+    it('should return 409 if already exists a draft questionnaire with type EXPECTATIONS', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
@@ -63,7 +59,16 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         payload: { title: 'test', type: 'expectations' },
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(200);
+
+      const failedResponse = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { title: 'test', type: 'expectations' },
+      });
+
+      expect(failedResponse.statusCode).toBe(409);
     });
   });
 
