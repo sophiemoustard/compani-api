@@ -19,8 +19,7 @@ const {
   EVERY_WEEK,
   INTERNAL_HOUR,
 } = require('../../../src/helpers/constants');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 momentRange.extendMoment(moment);
 
@@ -278,14 +277,14 @@ describe('createRepetitions', () => {
   let createRepetitionsEveryWeekDay;
   let createRepetitionsByWeek;
   let saveRepetition;
-  let UserMock;
+  let findOne;
   beforeEach(() => {
     updateOne = sinon.stub(Event, 'updateOne');
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     createRepetitionsEveryWeekDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryWeekDay');
     createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
     saveRepetition = sinon.stub(Repetition.prototype, 'save');
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
     updateOne.restore();
@@ -293,7 +292,7 @@ describe('createRepetitions', () => {
     createRepetitionsEveryWeekDay.restore();
     createRepetitionsByWeek.restore();
     saveRepetition.restore();
-    UserMock.restore();
+    findOne.restore();
   });
 
   it('should call updateOne', async () => {
@@ -303,15 +302,19 @@ describe('createRepetitions', () => {
     const credentials = { company: { _id: companyId } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectID(), auxiliary: auxiliaryId });
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
+
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
     sinon.assert.called(updateOne);
     sinon.assert.called(saveRepetition);
   });
@@ -323,16 +326,19 @@ describe('createRepetitions', () => {
     const credentials = { company: { _id: companyId } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), auxiliary: auxiliaryId });
-    UserMock.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns({ _id: auxiliaryId, sector: sectorId });
+
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
     sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryDay);
     sinon.assert.calledWithExactly(createRepetitionsEveryDay, payload, sectorId);
@@ -344,10 +350,10 @@ describe('createRepetitions', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
-    UserMock.expects('findOne').never();
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.called(createRepetitionsEveryWeekDay);
     sinon.assert.calledWithExactly(createRepetitionsEveryWeekDay, payload, sectorId);
@@ -359,10 +365,10 @@ describe('createRepetitions', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
-    UserMock.expects('findOne').never();
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 1);
     sinon.assert.called(saveRepetition);
@@ -373,10 +379,10 @@ describe('createRepetitions', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectID(), sector: sectorId });
-    UserMock.expects('findOne').never();
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 2);
     sinon.assert.called(saveRepetition);
@@ -385,36 +391,36 @@ describe('createRepetitions', () => {
 
 describe('updateRepetition', () => {
   let hasConflicts;
-  let EventMock;
+  let find;
   let updateOne;
   let updateRepetitions;
-  let UserMock;
+  let findOne;
   let formatEditionPayload;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    EventMock = sinon.mock(Event);
+    find = sinon.stub(Event, 'find');
     updateOne = sinon.stub(Event, 'updateOne');
     updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
-    UserMock = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
     formatEditionPayload = sinon.stub(EventsHelper, 'formatEditionPayload');
   });
   afterEach(() => {
     hasConflicts.restore();
-    EventMock.restore();
+    find.restore();
     updateOne.restore();
     updateRepetitions.restore();
-    UserMock.restore();
+    findOne.restore();
     formatEditionPayload.restore();
   });
 
   it('should update repetition', async () => {
     const auxiliaryId = new ObjectID();
-    const sectorId = new ObjectID();
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
       startDate: '2019-03-23T09:00:00.000Z',
       type: INTERVENTION,
       sector: new ObjectID(),
+      auxiliary: auxiliaryId,
     };
     const credentials = { company: { _id: new ObjectID() } };
     const payload = {
@@ -442,24 +448,28 @@ describe('updateRepetition', () => {
         _id: '654321',
       },
     ];
-    UserMock.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns({ sector: sectorId, _id: auxiliaryId });
-    EventMock.expects('find')
-      .withExactArgs({
-        'repetition.parentId': 'qwertyuiop',
-        'repetition.frequency': { $not: { $eq: 'never' } },
-        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
-        company: credentials.company._id,
-      })
-      .chain('lean')
-      .returns(events);
+
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     hasConflicts.returns(false);
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
+    sinon.assert.notCalled(findOne);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            'repetition.parentId': 'qwertyuiop',
+            'repetition.frequency': { $not: { $eq: 'never' } },
+            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            company: credentials.company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledThrice(hasConflicts);
     sinon.assert.calledThrice(updateOne);
     sinon.assert.calledThrice(formatEditionPayload);
@@ -499,6 +509,7 @@ describe('updateRepetition', () => {
         _id: '123456',
       },
     ];
+
     formatEditionPayload.returns({
       $set: {
         _id: '123456',
@@ -509,18 +520,39 @@ describe('updateRepetition', () => {
       },
       $unset: { auxiliary: '' },
     });
-    EventMock.expects('find')
-      .chain('lean')
-      .returns(events);
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
     hasConflicts.returns(true);
-    UserMock.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns({ sector: sectorId, _id: auxiliaryId });
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            'repetition.parentId': 'qwertyuiop',
+            'repetition.frequency': { $not: { $eq: 'never' } },
+            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            company: credentials.company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(
       hasConflicts,
       {
@@ -580,6 +612,7 @@ describe('updateRepetition', () => {
         _id: '123456',
       },
     ];
+
     formatEditionPayload.returns({
       $set: {
         _id: '123456',
@@ -590,19 +623,39 @@ describe('updateRepetition', () => {
       },
       $unset: { auxiliary: '' },
     });
-    EventMock.expects('find')
-      .chain('lean')
-      .returns(events);
     hasConflicts.returns(true);
-    UserMock.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns({ sector: sectorId, _id: auxiliaryId });
-    const credentials = { company: { _id: new ObjectID() } };
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
+    const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            'repetition.parentId': 'qwertyuiop',
+            'repetition.frequency': { $not: { $eq: 'never' } },
+            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            company: credentials.company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(
       hasConflicts,
       {
