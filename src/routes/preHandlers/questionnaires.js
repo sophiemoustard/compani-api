@@ -23,7 +23,7 @@ exports.authorizeQuestionnaireCreation = async (req) => {
 };
 exports.authorizeQuestionnaireGet = async (req) => {
   const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
-  if (!questionnaire) return Boom.notFound();
+  if (!questionnaire) throw Boom.notFound();
 
   const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
   if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole) &&
@@ -36,9 +36,9 @@ exports.authorizeQuestionnaireGet = async (req) => {
 
 exports.authorizeQuestionnaireEdit = async (req) => {
   const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
-  if (!questionnaire) return Boom.notFound();
+  if (!questionnaire) throw Boom.notFound();
 
-  if (questionnaire.status === PUBLISHED) return Boom.forbidden();
+  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };
