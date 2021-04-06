@@ -358,10 +358,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
             identity: { firstname: 'trainer', lastname: 'trainer' },
           }),
         ]),
-        salesRepresentative: expect.objectContaining({
-          _id: expect.any(ObjectID),
-          identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
-        }),
       }));
     });
 
