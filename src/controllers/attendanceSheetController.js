@@ -42,8 +42,4 @@ const deleteAttendanceSheet = async (req) => {
   }
 };
 
-module.exports = {
-  list,
-  create,
-  deleteAttendanceSheet,
-};
+module.exports = { list, create, deleteAttendanceSheet };

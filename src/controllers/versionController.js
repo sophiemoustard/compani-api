@@ -19,6 +19,4 @@ const shouldUpdate = async (req) => {
   }
 };
 
-module.exports = {
-  shouldUpdate,
-};
+module.exports = { shouldUpdate };

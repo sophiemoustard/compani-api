@@ -27,12 +27,12 @@ module.exports = {
     userLogout: 'User disconnected successfully.',
     userPayDocumentDeleted: 'User pay document deleted successfully.',
     userPayDocumentNotFound: 'User pay document not found.',
-    userRoleConflict: 'User already has a role on this interface',
+    userRoleConflict: 'User already has a role on this interface.',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
-    apiVersionUpToDate: 'api version up to date',
-    apiVersionToUpdate: 'api version must be updated',
+    apiVersionUpToDate: 'api version up to date.',
+    apiVersionToUpdate: 'api version must be updated.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -46,7 +46,7 @@ module.exports = {
     /* Role */
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
-    unknownRole: 'Role does not exist',
+    unknownRole: 'Role does not exist.',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -144,7 +144,7 @@ module.exports = {
     sectorNotFound: 'Sector not found.',
     sectorsFound: 'Sectors found.',
     sectorDeleted: 'Sector deleted.',
-    sectorAlreadyExists: 'Sector already exists',
+    sectorAlreadyExists: 'Sector already exists.',
     /* Services */
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
@@ -241,7 +241,7 @@ module.exports = {
     subProgramFound: 'Sub-program found.',
     subProgramsNotFound: 'Sub-programs not found.',
     subProgramUpdated: 'Sub-program updated.',
-    eLearningSubProgramAlreadyExist: 'A published eLearning sub-program already exists',
+    eLearningSubProgramAlreadyExists: 'A published eLearning sub-program already exists.',
     /* Steps */
     stepUpdated: 'Step updated.',
     /* Activities */
@@ -263,7 +263,7 @@ module.exports = {
     courseTraineeAdded: 'Course trainee added.',
     courseTraineeRemoved: 'Course trainee removed.',
     courseTraineeAlreadyExists: 'Course trainee already added to course.',
-    courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company',
+    courseTraineeNotFromCourseCompany: 'Course trainee not connected to course company.',
     courseAccessRuleAdded: 'Access rule added.',
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
@@ -286,12 +286,15 @@ module.exports = {
     attendancesFound: 'Attendances found.',
     attendancesNotFound: 'Attendances not found.',
     attendanceDeleted: 'Attendance deleted.',
-    attendanceExists: 'An attendance exist.',
+    attendanceExists: 'An attendance exists.',
     /* Questionnaires */
     questionnairesFound: 'Questionnaires found.',
     questionnairesNotFound: 'Questionnaires not found.',
     questionnaireCreated: 'Questionnaire created.',
     draftExpectationQuestionnaireAlreadyExists: 'A draft questionnaire with type \'expectations\' already exists.',
+    /* PartnerOrganization */
+    partnerOrganizationCreated: 'Partner organization created.',
+    partnerOrganizationAlreadyExists: 'A partner organization already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -311,7 +314,7 @@ module.exports = {
     userFound: 'Utilisateur trouvé avec succès.',
     userRemoved: 'Utilisateur supprimé avec succès.',
     userUpdated: 'Utilisateur modifié avec succès.',
-    userAddressStored: 'Adresse utilisateur enregistré avec succès',
+    userAddressStored: 'Adresse utilisateur enregistré avec succès.',
     userAddressNotFound: 'Adresse utilisateur n\'existe pas.',
     userAuthNotFound: 'L\'authentification a échoué car l\'utilisateur n\'existe pas.',
     userAuthFailed: 'L\'adresse email ou le mot de passe est invalide.',
@@ -320,12 +323,12 @@ module.exports = {
     userLogout: 'Utilisateur déconnecté avec succès.',
     userPayDocumentDeleted: 'Document de paye d\'utilisateur supprimé avec succès.',
     userPayDocumentNotFound: 'Document de paye d\'utilisateur non trouvé.',
-    userRoleConflict: 'L\'utilisateur a déjà un role sur cette interface',
+    userRoleConflict: 'L\'utilisateur a déjà un role sur cette interface.',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */
-    apiVersionUpToDate: 'La version de l\'api est à jour',
-    apiVersionToUpdate: 'La version de l\'api doit être mis à jour',
+    apiVersionUpToDate: 'La version de l\'api est à jour.',
+    apiVersionToUpdate: 'La version de l\'api doit être mis à jour.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
@@ -339,7 +342,7 @@ module.exports = {
     /* Role */
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
-    unknownRole: 'Le rôle n\'existe pas',
+    unknownRole: 'Le rôle n\'existe pas.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
@@ -388,18 +391,18 @@ module.exports = {
     customerNotFound: 'Bénéficiaire non trouvé.',
     customerCreated: 'Bénéficiaire créé.',
     customerUpdated: 'Bénéficiaire mis à jour.',
-    customerRemoved: 'Bénéficiaire supprimé',
+    customerRemoved: 'Bénéficiaire supprimé.',
     customerHelperDeleted: 'Aidant du bénéficiaire supprimé.',
-    customerSubscriptionsFound: 'Abonnements du bénéficiaire trouvés',
-    customerSubscriptionsNotFound: 'Abonnements du bénéficiaire non trouvés',
+    customerSubscriptionsFound: 'Abonnements du bénéficiaire trouvés.',
+    customerSubscriptionsNotFound: 'Abonnements du bénéficiaire non trouvés.',
     customerSubscriptionAdded: 'Abonnement du bénéficiaire ajouté.',
     customerSubscriptionUpdated: 'Abonnement du bénéficiaire mis à jour.',
     customerSubscriptionRemoved: 'Abonnement du bénéficiaire supprimé.',
     customerSubscriptionDeletionForbidden: 'Impossible de supprimer l\'abonnement du bénéficiaire.',
-    serviceAlreadySubscribed: 'Le bénéficiaire est déjà abonné à ce service',
-    customerMandateUpdated: 'Mandat du bénéficiaire mis à jour',
-    customerMandatesFound: 'Mandats du bénéficiaire trouvés',
-    customerMandateNotFound: 'Mandat du bénéficiaire non trouvé',
+    serviceAlreadySubscribed: 'Le bénéficiaire est déjà abonné à ce service.',
+    customerMandateUpdated: 'Mandat du bénéficiaire mis à jour.',
+    customerMandatesFound: 'Mandats du bénéficiaire trouvés.',
+    customerMandateNotFound: 'Mandat du bénéficiaire non trouvé.',
     customerQuotesFound: 'Devis du bénéficiaire trouvés.',
     customerQuoteAdded: 'Devis du bénéficiaire ajouté.',
     customerQuoteRemoved: 'Devis du bénéficiaire supprimé.',
@@ -435,7 +438,7 @@ module.exports = {
     sectorNotFound: 'Équipe non trouvée.',
     sectorsFound: 'Équipes trouvées.',
     sectorDeleted: 'Équipe supprimée.',
-    sectorAlreadyExists: 'Équipe déjà existante',
+    sectorAlreadyExists: 'Équipe déjà existante.',
     /* Services */
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',
@@ -479,7 +482,7 @@ module.exports = {
     paymentUpated: 'Règlement modifié.',
     paymentRemoved: 'Règlement supprimé.',
     /* Pay */
-    payListCreated: 'Liste de paie créée',
+    payListCreated: 'Liste de paie créée.',
     hoursToWorkFound: 'Heures à travailler trouvées.',
     /* Final pay */
     finalPayListCreated: 'Liste des stc créée.',
@@ -532,7 +535,7 @@ module.exports = {
     subProgramsFound: 'Sous-Programmes trouvés.',
     subProgramFound: 'Sous-Programme trouvé.',
     subProgramsNotFound: 'Sous-Programmes non trouvés.',
-    eLearningSubProgramAlreadyExist: 'Un sous-programme eLearning publié existe déjà',
+    eLearningSubProgramAlreadyExists: 'Un sous-programme eLearning publié existe déjà.',
     /* Steps */
     stepUpdated: 'Étape mise à jour.',
     /* Activities */
@@ -540,8 +543,8 @@ module.exports = {
     activityUpdated: 'Activité mise à jour.',
     activityDetached: 'Activité retirée.',
     /* Cards */
-    cardUpdated: 'Carte mise à jour',
-    cardDeleted: 'Carte supprimée',
+    cardUpdated: 'Carte mise à jour.',
+    cardDeleted: 'Carte supprimée.',
     /* Courses */
     coursesFound: 'Liste des formations trouvée.',
     courseHistoriesFound: 'Liste des historiques de formation trouvée.',
@@ -554,7 +557,7 @@ module.exports = {
     courseTraineeAdded: 'Stagiaire ajouté à la formation.',
     courseTraineeRemoved: 'Stagiaire supprimé de la formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté à la formation.',
-    courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation',
+    courseTraineeNotFromCourseCompany: 'Ce stagiaire n\'est pas relié à la structure de la formation.',
     courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
@@ -584,5 +587,8 @@ module.exports = {
     questionnaireCreated: 'Questionnaire créé.',
     draftExpectationQuestionnaireAlreadyExists: `Il existe déjà un questionnaire en brouillon de type 'Recueil des
       attentes'.`,
+    /* PartnerOrganization */
+    partnerOrganizationCreated: 'Structure partenaire créee.',
+    partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
   },
 };

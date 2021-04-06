@@ -869,7 +869,7 @@ describe('createUser', () => {
 
       await UsersHelper.createUser(payload, { company: { _id: companyId } });
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
       sinon.assert.notCalled(createHistoryStub);
       sinon.assert.notCalled(userCreate);
@@ -1015,7 +1015,7 @@ describe('updateUser', () => {
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas'));
+      expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
       SinonMongoose.calledWithExactly(roleFindById, [
         { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },

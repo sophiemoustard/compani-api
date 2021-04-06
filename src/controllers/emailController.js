@@ -15,6 +15,4 @@ const sendWelcome = async (req) => {
   }
 };
 
-module.exports = {
-  sendWelcome,
-};
+module.exports = { sendWelcome };
