@@ -293,4 +293,22 @@ describe('areObjectIdsEquals', () => {
 
     expect(result).toBe(false);
   });
+
+  it('should return false if one object id is missing', () => {
+    const id1 = '';
+    const id2 = new ObjectID().toHexString();
+
+    const result = UtilsHelper.areObjectIdsEquals(id1, id2);
+
+    expect(result).toBe(false);
+  });
+
+  it('should return false if both object ids are missing', () => {
+    const id1 = '';
+    const id2 = '';
+
+    const result = UtilsHelper.areObjectIdsEquals(id1, id2);
+
+    expect(result).toBe(false);
+  });
 });

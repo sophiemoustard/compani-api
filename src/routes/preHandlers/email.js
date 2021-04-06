@@ -22,7 +22,7 @@ exports.authorizeSendEmail = async (req) => {
   const receiverIsCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(get(receiver, 'role.client.name'));
   const userIsSendingToAuthorizedType = isVendorUser &&
     (receiverIsTrainer || req.payload.type === TRAINEE || receiverIsCoachOrAdmin);
-  const sameCompany = receiver.company && companyId && areObjectIdsEquals(receiver.company, companyId);
+  const sameCompany = areObjectIdsEquals(receiver.company, companyId);
   if (!userIsSendingToAuthorizedType && !sameCompany) throw Boom.forbidden();
 
   return null;
