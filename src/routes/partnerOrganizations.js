@@ -15,8 +15,8 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             name: Joi.string().required(),
-            phone: phoneNumberValidation.allow('', null),
-            address: Joi.alternatives().try(addressValidation, {}),
+            phone: phoneNumberValidation,
+            address: addressValidation,
             email: Joi.string().email().allow('', null),
           }),
         },

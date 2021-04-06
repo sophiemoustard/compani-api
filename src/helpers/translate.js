@@ -588,7 +588,7 @@ module.exports = {
     draftExpectationQuestionnaireAlreadyExists: `Il existe déjà un questionnaire en brouillon de type 'Recueil des
       attentes'.`,
     /* PartnerOrganization */
-    partnerOrganizationCreated: 'Structure partenaire crée.',
+    partnerOrganizationCreated: 'Structure partenaire créee.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
   },
 };
