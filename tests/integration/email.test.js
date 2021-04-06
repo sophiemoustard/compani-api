@@ -52,6 +52,18 @@ describe('EMAIL ROUTES', () => {
     sinon.assert.calledWithExactly(sendinBlueTransporter);
   });
 
+  it('should send a welcoming email from trainer to newly registered trainee ', async () => {
+    const authToken = await getToken('trainer');
+    const response = await app.inject({
+      method: 'POST',
+      url: '/email/send-welcome',
+      headers: { Cookie: `alenvi_token=${authToken}` },
+      payload: { type: 'trainee', email: emailUser.local.email },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
   it('should not throw an error if trainer is from an other company and user is vendor', async () => {
     const authToken = await getToken('vendor_admin');
     const response = await app.inject({

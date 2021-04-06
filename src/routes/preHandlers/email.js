@@ -8,8 +8,8 @@ const { areObjectIdsEquals } = require('../../helpers/utils');
 const { language } = translate;
 
 exports.authorizeSendEmail = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', '');
-  const isVendorUser = get(req, 'auth.credentials.role.vendor', false);
+  const companyId = get(req, 'auth.credentials.company._id') || '';
+  const isVendorUser = get(req, 'auth.credentials.role.vendor') || false;
 
   const receiver = await User.findOne({ 'local.email': req.payload.email })
     .populate({ path: 'role.vendor', select: 'name' })
