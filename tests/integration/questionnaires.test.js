@@ -50,6 +50,26 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 409 if already exists a draft questionnaire with type EXPECTATIONS', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { title: 'test', type: 'expectations' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const failedResponse = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { title: 'test', type: 'expectations' },
+      });
+
+      expect(failedResponse.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {

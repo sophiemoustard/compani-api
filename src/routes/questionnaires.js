@@ -3,6 +3,7 @@
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
 const { list, create } = require('../controllers/questionnaireController');
+const { authorizeQuestionnaireCreation } = require('./preHandlers/questionnaires');
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -27,6 +28,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['questionnaires:edit'] },
+        pre: [{ method: authorizeQuestionnaireCreation }],
       },
       handler: create,
     });
