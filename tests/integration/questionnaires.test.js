@@ -1,6 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const Questionnaire = require('../../src/models/Questionnaire');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -21,6 +22,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
     });
 
     it('should create questionnaire', async () => {
+      await Questionnaire.deleteMany({});
+
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
@@ -61,16 +64,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         payload: { title: 'test', type: 'expectations' },
       });
 
-      expect(response.statusCode).toBe(200);
-
-      const failedResponse = await app.inject({
-        method: 'POST',
-        url: '/questionnaires',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations' },
-      });
-
-      expect(failedResponse.statusCode).toBe(409);
+      expect(response.statusCode).toBe(409);
     });
   });
 
