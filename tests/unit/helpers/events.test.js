@@ -243,13 +243,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -288,13 +286,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -333,13 +329,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -374,13 +368,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -414,13 +406,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -459,13 +449,11 @@ describe('updateEvent', () => {
         { query: 'findOne', args: [{ _id: event._id }] },
         {
           query: 'populate',
-          args: [
-            {
-              path: 'auxiliary',
-              select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-              populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-            },
-          ],
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
         },
         { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
@@ -1795,7 +1783,7 @@ describe('workingStats', () => {
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
 
@@ -1841,7 +1829,7 @@ describe('workingStats', () => {
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
     const expectedResult = {};
@@ -1880,7 +1868,7 @@ describe('workingStats', () => {
   it('should return {} if no contract in auxiliaries', async () => {
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
@@ -1910,7 +1898,7 @@ describe('workingStats', () => {
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
     findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto', contracts }]]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});

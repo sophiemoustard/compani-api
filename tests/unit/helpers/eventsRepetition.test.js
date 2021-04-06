@@ -394,14 +394,14 @@ describe('updateRepetition', () => {
   let find;
   let updateOne;
   let updateRepetitions;
-  let findOne;
+  let findOneUser;
   let formatEditionPayload;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     find = sinon.stub(Event, 'find');
     updateOne = sinon.stub(Event, 'updateOne');
     updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
-    findOne = sinon.stub(User, 'findOne');
+    findOneUser = sinon.stub(User, 'findOne');
     formatEditionPayload = sinon.stub(EventsHelper, 'formatEditionPayload');
   });
   afterEach(() => {
@@ -409,7 +409,7 @@ describe('updateRepetition', () => {
     find.restore();
     updateOne.restore();
     updateRepetitions.restore();
-    findOne.restore();
+    findOneUser.restore();
     formatEditionPayload.restore();
   });
 
@@ -454,7 +454,7 @@ describe('updateRepetition', () => {
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    sinon.assert.notCalled(findOne);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -520,7 +520,7 @@ describe('updateRepetition', () => {
       },
       $unset: { auxiliary: '' },
     });
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
     hasConflicts.returns(true);
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
@@ -528,7 +528,7 @@ describe('updateRepetition', () => {
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     SinonMongoose.calledWithExactly(
-      findOne,
+      findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
         {
@@ -624,14 +624,14 @@ describe('updateRepetition', () => {
       $unset: { auxiliary: '' },
     });
     hasConflicts.returns(true);
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     SinonMongoose.calledWithExactly(
-      findOne,
+      findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
         {
