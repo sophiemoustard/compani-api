@@ -3,12 +3,13 @@ const get = require('lodash/get');
 const User = require('../../models/User');
 const translate = require('../../helpers/translate');
 const { TRAINER, COACH, CLIENT_ADMIN, TRAINEE } = require('../../helpers/constants');
+const { areObjectIdsEquals } = require('../../helpers/utils');
 
 const { language } = translate;
 
 exports.authorizeSendEmail = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id');
-  const isVendorUser = get(req, 'auth.credentials.role.vendor');
+  const companyId = get(req, 'auth.credentials.company._id', '');
+  const isVendorUser = get(req, 'auth.credentials.role.vendor', false);
 
   const receiver = await User.findOne({ 'local.email': req.payload.email })
     .populate({ path: 'role.vendor', select: 'name' })
@@ -21,7 +22,7 @@ exports.authorizeSendEmail = async (req) => {
   const receiverIsCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(get(receiver, 'role.client.name'));
   const userIsSendingToAuthorizedType = isVendorUser &&
     (receiverIsTrainer || req.payload.type === TRAINEE || receiverIsCoachOrAdmin);
-  const sameCompany = receiver.company && receiver.company.toHexString() === companyId.toHexString();
+  const sameCompany = receiver.company && companyId && areObjectIdsEquals(receiver.company, companyId);
   if (!userIsSendingToAuthorizedType && !sameCompany) throw Boom.forbidden();
 
   return null;
