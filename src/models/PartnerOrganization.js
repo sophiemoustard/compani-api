@@ -6,6 +6,7 @@ const PartnerOrganizationSchema = mongoose.Schema({
   phone: { type: String },
   address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
   email: { type: String },
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('PartnerOrganization', PartnerOrganizationSchema);

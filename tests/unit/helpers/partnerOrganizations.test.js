@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const { ObjectID } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 const PartnerOrganizationsHelper = require('../../../src/helpers/partnerOrganizations');
 
@@ -12,6 +13,7 @@ describe('create', () => {
   });
 
   it('should create partner organization', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const payload = {
       name: 'Etchebest Corporation',
       phone: '0123456789',
@@ -25,7 +27,7 @@ describe('create', () => {
       },
     };
 
-    await PartnerOrganizationsHelper.create(payload);
+    await PartnerOrganizationsHelper.create(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -40,6 +42,7 @@ describe('create', () => {
           street: '24 avenue Daumesnil',
           location: { type: 'Point', coordinates: [2.377133, 48.801389] },
         },
+        company: credentials.company._id,
       }
     );
   });

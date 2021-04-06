@@ -6,7 +6,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    await PartnerOrganizationsHelper.create(req.payload);
+    await PartnerOrganizationsHelper.create(req.payload, req.auth.credentials);
 
     return { message: translate[language].partnerOrganizationCreated };
   } catch (e) {

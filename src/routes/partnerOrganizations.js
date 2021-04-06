@@ -17,7 +17,7 @@ exports.plugin = {
             name: Joi.string().required(),
             phone: phoneNumberValidation,
             address: addressValidation,
-            email: Joi.string().email().allow('', null),
+            email: Joi.string().email(),
           }),
         },
         auth: { scope: ['partnerorganization:create'] },

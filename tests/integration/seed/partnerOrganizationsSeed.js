@@ -1,3 +1,4 @@
+const { authCompany } = require('../../seed/companySeed');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
@@ -13,6 +14,7 @@ const partnerOrganizationsList = [
       street: '24 avenue Daumesnil',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+    company: authCompany._id,
   },
 ];
 
