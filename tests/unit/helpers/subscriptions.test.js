@@ -5,8 +5,7 @@ const omit = require('lodash/omit');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('populateService', () => {
   it('should return null if no service or no version', () => {
@@ -212,14 +211,14 @@ describe('subscriptionsAccepted', () => {
 });
 
 describe('updateSubscription', () => {
-  let CustomerMock;
+  let findOneAndUpdate;
   let populateSubscriptionsServices;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findOneAndUpdate = sinon.stub(Customer, 'findOneAndUpdate');
     populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findOneAndUpdate.restore();
     populateSubscriptionsServices.restore();
   });
 
@@ -233,35 +232,43 @@ describe('updateSubscription', () => {
       subscriptions: [{ _id: subscriptionId, evenings: 2, service: new ObjectID() }],
     };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: customerId.toHexString(), 'subscriptions._id': subscriptionId.toHexString() },
-        { $push: { 'subscriptions.$.versions': payload } },
-        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.updateSubscription(params, payload);
+
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId.toHexString(), 'subscriptions._id': subscriptionId.toHexString() },
+            { $push: { 'subscriptions.$.versions': payload } },
+            { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('addSubscription', () => {
-  let CustomerMock;
+  let findById;
+  let findOneAndUpdate;
   let populateSubscriptionsServices;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findById = sinon.stub(Customer, 'findById');
+    findOneAndUpdate = sinon.stub(Customer, 'findOneAndUpdate');
     populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findById.restore();
+    findOneAndUpdate.restore();
     populateSubscriptionsServices.restore();
   });
 
@@ -270,28 +277,30 @@ describe('addSubscription', () => {
     const customer = { _id: customerId };
     const payload = { service: new ObjectID(), estimatedWeeklyVolume: 10 };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: customerId },
-        { $push: { subscriptions: payload } },
-        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.addSubscription(customerId, payload);
+
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId },
+            { $push: { subscriptions: payload } },
+            { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should add the second subscription', async () => {
@@ -299,28 +308,30 @@ describe('addSubscription', () => {
     const customer = { _id: customerId, subscriptions: [{ service: new ObjectID() }] };
     const payload = { service: (new ObjectID()).toHexString(), estimatedWeeklyVolume: 10 };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
-      .chain('lean')
-      .once()
-      .returns(customer);
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: customerId },
-        { $push: { subscriptions: payload } },
-        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
-      )
-      .chain('populate')
-      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.addSubscription(customerId, payload);
+
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId },
+            { $push: { subscriptions: payload } },
+            { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should throw an error if service is already subscribed', async () => {
@@ -330,19 +341,16 @@ describe('addSubscription', () => {
       const customer = { _id: customerId, subscriptions: [{ service: serviceId }] };
       const payload = { service: serviceId.toHexString(), estimatedWeeklyVolume: 10 };
 
-      CustomerMock.expects('findById')
-        .withExactArgs(customerId)
-        .chain('lean')
-        .once()
-        .returns(customer);
-      CustomerMock.expects('findOneAndUpdate').never();
+      findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
       await SubscriptionsHelper.addSubscription(customerId, payload);
+
+      SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.notCalled(populateSubscriptionsServices);
-      CustomerMock.verify();
+      sinon.assert.notCalled(findOneAndUpdate);
     }
   });
 });
