@@ -26,8 +26,8 @@ exports.authorizeQuestionnaireGet = async (req) => {
   if (!questionnaire) return Boom.notFound();
 
   const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if (!([TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole) ||
-    questionnaire.status === PUBLISHED)) {
+  if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole) &&
+    questionnaire.status !== PUBLISHED) {
     throw Boom.forbidden();
   }
 
