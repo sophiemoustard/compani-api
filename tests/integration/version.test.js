@@ -74,5 +74,13 @@ describe('VERSION TEST', () => {
       });
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 400 if appName is neither erp nor formation', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/version/should-update?mobileVersion=1.7.3&appName=poiuytrtyu',
+      });
+      expect(response.statusCode).toBe(400);
+    });
   });
 });
