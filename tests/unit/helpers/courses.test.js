@@ -437,6 +437,7 @@ describe('getCourse', () => {
       },
       { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
       { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
       { query: 'lean' },
     ]);
   });
