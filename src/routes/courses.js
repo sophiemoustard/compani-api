@@ -39,7 +39,7 @@ const {
   authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
-  authorizeCourseCreation,
+  checkSalesRepresentativeExists,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -90,7 +90,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
-        pre: [{ method: authorizeCourseCreation }],
+        pre: [{ method: checkSalesRepresentativeExists }],
       },
       handler: create,
     });
@@ -166,6 +166,7 @@ exports.plugin = {
               phone: phoneNumberValidation,
               email: Joi.string().allow('', null),
             }).min(1),
+            salesRepresentative: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeCourseEdit }],
