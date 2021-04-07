@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create } = require('../controllers/partnerOrganizationController');
+const { create, list } = require('../controllers/partnerOrganizationController');
 const { authorizePartnerOrganizationCreation } = require('./preHandlers/partnerOrganizations');
 
 exports.plugin = {
@@ -24,6 +24,15 @@ exports.plugin = {
         pre: [{ method: authorizePartnerOrganizationCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['partnerorganization:create'] },
+      },
+      handler: list,
     });
   },
 };
