@@ -4,8 +4,6 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
-const Contract = require('../../../src/models/Contract');
-const Surcharge = require('../../../src/models/Surcharge');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const {
@@ -13,39 +11,25 @@ const {
   ABSENCE,
   INTERNAL_HOUR,
 } = require('../../../src/helpers/constants');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('checkContracts', () => {
-  let hasConflicts;
-  let UserModel;
-  let CustomerModel;
-  let findOneContract;
-  let findOneSurcharge;
+  let findOneCustomer;
   beforeEach(() => {
-    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    UserModel = sinon.mock(User);
-    CustomerModel = sinon.mock(Customer);
-    findOneContract = sinon.stub(Contract, 'findOne');
-    findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    findOneCustomer = sinon.stub(Customer, 'findOne');
   });
   afterEach(() => {
-    hasConflicts.restore();
-    UserModel.restore();
-    CustomerModel.restore();
-    findOneContract.restore();
-    findOneSurcharge.restore();
+    findOneCustomer.restore();
   });
 
   it('should return false as user has no contract', async () => {
     const event = { auxiliary: (new ObjectID()).toHexString() };
     const user = { _id: event.auxiliary };
 
-    hasConflicts.returns(false);
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+    const result = await EventsValidationHelper.checkContracts(event, user);
 
-    expect(result).toBeFalsy();
+    expect(result).toBe(false);
+    sinon.assert.notCalled(findOneCustomer);
   });
 
   it('should return false if contract and no active contract on day', async () => {
@@ -60,7 +44,6 @@ describe('checkContracts', () => {
       endDate: '2019-10-03T10:00:00.000Z',
       sector: sectorId.toHexString(),
     };
-
     const customer = {
       _id: event.customer,
       subscriptions: [{
@@ -69,26 +52,27 @@ describe('checkContracts', () => {
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
-
     const contract = {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{}],
       startDate: moment(event.startDate).add(1, 'd'),
     };
-    findOneContract.returns(contract);
-
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
 
-    expect(result).toBeFalsy();
+    const result = await EventsValidationHelper.checkContracts(event, user);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: event.customer }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return true if contract and active contract on day', async () => {
@@ -103,7 +87,6 @@ describe('checkContracts', () => {
       endDate: '2019-10-03T10:00:00.000Z',
       sector: sectorId.toHexString(),
     };
-
     const customer = {
       _id: event.customer,
       subscriptions: [{
@@ -112,26 +95,27 @@ describe('checkContracts', () => {
         versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
-
     const contract = {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{ weeklyHours: 12 }],
       startDate: moment(event.startDate).subtract(1, 'd'),
     };
-    findOneContract.returns(contract);
-
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
 
-    expect(result).toBeTruthy();
+    const result = await EventsValidationHelper.checkContracts(event, user);
+
+    expect(result).toBe(true);
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: event.customer }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return false if customer has no subscription', async () => {
@@ -145,7 +129,6 @@ describe('checkContracts', () => {
       endDate: '2019-10-03T10:00:00.000Z',
       sector: sectorId.toHexString(),
     };
-
     const customer = {
       _id: event.customer,
       subscriptions: [{
@@ -154,26 +137,27 @@ describe('checkContracts', () => {
         versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
       }],
     };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
-
     const contract = {
       user: event.auxiliary,
       customer: event.customer,
       versions: [{ weeklyHours: 12 }],
       startDate: moment(event.startDate).subtract(1, 'd'),
     };
-    findOneContract.returns(contract);
-
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
 
-    expect(result).toBeFalsy();
+    const result = await EventsValidationHelper.checkContracts(event, user);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [
+        { query: 'findOne', args: [{ _id: event.customer }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
@@ -184,30 +168,34 @@ describe('checkContracts', () => {
       startDate: '2019-10-03T00:00:00.000Z',
       sector: sectorId.toHexString(),
     };
-
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: event.subscription,
-        service: {
-          versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }],
-        },
-      }],
-    };
-    CustomerModel.expects('findOne')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customer);
-
-    findOneContract.returns(null);
-
     const user = { _id: event.auxiliary, contracts: [], sector: sectorId };
 
-    const credentials = {};
-    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
+    const result = await EventsValidationHelper.checkContracts(event, user);
 
-    expect(result).toBeFalsy();
+    expect(result).toBe(false);
+    sinon.assert.notCalled(findOneCustomer);
+  });
+
+  it('should return true if event type isn\'t intervention nor internal hour', async () => {
+    const sectorId = new ObjectID();
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      type: ABSENCE,
+      startDate: '2019-10-03T00:00:00.000Z',
+      sector: sectorId.toHexString(),
+    };
+    const contract = {
+      user: event.auxiliary,
+      customer: event.customer,
+      versions: [{ weeklyHours: 12 }],
+      startDate: moment(event.startDate).subtract(1, 'd'),
+    };
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+
+    const result = await EventsValidationHelper.checkContracts(event, user);
+
+    expect(result).toBe(true);
+    sinon.assert.notCalled(findOneCustomer);
   });
 });
 
@@ -303,14 +291,14 @@ describe('hasConflicts', () => {
 });
 
 describe('isEditionAllowed', () => {
-  let UserModel;
+  let findOne;
   let checkContracts;
   beforeEach(() => {
-    UserModel = sinon.mock(User);
+    findOne = sinon.stub(User, 'findOne');
     checkContracts = sinon.stub(EventsValidationHelper, 'checkContracts');
   });
   afterEach(() => {
-    UserModel.restore();
+    findOne.restore();
     checkContracts.restore();
   });
 
@@ -323,13 +311,12 @@ describe('isEditionAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
-    UserModel.expects('findOne').never();
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(findOne);
   });
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
@@ -341,13 +328,12 @@ describe('isEditionAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    UserModel.expects('findOne').never();
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(findOne);
   });
 
   it('should return true as event has no auxiliary and is intervention', async () => {
@@ -359,13 +345,12 @@ describe('isEditionAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    UserModel.expects('findOne').never();
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
-    UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(findOne);
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
@@ -380,22 +365,22 @@ describe('isEditionAllowed', () => {
     };
     const user = { _id: auxiliaryId, sector: new ObjectID() };
 
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
     checkContracts.returns(false);
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
-    UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(checkContracts, event, user);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should return true', async () => {
@@ -412,20 +397,21 @@ describe('isEditionAllowed', () => {
     const user = { _id: auxiliaryId, sector: sectorId };
 
     checkContracts.returns(true);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .withExactArgs('contracts')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
-    UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.calledWithExactly(checkContracts, event, user);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 });
 
