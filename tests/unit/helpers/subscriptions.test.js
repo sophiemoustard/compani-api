@@ -335,8 +335,8 @@ describe('addSubscription', () => {
   });
 
   it('should throw an error if service is already subscribed', async () => {
+    const customerId = new ObjectID();
     try {
-      const customerId = new ObjectID();
       const serviceId = new ObjectID();
       const customer = { _id: customerId, subscriptions: [{ service: serviceId }] };
       const payload = { service: serviceId.toHexString(), estimatedWeeklyVolume: 10 };
@@ -344,11 +344,10 @@ describe('addSubscription', () => {
       findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
       await SubscriptionsHelper.addSubscription(customerId, payload);
-
-      SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
+      SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
       sinon.assert.notCalled(populateSubscriptionsServices);
       sinon.assert.notCalled(findOneAndUpdate);
     }
