@@ -49,7 +49,7 @@ const update = async (req) => {
   try {
     await QuestionnaireHelper.update(req.params._id, req.payload);
 
-    return { message: translate[language].questionnaireFound };
+    return { message: translate[language].questionnaireUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

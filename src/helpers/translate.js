@@ -292,6 +292,7 @@ module.exports = {
     questionnairesNotFound: 'Questionnaires not found.',
     questionnaireCreated: 'Questionnaire created.',
     draftExpectationQuestionnaireAlreadyExists: 'A draft questionnaire with type \'expectations\' already exists.',
+    questionnaireUpdated: 'questionnaire updated.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Partner organization created.',
     partnerOrganizationAlreadyExists: 'A partner organization already exists.',
@@ -586,7 +587,8 @@ module.exports = {
     questionnairesNotFound: 'Liste des questionnaires non trouvée.',
     questionnaireCreated: 'Questionnaire créé.',
     draftExpectationQuestionnaireAlreadyExists: `Il existe déjà un questionnaire en brouillon de type 'Recueil des
-      attentes'.`,
+    attentes'.`,
+    questionnaireUpdated: 'Questionnaire mis à jour.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Structure partenaire créee.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
