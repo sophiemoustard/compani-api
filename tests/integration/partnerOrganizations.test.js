@@ -1,7 +1,9 @@
 const expect = require('expect');
 const app = require('../../server');
-const { populateDB } = require('./seed/partnerOrganizationsSeed');
+const { populateDB, partnerOrganizationsList } = require('./seed/partnerOrganizationsSeed');
 const { getToken } = require('./seed/authenticationSeed');
+const { authCompany } = require('../seed/companySeed');
+const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -112,6 +114,53 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
           url: '/partnerorganizations',
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { name: 'Sku Corporation' },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should list partner organizations from my company', async () => {
+      const partnerOrganizationsFromAuthCompany = partnerOrganizationsList
+        .filter(po => areObjectIdsEquals(po.company, authCompany._id));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/partnerorganizations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.partnerOrganizations.length).toBe(partnerOrganizationsFromAuthCompany.length);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/partnerorganizations',
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
