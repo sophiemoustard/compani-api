@@ -2,7 +2,10 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 
-const questionnairesList = [{ _id: new ObjectID(), title: 'test', status: 'published', type: 'expectations' }];
+const questionnairesList = [
+  { _id: new ObjectID(), title: 'test', status: 'draft', type: 'expectations' },
+  { _id: new ObjectID(), title: 'test', status: 'published', type: 'expectations' },
+];
 
 const populateDB = async () => {
   await Questionnaire.deleteMany({});

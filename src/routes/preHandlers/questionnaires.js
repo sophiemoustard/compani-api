@@ -1,5 +1,12 @@
 const Boom = require('@hapi/boom');
-const { DRAFT, EXPECTATIONS } = require('../../helpers/constants');
+const get = require('lodash/get');
+const {
+  DRAFT,
+  EXPECTATIONS,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+  PUBLISHED,
+} = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 
@@ -11,6 +18,27 @@ exports.authorizeQuestionnaireCreation = async (req) => {
 
   const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
   if (draftQuestionnaires) throw Boom.conflict(translate[language].draftExpectationQuestionnaireAlreadyExists);
+
+  return null;
+};
+exports.authorizeQuestionnaireGet = async (req) => {
+  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
+  if (!questionnaire) throw Boom.notFound();
+
+  const loggedUserVendorRole = get(req, 'auth.credentials.role.vendor.name');
+  if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole) &&
+    questionnaire.status !== PUBLISHED) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeQuestionnaireEdit = async (req) => {
+  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
+  if (!questionnaire) throw Boom.notFound();
+
+  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };

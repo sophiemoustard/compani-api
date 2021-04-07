@@ -1,7 +1,10 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const Questionnaire = require('../../src/models/Questionnaire');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { noRoleNoCompany } = require('../seed/userSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -19,6 +22,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
     });
 
     it('should create questionnaire', async () => {
+      await Questionnaire.deleteMany({});
+
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
@@ -59,16 +64,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         payload: { title: 'test', type: 'expectations' },
       });
 
-      expect(response.statusCode).toBe(200);
-
-      const failedResponse = await app.inject({
-        method: 'POST',
-        url: '/questionnaires',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations' },
-      });
-
-      expect(failedResponse.statusCode).toBe(409);
+      expect(response.statusCode).toBe(409);
     });
   });
 
@@ -132,6 +128,174 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
           method: 'GET',
           url: '/questionnaires',
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get questionnaire', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaire._id).toEqual(questionnairesList[0]._id);
+    });
+
+    it('should return 400 if invalid _id', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/blabla',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if questionnaire does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return 200 if questionnaire is published', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name} and questionnaire is draft`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/${questionnairesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should update questionnaire title', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if title is not a string', async () => {
+      const payload = { title: 123 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if try to update another field', async () => {
+      const payload = { type: 'new_type' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if questionnaire does not exist', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if questionnaire is published', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const payload = { title: 'test2' };
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/questionnaires/${questionnairesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
