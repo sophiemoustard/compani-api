@@ -47,3 +47,21 @@ describe('create', () => {
     );
   });
 });
+
+describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(PartnerOrganization, 'find');
+  });
+  afterEach(() => {
+    find.restore();
+  });
+
+  it('should list partner organizations from my company', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+
+    await PartnerOrganizationsHelper.list(credentials);
+
+    sinon.assert.calledOnceWithExactly(find, { company: credentials.company._id });
+  });
+});
