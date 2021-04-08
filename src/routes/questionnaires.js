@@ -2,12 +2,13 @@
 
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
-const { list, create, getById, update } = require('../controllers/questionnaireController');
+const { list, create, getById, update, addCard } = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
   authorizeQuestionnaireCreation,
   authorizeQuestionnaireEdit,
 } = require('./preHandlers/questionnaires');
+const { CARD_TEMPLATES } = require('../models/Card');
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -48,6 +49,21 @@ exports.plugin = {
         pre: [{ method: authorizeQuestionnaireCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/cards',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ template: Joi.string().required().valid(...CARD_TEMPLATES) }),
+
+        },
+        auth: { scope: ['questionnaires:edit'] },
+        pre: [{ method: authorizeQuestionnaireEdit }],
+      },
+      handler: addCard,
     });
 
     server.route({

@@ -146,3 +146,29 @@ describe('detachActivity', () => {
     sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $pull: { activities: activityId } });
   });
 });
+
+describe('addCard', () => {
+  let createCard;
+  let updateOne;
+  beforeEach(() => {
+    createCard = sinon.stub(Card, 'create');
+    updateOne = sinon.stub(Activity, 'updateOne');
+  });
+  afterEach(() => {
+    createCard.restore();
+    updateOne.restore();
+  });
+
+  it('should add card to activity', async () => {
+    const cardId = new ObjectID();
+    const payload = { template: 'transition' };
+    const activity = { _id: new ObjectID(), name: 'faire du jetski' };
+
+    createCard.returns({ _id: cardId });
+
+    await ActivityHelper.addCard(activity._id, payload);
+
+    sinon.assert.calledWithExactly(createCard, payload);
+    sinon.assert.calledWithExactly(updateOne, { _id: activity._id }, { $push: { cards: cardId } });
+  });
+});

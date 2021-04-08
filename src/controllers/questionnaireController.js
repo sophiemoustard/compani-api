@@ -56,4 +56,15 @@ const update = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update };
+const addCard = async (req) => {
+  try {
+    await QuestionnaireHelper.addCard(req.params._id, req.payload);
+
+    return { message: translate[language].questionnaireUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard };

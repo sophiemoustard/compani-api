@@ -15,31 +15,20 @@ const {
   TRANSITION,
 } = require('../../../src/helpers/constants');
 
-describe('addCard', () => {
-  let cardCreate;
-  let activityUpdateOne;
-  const activity = { _id: new ObjectID(), name: 'faire du jetski' };
-  const newCard = { template: 'transition' };
-
+describe('createCard', () => {
+  let create;
   beforeEach(() => {
-    cardCreate = sinon.stub(Card, 'create');
-    activityUpdateOne = sinon.stub(Activity, 'updateOne');
+    create = sinon.stub(Card, 'create');
   });
-
   afterEach(() => {
-    cardCreate.restore();
-    activityUpdateOne.restore();
+    create.restore();
   });
 
-  it('should create an transition card', async () => {
-    const cardId = new ObjectID();
+  it('should create a transition card', async () => {
+    const newCard = { template: 'transition' };
+    await CardHelper.createCard(newCard);
 
-    cardCreate.returns({ _id: cardId });
-
-    await CardHelper.addCard(activity._id, newCard);
-
-    sinon.assert.calledWithExactly(cardCreate, newCard);
-    sinon.assert.calledWithExactly(activityUpdateOne, { _id: activity._id }, { $push: { cards: cardId } });
+    sinon.assert.calledWithExactly(create, newCard);
   });
 });
 

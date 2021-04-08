@@ -5,6 +5,7 @@ const Questionnaire = require('../../src/models/Questionnaire');
 const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
+const { SURVEY } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -320,6 +321,104 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
           url: `/questionnaires/${questionnairesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
+  let authToken = null;
+  const questionnaireId = questionnairesList[0]._id;
+  beforeEach(populateDB);
+  const payload = { template: SURVEY };
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should create card', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const questionnaireUpdated = await Questionnaire.findById(questionnaireId).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(questionnaireUpdated.cards.length).toEqual(3);
+    });
+
+    it('should return a 400 if invalid template', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
+        payload: { template: 'invalid template' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if missing template', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
+        payload: {},
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if questionnaire does not exist', async () => {
+      const invalidId = new ObjectID();
+      const response = await app.inject({
+        method: 'POST',
+        url: `/questionnaires/${invalidId}/cards`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if questionnaire is published', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/questionnaires/${questionnairesList[1]._id.toHexString()}/cards`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          payload: { template: 'transition' },
+          url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

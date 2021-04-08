@@ -2,6 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
+const Card = require('../../../src/models/Card');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -94,5 +95,31 @@ describe('editQuestionnaire', () => {
         { query: 'lean' },
       ]
     );
+  });
+});
+
+describe('addCard', () => {
+  let createCard;
+  let updateOne;
+  beforeEach(() => {
+    createCard = sinon.stub(Card, 'create');
+    updateOne = sinon.stub(Questionnaire, 'updateOne');
+  });
+  afterEach(() => {
+    createCard.restore();
+    updateOne.restore();
+  });
+
+  it('should add card to questionnaire', async () => {
+    const cardId = new ObjectID();
+    const payload = { template: 'transition' };
+    const questionnaire = { _id: new ObjectID(), title: 'faire du jetski' };
+
+    createCard.returns({ _id: cardId });
+
+    await QuestionnaireHelper.addCard(questionnaire._id, payload);
+
+    sinon.assert.calledWithExactly(createCard, payload);
+    sinon.assert.calledWithExactly(updateOne, { _id: questionnaire._id }, { $push: { cards: cardId } });
   });
 });
