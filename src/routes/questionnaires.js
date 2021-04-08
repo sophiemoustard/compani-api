@@ -56,7 +56,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ title: Joi.string().required() }),
+          payload: Joi.object({ title: Joi.string(), cards: Joi.array().items(Joi.objectId()) }).min(1),
         },
         auth: { scope: ['questionnaires:edit'] },
         pre: [{ method: authorizeQuestionnaireEdit }],

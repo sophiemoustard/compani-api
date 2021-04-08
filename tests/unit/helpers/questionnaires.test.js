@@ -79,17 +79,18 @@ describe('editQuestionnaire', () => {
 
   it('should update questionnaire', async () => {
     const questionnaireId = new ObjectID();
-    const questionnaire = { _id: questionnaireId, title: 'test2' };
+    const cards = [new ObjectID(), new ObjectID()];
+    const questionnaire = { _id: questionnaireId, title: 'test2', cards };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
 
-    const result = await QuestionnaireHelper.update(questionnaireId, { title: 'test2' });
+    const result = await QuestionnaireHelper.update(questionnaireId, { title: 'test2', cards });
 
     expect(result).toMatchObject(questionnaire);
     SinonMongoose.calledWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2' } }] },
+        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2', cards } }] },
         { query: 'lean' },
       ]
     );
