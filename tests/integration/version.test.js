@@ -43,7 +43,7 @@ describe('VERSION TEST', () => {
     it('should return true - app formation (without appName)', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/version/should-update?mobileVersion=1.1.0',
+        url: '/version/should-update?mobileVersion=1.1.9',
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.mustUpdate).toBeTruthy();
