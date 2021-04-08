@@ -15,3 +15,10 @@ exports.authorizePartnerOrganizationCreation = async (req) => {
 
   return null;
 };
+
+exports.partnerOrganizationExists = async (req) => {
+  const partnerOrganizationExists = await PartnerOrganization.countDocuments({ _id: req.params._id });
+  if (!partnerOrganizationExists) throw Boom.forbidden();
+
+  return null;
+};

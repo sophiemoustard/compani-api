@@ -2,8 +2,11 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create, list } = require('../controllers/partnerOrganizationController');
-const { authorizePartnerOrganizationCreation } = require('./preHandlers/partnerOrganizations');
+const { create, list, getById } = require('../controllers/partnerOrganizationController');
+const {
+  authorizePartnerOrganizationCreation,
+  partnerOrganizationExists,
+} = require('./preHandlers/partnerOrganizations');
 
 exports.plugin = {
   name: 'routes-partnerorganizations',
@@ -33,6 +36,19 @@ exports.plugin = {
         auth: { scope: ['partnerorganizations:edit'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: partnerOrganizationExists }],
+      },
+      handler: getById,
     });
   },
 };
