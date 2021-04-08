@@ -1,4 +1,4 @@
-const { authCompany } = require('../../seed/companySeed');
+const { authCompany, otherCompany } = require('../../seed/companySeed');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
@@ -16,6 +16,7 @@ const partnerOrganizationsList = [
     },
     company: authCompany._id,
   },
+  { name: 'EHPAD UTOUT', company: otherCompany._id },
 ];
 
 const populateDB = async () => {

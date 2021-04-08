@@ -2,6 +2,7 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 const PartnerOrganizationsHelper = require('../../../src/helpers/partnerOrganizations');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
   let create;
@@ -44,6 +45,29 @@ describe('create', () => {
         },
         company: credentials.company._id,
       }
+    );
+  });
+});
+
+describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(PartnerOrganization, 'find');
+  });
+  afterEach(() => {
+    find.restore();
+  });
+
+  it('should list partner organizations from my company', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+
+    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectID(), name: 'skusku' }]], ['lean']));
+
+    await PartnerOrganizationsHelper.list(credentials);
+
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );
   });
 });
