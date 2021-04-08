@@ -7,10 +7,11 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
-const { populateDB, cardsList, activitiesList } = require('./seed/cardsSeed');
+const { populateDB, cardsList, activitiesList, questionnairesList } = require('./seed/cardsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { generateFormData } = require('./utils');
 const Activity = require('../../src/models/Activity');
+const Questionnaire = require('../../src/models/Questionnaire');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -858,13 +859,15 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
   beforeEach(populateDB);
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
   const publishedActivity = activitiesList.find(activity => activity.status === 'published');
+  const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
+  const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
     });
 
-    it('should delete card', async () => {
+    it('should delete activity card', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${draftActivity.cards[0].toHexString()}`,
@@ -881,6 +884,23 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
       expect(activity.cards.includes(draftActivity.cards[0])).toBeFalsy();
     });
 
+    it('should delete questionnaire card', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${draftQuestionnaire.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardDeleted = await Card.findById(cardsList[2]._id).lean();
+      expect(cardDeleted).toBeNull();
+
+      const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
+      expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);
+      expect(questionnaire.cards.includes(draftQuestionnaire.cards[0])).toBeFalsy();
+    });
+
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -895,6 +915,16 @@ describe('CARDS ROUTES - DELETE /cards/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${publishedActivity.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if questionnaire is published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${publishedQuestionnaire.cards[0].toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { DRAFT, PUBLISHED, EXPECTATIONS } = require('../helpers/constants');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
@@ -11,5 +12,17 @@ const QuestionnaireSchema = mongoose.Schema({
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
 }, { timestamps: true });
 
+// eslint-disable-next-line consistent-return
+function setAreCardsValid() {
+  if (!this.cards || this.cards.length === 0) return false;
+
+  if (this.cards && this.cards.length && this.cards[0].template) { // if card is populated, template exists
+    return this.cards.every(card => card.isValid);
+  }
+}
+
+QuestionnaireSchema.virtual('areCardsValid').get(setAreCardsValid);
+
+QuestionnaireSchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Questionnaire', QuestionnaireSchema);
 module.exports.QUESTIONNAIRE_TYPES = QUESTIONNAIRE_TYPES;

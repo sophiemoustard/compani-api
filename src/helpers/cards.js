@@ -1,6 +1,7 @@
 const flat = require('flat');
 const Card = require('../models/Card');
 const Activity = require('../models/Activity');
+const Questionnaire = require('../models/Questionnaire');
 const GCloudStorageHelper = require('./gCloudStorage');
 const {
   MULTIPLE_CHOICE_QUESTION,
@@ -69,5 +70,6 @@ exports.deleteMedia = async (cardId, publicId) => {
 
 exports.removeCard = async (cardId) => {
   await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await Questionnaire.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
   await Card.deleteOne({ _id: cardId });
 };

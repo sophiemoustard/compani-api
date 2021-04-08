@@ -57,14 +57,18 @@ describe('getQuestionnaire', () => {
     const questionnaireId = new ObjectID();
     const questionnaire = { _id: questionnaireId, title: 'test' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
 
     const result = await QuestionnaireHelper.getQuestionnaire(questionnaireId);
 
     expect(result).toMatchObject(questionnaire);
     SinonMongoose.calledWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ _id: questionnaireId }] }, { query: 'lean' }]
+      [
+        { query: 'findOne', args: [{ _id: questionnaireId }] },
+        { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
     );
   });
 });

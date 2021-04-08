@@ -5,7 +5,9 @@ exports.create = async payload => Questionnaire.create(payload);
 
 exports.list = async () => Questionnaire.find().lean();
 
-exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id }).lean();
+exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
+  .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+  .lean({ virtuals: true });
 
 exports.update = async (id, payload) => Questionnaire.findOneAndUpdate({ _id: id }, { $set: payload }).lean();
 
