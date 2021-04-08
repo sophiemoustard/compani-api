@@ -119,7 +119,6 @@ describe('validate', () => {
           'pay:read',
           'paydocuments:edit',
           'payments:edit',
-          'payments:list:create',
           'partnerorganization:create',
           'partnerorganization:read',
           'roles:read',
