@@ -122,7 +122,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
+describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
   let authToken;
   beforeEach(populateDB);
 
