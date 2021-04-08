@@ -31,6 +31,24 @@ describe('VERSION TEST', () => {
   });
 
   describe('POST /version/should-update', () => {
+    it('should return false - app formation (without appName)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/version/should-update?mobileVersion=1.2.0',
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.mustUpdate).toBeFalsy();
+    });
+
+    it('should return true - app formation (without appName)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/version/should-update?mobileVersion=1.1.0',
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.mustUpdate).toBeTruthy();
+    });
+
     it('should return false - app formation (new version)', async () => {
       const response = await app.inject({
         method: 'GET',
