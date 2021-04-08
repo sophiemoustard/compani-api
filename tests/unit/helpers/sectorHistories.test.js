@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const SinonMongoose = require('../sinonMongoose');
@@ -33,6 +34,7 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should create sector history if no previous one', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
@@ -50,8 +52,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     sinon.assert.calledWithExactly(
       createHistoryStub,
       { _id: auxiliaryId, sector: sector.toHexString() },
-      companyId,
-      moment().startOf('day').toDate()
+      companyId
     );
   });
 
@@ -59,6 +60,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     const sectorHistory = { _id: new ObjectID(), sector, startDate: '2019-09-10T00:00:00' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectID() }]], ['sort', 'lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
@@ -74,6 +76,32 @@ describe('updateHistoryOnSectorUpdate', () => {
       ]
     );
     sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should return an error if no last sector history and has an ongoing contract', async () => {
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+      find.returns(SinonMongoose.stubChainedQueries(
+        [[{ _id: new ObjectID(), startDate: '2020-01-01T23:59:59' }]],
+        ['sort', 'lean']
+      ));
+
+      await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+    } catch (e) {
+      expect(e).toEqual(Boom.badData());
+    } finally {
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          {
+            query: 'findOne',
+            args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
+          },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(createHistoryStub);
+    }
   });
 
   it('should update sector history if auxiliary does not have contract', async () => {
@@ -114,12 +142,13 @@ describe('updateHistoryOnSectorUpdate', () => {
     sinon.assert.notCalled(createHistoryStub);
   });
 
-  it('should update sector history if auxiliary contract has not started yet', async () => {
-    const sectorHistory = { _id: new ObjectID(), sector: new ObjectID(), startDate: '2019-09-10T00:00:00' };
-
-    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([[{ startDate: moment().add(1, 'd') }]], ['sort', 'lean']));
-    updateOne.returns({ sector });
+  it('should update sector history if auxiliary is between contracts', async () => {
+    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(
+      [[{ startDate: '2020-01-01T00:00:00', endDate: '2020-08-01T23:59:59' }, { startDate: moment().add(1, 'd') }]],
+      ['sort', 'lean']
+    ));
+    createHistoryStub.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
@@ -146,11 +175,9 @@ describe('updateHistoryOnSectorUpdate', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-      { $set: { sector: sector.toHexString() } }
+      createHistoryStub,
+      { _id: auxiliaryId, sector: sector.toHexString() }, companyId
     );
-    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update sector history if many changes made on the same day', async () => {

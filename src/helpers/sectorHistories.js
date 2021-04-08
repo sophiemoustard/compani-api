@@ -1,4 +1,5 @@
 const moment = require('moment');
+const Boom = require('@hapi/Boom');
 const SectorHistory = require('../models/SectorHistory');
 const Contract = require('../models/Contract');
 
@@ -6,11 +7,6 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
   const lastSectorHistory = await SectorHistory
     .findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
     .lean();
-  if (!lastSectorHistory) {
-    return exports.createHistory({ _id: auxiliaryId, sector }, companyId, moment().startOf('day').toDate());
-  }
-
-  if (lastSectorHistory.sector.toHexString() === sector) return null;
 
   const contracts = await Contract
     .find({
@@ -20,6 +16,14 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     })
     .sort({ startDate: -1 })
     .lean();
+
+  const notInContract = contracts.every(contract =>
+    moment().isBefore(contract.startDate) || moment().isAfter(contract.endDate));
+  if (!lastSectorHistory && notInContract) return exports.createHistory({ _id: auxiliaryId, sector }, companyId);
+  if (!lastSectorHistory) throw Boom.badData();
+
+  if (lastSectorHistory.sector.toHexString() === sector) return null;
+
   const doesNotHaveContract = !contracts.length;
   const contractNotStarted = contracts.length && moment().isBefore(contracts[0].startDate);
   const lastHistoryStartsOnSameDay = moment().isSame(lastSectorHistory.startDate, 'day');
