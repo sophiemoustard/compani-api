@@ -30,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['partnerorganization:create'] },
+        auth: { scope: ['partnerorganization:read'] },
       },
       handler: list,
     });
