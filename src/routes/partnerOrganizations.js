@@ -20,7 +20,7 @@ exports.plugin = {
             email: Joi.string().email(),
           }),
         },
-        auth: { scope: ['partnerorganization:create'] },
+        auth: { scope: ['partnerorganizations:edit'] },
         pre: [{ method: authorizePartnerOrganizationCreation }],
       },
       handler: create,
@@ -30,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['partnerorganization:read'] },
+        auth: { scope: ['partnerorganizations:edit'] },
       },
       handler: list,
     });
