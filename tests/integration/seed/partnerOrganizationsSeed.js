@@ -1,9 +1,11 @@
+const { ObjectID } = require('mongodb');
 const { authCompany, otherCompany } = require('../../seed/companySeed');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
 const partnerOrganizationsList = [
   {
+    _id: new ObjectID(),
     name: 'Gooogle',
     phone: '0123456789',
     email: 'skulysse@alenvi.io',
