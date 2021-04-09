@@ -85,7 +85,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
-            Joi.object({ title: Joi.string() }),
+            Joi.object({ title: Joi.string().required() }),
             Joi.object({ cards: Joi.array().items(Joi.objectId()).required() })
           ),
         },

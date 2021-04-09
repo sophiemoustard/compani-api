@@ -459,7 +459,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id }).lean();
+      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id });
       expect(cardDeleted).toBe(0);
 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
