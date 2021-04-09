@@ -71,3 +71,45 @@ describe('list', () => {
     );
   });
 });
+
+describe('getPartnerOrganization', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(PartnerOrganization, 'findOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+  });
+
+  it('should update a partner organizations', async () => {
+    const partnerOrganizationId = new ObjectID();
+
+    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]], ['lean']));
+
+    await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: partnerOrganizationId }] }, { query: 'lean' }]
+    );
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(PartnerOrganization, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update a partner organizations', async () => {
+    const payload = { name: 'skusku' };
+    const partnerOrganizationId = new ObjectID();
+
+    await PartnerOrganizationsHelper.update(partnerOrganizationId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $set: { name: 'skusku' } });
+  });
+});
