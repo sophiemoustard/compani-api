@@ -87,6 +87,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       ));
 
       await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+      expect(true).toBe(false);
     } catch (e) {
       expect(e).toEqual(Boom.badData());
     } finally {

@@ -1,5 +1,5 @@
 const moment = require('moment');
-const Boom = require('@hapi/Boom');
+const Boom = require('@hapi/boom');
 const SectorHistory = require('../models/SectorHistory');
 const Contract = require('../models/Contract');
 
