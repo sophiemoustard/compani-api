@@ -47,8 +47,8 @@ exports.authorizeQuestionnaireEdit = async (req) => {
 exports.authorizeCardDeletion = async (req) => {
   const card = await Card.findOne({ _id: req.params.cardId }).lean();
   if (!card) throw Boom.notFound();
-  const activity = await Questionnaire.findOne({ cards: req.params.cardId }).lean();
-  if (activity.status === PUBLISHED) throw Boom.forbidden();
+  const questionnaire = await Questionnaire.findOne({ cards: req.params.cardId }).lean();
+  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
 
   return null;
 };

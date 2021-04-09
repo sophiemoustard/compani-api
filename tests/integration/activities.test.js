@@ -351,8 +351,8 @@ describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardDeleted = await Card.findById(cardsList[0]._id).lean();
-      expect(cardDeleted).toBeNull();
+      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id }).lean();
+      expect(cardDeleted).toBe(0);
 
       const activity = await Activity.findById(draftActivity._id).lean();
       expect(activity.cards.length).toEqual(draftActivity.cards.length - 1);

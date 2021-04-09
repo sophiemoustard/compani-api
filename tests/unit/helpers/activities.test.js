@@ -191,7 +191,7 @@ describe('removeCard', () => {
 
     await ActivityHelper.removeCard(cardId);
 
-    sinon.assert.calledWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
-    sinon.assert.calledWithExactly(removeCard, cardId);
+    sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(removeCard, cardId);
   });
 });
