@@ -331,7 +331,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
   });
 });
 
-describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
+describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
@@ -345,7 +345,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
     it('should delete activity card', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/card/${draftActivity.cards[0].toHexString()}`,
+        url: `/activities/cards/${draftActivity.cards[0].toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -362,7 +362,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/card/${(new ObjectID()).toHexString()}`,
+        url: `/activities/cards/${(new ObjectID()).toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -372,7 +372,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
     it('should return 403 if activity is published', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/card/${publishedActivity.cards[0].toHexString()}`,
+        url: `/activities/cards/${publishedActivity.cards[0].toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -393,7 +393,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/activities/card/${draftActivity.cards[0].toHexString()}`,
+          url: `/activities/cards/${draftActivity.cards[0].toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

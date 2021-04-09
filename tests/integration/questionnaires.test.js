@@ -451,7 +451,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
   });
 });
 
-describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
+describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const draftQuestionnaire = questionnairesList.find(activity => activity.status === 'draft');
@@ -465,7 +465,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
     it('should delete questionnaire card', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/questionnaires/card/${draftQuestionnaire.cards[0].toHexString()}`,
+        url: `/questionnaires/cards/${draftQuestionnaire.cards[0].toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -482,7 +482,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/questionnaires/card/${(new ObjectID()).toHexString()}`,
+        url: `/questionnaires/cards/${(new ObjectID()).toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -492,7 +492,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
     it('should return 403 if activity is published', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/questionnaires/card/${publishedQuestionnaire.cards[0].toHexString()}`,
+        url: `/questionnaires/cards/${publishedQuestionnaire.cards[0].toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -513,7 +513,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/questionnaires/card/${draftQuestionnaire.cards[0].toHexString()}`,
+          url: `/questionnaires/cards/${draftQuestionnaire.cards[0].toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -69,7 +69,7 @@ exports.plugin = {
 
     server.route({
       method: 'DELETE',
-      path: '/card/{cardId}',
+      path: '/cards/{cardId}',
       options: {
         validate: { params: Joi.object({ cardId: Joi.objectId().required() }) },
         auth: { scope: ['questionnaires:edit'] },
