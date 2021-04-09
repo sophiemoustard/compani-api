@@ -28,11 +28,11 @@ exports.authorizeCardAdd = async (req) => {
 };
 
 exports.authorizeCardDeletion = async (req) => {
-  const card = await Card.findOne({ _id: req.params.cardId }).lean();
+  const card = await Card.countDocuments({ _id: req.params.cardId });
   if (!card) throw Boom.notFound();
 
-  const activity = await Activity.findOne({ cards: req.params.cardId }).lean();
-  if (activity.status === PUBLISHED) throw Boom.forbidden();
+  const activity = await Activity.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
+  if (activity) throw Boom.forbidden();
 
   return null;
 };

@@ -45,10 +45,11 @@ exports.authorizeQuestionnaireEdit = async (req) => {
 };
 
 exports.authorizeCardDeletion = async (req) => {
-  const card = await Card.findOne({ _id: req.params.cardId }).lean();
+  const card = await Card.countDocuments({ _id: req.params.cardId });
   if (!card) throw Boom.notFound();
-  const questionnaire = await Questionnaire.findOne({ cards: req.params.cardId }).lean();
-  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
+
+  const questionnaire = await Questionnaire.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
+  if (questionnaire) throw Boom.forbidden();
 
   return null;
 };
