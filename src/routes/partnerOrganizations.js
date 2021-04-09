@@ -60,9 +60,9 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({ name: Joi.string().required() }),
-            Joi.object({ phone: phoneNumberValidation.required() }),
-            Joi.object({ address: addressValidation.required() }),
-            Joi.object({ email: Joi.string().email().required() })
+            Joi.object({ phone: phoneNumberValidation.required().allow('') }),
+            Joi.object({ address: addressValidation.required().allow({}) }),
+            Joi.object({ email: Joi.string().email().required().allow('') })
           ),
         },
         auth: { scope: ['partnerorganizations:edit'] },
