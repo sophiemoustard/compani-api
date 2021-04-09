@@ -152,7 +152,7 @@ describe('addCard', () => {
   let createCard;
   let updateOne;
   beforeEach(() => {
-    createCard = sinon.stub(Card, 'create');
+    createCard = sinon.stub(CardHelper, 'createCard');
     updateOne = sinon.stub(Activity, 'updateOne');
   });
   afterEach(() => {
@@ -169,8 +169,8 @@ describe('addCard', () => {
 
     await ActivityHelper.addCard(activity._id, payload);
 
-    sinon.assert.calledWithExactly(createCard, payload);
-    sinon.assert.calledWithExactly(updateOne, { _id: activity._id }, { $push: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(createCard, payload);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: activity._id }, { $push: { cards: cardId } });
   });
 });
 

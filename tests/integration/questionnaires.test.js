@@ -245,8 +245,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 400 if payload is empty', async () => {
-      const payload = {};
+    it('should return 400 if cards is not an array of strings', async () => {
+      const payload = { cards: [1, 2] };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -342,6 +342,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     });
 
     it('should create card', async () => {
+      const questionnaire = await Questionnaire.findById(questionnaireId).lean();
+
       const response = await app.inject({
         method: 'POST',
         url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
@@ -352,7 +354,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
       const questionnaireUpdated = await Questionnaire.findById(questionnaireId).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(questionnaireUpdated.cards.length).toEqual(3);
+      expect(questionnaireUpdated.cards.length).toEqual(questionnaire.cards.length + 1);
     });
 
     it('should return a 400 if invalid template', async () => {
@@ -377,7 +379,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if questionnaire does not exist', async () => {
+    it('should return a 404 if questionnaire does not exist', async () => {
       const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
@@ -404,9 +406,6 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },

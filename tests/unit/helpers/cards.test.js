@@ -25,9 +25,10 @@ describe('createCard', () => {
 
   it('should create a transition card', async () => {
     const newCard = { template: 'transition' };
+
     await CardHelper.createCard(newCard);
 
-    sinon.assert.calledWithExactly(create, newCard);
+    sinon.assert.calledOnceWithExactly(create, newCard);
   });
 });
 

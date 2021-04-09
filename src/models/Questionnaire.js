@@ -10,7 +10,7 @@ const QuestionnaireSchema = mongoose.Schema({
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
   type: { type: String, required: true, enum: QUESTIONNAIRE_TYPES },
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
-}, { timestamps: true });
+}, { timestamps: true, id: false });
 
 // eslint-disable-next-line consistent-return
 function setAreCardsValid() {
