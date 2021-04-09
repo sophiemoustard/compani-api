@@ -20,6 +20,8 @@ const cardsList = [
     media: { link: 'lien', publicId: 'id' },
   },
   { _id: new ObjectID(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
+  { _id: new ObjectID(), template: TITLE_TEXT },
+  { _id: new ObjectID(), template: TRANSITION },
 ];
 
 const activitiesList = [
@@ -27,11 +29,18 @@ const activitiesList = [
     _id: new ObjectID(),
     name: 'manger',
     type: 'quiz',
+    status: 'draft',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id, cardsList[3]._id],
   },
   { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
   { _id: new ObjectID(), name: 'fumer', type: 'video' },
-  { _id: new ObjectID(), name: 'publiée', type: 'video', status: 'published' },
+  {
+    _id: new ObjectID(),
+    name: 'publiée',
+    type: 'video',
+    status: 'published',
+    cards: [cardsList[4]._id, cardsList[5]._id],
+  },
 ];
 
 const stepsList = [

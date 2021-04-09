@@ -4,7 +4,6 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   update,
-  remove,
   uploadMedia,
   updateAnswer,
   addAnswer,
@@ -15,7 +14,6 @@ const { formDataPayload } = require('./validations/utils');
 const {
   authorizeCardUpdate,
   authorizeCardAnswerUpdate,
-  authorizeCardDeletion,
   authorizeCardAnswerCreation,
   authorizeCardAnswerDeletion,
   getCardMediaPublicId,
@@ -104,19 +102,6 @@ exports.plugin = {
         pre: [{ method: authorizeCardAnswerDeletion, assign: 'card' }],
       },
       handler: deleteAnswer,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeCardDeletion }],
-      },
-      handler: remove,
     });
 
     server.route({

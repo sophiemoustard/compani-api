@@ -38,3 +38,8 @@ exports.addCard = async (activityId, payload) => {
   const card = await CardHelper.createCard(payload);
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
+
+exports.removeCard = async (cardId) => {
+  await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await CardHelper.removeCard(cardId);
+};

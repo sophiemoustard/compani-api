@@ -2,7 +2,8 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
-const { populateDB, questionnairesList } = require('./seed/questionnairesSeed');
+const Card = require('../../src/models/Card');
+const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 const { SURVEY } = require('../../src/helpers/constants');
@@ -418,6 +419,78 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
           method: 'POST',
           payload: { template: 'transition' },
           url: `/questionnaires/${questionnaireId.toHexString()}/cards`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/card/{cardId}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const draftQuestionnaire = questionnairesList.find(activity => activity.status === 'draft');
+  const publishedQuestionnaire = questionnairesList.find(activity => activity.status === 'published');
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete questionnaire card', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/questionnaires/card/${draftQuestionnaire.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardDeleted = await Card.findById(cardsList[0]._id).lean();
+      expect(cardDeleted).toBeNull();
+
+      const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
+      expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);
+      expect(questionnaire.cards.includes(draftQuestionnaire.cards[0])).toBeFalsy();
+    });
+
+    it('should return 404 if card not found', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/questionnaires/card/${(new ObjectID()).toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if activity is published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/questionnaires/card/${publishedQuestionnaire.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/questionnaires/card/${draftQuestionnaire.cards[0].toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

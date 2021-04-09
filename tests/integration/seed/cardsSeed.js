@@ -1,7 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
-const Questionnaire = require('../../../src/models/Questionnaire');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const {
   TRANSITION,
@@ -135,39 +134,18 @@ const activitiesList = [
     status: 'published',
   },
 ];
-
-const questionnairesList = [
-  {
-    _id: new ObjectID(),
-    title: 'test',
-    status: 'draft',
-    type: 'expectations',
-    cards: [cardsList[2]._id, cardsList[3]._id],
-  },
-  {
-    _id: new ObjectID(),
-    title: 'test',
-    status: 'published',
-    type: 'expectations',
-    cards: [cardsList[6]._id, cardsList[7]._id],
-  },
-];
-
 const populateDB = async () => {
   await Card.deleteMany({});
   await Activity.deleteMany({});
-  await Questionnaire.deleteMany({});
 
   await populateDBForAuthentication();
 
   await Card.insertMany(cardsList);
   await Activity.create(activitiesList);
-  await Questionnaire.create(questionnairesList);
 };
 
 module.exports = {
   populateDB,
   cardsList,
   activitiesList,
-  questionnairesList,
 };

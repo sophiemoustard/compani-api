@@ -5,6 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
+const CardHelper = require('../../../src/helpers/cards');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getActivity', () => {
@@ -170,5 +171,27 @@ describe('addCard', () => {
 
     sinon.assert.calledWithExactly(createCard, payload);
     sinon.assert.calledWithExactly(updateOne, { _id: activity._id }, { $push: { cards: cardId } });
+  });
+});
+
+describe('removeCard', () => {
+  let removeCard;
+  let updateOne;
+  beforeEach(() => {
+    removeCard = sinon.stub(CardHelper, 'removeCard');
+    updateOne = sinon.stub(Activity, 'updateOne');
+  });
+  afterEach(() => {
+    removeCard.restore();
+    updateOne.restore();
+  });
+
+  it('should remove card from activity', async () => {
+    const cardId = new ObjectID();
+
+    await ActivityHelper.removeCard(cardId);
+
+    sinon.assert.calledWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledWithExactly(removeCard, cardId);
   });
 });

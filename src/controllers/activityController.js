@@ -40,4 +40,15 @@ const addCard = async (req) => {
   }
 };
 
-module.exports = { getById, update, addCard };
+const removeCard = async (req) => {
+  try {
+    await ActivityHelper.removeCard(req.params.cardId);
+
+    return { message: translate[language].cardDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { getById, update, addCard, removeCard };

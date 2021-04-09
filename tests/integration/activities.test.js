@@ -2,12 +2,14 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
+const Card = require('../../src/models/Card');
 const {
   populateDB,
   activitiesList,
   stepsList,
   subProgramsList,
   programsList,
+  cardsList,
 } = require('./seed/activitiesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -320,6 +322,78 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
           method: 'POST',
           payload: { template: 'transition' },
           url: `/activities/${activityId.toHexString()}/cards`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('ACTIVITIES ROUTES - DELETE /activities/card/{cardId}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const draftActivity = activitiesList.find(activity => activity.status === 'draft');
+  const publishedActivity = activitiesList.find(activity => activity.status === 'published');
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should delete activity card', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/activities/card/${draftActivity.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const cardDeleted = await Card.findById(cardsList[0]._id).lean();
+      expect(cardDeleted).toBeNull();
+
+      const activity = await Activity.findById(draftActivity._id).lean();
+      expect(activity.cards.length).toEqual(draftActivity.cards.length - 1);
+      expect(activity.cards.includes(draftActivity.cards[0])).toBeFalsy();
+    });
+
+    it('should return 404 if card not found', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/activities/card/${(new ObjectID()).toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if activity is published', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/activities/card/${publishedActivity.cards[0].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/activities/card/${draftActivity.cards[0].toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

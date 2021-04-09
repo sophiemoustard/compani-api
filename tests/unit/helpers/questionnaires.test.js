@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
+const CardHelper = require('../../../src/helpers/cards');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
@@ -125,5 +126,27 @@ describe('addCard', () => {
 
     sinon.assert.calledWithExactly(createCard, payload);
     sinon.assert.calledWithExactly(updateOne, { _id: questionnaire._id }, { $push: { cards: cardId } });
+  });
+});
+
+describe('removeCard', () => {
+  let removeCard;
+  let updateOne;
+  beforeEach(() => {
+    removeCard = sinon.stub(CardHelper, 'removeCard');
+    updateOne = sinon.stub(Questionnaire, 'updateOne');
+  });
+  afterEach(() => {
+    removeCard.restore();
+    updateOne.restore();
+  });
+
+  it('should remove card from questionnaire', async () => {
+    const cardId = new ObjectID();
+
+    await QuestionnaireHelper.removeCard(cardId);
+
+    sinon.assert.calledWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledWithExactly(removeCard, cardId);
   });
 });

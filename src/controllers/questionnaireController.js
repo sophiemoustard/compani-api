@@ -67,4 +67,15 @@ const addCard = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update, addCard };
+const removeCard = async (req) => {
+  try {
+    await QuestionnaireHelper.removeCard(req.params.cardId);
+
+    return { message: translate[language].cardDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard, removeCard };
