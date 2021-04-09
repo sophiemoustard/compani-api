@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizePartnerOrganizationCreation = async (req) => {
+exports.checkPartnerOrganizationAlreadyExists = async (req) => {
   const { credentials } = req.auth;
 
   const partnerOrganizationAlreadyExist = await PartnerOrganization.countDocuments({
@@ -18,7 +18,15 @@ exports.authorizePartnerOrganizationCreation = async (req) => {
 
 exports.partnerOrganizationExists = async (req) => {
   const partnerOrganizationExists = await PartnerOrganization.countDocuments({ _id: req.params._id });
-  if (!partnerOrganizationExists) throw Boom.forbidden();
+  if (!partnerOrganizationExists) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizePartnerOrganizationEdit = async (req) => {
+  await this.partnerOrganizationExists(req);
+
+  if (req.payload.name) await this.checkPartnerOrganizationAlreadyExists(req);
 
   return null;
 };

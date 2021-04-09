@@ -6,3 +6,6 @@ exports.list = credentials => PartnerOrganization.find({ company: credentials.co
 
 exports.getPartnerOrganization = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
   .lean();
+
+exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
+  .updateOne({ _id: partnerOrganizationId }, { $set: payload });

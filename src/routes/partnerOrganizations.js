@@ -2,10 +2,11 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create, list, getById } = require('../controllers/partnerOrganizationController');
+const { create, list, getById, update } = require('../controllers/partnerOrganizationController');
 const {
-  authorizePartnerOrganizationCreation,
+  checkPartnerOrganizationAlreadyExists,
   partnerOrganizationExists,
+  authorizePartnerOrganizationEdit,
 } = require('./preHandlers/partnerOrganizations');
 
 exports.plugin = {
@@ -24,7 +25,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['partnerorganizations:edit'] },
-        pre: [{ method: authorizePartnerOrganizationCreation }],
+        pre: [{ method: checkPartnerOrganizationAlreadyExists }],
       },
       handler: create,
     });
@@ -49,6 +50,25 @@ exports.plugin = {
         pre: [{ method: partnerOrganizationExists }],
       },
       handler: getById,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.alternatives().try(
+            Joi.object({ name: Joi.string().required() }),
+            Joi.object({ phone: phoneNumberValidation.required() }),
+            Joi.object({ address: addressValidation.required() }),
+            Joi.object({ email: Joi.string().email().required() })
+          ),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: authorizePartnerOrganizationEdit }],
+      },
+      handler: update,
     });
   },
 };

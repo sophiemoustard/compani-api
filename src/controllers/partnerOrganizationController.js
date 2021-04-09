@@ -37,4 +37,15 @@ const getById = async (req) => {
   }
 };
 
-module.exports = { create, list, getById };
+const update = async (req) => {
+  try {
+    await PartnerOrganizationsHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].partnerOrganizationUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, getById, update };
