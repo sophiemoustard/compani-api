@@ -432,6 +432,17 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 403 if card questionnaire is published', async () => {
+      const card = cardsList[6];
+      const response = await app.inject({
+        method: 'POST',
+        url: `/cards/${card._id.toHexString()}/answers`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -782,6 +793,17 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
     it('should return 403 if card is in published activity', async () => {
       const publishedCard = cardsList[13];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if card is in published questionnaire', async () => {
+      const publishedCard = cardsList[6];
       const response = await app.inject({
         method: 'DELETE',
         url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
