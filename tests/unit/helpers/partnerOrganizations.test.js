@@ -72,7 +72,7 @@ describe('list', () => {
   });
 });
 
-describe('getPartnerOrganization', () => {
+describe('getById', () => {
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(PartnerOrganization, 'findOne');
@@ -86,7 +86,7 @@ describe('getPartnerOrganization', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]], ['lean']));
 
-    await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId);
+    await PartnerOrganizationsHelper.getById(partnerOrganizationId);
 
     SinonMongoose.calledWithExactly(
       findOne,

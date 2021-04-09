@@ -4,9 +4,9 @@ const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
 const { create, list, getById, update } = require('../controllers/partnerOrganizationController');
 const {
-  checkPartnerOrganizationAlreadyExists,
-  partnerOrganizationExists,
-  authorizePartnerOrganizationEdit,
+  authorizePartnerOrganizationCreation,
+  authorizePartnerOrganizationGetById,
+  authorizePartnerOrganizationUpdate,
 } = require('./preHandlers/partnerOrganizations');
 
 exports.plugin = {
@@ -25,7 +25,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['partnerorganizations:edit'] },
-        pre: [{ method: checkPartnerOrganizationAlreadyExists }],
+        pre: [{ method: authorizePartnerOrganizationCreation }],
       },
       handler: create,
     });
@@ -47,7 +47,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['partnerorganizations:edit'] },
-        pre: [{ method: partnerOrganizationExists }],
+        pre: [{ method: authorizePartnerOrganizationGetById }],
       },
       handler: getById,
     });
@@ -58,15 +58,15 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.alternatives().try(
-            Joi.object({ name: Joi.string().required() }),
-            Joi.object({ phone: phoneNumberValidation.required().allow('') }),
-            Joi.object({ address: addressValidation.required().allow({}) }),
-            Joi.object({ email: Joi.string().email().required().allow('') })
-          ),
+          payload: Joi.object({
+            name: Joi.string(),
+            phone: phoneNumberValidation.allow(''),
+            address: Joi.alternatives().try(addressValidation, {}),
+            email: Joi.string().email().allow(''),
+          }),
         },
         auth: { scope: ['partnerorganizations:edit'] },
-        pre: [{ method: authorizePartnerOrganizationEdit }],
+        pre: [{ method: authorizePartnerOrganizationUpdate }],
       },
       handler: update,
     });
