@@ -86,7 +86,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({ title: Joi.string() }),
-            Joi.object({ cards: Joi.array().items(Joi.objectId()) })
+            Joi.object({ cards: Joi.array().items(Joi.objectId()).required() })
           ),
         },
         auth: { scope: ['questionnaires:edit'] },

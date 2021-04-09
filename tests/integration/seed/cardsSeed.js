@@ -134,6 +134,7 @@ const activitiesList = [
     status: 'published',
   },
 ];
+
 const populateDB = async () => {
   await Card.deleteMany({});
   await Activity.deleteMany({});
