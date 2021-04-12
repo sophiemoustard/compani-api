@@ -2,6 +2,7 @@ const moment = require('moment');
 const Boom = require('@hapi/boom');
 const SectorHistory = require('../models/SectorHistory');
 const Contract = require('../models/Contract');
+const DatesHelper = require('./dates');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
   const lastSectorHistory = await SectorHistory
@@ -18,14 +19,14 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     .lean();
 
   const notInContract = contracts.every(contract =>
-    moment().isBefore(contract.startDate) || moment().isAfter(contract.endDate));
+    DatesHelper.isBefore(new Date(), contract.startDate) || DatesHelper.isAfter(new Date(), contract.endDate));
   if (!lastSectorHistory && notInContract) return exports.createHistory({ _id: auxiliaryId, sector }, companyId);
-  if (!lastSectorHistory) throw Boom.badData();
+  if (!lastSectorHistory) throw Boom.badData('No last sector history for auxiliary in contract');
 
   if (lastSectorHistory.sector.toHexString() === sector) return null;
 
   const doesNotHaveContract = !contracts.length;
-  const contractNotStarted = contracts.length && moment().isBefore(contracts[0].startDate);
+  const contractNotStarted = contracts.length && DatesHelper.isBefore(new Date(), contracts[0].startDate);
   const lastHistoryStartsOnSameDay = moment().isSame(lastSectorHistory.startDate, 'day');
   if (doesNotHaveContract || contractNotStarted || lastHistoryStartsOnSameDay) {
     return SectorHistory.updateOne(
@@ -44,6 +45,15 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 
 exports.createHistoryOnContractCreation = async (user, newContract, companyId) => {
   const startDate = moment(newContract.startDate).startOf('day').toDate();
+  const wrongHistory = await SectorHistory.find({
+    startDate: { $exists: true },
+    endDate: { $exists: false },
+    auxiliary: user._id,
+  })
+    .lean();
+
+  if (wrongHistory) throw Boom.badData('There is a sector history with a startDate without an endDate');
+
   const existingHistory = await SectorHistory
     .findOne({ startDate: { $exists: false }, auxiliary: user._id })
     .lean();
