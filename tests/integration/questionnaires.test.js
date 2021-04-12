@@ -6,7 +6,7 @@ const Card = require('../../src/models/Card');
 const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
-const { SURVEY, PUBLISHED } = require('../../src/helpers/constants');
+const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -269,6 +269,20 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if questionnaire status is not PUBLISHED', async () => {
+      await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
+
+      const payload = { status: DRAFT };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 400 if cards is not an array of strings', async () => {
