@@ -21,7 +21,7 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
   const notInContract = contracts.every(contract =>
     DatesHelper.isAfter(contract.startDate, new Date()) || DatesHelper.isBefore(contract.endDate, new Date()));
   if (!lastSectorHistory && notInContract) return exports.createHistory({ _id: auxiliaryId, sector }, companyId);
-  if (!lastSectorHistory) throw Boom.badData('No last sector history for auxiliary in contract');
+  if (!lastSectorHistory) throw Boom.conflict('No last sector history for auxiliary in contract');
 
   if (lastSectorHistory.sector.toHexString() === sector) return null;
 
@@ -45,11 +45,11 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 
 exports.createHistoryOnContractCreation = async (user, newContract, companyId) => {
   const startDate = moment(newContract.startDate).startOf('day').toDate();
-  const wrongHistory = await SectorHistory
+  const startedHistory = await SectorHistory
     .countDocuments({ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id })
     .lean();
 
-  if (wrongHistory) throw Boom.badData('There is a sector history with a startDate without an endDate');
+  if (startedHistory) throw Boom.conflict('There is a sector history with a startDate without an endDate');
 
   const existingHistory = await SectorHistory
     .findOne({ startDate: { $exists: false }, auxiliary: user._id })

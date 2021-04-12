@@ -89,7 +89,7 @@ describe('updateHistoryOnSectorUpdate', () => {
       await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
       expect(true).toBe(false);
     } catch (e) {
-      expect(e).toEqual(Boom.badData('No last sector history for auxiliary in contract'));
+      expect(e).toEqual(Boom.conflict('No last sector history for auxiliary in contract'));
     } finally {
       SinonMongoose.calledWithExactly(
         findOne,
@@ -335,7 +335,10 @@ describe('createHistoryOnContractCreation', () => {
     SinonMongoose.calledWithExactly(
       countDocuments,
       [
-        { query: 'countDocuments', args: [{ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id }] },
+        {
+          query: 'countDocuments',
+          args: [{ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id }],
+        },
         { query: 'lean' },
       ]
     );
@@ -366,12 +369,15 @@ describe('createHistoryOnContractCreation', () => {
 
       expect(true).toBe(false);
     } catch (e) {
-      expect(e).toEqual(Boom.badData('There is a sector history with a startDate without an endDate'));
+      expect(e).toEqual(Boom.conflict('There is a sector history with a startDate without an endDate'));
     } finally {
       SinonMongoose.calledWithExactly(
         countDocuments,
         [
-          { query: 'countDocuments', args: [{ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id }] },
+          {
+            query: 'countDocuments',
+            args: [{ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id }],
+          },
           { query: 'lean' },
         ]
       );
