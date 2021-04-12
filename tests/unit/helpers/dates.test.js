@@ -13,6 +13,12 @@ describe('isBefore', () => {
 
     expect(isBefore).toBe(false);
   });
+
+  it('should return false if date1 is equal to date2', () => {
+    const isBefore = DatesHelper.isBefore('2020-01-01', '2020-01-01');
+
+    expect(isBefore).toBe(false);
+  });
 });
 
 describe('isAfter', () => {
@@ -24,6 +30,12 @@ describe('isAfter', () => {
 
   it('should return false if date1 is before date2', () => {
     const isAfter = DatesHelper.isAfter('2020-01-01', new Date());
+
+    expect(isAfter).toBe(false);
+  });
+
+  it('should return false if date1 is equal to date2', () => {
+    const isAfter = DatesHelper.isAfter('2020-01-01', '2020-01-01');
 
     expect(isAfter).toBe(false);
   });
