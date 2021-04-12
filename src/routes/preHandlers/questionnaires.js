@@ -44,7 +44,9 @@ exports.authorizeQuestionnaireEdit = async (req) => {
   const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(
     { type: questionnaire.type, status: PUBLISHED }
   );
-  if (req.payload.status === PUBLISHED && publishedQuestionnaireWithSameTypeExists) throw Boom.forbidden();
+  if (req.payload.status === PUBLISHED && publishedQuestionnaireWithSameTypeExists) {
+    throw Boom.conflict(translate[language].publishedQuestionnaireWithSameTypeExists);
+  }
 
   return null;
 };

@@ -345,7 +345,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if questionnaire with same type is already published', async () => {
+    it('should return 409 if questionnaire with same type is already published', async () => {
       const payload = { status: PUBLISHED };
       const response = await app.inject({
         method: 'PUT',
@@ -354,7 +354,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
   });
 
