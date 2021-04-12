@@ -86,7 +86,7 @@ describe('getById', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]], ['lean']));
 
-    await PartnerOrganizationsHelper.getById(partnerOrganizationId);
+    await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId);
 
     SinonMongoose.calledWithExactly(
       findOne,
