@@ -10,6 +10,7 @@ const {
   authorizeCardDeletion,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
+const { PUBLISHED } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -86,7 +87,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({ title: Joi.string().required() }),
-            Joi.object({ cards: Joi.array().items(Joi.objectId()).required() })
+            Joi.object({ cards: Joi.array().items(Joi.objectId()).required() }),
+            Joi.object({ status: Joi.string().required().valid(PUBLISHED) })
           ),
         },
         auth: { scope: ['questionnaires:edit'] },
