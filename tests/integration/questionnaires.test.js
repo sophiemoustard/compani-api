@@ -257,7 +257,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update cards status', async () => {
+    it('should update questionnaire status', async () => {
       await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
 
       const payload = { status: PUBLISHED };
@@ -297,18 +297,6 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
 
     it('should return 400 if title is empty', async () => {
       const payload = { title: '' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/questionnaires/${questionnairesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if try to update title and cards', async () => {
-      const payload = { title: 'test2', cards: [questionnairesList[0].cards[1], questionnairesList[0].cards[0]] };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,

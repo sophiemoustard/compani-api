@@ -85,11 +85,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.alternatives().try(
-            Joi.object({ title: Joi.string().required() }),
-            Joi.object({ cards: Joi.array().items(Joi.objectId()).required() }),
-            Joi.object({ status: Joi.string().required().valid(PUBLISHED) })
-          ),
+          payload: Joi.object({
+            title: Joi.string(),
+            cards: Joi.array().items(Joi.objectId()),
+            status: Joi.string().valid(PUBLISHED),
+          }),
         },
         auth: { scope: ['questionnaires:edit'] },
         pre: [{ method: authorizeQuestionnaireEdit }],
