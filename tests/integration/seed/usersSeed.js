@@ -115,6 +115,7 @@ const coachAndTrainer = {
 
 const contractId = new ObjectID();
 const contractNotStartedId = new ObjectID();
+const endedContractId = new ObjectID();
 
 const usersSeedList = [
   {
@@ -179,7 +180,7 @@ const usersSeedList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     refreshToken: uuidv4(),
     company: authCompany._id,
-    contracts: [contractNotStartedId],
+    contracts: [endedContractId, contractNotStartedId],
     administrative: {
       certificates: [{ driveId: '1234567890' }],
       driveFolder: { driveId: '0987654321' },
@@ -212,6 +213,16 @@ const usersSeedList = [
     inactivityDate: null,
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainee_to_auxiliary', lastname: 'test' },
+    local: { email: 'trainee_to_auxiliary@alenvi.io', password: '123456!eR' },
+    role: {},
+    refreshToken: uuidv4(),
+    company: authCompany._id,
+    inactivityDate: null,
+    origin: WEBAPP,
+  },
 ];
 
 const userSectors = [
@@ -235,6 +246,14 @@ const contracts = [
     user: usersSeedList[4]._id,
     startDate: moment().add(1, 'month').toDate(),
     createdAt: moment('2018-10-10').toDate(),
+    company: authCompany._id,
+  },
+  {
+    _id: endedContractId,
+    serialNumber: 'testserialnumber',
+    user: usersSeedList[4]._id,
+    startDate: '2020-01-01T00:00:00',
+    createdAt: '2020-06-01T23:59:59',
     company: authCompany._id,
   },
 ];
