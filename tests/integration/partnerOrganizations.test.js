@@ -287,17 +287,6 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if more than one field is updated', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'coucou', email: 'coucou@coucou.com' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return 404 if partner organization doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'PUT',
