@@ -2,8 +2,12 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create, list } = require('../controllers/partnerOrganizationController');
-const { authorizePartnerOrganizationCreation } = require('./preHandlers/partnerOrganizations');
+const { create, list, getById, update } = require('../controllers/partnerOrganizationController');
+const {
+  authorizePartnerOrganizationCreation,
+  authorizePartnerOrganizationGetById,
+  authorizePartnerOrganizationUpdate,
+} = require('./preHandlers/partnerOrganizations');
 
 exports.plugin = {
   name: 'routes-partnerorganizations',
@@ -33,6 +37,38 @@ exports.plugin = {
         auth: { scope: ['partnerorganizations:edit'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: authorizePartnerOrganizationGetById }],
+      },
+      handler: getById,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            name: Joi.string(),
+            phone: phoneNumberValidation.allow(''),
+            address: Joi.alternatives().try(addressValidation, {}),
+            email: Joi.string().email().allow(''),
+          }),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: authorizePartnerOrganizationUpdate }],
+      },
+      handler: update,
     });
   },
 };

@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, partnerOrganizationsList } = require('./seed/partnerOrganizationsSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -161,6 +162,170 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
           method: 'GET',
           url: '/partnerorganizations',
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should return a partner organization', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if partner organization doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/partnerorganizations/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should update a partner organization', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'skusku' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if name is not a string', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: null },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if phone is not a phoneNumber', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { phone: 'coucou' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if address is not a address', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { address: 'coucou' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if email is not a email', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { email: 'coucou' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if partner organization doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'skusku' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if name is from an already existing partner organization', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'Gooogle' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { name: 'skusku' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

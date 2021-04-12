@@ -26,4 +26,26 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const getById = async (req) => {
+  try {
+    const partnerOrganization = await PartnerOrganizationsHelper.getPartnerOrganization(req.params._id);
+
+    return { message: translate[language].partnerOrganizationFound, data: { partnerOrganization } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const update = async (req) => {
+  try {
+    await PartnerOrganizationsHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].partnerOrganizationUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, getById, update };
