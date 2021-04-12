@@ -28,7 +28,7 @@ const list = async (req) => {
 
 const getById = async (req) => {
   try {
-    const partnerOrganization = await PartnerOrganizationsHelper.getById(req.params._id);
+    const partnerOrganization = await PartnerOrganizationsHelper.getPartnerOrganisation(req.params._id);
 
     return { message: translate[language].partnerOrganizationFound, data: { partnerOrganization } };
   } catch (e) {

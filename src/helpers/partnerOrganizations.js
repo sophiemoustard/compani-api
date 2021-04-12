@@ -4,7 +4,7 @@ exports.create = (payload, credentials) => PartnerOrganization.create({ ...paylo
 
 exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
 
-exports.getById = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
+exports.getPartnerOrganisation = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
   .lean();
 
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization

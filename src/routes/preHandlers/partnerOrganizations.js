@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.checkPartnerOrganizationAlreadyExists = async (req) => {
+exports.checkPartnerOrganizationConflict = async (req) => {
   const { credentials } = req.auth;
 
   const partnerOrganizationAlreadyExist = await PartnerOrganization.countDocuments({
@@ -24,7 +24,7 @@ exports.checkPartnerOrganizationExists = async (req) => {
 };
 
 exports.authorizePartnerOrganizationCreation = async (req) => {
-  await this.checkPartnerOrganizationAlreadyExists(req);
+  await this.checkPartnerOrganizationConflict(req);
 
   return null;
 };
@@ -38,7 +38,7 @@ exports.authorizePartnerOrganizationGetById = async (req) => {
 exports.authorizePartnerOrganizationUpdate = async (req) => {
   await this.checkPartnerOrganizationExists(req);
 
-  if (req.payload.name) await this.checkPartnerOrganizationAlreadyExists(req);
+  if (req.payload.name) await this.checkPartnerOrganizationConflict(req);
 
   return null;
 };
