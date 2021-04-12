@@ -2,13 +2,13 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication } = require('./authenticationSeed');
-const { TRANSITION, SURVEY } = require('../../../src/helpers/constants');
+const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
 
 const cardsList = [
-  { _id: new ObjectID(), template: TRANSITION },
-  { _id: new ObjectID(), template: SURVEY },
-  { _id: new ObjectID(), template: TRANSITION },
-  { _id: new ObjectID(), template: SURVEY },
+  { _id: new ObjectID(), template: TRANSITION, title: 'test1' },
+  { _id: new ObjectID(), template: OPEN_QUESTION, question: 'question?' },
+  { _id: new ObjectID(), template: TRANSITION, title: 'test2' },
+  { _id: new ObjectID(), template: OPEN_QUESTION, question: 'question?' },
 ];
 
 const questionnairesList = [
