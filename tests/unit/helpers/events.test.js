@@ -31,8 +31,6 @@ const {
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('list', () => {
   let getEventsGroupedByCustomersStub;
   let getEventsGroupedByAuxiliariesStub;
@@ -68,7 +66,7 @@ describe('list', () => {
     const result = await EventHelper.list(query, credentials);
 
     expect(result).toEqual(events);
-    sinon.assert.calledWithExactly(getEventsGroupedByCustomersStub, eventsQuery, companyId);
+    sinon.assert.calledOnceWithExactly(getEventsGroupedByCustomersStub, eventsQuery, companyId);
     sinon.assert.notCalled(getEventsGroupedByAuxiliariesStub);
     sinon.assert.notCalled(getEventListStub);
     sinon.assert.notCalled(populateEventsStub);
@@ -85,7 +83,7 @@ describe('list', () => {
 
     expect(result).toEqual(events);
     sinon.assert.notCalled(getEventsGroupedByCustomersStub);
-    sinon.assert.calledWithExactly(getEventsGroupedByAuxiliariesStub, eventsQuery, companyId);
+    sinon.assert.calledOnceWithExactly(getEventsGroupedByAuxiliariesStub, eventsQuery, companyId);
     sinon.assert.notCalled(getEventListStub);
     sinon.assert.notCalled(populateEventsStub);
   });
@@ -104,8 +102,8 @@ describe('list', () => {
     expect(result).toEqual(populatedEvents);
     sinon.assert.notCalled(getEventsGroupedByAuxiliariesStub);
     sinon.assert.notCalled(getEventsGroupedByCustomersStub);
-    sinon.assert.calledWithExactly(getEventListStub, eventsQuery, companyId);
-    sinon.assert.calledWithExactly(populateEventsStub, events);
+    sinon.assert.calledOnceWithExactly(getEventListStub, eventsQuery, companyId);
+    sinon.assert.calledOnceWithExactly(populateEventsStub, events);
   });
 });
 
@@ -181,7 +179,8 @@ describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
   let updateRepetition;
   let formatEditionPayload;
-  let EventMock;
+  let findOne;
+  let updateOne;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
   let populateEventSubscription;
@@ -193,7 +192,8 @@ describe('updateEvent', () => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
-    EventMock = sinon.mock(Event);
+    findOne = sinon.stub(Event, 'findOne');
+    updateOne = sinon.stub(Event, 'updateOne');
     deleteConflictInternalHoursAndUnavailabilities = sinon.stub(
       EventHelper,
       'deleteConflictInternalHoursAndUnavailabilities'
@@ -208,7 +208,8 @@ describe('updateEvent', () => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetition.restore();
-    EventMock.restore();
+    findOne.restore();
+    updateOne.restore();
     deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
     formatEditionPayload.restore();
@@ -231,28 +232,30 @@ describe('updateEvent', () => {
     };
 
     isUpdateAllowed.returns(true);
-    EventMock.expects('updateOne').never();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(isRepetition);
-    EventMock.verify();
+    sinon.assert.notCalled(updateOne);
   });
 
   it('should update event', async () => {
@@ -272,26 +275,28 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(false);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns({ ...event, updated: 1 });
+    findOne.returns(SinonMongoose.stubChainedQueries([{ ...event, updated: 1 }]));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(populateEventSubscription, { ...event, updated: 1 });
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
@@ -314,25 +319,28 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
   });
@@ -349,25 +357,28 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(false);
     isRepetition.returns(false);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
@@ -384,25 +395,28 @@ describe('updateEvent', () => {
     isMiscOnlyUpdated.returns(true);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
-    EventMock.verify();
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
@@ -424,38 +438,42 @@ describe('updateEvent', () => {
     isUpdateAllowed.returns(true);
     isMiscOnlyUpdated.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
-    EventMock.expects('updateOne').withExactArgs({ _id: event._id }, { $set: {}, unset: {} }).once();
-    EventMock.expects('findOne')
-      .withExactArgs({ _id: event._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-        populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-      })
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
-      .chain('populate')
-      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
-      .chain('lean')
-      .once()
-      .returns(event);
+    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
     await EventHelper.updateEvent(event, payload, credentials);
 
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
       event.auxiliary,
       credentials
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
       event,
       event.auxiliary,
       credentials
     );
+    sinon.assert.calledWithExactly(deleteConflictInternalHoursAndUnavailabilities, event, event.auxiliary, credentials);
     sinon.assert.notCalled(isMiscOnlyUpdated);
-    EventMock.verify();
   });
 
   it('should not update as event is scheduled on several days', async () => {
@@ -470,19 +488,17 @@ describe('updateEvent', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
 
-    EventMock.expects('updateOne').never();
-
     try {
       await EventHelper.updateEvent(event, payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
       expect(e.output.payload.message).toEqual('Les dates de début et de fin devraient être le même jour.');
     } finally {
+      sinon.assert.notCalled(updateOne);
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
       sinon.assert.notCalled(isMiscOnlyUpdated);
-      EventMock.verify();
     }
   });
 });
@@ -518,11 +534,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should query with thirdPartyPayer', async () => {
@@ -546,11 +565,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ type: 'intervention' }]);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return events with creditNotes at edition', async () => {
@@ -577,11 +599,14 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(findEvent, [
-      { query: 'find', args: [query] },
-      { query: 'sort', args: [{ startDate: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findEvent,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -749,11 +774,11 @@ describe('removeRepetitionsOnContractEnd', () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
 
     await EventHelper.removeRepetitionsOnContractEnd(contract);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateManyRepetition,
       { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       deleteManyRepetition,
       { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
     );
@@ -810,14 +835,14 @@ describe('unassignInterventionsOnContractEnd', () => {
     getInterventionsToUnassign.returns(interventions);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getInterventionsToUnassign,
       contract.endDate,
       contract.user._id,
       companyId
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
@@ -829,7 +854,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     getInterventionsToUnassign.returns([interventions[1]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       createEventHistoryOnUpdate,
       {
         misc: 'toto',
@@ -840,7 +865,7 @@ describe('unassignInterventionsOnContractEnd', () => {
       interventions[1].events[0],
       credentials
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
@@ -852,13 +877,13 @@ describe('unassignInterventionsOnContractEnd', () => {
     getInterventionsToUnassign.returns([interventions[0]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       createEventHistoryOnUpdate,
       { misc: undefined, startDate: '2019-10-02T10:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
       interventions[0].events[0],
       credentials
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER, sector: sectorId }, $unset: { auxiliary: '' } }
@@ -913,9 +938,12 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId, companyId);
+    sinon.assert.calledOnceWithExactly(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId, companyId);
     sinon.assert.calledTwice(createEventHistoryOnDelete);
-    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
+    sinon.assert.calledOnceWithExactly(
+      deleteMany,
+      { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } }
+    );
   });
 
   it('should create event history for repetition', async () => {
@@ -923,8 +951,8 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns([events[1]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(createEventHistoryOnDelete, events[1].events[0], credentials);
-    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, events[1].events[0], credentials);
+    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
   });
 
   it('should create event history for non repeated event', async () => {
@@ -932,15 +960,15 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns([events[0]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWithExactly(createEventHistoryOnDelete, events[0].events[0], credentials);
-    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, events[0].events[0], credentials);
+    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
   });
 });
 
 describe('deleteList', () => {
   let deleteEventsStub;
   let deleteRepetitionStub;
-  let EventModel;
+  let countDocuments;
   let getEventsGroupedByParentIdStub;
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -949,13 +977,13 @@ describe('deleteList', () => {
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
     deleteRepetitionStub = sinon.stub(EventsRepetitionHelper, 'deleteRepetition');
-    EventModel = sinon.mock(Event);
+    countDocuments = sinon.stub(Event, 'countDocuments');
     getEventsGroupedByParentIdStub = sinon.stub(EventRepository, 'getEventsGroupedByParentId');
   });
   afterEach(() => {
     deleteEventsStub.restore();
     deleteRepetitionStub.restore();
-    EventModel.restore();
+    countDocuments.restore();
     getEventsGroupedByParentIdStub.restore();
   });
 
@@ -1003,18 +1031,16 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [{ _id: new ObjectID(), events: [events[0]] }];
 
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, endDate, credentials);
-    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
+    sinon.assert.calledOnceWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
+    sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.notCalled(deleteRepetitionStub);
   });
 
@@ -1062,21 +1088,20 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [
       { _id: null, events: [events[0]] },
       { _id: repetitionParentId, events: [events[1], events[2]] },
     ];
+
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
-    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
-    sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
+    sinon.assert.calledOnceWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
+    sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
   });
 
   it('should delete all events and repetition even if repetition frequency is NEVER', async () => {
@@ -1106,20 +1131,19 @@ describe('deleteList', () => {
         auxiliary: userId,
       },
     ];
-    EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
-      .once()
-      .returns(0);
-
     const eventsGroupedByParentId = [
       { _id: repetitionParentId, events: [events[0], events[1]] },
     ];
+
+    countDocuments.returns(0);
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+
+    sinon.assert.calledOnceWithExactly(countDocuments, { ...query, isBilled: true, company: credentials.company._id });
     sinon.assert.notCalled(deleteEventsStub);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(
       deleteRepetitionStub,
       {
         ...eventsGroupedByParentId[0].events[0],
@@ -1174,9 +1198,12 @@ describe('updateAbsencesOnContractEnd', () => {
 
     payload = { ...payload, endDate: moment(contract.endDate).hour(PLANNING_VIEW_END_HOUR).startOf('h') };
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
-    sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, companyId);
-    sinon.assert.calledWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
-    sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+    sinon.assert.calledOnceWithExactly(getAbsences, userId, maxEndDate, companyId);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
+    sinon.assert.calledOnceWithExactly(
+      updateMany,
+      { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } }
+    );
   });
 });
 
@@ -1414,7 +1441,7 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
     await EventHelper.deleteConflictInternalHoursAndUnavailabilities(absence, auxiliary, credentials);
 
     getEventsInConflicts.calledWithExactly(dates, auxiliary._id, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absence._id);
-    sinon.assert.calledWithExactly(deleteEvents, events, credentials);
+    sinon.assert.calledOnceWithExactly(deleteEvents, events, credentials);
   });
 });
 
@@ -1473,8 +1500,8 @@ describe('deleteEvent', () => {
     const result = await EventHelper.deleteEvent(event, credentials);
 
     expect(result).toEqual(event);
-    sinon.assert.calledWithExactly(createEventHistoryOnDelete, deletionInfo, credentials);
-    sinon.assert.calledWithExactly(deleteOne, { _id: event._id });
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, deletionInfo, credentials);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: event._id });
   });
 
   it('should not delete event if it is billed', async () => {
@@ -1511,7 +1538,7 @@ describe('deleteEvents', () => {
     await EventHelper.deleteEvents(events, credentials);
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
-    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+    sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
   });
 
   it('should not delete event if at least one is billed', async () => {
@@ -1686,12 +1713,12 @@ describe('getContractWeekInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-11-20').startOf('w').toDate(),
       moment('2019-11-20').endOf('w').toDate()
     );
-    sinon.assert.calledWithExactly(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4);
   });
 });
 
@@ -1715,16 +1742,16 @@ describe('workingStats', () => {
   };
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
-  let UserModel;
-  let DistanceMatrixModel;
+  let findUser;
+  let findDistanceMatrix;
   let getEventsToPayStub;
   let getContractStub;
   let getContractWeekInfoStub;
   let getPayFromEventsStub;
   let getPayFromAbsencesStub;
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+    findUser = sinon.stub(User, 'find');
+    findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
     getContractStub = sinon.stub(EventHelper, 'getContract');
     getContractWeekInfoStub = sinon.stub(EventHelper, 'getContractWeekInfo');
@@ -1732,8 +1759,8 @@ describe('workingStats', () => {
     getPayFromAbsencesStub = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
   });
   afterEach(() => {
-    UserModel.restore();
-    DistanceMatrixModel.restore();
+    findUser.restore();
+    findDistanceMatrix.restore();
     getEventsToPayStub.restore();
     getContractStub.restore();
     getContractWeekInfoStub.restore();
@@ -1745,28 +1772,18 @@ describe('workingStats', () => {
     const contractId = new ObjectID();
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     const contract = { startDate: '2018-11-11', _id: contractId };
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
 
@@ -1777,13 +1794,23 @@ describe('workingStats', () => {
     };
 
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, query);
-    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
-    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, query);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
+    sinon.assert.calledOnceWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
+    sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, query);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should return workingstats for all auxiliaries if no auxiliary is specified', async () => {
@@ -1791,28 +1818,18 @@ describe('workingStats', () => {
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     const queryWithoutAuxiliary = omit(query, 'auxiliary');
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .returns(auxiliaries);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     const contract = { startDate: '2018-11-11', _id: contractId };
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
     const expectedResult = {};
@@ -1822,71 +1839,87 @@ describe('workingStats', () => {
     };
 
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary);
-    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], queryWithoutAuxiliary);
-    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
+    sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary);
+    sinon.assert.calledOnceWithExactly(
+      getPayFromEventsStub,
+      [],
+      auxiliaries[0],
+      distanceMatrix,
+      [],
+      queryWithoutAuxiliary
+    );
+    sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should return {} if no contract in auxiliaries', async () => {
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
-
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(getContractWeekInfoStub);
     sinon.assert.notCalled(getPayFromEventsStub);
     sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
   });
 
   it('should return {} if contract not found', async () => {
     const contracts = [{ _id: new ObjectID() }];
-    UserModel
-      .expects('find')
-      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
-      .chain('populate')
-      .chain('lean')
-      .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
-
-    DistanceMatrixModel
-      .expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('lean')
-      .returns(distanceMatrix);
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
+    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto', contracts }]]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findDistanceMatrix,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(getContractWeekInfoStub);
     sinon.assert.notCalled(getPayFromEventsStub);
     sinon.assert.notCalled(getPayFromAbsencesStub);
-    UserModel.verify();
-    DistanceMatrixModel.verify();
   });
 });
 
@@ -1916,7 +1949,7 @@ describe('getPaidTransportStatsBySector', () => {
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledOnceWithExactly(getDistanceMatrix, credentials);
   });
 
   it('should return paid transport stats', async () => {
@@ -1940,9 +1973,14 @@ describe('getPaidTransportStatsBySector', () => {
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector, duration: 1 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
-    sinon.assert.calledWithExactly(getPaidTransportStatsBySector, [query.sector], query.month, credentials.company._id);
-    sinon.assert.calledWithExactly(getPaidTransportInfo, events[1], events[0], distanceMatrix);
+    sinon.assert.calledOnceWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledOnceWithExactly(
+      getPaidTransportStatsBySector,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
+    sinon.assert.calledOnceWithExactly(getPaidTransportInfo, events[1], events[0], distanceMatrix);
   });
 
   it('should return paid transport stats for many sectors', async () => {
@@ -1977,7 +2015,7 @@ describe('getPaidTransportStatsBySector', () => {
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector[0], duration: 1 }, { sector: query.sector[1], duration: 1.5 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledOnceWithExactly(getDistanceMatrix, credentials);
     sinon.assert.calledWithExactly(getPaidTransportStatsBySector, query.sector, query.month, credentials.company._id);
     sinon.assert.calledWithExactly(
       getPaidTransportInfo.getCall(0),
@@ -2012,8 +2050,12 @@ describe('getPaidTransportStatsBySector', () => {
     const result = await EventHelper.getPaidTransportStatsBySector(query, credentials);
 
     expect(result).toEqual([{ sector: query.sector, duration: 0 }]);
-    sinon.assert.calledWithExactly(getDistanceMatrix, credentials);
-    sinon.assert.calledWithExactly(getPaidTransportStatsBySector, [query.sector], query.month, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(getDistanceMatrix, credentials);
+    sinon.assert.calledOnceWithExactly(
+      getPaidTransportStatsBySector,
+      [query.sector],
+      query.month, credentials.company._id
+    );
     sinon.assert.notCalled(getPaidTransportInfo);
   });
 });
@@ -2037,7 +2079,12 @@ describe('getUnassignedHoursBySector', () => {
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getUnassignedHoursBySector, [query.sector], query.month, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(
+      getUnassignedHoursBySector,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
   });
 
   it('should return unassigned hours', async () => {
@@ -2051,7 +2098,12 @@ describe('getUnassignedHoursBySector', () => {
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual(unassignedhours);
-    sinon.assert.calledWithExactly(getUnassignedHoursBySector, [query.sector], query.month, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(
+      getUnassignedHoursBySector,
+      [query.sector],
+      query.month,
+      credentials.company._id
+    );
   });
 
   it('should return unassigned hours for many sectors', async () => {
@@ -2065,6 +2117,6 @@ describe('getUnassignedHoursBySector', () => {
     const result = await EventHelper.getUnassignedHoursBySector(query, credentials);
 
     expect(result).toEqual(unassignedHours);
-    sinon.assert.calledWithExactly(getUnassignedHoursBySector, query.sector, query.month, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(getUnassignedHoursBySector, query.sector, query.month, credentials.company._id);
   });
 });

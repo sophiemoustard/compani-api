@@ -32,6 +32,17 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
 
+exports.checkSalesRepresentativeExists = async (req) => {
+  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
+    .lean({ autopopulate: true });
+
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
+    throw Boom.forbidden();
+  }
+
+  return null;
+};
+
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
@@ -41,6 +52,8 @@ exports.authorizeCourseEdit = async (req) => {
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
     this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+
+    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
 
     return null;
   } catch (e) {

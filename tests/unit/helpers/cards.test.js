@@ -3,7 +3,6 @@ const expect = require('expect');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
-const Activity = require('../../../src/models/Activity');
 const CardHelper = require('../../../src/helpers/cards');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const {
@@ -15,31 +14,21 @@ const {
   TRANSITION,
 } = require('../../../src/helpers/constants');
 
-describe('addCard', () => {
-  let cardCreate;
-  let activityUpdateOne;
-  const activity = { _id: new ObjectID(), name: 'faire du jetski' };
-  const newCard = { template: 'transition' };
-
+describe('createCard', () => {
+  let create;
   beforeEach(() => {
-    cardCreate = sinon.stub(Card, 'create');
-    activityUpdateOne = sinon.stub(Activity, 'updateOne');
+    create = sinon.stub(Card, 'create');
   });
-
   afterEach(() => {
-    cardCreate.restore();
-    activityUpdateOne.restore();
+    create.restore();
   });
 
-  it('should create an transition card', async () => {
-    const cardId = new ObjectID();
+  it('should create a transition card', async () => {
+    const newCard = { template: 'transition' };
 
-    cardCreate.returns({ _id: cardId });
+    await CardHelper.createCard(newCard);
 
-    await CardHelper.addCard(activity._id, newCard);
-
-    sinon.assert.calledWithExactly(cardCreate, newCard);
-    sinon.assert.calledWithExactly(activityUpdateOne, { _id: activity._id }, { $push: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(create, newCard);
   });
 });
 
@@ -170,22 +159,20 @@ describe('deleteCardAnswer', () => {
 });
 
 describe('removeCard', () => {
-  let updateOneActivity;
-  let deleteOneCard;
+  let deleteOne;
   beforeEach(() => {
-    updateOneActivity = sinon.stub(Activity, 'updateOne');
-    deleteOneCard = sinon.stub(Card, 'deleteOne');
+    deleteOne = sinon.stub(Card, 'deleteOne');
   });
   afterEach(() => {
-    updateOneActivity.restore();
-    deleteOneCard.restore();
+    deleteOne.restore();
   });
 
   it('should delete card', async () => {
     const cardId = new ObjectID();
+
     await CardHelper.removeCard(cardId);
-    sinon.assert.calledOnceWithExactly(updateOneActivity, { cards: cardId }, { $pull: { cards: cardId } });
-    sinon.assert.calledOnceWithExactly(deleteOneCard, { _id: cardId });
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: cardId });
   });
 });
 

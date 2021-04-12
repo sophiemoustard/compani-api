@@ -7,6 +7,7 @@ const User = require('../../../src/models/User');
 const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
+const { vendorAdmin } = require('../../seed/userSeed');
 
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
@@ -37,6 +38,7 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID(), new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -45,6 +47,7 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -53,6 +56,25 @@ const coursesList = [
     type: 'intra',
     trainees: [new ObjectID()],
     trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
+  },
+  { // interb2b
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: authCompany._id,
+    type: 'inter_b2b',
+    trainees: [new ObjectID(), new ObjectID()],
+    trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
+  },
+  { // interb2b with only trainees from otherCompany
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: authCompany._id,
+    type: 'inter_b2b',
+    trainees: [new ObjectID()],
+    trainer: trainerList[0]._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 
@@ -78,6 +100,20 @@ const slotsList = [
     course: coursesList[2],
     step: new ObjectID(),
   },
+  { // slot for coursesList[3]
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[3],
+    step: new ObjectID(),
+  },
+  { // slot for coursesList[4]
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[4],
+    step: new ObjectID(),
+  },
 ];
 
 const attendancesList = [
@@ -85,6 +121,16 @@ const attendancesList = [
     _id: new ObjectID(),
     courseSlot: slotsList[0],
     trainee: coursesList[0].trainees[0],
+  },
+  {
+    _id: new ObjectID(),
+    courseSlot: slotsList[3],
+    trainee: coursesList[3].trainees[0],
+  },
+  {
+    _id: new ObjectID(),
+    courseSlot: slotsList[3],
+    trainee: coursesList[3].trainees[1],
   },
 ];
 
@@ -102,7 +148,27 @@ const companyTraineesList = [
     local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
-
+  {
+    _id: coursesList[3].trainees[0],
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+    company: otherCompany._id,
+  },
+  {
+    _id: coursesList[3].trainees[1],
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withAuthCompany' },
+    local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+    company: authCompany._id,
+  },
+  {
+    _id: coursesList[4].trainees[0],
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    origin: WEBAPP,
+    company: otherCompany._id,
+  },
 ];
 
 const populateDB = async () => {

@@ -33,13 +33,22 @@ describe('createCourse', () => {
   });
 
   it('should create an intra course', async () => {
-    const newCourse = { misc: 'name', company: new ObjectID(), subProgram: new ObjectID(), type: 'intra' };
+    const newCourse = {
+      misc: 'name',
+      company: new ObjectID(),
+      subProgram: new ObjectID(),
+      type: 'intra',
+      salesRepresentative: new ObjectID(),
+    };
 
     const result = await CourseHelper.createCourse(newCourse);
-    expect(result.misc).toEqual(newCourse.misc);
+
+    expect(result.misc).toEqual('name');
     expect(result.subProgram).toEqual(newCourse.subProgram);
     expect(result.company).toEqual(newCourse.company);
     expect(result.format).toEqual('blended');
+    expect(result.type).toEqual('intra');
+    expect(result.salesRepresentative).toEqual(newCourse.salesRepresentative);
   });
 });
 
@@ -428,6 +437,7 @@ describe('getCourse', () => {
       },
       { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
       { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
+      { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
       { query: 'lean' },
     ]);
   });

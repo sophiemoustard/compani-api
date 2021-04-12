@@ -51,9 +51,4 @@ const deleteCategory = async (req) => {
   }
 };
 
-module.exports = {
-  list,
-  create,
-  update,
-  deleteCategory,
-};
+module.exports = { list, create, update, deleteCategory };

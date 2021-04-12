@@ -63,7 +63,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
       .lean({ virtuals: true });
 
     if (prog.subPrograms.some(sp => sp.isStrictlyELearning)) {
-      throw Boom.conflict(translate[language].eLearningSubProgramAlreadyExist);
+      throw Boom.conflict(translate[language].eLearningSubProgramAlreadyExists);
     }
   }
 

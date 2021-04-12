@@ -184,6 +184,8 @@ module.exports = {
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
   TRAINER: 'trainer',
+  // APP NAMES
+  FORMATION: 'formation',
   // SUBSCRIPTIONS
   ERP: 'erp',
   // EXPORTS
@@ -331,6 +333,8 @@ module.exports = {
       { label: 'Question\t&\tRéponse', value: this.QUESTION_ANSWER, type: this.QUESTIONNAIRE },
     ];
   },
+  // QUESTIONNAIRE_TYPES
+  EXPECTATIONS: 'expectations',
   // tests end2end
   PLANNING: 'planning',
   AUTHENTICATION: 'authentication',

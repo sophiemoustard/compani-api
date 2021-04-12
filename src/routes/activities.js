@@ -2,8 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeCardAdd, authorizeActivityUpdate } = require('./preHandlers/activities');
-const { getById, update, addCard } = require('../controllers/activityController');
+const { authorizeCardAdd, authorizeActivityUpdate, authorizeCardDeletion } = require('./preHandlers/activities');
+const { getById, update, addCard, removeCard } = require('../controllers/activityController');
 const { CARD_TEMPLATES } = require('../models/Card');
 
 exports.plugin = {
@@ -51,6 +51,17 @@ exports.plugin = {
         pre: [{ method: authorizeCardAdd }],
       },
       handler: addCard,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/cards/{cardId}',
+      options: {
+        validate: { params: Joi.object({ cardId: Joi.objectId().required() }) },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeCardDeletion }],
+      },
+      handler: removeCard,
     });
   },
 };

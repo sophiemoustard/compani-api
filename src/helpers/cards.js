@@ -1,6 +1,5 @@
 const flat = require('flat');
 const Card = require('../models/Card');
-const Activity = require('../models/Activity');
 const GCloudStorageHelper = require('./gCloudStorage');
 const {
   MULTIPLE_CHOICE_QUESTION,
@@ -10,10 +9,7 @@ const {
   FILL_THE_GAPS,
 } = require('./constants');
 
-exports.addCard = async (activityId, payload) => {
-  const card = await Card.create(payload);
-  await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
-};
+exports.createCard = async payload => Card.create(payload);
 
 exports.updateCard = async (cardId, payload) => Card.updateOne(
   { _id: cardId },
@@ -70,7 +66,4 @@ exports.deleteMedia = async (cardId, publicId) => {
   await GCloudStorageHelper.deleteProgramMedia(publicId);
 };
 
-exports.removeCard = async (cardId) => {
-  await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
-  await Card.deleteOne({ _id: cardId });
-};
+exports.removeCard = async cardId => Card.deleteOne({ _id: cardId });

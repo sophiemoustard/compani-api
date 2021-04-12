@@ -25,11 +25,7 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
     permission: { type: 'anyone', role: 'reader', allowFileDiscovery: false },
   });
 
-  return (await AdministrativeDocument.create({
-    company: companyId,
-    name: payload.name,
-    driveFile: { driveId, link },
-  })).toObject();
+  await AdministrativeDocument.create({ company: companyId, name: payload.name, driveFile: { driveId, link } });
 };
 
 exports.listAdministrativeDocuments = async credentials =>

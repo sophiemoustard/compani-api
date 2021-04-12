@@ -31,7 +31,4 @@ const generateBillSlipDocx = async (req, h) => {
   }
 };
 
-module.exports = {
-  list,
-  generateBillSlipDocx,
-};
+module.exports = { list, generateBillSlipDocx };

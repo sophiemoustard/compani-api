@@ -1,8 +1,29 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
+const get = require('lodash/get');
+const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
-const { INTRA } = require('../../helpers/constants');
+const { INTRA, INTER_B2B } = require('../../helpers/constants');
+
+exports.authorizeAttendanceSheetsGet = async (req) => {
+  const course = await Course.findOne({ _id: req.query.course });
+  if (!course) throw Boom.notFound();
+
+  const { credentials } = req.auth;
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
+  if (loggedUserHasVendorRole) return null;
+
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) {
+    throw Boom.forbidden();
+  }
+
+  if (course.type === INTER_B2B) return loggedUserCompany;
+
+  return null;
+};
 
 exports.checkCourseType = async (req) => {
   const course = await Course.findOne({ _id: req.payload.course }).populate('slots');

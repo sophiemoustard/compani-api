@@ -59,9 +59,4 @@ const remove = async (req) => {
   }
 };
 
-module.exports = {
-  generateTaxCertificatePdf,
-  list,
-  create,
-  remove,
-};
+module.exports = { generateTaxCertificatePdf, list, create, remove };

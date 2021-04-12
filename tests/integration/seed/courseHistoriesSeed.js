@@ -5,6 +5,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, userList } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
+const { vendorAdmin } = require('../../seed/userSeed');
 const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
 
 const subProgramsList = [
@@ -34,6 +35,7 @@ const coursesList = [{
   type: 'intra',
   trainer: courseTrainer._id,
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 },
 {
   _id: new ObjectID(),
@@ -43,6 +45,7 @@ const coursesList = [{
   type: 'intra',
   trainer: new ObjectID(),
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 },
 {
   _id: new ObjectID(),
@@ -52,6 +55,7 @@ const coursesList = [{
   format: 'blended',
   trainer: courseTrainer._id,
   trainees: [],
+  salesRepresentative: vendorAdmin._id,
 }];
 
 const courseHistoriesList = [{

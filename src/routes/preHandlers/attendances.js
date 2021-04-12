@@ -2,46 +2,55 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
-const Course = require('../../models/Course');
-const { TRAINER, INTRA } = require('../../helpers/constants');
+const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const User = require('../../models/User');
 
-const isTrainerAuthorized = (loggedUserId, courseSlot) => {
-  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, courseSlot.course.trainer)) throw Boom.forbidden();
+const isTrainerAuthorized = (loggedUserId, trainer) => {
+  if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
 
   return null;
+};
+
+const authorizeUserWithoutVendorRole = (loggedUserCompany, course) => {
+  if (course.type === INTRA) {
+    if (!course.company) throw Boom.badData();
+
+    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
+  }
+
+  if (course.type === INTER_B2B) {
+    const companyTraineeInCourse = course.trainees
+      .some(t => UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
+    if (!companyTraineeInCourse) throw Boom.forbidden();
+  }
 };
 
 exports.authorizeAttendancesGet = async (req) => {
   const courseSlotsQuery = req.query.courseSlot ? { _id: req.query.courseSlot } : { course: req.query.course };
   const courseSlots = await CourseSlot.find(courseSlotsQuery, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees company type' })
+    .populate({
+      path: 'course',
+      select: 'trainer trainees company type',
+      populate: { path: 'trainees', select: 'company' },
+    })
     .lean();
 
-  if (req.query.course) {
-    const courseExist = await Course.countDocuments({ _id: req.query.course });
-    if (!courseExist) throw Boom.notFound();
-  }
-
-  if (req.query.courseSlot && !courseSlots.length) throw Boom.notFound();
+  if (!courseSlots.length) throw Boom.notFound();
 
   const { credentials } = req.auth;
+  const loggedUserCompany = get(credentials, 'company._id');
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  if (!get(credentials, 'role.vendor')) {
-    if (course.type === INTRA) {
-      if (!course.company) throw Boom.badData();
+  if (!loggedUserHasVendorRole) authorizeUserWithoutVendorRole(loggedUserCompany, course);
 
-      if (!UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), course.company)) throw Boom.forbidden();
-    }
-  }
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, course.trainer);
 
-  const isTrainerButNotCourseTainer = get(credentials, 'role.vendor.name') === TRAINER &&
-    !UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
-  if (isTrainerButNotCourseTainer) throw Boom.forbidden();
-
-  return courseSlots.map(cs => cs._id);
+  return {
+    courseSlotsIds: courseSlots.map(cs => cs._id),
+    company: !loggedUserHasVendorRole ? loggedUserCompany : null,
+  };
 };
 
 exports.authorizeAttendanceCreation = async (req) => {
@@ -54,7 +63,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (!courseSlot) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot);
+  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
 
   const { course } = courseSlot;
   if (course.type === INTRA) {
@@ -74,7 +83,9 @@ exports.authorizeAttendanceDeletion = async (req) => {
   if (!attendance) throw Boom.notFound();
 
   const { credentials } = req.auth;
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, attendance.courseSlot);
+  if (get(credentials, 'role.vendor.name') === TRAINER) {
+    isTrainerAuthorized(credentials._id, attendance.courseSlot.course.trainer);
+  }
 
   return null;
 };

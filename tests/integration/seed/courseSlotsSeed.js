@@ -8,6 +8,7 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { vendorAdmin } = require('../../seed/userSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const trainer = {
@@ -45,6 +46,7 @@ const coursesList = [
     misc: 'first session',
     type: 'intra',
     trainer: new ObjectID(),
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -53,6 +55,7 @@ const coursesList = [
     misc: 'team formation',
     type: 'intra',
     trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 

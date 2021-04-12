@@ -106,7 +106,4 @@ const exportHistory = async (req, h) => {
   }
 };
 
-module.exports = {
-  exportData,
-  exportHistory,
-};
+module.exports = { exportData, exportHistory };
