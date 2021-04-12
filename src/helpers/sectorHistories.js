@@ -45,7 +45,7 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 
 exports.createHistoryOnContractCreation = async (user, newContract, companyId) => {
   const startDate = moment(newContract.startDate).startOf('day').toDate();
-  const wrongHistory = await SectorHistory.find({
+  const wrongHistory = await SectorHistory.countDocuments({
     startDate: { $exists: true },
     endDate: { $exists: false },
     auxiliary: user._id,
