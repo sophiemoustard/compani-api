@@ -6,7 +6,7 @@ const Card = require('../../src/models/Card');
 const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
-const { SURVEY } = require('../../src/helpers/constants');
+const { SURVEY, PUBLISHED } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -233,8 +233,34 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should update questionnaire title even if questionnaire is published', async () => {
+      const payload = { title: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should update cards order', async () => {
       const payload = { cards: [questionnairesList[0].cards[1], questionnairesList[0].cards[0]] };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update cards status', async () => {
+      await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
+
+      const payload = { status: PUBLISHED };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -317,11 +343,11 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if questionnaire is published', async () => {
-      const payload = { title: 'test2' };
+    it('should return 403 if questionnaire with same type is already published', async () => {
+      const payload = { status: PUBLISHED };
       const response = await app.inject({
         method: 'PUT',
-        url: `/questionnaires/${questionnairesList[1]._id}`,
+        url: `/questionnaires/${questionnairesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });

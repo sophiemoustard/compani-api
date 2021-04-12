@@ -36,10 +36,16 @@ exports.authorizeQuestionnaireGet = async (req) => {
 };
 
 exports.authorizeQuestionnaireEdit = async (req) => {
-  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
+  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1, type: 1 }).lean();
   if (!questionnaire) throw Boom.notFound();
 
-  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
+  if (questionnaire.status === PUBLISHED && !req.payload.title) throw Boom.forbidden();
+
+  const isQuestionnaireWithSameTypePublished = await Questionnaire.countDocuments(
+    { type: questionnaire.type, status: PUBLISHED }
+  );
+
+  if (req.payload.status === PUBLISHED && isQuestionnaireWithSameTypePublished) throw Boom.forbidden();
 
   return null;
 };
