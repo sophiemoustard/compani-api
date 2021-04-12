@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const Activity = require('../../models/Activity');
+const Card = require('../../models/Card');
 const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeActivityUpdate = async (req) => {
@@ -22,6 +23,16 @@ exports.authorizeCardAdd = async (req) => {
   const activity = await Activity.findOne({ _id: req.params._id }).lean();
   if (!activity) throw Boom.notFound();
   if (activity.status === PUBLISHED) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeCardDeletion = async (req) => {
+  const card = await Card.countDocuments({ _id: req.params.cardId });
+  if (!card) throw Boom.notFound();
+
+  const activity = await Activity.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
+  if (activity) throw Boom.forbidden();
 
   return null;
 };

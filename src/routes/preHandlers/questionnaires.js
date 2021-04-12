@@ -9,6 +9,7 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
+const Card = require('../../models/Card');
 
 const { language } = translate;
 
@@ -39,6 +40,16 @@ exports.authorizeQuestionnaireEdit = async (req) => {
   if (!questionnaire) throw Boom.notFound();
 
   if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeCardDeletion = async (req) => {
+  const card = await Card.countDocuments({ _id: req.params.cardId });
+  if (!card) throw Boom.notFound();
+
+  const questionnaire = await Questionnaire.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
+  if (questionnaire) throw Boom.forbidden();
 
   return null;
 };

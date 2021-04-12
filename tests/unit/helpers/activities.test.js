@@ -5,6 +5,7 @@ const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const ActivityHelper = require('../../../src/helpers/activities');
+const CardHelper = require('../../../src/helpers/cards');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getActivity', () => {
@@ -144,5 +145,53 @@ describe('detachActivity', () => {
     await ActivityHelper.detachActivity(stepId, activityId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: stepId }, { $pull: { activities: activityId } });
+  });
+});
+
+describe('addCard', () => {
+  let createCard;
+  let updateOne;
+  beforeEach(() => {
+    createCard = sinon.stub(CardHelper, 'createCard');
+    updateOne = sinon.stub(Activity, 'updateOne');
+  });
+  afterEach(() => {
+    createCard.restore();
+    updateOne.restore();
+  });
+
+  it('should add card to activity', async () => {
+    const cardId = new ObjectID();
+    const payload = { template: 'transition' };
+    const activity = { _id: new ObjectID(), name: 'faire du jetski' };
+
+    createCard.returns({ _id: cardId });
+
+    await ActivityHelper.addCard(activity._id, payload);
+
+    sinon.assert.calledOnceWithExactly(createCard, payload);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: activity._id }, { $push: { cards: cardId } });
+  });
+});
+
+describe('removeCard', () => {
+  let removeCard;
+  let updateOne;
+  beforeEach(() => {
+    removeCard = sinon.stub(CardHelper, 'removeCard');
+    updateOne = sinon.stub(Activity, 'updateOne');
+  });
+  afterEach(() => {
+    removeCard.restore();
+    updateOne.restore();
+  });
+
+  it('should remove card from activity', async () => {
+    const cardId = new ObjectID();
+
+    await ActivityHelper.removeCard(cardId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(removeCard, cardId);
   });
 });

@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const Activity = require('../models/Activity');
 const Step = require('../models/Step');
 const Card = require('../models/Card');
+const CardHelper = require('./cards');
 
 exports.getActivity = async activityId => Activity.findOne({ _id: activityId })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
@@ -32,3 +33,13 @@ exports.addActivity = async (stepId, payload) => {
 
 exports.detachActivity = async (stepId, activityId) =>
   Step.updateOne({ _id: stepId }, { $pull: { activities: activityId } });
+
+exports.addCard = async (activityId, payload) => {
+  const card = await CardHelper.createCard(payload);
+  await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
+};
+
+exports.removeCard = async (cardId) => {
+  await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await CardHelper.removeCard(cardId);
+};
