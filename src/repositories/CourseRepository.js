@@ -7,4 +7,5 @@ exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(
   .populate({ path: 'slotsToPlan', select: '_id' })
   .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
   .populate({ path: 'trainees', select: 'company', populate: { path: 'company', select: 'name' } })
+  .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
   .lean({ virtuals: populateVirtual });

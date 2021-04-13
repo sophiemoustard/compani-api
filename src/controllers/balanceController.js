@@ -35,7 +35,4 @@ const listWithDetails = async (req) => {
   }
 };
 
-module.exports = {
-  list,
-  listWithDetails,
-};
+module.exports = { list, listWithDetails };

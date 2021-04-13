@@ -12,6 +12,7 @@ const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
+const { vendorAdmin, noRoleNoCompany } = require('../../seed/userSeed');
 const {
   AUXILIARY,
   HELPER,
@@ -34,7 +35,6 @@ const trainerOrganisationManager = userList
   .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
 const coachFromAuthCompany = userList
   .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
-const noRoleNoCompany = userList[11];
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -123,6 +123,7 @@ const coursesList = [
     trainer: courseTrainer._id,
     trainees: [coachFromAuthCompany._id, helper._id, clientAdmin._id, courseTrainer._id],
     type: 'intra',
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -132,6 +133,7 @@ const coursesList = [
     trainer: new ObjectID(),
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     type: 'intra',
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -141,6 +143,7 @@ const coursesList = [
     trainer: courseTrainer._id,
     type: 'intra',
     trainees: [coachFromAuthCompany._id, helper._id, trainerOrganisationManager._id, clientAdmin._id, auxiliary._id],
+    salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectID(),
@@ -150,6 +153,7 @@ const coursesList = [
     trainer: new ObjectID(),
     type: 'intra',
     trainees: [coachFromAuthCompany._id, clientAdmin._id],
+    salesRepresentative: vendorAdmin._id,
   },
   { // course without slots
     _id: new ObjectID(),
@@ -159,6 +163,7 @@ const coursesList = [
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     format: 'strictly_e_learning',
     trainer: courseTrainer._id,
+    salesRepresentative: vendorAdmin._id,
   },
   { // course with slots
     _id: new ObjectID(),
@@ -167,6 +172,7 @@ const coursesList = [
     type: 'inter_b2b',
     format: 'strictly_e_learning',
     trainees: [noRoleNoCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
   { // course without trainees and slots
     _id: new ObjectID(),
@@ -174,6 +180,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
+    salesRepresentative: vendorAdmin._id,
   },
   { // course with slots to plan
     _id: new ObjectID(),
@@ -181,6 +188,7 @@ const coursesList = [
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
+    salesRepresentative: vendorAdmin._id,
   },
   { // course with access rules
     _id: new ObjectID(),
@@ -190,6 +198,7 @@ const coursesList = [
     format: 'strictly_e_learning',
     trainees: [coachFromAuthCompany._id],
     accessRules: [authCompany._id, new ObjectID()],
+    salesRepresentative: vendorAdmin._id,
   },
   { // course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectID(),
@@ -199,6 +208,7 @@ const coursesList = [
     format: 'strictly_e_learning',
     trainees: [coachFromAuthCompany._id, traineeFromOtherCompany._id],
     accessRules: [authCompany._id, new ObjectID()],
+    salesRepresentative: vendorAdmin._id,
   },
   { // course with contact
     _id: new ObjectID(),
@@ -212,6 +222,7 @@ const coursesList = [
       email: 'romainlebg77@gmail.com',
       phone: '0123456789',
     },
+    salesRepresentative: vendorAdmin._id,
   },
   { // course without authCompany in access rules (11ème position)
     _id: new ObjectID(),
@@ -221,6 +232,7 @@ const coursesList = [
     format: 'strictly_e_learning',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
     accessRules: [otherCompany._id],
+    salesRepresentative: vendorAdmin._id,
   },
 ];
 
@@ -319,4 +331,5 @@ module.exports = {
   trainerOrganisationManager,
   slots,
   trainerAndCoach,
+  vendorAdmin,
 };

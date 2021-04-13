@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 const { shouldUpdate } = require('../controllers/versionController');
+const { ERP, FORMATION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-version',
@@ -26,7 +27,8 @@ exports.plugin = {
         auth: false,
         validate: {
           query: Joi.object({
-            mobileVersion: Joi.string(),
+            mobileVersion: Joi.string().required(),
+            appName: Joi.string().valid(ERP, FORMATION),
           }).required(),
         },
       },

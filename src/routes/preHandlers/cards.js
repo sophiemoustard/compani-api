@@ -26,6 +26,7 @@ const {
   OPEN_QUESTION,
 } = require('../../helpers/constants');
 const Activity = require('../../models/Activity');
+const Questionnaire = require('../../models/Questionnaire');
 
 const checkFlashCard = (payload) => {
   const { text } = payload;
@@ -70,6 +71,15 @@ exports.authorizeCardUpdate = async (req) => {
   }
 };
 
+exports.isParentPublished = async (req) => {
+  const isParentActvityPublished = await Activity.countDocuments({ cards: req.params._id, status: PUBLISHED });
+  const isParentQuestionnairePublished = await Questionnaire.countDocuments(
+    { cards: req.params._id, status: PUBLISHED }
+  );
+
+  if (isParentActvityPublished || isParentQuestionnairePublished) throw Boom.forbidden();
+};
+
 exports.authorizeCardAnswerCreation = async (req) => {
   const card = await Card.findOne({
     _id: req.params._id,
@@ -99,8 +109,7 @@ exports.authorizeCardAnswerCreation = async (req) => {
       break;
   }
 
-  const activity = await Activity.findOne({ cards: req.params._id }).lean();
-  if (activity.status === PUBLISHED) throw Boom.forbidden();
+  await this.isParentPublished(req);
 
   return card;
 };
@@ -154,20 +163,9 @@ exports.authorizeCardAnswerDeletion = async (req) => {
       break;
   }
 
-  const activity = await Activity.findOne({ cards: req.params._id }).lean();
-  if (activity.status === PUBLISHED) throw Boom.forbidden();
+  await this.isParentPublished(req);
 
   return card;
-};
-
-exports.authorizeCardDeletion = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id }).lean();
-  if (!card) throw Boom.notFound();
-
-  const activity = await Activity.findOne({ cards: req.params._id }).lean();
-  if (activity.status === PUBLISHED) throw Boom.forbidden();
-
-  return null;
 };
 
 exports.getCardMediaPublicId = async (req) => {

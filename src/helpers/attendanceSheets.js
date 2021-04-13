@@ -1,4 +1,5 @@
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const moment = require('moment');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
@@ -20,7 +21,15 @@ exports.create = async (payload) => {
   return AttendanceSheet.create({ ...omit(payload, 'file'), file: fileUploaded });
 };
 
-exports.list = async query => AttendanceSheet.find({ course: query.course }).lean();
+exports.list = async (courseId, companyId) => {
+  const attendanceSheets = await AttendanceSheet.find({ course: courseId })
+    .populate({ path: 'trainee', select: 'company' })
+    .lean();
+
+  return companyId
+    ? attendanceSheets.filter(a => UtilsHelper.areObjectIdsEquals(get(a, 'trainee.company'), companyId))
+    : attendanceSheets;
+};
 
 exports.delete = async (attendanceSheet) => {
   await GCloudStorageHelper.deleteCourseFile(attendanceSheet.file.publicId);

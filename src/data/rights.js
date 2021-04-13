@@ -38,7 +38,7 @@ const rights = [
   { permission: 'pay:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les données de paie' },
   { permission: 'paydocuments:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer les documents de paie' },
   { permission: 'payments:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Editer un paiement' },
-  { permission: 'payments:list:create', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Creer une liste de paiement' },
+  { permission: 'partnerorganizations:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer une structure partenaire' },
   { permission: 'programs:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les programmes' },
   { permission: 'programs:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter les données des programmes' },
   { permission: 'roles:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, CLIENT_ADMIN, COACH], description: 'Consulter les roles' },
@@ -49,6 +49,8 @@ const rights = [
   { permission: 'users:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer un utilisateur' },
   { permission: 'users:exist', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Verifier si un email existe déjà en base' },
   { permission: 'users:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Accéder à la liste des utilisateurs' },
+  { permission: 'questionnaires:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les questionnaires' },
+  { permission: 'questionnaires:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter les données des questionnaires' },
 ];
 
 module.exports = { rights };

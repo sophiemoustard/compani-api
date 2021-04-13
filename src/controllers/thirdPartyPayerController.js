@@ -59,9 +59,4 @@ const removeById = async (req) => {
   }
 };
 
-module.exports = {
-  create,
-  list,
-  updateById,
-  removeById,
-};
+module.exports = { create, list, updateById, removeById };

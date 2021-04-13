@@ -1050,7 +1050,7 @@ describe('PUT /users/:id/', () => {
       expect(histories[0].sector).toEqual(userSectors[0]._id);
     });
 
-    it('should not update sectorHistory if auxiliary does not have contract', async () => {
+    it('should update sectorHistory if auxiliary does not have contract', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[1]._id}`,
@@ -1064,7 +1064,7 @@ describe('PUT /users/:id/', () => {
       expect(histories[0].sector).toEqual(userSectors[1]._id);
     });
 
-    it('should not update sectorHistory if auxiliary contract has not started yet', async () => {
+    it('should update sectorHistory if auxiliary contract is between contracts', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[4]._id}`,
@@ -1076,6 +1076,26 @@ describe('PUT /users/:id/', () => {
       const histories = await SectorHistory.find({ auxiliary: usersSeedList[4]._id, company: authCompany }).lean();
       expect(histories.length).toEqual(1);
       expect(histories[0].sector).toEqual(userSectors[1]._id);
+    });
+
+    it('should create sectorHistory if auxiliary does not have one', async () => {
+      const role = await Role.find({ name: 'auxiliary' }).lean();
+      const previousHistories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company: authCompany })
+        .lean();
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[7]._id}`,
+        payload: { role: role._id, sector: userSectors[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(previousHistories).toHaveLength(0);
+      const histories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company: authCompany }).lean();
+      expect(histories.length).toEqual(1);
+      expect(histories[0].sector).toEqual(userSectors[1]._id);
+      expect(histories[0].startDate).toBeUndefined();
     });
 
     it('should add helper role to user', async () => {
@@ -1193,7 +1213,7 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(409);
-      expect(response.result.message).toBe('L\'utilisateur a déjà un role sur cette interface');
+      expect(response.result.message).toBe('L\'utilisateur a déjà un role sur cette interface.');
     });
 
     it('should return a 404 error if no user found', async () => {

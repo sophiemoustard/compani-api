@@ -1,16 +1,13 @@
 const moment = require('moment');
+const Boom = require('@hapi/boom');
 const SectorHistory = require('../models/SectorHistory');
 const Contract = require('../models/Contract');
+const DatesHelper = require('./dates');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
   const lastSectorHistory = await SectorHistory
     .findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
     .lean();
-  if (!lastSectorHistory) {
-    return exports.createHistory({ _id: auxiliaryId, sector }, companyId, moment().startOf('day').toDate());
-  }
-
-  if (lastSectorHistory.sector.toHexString() === sector) return null;
 
   const contracts = await Contract
     .find({
@@ -20,8 +17,16 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     })
     .sort({ startDate: -1 })
     .lean();
+
+  const notInContract = contracts.every(contract =>
+    DatesHelper.isAfter(contract.startDate, new Date()) || DatesHelper.isBefore(contract.endDate, new Date()));
+  if (!lastSectorHistory && notInContract) return exports.createHistory({ _id: auxiliaryId, sector }, companyId);
+  if (!lastSectorHistory) throw Boom.conflict('No last sector history for auxiliary in contract');
+
+  if (lastSectorHistory.sector.toHexString() === sector) return null;
+
   const doesNotHaveContract = !contracts.length;
-  const contractNotStarted = contracts.length && moment().isBefore(contracts[0].startDate);
+  const contractNotStarted = contracts.length && DatesHelper.isAfter(contracts[0].startDate, new Date());
   const lastHistoryStartsOnSameDay = moment().isSame(lastSectorHistory.startDate, 'day');
   if (doesNotHaveContract || contractNotStarted || lastHistoryStartsOnSameDay) {
     return SectorHistory.updateOne(
@@ -40,6 +45,12 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
 
 exports.createHistoryOnContractCreation = async (user, newContract, companyId) => {
   const startDate = moment(newContract.startDate).startOf('day').toDate();
+  const startedHistory = await SectorHistory
+    .countDocuments({ startDate: { $exists: true }, endDate: { $exists: false }, auxiliary: user._id })
+    .lean();
+
+  if (startedHistory) throw Boom.conflict('There is a sector history with a startDate without an endDate');
+
   const existingHistory = await SectorHistory
     .findOne({ startDate: { $exists: false }, auxiliary: user._id })
     .lean();

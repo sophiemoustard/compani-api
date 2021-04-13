@@ -26,7 +26,4 @@ const list = async (req) => {
   }
 };
 
-module.exports = {
-  addActivityHistory,
-  list,
-};
+module.exports = { addActivityHistory, list };

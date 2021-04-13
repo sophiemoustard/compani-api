@@ -183,4 +183,12 @@ exports.routes = [
     plugin: require('./attendances'),
     routes: { prefix: '/attendances' },
   },
+  {
+    plugin: require('./questionnaires'),
+    routes: { prefix: '/questionnaires' },
+  },
+  {
+    plugin: require('./partnerOrganizations'),
+    routes: { prefix: '/partnerorganizations' },
+  },
 ];

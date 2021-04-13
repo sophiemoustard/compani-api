@@ -48,17 +48,6 @@ const deleteAnswer = async (req) => {
   }
 };
 
-const remove = async (req) => {
-  try {
-    await CardHelper.removeCard(req.params._id);
-
-    return { message: translate[language].cardDeleted };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const uploadMedia = async (req) => {
   try {
     await CardHelper.uploadMedia(req.params._id, req.payload);
@@ -88,7 +77,6 @@ module.exports = {
   addAnswer,
   updateAnswer,
   deleteAnswer,
-  remove,
   uploadMedia,
   deleteMedia,
 };

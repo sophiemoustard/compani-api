@@ -47,8 +47,4 @@ const generateBillPdf = async (req, h) => {
   }
 };
 
-module.exports = {
-  draftBillsList,
-  createBills,
-  generateBillPdf,
-};
+module.exports = { draftBillsList, createBills, generateBillPdf };
