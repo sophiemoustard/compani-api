@@ -10,6 +10,7 @@ const {
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
+const Course = require('../../models/Course');
 
 const { language } = translate;
 
@@ -33,6 +34,16 @@ exports.authorizeQuestionnaireGet = async (req) => {
   }
 
   return null;
+};
+
+exports.authorizeCourseQuestionnairesGet = async (req) => {
+  const course = await Course.findOne({ _id: req.query.course })
+    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .lean({ virtuals: true });
+
+  if (!course) throw Boom.notFound();
+
+  return course;
 };
 
 exports.authorizeQuestionnaireEdit = async (req) => {

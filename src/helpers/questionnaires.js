@@ -1,5 +1,6 @@
 const Questionnaire = require('../models/Questionnaire');
 const CardHelper = require('./cards');
+const { EXPECTATIONS, PUBLISHED } = require('./constants');
 
 exports.create = async payload => Questionnaire.create(payload);
 
@@ -19,4 +20,14 @@ exports.addCard = async (questionnaireId, payload) => {
 exports.removeCard = async (cardId) => {
   await Questionnaire.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
   await CardHelper.removeCard(cardId);
+};
+
+exports.getUserQuestionnaires = async (course) => {
+  if (!course.slots || Date.now() > course.slots[0].startDate) return [];
+
+  const questionnaire = await Questionnaire
+    .findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
+    .lean();
+
+  return [questionnaire];
 };
