@@ -1,9 +1,10 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
-const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
+const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
@@ -203,6 +204,98 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/questionnaires/${questionnairesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
+  let authToken = null;
+  let fakeDate;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+      fakeDate = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      fakeDate.restore();
+    });
+
+    it('should get questionnaires', async () => {
+      fakeDate.returns(new Date('2021-04-13T15:00:00'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const { _id, title, type } = questionnairesList[1];
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires).toEqual([{ _id, title, type }]);
+    });
+
+    it('should return 400 if query is empty', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user?course=skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if invalid course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${(new ObjectID()).toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 200 },
+    ];
+
+    beforeEach(async () => {
+      fakeDate = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      fakeDate.restore();
+    });
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        fakeDate.returns(new Date('2021-04-13T15:00:00'));
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/user?course=${coursesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
