@@ -1,13 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const {
-  DRAFT,
-  EXPECTATIONS,
-  TRAINING_ORGANISATION_MANAGER,
-  VENDOR_ADMIN,
-  PUBLISHED,
-  END_OF_COURSE,
-} = require('../../helpers/constants');
+const { DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
@@ -17,9 +10,8 @@ const { language } = translate;
 
 exports.authorizeQuestionnaireCreation = async (req) => {
   const { type } = req.payload;
-  if (![EXPECTATIONS, END_OF_COURSE].includes(type)) return null;
-
   const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
+
   if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
