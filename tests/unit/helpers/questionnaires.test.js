@@ -153,14 +153,14 @@ describe('removeCard', () => {
 
 describe('getUserQuestionnaires', () => {
   let findOne;
-  let fakeDate;
+  let nowStub;
   beforeEach(() => {
     findOne = sinon.stub(Questionnaire, 'findOne');
-    fakeDate = sinon.stub(Date, 'now');
+    nowStub = sinon.stub(Date, 'now');
   });
   afterEach(() => {
     findOne.restore();
-    fakeDate.restore();
+    nowStub.restore();
   });
 
   it('should return questionnaire', async () => {
@@ -170,12 +170,33 @@ describe('getUserQuestionnaires', () => {
     };
     const questionnaire = { _id: new ObjectID(), title: 'test' };
 
-    fakeDate.returns(new Date('2021-04-13T15:00:00'));
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(course);
 
     expect(result).toMatchObject([questionnaire]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an empty array if no questionnaire', async () => {
+    const course = {
+      _id: new ObjectID(),
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+    };
+
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([]);
     SinonMongoose.calledWithExactly(
       findOne,
       [
@@ -192,7 +213,7 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
 
-    fakeDate.returns(new Date('2021-04-23T15:00:00'));
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(course);
 
@@ -203,7 +224,7 @@ describe('getUserQuestionnaires', () => {
   it('should return an empty array if no slots', async () => {
     const course = { _id: new ObjectID(), format: 'blended', slots: [] };
 
-    fakeDate.returns(new Date('2021-04-23T15:00:00'));
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(course);
 
@@ -214,7 +235,7 @@ describe('getUserQuestionnaires', () => {
   it('should return an empty array if course is strictly e-learning', async () => {
     const course = { _id: new ObjectID(), format: 'strictly_e_learning' };
 
-    fakeDate.returns(new Date('2021-04-23T15:00:00'));
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(course);
 

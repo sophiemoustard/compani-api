@@ -32,6 +32,7 @@ const questionnairesList = [
 
 const coursesList = [{
   _id: new ObjectID(),
+  format: 'blended',
   subProgram: new ObjectID(),
   type: 'inter_b2b',
   salesRepresentative: new ObjectID(),

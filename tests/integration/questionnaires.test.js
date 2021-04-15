@@ -215,21 +215,21 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
   let authToken = null;
-  let fakeDate;
+  let nowStub;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
-      fakeDate = sinon.stub(Date, 'now');
+      nowStub = sinon.stub(Date, 'now');
     });
 
     afterEach(() => {
-      fakeDate.restore();
+      nowStub.restore();
     });
 
     it('should get questionnaires', async () => {
-      fakeDate.returns(new Date('2021-04-13T15:00:00'));
+      nowStub.returns(new Date('2021-04-13T15:00:00'));
 
       const response = await app.inject({
         method: 'GET',
@@ -237,9 +237,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const { _id, title, type } = questionnairesList[1];
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.questionnaires).toEqual([{ _id, title, type }]);
     });
 
     it('should return 400 if query is empty', async () => {
@@ -262,7 +260,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if invalid course', async () => {
+    it('should return 404 if course not found', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/questionnaires/user?course=${(new ObjectID()).toHexString()}`,
@@ -282,16 +280,16 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
     ];
 
     beforeEach(async () => {
-      fakeDate = sinon.stub(Date, 'now');
+      nowStub = sinon.stub(Date, 'now');
     });
 
     afterEach(() => {
-      fakeDate.restore();
+      nowStub.restore();
     });
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        fakeDate.returns(new Date('2021-04-13T15:00:00'));
+        nowStub.returns(new Date('2021-04-13T15:00:00'));
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',

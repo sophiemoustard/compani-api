@@ -34,5 +34,5 @@ exports.getUserQuestionnaires = async (course) => {
     .findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
     .lean();
 
-  return [questionnaire];
+  return questionnaire ? [questionnaire] : [];
 };
