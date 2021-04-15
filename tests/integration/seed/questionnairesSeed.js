@@ -28,6 +28,13 @@ const questionnairesList = [
     type: 'expectations',
     cards: [cardsList[2]._id, cardsList[3]._id],
   },
+  {
+    _id: new ObjectID(),
+    title: 'test',
+    status: 'draft',
+    type: 'end_of_course',
+    cards: [cardsList[2]._id, cardsList[3]._id],
+  },
 ];
 
 const coursesList = [{
