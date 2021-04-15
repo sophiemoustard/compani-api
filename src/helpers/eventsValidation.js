@@ -1,19 +1,11 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
-const get = require('lodash/get');
 const omit = require('lodash/omit');
 const momentRange = require('moment-range');
-const {
-  INTERVENTION,
-  ABSENCE,
-  UNAVAILABILITY,
-  NEVER,
-  INTERNAL_HOUR,
-} = require('./constants');
+const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
 const { areObjectIdsEquals } = require('./utils');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
-const { populateSubscriptionsServices } = require('./subscriptions');
 const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('./translate');
@@ -22,29 +14,19 @@ const { language } = translate;
 
 momentRange.extendMoment(moment);
 
-exports.checkContracts = async (event, user) => {
+exports.isCustomerSubscriptionValid = async (event) => {
+  const customer = await Customer.findOne({ _id: event.customer }, { subscriptions: 1 }).lean();
+
+  return customer.subscriptions.some(sub => areObjectIdsEquals(sub._id, event.subscription));
+};
+
+exports.isUserContractValidOnEventDates = async (event) => {
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!user.contracts || user.contracts.length === 0) return false;
 
-  // If the event is an intervention : the auxiliary should have an active contract on the day of the intervention
-  // and this customer should have an active subscription
-  if (event.type === INTERVENTION) {
-    let customer = await Customer
-      .findOne({ _id: event.customer })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-    customer = populateSubscriptionsServices(customer);
-
-    const eventSubscription = customer.subscriptions.find(sub => areObjectIdsEquals(sub._id, event.subscription));
-    if (!eventSubscription) return false;
-
-    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
-  }
-
-  if (event.type === INTERNAL_HOUR) {
-    return ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
-  }
-
-  return true;
+  return event.type !== ABSENCE
+    ? ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate)
+    : ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate, event.endDate);
 };
 
 exports.hasConflicts = async (event) => {
@@ -61,18 +43,22 @@ exports.hasConflicts = async (event) => {
 };
 
 const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
+
 const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
   payload.auxiliary !== eventFromDB.auxiliary.toHexString();
+
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
-exports.isEditionAllowed = async (event, credentials) => {
+exports.isEditionAllowed = async (event) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
-  if (!event.auxiliary) return event.type === INTERVENTION;
-  const user = await User.findOne({ _id: event.auxiliary })
-    .populate('contracts')
-    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
-    .lean({ autopopulate: true, virtuals: true });
-  if (!await exports.checkContracts(event, user)) return false;
+  if (event.type !== INTERVENTION && !event.auxiliary) return false;
+
+  if (event.auxiliary) {
+    const isUserContractValidOnEventDates = await exports.isUserContractValidOnEventDates(event);
+    if (!isUserContractValidOnEventDates) return false;
+  }
+
+  if (event.type === INTERVENTION) return exports.isCustomerSubscriptionValid(event);
 
   return true;
 };
