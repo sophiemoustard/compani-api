@@ -16,7 +16,7 @@ const {
   authorizeQuestionnaireCreation,
   authorizeQuestionnaireEdit,
   authorizeCardDeletion,
-  authorizeCourseQuestionnairesGet,
+  authorizeUserQuestionnairesGet,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
 const { PUBLISHED } = require('../helpers/constants');
@@ -54,7 +54,7 @@ exports.plugin = {
           query: Joi.object({ course: Joi.objectId().required() }),
         },
         auth: { mode: 'required' },
-        pre: [{ method: authorizeCourseQuestionnairesGet, assign: 'course' }],
+        pre: [{ method: authorizeUserQuestionnairesGet, assign: 'course' }],
       },
       handler: getUserQuestionnaires,
     });

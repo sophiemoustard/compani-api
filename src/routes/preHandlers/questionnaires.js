@@ -36,7 +36,7 @@ exports.authorizeQuestionnaireGet = async (req) => {
   return null;
 };
 
-exports.authorizeCourseQuestionnairesGet = async (req) => {
+exports.authorizeUserQuestionnairesGet = async (req) => {
   const course = await Course.findOne({ _id: req.query.course })
     .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true });
