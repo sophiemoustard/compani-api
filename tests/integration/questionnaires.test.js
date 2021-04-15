@@ -68,6 +68,17 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 409 if already exists a draft questionnaire with type END_OF_COURSE', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnaires',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { title: 'test', type: 'end_of_course' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {

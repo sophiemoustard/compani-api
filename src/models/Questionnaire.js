@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-const { DRAFT, PUBLISHED, EXPECTATIONS } = require('../helpers/constants');
+const { DRAFT, PUBLISHED, EXPECTATIONS, END_OF_COURSE } = require('../helpers/constants');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
-const QUESTIONNAIRE_TYPES = [EXPECTATIONS];
+const QUESTIONNAIRE_TYPES = [EXPECTATIONS, END_OF_COURSE];
 
 const QuestionnaireSchema = mongoose.Schema({
   title: { type: String, required: true },

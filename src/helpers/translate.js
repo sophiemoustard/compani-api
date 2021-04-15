@@ -291,7 +291,7 @@ module.exports = {
     questionnairesFound: 'Questionnaires found.',
     questionnairesNotFound: 'Questionnaires not found.',
     questionnaireCreated: 'Questionnaire created.',
-    draftExpectationQuestionnaireAlreadyExists: 'A draft questionnaire with type \'expectations\' already exists.',
+    draftQuestionnaireAlreadyExists: 'A draft questionnaire with this type already exists.',
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
     /* PartnerOrganization */
@@ -590,8 +590,7 @@ module.exports = {
     questionnairesFound: 'Liste des questionnaires trouvée.',
     questionnairesNotFound: 'Liste des questionnaires non trouvée.',
     questionnaireCreated: 'Questionnaire créé.',
-    draftExpectationQuestionnaireAlreadyExists: `Il existe déjà un questionnaire en brouillon de type 'Recueil des
-    attentes'.`,
+    draftQuestionnaireAlreadyExists: 'Il existe déjà un questionnaire de ce type en brouillon.',
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
     /* PartnerOrganization */
