@@ -11,6 +11,7 @@ const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
+const FundingsHelper = require('./fundings');
 
 const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
   .map(v => ({
@@ -62,16 +63,6 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
     populatedFundings.push(funding);
   }
   return populatedFundings;
-};
-
-exports.getMatchingFunding = (date, fundings) => {
-  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date) &&
-    (!fund.endDate || moment(fund.endDate).isAfter(date)));
-  if (moment(date).startOf('d').isHoliday()) {
-    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
-  }
-
-  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
@@ -275,7 +266,9 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 
   for (const event of events) {
     const matchingService = UtilsHelper.getMatchingVersion(event.startDate, service, 'startDate');
-    const matchingFunding = get(fundings, 'length') ? exports.getMatchingFunding(event.startDate, fundings) : null;
+    const matchingFunding = get(fundings, 'length')
+      ? FundingsHelper.getMatchingFunding(event.startDate, fundings)
+      : null;
 
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 

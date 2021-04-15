@@ -342,6 +342,8 @@ module.exports = {
     billingItemRemoved: 'Billing item removed.',
     billingItemHasServiceLinked: 'Billing item is linked to a service.',
     billingItemHasBillLinked: 'Billing item is linked to a bill.',
+    /* Télétransmission */
+    deliveryCreated: 'Delivery file created',
   },
   'fr-FR': {
     /* Global errors */
@@ -685,5 +687,7 @@ module.exports = {
     billingItemRemoved: 'Article de facturation supprimé.',
     billingItemHasServiceLinked: 'Impossible: l\'article de facturation est relié à un service.',
     billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
+    /* Télétransmission */
+    deliveryCreated: 'Fichier de delivery créé',
   },
 };
