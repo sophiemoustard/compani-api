@@ -8,7 +8,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERVENTION, ABSENCE, INTERNAL_HOUR } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-describe('isCustomerSubscriptionValid #tag', () => {
+describe('isCustomerSubscriptionValid', () => {
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(Customer, 'findOne');
@@ -69,7 +69,7 @@ describe('isCustomerSubscriptionValid #tag', () => {
   });
 });
 
-describe('isUserContractValidOnEventDates #tag', () => {
+describe('isUserContractValidOnEventDates', () => {
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(User, 'findOne');
@@ -81,6 +81,25 @@ describe('isUserContractValidOnEventDates #tag', () => {
   it('should return false as user has no contract', async () => {
     const event = { auxiliary: (new ObjectID()).toHexString() };
     const user = { _id: event.auxiliary };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return false as user contracts are empty', async () => {
+    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const user = { _id: event.auxiliary, contracts: [] };
 
     findOne.returns(SinonMongoose.stubChainedQueries([user]));
 
@@ -279,7 +298,7 @@ describe('hasConflicts', () => {
   });
 });
 
-describe('isEditionAllowed #tag', () => {
+describe('isEditionAllowed', () => {
   let isUserContractValidOnEventDates;
   let isCustomerSubscriptionValid;
   beforeEach(() => {
