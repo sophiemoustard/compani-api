@@ -188,6 +188,7 @@ describe('getUserQuestionnaires', () => {
   it('should return an empty array if first slot is passed', async () => {
     const course = {
       _id: new ObjectID(),
+      format: 'blended',
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
 
@@ -200,7 +201,18 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if no slots', async () => {
-    const course = { _id: new ObjectID() };
+    const course = { _id: new ObjectID(), format: 'blended', slots: [] };
+
+    fakeDate.returns(new Date('2021-04-23T15:00:00'));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([]);
+    sinon.assert.notCalled(findOne);
+  });
+
+  it('should return an empty array if course is strictly e-learning', async () => {
+    const course = { _id: new ObjectID(), format: 'strictly_e_learning' };
 
     fakeDate.returns(new Date('2021-04-23T15:00:00'));
 
