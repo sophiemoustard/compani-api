@@ -24,17 +24,17 @@ exports.isUserContractValidOnEventDates = async (event) => {
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!user.contracts || user.contracts.length === 0) return false;
 
-  return event.type !== ABSENCE
-    ? ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate)
-    : ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate, event.endDate);
+  return event.type === ABSENCE
+    ? ContractsHelper.auxiliaryHasActiveContractBetweenDates(user.contracts, event.startDate, event.endDate)
+    : ContractsHelper.auxiliaryHasActiveContractOnDay(user.contracts, event.startDate);
 };
 
 exports.hasConflicts = async (event) => {
   const { _id, auxiliary, startDate, endDate } = event;
 
-  const auxiliaryEvents = event.type !== ABSENCE
-    ? await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company)
-    : await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company, ABSENCE);
+  const auxiliaryEvents = event.type === ABSENCE
+    ? await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company, ABSENCE)
+    : await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company);
 
   return auxiliaryEvents.some((ev) => {
     if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
