@@ -1,6 +1,7 @@
 const Questionnaire = require('../models/Questionnaire');
 const CardHelper = require('./cards');
-const { EXPECTATIONS, PUBLISHED } = require('./constants');
+const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING } = require('./constants');
+const DatesHelper = require('./dates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
@@ -23,7 +24,11 @@ exports.removeCard = async (cardId) => {
 };
 
 exports.getUserQuestionnaires = async (course) => {
-  if (!course.slots || Date.now() > course.slots[0].startDate) return [];
+  if (course.format === STRICTLY_E_LEARNING ||
+    !course.slots.length ||
+    DatesHelper.isAfter(Date.now(), course.slots[0].startDate)) {
+    return [];
+  }
 
   const questionnaire = await Questionnaire
     .findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
