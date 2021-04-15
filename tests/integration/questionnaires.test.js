@@ -24,13 +24,11 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
     });
 
     it('should create questionnaire', async () => {
-      await Questionnaire.deleteMany({});
-
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations' },
+        payload: { title: 'test', type: 'end_of_course' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -58,7 +56,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 409 if already exists a draft questionnaire with type EXPECTATIONS', async () => {
+    it('should return 409 if already exists a draft questionnaire with same type', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',

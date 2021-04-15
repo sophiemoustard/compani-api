@@ -1,12 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const {
-  DRAFT,
-  EXPECTATIONS,
-  TRAINING_ORGANISATION_MANAGER,
-  VENDOR_ADMIN,
-  PUBLISHED,
-} = require('../../helpers/constants');
+const { DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
@@ -15,13 +9,13 @@ const { language } = translate;
 
 exports.authorizeQuestionnaireCreation = async (req) => {
   const { type } = req.payload;
-  if (type !== EXPECTATIONS) return null;
-
   const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
-  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftExpectationQuestionnaireAlreadyExists);
+
+  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
 };
+
 exports.authorizeQuestionnaireGet = async (req) => {
   const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
   if (!questionnaire) throw Boom.notFound();
