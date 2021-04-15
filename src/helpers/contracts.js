@@ -16,6 +16,7 @@ const ContractNumber = require('../models/ContractNumber');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
+const DatesHelper = require('./dates');
 const GDriveStorageHelper = require('./gDriveStorage');
 const { AUXILIARY } = require('./constants');
 const { createAndReadFile } = require('./file');
@@ -373,5 +374,8 @@ exports.uploadFile = async (params, payload) => {
 };
 
 exports.auxiliaryHasActiveContractOnDay = (contracts, day) =>
-  contracts.some(contract => moment(contract.startDate).isSameOrBefore(day, 'd') &&
-    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
+  exports.auxiliaryHasActiveContractBetweenDates(contracts, day, day);
+
+exports.auxiliaryHasActiveContractBetweenDates = (contracts, startDate, endDate) =>
+  contracts.some(c => DatesHelper.isSameOrBefore(c.startDate, startDate) &&
+    (!c.endDate || DatesHelper.isSameOrAfter(c.endDate, endDate)));
