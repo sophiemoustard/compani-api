@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const Questionnaire = require('../models/Questionnaire');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING } = require('./constants');
@@ -24,14 +25,11 @@ exports.removeCard = async (cardId) => {
 };
 
 exports.getUserQuestionnaires = async (course) => {
-  if (course.format === STRICTLY_E_LEARNING ||
-    !course.slots.length ||
-    DatesHelper.isAfter(Date.now(), course.slots[0].startDate)) {
-    return [];
-  }
+  const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
 
-  const questionnaire = await Questionnaire
-    .findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
+  if (course.format === STRICTLY_E_LEARNING || !course.slots.length || isCourseStarted) return [];
+
+  const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
     .lean();
 
   return questionnaire ? [questionnaire] : [];
