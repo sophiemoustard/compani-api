@@ -7,6 +7,7 @@ const {
   authorizePartnerOrganizationCreation,
   authorizePartnerOrganizationGetById,
   authorizePartnerOrganizationUpdate,
+  authorizePartnerCreation,
 } = require('./preHandlers/partnerOrganizations');
 const { JOBS } = require('../helpers/constants');
 
@@ -79,7 +80,6 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            name: Joi.string(),
             identity: Joi.object({
               firstname: Joi.string().required(),
               lastname: Joi.string().required(),
@@ -90,6 +90,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: authorizePartnerCreation }],
       },
       handler: createPartner,
     });

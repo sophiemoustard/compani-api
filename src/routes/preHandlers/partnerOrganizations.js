@@ -17,7 +17,12 @@ exports.checkPartnerOrganizationConflict = async (req) => {
 };
 
 exports.checkPartnerOrganizationExists = async (req) => {
-  const partnerOrganizationExists = await PartnerOrganization.countDocuments({ _id: req.params._id });
+  const { credentials } = req.auth;
+
+  const partnerOrganizationExists = await PartnerOrganization.countDocuments({
+    _id: req.params._id,
+    company: credentials.company._id,
+  });
   if (!partnerOrganizationExists) throw Boom.notFound();
 
   return null;
@@ -39,6 +44,12 @@ exports.authorizePartnerOrganizationUpdate = async (req) => {
   await this.checkPartnerOrganizationExists(req);
 
   if (req.payload.name) await this.checkPartnerOrganizationConflict(req);
+
+  return null;
+};
+
+exports.authorizePartnerCreation = async (req) => {
+  await this.checkPartnerOrganizationExists(req);
 
   return null;
 };
