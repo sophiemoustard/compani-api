@@ -8,6 +8,7 @@ const {
   authorizePartnerOrganizationGetById,
   authorizePartnerOrganizationUpdate,
 } = require('./preHandlers/partnerOrganizations');
+const { JOBS } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-partnerorganizations',
@@ -83,7 +84,7 @@ exports.plugin = {
               firstname: Joi.string().required(),
               lastname: Joi.string().required(),
             }).required(),
-            job: Joi.string().allow(''),
+            job: Joi.string().valid(...JOBS).allow(''),
             phone: phoneNumberValidation.allow(''),
             email: Joi.string().email().allow(''),
           }),
