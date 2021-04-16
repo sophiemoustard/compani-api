@@ -70,5 +70,26 @@ exports.plugin = {
       },
       handler: update,
     });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/partner',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            name: Joi.string(),
+            identity: Joi.object({
+              firstname: Joi.string().required(),
+              lastname: Joi.string().required(),
+            }).required(),
+            job: Joi.string().allow(''),
+            phone: phoneNumberValidation.allow(''),
+            email: Joi.string().email().allow(''),
+          }),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+      },
+    });
   },
 };
