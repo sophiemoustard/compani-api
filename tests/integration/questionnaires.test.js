@@ -283,35 +283,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
 
       expect(response.statusCode).toBe(200);
     });
-
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
-
-    beforeEach(async () => {
-      nowStub = sinon.stub(Date, 'now');
-    });
-
-    afterEach(() => {
-      nowStub.restore();
-    });
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        nowStub.returns(new Date('2021-04-13T15:00:00'));
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/questionnaires/user?course=${coursesList[0]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
   });
 });
 
