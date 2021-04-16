@@ -73,7 +73,7 @@ describe('list', () => {
   });
 });
 
-describe('getById', () => {
+describe('getPartnerOrganization', () => {
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(PartnerOrganization, 'findOne');
@@ -85,13 +85,17 @@ describe('getById', () => {
   it('should update a partner organizations', async () => {
     const partnerOrganizationId = new ObjectID();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]]));
 
     await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId);
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ _id: partnerOrganizationId }] }, { query: 'lean' }]
+      [
+        { query: 'findOne', args: [{ _id: partnerOrganizationId }] },
+        { query: 'populate', args: [{ path: 'partners', select: 'identity phone email job' }] },
+        { query: 'lean' },
+      ]
     );
   });
 });

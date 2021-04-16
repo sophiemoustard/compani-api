@@ -6,6 +6,7 @@ exports.create = (payload, credentials) => PartnerOrganization.create({ ...paylo
 exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
 
 exports.getPartnerOrganization = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
+  .populate({ path: 'partners', select: 'identity phone email job' })
   .lean();
 
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
