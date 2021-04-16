@@ -218,7 +218,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
   let nowStub;
   beforeEach(populateDB);
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('LOGGED USER', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
       nowStub = sinon.stub(Date, 'now');
