@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create, list, getById, update } = require('../controllers/partnerOrganizationController');
+const { create, list, getById, update, createPartner } = require('../controllers/partnerOrganizationController');
 const {
   authorizePartnerOrganizationCreation,
   authorizePartnerOrganizationGetById,
@@ -91,6 +91,7 @@ exports.plugin = {
         },
         auth: { scope: ['partnerorganizations:edit'] },
       },
+      handler: createPartner,
     });
   },
 };

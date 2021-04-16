@@ -48,4 +48,15 @@ const update = async (req) => {
   }
 };
 
-module.exports = { create, list, getById, update };
+const createPartner = async (req) => {
+  try {
+    await PartnerOrganizationsHelper.createPartner(req.params._id, req.payload);
+
+    return { message: translate[language].partnerCreated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, getById, update, createPartner };
