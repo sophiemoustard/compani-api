@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JOBS } = require('../helpers/constants');
 
 const PartnerSchema = mongoose.Schema({
   identity: {
@@ -8,7 +7,7 @@ const PartnerSchema = mongoose.Schema({
   },
   email: { type: String },
   phone: { type: String },
-  job: { type: String, enum: JOBS },
+  job: { type: String },
   partnerOrganization: { type: mongoose.Schema.Types.ObjectId, ref: 'PartnerOrganization', required: true },
 }, { timestamps: true });
 
