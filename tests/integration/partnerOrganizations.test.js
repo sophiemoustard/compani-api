@@ -198,6 +198,16 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 404 if partner organization isn\'t from auth company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
@@ -291,6 +301,17 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       const response = await app.inject({
         method: 'PUT',
         url: `/partnerorganizations/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'skusku' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'skusku' },
       });
