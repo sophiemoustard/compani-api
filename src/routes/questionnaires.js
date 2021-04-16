@@ -2,12 +2,21 @@
 
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
-const { list, create, getById, update, addCard, removeCard } = require('../controllers/questionnaireController');
+const {
+  list,
+  create,
+  getById,
+  update,
+  addCard,
+  removeCard,
+  getUserQuestionnaires,
+} = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
   authorizeQuestionnaireCreation,
   authorizeQuestionnaireEdit,
   authorizeCardDeletion,
+  authorizeUserQuestionnairesGet,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
 const { PUBLISHED } = require('../helpers/constants');
@@ -35,6 +44,19 @@ exports.plugin = {
         pre: [{ method: authorizeQuestionnaireGet }],
       },
       handler: getById,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/user',
+      options: {
+        validate: {
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeUserQuestionnairesGet, assign: 'course' }],
+      },
+      handler: getUserQuestionnaires,
     });
 
     server.route({

@@ -78,4 +78,20 @@ const removeCard = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update, addCard, removeCard };
+const getUserQuestionnaires = async (req) => {
+  try {
+    const questionnaires = await QuestionnaireHelper.getUserQuestionnaires(req.pre.course);
+
+    return {
+      message: questionnaires.length
+        ? translate[language].questionnairesFound
+        : translate[language].questionnairesNotFound,
+      data: { questionnaires },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires };

@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
+const { EXPECTATIONS, PUBLISHED } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
@@ -147,5 +148,106 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(removeCard, cardId);
+  });
+});
+
+describe('getUserQuestionnaires', () => {
+  let findOne;
+  let nowStub;
+  beforeEach(() => {
+    findOne = sinon.stub(Questionnaire, 'findOne');
+    nowStub = sinon.stub(Date, 'now');
+  });
+  afterEach(() => {
+    findOne.restore();
+    nowStub.restore();
+  });
+
+  it('should return questionnaire', async () => {
+    const course = {
+      _id: new ObjectID(),
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+    };
+    const questionnaire = { _id: new ObjectID(), title: 'test' };
+
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
+    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([questionnaire]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return questionnaire if no slots', async () => {
+    const course = { _id: new ObjectID(), slots: [] };
+    const questionnaire = { _id: new ObjectID(), title: 'test' };
+
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
+    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([questionnaire]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an empty array if no questionnaire', async () => {
+    const course = {
+      _id: new ObjectID(),
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+    };
+
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an empty array if first slot is passed', async () => {
+    const course = {
+      _id: new ObjectID(),
+      format: 'blended',
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+    };
+
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([]);
+    sinon.assert.notCalled(findOne);
+  });
+
+  it('should return an empty array if course is strictly e-learning', async () => {
+    const course = { _id: new ObjectID(), format: 'strictly_e_learning' };
+
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course);
+
+    expect(result).toMatchObject([]);
+    sinon.assert.notCalled(findOne);
   });
 });

@@ -1,9 +1,10 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
-const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
+const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
@@ -206,6 +207,65 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+  });
+});
+
+describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
+  let authToken = null;
+  let nowStub;
+  beforeEach(populateDB);
+
+  describe('LOGGED USER', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      nowStub = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      nowStub.restore();
+    });
+
+    it('should get questionnaires', async () => {
+      nowStub.returns(new Date('2021-04-13T15:00:00'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if query is empty', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user?course=skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if course not found', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${(new ObjectID()).toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 });
