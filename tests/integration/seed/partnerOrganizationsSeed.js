@@ -18,7 +18,7 @@ const partnerOrganizationsList = [
     },
     company: authCompany._id,
   },
-  { name: 'EHPAD UTOUT', company: otherCompany._id },
+  { _id: new ObjectID(), name: 'EHPAD UTOUT', company: otherCompany._id },
 ];
 
 const populateDB = async () => {
