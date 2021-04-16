@@ -26,8 +26,7 @@ exports.removeCard = async (cardId) => {
 
 exports.getUserQuestionnaires = async (course) => {
   const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
-
-  if (course.format === STRICTLY_E_LEARNING || !course.slots.length || isCourseStarted) return [];
+  if (course.format === STRICTLY_E_LEARNING || isCourseStarted) return [];
 
   const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 })
     .lean();
