@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
+const Partner = require('../../../src/models/Partner');
 const PartnerOrganizationsHelper = require('../../../src/helpers/partnerOrganizations');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -111,5 +112,34 @@ describe('update', () => {
     await PartnerOrganizationsHelper.update(partnerOrganizationId, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $set: { name: 'skusku' } });
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  let createPartner;
+  beforeEach(() => {
+    updateOne = sinon.stub(PartnerOrganization, 'updateOne');
+    createPartner = sinon.stub(Partner, 'create');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    createPartner.restore();
+  });
+
+  it('should update a partner and add it to partnerOrganization', async () => {
+    const payload = { identity: { firstname: 'Manon', lastname: 'Palindrome' } };
+    const partnerOrganizationId = new ObjectID();
+    const partner = { _id: new ObjectID() };
+
+    createPartner.returns(partner);
+
+    await PartnerOrganizationsHelper.createPartner(partnerOrganizationId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $push: { partners: partner._id } });
+    sinon.assert.calledOnceWithExactly(
+      createPartner,
+      { identity: { firstname: 'Manon', lastname: 'Palindrome' }, partnerOrganization: partnerOrganizationId }
+    );
   });
 });
