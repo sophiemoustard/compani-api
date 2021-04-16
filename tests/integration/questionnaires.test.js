@@ -220,7 +220,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       nowStub = sinon.stub(Date, 'now');
     });
 
@@ -268,20 +268,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('Other roles', () => {
-    it('should get questionnaires', async () => {
-      nowStub.returns(new Date('2021-04-13T15:00:00'));
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/user?course=${coursesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
   });
 });
