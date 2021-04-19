@@ -1,5 +1,6 @@
 ### TESTS
 - [ ] Mon code est testé unitairement
+
 - Tests intégrations :
   - Ce n'est pas une ancienne route utilisée par les apps mobiles
       - [ ] J'ai bien fait les tests
@@ -41,9 +42,11 @@
 - J'ai supprimé un retour/un champs du retour de la route :
   - [ ] Les anciennes versions mobiles + les actuelles n'utilisent pas ce retour
 
-### MODIFICATIONS SUR LES MODÈLES UTILISÉS PAR LES APPS MOBILE
-- J'ai changé un modèle :
-  - J'ai ajoutê un champ possible :
+### MODIFICATIONS SUR LES MODÈLES
+- J'ai ajouté un modèle spécifique à une structure:
+  - [ ] J'ai ajouté le champ company ainsi que les preHooks associés
+- J'ai changé un modèle utilisé par l'app mobile:
+  - J'ai ajouté un champ possible :
     - [ ] J'ai géré le cas où l'application ne l'envoie pas
   - J'ai rendu obligatoire un champs :
     - [ ] Il est toujours envoyé par les apps mobiles (même par les anciennes versions)
@@ -52,7 +55,7 @@
 
 ### CONSTANTES ET VARIABLE D'ENV
 - J'ai changé une constante :
-  - [ ] Elle n'est pas utilisée sur les apps mobiles (Sinon on doit forcer la maj des apps)
+  - [ ] Elle n'est pas utilisée sur les apps mobiles (sinon on doit forcer la maj des apps)
 
 - J'ai ajouté une variable d'environnement :
   - [ ] J'ai précisé sur le slite de MES et MEP les modifications faites
