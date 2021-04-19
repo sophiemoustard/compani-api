@@ -294,6 +294,7 @@ module.exports = {
     draftQuestionnaireAlreadyExists: 'A draft questionnaire with this type already exists.',
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
+    questionnaireHistoryCreated: 'Questionnaire history created.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Partner organization created.',
     partnerOrganizationAlreadyExists: 'A partner organization already exists.',
@@ -594,6 +595,7 @@ module.exports = {
     draftQuestionnaireAlreadyExists: 'Il existe déjà un questionnaire de ce type en brouillon.',
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
+    questionnaireHistoryCreated: 'Historique de questionnaire créé.',
     /* PartnerOrganization */
     partnerOrganizationCreated: 'Structure partenaire créee.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
