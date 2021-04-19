@@ -119,7 +119,7 @@ describe('update', () => {
   });
 });
 
-describe('update', () => {
+describe('createPartner', () => {
   let updateOne;
   let createPartner;
   beforeEach(() => {

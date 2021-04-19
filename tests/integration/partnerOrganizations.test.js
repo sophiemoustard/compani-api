@@ -16,9 +16,9 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should add a partner organization', async () => {
@@ -102,7 +102,6 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -127,9 +126,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should list partner organizations from my company', async () => {
@@ -150,7 +149,6 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -174,9 +172,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should return a partner organization', async () => {
@@ -213,7 +211,6 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
   describe('Other roles', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -237,9 +234,9 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should update a partner organization', async () => {
@@ -334,7 +331,6 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
   describe('Other roles', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -355,19 +351,19 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner', () => {
+describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partners', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should create a partner', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
       });
@@ -378,7 +374,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if missing firstname', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { lastname: 'Maboul' }, job: 'doctor' },
       });
@@ -389,7 +385,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if missing lastname', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur' }, job: 'doctor' },
       });
@@ -400,7 +396,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if missing identity', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { job: 'doctor' },
       });
@@ -411,7 +407,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if job isn\'t listed', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Leo', lastname: 'Ferreira' }, job: 'web_dev' },
       });
@@ -422,7 +418,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if email is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, email: 'docteur.maboul' },
       });
@@ -433,18 +429,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if phone is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, phone: 'skusku' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 if phone is invalid', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, phone: 'skusku' },
       });
@@ -455,7 +440,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 404 if partnerOrganization doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${new ObjectID()}/partner`,
+        url: `/partnerorganizations/${new ObjectID()}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' } },
       });
@@ -466,7 +451,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}/partner`,
+        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' } },
       });
@@ -478,7 +463,6 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
   describe('Other roles', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -488,7 +472,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partner`,
+          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
         });

@@ -368,7 +368,7 @@ module.exports = {
   SECONDS_IN_AN_HOUR: 3600,
   // PARTNER
   SOCIAL_WORKER: 'social_worker',
-  MEDICOSOCIAL_ASSESSOR: 'medico-social_assessor',
+  MEDICO_SOCIAL_ASSESSOR: 'medico_social_assessor',
   DOCTOR: 'doctor',
   GERIATRICIAN: 'geriatrician',
   COORDINATOR: 'coordinator',
@@ -379,7 +379,7 @@ module.exports = {
   get JOBS() {
     return [
       this.SOCIAL_WORKER,
-      this.MEDICOSOCIAL_ASSESSOR,
+      this.MEDICO_SOCIAL_ASSESSOR,
       this.DOCTOR,
       this.GERIATRICIAN,
       this.COORDINATOR,
