@@ -12,6 +12,12 @@ const QuestionnaireSchema = mongoose.Schema({
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
 }, { timestamps: true, id: false });
 
+QuestionnaireSchema.virtual('questionnaireHistories', {
+  ref: 'QuestionnaireHistory',
+  localField: '_id',
+  foreignField: 'questionnaire',
+});
+
 // eslint-disable-next-line consistent-return
 function setAreCardsValid() {
   if (!this.cards || this.cards.length === 0) return false;
