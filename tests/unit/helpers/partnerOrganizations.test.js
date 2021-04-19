@@ -132,18 +132,23 @@ describe('createPartner', () => {
   });
 
   it('should update a partner and add it to partnerOrganization', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const payload = { identity: { firstname: 'Manon', lastname: 'Palindrome' } };
     const partnerOrganizationId = new ObjectID();
     const partner = { _id: new ObjectID() };
 
     createPartner.returns(partner);
 
-    await PartnerOrganizationsHelper.createPartner(partnerOrganizationId, payload);
+    await PartnerOrganizationsHelper.createPartner(partnerOrganizationId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $push: { partners: partner._id } });
     sinon.assert.calledOnceWithExactly(
       createPartner,
-      { identity: { firstname: 'Manon', lastname: 'Palindrome' }, partnerOrganization: partnerOrganizationId }
+      {
+        identity: { firstname: 'Manon', lastname: 'Palindrome' },
+        partnerOrganization: partnerOrganizationId,
+        company: credentials.company._id,
+      }
     );
   });
 });

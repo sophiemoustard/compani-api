@@ -12,8 +12,12 @@ exports.getPartnerOrganization = partnerOrganizationId => PartnerOrganization.fi
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
   .updateOne({ _id: partnerOrganizationId }, { $set: payload });
 
-exports.createPartner = async (partnerOrganizationId, payload) => {
-  const partner = await Partner.create({ ...payload, partnerOrganization: partnerOrganizationId });
+exports.createPartner = async (partnerOrganizationId, payload, credentials) => {
+  const partner = await Partner.create({
+    ...payload,
+    partnerOrganization: partnerOrganizationId,
+    company: credentials.company._id,
+  });
 
   return PartnerOrganization.updateOne({ _id: partnerOrganizationId }, { $push: { partners: partner._id } });
 };

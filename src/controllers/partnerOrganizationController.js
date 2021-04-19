@@ -50,7 +50,7 @@ const update = async (req) => {
 
 const createPartner = async (req) => {
   try {
-    await PartnerOrganizationsHelper.createPartner(req.params._id, req.payload);
+    await PartnerOrganizationsHelper.createPartner(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].partnerCreated };
   } catch (e) {
