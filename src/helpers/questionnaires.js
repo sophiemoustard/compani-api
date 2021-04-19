@@ -29,7 +29,8 @@ exports.getUserQuestionnaires = async (course) => {
   if (course.format === STRICTLY_E_LEARNING || isCourseStarted) return [];
 
   const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 })
-    .lean();
+    .populate({ path: 'questionnaireHistories' })
+    .lean({ virtuals: true });
 
-  return questionnaire ? [questionnaire] : [];
+  return questionnaire ? [questionnaire].filter(q => !get(q, 'questionnaireHistories.length')) : [];
 };
