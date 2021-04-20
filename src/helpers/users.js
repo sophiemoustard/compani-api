@@ -260,6 +260,8 @@ exports.removeHelper = async (user) => {
   const userRoleVendor = get(user, 'role.vendor');
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
 
+  await HelpersHelper.remove(user._id);
+
   await User.findOneAndUpdate({ _id: user._id }, payload);
 };
 

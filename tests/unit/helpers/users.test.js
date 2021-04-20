@@ -914,6 +914,7 @@ describe('createUser', () => {
 describe('removeHelper', () => {
   let roleFindOne;
   let userFindOneAndUpdate;
+  let removeHelper;
 
   const user = { _id: new ObjectID() };
   const roleId = new ObjectID();
@@ -921,10 +922,12 @@ describe('removeHelper', () => {
   beforeEach(() => {
     roleFindOne = sinon.stub(Role, 'findOne');
     userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
+    removeHelper = sinon.stub(HelpersHelper, 'remove');
   });
   afterEach(() => {
     roleFindOne.restore();
     userFindOneAndUpdate.restore();
+    removeHelper.restore();
   });
 
   it('should remove client role and customers', async () => {
@@ -940,6 +943,7 @@ describe('removeHelper', () => {
       userFindOneAndUpdate,
       { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } }
     );
+    sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
@@ -955,6 +959,7 @@ describe('removeHelper', () => {
       userFindOneAndUpdate,
       { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } }
     );
+    sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
 });
 

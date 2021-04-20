@@ -12,3 +12,5 @@ exports.list = async (query, credentials) => {
 exports.create = async (userId, customerId, companyId) => {
   await Helper.create({ user: userId, customer: customerId, company: companyId });
 };
+
+exports.remove = async userId => Helper.deleteMany({ user: userId });
