@@ -2,12 +2,14 @@
 
 const Joi = require('joi');
 const { phoneNumberValidation, addressValidation } = require('./validations/utils');
-const { create, list, getById, update } = require('../controllers/partnerOrganizationController');
+const { create, list, getById, update, createPartner } = require('../controllers/partnerOrganizationController');
 const {
   authorizePartnerOrganizationCreation,
   authorizePartnerOrganizationGetById,
   authorizePartnerOrganizationUpdate,
+  authorizePartnerCreation,
 } = require('./preHandlers/partnerOrganizations');
+const { JOBS } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-partnerorganizations',
@@ -69,6 +71,25 @@ exports.plugin = {
         pre: [{ method: authorizePartnerOrganizationUpdate }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/partners',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            identity: Joi.object({ firstname: Joi.string().required(), lastname: Joi.string().required() }).required(),
+            job: Joi.string().valid(...JOBS).allow(''),
+            phone: phoneNumberValidation.allow(''),
+            email: Joi.string().email().allow(''),
+          }),
+        },
+        auth: { scope: ['partnerorganizations:edit'] },
+        pre: [{ method: authorizePartnerCreation }],
+      },
+      handler: createPartner,
     });
   },
 };

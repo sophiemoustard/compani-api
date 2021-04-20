@@ -1,6 +1,7 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
+const Partner = require('../../../src/models/Partner');
 const PartnerOrganizationsHelper = require('../../../src/helpers/partnerOrganizations');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -72,7 +73,7 @@ describe('list', () => {
   });
 });
 
-describe('getById', () => {
+describe('getPartnerOrganization', () => {
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(PartnerOrganization, 'findOne');
@@ -84,13 +85,17 @@ describe('getById', () => {
   it('should update a partner organizations', async () => {
     const partnerOrganizationId = new ObjectID();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]]));
 
     await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId);
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ _id: partnerOrganizationId }] }, { query: 'lean' }]
+      [
+        { query: 'findOne', args: [{ _id: partnerOrganizationId }] },
+        { query: 'populate', args: [{ path: 'partners', select: 'identity phone email job' }] },
+        { query: 'lean' },
+      ]
     );
   });
 });
@@ -111,5 +116,39 @@ describe('update', () => {
     await PartnerOrganizationsHelper.update(partnerOrganizationId, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $set: { name: 'skusku' } });
+  });
+});
+
+describe('createPartner', () => {
+  let updateOne;
+  let createPartner;
+  beforeEach(() => {
+    updateOne = sinon.stub(PartnerOrganization, 'updateOne');
+    createPartner = sinon.stub(Partner, 'create');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    createPartner.restore();
+  });
+
+  it('should update a partner and add it to partnerOrganization', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const payload = { identity: { firstname: 'Manon', lastname: 'Palindrome' } };
+    const partnerOrganizationId = new ObjectID();
+    const partner = { _id: new ObjectID() };
+
+    createPartner.returns(partner);
+
+    await PartnerOrganizationsHelper.createPartner(partnerOrganizationId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: partnerOrganizationId }, { $push: { partners: partner._id } });
+    sinon.assert.calledOnceWithExactly(
+      createPartner,
+      {
+        identity: { firstname: 'Manon', lastname: 'Palindrome' },
+        partnerOrganization: partnerOrganizationId,
+        company: credentials.company._id,
+      }
+    );
   });
 });
