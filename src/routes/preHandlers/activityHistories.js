@@ -14,9 +14,10 @@ exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, activit
     if (!card) throw Boom.notFound();
 
     const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
-    const tooManyAnswers = ([SURVEY, OPEN_QUESTION].includes(card.template) && qa.answerList.length !== 1) ||
-      ([QUESTION_ANSWER].includes(card.template) &&
-        (!card.isQuestionAnswerMultipleChoiced && qa.answerList.length !== 1));
+    const tooManyAnswers = qa.answerList.length !== 1 && (
+      [SURVEY, OPEN_QUESTION].includes(card.template) ||
+      ([QUESTION_ANSWER].includes(card.template) && !card.isQuestionAnswerMultipleChoiced)
+    );
     const answerIsNotObjectID = [QUESTION_ANSWER].includes(card.template) &&
       Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
 

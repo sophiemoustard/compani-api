@@ -88,53 +88,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 404 if user doesn\'t exist', async () => {
-      const payload = { course: coursesList[0]._id, user: new ObjectID(), questionnaire: questionnairesList[0]._id };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 if questionnaire doesn\'t exist', async () => {
-      const payload = {
-        course: coursesList[0]._id,
-        user: questionnaireHistoriesUsersList[0],
-        questionnaire: new ObjectID(),
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 if course doesn\'t exist ', async () => {
-      const payload = {
-        course: new ObjectID(),
-        user: questionnaireHistoriesUsersList[0],
-        questionnaire: questionnairesList[0]._id,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return 400 if questionnaire answer without card', async () => {
       const payload = {
         course: coursesList[0]._id,
@@ -169,6 +122,90 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    const missingParams = ['questionnaire', 'user'];
+    missingParams.forEach((param) => {
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[0]._id,
+      };
+
+      it(`should return 400 as ${param} is missing`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/questionnairehistories',
+          payload: omit(payload, param),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return a 403 if a questionnaire history already exists for this course and user', async () => {
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 if user doesn\'t exist', async () => {
+      const payload = { course: coursesList[0]._id, user: new ObjectID(), questionnaire: questionnairesList[0]._id };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if questionnaire doesn\'t exist', async () => {
+      const payload = {
+        course: coursesList[0]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: new ObjectID(),
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if course doesn\'t exist ', async () => {
+      const payload = {
+        course: coursesList[1]._id,
+        user: questionnaireHistoriesUsersList[0],
+        questionnaire: questionnairesList[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/questionnairehistories',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 404 if card does not exist', async () => {
@@ -297,25 +334,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(422);
-    });
-
-    const missingParams = ['questionnaire', 'user'];
-    const payload = {
-      course: coursesList[0]._id,
-      user: questionnaireHistoriesUsersList[0],
-      questionnaire: questionnairesList[0]._id,
-    };
-    missingParams.forEach((param) => {
-      it(`should return 400 as ${param} is missing`, async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/questionnairehistories',
-          payload: omit(payload, param),
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(400);
-      });
     });
   });
 });
