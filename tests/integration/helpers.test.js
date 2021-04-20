@@ -1,5 +1,6 @@
 const expect = require('expect');
-const { populateDB, authCustomer } = require('./seed/helpersSeed');
+const { ObjectID } = require('mongodb');
+const { populateDB, authCustomer, customerFromOtherCompany } = require('./seed/helpersSeed');
 const app = require('../../server');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -9,7 +10,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('list', () => {
+describe('GET /helpers', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -29,27 +30,27 @@ describe('list', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    // it('should return 400 if invalid customer', async () => {
-    //   const customerId = (new ObjectID()).toHexString();
-    //   const response = await app.inject({
-    //     method: 'GET',
-    //     url: `/helpers?customer=${customerId}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should return 404 if invalid customer', async () => {
+      const customerId = (new ObjectID()).toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/helpers?customer=${customerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(response.statusCode).toBe(400);
-    // });
+      expect(response.statusCode).toBe(404);
+    });
 
-    // it('should return 404 if customer from another company', async () => {
-    //   const customerId = customerFromOtherCompany._id.toHexString();
-    //   const response = await app.inject({
-    //     method: 'GET',
-    //     url: `/helpers?customer=${customerId}`,
-    //     headers: { Cookie: `alenvi_token=${authToken}` },
-    //   });
+    it('should return 404 if customer from another company', async () => {
+      const customerId = customerFromOtherCompany._id.toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/helpers?customer=${customerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-    //   expect(response.statusCode).toBe(400);
-    // });
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
