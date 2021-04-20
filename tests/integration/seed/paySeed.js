@@ -225,6 +225,93 @@ const sectorHistories = [
   },
 ];
 
+const payList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    additionalHours: 0,
+    auxiliary: auxiliaries[0]._id,
+    bonus: 0,
+    contractHours: 151,
+    diff: {
+      hoursBalance: 8,
+      notSurchargedAndNotExempt: 2,
+      notSurchargedAndExempt: 2,
+      surchargedAndExempt: 2,
+      surchargedAndExemptDetails: [],
+      surchargedAndNotExempt: 2,
+      surchargedAndNotExemptDetails: [],
+      workedHours: 0,
+      paidTransportHours: 3,
+      internalHours: 9,
+      absencesHours: 5,
+    },
+    endDate: '2022-11-31T14:00:18',
+    hoursBalance: -8,
+    hoursCounter: -20,
+    hoursToWork: 30,
+    holidaysHours: 12,
+    notSurchargedAndExempt: 97,
+    notSurchargedAndNotExempt: 43,
+    surchargedAndExempt: 0,
+    surchargedAndExemptDetails: [],
+    surchargedAndNotExempt: 3,
+    surchargedAndNotExemptDetails: [],
+    month: '11-2022',
+    mutual: false,
+    phoneFees: 0,
+    overtimeHours: 0,
+    startDate: '2022-11-01T14:00:18',
+    transport: 10,
+    workedHours: 143,
+    paidTransportHours: 3,
+    internalHours: 9,
+    absencesHours: 5,
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    additionalHours: 0,
+    auxiliary: auxiliaries[0]._id,
+    bonus: 0,
+    contractHours: 151,
+    diff: {
+      hoursBalance: 8,
+      notSurchargedAndNotExempt: 2,
+      notSurchargedAndExempt: 2,
+      surchargedAndExempt: 2,
+      surchargedAndExemptDetails: [],
+      surchargedAndNotExempt: 2,
+      surchargedAndNotExemptDetails: [],
+      workedHours: 0,
+      paidTransportHours: 3,
+      internalHours: 9,
+      absencesHours: 5,
+    },
+    endDate: '2022-11-28T14:00:18',
+    holidaysHours: 12,
+    hoursBalance: -8,
+    hoursCounter: -20,
+    hoursToWork: 20,
+    month: '11-2022',
+    mutual: false,
+    notSurchargedAndExempt: 97,
+    notSurchargedAndNotExempt: 43,
+    surchargedAndExempt: 0,
+    surchargedAndExemptDetails: [],
+    surchargedAndNotExempt: 3,
+    surchargedAndNotExemptDetails: [],
+    phoneFees: 0,
+    overtimeHours: 0,
+    startDate: '2022-11-01T14:00:18',
+    transport: 10,
+    workedHours: 143,
+    paidTransportHours: 3,
+    internalHours: 9,
+    absencesHours: 5,
+  },
+];
+
 const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
@@ -243,6 +330,7 @@ const populateDB = async () => {
   await (new Service(service)).save();
   await Event.create([event, absence]);
   await Contract.insertMany(contracts);
+  await Pay.insertMany(payList);
 };
 
 module.exports = {

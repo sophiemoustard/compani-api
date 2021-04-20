@@ -62,8 +62,6 @@ exports.allContractsEnded = async (contract, companyId) => {
   const sortedEndedContract = userContracts.filter(con => !!con.endDate)
     .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
 
-  console.log(sortedEndedContract);
-  console.log(contract);
   return !sortedEndedContract.length || moment(contract.startDate).isAfter(sortedEndedContract[0].endDate, 'd');
 };
 

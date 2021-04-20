@@ -73,8 +73,18 @@ const payVariables = [
   { code: '489', mode: MODE_RESULTAT, func: computeTransport, name: 'Frais kilométriques' },
 ];
 
+const formatPayMonth = (value) => {
+  if (!value) return '';
+
+  const month = new Date(value).getMonth() + 1;
+  const formattedMonth = month < 10 ? `0${month}` : month;
+
+  return `${formattedMonth}-${new Date(value).getFullYear()}`;
+};
+
 exports.exportPay = async (query, credentials) => {
-  const payList = await Pay.find({ month: query.month, company: get(credentials, 'company._id') })
+  const month = formatPayMonth(query.startDate);
+  const payList = await Pay.find({ month, company: get(credentials, 'company._id') })
     .populate({
       path: 'auxiliary',
       populate: { path: 'contracts', select: '_id serialNumber' },
