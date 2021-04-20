@@ -17,6 +17,7 @@ const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require(
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
+const HelpersHelper = require('./helpers');
 
 const { language } = translate;
 
@@ -197,7 +198,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role']);
+  const payload = omit(updatedUser, ['role', 'customer']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
@@ -217,7 +218,9 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
 
   const payload = await formatUpdatePayload(userPayload);
 
-  if (payload.sector) {
+  if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
+
+  if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 

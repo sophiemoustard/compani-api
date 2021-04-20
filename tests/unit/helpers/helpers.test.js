@@ -35,3 +35,26 @@ describe('list', () => {
     ]);
   });
 });
+
+describe('create', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(Helper, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
+  it('should create a helper', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const userId = new ObjectID();
+    const customerId = new ObjectID();
+
+    await HelpersHelper.create(userId, customerId, credentials.company._id);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { user: userId, customer: customerId, company: credentials.company._id }
+    );
+  });
+});

@@ -14,6 +14,7 @@ const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
+const HelpersHelper = require('../../../src/helpers/helpers');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
@@ -107,7 +108,7 @@ describe('getUsersList', () => {
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
 
     expect(result).toEqual(users);
-    sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
+    sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
       { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
@@ -136,7 +137,7 @@ describe('getUsersList', () => {
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
 
     expect(result).toEqual(users);
-    sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
+    sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
       { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
@@ -188,7 +189,7 @@ describe('getUsersListWithSectorHistories', () => {
       { ...credentials, role: { client: 'test' } }
     );
     expect(result).toEqual(users);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       formatQueryForUsersListStub,
       { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
     );
@@ -609,13 +610,13 @@ describe('createAndSaveFile', () => {
     const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
-    sinon.assert.calledWithExactly(addFileStub, {
+    sinon.assert.calledOnceWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
       body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveFileStub, params._id, payload.type, {
+    sinon.assert.calledOnceWithExactly(saveFileStub, params._id, payload.type, {
       driveId: uploadedFile.id,
       link: uploadedFile.webViewLink,
     });
@@ -634,13 +635,13 @@ describe('createAndSaveFile', () => {
     const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
-    sinon.assert.calledWithExactly(addFileStub, {
+    sinon.assert.calledOnceWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
       body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveCertificateDriveIdStub, params._id, {
+    sinon.assert.calledOnceWithExactly(saveCertificateDriveIdStub, params._id, {
       driveId: uploadedFile.id,
       link: uploadedFile.webViewLink,
     });
@@ -725,7 +726,7 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
     expect(result).toEqual(newUser);
-    sinon.assert.calledWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
+    sinon.assert.calledOnceWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
     SinonMongoose.calledWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
@@ -961,6 +962,7 @@ describe('updateUser', () => {
   let userUpdateOne;
   let roleFindById;
   let updateHistoryOnSectorUpdateStub;
+  let createHelper;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
 
@@ -968,11 +970,13 @@ describe('updateUser', () => {
     userUpdateOne = sinon.stub(User, 'updateOne');
     roleFindById = sinon.stub(Role, 'findById');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
+    createHelper = sinon.stub(HelpersHelper, 'create');
   });
   afterEach(() => {
     userUpdateOne.restore();
     roleFindById.restore();
     updateHistoryOnSectorUpdateStub.restore();
+    createHelper.restore();
   });
 
   it('should update a user', async () => {
@@ -998,7 +1002,34 @@ describe('updateUser', () => {
       { _id: userId }, { $set: flat(payload) }
     );
     sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+  });
+
+  it('should update a user and create helper', async () => {
+    const payload = { role: new ObjectID(), customer: new ObjectID() };
+    const payloadWithRole = { 'role.client': payload.role.toHexString() };
+
+    roleFindById.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: payload.role, name: 'test', interface: 'client' }],
+      ['lean']
+    ));
+
+    await UsersHelper.updateUser(userId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id }, { $set: payloadWithRole }
+    );
+    sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [
+        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should update a user and create sector history', async () => {
@@ -1010,7 +1041,13 @@ describe('updateUser', () => {
       userUpdateOne,
       { _id: userId, company: credentials.company._id }, { $set: flat(payload) }
     );
-    sinon.assert.calledWithExactly(updateHistoryOnSectorUpdateStub, userId, payload.sector, credentials.company._id);
+    sinon.assert.notCalled(createHelper);
+    sinon.assert.calledOnceWithExactly(
+      updateHistoryOnSectorUpdateStub,
+      userId,
+      payload.sector,
+      credentials.company._id
+    );
     sinon.assert.notCalled(roleFindById);
   });
 
@@ -1029,6 +1066,7 @@ describe('updateUser', () => {
       userUpdateOne,
       { _id: userId, company: credentials.company._id }, { $set: payloadWithRole }
     );
+    sinon.assert.notCalled(createHelper);
     SinonMongoose.calledWithExactly(roleFindById, [
       { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
       { query: 'lean' },
@@ -1050,6 +1088,7 @@ describe('updateUser', () => {
         { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
         { query: 'lean' },
       ]);
+      sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     }
@@ -1072,7 +1111,7 @@ describe('updateUserCertificates', async () => {
 
     await UsersHelper.updateUserCertificates(userId, payload, credentials);
 
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: userId, company: credentials.company._id },
       { $pull: { 'administrative.certificates': payload.certificates } }
@@ -1100,11 +1139,11 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(0);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: userId },
       { $set: { inactivityDate: moment(endDate).add('1', 'month').startOf('M').toDate() } }
@@ -1119,7 +1158,7 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(2);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );
@@ -1151,7 +1190,7 @@ describe('uploadPicture', () => {
     await UsersHelper.uploadPicture(userId, payload);
 
     sinon.assert.calledOnceWithExactly(uploadUserMedia, { file: new ArrayBuffer(32), fileName: 'illustration' });
-    sinon.assert.calledWithExactly(
+    sinon.assert.calledOnceWithExactly(
       updateOneStub,
       { _id: userId },
       {
