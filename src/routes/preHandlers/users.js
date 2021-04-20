@@ -45,7 +45,7 @@ exports.authorizeUserUpdate = async (req) => {
   checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
-  if (get(req, 'payload.customers')) await checkCustomers(userCompany, req.payload);
+  if (get(req, 'payload.customer')) await checkCustomers(userCompany, req.payload);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateRestrictions(req.payload);
   }
@@ -98,7 +98,7 @@ const checkRole = async (userFromDB, payload) => {
 const checkCustomers = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   if (get(payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
-  const customerCount = await Customer.countDocuments({ _id: payload.customers[0], company: userCompany });
+  const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
 
   if (!customerCount) throw Boom.forbidden();
 };
@@ -164,13 +164,13 @@ exports.authorizeUserCreation = async (req) => {
   const scope = get(credentials, 'scope');
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
 
-  if (req.payload.customers && req.payload.customers.length) {
-    const { customers } = req.payload;
-    const customersCount = await Customer.countDocuments({
-      _id: { $in: customers },
+  if (req.payload.customer) {
+    const { customer } = req.payload;
+    const customerCount = await Customer.countDocuments({
+      _id: customer,
       company: get(credentials, 'company._id', null),
     });
-    if (customersCount !== customers.length) throw Boom.forbidden();
+    if (!customerCount) throw Boom.forbidden();
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');

@@ -255,7 +255,7 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 
 exports.removeHelper = async (user) => {
   const role = await Role.findOne({ name: TRAINER }).lean();
-  const payload = { $set: { customers: [] }, $unset: { 'role.client': '' } };
+  const payload = { $unset: { 'role.client': '' } };
 
   const userRoleVendor = get(user, 'role.vendor');
   if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
