@@ -1,7 +1,6 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
-require('sinon-mongoose');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const SectorHistory = require('../../../src/models/SectorHistory');
@@ -13,6 +12,9 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const { FIXED, HOURLY } = require('../../../src/helpers/constants');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
+
+require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('exportCustomers', () => {
   let CustomerModel;
@@ -339,37 +341,29 @@ describe('exportAuxiliaries', () => {
 });
 
 describe('exportHelpers', () => {
-  let UserModel;
-  let RoleModel;
+  let find;
+  let findOneRole;
   let getLastVersion;
-  const credentials = { company: { _id: new ObjectID() } };
+
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    RoleModel = sinon.mock(Role);
+    find = sinon.stub(User, 'find');
+    findOneRole = sinon.stub(Role, 'findOne');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
-    UserModel.restore();
-    RoleModel.restore();
+    find.restore();
+    findOneRole.restore();
     getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
     const helpers = [];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
+
+    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -390,14 +384,27 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Statut',
       'Date de création',
     ]);
-
-    UserModel.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 
   it('should return helper info', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
     const helpers = [{
       _id: new ObjectID(),
       local: { email: 'aide@sos.io' },
@@ -405,16 +412,9 @@ describe('exportHelpers', () => {
       identity: { lastname: 'Je', firstname: 'suis' },
       createdAt: '2019-02-01T09:38:18.653Z',
     }];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
+
+    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -438,12 +438,27 @@ describe('exportHelpers', () => {
         '01/02/2019',
       ]
     );
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 
   it('should return customer helper info', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const roleId = new ObjectID();
-    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).chain('lean').returns({ _id: roleId });
-
     const helpers = [{
       customers: [{
         _id: new ObjectID(),
@@ -460,20 +475,12 @@ describe('exportHelpers', () => {
         },
       }],
     }];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': roleId, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-      })
-      .chain('lean')
-      .once()
-      .returns(helpers);
+
+    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
-    UserModel.verify();
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
@@ -492,6 +499,22 @@ describe('exportHelpers', () => {
       'Actif',
       '',
     ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 });
 

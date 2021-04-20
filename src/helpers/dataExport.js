@@ -221,7 +221,7 @@ exports.exportHelpers = async (credentials) => {
       populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
       match: { company: companyId },
     })
-    .lean({ autopopulate: true });
+    .lean();
   const data = [helperExportHeader];
 
   for (const hel of helpers) {
