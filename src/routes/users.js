@@ -83,7 +83,7 @@ exports.plugin = {
                 transportType: Joi.string(),
               }),
             }),
-            customer: Joi.array(),
+            customer: Joi.objectId(),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],

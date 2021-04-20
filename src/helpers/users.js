@@ -175,7 +175,7 @@ exports.createAndSaveFile = async (params, payload) => {
  * 4th case : Vendor role creates trainer => do no set company
  */
 exports.createUser = async (userPayload, credentials) => {
-  const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
+  const payload = { ...omit(userPayload, ['role', 'sector', 'customer']), refreshToken: uuidv4() };
 
   if (!credentials) return User.create(payload);
 
@@ -187,6 +187,8 @@ exports.createUser = async (userPayload, credentials) => {
 
   if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
   const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
+
+  if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);
