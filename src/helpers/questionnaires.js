@@ -36,9 +36,7 @@ exports.getUserQuestionnaires = async (course, credentials) => {
   const isQuestionnaireAlreadyAnswered = qh => UtilsHelper.areObjectIdsEquals(qh.user, credentials._id) &&
   UtilsHelper.areObjectIdsEquals(qh.course, course._id);
 
-  const questionnaires = questionnaire
+  return questionnaire
     ? [questionnaire].filter(q => !q.questionnaireHistories.some(qh => isQuestionnaireAlreadyAnswered(qh)))
     : [];
-
-  return questionnaires;
 };

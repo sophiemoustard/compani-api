@@ -26,14 +26,24 @@ const questionnairesList = [
   },
 ];
 
-const coursesList = [{
-  _id: new ObjectID(),
-  format: 'blended',
-  subProgram: new ObjectID(),
-  type: 'inter_b2b',
-  salesRepresentative: new ObjectID(),
-  trainees: [questionnaireHistoriesUsersList[0]],
-}];
+const coursesList = [
+  {
+    _id: new ObjectID(),
+    format: 'blended',
+    subProgram: new ObjectID(),
+    type: 'inter_b2b',
+    salesRepresentative: new ObjectID(),
+    trainees: [questionnaireHistoriesUsersList[0]],
+  },
+  {
+    _id: new ObjectID(),
+    format: 'blended',
+    subProgram: new ObjectID(),
+    type: 'inter_b2b',
+    salesRepresentative: new ObjectID(),
+    trainees: [questionnaireHistoriesUsersList[1]],
+  },
+];
 
 const populateDB = async () => {
   await Questionnaire.deleteMany({});
