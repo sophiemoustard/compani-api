@@ -196,12 +196,6 @@ exports.authorizeUsersGet = async (req) => {
   if (!vendorRole && !UtilsHelper.areObjectIdsEquals(queryCompanyId, userCompanyId)) throw Boom.forbidden();
   if (!clientRole && ![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole)) throw Boom.forbidden();
 
-  if (query.customers) {
-    const customers = UtilsHelper.formatIdsArray(query.customers);
-    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: userCompanyId });
-    if (customersCount !== customers.length) throw Boom.forbidden();
-  }
-
   return null;
 };
 

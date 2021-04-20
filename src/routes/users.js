@@ -32,7 +32,7 @@ const {
   authorizeLearnersGet,
   getPicturePublicId,
 } = require('./preHandlers/users');
-const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { addressValidation, phoneNumberValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
 
 const driveUploadKeys = [
@@ -99,7 +99,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
-            customers: objectIdOrArray,
             company: Joi.objectId(),
           }),
         },

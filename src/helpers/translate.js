@@ -302,6 +302,9 @@ module.exports = {
     partnerOrganizationFound: 'Partner organization found.',
     partnerOrganizationUpdated: 'Partner organization updated.',
     partnerCreated: 'Partner created.',
+    /* Helper */
+    helpersFound: 'Helpers found.',
+    helpersNotFound: 'Helpers not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -603,5 +606,8 @@ module.exports = {
     partnerOrganizationFound: 'Structure partenaire trouvée.',
     partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
     partnerCreated: 'Partenaire créé.',
+    /* Helper */
+    helpersFound: 'Liste des aidants trouvée.',
+    helpersNotFound: 'Liste des aidants non trouvée.',
   },
 };

@@ -38,7 +38,6 @@ exports.getUsersList = async (query, credentials) => {
   const params = await exports.formatQueryForUsersList(query);
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
@@ -93,17 +92,19 @@ exports.getLearnerList = async (query, credentials) => {
 };
 
 exports.getUser = async (userId, credentials) => {
+  const companyId = get(credentials, 'company._id') || null;
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: companyId },
       options: {
         isVendorUser: has(credentials, 'role.vendor'),
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
+    .populate({ path: 'customers', select: '-__v -createdAt -updatedAt', match: { company: companyId } })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);

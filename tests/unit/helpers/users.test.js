@@ -105,11 +105,11 @@ describe('getUsersList', () => {
     find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
+
     expect(result).toEqual(users);
     sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'customers', select: 'identity driveFolder' }] },
       { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
       { query: 'populate',
         args: [{
@@ -127,21 +127,18 @@ describe('getUsersList', () => {
   it('should get users according to roles', async () => {
     const query = { role: ['auxiliary', 'planning_referent'], company: companyId };
     const roles = [new ObjectID(), new ObjectID()];
-    const formattedQuery = {
-      company: companyId,
-      'role.client': { $in: roles },
-    };
+    const formattedQuery = { company: companyId, 'role.client': { $in: roles } };
 
     find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
 
     formatQueryForUsersListStub.returns(formattedQuery);
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
+
     expect(result).toEqual(users);
     sinon.assert.calledWithExactly(formatQueryForUsersListStub, query);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'customers', select: 'identity driveFolder' }] },
       { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
       { query: 'populate',
         args: [{
@@ -373,6 +370,14 @@ describe('getUser', () => {
           options: { isVendorUser: false, requestingOwnInfos: false },
         }],
       },
+      {
+        query: 'populate',
+        args: [{
+          path: 'customers',
+          select: '-__v -createdAt -updatedAt',
+          match: { company: credentials.company._id },
+        }],
+      },
       { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
     ]);
   });
@@ -398,6 +403,14 @@ describe('getUser', () => {
           options: { isVendorUser: true, requestingOwnInfos: false },
         }],
       },
+      {
+        query: 'populate',
+        args: [{
+          path: 'customers',
+          select: '-__v -createdAt -updatedAt',
+          match: { company: credentials.company._id },
+        }],
+      },
       { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
     ]);
   });
@@ -421,6 +434,14 @@ describe('getUser', () => {
           select: '_id sector',
           match: { company: credentials.company._id },
           options: { isVendorUser: false, requestingOwnInfos: true },
+        }],
+      },
+      {
+        query: 'populate',
+        args: [{
+          path: 'customers',
+          select: '-__v -createdAt -updatedAt',
+          match: { company: credentials.company._id },
         }],
       },
       { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -452,6 +473,14 @@ describe('getUser', () => {
             select: '_id sector',
             match: { company: credentials.company._id },
             options: { isVendorUser: true, requestingOwnInfos: false },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: credentials.company._id },
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
