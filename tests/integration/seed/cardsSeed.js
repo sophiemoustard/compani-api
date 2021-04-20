@@ -139,7 +139,7 @@ const activitiesList = [
 const questionnairesList = [
   {
     _id: new ObjectID(),
-    title: 'test',
+    name: 'test',
     status: 'published',
     type: 'expectations',
     cards: [cardsList[6]._id, cardsList[7]._id],

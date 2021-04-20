@@ -17,7 +17,7 @@ describe('create', () => {
   });
 
   it('should create questionnaire', async () => {
-    const newQuestionnaire = { title: 'test', type: 'expectations' };
+    const newQuestionnaire = { name: 'test', type: 'expectations' };
     await QuestionnaireHelper.create(newQuestionnaire);
 
     sinon.assert.calledOnceWithExactly(create, newQuestionnaire);
@@ -34,7 +34,7 @@ describe('list', () => {
   });
 
   it('should return questionnaires', async () => {
-    const questionnairesList = [{ title: 'test' }, { title: 'test2' }];
+    const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
 
     find.returns(SinonMongoose.stubChainedQueries([questionnairesList], ['lean']));
 
@@ -56,7 +56,7 @@ describe('getQuestionnaire', () => {
 
   it('should return questionnaire', async () => {
     const questionnaireId = new ObjectID();
-    const questionnaire = { _id: questionnaireId, title: 'test' };
+    const questionnaire = { _id: questionnaireId, name: 'test' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
 
@@ -86,17 +86,17 @@ describe('editQuestionnaire', () => {
   it('should update questionnaire', async () => {
     const questionnaireId = new ObjectID();
     const cards = [new ObjectID(), new ObjectID()];
-    const questionnaire = { _id: questionnaireId, title: 'test2', cards };
+    const questionnaire = { _id: questionnaireId, name: 'test2', cards };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
 
-    const result = await QuestionnaireHelper.update(questionnaireId, { title: 'test2', cards });
+    const result = await QuestionnaireHelper.update(questionnaireId, { name: 'test2', cards });
 
     expect(result).toMatchObject(questionnaire);
     SinonMongoose.calledWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { title: 'test2', cards } }] },
+        { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { name: 'test2', cards } }] },
         { query: 'lean' },
       ]
     );
@@ -118,7 +118,7 @@ describe('addCard', () => {
   it('should add card to questionnaire', async () => {
     const cardId = new ObjectID();
     const payload = { template: 'transition' };
-    const questionnaire = { _id: new ObjectID(), title: 'faire du jetski' };
+    const questionnaire = { _id: new ObjectID(), name: 'faire du jetski' };
 
     createCard.returns({ _id: cardId });
 
@@ -168,7 +168,7 @@ describe('getUserQuestionnaires', () => {
       _id: new ObjectID(),
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
-    const questionnaire = { _id: new ObjectID(), title: 'test' };
+    const questionnaire = { _id: new ObjectID(), name: 'test' };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
@@ -179,7 +179,7 @@ describe('getUserQuestionnaires', () => {
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
         { query: 'lean' },
       ]
     );
@@ -187,7 +187,7 @@ describe('getUserQuestionnaires', () => {
 
   it('should return questionnaire if no slots', async () => {
     const course = { _id: new ObjectID(), slots: [] };
-    const questionnaire = { _id: new ObjectID(), title: 'test' };
+    const questionnaire = { _id: new ObjectID(), name: 'test' };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
@@ -198,7 +198,7 @@ describe('getUserQuestionnaires', () => {
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
         { query: 'lean' },
       ]
     );
@@ -219,7 +219,7 @@ describe('getUserQuestionnaires', () => {
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, title: 1 }] },
+        { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
         { query: 'lean' },
       ]
     );

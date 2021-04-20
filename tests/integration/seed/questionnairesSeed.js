@@ -16,14 +16,14 @@ const cardsList = [
 const questionnairesList = [
   {
     _id: new ObjectID(),
-    title: 'test',
+    name: 'test',
     status: 'draft',
     type: 'expectations',
     cards: [cardsList[0]._id, cardsList[1]._id],
   },
   {
     _id: new ObjectID(),
-    title: 'test',
+    name: 'test',
     status: 'published',
     type: 'expectations',
     cards: [cardsList[2]._id, cardsList[3]._id],

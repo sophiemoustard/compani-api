@@ -6,7 +6,7 @@ const STATUS_TYPES = [DRAFT, PUBLISHED];
 const QUESTIONNAIRE_TYPES = [EXPECTATIONS, END_OF_COURSE];
 
 const QuestionnaireSchema = mongoose.Schema({
-  title: { type: String, required: true },
+  name: { type: String, required: true },
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
   type: { type: String, required: true, enum: QUESTIONNAIRE_TYPES },
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],

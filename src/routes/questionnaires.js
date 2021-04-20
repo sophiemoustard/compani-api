@@ -65,7 +65,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            title: Joi.string().required(),
+            name: Joi.string().required(),
             type: Joi.string().required().valid(...QUESTIONNAIRE_TYPES),
           }),
         },
@@ -108,7 +108,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            title: Joi.string(),
+            name: Joi.string(),
             cards: Joi.array().items(Joi.objectId()),
             status: Joi.string().valid(PUBLISHED),
           }),
