@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const UtilsHelper = require('../utils');
 const FileHelper = require('../file');
+const DateHelper = require('../dates');
 const Pay = require('../../models/Pay');
 const { PRIVATE_TRANSPORT, PUBLIC_TRANSPORT } = require('../constants');
 
@@ -82,23 +83,29 @@ const formatPayMonth = (value) => {
   return `${formattedMonth}-${new Date(value).getFullYear()}`;
 };
 
+exports.getContractForPay = (pay, contracts) => contracts
+  .find(c => DateHelper.isSameOrBefore(c.startDate, pay.startDate) &&
+    (!c.endDate || DateHelper.isAfter(c.endDate, pay.startDate)));
+
 exports.exportPay = async (query, credentials) => {
   const month = formatPayMonth(query.startDate);
   const payList = await Pay.find({ month, company: get(credentials, 'company._id') })
     .populate({
       path: 'auxiliary',
-      populate: { path: 'contracts', select: '_id serialNumber' },
+      populate: { path: 'contracts', select: '_id serialNumber startDate endDate' },
       select: '_id serialNumber administrative.transportInvoice.transportType',
     })
     .lean();
 
   const data = [];
   for (const pay of payList) {
+    const contract = exports.getContractForPay(pay, get(pay, 'auxiliary.contracts') || []);
+
     for (const variable of payVariables) {
       data.push({
         ap_soc: process.env.AP_SOC,
         ap_matr: get(pay, 'auxiliary.serialNumber') || '',
-        ap_contrat: get(pay, 'auxiliary.contract.serialNumber') || '',
+        ap_contrat: get(contract, 'serialNumber') || '',
         va_sai_report: VA_SAI_REPORT,
         va_sai_code: variable.code,
         va_sai_lib: variable.name,
