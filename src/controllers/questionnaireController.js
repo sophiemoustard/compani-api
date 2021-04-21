@@ -80,7 +80,7 @@ const removeCard = async (req) => {
 
 const getUserQuestionnaires = async (req) => {
   try {
-    const questionnaires = await QuestionnaireHelper.getUserQuestionnaires(req.pre.course);
+    const questionnaires = await QuestionnaireHelper.getUserQuestionnaires(req.pre.course, req.auth.credentials);
 
     return {
       message: questionnaires.length

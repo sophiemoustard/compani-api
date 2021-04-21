@@ -24,12 +24,13 @@ exports.removeCard = async (cardId) => {
   await CardHelper.removeCard(cardId);
 };
 
-exports.getUserQuestionnaires = async (course) => {
+exports.getUserQuestionnaires = async (course, credentials) => {
   const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
   if (course.format === STRICTLY_E_LEARNING || isCourseStarted) return [];
 
   const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 })
-    .lean();
+    .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
+    .lean({ virtuals: true });
 
-  return questionnaire ? [questionnaire] : [];
+  return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
 };

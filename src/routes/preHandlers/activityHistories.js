@@ -1,12 +1,10 @@
 const Boom = require('@hapi/boom');
-const Joi = require('joi');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const Activity = require('../../models/Activity');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
-const Card = require('../../models/Card');
-const { SURVEY, OPEN_QUESTION, QUESTION_ANSWER } = require('../../helpers/constants');
+const { checkQuestionnaireAnswersList } = require('./utils');
 
 exports.authorizeAddActivityHistory = async (req) => {
   const { user: userId, activity: activityId, questionnaireAnswersList } = req.payload;
@@ -29,24 +27,7 @@ exports.authorizeAddActivityHistory = async (req) => {
 
   if (!coursesWithActivityAndFollowedByUser) throw Boom.notFound();
 
-  if (questionnaireAnswersList) {
-    for (const qa of questionnaireAnswersList) {
-      const card = await Card.findOne({ _id: qa.card }).lean();
-      if (!card) throw Boom.notFound();
-
-      const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
-      const tooManyAnswers = ([SURVEY, OPEN_QUESTION].includes(card.template) && qa.answerList.length !== 1) ||
-        ([QUESTION_ANSWER].includes(card.template) && (!card.isQuestionAnswerMultipleChoiced &&
-        qa.answerList.length !== 1));
-      const answerIsNotObjectID = [QUESTION_ANSWER].includes(card.template) &&
-      Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
-
-      if (isNotQuestionnaireTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
-
-      const activityCount = await Activity.countDocuments({ _id: activityId, cards: card._id });
-      if (!activityCount) throw Boom.notFound();
-    }
-  }
+  if (questionnaireAnswersList) await checkQuestionnaireAnswersList(questionnaireAnswersList, activityId);
 
   return null;
 };
