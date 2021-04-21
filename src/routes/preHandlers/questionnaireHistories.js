@@ -1,31 +1,9 @@
 const Boom = require('@hapi/boom');
-const Joi = require('joi');
 const Questionnaire = require('../../models/Questionnaire');
 const User = require('../../models/User');
 const Course = require('../../models/Course');
-const Card = require('../../models/Card');
 const QuestionnaireHistory = require('../../models/QuestionnaireHistory');
-const { SURVEY, OPEN_QUESTION, QUESTION_ANSWER } = require('../../helpers/constants');
-
-exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, questionnaireId) => {
-  for (const qa of questionnaireAnswersList) {
-    const card = await Card.findOne({ _id: qa.card }).lean();
-    if (!card) throw Boom.notFound();
-
-    const isNotQuestionnaireTemplate = ![SURVEY, OPEN_QUESTION, QUESTION_ANSWER].includes(card.template);
-    const tooManyAnswers = qa.answerList.length !== 1 && (
-      [SURVEY, OPEN_QUESTION].includes(card.template) ||
-      ([QUESTION_ANSWER].includes(card.template) && !card.isQuestionAnswerMultipleChoiced)
-    );
-    const answerIsNotObjectID = [QUESTION_ANSWER].includes(card.template) &&
-      Joi.array().items(Joi.objectId()).validate(qa.answerList).error;
-
-    if (isNotQuestionnaireTemplate || tooManyAnswers || answerIsNotObjectID) throw Boom.badData();
-
-    const questionnaireCount = await Questionnaire.countDocuments({ _id: questionnaireId, cards: card._id });
-    if (!questionnaireCount) throw Boom.notFound();
-  }
-};
+const { checkQuestionnaireAnswersList } = require('./utils');
 
 exports.authorizeAddQuestionnaireHistory = async (req) => {
   const { user: userId, questionnaire: questionnaireId, course: courseId, questionnaireAnswersList } = req.payload;
@@ -38,9 +16,9 @@ exports.authorizeAddQuestionnaireHistory = async (req) => {
 
   const questionnaireHistory = await QuestionnaireHistory
     .countDocuments({ course: courseId, user: userId, questionnaire: questionnaireId });
-  if (questionnaireHistory) return Boom.forbidden();
+  if (questionnaireHistory) return Boom.conflict();
 
-  if (questionnaireAnswersList) await this.checkQuestionnaireAnswersList(questionnaireAnswersList, questionnaireId);
+  if (questionnaireAnswersList) await checkQuestionnaireAnswersList(questionnaireAnswersList, questionnaireId);
 
   return null;
 };

@@ -3,7 +3,6 @@ const Questionnaire = require('../models/Questionnaire');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING } = require('./constants');
 const DatesHelper = require('./dates');
-const UtilsHelper = require('./utils');
 
 exports.create = async payload => Questionnaire.create(payload);
 
@@ -30,13 +29,8 @@ exports.getUserQuestionnaires = async (course, credentials) => {
   if (course.format === STRICTLY_E_LEARNING || isCourseStarted) return [];
 
   const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 })
-    .populate({ path: 'questionnaireHistories' })
+    .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
     .lean({ virtuals: true });
 
-  const isQuestionnaireAlreadyAnswered = qh => UtilsHelper.areObjectIdsEquals(qh.user, credentials._id) &&
-  UtilsHelper.areObjectIdsEquals(qh.course, course._id);
-
-  return questionnaire
-    ? [questionnaire].filter(q => !q.questionnaireHistories.some(qh => isQuestionnaireAlreadyAnswered(qh)))
-    : [];
+  return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
 };

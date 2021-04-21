@@ -169,7 +169,7 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const credentials = { _id: new ObjectID() };
-    const questionnaire = { _id: new ObjectID(), name: 'test', questionnaireHistories: [] };
+    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
@@ -181,7 +181,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -189,7 +189,7 @@ describe('getUserQuestionnaires', () => {
 
   it('should return questionnaire if no slots', async () => {
     const course = { _id: new ObjectID(), slots: [] };
-    const questionnaire = { _id: new ObjectID(), name: 'test', questionnaireHistories: [] };
+    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
     const credentials = { _id: new ObjectID() };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
@@ -202,7 +202,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -217,7 +217,7 @@ describe('getUserQuestionnaires', () => {
     const questionnaire = {
       _id: new ObjectID(),
       name: 'test',
-      questionnaireHistories: [{ _id: new ObjectID(), course: course._id, user: credentials._id }],
+      histories: [{ _id: new ObjectID(), course: course._id, user: credentials._id }],
     };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
@@ -230,7 +230,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -242,11 +242,7 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const credentials = { _id: new ObjectID() };
-    const questionnaire = {
-      _id: new ObjectID(),
-      name: 'test',
-      questionnaireHistories: [{ _id: new ObjectID(), course: new ObjectID(), user: credentials._id }],
-    };
+    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
@@ -258,7 +254,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -270,11 +266,7 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const credentials = { _id: new ObjectID() };
-    const questionnaire = {
-      _id: new ObjectID(),
-      name: 'test',
-      questionnaireHistories: [{ _id: new ObjectID(), course: course._id, user: new ObjectID() }],
-    };
+    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
@@ -286,7 +278,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
@@ -309,7 +301,7 @@ describe('getUserQuestionnaires', () => {
       findOne,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
-        { query: 'populate', args: [{ path: 'questionnaireHistories' }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );

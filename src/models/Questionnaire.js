@@ -12,7 +12,7 @@ const QuestionnaireSchema = mongoose.Schema({
   cards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
 }, { timestamps: true, id: false });
 
-QuestionnaireSchema.virtual('questionnaireHistories', {
+QuestionnaireSchema.virtual('histories', {
   ref: 'QuestionnaireHistory',
   localField: '_id',
   foreignField: 'questionnaire',
