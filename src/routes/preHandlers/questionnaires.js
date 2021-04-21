@@ -1,27 +1,22 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const {
-  DRAFT,
-  EXPECTATIONS,
-  TRAINING_ORGANISATION_MANAGER,
-  VENDOR_ADMIN,
-  PUBLISHED,
-} = require('../../helpers/constants');
+const { DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, PUBLISHED } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
+const Course = require('../../models/Course');
 
 const { language } = translate;
 
 exports.authorizeQuestionnaireCreation = async (req) => {
   const { type } = req.payload;
-  if (type !== EXPECTATIONS) return null;
-
   const draftQuestionnaires = await Questionnaire.countDocuments({ type, status: DRAFT });
-  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftExpectationQuestionnaireAlreadyExists);
+
+  if (draftQuestionnaires) throw Boom.conflict(translate[language].draftQuestionnaireAlreadyExists);
 
   return null;
 };
+
 exports.authorizeQuestionnaireGet = async (req) => {
   const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
   if (!questionnaire) throw Boom.notFound();
@@ -35,11 +30,33 @@ exports.authorizeQuestionnaireGet = async (req) => {
   return null;
 };
 
+exports.authorizeUserQuestionnairesGet = async (req) => {
+  const course = await Course.findOne({ _id: req.query.course })
+    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .lean({ virtuals: true });
+
+  if (!course) throw Boom.notFound();
+
+  return course;
+};
+
 exports.authorizeQuestionnaireEdit = async (req) => {
-  const questionnaire = await Questionnaire.findOne({ _id: req.params._id }, { status: 1 }).lean();
+  const questionnaire = await Questionnaire
+    .findOne({ _id: req.params._id }, { status: 1, type: 1 })
+    .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
+    .lean({ virtuals: true });
+
   if (!questionnaire) throw Boom.notFound();
 
-  if (questionnaire.status === PUBLISHED) throw Boom.forbidden();
+  if (questionnaire.status === PUBLISHED && !req.payload.name) throw Boom.forbidden();
+
+  const publishedQuestionnaireWithSameTypeExists = await Questionnaire.countDocuments(
+    { type: questionnaire.type, status: PUBLISHED }
+  );
+  if (req.payload.status === PUBLISHED && publishedQuestionnaireWithSameTypeExists) {
+    throw Boom.conflict(translate[language].publishedQuestionnaireWithSameTypeExists);
+  }
+  if (req.payload.status === PUBLISHED && !questionnaire.areCardsValid) throw Boom.forbidden();
 
   return null;
 };
