@@ -124,7 +124,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = ['questionnaire', 'user'];
+    const missingParams = ['questionnaire', 'user', 'course'];
     missingParams.forEach((param) => {
       const payload = {
         course: coursesList[0]._id,
@@ -144,7 +144,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
     });
 
-    it('should return a 403 if a questionnaire history already exists for this course and user', async () => {
+    it('should return a 409 if a questionnaire history already exists for this course and user', async () => {
       const payload = {
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
@@ -158,7 +158,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return a 404 if user doesn\'t exist', async () => {
@@ -191,7 +191,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 404 if course doesn\'t exist ', async () => {
+    it('should return a 404 if user is not registered to course', async () => {
       const payload = {
         course: coursesList[1]._id,
         user: questionnaireHistoriesUsersList[0],
