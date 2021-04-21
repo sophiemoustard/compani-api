@@ -941,7 +941,7 @@ describe('removeHelper', () => {
     ]);
     sinon.assert.calledOnceWithExactly(
       userFindOneAndUpdate,
-      { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '' } }
+      { _id: user._id }, { $unset: { 'role.client': '' } }
     );
     sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
@@ -957,7 +957,7 @@ describe('removeHelper', () => {
     ]);
     sinon.assert.calledOnceWithExactly(
       userFindOneAndUpdate,
-      { _id: user._id }, { $set: { customers: [] }, $unset: { 'role.client': '', company: '' } }
+      { _id: user._id }, { $unset: { 'role.client': '', company: '' } }
     );
     sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });

@@ -30,7 +30,7 @@ describe('list', () => {
     expect(result).toEqual([{ local: { email: 'helper1@test.fr' } }, { local: { email: 'helper2@test.fr' } }]);
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ customer: query.customer, company: companyId }] },
-      { query: 'populate', args: [{ path: 'user', select: 'identity local contact' }] },
+      { query: 'populate', args: [{ path: 'user', select: 'identity local contact createdAt' }] },
       { query: 'lean' },
     ]);
   });
