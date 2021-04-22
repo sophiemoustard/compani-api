@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
@@ -13,6 +12,7 @@ describe('formatBirthDate', () => {
   it('should format date', () => {
     expect(Identification123PayHelper.formatBirthDate('2020-09-10T09:12:00')).toEqual('10/09/2020');
   });
+
   it('should return empty string if date is null', () => {
     expect(Identification123PayHelper.formatBirthDate(null)).toEqual('');
   });
@@ -79,6 +79,7 @@ describe('formatIdentificationInfo', () => {
       serialNumber: 'serialNumber',
       contact: { address: { zipCode: '75', city: 'Paris', street: 'tamalou' } },
     };
+
     formatAddress.returns({ start: 'start', end: 'end' });
 
     const result = await Identification123PayHelper.formatIdentificationInfo(auxiliary);
@@ -238,6 +239,7 @@ describe('exportIdentification', () => {
     exportToTxt.returns('file');
 
     const result = await Identification123PayHelper.exportIdentification({ endDate }, { company: { _id: companyId } });
+
     expect(result).toEqual('file');
     sinon.assert.calledTwice(formatIdentificationInfo);
     sinon.assert.calledWithExactly(formatIdentificationInfo.getCall(0), 'first user');

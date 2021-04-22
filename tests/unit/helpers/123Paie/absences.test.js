@@ -37,6 +37,7 @@ describe('getAbsences', () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+
     findPay.returns(
       SinonMongoose.stubChainedQueries([[{ createdAt: '2020-10-29T10:31:00' }]], ['sort', 'limit', 'lean'])
     );
@@ -86,6 +87,7 @@ describe('getAbsences', () => {
     const companyId = new ObjectID();
     const absences = [{ _id: new ObjectID() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
+
     findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
     findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
 
@@ -164,11 +166,13 @@ describe('exportsAbsence', () => {
       },
       extension: { _id: new ObjectID(), startDate: '2020-11-19T00:00:00' },
     }];
+
     getAbsences.returns(absences);
     getAbsenceHours.onCall(0).returns(5);
     getAbsenceHours.onCall(1).returns(0);
     getAbsenceHours.onCall(2).returns(4);
     exportToTxt.returns('file');
+
     const result = await Absences123PayHelper.exportAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual('file');
@@ -217,9 +221,11 @@ describe('exportsAbsence', () => {
         identity: { lastname: 'Toto' },
       },
     }];
+
     getAbsences.returns(absences);
     getAbsenceHours.returns(2);
     exportToTxt.returns('file');
+
     const result = await Absences123PayHelper.exportAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual('file');

@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
@@ -45,6 +44,7 @@ describe('exportsContractVersions', () => {
         { weeklyHours: 6, grossHourlyRate: 10, startDate: '2020-11-02T22:00:00' },
       ],
     }];
+
     getQuery.returns([{ endDate: null }, { endDate: { $exists: false } }]);
     findContract.returns(SinonMongoose.stubChainedQueries([versions]));
     exportToTxt.returns('file');
@@ -100,6 +100,7 @@ describe('exportContractEnds', () => {
       endDate: '2020-11-07T00:00:00',
       endReason: SERIOUS_MISCONDUCT_LAYOFF,
     }];
+
     findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
     exportToTxt.returns('file');
 

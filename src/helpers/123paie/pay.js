@@ -83,7 +83,7 @@ const formatPayMonth = (value) => {
   return `${formattedMonth}-${new Date(value).getFullYear()}`;
 };
 
-exports.getContractForPay = (pay, contracts) => contracts
+const getContractForPay = (pay, contracts) => contracts
   .find(c => DateHelper.isSameOrBefore(c.startDate, pay.startDate) &&
     (!c.endDate || DateHelper.isAfter(c.endDate, pay.startDate)));
 
@@ -99,7 +99,7 @@ exports.exportPay = async (query, credentials) => {
 
   const data = [];
   for (const pay of payList) {
-    const contract = exports.getContractForPay(pay, get(pay, 'auxiliary.contracts') || []);
+    const contract = getContractForPay(pay, get(pay, 'auxiliary.contracts') || []);
 
     for (const variable of payVariables) {
       data.push({

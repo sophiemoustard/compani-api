@@ -70,6 +70,7 @@ exports.exportAbsences = async (query, credentials) => {
   for (const abs of absences) {
     const matchingContract = abs.auxiliary.contracts.find((c) => {
       if (c.endDate) return moment(abs.startDate).isBetween(c.startDate, c.endDate, 'd', '[]');
+
       return moment(abs.startDate).isSameOrAfter(c.startDate, 'd');
     });
 
