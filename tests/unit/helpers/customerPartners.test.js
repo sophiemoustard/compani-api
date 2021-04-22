@@ -36,22 +36,36 @@ describe('list', () => {
     const customer = new ObjectID();
     const customerPartnersList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
 
-    find.returns(SinonMongoose.stubChainedQueries([customerPartnersList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([customerPartnersList]));
 
     const result = await CustomerPartnersHelper.list(customer);
 
     expect(result).toMatchObject(customerPartnersList);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [{ customer }] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ customer }] },
+        { query: 'populate', args: [{ path: 'partner', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an empty array if no partners associated to this customer', async () => {
     const customer = new ObjectID();
 
-    find.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await CustomerPartnersHelper.list(customer);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [{ customer }] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ customer }] },
+        { query: 'populate', args: [{ path: 'partner', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });

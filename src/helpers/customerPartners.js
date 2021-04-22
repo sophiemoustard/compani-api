@@ -7,4 +7,6 @@ exports.createCustomerPartner = async (payload, credentials) => {
   await CustomerPartner.create(customerPartner);
 };
 
-exports.list = async customer => CustomerPartner.find({ customer }).lean();
+exports.list = async customer => CustomerPartner.find({ customer })
+  .populate({ path: 'partner', select: '-__v -createdAt -updatedAt' })
+  .lean();
