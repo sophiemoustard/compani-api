@@ -302,6 +302,8 @@ module.exports = {
     partnerOrganizationFound: 'Partner organization found.',
     partnerOrganizationUpdated: 'Partner organization updated.',
     partnerCreated: 'Partner created.',
+    partnersFound: 'Partners found.',
+    partnersNotFound: 'Partners not found.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
@@ -610,6 +612,8 @@ module.exports = {
     partnerOrganizationFound: 'Structure partenaire trouvée.',
     partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
     partnerCreated: 'Partenaire créé.',
+    partnersFound: 'Liste des partenaires trouvée.',
+    partnersNotFound: 'Liste des partenaires non trouvée.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',

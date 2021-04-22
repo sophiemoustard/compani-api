@@ -9,7 +9,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['customers:edit'] },
+        auth: { scope: ['customerpartners:edit'] },
         validate: {
           payload: Joi.object().keys({
             partner: Joi.objectId().required(),
@@ -28,7 +28,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ customer: Joi.objectId().required() }),
         },
-        auth: { scope: ['customers:read'] },
+        auth: { scope: ['customerpartners:edit'] },
         pre: [{ method: authorizeCustomerPartnersGet }],
       },
       handler: list,

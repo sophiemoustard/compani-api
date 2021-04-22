@@ -203,4 +203,8 @@ exports.routes = [
     plugin: require('./customerPartners'),
     routes: { prefix: '/customerpartners' },
   },
+  {
+    plugin: require('./partners'),
+    routes: { prefix: '/partners' },
+  },
 ];
