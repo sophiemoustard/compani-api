@@ -18,4 +18,20 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+const list = async (req) => {
+  try {
+    const customerPartners = await CustomerPartnerHelper.list(req.query.customer);
+
+    return {
+      message: customerPartners.length
+        ? translate[language].customerPartnersFound
+        : translate[language].customerPartnersNotFound,
+      data: { customerPartners },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list };

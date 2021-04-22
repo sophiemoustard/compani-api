@@ -305,6 +305,10 @@ module.exports = {
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Customer Partner created.',
+    customerPartnersFound: 'Customer Partners found.',
+    customerPartnersNotFound: 'ustomer Partners not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -609,5 +613,9 @@ module.exports = {
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Partenaire bénéficiaire créé.',
+    customerPartnersFound: 'Partenaires bénéficiaire trouvés.',
+    customerPartnersNotFound: 'Partenaires bénéficiaire non trouvés.',
   },
 };

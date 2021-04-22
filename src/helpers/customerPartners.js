@@ -6,3 +6,5 @@ exports.createCustomerPartner = async (payload, credentials) => {
 
   await CustomerPartner.create(customerPartner);
 };
+
+exports.list = async customer => CustomerPartner.find({ customer }).lean();

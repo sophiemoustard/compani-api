@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { populateDB, customersList, partnersList, auxiliaryFromOtherCompany } = require('./seed/customerPartnersSeed');
@@ -122,6 +123,77 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
           url: '/customerpartners',
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { customer: customersList[0]._id, partner: partnersList[0]._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should get all partners of a user', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customerpartners?customer=${customersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if query customer has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/customerpartners?customer=test',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if invalid customer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customerpartners?customer=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if customer and user have different companies', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customerpartners?customer=${customersList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/customerpartners?customer=${customersList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -19,3 +19,15 @@ exports.authorizeCustomerPartnerCreation = async (req) => {
 
   return null;
 };
+
+exports.authorizeCustomerPartnersGet = async (req) => {
+  const { credentials } = req.auth;
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  const customer = await Customer.findOne({ _id: req.query.customer }, { company: 1 }).lean();
+  if (!customer) throw Boom.notFound();
+
+  if (!UtilsHelper.areObjectIdsEquals(customer.company, loggedUserCompany)) throw Boom.forbidden();
+
+  return null;
+};
