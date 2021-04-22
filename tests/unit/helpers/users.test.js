@@ -52,15 +52,12 @@ describe('formatQueryForUsersList', () => {
     find.returns(SinonMongoose.stubChainedQueries([roles], ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
-    expect(result).toEqual({
-      company: companyId,
-      'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
-    });
+    expect(result).toEqual({ company: companyId, 'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] } });
 
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should return 404 if role does not exist', async () => {
@@ -73,10 +70,10 @@ describe('formatQueryForUsersList', () => {
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
     } finally {
-      SinonMongoose.calledWithExactly(find, [
-        { query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledWithExactly(
+        find,
+        [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
+      );
     }
   });
 });
@@ -109,20 +106,25 @@ describe('getUsersList', () => {
 
     expect(result).toEqual(users);
     sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
-      { query: 'populate',
-        args: [{
-          path: 'sector',
-          select: '_id sector',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: false },
-        }] },
-      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
-      { query: 'setOptions', args: [{ isVendorUser: false }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
+        { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 
   it('should get users according to roles', async () => {
@@ -138,20 +140,25 @@ describe('getUsersList', () => {
 
     expect(result).toEqual(users);
     sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
-      { query: 'populate',
-        args: [{
-          path: 'sector',
-          select: '_id sector',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: false },
-        }] },
-      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
-      { query: 'setOptions', args: [{ isVendorUser: false }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
+        { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 });
 
@@ -193,20 +200,25 @@ describe('getUsersListWithSectorHistories', () => {
       formatQueryForUsersListStub,
       { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
     );
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
-      { query: 'populate',
-        args: [{
-          path: 'sectorHistories',
-          select: '_id sector startDate endDate',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: false },
-        }] },
-      { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
-      { query: 'setOptions', args: [{ isVendorUser: false }] },
-      { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
+        { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sectorHistories',
+            select: '_id sector startDate endDate',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: 'startDate endDate' }] },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
+      ]
+    );
   });
 });
 
@@ -243,18 +255,21 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
-    SinonMongoose.calledWithExactly(findUser, [
-      { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
-      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
-      {
-        query: 'populate',
-        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-      },
-      { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should get learners from company', async () => {
@@ -282,22 +297,27 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.calledOnceWithExactly(findRole, { name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
-    SinonMongoose.calledWithExactly(findUser, [
-      { query: 'find',
-        args: [
-          { company: query.company, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
-          'identity.firstname identity.lastname picture',
-          { autopopulate: false },
-        ] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
-      {
-        query: 'populate',
-        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-      },
-      { query: 'setOptions', args: [{ isVendorUser: false }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        {
+          query: 'find',
+          args: [
+            { company: query.company, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
+            'identity.firstname identity.lastname picture',
+            { autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: false }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should get all learners with a company', async () => {
@@ -321,23 +341,28 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
-    SinonMongoose.calledWithExactly(findUser, [
-      { query: 'find',
-        args: [
-          { company: { $exists: true } },
-          'identity.firstname identity.lastname picture',
-          { autopopulate: false },
-        ] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-      { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
-      { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
-      {
-        query: 'populate',
-        args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
-      },
-      { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        {
+          query: 'find',
+          args: [
+            { company: { $exists: true } },
+            'identity.firstname identity.lastname picture',
+            { autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser: !!get(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -359,28 +384,31 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'sector',
-          select: '_id sector',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: false, requestingOwnInfos: false },
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'customers',
-          select: '-__v -createdAt -updatedAt',
-          match: { company: credentials.company._id },
-        }],
-      },
-      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false, requestingOwnInfos: false },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should return user populating role because isVendorUser', async () => {
@@ -392,79 +420,9 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'sector',
-          select: '_id sector',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: true, requestingOwnInfos: false },
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'customers',
-          select: '-__v -createdAt -updatedAt',
-          match: { company: credentials.company._id },
-        }],
-      },
-      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-    ]);
-  });
-
-  it('should return user populating role because requestingOwnInfos', async () => {
-    const userId = new ObjectID();
-    const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
-    const credentials = { company: { _id: new ObjectID() }, _id: userId };
-
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
-
-    await UsersHelper.getUser(userId, credentials);
-
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: userId }] },
-      { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'sector',
-          select: '_id sector',
-          match: { company: credentials.company._id },
-          options: { isVendorUser: false, requestingOwnInfos: true },
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'customers',
-          select: '-__v -createdAt -updatedAt',
-          match: { company: credentials.company._id },
-        }],
-      },
-      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-    ]);
-  });
-
-  it('should throw error if user not found', async () => {
-    const userId = new ObjectID();
-    const credentials = {
-      company: { _id: new ObjectID() },
-      role: { vendor: { _id: new ObjectID() } },
-      _id: new ObjectID(),
-    };
-
-    try {
-      findOne.returns(SinonMongoose.stubChainedQueries([null]));
-
-      await UsersHelper.getUser(userId, credentials);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(404);
-    } finally {
-      SinonMongoose.calledWithExactly(findOne, [
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
         {
@@ -485,7 +443,86 @@ describe('getUser', () => {
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-      ]);
+      ]
+    );
+  });
+
+  it('should return user populating role because requestingOwnInfos', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
+    const credentials = { company: { _id: new ObjectID() }, _id: userId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    await UsersHelper.getUser(userId, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: credentials.company._id },
+            options: { isVendorUser: false, requestingOwnInfos: true },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should throw error if user not found', async () => {
+    const userId = new ObjectID();
+    const credentials = {
+      company: { _id: new ObjectID() },
+      role: { vendor: { _id: new ObjectID() } },
+      _id: new ObjectID(),
+    };
+
+    try {
+      findOne.returns(SinonMongoose.stubChainedQueries([null]));
+
+      await UsersHelper.getUser(userId, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(404);
+    } finally {
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: userId }] },
+          { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'sector',
+              select: '_id sector',
+              match: { company: credentials.company._id },
+              options: { isVendorUser: true, requestingOwnInfos: false },
+            }],
+          },
+          {
+            query: 'populate',
+            args: [{
+              path: 'customers',
+              select: '-__v -createdAt -updatedAt',
+              match: { company: credentials.company._id },
+            }],
+          },
+          { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        ]
+      );
     }
   });
 });
@@ -518,10 +555,10 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(user, 'local'));
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should not find as email does not exist', async () => {
@@ -532,10 +569,10 @@ describe('userExists', () => {
     expect(rep.exists).toBe(false);
     expect(rep.user).toEqual({});
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { company: 1, role: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { company: 1, role: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
@@ -545,10 +582,10 @@ describe('userExists', () => {
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
@@ -559,10 +596,10 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should find an email but no user if no credentials', async () => {
@@ -573,10 +610,10 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ 'local.email': email }, { company: 1, role: 1 }] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -610,16 +647,16 @@ describe('createAndSaveFile', () => {
     const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
-    sinon.assert.calledOnceWithExactly(addFileStub, {
-      driveFolderId: params.driveId,
-      name: payload.fileName,
-      type: payload['Content-Type'],
-      body: payload.file,
-    });
-    sinon.assert.calledOnceWithExactly(saveFileStub, params._id, payload.type, {
-      driveId: uploadedFile.id,
-      link: uploadedFile.webViewLink,
-    });
+    sinon.assert.calledOnceWithExactly(
+      addFileStub,
+      { driveFolderId: params.driveId, name: payload.fileName, type: payload['Content-Type'], body: payload.file }
+    );
+    sinon.assert.calledOnceWithExactly(
+      saveFileStub,
+      params._id,
+      payload.type,
+      { driveId: uploadedFile.id, link: uploadedFile.webViewLink }
+    );
     sinon.assert.notCalled(saveCertificateDriveIdStub);
   });
 
@@ -635,16 +672,20 @@ describe('createAndSaveFile', () => {
     const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
-    sinon.assert.calledOnceWithExactly(addFileStub, {
-      driveFolderId: params.driveId,
-      name: payload.fileName,
-      type: payload['Content-Type'],
-      body: payload.file,
-    });
-    sinon.assert.calledOnceWithExactly(saveCertificateDriveIdStub, params._id, {
-      driveId: uploadedFile.id,
-      link: uploadedFile.webViewLink,
-    });
+    sinon.assert.calledOnceWithExactly(
+      addFileStub,
+      {
+        driveFolderId: params.driveId,
+        name: payload.fileName,
+        type: payload['Content-Type'],
+        body: payload.file,
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      saveCertificateDriveIdStub,
+      params._id,
+      { driveId: uploadedFile.id, link: uploadedFile.webViewLink }
+    );
     sinon.assert.notCalled(saveFileStub);
   });
 });
@@ -878,8 +919,8 @@ describe('createUser', () => {
     userCreate.returns(newUser);
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
-    expect(result).toEqual(newUser);
 
+    expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(userFindOne);
@@ -935,14 +976,11 @@ describe('removeHelper', () => {
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
 
-    SinonMongoose.calledWithExactly(roleFindOne, [
-      { query: 'findOne', args: [{ name: 'trainer' }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledOnceWithExactly(
-      userFindOneAndUpdate,
-      { _id: user._id }, { $unset: { 'role.client': '' } }
+    SinonMongoose.calledWithExactly(
+      roleFindOne,
+      [{ query: 'findOne', args: [{ name: 'trainer' }] }, { query: 'lean' }]
     );
+    sinon.assert.calledOnceWithExactly(userFindOneAndUpdate, { _id: user._id }, { $unset: { 'role.client': '' } });
     sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
 
@@ -951,13 +989,14 @@ describe('removeHelper', () => {
 
     await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
 
-    SinonMongoose.calledWithExactly(roleFindOne, [
-      { query: 'findOne', args: [{ name: 'trainer' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      roleFindOne,
+      [{ query: 'findOne', args: [{ name: 'trainer' }] }, { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(
       userFindOneAndUpdate,
-      { _id: user._id }, { $unset: { 'role.client': '', company: '' } }
+      { _id: user._id },
+      { $unset: { 'role.client': '', company: '' } }
     );
     sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
@@ -1002,10 +1041,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials, true);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId }, { $set: flat(payload) }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -1024,16 +1060,14 @@ describe('updateUser', () => {
 
     sinon.assert.calledOnceWithExactly(
       userUpdateOne,
-      { _id: userId, company: credentials.company._id }, { $set: payloadWithRole }
+      { _id: userId, company: credentials.company._id },
+      { $set: payloadWithRole }
     );
     sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     SinonMongoose.calledWithExactly(
       roleFindById,
-      [
-        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-        { query: 'lean' },
-      ]
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
   });
 
@@ -1069,13 +1103,14 @@ describe('updateUser', () => {
 
     sinon.assert.calledOnceWithExactly(
       userUpdateOne,
-      { _id: userId, company: credentials.company._id }, { $set: payloadWithRole }
+      { _id: userId, company: credentials.company._id },
+      { $set: payloadWithRole }
     );
     sinon.assert.notCalled(createHelper);
-    SinonMongoose.calledWithExactly(roleFindById, [
-      { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      roleFindById,
+      [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
@@ -1089,10 +1124,10 @@ describe('updateUser', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
-      SinonMongoose.calledWithExactly(roleFindById, [
-        { query: 'findById', args: [payload.role, { name: 1, interface: 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledWithExactly(
+        roleFindById,
+        [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
+      );
       sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
@@ -1267,10 +1302,10 @@ describe('createDriveFolder', () => {
 
     await UsersHelper.createDriveFolder(user);
 
-    SinonMongoose.calledWithExactly(companyFindOne, [
-      { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      companyFindOne,
+      [{ query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] }, { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(createFolder, { lastname: 'Delenda' }, 'auxiliariesFolderId');
     sinon.assert.calledOnceWithExactly(
       userUpdateOne,
@@ -1288,10 +1323,10 @@ describe('createDriveFolder', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      SinonMongoose.calledWithExactly(companyFindOne, [
-        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledWithExactly(
+        companyFindOne,
+        [{ query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] }, { query: 'lean' }]
+      );
       sinon.assert.notCalled(createFolder);
       sinon.assert.notCalled(userUpdateOne);
     }
@@ -1306,10 +1341,10 @@ describe('createDriveFolder', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      SinonMongoose.calledWithExactly(companyFindOne, [
-        { query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledWithExactly(
+        companyFindOne,
+        [{ query: 'findOne', args: [{ _id: user.company }, { auxiliariesFolderId: 1 }] }, { query: 'lean' }]
+      );
       sinon.assert.notCalled(createFolder);
       sinon.assert.notCalled(userUpdateOne);
     }

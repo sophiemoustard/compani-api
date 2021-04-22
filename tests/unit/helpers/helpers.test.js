@@ -28,11 +28,14 @@ describe('list', () => {
     const result = await HelpersHelper.list(query, credentials);
 
     expect(result).toEqual([{ local: { email: 'helper1@test.fr' } }, { local: { email: 'helper2@test.fr' } }]);
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ customer: query.customer, company: companyId }] },
-      { query: 'populate', args: [{ path: 'user', select: 'identity local contact createdAt' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ customer: query.customer, company: companyId }] },
+        { query: 'populate', args: [{ path: 'user', select: 'identity local contact createdAt' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
