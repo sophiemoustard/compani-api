@@ -5,7 +5,7 @@ const Contract = require('../models/Contract');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const ContractHelper = require('../helpers/contracts');
-const DpaeHelper = require('../helpers/dpae');
+const Identification123PayHelper = require('../helpers/123paie/identification');
 const ContractRepository = require('../repositories/ContractRepository');
 
 const { language } = translate;
@@ -55,7 +55,7 @@ const update = async (req) => {
 
 const exportDpae = async (req, h) => {
   try {
-    const txt = await DpaeHelper.exportDpae(req.pre.contract);
+    const txt = await Identification123PayHelper.exportDpae(req.pre.contract);
 
     return h.file(txt, { confine: false });
   } catch (e) {
