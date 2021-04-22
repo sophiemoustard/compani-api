@@ -45,7 +45,7 @@ exports.authorizeUserUpdate = async (req) => {
   checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
-  if (get(req, 'payload.customer')) await checkCustomers(userCompany, req.payload);
+  if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateRestrictions(req.payload);
   }
@@ -95,7 +95,7 @@ const checkRole = async (userFromDB, payload) => {
   if (vendorRoleChange) throw Boom.conflict(translate[language].userRoleConflict);
 };
 
-const checkCustomers = async (userCompany, payload) => {
+const checkCustomer = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   if (get(payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
   const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });

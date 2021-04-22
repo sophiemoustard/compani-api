@@ -14,9 +14,9 @@ describe('GET /helpers', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('COACH', () => {
+  describe('AUXILIARY', () => {
     beforeEach(async () => {
-      authToken = await getToken('coach');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return list of helpers', async () => {
@@ -56,11 +56,9 @@ describe('GET /helpers', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

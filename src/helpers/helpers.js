@@ -9,8 +9,7 @@ exports.list = async (query, credentials) => {
   return helpers.map(h => h.user);
 };
 
-exports.create = async (userId, customerId, companyId) => {
-  await Helper.create({ user: userId, customer: customerId, company: companyId });
-};
+exports.create = async (userId, customerId, companyId) =>
+  Helper.create({ user: userId, customer: customerId, company: companyId });
 
 exports.remove = async userId => Helper.deleteMany({ user: userId });

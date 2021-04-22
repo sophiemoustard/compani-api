@@ -61,3 +61,21 @@ describe('create', () => {
     );
   });
 });
+
+describe('remove', () => {
+  let deleteMany;
+  beforeEach(() => {
+    deleteMany = sinon.stub(Helper, 'deleteMany');
+  });
+  afterEach(() => {
+    deleteMany.restore();
+  });
+
+  it('should delete a helper', async () => {
+    const userId = new ObjectID();
+
+    await HelpersHelper.remove(userId);
+
+    sinon.assert.calledOnceWithExactly(deleteMany, { user: userId });
+  });
+});

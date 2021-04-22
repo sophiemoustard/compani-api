@@ -94,6 +94,7 @@ exports.getLearnerList = async (query, credentials) => {
 
 exports.getUser = async (userId, credentials) => {
   const companyId = get(credentials, 'company._id') || null;
+
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
@@ -105,7 +106,15 @@ exports.getUser = async (userId, credentials) => {
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
-    .populate({ path: 'customers', select: '-__v -createdAt -updatedAt', match: { company: companyId } })
+    .populate({
+      path: 'customers',
+      select: '-__v -createdAt -updatedAt',
+      match: { company: companyId },
+      options: {
+        isVendorUser: has(credentials, 'role.vendor'),
+        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
+      },
+    })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
@@ -254,14 +263,9 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.removeHelper = async (user) => {
-  const role = await Role.findOne({ name: TRAINER }).lean();
-  const payload = { $unset: { 'role.client': '' } };
-
-  const userRoleVendor = get(user, 'role.vendor');
-  if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
-
   await HelpersHelper.remove(user._id);
 
+  const payload = { $unset: { 'role.client': '', company: '' } };
   await User.findOneAndUpdate({ _id: user._id }, payload);
 };
 
