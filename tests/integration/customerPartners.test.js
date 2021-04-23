@@ -52,7 +52,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if customer has invalid type ', async () => {
+    it('should return 400 if customer has invalid type ', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/customerpartners',
@@ -63,7 +63,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if partner has invalid type ', async () => {
+    it('should return 400 if partner has invalid type ', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/customerpartners',
@@ -172,7 +172,7 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if invalid customer', async () => {
+    it('should return 404 if customer does not exists', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/customerpartners?customer=${new ObjectID()}`,

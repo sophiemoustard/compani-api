@@ -17,8 +17,8 @@ exports.authorizeCustomerPartnerCreation = async (req) => {
   const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
   if (!partner || !customer) throw Boom.notFound();
 
-  const customerPartner = await CustomerPartner.findOne({ partner: payload.partner, customer: payload.customer })
-    .lean();
+  const customerPartner = await CustomerPartner
+    .countDocuments({ partner: payload.partner, customer: payload.customer });
   if (customerPartner) throw Boom.conflict(translate[language].customerPartnerAlreadyExists);
 
   const areCompanyIdsEquals = UtilsHelper.areObjectIdsEquals(partner.company, customer.company) &&

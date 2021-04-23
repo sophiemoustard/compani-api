@@ -35,13 +35,16 @@ describe('list', () => {
   it('should return customer partners', async () => {
     const customer = new ObjectID();
     const credentials = { company: { _id: new ObjectID() } };
-    const customerPartnersList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const customerPartners = [
+      { _id: new ObjectID(), partner: { _id: new ObjectID() } },
+      { _id: new ObjectID(), partner: { _id: new ObjectID() } },
+    ];
 
-    find.returns(SinonMongoose.stubChainedQueries([customerPartnersList]));
+    find.returns(SinonMongoose.stubChainedQueries([customerPartners]));
 
     const result = await CustomerPartnersHelper.list(customer, credentials);
 
-    expect(result).toMatchObject(customerPartnersList);
+    expect(result).toMatchObject(customerPartners.map(customerPartner => customerPartner.partner));
     SinonMongoose.calledWithExactly(
       find,
       [
