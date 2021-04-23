@@ -54,7 +54,7 @@ describe('list', () => {
           args: [{
             path: 'partner',
             select: '-__v -createdAt -updatedAt',
-            populate: { path: 'company', select: 'name' },
+            populate: { path: 'partnerOrganization', select: 'name' },
           }],
         },
         { query: 'lean' },
@@ -80,7 +80,7 @@ describe('list', () => {
           args: [{
             path: 'partner',
             select: '-__v -createdAt -updatedAt',
-            populate: { path: 'company', select: 'name' },
+            populate: { path: 'partnerOrganization', select: 'name' },
           }],
         },
         { query: 'lean' },
