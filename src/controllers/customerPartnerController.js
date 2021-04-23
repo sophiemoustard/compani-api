@@ -8,10 +8,7 @@ const create = async (req) => {
   try {
     const customerPartner = await CustomerPartnerHelper.createCustomerPartner(req.payload, req.auth.credentials);
 
-    return {
-      message: translate[language].customerPartnerCreated,
-      data: { customerPartner },
-    };
+    return { message: translate[language].customerPartnerCreated, data: { customerPartner } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -20,7 +17,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const customerPartners = await CustomerPartnerHelper.list(req.query.customer);
+    const customerPartners = await CustomerPartnerHelper.list(req.query.customer, req.auth.credentials);
 
     return {
       message: customerPartners.length

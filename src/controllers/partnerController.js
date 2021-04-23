@@ -8,10 +8,10 @@ const list = async (req) => {
   try {
     const partners = await PartnersHelper.list(req.auth.credentials);
 
-    return { message: partners.length
-      ? translate[language].partnersFound
-      : translate[language].partnersNotFound,
-    data: { partners } };
+    return {
+      message: partners.length ? translate[language].partnersFound : translate[language].partnersNotFound,
+      data: { partners },
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

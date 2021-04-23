@@ -620,8 +620,8 @@ module.exports = {
     helpersNotFound: 'Liste des aidants non trouvée.',
     /* CustomerPartners */
     customerPartnerCreated: 'Partenaire bénéficiaire créé.',
-    customerPartnersFound: 'Partenaires bénéficiaire trouvés.',
-    customerPartnersNotFound: 'Partenaires bénéficiaire non trouvés.',
+    customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
+    customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
     customerPartnerAlreadyExists: 'Ce partenaire bénéficiaire existe déjà.',
 
   },

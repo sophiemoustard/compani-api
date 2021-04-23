@@ -1,16 +1,8 @@
 const CustomerPartner = require('../models/CustomerPartner');
 
-exports.createCustomerPartner = async (payload, credentials) => {
-  const { company } = credentials;
-  const customerPartner = { ...payload, company: company._id };
+exports.createCustomerPartner = async (payload, credentials) => CustomerPartner
+  .create({ ...payload, company: credentials.company._id });
 
-  await CustomerPartner.create(customerPartner);
-};
-
-exports.list = async customer => CustomerPartner.find({ customer })
-  .populate({
-    path: 'partner',
-    select: '-__v -createdAt -updatedAt',
-    populate: { path: 'company', select: 'name' },
-  })
+exports.list = async (customer, credentials) => CustomerPartner.find({ customer, company: credentials.company._id })
+  .populate({ path: 'partner', select: '-__v -createdAt -updatedAt', populate: { path: 'company', select: 'name' } })
   .lean();

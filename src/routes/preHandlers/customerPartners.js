@@ -15,7 +15,7 @@ exports.authorizeCustomerPartnerCreation = async (req) => {
 
   const partner = await Partner.findOne({ _id: payload.partner }, { company: 1 }).lean();
   const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
-  if (!(partner && customer)) throw Boom.notFound();
+  if (!partner || !customer) throw Boom.notFound();
 
   const customerPartner = await CustomerPartner.findOne({ partner: payload.partner, customer: payload.customer })
     .lean();
