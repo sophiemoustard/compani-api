@@ -74,7 +74,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if customer has wrong company', async () => {
+    it('should return 404 if customer has wrong company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/customerpartners',
@@ -82,10 +82,10 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
         payload: { customer: customersList[1]._id, partner: partnersList[0]._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if partner has wrong company', async () => {
+    it('should return 404 if partner has wrong company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/customerpartners',
@@ -93,10 +93,10 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
         payload: { customer: customersList[0]._id, partner: partnersList[1]._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if user has wrong company', async () => {
+    it('should return 404 if user has wrong company', async () => {
       authToken = await getTokenByCredentials(auxiliaryFromOtherCompany.local);
       const response = await app.inject({
         method: 'POST',
@@ -105,7 +105,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
         payload: { customer: customersList[0]._id, partner: partnersList[0]._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 409 if customer partner already exists', async () => {
@@ -182,14 +182,14 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if customer and user have different companies', async () => {
+    it('should return 404 if customer and user have different companies', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/customerpartners?customer=${customersList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 

@@ -61,30 +61,4 @@ describe('list', () => {
       ]
     );
   });
-
-  it('should return an empty array if no partners associated to this customer', async () => {
-    const customer = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
-
-    find.returns(SinonMongoose.stubChainedQueries([[]]));
-
-    const result = await CustomerPartnersHelper.list(customer, credentials);
-
-    expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
-      find,
-      [
-        { query: 'find', args: [{ customer, company: credentials.company._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'partner',
-            select: '-__v -createdAt -updatedAt',
-            populate: { path: 'partnerOrganization', select: 'name' },
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
 });

@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Partner = require('../../models/Partner');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
-const UtilsHelper = require('../../helpers/utils');
 const CustomerPartner = require('../../models/CustomerPartner');
 
 const { language } = translate;
@@ -13,17 +12,13 @@ exports.authorizeCustomerPartnerCreation = async (req) => {
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');
 
-  const partner = await Partner.findOne({ _id: payload.partner }, { company: 1 }).lean();
-  const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
+  const partner = await Partner.countDocuments({ _id: payload.partner, company: loggedUserCompany });
+  const customer = await Customer.countDocuments({ _id: payload.customer, company: loggedUserCompany });
   if (!partner || !customer) throw Boom.notFound();
 
   const customerPartner = await CustomerPartner
     .countDocuments({ partner: payload.partner, customer: payload.customer });
   if (customerPartner) throw Boom.conflict(translate[language].customerPartnerAlreadyExists);
-
-  const areCompanyIdsEquals = UtilsHelper.areObjectIdsEquals(partner.company, customer.company) &&
-    UtilsHelper.areObjectIdsEquals(partner.company, loggedUserCompany);
-  if (!areCompanyIdsEquals) throw Boom.forbidden();
 
   return null;
 };
@@ -32,10 +27,7 @@ exports.authorizeCustomerPartnersGet = async (req) => {
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');
 
-  const customer = await Customer.findOne({ _id: req.query.customer }, { company: 1 }).lean();
+  const customer = await Customer.countDocuments({ _id: req.query.customer, company: loggedUserCompany });
   if (!customer) throw Boom.notFound();
-
-  if (!UtilsHelper.areObjectIdsEquals(customer.company, loggedUserCompany)) throw Boom.forbidden();
-
   return null;
 };
