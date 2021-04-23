@@ -80,7 +80,10 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            identity: Joi.object({ firstname: Joi.string().required(), lastname: Joi.string().required() }).required(),
+            identity: Joi.object({
+              firstname: Joi.string().allow(null, ''),
+              lastname: Joi.string().required(),
+            }).required(),
             job: Joi.string().valid(...JOBS).allow(''),
             phone: phoneNumberValidation.allow(''),
             email: Joi.string().email().allow(''),

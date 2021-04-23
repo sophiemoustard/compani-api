@@ -3,7 +3,7 @@ const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const PartnerSchema = mongoose.Schema({
   identity: {
-    type: mongoose.Schema({ firstname: { type: String, required: true }, lastname: { type: String, required: true } }),
+    type: mongoose.Schema({ firstname: { type: String }, lastname: { type: String, required: true } }),
     required: true,
   },
   email: { type: String },

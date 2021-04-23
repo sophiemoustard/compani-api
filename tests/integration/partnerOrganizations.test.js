@@ -371,17 +371,6 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 400 if missing firstname', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { identity: { lastname: 'Maboul' }, job: 'doctor' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return a 400 if missing lastname', async () => {
       const response = await app.inject({
         method: 'POST',
