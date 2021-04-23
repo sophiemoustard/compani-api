@@ -2,7 +2,11 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Partner = require('../../models/Partner');
 const Customer = require('../../models/Customer');
+const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const CustomerPartner = require('../../models/CustomerPartner');
+
+const { language } = translate;
 
 exports.authorizeCustomerPartnerCreation = async (req) => {
   const { payload } = req;
@@ -12,6 +16,10 @@ exports.authorizeCustomerPartnerCreation = async (req) => {
   const partner = await Partner.findOne({ _id: payload.partner }, { company: 1 }).lean();
   const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
   if (!(partner && customer)) throw Boom.notFound();
+
+  const customerPartner = await CustomerPartner.findOne({ partner: payload.partner, customer: payload.customer })
+    .lean();
+  if (customerPartner) throw Boom.conflict(translate[language].customerPartnerAlreadyExists);
 
   const areCompanyIdsEquals = UtilsHelper.areObjectIdsEquals(partner.company, customer.company) &&
     UtilsHelper.areObjectIdsEquals(partner.company, loggedUserCompany);

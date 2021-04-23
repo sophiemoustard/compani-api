@@ -45,7 +45,14 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ customer }] },
-        { query: 'populate', args: [{ path: 'partner', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'partner',
+            select: '-__v -createdAt -updatedAt',
+            populate: { path: 'company', select: 'name' },
+          }],
+        },
         { query: 'lean' },
       ]
     );
@@ -63,7 +70,14 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ customer }] },
-        { query: 'populate', args: [{ path: 'partner', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'partner',
+            select: '-__v -createdAt -updatedAt',
+            populate: { path: 'company', select: 'name' },
+          }],
+        },
         { query: 'lean' },
       ]
     );

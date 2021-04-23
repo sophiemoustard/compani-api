@@ -107,6 +107,18 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return 409 if customer partner already exists', async () => {
+      authToken = await getTokenByCredentials(auxiliaryFromOtherCompany.local);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/customerpartners',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { customer: customersList[1]._id, partner: partnersList[1]._id },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('Other roles', () => {

@@ -8,5 +8,9 @@ exports.createCustomerPartner = async (payload, credentials) => {
 };
 
 exports.list = async customer => CustomerPartner.find({ customer })
-  .populate({ path: 'partner', select: '-__v -createdAt -updatedAt' })
+  .populate({
+    path: 'partner',
+    select: '-__v -createdAt -updatedAt',
+    populate: { path: 'company', select: 'name' },
+  })
   .lean();

@@ -308,9 +308,10 @@ module.exports = {
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
     /* CustomerPartners */
-    customerPartnerCreated: 'Customer Partner created.',
-    customerPartnersFound: 'Customer Partners found.',
-    customerPartnersNotFound: 'ustomer Partners not found.',
+    customerPartnerCreated: 'Customer partner created.',
+    customerPartnersFound: 'Customer partners found.',
+    customerPartnersNotFound: 'Customer partners not found.',
+    customerPartnerAlreadyExists: 'Customer partner already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -621,5 +622,7 @@ module.exports = {
     customerPartnerCreated: 'Partenaire bénéficiaire créé.',
     customerPartnersFound: 'Partenaires bénéficiaire trouvés.',
     customerPartnersNotFound: 'Partenaires bénéficiaire non trouvés.',
+    customerPartnerAlreadyExists: 'Ce partenaire bénéficiaire existe déjà.',
+
   },
 };
