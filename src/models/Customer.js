@@ -17,7 +17,7 @@ const {
   DECEASED,
 } = require('../helpers/constants');
 const Event = require('./Event');
-const User = require('./User');
+const Helper = require('./Helper');
 const Drive = require('./Google/Drive');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
@@ -133,8 +133,7 @@ async function removeCustomer(next) {
 
   try {
     if (!_id) throw Boom.badRequest('CustomerId is missing.');
-
-    const promises = [User.deleteMany({ customers: _id })];
+    const promises = [Helper.deleteMany({ customer: _id })];
     if (driveFolder && driveFolder.driveId) promises.push(Drive.deleteFile({ fileId: driveFolder.driveId }));
     await Promise.all(promises);
 

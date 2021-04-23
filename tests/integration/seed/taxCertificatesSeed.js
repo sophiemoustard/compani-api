@@ -5,6 +5,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const Payment = require('../../../src/models/Payment');
+const Helper = require('../../../src/models/Helper');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const customersList = [
@@ -112,17 +113,25 @@ const paymentList = [
   },
 ];
 
+const helpersList = [{
+  customer: customersList[0]._id,
+  user: helper._id,
+  company: authCompany._id,
+}];
+
 const populateDB = async () => {
   await TaxCertificate.deleteMany();
   await Customer.deleteMany();
   await User.deleteMany();
   await Payment.deleteMany();
+  await Helper.deleteMany();
 
   await populateDBForAuthentication();
   await Customer.insertMany(customersList);
   await TaxCertificate.insertMany(taxCertificatesList);
   await User.create(helper);
   await Payment.insertMany(paymentList);
+  await Helper.insertMany(helpersList);
 };
 
 module.exports = {

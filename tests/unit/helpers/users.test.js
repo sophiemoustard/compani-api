@@ -404,6 +404,10 @@ describe('getUser', () => {
             path: 'customers',
             select: '-__v -createdAt -updatedAt',
             match: { company: credentials.company._id },
+            options: {
+              isVendorUser: false,
+              requestingOwnInfos: false,
+            },
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -440,6 +444,7 @@ describe('getUser', () => {
             path: 'customers',
             select: '-__v -createdAt -updatedAt',
             match: { company: credentials.company._id },
+            options: { isVendorUser: true, requestingOwnInfos: false },
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -476,6 +481,7 @@ describe('getUser', () => {
             path: 'customers',
             select: '-__v -createdAt -updatedAt',
             match: { company: credentials.company._id },
+            options: { isVendorUser: false, requestingOwnInfos: true },
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -518,6 +524,7 @@ describe('getUser', () => {
               path: 'customers',
               select: '-__v -createdAt -updatedAt',
               match: { company: credentials.company._id },
+              options: { isVendorUser: true, requestingOwnInfos: false },
             }],
           },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -972,27 +979,19 @@ describe('removeHelper', () => {
   });
 
   it('should remove client role and customers', async () => {
-    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-
     await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
 
-    SinonMongoose.calledWithExactly(
-      roleFindOne,
-      [{ query: 'findOne', args: [{ name: 'trainer' }] }, { query: 'lean' }]
+    sinon.assert.calledOnceWithExactly(
+      userFindOneAndUpdate,
+      { _id: user._id },
+      { $unset: { 'role.client': '', company: '' } }
     );
-    sinon.assert.calledOnceWithExactly(userFindOneAndUpdate, { _id: user._id }, { $unset: { 'role.client': '' } });
     sinon.assert.calledOnceWithExactly(removeHelper, user._id);
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
-    roleFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-
     await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
 
-    SinonMongoose.calledWithExactly(
-      roleFindOne,
-      [{ query: 'findOne', args: [{ name: 'trainer' }] }, { query: 'lean' }]
-    );
     sinon.assert.calledOnceWithExactly(
       userFindOneAndUpdate,
       { _id: user._id },

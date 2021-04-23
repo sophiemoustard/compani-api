@@ -392,7 +392,11 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            populate: {
+              path: 'customer',
+              select: 'identity contact',
+              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            },
             match: { company: credentials.company._id },
           }],
         },
@@ -446,7 +450,11 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            populate: {
+              path: 'customer',
+              select: 'identity contact',
+              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            },
             match: { company: credentials.company._id },
           }],
         },
@@ -460,20 +468,22 @@ describe('exportHelpers', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleId = new ObjectID();
     const helpers = [{
-      customers: [{
-        _id: new ObjectID(),
-        firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
-        identity: { title: 'mr', lastname: 'Patate' },
-        local: { phone: '' },
-        contact: {
-          primaryAddress: {
-            fullAddress: '37 rue de Ponthieu 75008 Paris',
-            street: '37 rue de Ponthieu',
-            zipCode: '75008',
-            city: 'Paris',
+      customers: {
+        customer: {
+          _id: new ObjectID(),
+          firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
+          identity: { title: 'mr', lastname: 'Patate' },
+          local: { phone: '' },
+          contact: {
+            primaryAddress: {
+              fullAddress: '37 rue de Ponthieu 75008 Paris',
+              street: '37 rue de Ponthieu',
+              zipCode: '75008',
+              city: 'Paris',
+            },
           },
         },
-      }],
+      },
     }];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
@@ -507,7 +517,11 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            populate: {
+              path: 'customer',
+              select: 'identity contact',
+              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
+            },
             match: { company: credentials.company._id },
           }],
         },

@@ -158,6 +158,7 @@ describe('BALANCES ROUTES - GET /details', () => {
         url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
     });
 
