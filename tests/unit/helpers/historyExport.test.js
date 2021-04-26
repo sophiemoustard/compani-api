@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
-require('sinon-mongoose');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
@@ -17,6 +16,7 @@ const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectID();
@@ -139,34 +139,30 @@ describe('getWorkingEventsForExport', () => {
     ],
   };
 
-  let EventMock;
+  let find;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
+    find = sinon.stub(Event, 'find');
   });
   afterEach(() => {
-    EventMock.restore();
+    find.restore();
   });
 
   it('should return events for history export', async () => {
-    EventMock.expects('find')
-      .withExactArgs(payload)
-      .chain('sort')
-      .withExactArgs({ startDate: -1 })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        populate: { path: 'subscriptions', populate: 'service' },
-      })
-      .chain('populate')
-      .withExactArgs('internalHour')
-      .chain('populate')
-      .withExactArgs('sector')
-      .chain('lean')
-      .returns(events);
+    find.returns(SinonMongoose.stubChainedQueries([events], ['populate', 'sort', 'lean']));
 
     const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
     expect(result).toStrictEqual(eventsWithSubscription);
-    EventMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [payload] },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'populate', args: [{ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } }] },
+        { query: 'populate', args: ['internalHour'] },
+        { query: 'populate', args: ['sector'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -729,77 +725,60 @@ describe('exportBillsAndCreditNotesHistory', () => {
   };
   const sortQuery = { date: 'desc' };
   const populateCustomerQuery = { path: 'customer', select: 'identity' };
-  let mockBill;
-  let mockCreditNote;
+  let findBill;
+  let findCreditNote;
   let formatPriceStub;
   let formatHourStub;
   let formatFloatForExportStub;
 
   beforeEach(() => {
-    mockBill = sinon.mock(Bill);
-    mockCreditNote = sinon.mock(CreditNote);
+    findBill = sinon.stub(Bill, 'find');
+    findCreditNote = sinon.stub(CreditNote, 'find');
     formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
     formatHourStub = sinon.stub(UtilsHelper, 'formatHour');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
   });
   afterEach(() => {
-    mockBill.restore();
-    mockCreditNote.restore();
+    findBill.restore();
+    findCreditNote.restore();
     formatPriceStub.restore();
     formatHourStub.restore();
     formatFloatForExportStub.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    mockBill.expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns([]);
-    mockCreditNote.expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns([]);
+    findBill.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-    mockBill.verify();
-    mockCreditNote.verify();
+    SinonMongoose.calledWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findCreditNote,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    mockBill.expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns([{}]);
-    mockCreditNote.expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns([{}]);
+    findBill.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
+
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
@@ -811,36 +790,35 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Facture', '', '', '', '', '', '', '', '', '', '', '', '', ''],
       ['Avoir', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
-    mockBill.verify();
-    mockCreditNote.verify();
+    SinonMongoose.calledWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findCreditNote,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.callCount(formatPriceStub, 0);
     sinon.assert.callCount(formatHourStub, 0);
     sinon.assert.callCount(formatFloatForExportStub, 4);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockBill
-      .expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns(bills);
-    mockCreditNote
-      .expects('find')
-      .withExactArgs(findQuery)
-      .chain('sort')
-      .withExactArgs(sortQuery)
-      .chain('populate')
-      .withExactArgs(populateCustomerQuery)
-      .chain('populate')
-      .withExactArgs('thirdPartyPayer')
-      .chain('lean')
-      .returns(creditNotes);
+    findBill.returns(SinonMongoose.stubChainedQueries([bills], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([creditNotes], ['populate', 'sort', 'lean']));
+
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
@@ -917,8 +895,26 @@ describe('exportBillsAndCreditNotesHistory', () => {
         '16/10/2019',
       ],
     ]);
-    mockBill.verify();
-    mockCreditNote.verify();
+    SinonMongoose.calledWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findCreditNote,
+      [
+        { query: 'find', args: [findQuery] },
+        { query: 'sort', args: [sortQuery] },
+        { query: 'populate', args: [populateCustomerQuery] },
+        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.callCount(formatHourStub, 3);
   });
 });
@@ -926,26 +922,20 @@ describe('exportBillsAndCreditNotesHistory', () => {
 describe('exportContractHistory', () => {
   const startDate = '2019-10-01T09:00:00';
   const endDate = '2019-11-01T09:00:00';
-  let contractMock;
+  let find;
   beforeEach(() => {
-    contractMock = sinon.mock(Contract);
+    find = sinon.stub(Contract, 'find');
   });
   afterEach(() => {
-    contractMock.restore();
+    find.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: { _id: '1234567890' } };
-    contractMock
-      .expects('find')
-      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
+    const credentials = { company: { _id: new ObjectID() } };
+    find.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
-    contractMock.verify();
+
     expect(result).toEqual([[
       'Type',
       'Id Auxiliaire',
@@ -957,28 +947,40 @@ describe('exportContractHistory', () => {
       'Taux horaire',
       'Volume horaire hebdomadaire',
     ]]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
+        { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an array containing the header and one row', async () => {
-    const credentials = { company: { _id: '1234567890' } };
+    const credentials = { company: { _id: new ObjectID() } };
     const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectID() } }];
-    contractMock.expects('find')
-      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(contracts);
+
+    find.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
-    contractMock.verify();
+
     expect(result).toEqual([
       ['Type', 'Id Auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
+        { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    const credentials = { company: { _id: '1234567890' } };
+    const credentials = { company: { _id: new ObjectID() } };
     const contracts = [
       {
         user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectID() },
@@ -994,12 +996,7 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    contractMock
-      .expects('find')
-      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
-      .chain('populate')
-      .chain('lean')
-      .returns(contracts);
+    find.returns(SinonMongoose.stubChainedQueries([contracts]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
@@ -1007,7 +1004,14 @@ describe('exportContractHistory', () => {
       ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
-    contractMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
+        { query: 'populate', args: [{ path: 'user', select: 'identity' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -1322,19 +1326,19 @@ describe('exportPayAndFinalPayHistory', () => {
       hoursToWork: 20,
     },
   ];
-  let PayMock;
-  let FinalPayMock;
+  let findPay;
+  let findFinalPay;
   let formatFloatForExportStub;
   let formatSurchargedDetailsForExport;
   beforeEach(() => {
-    PayMock = sinon.mock(Pay);
-    FinalPayMock = sinon.mock(FinalPay);
+    findPay = sinon.stub(Pay, 'find');
+    findFinalPay = sinon.stub(FinalPay, 'find');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
     formatSurchargedDetailsForExport = sinon.stub(ExportHelper, 'formatSurchargedDetailsForExport');
   });
   afterEach(() => {
-    PayMock.restore();
-    FinalPayMock.restore();
+    findPay.restore();
+    findFinalPay.restore();
     formatFloatForExportStub.restore();
     formatSurchargedDetailsForExport.restore();
   });
@@ -1348,44 +1352,51 @@ describe('exportPayAndFinalPayHistory', () => {
       startDate: { $gte: moment(startDate).startOf('M').toDate() },
       company: credentials.company._id,
     };
-    PayMock.expects('find')
-      .withExactArgs(query)
-      .chain('sort')
-      .withExactArgs({ startDate: 'desc' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity sector contracts',
-        populate: [
-          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          { path: 'contracts' },
-        ],
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns([]);
-    FinalPayMock.expects('find')
-      .withExactArgs(query)
-      .chain('sort')
-      .withExactArgs({ startDate: 'desc' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity sector contracts',
-        populate: [
-          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          { path: 'contracts' },
-        ],
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns([]);
+
+    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
     expect(exportArray).toEqual([header]);
-    PayMock.verify();
-    FinalPayMock.verify();
+    SinonMongoose.calledWithExactly(
+      findPay,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 'desc' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity sector contracts',
+            populate: [
+              { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+              { path: 'contracts' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findFinalPay,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 'desc' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity sector contracts',
+            populate: [
+              { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+              { path: 'contracts' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should return an array with the header and 4 rows', async () => {
@@ -1397,38 +1408,10 @@ describe('exportPayAndFinalPayHistory', () => {
       startDate: { $gte: moment(startDate).startOf('M').toDate() },
       company: credentials.company._id,
     };
-    PayMock.expects('find')
-      .withExactArgs(query)
-      .chain('sort')
-      .withExactArgs({ startDate: 'desc' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity sector contracts',
-        populate: [
-          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          { path: 'contracts' },
-        ],
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(pays);
-    FinalPayMock.expects('find')
-      .withExactArgs(query)
-      .chain('sort')
-      .withExactArgs({ startDate: 'desc' })
-      .chain('populate')
-      .withExactArgs({
-        path: 'auxiliary',
-        select: 'identity sector contracts',
-        populate: [
-          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
-          { path: 'contracts' },
-        ],
-      })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .returns(finalPays);
+
+    findPay.returns(SinonMongoose.stubChainedQueries([pays], ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries([finalPays], ['sort', 'populate', 'lean']));
+
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(1);
 
@@ -1453,8 +1436,44 @@ describe('exportPayAndFinalPayHistory', () => {
         '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 69);
-    PayMock.verify();
-    FinalPayMock.verify();
+    SinonMongoose.calledWithExactly(
+      findPay,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 'desc' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity sector contracts',
+            populate: [
+              { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+              { path: 'contracts' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findFinalPay,
+      [
+        { query: 'find', args: [query] },
+        { query: 'sort', args: [{ startDate: 'desc' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity sector contracts',
+            populate: [
+              { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+              { path: 'contracts' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 });
 
@@ -1508,42 +1527,39 @@ describe('exportPaymentsHistory', () => {
       netInclTaxes: 1002.4,
     },
   ];
-  let mockPayment;
+
+  let find;
 
   beforeEach(() => {
-    mockPayment = sinon.mock(Payment);
+    find = sinon.stub(Payment, 'find');
   });
 
   afterEach(() => {
-    mockPayment.restore();
+    find.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    mockPayment.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity' })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer' })
-      .chain('lean')
-      .once()
-      .returns([]);
+    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+
     const credentials = { company: new ObjectID() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },
+        { query: 'sort', args: [{ date: 'desc' }] },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockPayment.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .withExactArgs({ path: 'customer', select: 'identity' })
-      .chain('populate')
-      .withExactArgs({ path: 'thirdPartyPayer' })
-      .chain('lean')
-      .once()
-      .returns(paymentsList);
+    find.returns(SinonMongoose.stubChainedQueries([paymentsList], ['sort', 'populate', 'lean']));
+
     const credentials = { company: new ObjectID() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
@@ -1576,5 +1592,15 @@ describe('exportPaymentsHistory', () => {
         '1002,40',
       ],
     ]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },
+        { query: 'sort', args: [{ date: 'desc' }] },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
