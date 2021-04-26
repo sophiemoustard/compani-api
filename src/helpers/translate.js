@@ -622,7 +622,7 @@ module.exports = {
     customerPartnerCreated: 'Partenaire bénéficiaire créé.',
     customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
     customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
-    customerPartnerAlreadyExists: 'Ce partenaire bénéficiaire existe déjà.',
+    customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
 
   },
 };
