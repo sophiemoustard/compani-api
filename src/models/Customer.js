@@ -135,9 +135,10 @@ async function removeCustomer(next) {
   try {
     if (!_id) throw Boom.badRequest('CustomerId is missing.');
 
-    const promises = [Helper.deleteMany({ customer: _id })];
-
-    promises.push(User.updateOne({ _id }, { $unset: { 'role.client': '', company: '' } }));
+    const promises = [
+      Helper.deleteMany({ customer: _id }),
+      User.updateOne({ _id }, { $unset: { 'role.client': '', company: '' } }),
+    ];
 
     if (driveFolder && driveFolder.driveId) promises.push(Drive.deleteFile({ fileId: driveFolder.driveId }));
     await Promise.all(promises);
