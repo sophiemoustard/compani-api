@@ -122,7 +122,7 @@ describe('PAY ROUTES - POST /pay', () => {
       expect(response.statusCode).toBe(200);
 
       const payList = await Pay.find({ company: authCompany._id }).lean();
-      expect(payList.length).toEqual(1);
+      expect(payList.length).toEqual(3);
     });
 
     it('should not create a new pay if user is not from the same company', async () => {
@@ -447,6 +447,16 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/contract_end?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:59:59',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should export hours for pay', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/pay/export/pay?startDate=2022-11-01T00:00:00&endDate=2022-11-30T23:59:59',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

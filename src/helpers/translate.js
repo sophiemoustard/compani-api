@@ -299,6 +299,9 @@ module.exports = {
     partnerOrganizationCreated: 'Partner organization created.',
     partnerOrganizationAlreadyExists: 'A partner organization already exists.',
     partnerOrganizationsFound: 'Partner organizations found.',
+    partnerOrganizationFound: 'Partner organization found.',
+    partnerOrganizationUpdated: 'Partner organization updated.',
+    partnerCreated: 'Partner created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -597,5 +600,8 @@ module.exports = {
     partnerOrganizationCreated: 'Structure partenaire créee.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
     partnerOrganizationsFound: 'Liste des structures partenaires trouvées.',
+    partnerOrganizationFound: 'Structure partenaire trouvée.',
+    partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
+    partnerCreated: 'Partenaire créé.',
   },
 };
