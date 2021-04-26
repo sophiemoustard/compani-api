@@ -243,7 +243,7 @@ describe('POST /users', () => {
         identity: { firstname: 'coucou', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
         origin: WEBAPP,
-        customers: [customerFromOtherCompany],
+        customer: customerFromOtherCompany._id,
         contact: { phone: '0712345678' },
       };
 
@@ -419,16 +419,6 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(404);
-    });
-
-    it('should return a 403 if customer not from the same company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${authCompany._id}&customers=${customerFromOtherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
     });
 
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
@@ -1103,7 +1093,7 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
-        payload: { customers: [authCustomer._id], role: role._id },
+        payload: { customer: authCustomer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1115,7 +1105,7 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
-        payload: { customers: [authCustomer._id], role: role._id, company: authCompany._id },
+        payload: { customer: authCustomer._id, role: role._id, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1127,7 +1117,7 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
-        payload: { customers: [customerFromOtherCompany._id], role: role._id },
+        payload: { customer: customerFromOtherCompany._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1139,7 +1129,7 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
-        payload: { customers: [customerFromOtherCompany._id], role: role._id },
+        payload: { customer: customerFromOtherCompany._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

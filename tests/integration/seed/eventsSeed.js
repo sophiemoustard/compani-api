@@ -12,6 +12,7 @@ const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
+const Helper = require('../../../src/models/Helper');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 const {
@@ -746,6 +747,12 @@ const distanceMatrixList = [
   },
 ];
 
+const helpersList = [{
+  customer: customerAuxiliary._id,
+  user: helpersCustomer._id,
+  company: authCompany._id,
+}];
+
 const populateDB = async () => {
   await Event.deleteMany({});
   await User.deleteMany({});
@@ -759,6 +766,7 @@ const populateDB = async () => {
   await Repetition.deleteMany({});
   await InternalHour.deleteMany({});
   await DistanceMatrix.deleteMany({});
+  await Helper.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
@@ -780,6 +788,7 @@ const populateDB = async () => {
   await (new Service(serviceFromOtherCompany)).save();
   await (new InternalHour(internalHour)).save();
   await (new InternalHour(internalHourFromOtherCompany)).save();
+  await Helper.insertMany(helpersList);
 };
 
 const getUserToken = async (userCredentials) => {

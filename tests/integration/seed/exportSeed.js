@@ -17,8 +17,9 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
+const Helper = require('../../../src/models/Helper');
 const { authCustomer } = require('../../seed/customerSeed');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
 const {
   PAYMENT,
   REFUND,
@@ -822,6 +823,21 @@ const user = {
   origin: WEBAPP,
 };
 
+const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
+
+const helpersList = [
+  {
+    customer: customer._id,
+    user: helper._id,
+    company: authCompany._id,
+  },
+  {
+    customer: customersList[0]._id,
+    user: user._id,
+    company: authCompany._id,
+  },
+];
+
 const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
@@ -908,6 +924,8 @@ const populateUser = async () => {
   await Customer.deleteMany();
   await Contract.deleteMany();
   await Establishment.deleteMany();
+  await Helper.deleteMany();
+  await Event.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -916,6 +934,8 @@ const populateUser = async () => {
   await Contract.insertMany(contractList);
   await Customer.insertMany([customer, ...customersList]);
   await (new Establishment(establishment)).save();
+  await Helper.insertMany(helpersList);
+  await Event.insertMany(eventList);
 };
 
 const populatePay = async () => {
@@ -963,4 +983,5 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  helper,
 };

@@ -66,7 +66,7 @@ module.exports = {
     companyCreated: 'Company created.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
-    companyInternalHourCreated: 'Company internal hour created',
+    companyInternalHourCreated: 'Company internal hour created.',
     companyInternalHourNotFound: 'Company internal hour not found.',
     companyInternalHoursNotFound: 'Company internal hours not found.',
     companyInternalHoursFound: 'Company internal hours found.',
@@ -137,7 +137,7 @@ module.exports = {
     eventDeleted: 'Event deleted.',
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
-    eventsConflict: 'Events in conflict',
+    eventsConflict: 'Events in conflict.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -302,6 +302,9 @@ module.exports = {
     partnerOrganizationFound: 'Partner organization found.',
     partnerOrganizationUpdated: 'Partner organization updated.',
     partnerCreated: 'Partner created.',
+    /* Helper */
+    helpersFound: 'Helpers found.',
+    helpersNotFound: 'Helpers not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -603,5 +606,8 @@ module.exports = {
     partnerOrganizationFound: 'Structure partenaire trouvée.',
     partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
     partnerCreated: 'Partenaire créé.',
+    /* Helper */
+    helpersFound: 'Liste des aidants trouvée.',
+    helpersNotFound: 'Liste des aidants non trouvée.',
   },
 };

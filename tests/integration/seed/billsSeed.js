@@ -20,6 +20,7 @@ const User = require('../../../src/models/User');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
+const Helper = require('../../../src/models/Helper');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const billThirdPartyPayer = { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true };
@@ -520,6 +521,12 @@ const fundingHistory = {
   company: authCompany._id,
 };
 
+const helpersList = [{
+  customer: billCustomerList[0]._id,
+  user: billUserList[0]._id,
+  company: authCompany._id,
+}];
+
 const populateDB = async () => {
   await Service.deleteMany({});
   await Customer.deleteMany({});
@@ -531,6 +538,7 @@ const populateDB = async () => {
   await FundingHistory.deleteMany({});
   await CreditNote.deleteMany({});
   await Contract.deleteMany({});
+  await Helper.deleteMany({});
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
@@ -538,6 +546,7 @@ const populateDB = async () => {
   await Customer.insertMany(billCustomerList.concat(customerFromOtherCompany));
   await Bill.insertMany([...authBillsList, ...billsList]);
   await Event.insertMany(eventList);
+  await Helper.insertMany(helpersList);
   await User.create(billUserList);
   await CreditNote.create(creditNote);
   await FundingHistory.create(fundingHistory);

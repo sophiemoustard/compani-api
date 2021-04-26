@@ -98,6 +98,7 @@ exports.authorizeSubscriptionDeletion = async (req) => {
 exports.authorizeCustomerGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (req.params) await exports.validateCustomerCompany(req.params, req.payload, companyId);
+
   return null;
 };
 

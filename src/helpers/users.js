@@ -17,6 +17,7 @@ const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require(
 const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
+const HelpersHelper = require('./helpers');
 
 const { language } = translate;
 
@@ -38,7 +39,6 @@ exports.getUsersList = async (query, credentials) => {
   const params = await exports.formatQueryForUsersList(query);
 
   return User.find(params, {}, { autopopulate: false })
-    .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
@@ -93,12 +93,23 @@ exports.getLearnerList = async (query, credentials) => {
 };
 
 exports.getUser = async (userId, credentials) => {
+  const companyId = get(credentials, 'company._id') || null;
+
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: companyId },
+      options: {
+        isVendorUser: has(credentials, 'role.vendor'),
+        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
+      },
+    })
+    .populate({
+      path: 'customers',
+      select: '-__v -createdAt -updatedAt',
+      match: { company: companyId },
       options: {
         isVendorUser: has(credentials, 'role.vendor'),
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
@@ -173,7 +184,7 @@ exports.createAndSaveFile = async (params, payload) => {
  * 4th case : Vendor role creates trainer => do no set company
  */
 exports.createUser = async (userPayload, credentials) => {
-  const payload = { ...omit(userPayload, ['role', 'sector']), refreshToken: uuidv4() };
+  const payload = { ...omit(userPayload, ['role', 'sector', 'customer']), refreshToken: uuidv4() };
 
   if (!credentials) return User.create(payload);
 
@@ -186,6 +197,8 @@ exports.createUser = async (userPayload, credentials) => {
   if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
   const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
 
+  if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
+
   if (userPayload.sector) {
     await SectorHistoriesHelper.createHistory({ _id: user._id, sector: userPayload.sector }, companyId);
   }
@@ -196,7 +209,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role']);
+  const payload = omit(updatedUser, ['role', 'customer']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
@@ -216,7 +229,9 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
 
   const payload = await formatUpdatePayload(userPayload);
 
-  if (payload.sector) {
+  if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
+
+  if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
@@ -248,12 +263,9 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.removeHelper = async (user) => {
-  const role = await Role.findOne({ name: TRAINER }).lean();
-  const payload = { $set: { customers: [] }, $unset: { 'role.client': '' } };
+  await HelpersHelper.remove(user._id);
 
-  const userRoleVendor = get(user, 'role.vendor');
-  if (userRoleVendor && role._id.toHexString() === userRoleVendor.toHexString()) payload.$unset.company = '';
-
+  const payload = { $unset: { 'role.client': '', company: '' } };
   await User.findOneAndUpdate({ _id: user._id }, payload);
 };
 

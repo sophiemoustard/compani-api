@@ -130,7 +130,6 @@ const UserSchema = mongoose.Schema({
     autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
   },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
-  customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
   biography: { type: String },
   firstMobileConnection: { type: Date },
@@ -270,6 +269,13 @@ function populateSectors(docs, next) {
   return next();
 }
 
+function populateCustomers(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'customers.customer')) doc.customers = [doc.customers.customer];
+
+  return next();
+}
+
 async function formatPayload(doc, next) {
   const payload = doc.toObject();
 
@@ -281,6 +287,13 @@ async function formatPayload(doc, next) {
 
   return next();
 }
+
+UserSchema.virtual('customers', {
+  ref: 'Helper',
+  localField: '_id',
+  foreignField: 'user',
+  justOne: true,
+});
 
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
@@ -334,6 +347,8 @@ UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);
+UserSchema.post('findOne', populateCustomers);
+UserSchema.post('findOneAndUpdate', populateCustomers);
 UserSchema.post('save', formatPayload);
 
 UserSchema.plugin(mongooseLeanVirtuals);

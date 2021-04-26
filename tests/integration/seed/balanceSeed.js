@@ -5,6 +5,7 @@ const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
+const Helper = require('../../../src/models/Helper');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
@@ -203,6 +204,12 @@ const balanceUserList = [{
   origin: WEBAPP,
 }];
 
+const helpersList = [{
+  customer: balanceCustomerList[0]._id,
+  user: balanceUserList[0]._id,
+  company: authCompany._id,
+}];
+
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -225,6 +232,7 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
   await User.deleteMany({});
+  await Helper.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -232,6 +240,7 @@ const populateDB = async () => {
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));
   await Bill.insertMany(balanceBillList);
+  await Helper.insertMany(helpersList);
   for (const user of balanceUserList) {
     await (new User(user).save());
   }
