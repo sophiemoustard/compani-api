@@ -379,7 +379,8 @@ exports.exportServices = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const services = await Service.find({ company: companyId })
     .populate('company')
-    .populate({ path: 'versions.surcharge', match: { company: companyId } });
+    .populate({ path: 'versions.surcharge', match: { company: companyId } })
+    .lean();
   const data = [serviceHeader];
 
   for (const service of services) {
