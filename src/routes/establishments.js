@@ -4,7 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, update, list, remove } = require('../controllers/establishmentController');
-const { getEstablishment, authorizeEstablishmentUpdate } = require('./preHandlers/establishments');
+const { authorizeEstablishmentUpdate, authorizeEstablishmentDeletion } = require('./preHandlers/establishments');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
 const { addressValidation, phoneNumberValidation } = require('./validations/utils');
@@ -49,10 +49,7 @@ exports.plugin = {
             address: addressValidation,
           }),
         },
-        pre: [
-          { method: getEstablishment, assign: 'establishment' },
-          { method: authorizeEstablishmentUpdate },
-        ],
+        pre: [{ method: authorizeEstablishmentUpdate }],
       },
     });
 
@@ -75,8 +72,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
-          { method: getEstablishment, assign: 'establishment' },
-          { method: authorizeEstablishmentUpdate },
+          { method: authorizeEstablishmentUpdate, assign: 'establishment' },
+          { method: authorizeEstablishmentDeletion },
         ],
       },
     });

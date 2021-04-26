@@ -14,9 +14,6 @@ const ContractRepository = require('../../../src/repositories/ContractRepository
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-const SinonMongoose = require('../sinonMongoose');
-
 describe('exportCustomers', () => {
   let findCustomer;
   let getLastVersion;
@@ -399,30 +396,18 @@ describe('exportAuxiliaries', () => {
 });
 
 describe('exportHelpers', () => {
-<<<<<<< HEAD
-  let find;
-=======
   let findUser;
->>>>>>> COM-1999: sinonmongoose dataexport
   let findOneRole;
   let getLastVersion;
 
   beforeEach(() => {
-<<<<<<< HEAD
-    find = sinon.stub(User, 'find');
-=======
     findUser = sinon.stub(User, 'find');
->>>>>>> COM-1999: sinonmongoose dataexport
     findOneRole = sinon.stub(Role, 'findOne');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
-<<<<<<< HEAD
-    find.restore();
-=======
     findUser.restore();
->>>>>>> COM-1999: sinonmongoose dataexport
     findOneRole.restore();
     getLastVersion.restore();
   });
@@ -433,11 +418,7 @@ describe('exportHelpers', () => {
     const helpers = [];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-<<<<<<< HEAD
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
-=======
     findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
->>>>>>> COM-1999: sinonmongoose dataexport
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -458,39 +439,26 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Statut',
       'Date de création',
     ]);
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(
-      find,
-=======
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
       findUser,
->>>>>>> COM-1999: sinonmongoose dataexport
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
           query: 'populate',
           args: [{
             path: 'customers',
-<<<<<<< HEAD
             populate: {
               path: 'customer',
               select: 'identity contact',
               populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
             },
             match: { company: credentials.company._id },
-=======
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
->>>>>>> COM-1999: sinonmongoose dataexport
           }],
         },
         { query: 'lean' },
       ]
     );
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
-=======
->>>>>>> COM-1999: sinonmongoose dataexport
   });
 
   it('should return helper info', async () => {
@@ -505,11 +473,7 @@ describe('exportHelpers', () => {
     }];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-<<<<<<< HEAD
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
-=======
     findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
->>>>>>> COM-1999: sinonmongoose dataexport
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -533,39 +497,26 @@ describe('exportHelpers', () => {
         '01/02/2019',
       ]
     );
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(
-      find,
-=======
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
       findUser,
->>>>>>> COM-1999: sinonmongoose dataexport
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
           query: 'populate',
           args: [{
             path: 'customers',
-<<<<<<< HEAD
             populate: {
               path: 'customer',
               select: 'identity contact',
               populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
             },
             match: { company: credentials.company._id },
-=======
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
->>>>>>> COM-1999: sinonmongoose dataexport
           }],
         },
         { query: 'lean' },
       ]
     );
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
-=======
->>>>>>> COM-1999: sinonmongoose dataexport
   });
 
   it('should return customer helper info', async () => {
@@ -591,11 +542,7 @@ describe('exportHelpers', () => {
     }];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-<<<<<<< HEAD
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
-=======
     findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
->>>>>>> COM-1999: sinonmongoose dataexport
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -617,39 +564,26 @@ describe('exportHelpers', () => {
       'Actif',
       '',
     ]);
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(
-      find,
-=======
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
       findUser,
->>>>>>> COM-1999: sinonmongoose dataexport
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
           query: 'populate',
           args: [{
             path: 'customers',
-<<<<<<< HEAD
             populate: {
               path: 'customer',
               select: 'identity contact',
               populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
             },
             match: { company: credentials.company._id },
-=======
-            populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
->>>>>>> COM-1999: sinonmongoose dataexport
           }],
         },
         { query: 'lean' },
       ]
     );
-<<<<<<< HEAD
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
-=======
->>>>>>> COM-1999: sinonmongoose dataexport
   });
 });
 

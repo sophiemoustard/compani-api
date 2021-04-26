@@ -1,13 +1,20 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const Boom = require('@hapi/boom');
 const Establishment = require('../../../src/models/Establishment');
 const EstablishmentsHelper = require('../../../src/helpers/establishments');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(Establishment, 'create');
+  });
+
+  afterEach(() => {
+    create.restore();
+  });
+
   it('should create an establishment', async () => {
     const payload = {
       _id: new ObjectID(),
@@ -29,112 +36,89 @@ describe('create', () => {
     };
     const credentials = { company: { _id: new ObjectID() } };
     const payloadWithCompany = { ...payload, company: credentials.company._id };
-    const newEstablishment = new Establishment(payloadWithCompany);
-    const newEstablishmentMock = sinon.mock(newEstablishment);
-    const EstablishmentMock = sinon.mock(Establishment);
 
-    EstablishmentMock.expects('create')
-      .withExactArgs(payloadWithCompany)
-      .once()
-      .returns(newEstablishment);
-    newEstablishmentMock.expects('toObject').once().returns(payloadWithCompany);
+    create.returns(SinonMongoose.stubChainedQueries([payloadWithCompany], ['toObject']));
 
     const result = await EstablishmentsHelper.create(payload, credentials);
 
     expect(result).toMatchObject(payloadWithCompany);
-    EstablishmentMock.verify();
-    newEstablishmentMock.verify();
+    SinonMongoose.calledWithExactly(create, [{ query: 'create', args: [payloadWithCompany] }, { query: 'toObject' }]);
   });
 });
 
 describe('update', () => {
+  let findOneAndUpdate;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Establishment, 'findOneAndUpdate');
+  });
+
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
   it('should update an establishment', async () => {
     const payload = { siret: '13605658901234' };
     const establishmentId = new ObjectID();
-    const EstablishmentMock = sinon.mock(Establishment);
 
-    EstablishmentMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: establishmentId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once();
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: establishmentId }], ['lean']));
 
-    await EstablishmentsHelper.update(establishmentId, payload);
+    const result = await EstablishmentsHelper.update(establishmentId, payload);
 
-    EstablishmentMock.verify();
+    expect(result).toMatchObject({ _id: establishmentId });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: establishmentId }, { $set: payload }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(Establishment, 'find');
+  });
+
+  afterEach(() => {
+    find.restore();
+  });
+
   it('should list establishments', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const EstablishmentMock = sinon.mock(Establishment);
+    const establishments = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
 
-    EstablishmentMock
-      .expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'usersCount', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ virtuals: true });
+    find.returns(SinonMongoose.stubChainedQueries([establishments]));
 
     await EstablishmentsHelper.list(credentials);
 
-    EstablishmentMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: [{ path: 'usersCount', match: { company: credentials.company._id } }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
   });
 });
 
 describe('remove', () => {
-  const credentials = { company: { _id: new ObjectID() } };
-  const establishmentId = new ObjectID();
-  it('should remove an establishment', async () => {
-    const establishment = new Establishment({ _id: establishmentId, name: 'Test', usersCount: 0 });
-    const establishmentDocMock = sinon.mock(establishment);
-    const EstablishmentMock = sinon.mock(Establishment);
-
-    EstablishmentMock
-      .expects('findById')
-      .withExactArgs(establishmentId)
-      .chain('populate')
-      .withExactArgs({ path: 'usersCount', match: { company: credentials.company._id } })
-      .once()
-      .returns(establishment);
-
-    establishmentDocMock
-      .expects('remove')
-      .once();
-
-    await EstablishmentsHelper.remove(establishmentId, credentials);
-
-    establishmentDocMock.verify();
-    EstablishmentMock.verify();
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(Establishment, 'deleteOne');
   });
 
-  it('should throw a 403 error if there are users attached to establishment', async () => {
-    const establishment = new Establishment({ _id: establishmentId, name: 'Test', usersCount: 1 });
-    const establishmentDocMock = sinon.mock(establishment);
-    const EstablishmentMock = sinon.mock(Establishment);
+  afterEach(() => {
+    deleteOne.restore();
+  });
 
-    EstablishmentMock
-      .expects('findById')
-      .withExactArgs(establishmentId)
-      .chain('populate')
-      .withExactArgs({ path: 'usersCount', match: { company: credentials.company._id } })
-      .once()
-      .returns(establishment);
+  it('should remove an establishment', async () => {
+    const id = new ObjectID();
 
-    establishmentDocMock
-      .expects('remove')
-      .never();
+    await EstablishmentsHelper.remove(id);
 
-    try {
-      await EstablishmentsHelper.remove(establishmentId, credentials);
-      establishmentDocMock.verify();
-      EstablishmentMock.verify();
-    } catch (e) {
-      establishmentDocMock.verify();
-      EstablishmentMock.verify();
-      expect(e).toEqual(Boom.forbidden());
-    }
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: id });
   });
 });
