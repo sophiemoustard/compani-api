@@ -69,11 +69,7 @@ describe('exportCustomers', () => {
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         {
           query: 'populate',
-          args: [{
-            path: 'firstIntervention',
-            select: 'startDate',
-            match: { company: companyId },
-          }],
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
         },
         { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -95,13 +91,7 @@ describe('exportCustomers', () => {
         contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
-        referent: {
-          _id: new ObjectID(),
-          identity: {
-            firstname: 'Toto',
-            lastname: 'Test',
-          },
-        },
+        referent: { _id: new ObjectID(), identity: { firstname: 'Toto', lastname: 'Test' } },
         payment: {
           bankAccountOwner: 'Lui',
           iban: 'Boom Ba Da Boom',
@@ -158,11 +148,7 @@ describe('exportCustomers', () => {
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         {
           query: 'populate',
-          args: [{
-            path: 'firstIntervention',
-            select: 'startDate',
-            match: { company: companyId },
-          }],
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
         },
         { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -191,11 +177,7 @@ describe('exportCustomers', () => {
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         {
           query: 'populate',
-          args: [{
-            path: 'firstIntervention',
-            select: 'startDate',
-            match: { company: companyId },
-          }],
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
         },
         { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -348,10 +330,7 @@ describe('exportAuxiliaries', () => {
     const auxiliaries = [
       {
         _id: new ObjectID(),
-        contracts: [
-          { _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' },
-          { _id: 1, startDate: '2019-12-02' },
-        ],
+        contracts: [{ _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' }, { _id: 1, startDate: '2019-12-02' }],
       },
     ];
 
@@ -628,18 +607,12 @@ describe('exportSectors', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const sectorHistories = [{
       sector: { name: 'test' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto', lastname: 'Tutu' },
-      },
+      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'Tutu' } },
       startDate: '2019-11-10',
     },
     {
       sector: { name: 'test2' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto2', lastname: 'Tutu2' },
-      },
+      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto2', lastname: 'Tutu2' } },
       startDate: '2019-11-10',
       endDate: '2019-12-10',
     }];
@@ -708,7 +681,8 @@ describe('exportReferents', () => {
       'Date de fin',
     ]);
     SinonMongoose.calledWithExactly(
-      findReferentHistory, [
+      findReferentHistory,
+      [
         { query: 'find', args: [{ company: credentials.company._id }] },
         { query: 'populate', args: ['auxiliary'] },
         { query: 'populate', args: ['customer'] },
@@ -764,7 +738,8 @@ describe('exportReferents', () => {
       '',
     ]);
     SinonMongoose.calledWithExactly(
-      findReferentHistory, [
+      findReferentHistory,
+      [
         { query: 'find', args: [{ company: credentials.company._id }] },
         { query: 'populate', args: ['auxiliary'] },
         { query: 'populate', args: ['customer'] },

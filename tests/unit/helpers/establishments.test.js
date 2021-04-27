@@ -10,7 +10,6 @@ describe('create', () => {
   beforeEach(() => {
     create = sinon.stub(Establishment, 'create');
   });
-
   afterEach(() => {
     create.restore();
   });
@@ -51,7 +50,6 @@ describe('update', () => {
   beforeEach(() => {
     findOneAndUpdate = sinon.stub(Establishment, 'findOneAndUpdate');
   });
-
   afterEach(() => {
     findOneAndUpdate.restore();
   });
@@ -80,7 +78,6 @@ describe('list', () => {
   beforeEach(() => {
     find = sinon.stub(Establishment, 'find');
   });
-
   afterEach(() => {
     find.restore();
   });
@@ -109,7 +106,6 @@ describe('remove', () => {
   beforeEach(() => {
     deleteOne = sinon.stub(Establishment, 'deleteOne');
   });
-
   afterEach(() => {
     deleteOne.restore();
   });
