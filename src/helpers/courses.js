@@ -217,7 +217,7 @@ exports.getCourseFollowUp = async (course, company) => {
   };
 };
 
-exports.getQuestionnaireAnswers = async (courseId) => {
+exports.getActivityAnswers = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',

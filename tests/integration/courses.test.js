@@ -619,7 +619,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
+describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -631,7 +631,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
     it('should get questionnaire answers', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
+        url: `/courses/${coursesList[0]._id.toHexString()}/activities`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -653,7 +653,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
+          url: `/courses/${coursesList[0]._id.toHexString()}/activities`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

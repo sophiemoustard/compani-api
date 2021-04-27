@@ -741,7 +741,7 @@ describe('getCourseFollowUp', () => {
   });
 });
 
-describe('getQuestionnaireAnswers', () => {
+describe('getActivityAnswers', () => {
   let findOneCourse;
   let formatActivity;
   beforeEach(() => {
@@ -782,7 +782,7 @@ describe('getQuestionnaireAnswers', () => {
     formatActivity.onCall(0).returns({ followUp: [followUps[0]] });
     formatActivity.onCall(1).returns({ followUp: [followUps[1]] });
 
-    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
+    const result = await CourseHelper.getActivityAnswers(courseId);
 
     expect(result).toMatchObject(followUps);
     SinonMongoose.calledWithExactly(findOneCourse, [
@@ -832,7 +832,7 @@ describe('getQuestionnaireAnswers', () => {
     formatActivity.onCall(0).returns({ followUp: [] });
     formatActivity.onCall(1).returns({ followUp: [] });
 
-    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
+    const result = await CourseHelper.getActivityAnswers(courseId);
 
     expect(result).toMatchObject([]);
     SinonMongoose.calledWithExactly(findOneCourse, [
@@ -874,7 +874,7 @@ describe('getQuestionnaireAnswers', () => {
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
 
-    const result = await CourseHelper.getQuestionnaireAnswers(courseId);
+    const result = await CourseHelper.getActivityAnswers(courseId);
 
     expect(result).toMatchObject([]);
     SinonMongoose.calledWithExactly(findOneCourse, [

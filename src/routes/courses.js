@@ -8,7 +8,7 @@ const {
   create,
   getById,
   getFollowUp,
-  getQuestionnaireAnswers,
+  getActivityAnswers,
   getTraineeCourse,
   update,
   deleteCourse,
@@ -128,7 +128,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/questionnaires',
+      path: '/{_id}/activities',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
@@ -136,7 +136,7 @@ exports.plugin = {
         auth: { scope: ['courses:read'] },
         pre: [{ method: authorizeGetFollowUp }],
       },
-      handler: getQuestionnaireAnswers,
+      handler: getActivityAnswers,
     });
 
     server.route({

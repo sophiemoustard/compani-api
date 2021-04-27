@@ -74,9 +74,9 @@ const getFollowUp = async (req) => {
   }
 };
 
-const getQuestionnaireAnswers = async (req) => {
+const getActivityAnswers = async (req) => {
   try {
-    const questionnaireAnswers = await CoursesHelper.getQuestionnaireAnswers(req.params._id);
+    const questionnaireAnswers = await CoursesHelper.getActivityAnswers(req.params._id);
 
     return {
       message: translate[language].courseQuestionnairesFound,
@@ -259,7 +259,7 @@ module.exports = {
   create,
   getById,
   getFollowUp,
-  getQuestionnaireAnswers,
+  getActivityAnswers,
   getTraineeCourse,
   update,
   deleteCourse,
