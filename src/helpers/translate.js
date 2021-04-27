@@ -302,9 +302,16 @@ module.exports = {
     partnerOrganizationFound: 'Partner organization found.',
     partnerOrganizationUpdated: 'Partner organization updated.',
     partnerCreated: 'Partner created.',
+    partnersFound: 'Partners found.',
+    partnersNotFound: 'Partners not found.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Customer partner created.',
+    customerPartnersFound: 'Customer partners found.',
+    customerPartnersNotFound: 'Customer partners not found.',
+    customerPartnerAlreadyExists: 'Customer partner already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -606,8 +613,16 @@ module.exports = {
     partnerOrganizationFound: 'Structure partenaire trouvée.',
     partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
     partnerCreated: 'Partenaire créé.',
+    partnersFound: 'Liste des partenaires trouvée.',
+    partnersNotFound: 'Liste des partenaires non trouvée.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Partenaire bénéficiaire créé.',
+    customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
+    customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
+    customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
+
   },
 };
