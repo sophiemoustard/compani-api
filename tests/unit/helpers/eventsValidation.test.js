@@ -1,40 +1,24 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const {
-  INTERVENTION,
-  ABSENCE,
-  INTERNAL_HOUR,
-} = require('../../../src/helpers/constants');
+const { INTERVENTION, ABSENCE, INTERNAL_HOUR } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-describe('checkContracts', () => {
-  let findOneCustomer;
+describe('isCustomerSubscriptionValid', () => {
+  let findOne;
   beforeEach(() => {
-    findOneCustomer = sinon.stub(Customer, 'findOne');
+    findOne = sinon.stub(Customer, 'findOne');
   });
   afterEach(() => {
-    findOneCustomer.restore();
+    findOne.restore();
   });
 
-  it('should return false as user has no contract', async () => {
-    const event = { auxiliary: (new ObjectID()).toHexString() };
-    const user = { _id: event.auxiliary };
-
-    const result = await EventsValidationHelper.checkContracts(event, user);
-
-    expect(result).toBe(false);
-    sinon.assert.notCalled(findOneCustomer);
-  });
-
-  it('should return false if contract and no active contract on day', async () => {
+  it('should return true if event subscription is in customer subscriptions', async () => {
     const subscriptionId = new ObjectID();
-    const sectorId = new ObjectID();
     const event = {
       auxiliary: (new ObjectID()).toHexString(),
       customer: (new ObjectID()).toHexString(),
@@ -42,84 +26,24 @@ describe('checkContracts', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
-      sector: sectorId.toHexString(),
     };
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: subscriptionId,
-        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
-      }],
-    };
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{}],
-      startDate: moment(event.startDate).add(1, 'd'),
-    };
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+    const customer = { _id: event.customer, subscriptions: [{ _id: subscriptionId }] };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
-
-    expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
-      findOneCustomer,
-      [
-        { query: 'findOne', args: [{ _id: event.customer }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return true if contract and active contract on day', async () => {
-    const subscriptionId = new ObjectID();
-    const sectorId = new ObjectID();
-    const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      customer: (new ObjectID()).toHexString(),
-      type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-03T08:00:00.000Z',
-      endDate: '2019-10-03T10:00:00.000Z',
-      sector: sectorId.toHexString(),
-    };
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: subscriptionId,
-        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
-      }],
-    };
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{ weeklyHours: 12 }],
-      startDate: moment(event.startDate).subtract(1, 'd'),
-    };
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
-
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
-
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const result = await EventsValidationHelper.isCustomerSubscriptionValid(event);
 
     expect(result).toBe(true);
     SinonMongoose.calledWithExactly(
-      findOneCustomer,
+      findOne,
       [
-        { query: 'findOne', args: [{ _id: event.customer }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'findOne', args: [{ _id: event.customer }, { subscriptions: 1 }] },
         { query: 'lean' },
       ]
     );
   });
 
-  it('should return false if customer has no subscription', async () => {
-    const sectorId = new ObjectID();
+  it('should return false if event subscription is not in customer subscriptions', async () => {
     const event = {
       auxiliary: (new ObjectID()).toHexString(),
       customer: (new ObjectID()).toHexString(),
@@ -127,75 +51,159 @@ describe('checkContracts', () => {
       subscription: (new ObjectID()).toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
-      sector: sectorId.toHexString(),
     };
-    const customer = {
-      _id: event.customer,
-      subscriptions: [{
-        _id: new ObjectID(),
-        service: { versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
-      }],
-    };
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{ weeklyHours: 12 }],
-      startDate: moment(event.startDate).subtract(1, 'd'),
-    };
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+    const customer = { _id: event.customer, subscriptions: [{ _id: new ObjectID() }] };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const result = await EventsValidationHelper.isCustomerSubscriptionValid(event);
 
     expect(result).toBe(false);
     SinonMongoose.calledWithExactly(
-      findOneCustomer,
+      findOne,
       [
-        { query: 'findOne', args: [{ _id: event.customer }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        { query: 'findOne', args: [{ _id: event.customer }, { subscriptions: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('isUserContractValidOnEventDates', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(User, 'findOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+  });
+
+  it('should return false as user has no contract', async () => {
+    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const user = { _id: event.auxiliary };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
         { query: 'lean' },
       ]
     );
   });
 
-  it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
-    const sectorId = new ObjectID();
-    const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      type: INTERNAL_HOUR,
-      startDate: '2019-10-03T00:00:00.000Z',
-      sector: sectorId.toHexString(),
-    };
-    const user = { _id: event.auxiliary, contracts: [], sector: sectorId };
+  it('should return false as user contracts are empty', async () => {
+    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const user = { _id: event.auxiliary, contracts: [] };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    sinon.assert.notCalled(findOneCustomer);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
   });
 
-  it('should return true if event type isn\'t intervention nor internal hour', async () => {
-    const sectorId = new ObjectID();
-    const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      type: ABSENCE,
-      startDate: '2019-10-03T00:00:00.000Z',
-      sector: sectorId.toHexString(),
-    };
-    const contract = {
-      user: event.auxiliary,
-      customer: event.customer,
-      versions: [{ weeklyHours: 12 }],
-      startDate: moment(event.startDate).subtract(1, 'd'),
-    };
-    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
+  it('should return false if contract and no active contract on day and event not absence', async () => {
+    const event = { auxiliary: new ObjectID(), startDate: '2020-04-30T09:00:00', type: INTERVENTION };
+    const contract = { user: event.auxiliary, startDate: '2020-12-05T00:00:00' };
+    const user = { _id: event.auxiliary, contracts: [contract] };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return true if contract and active contract on day and event not absence', async () => {
+    const event = { auxiliary: new ObjectID(), startDate: '2020-04-30T09:00:00', type: INTERNAL_HOUR };
+    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
+    const user = { _id: event.auxiliary, contracts: [contract] };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
-    sinon.assert.notCalled(findOneCustomer);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return false if contract and no active contract on day and event is absence', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      startDate: '2020-04-30T09:00:00',
+      endDate: '2020-05-12T23:25:59',
+      type: ABSENCE,
+    };
+    const contract = { user: event.auxiliary, startDate: '2020-05-04T00:00:00' };
+    const user = { _id: event.auxiliary, contracts: [contract] };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(false);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return true if contract and active contract on day and event is absence', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      startDate: '2020-04-30T09:00:00',
+      endDate: '2020-05-12T23:25:59',
+      type: ABSENCE,
+    };
+    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
+    const user = { _id: event.auxiliary, contracts: [contract] };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
+
+    expect(result).toBe(true);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'populate', args: ['contracts'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -291,15 +299,15 @@ describe('hasConflicts', () => {
 });
 
 describe('isEditionAllowed', () => {
-  let findOne;
-  let checkContracts;
+  let isUserContractValidOnEventDates;
+  let isCustomerSubscriptionValid;
   beforeEach(() => {
-    findOne = sinon.stub(User, 'findOne');
-    checkContracts = sinon.stub(EventsValidationHelper, 'checkContracts');
+    isUserContractValidOnEventDates = sinon.stub(EventsValidationHelper, 'isUserContractValidOnEventDates');
+    isCustomerSubscriptionValid = sinon.stub(EventsValidationHelper, 'isCustomerSubscriptionValid');
   });
   afterEach(() => {
-    findOne.restore();
-    checkContracts.restore();
+    isUserContractValidOnEventDates.restore();
+    isCustomerSubscriptionValid.restore();
   });
 
   it('should return false as event is not absence and not on one day', async () => {
@@ -315,8 +323,8 @@ describe('isEditionAllowed', () => {
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(checkContracts);
-    sinon.assert.notCalled(findOne);
+    sinon.assert.notCalled(isUserContractValidOnEventDates);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
@@ -332,25 +340,8 @@ describe('isEditionAllowed', () => {
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(checkContracts);
-    sinon.assert.notCalled(findOne);
-  });
-
-  it('should return true as event has no auxiliary and is intervention', async () => {
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-    const event = {
-      sector: (new ObjectID()).toHexString(),
-      type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-
-    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
-
-    expect(result).toBeTruthy();
-    sinon.assert.notCalled(checkContracts);
-    sinon.assert.notCalled(findOne);
+    sinon.assert.notCalled(isUserContractValidOnEventDates);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
@@ -363,55 +354,74 @@ describe('isEditionAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const user = { _id: auxiliaryId, sector: new ObjectID() };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
-    checkContracts.returns(false);
+    isUserContractValidOnEventDates.returns(false);
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(checkContracts, event, user);
-    SinonMongoose.calledWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
-        { query: 'populate', args: ['contracts'] },
-        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-      ]
-    );
+    sinon.assert.calledWithExactly(isUserContractValidOnEventDates, event);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
-  it('should return true', async () => {
+  it('should return false if event is intervention and customer subscription is not valid', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
-    const sectorId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const user = { _id: auxiliaryId, sector: sectorId };
 
-    checkContracts.returns(true);
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    isUserContractValidOnEventDates.returns(true);
+    isCustomerSubscriptionValid.returns(false);
+
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
+
+    expect(result).toBeFalsy();
+    sinon.assert.calledWithExactly(isUserContractValidOnEventDates, event);
+    sinon.assert.calledWithExactly(isCustomerSubscriptionValid, event);
+  });
+
+  it('should return true if event is intervention and customer subscription is valid', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const auxiliaryId = new ObjectID();
+    const event = {
+      auxiliary: auxiliaryId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    isUserContractValidOnEventDates.returns(true);
+    isCustomerSubscriptionValid.returns(true);
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
 
     expect(result).toBeTruthy();
-    sinon.assert.calledWithExactly(checkContracts, event, user);
-    SinonMongoose.calledWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
-        { query: 'populate', args: ['contracts'] },
-        { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-      ]
-    );
+    sinon.assert.calledWithExactly(isUserContractValidOnEventDates, event);
+    sinon.assert.calledWithExactly(isCustomerSubscriptionValid, event);
+  });
+
+  it('should return true', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const event = {
+      auxiliary: new ObjectID().toHexString(),
+      type: INTERNAL_HOUR,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    isUserContractValidOnEventDates.returns(true);
+
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
+
+    expect(result).toBeTruthy();
+    sinon.assert.calledWithExactly(isUserContractValidOnEventDates, event);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 });
 

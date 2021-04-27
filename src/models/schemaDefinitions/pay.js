@@ -7,7 +7,7 @@ const surchargedHours = {
 
 const surchargedDetails = [{
   planName: { type: String, required: true },
-  planId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  planId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Surcharge' },
   saturday: surchargedHours,
   sunday: surchargedHours,
   publicHoliday: surchargedHours,

@@ -1,12 +1,13 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
-const { populateDB, questionnairesList, cardsList } = require('./seed/questionnairesSeed');
+const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
-const { SURVEY } = require('../../src/helpers/constants');
+const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -24,24 +25,22 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
     });
 
     it('should create questionnaire', async () => {
-      await Questionnaire.deleteMany({});
-
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations' },
+        payload: { name: 'test', type: 'end_of_course' },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 400 if no title', async () => {
+    it('should return 400 if no name', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: '', type: 'expectations' },
+        payload: { name: '', type: 'expectations' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -52,18 +51,18 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'wrong type' },
+        payload: { name: 'test', type: 'wrong type' },
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 409 if already exists a draft questionnaire with type EXPECTATIONS', async () => {
+    it('should return 409 if already exists a draft questionnaire with same type', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/questionnaires',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'test', type: 'expectations' },
+        payload: { name: 'test', type: 'expectations' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -85,7 +84,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
           method: 'POST',
           url: '/questionnaires',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { title: 'test', type: 'expectations' },
+          payload: { name: 'test', type: 'expectations' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -212,6 +211,65 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
   });
 });
 
+describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
+  let authToken = null;
+  let nowStub;
+  beforeEach(populateDB);
+
+  describe('LOGGED USER', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      nowStub = sinon.stub(Date, 'now');
+    });
+
+    afterEach(() => {
+      nowStub.restore();
+    });
+
+    it('should get questionnaires', async () => {
+      nowStub.returns(new Date('2021-04-13T15:00:00'));
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if query is empty', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if query has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/questionnaires/user?course=skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if course not found', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/user?course=${(new ObjectID()).toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});
+
 describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -221,11 +279,23 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update questionnaire title', async () => {
-      const payload = { title: 'test2' };
+    it('should update questionnaire name', async () => {
+      const payload = { name: 'test2' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update questionnaire name even if questionnaire is published', async () => {
+      const payload = { name: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -245,6 +315,34 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should update questionnaire status', async () => {
+      await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
+
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if questionnaire status is not PUBLISHED', async () => {
+      await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
+
+      const payload = { status: DRAFT };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 400 if cards is not an array of strings', async () => {
       const payload = { cards: [1, 2] };
       const response = await app.inject({
@@ -257,8 +355,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if title is not a string', async () => {
-      const payload = { title: 123 };
+    it('should return 400 if name is not a string', async () => {
+      const payload = { name: 123 };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -269,20 +367,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if title is empty', async () => {
-      const payload = { title: '' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/questionnaires/${questionnairesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if try to update title and cards', async () => {
-      const payload = { title: 'test2', cards: [questionnairesList[0].cards[1], questionnairesList[0].cards[0]] };
+    it('should return 400 if name is empty', async () => {
+      const payload = { name: '' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -306,7 +392,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
     });
 
     it('should return 404 if questionnaire does not exist', async () => {
-      const payload = { title: 'test2' };
+      const payload = { name: 'test2' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${new ObjectID()}`,
@@ -317,16 +403,31 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if questionnaire is published', async () => {
-      const payload = { title: 'test2' };
+    it('should return 403 if cards are not valid', async () => {
+      await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
+      await Card.updateMany({ title: 'test1' }, { $set: { title: '' } });
+
+      const payload = { status: PUBLISHED };
       const response = await app.inject({
         method: 'PUT',
-        url: `/questionnaires/${questionnairesList[1]._id}`,
+        url: `/questionnaires/${questionnairesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 409 if questionnaire with same type is already published', async () => {
+      const payload = { status: PUBLISHED };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${questionnairesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 
@@ -339,7 +440,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { title: 'test2' };
+        const payload = { name: 'test2' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',

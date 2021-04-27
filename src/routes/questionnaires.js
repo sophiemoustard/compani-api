@@ -2,14 +2,24 @@
 
 const Joi = require('joi');
 const { QUESTIONNAIRE_TYPES } = require('../models/Questionnaire');
-const { list, create, getById, update, addCard, removeCard } = require('../controllers/questionnaireController');
+const {
+  list,
+  create,
+  getById,
+  update,
+  addCard,
+  removeCard,
+  getUserQuestionnaires,
+} = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
   authorizeQuestionnaireCreation,
   authorizeQuestionnaireEdit,
   authorizeCardDeletion,
+  authorizeUserQuestionnairesGet,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
+const { PUBLISHED } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-questionnaires',
@@ -37,12 +47,25 @@ exports.plugin = {
     });
 
     server.route({
+      method: 'GET',
+      path: '/user',
+      options: {
+        validate: {
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        auth: { mode: 'required' },
+        pre: [{ method: authorizeUserQuestionnairesGet, assign: 'course' }],
+      },
+      handler: getUserQuestionnaires,
+    });
+
+    server.route({
       method: 'POST',
       path: '/',
       options: {
         validate: {
           payload: Joi.object({
-            title: Joi.string().required(),
+            name: Joi.string().required(),
             type: Joi.string().required().valid(...QUESTIONNAIRE_TYPES),
           }),
         },
@@ -84,10 +107,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.alternatives().try(
-            Joi.object({ title: Joi.string().required() }),
-            Joi.object({ cards: Joi.array().items(Joi.objectId()).required() })
-          ),
+          payload: Joi.object({
+            name: Joi.string(),
+            cards: Joi.array().items(Joi.objectId()),
+            status: Joi.string().valid(PUBLISHED),
+          }),
         },
         auth: { scope: ['questionnaires:edit'] },
         pre: [{ method: authorizeQuestionnaireEdit }],
