@@ -12,33 +12,26 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const { FIXED, HOURLY } = require('../../../src/helpers/constants');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
-
-require('sinon-mongoose');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('exportCustomers', () => {
-  let CustomerModel;
+  let findCustomer;
   let getLastVersion;
   beforeEach(() => {
-    CustomerModel = sinon.mock(Customer);
+    findCustomer = sinon.stub(Customer, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(versions => versions[0]);
   });
 
   afterEach(() => {
-    CustomerModel.restore();
+    findCustomer.restore();
     getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
     const customers = [];
     const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
@@ -69,7 +62,19 @@ describe('exportCustomers', () => {
       'Date de création',
       'Statut',
     ]);
-    CustomerModel.verify();
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return customer info', async () => {
@@ -86,13 +91,7 @@ describe('exportCustomers', () => {
         contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
-        referent: {
-          _id: new ObjectID(),
-          identity: {
-            firstname: 'Toto',
-            lastname: 'Test',
-          },
-        },
+        referent: { _id: new ObjectID(), identity: { firstname: 'Toto', lastname: 'Test' } },
         payment: {
           bankAccountOwner: 'Lui',
           iban: 'Boom Ba Da Boom',
@@ -109,12 +108,9 @@ describe('exportCustomers', () => {
       },
     ];
     const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
@@ -145,18 +141,26 @@ describe('exportCustomers', () => {
       '12/12/2012',
       'Actif',
     ]);
-    CustomerModel.verify();
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should return empty strings if missing data', async () => {
     const customers = [{}];
     const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
@@ -166,47 +170,45 @@ describe('exportCustomers', () => {
     expect(result[1]).toMatchObject([
       '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
     ]);
-    CustomerModel.verify();
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }],
+        },
+        { query: 'populate', args: [{ path: 'referent', match: { company: companyId } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 });
 
 describe('exportAuxiliaries', () => {
-  let UserModel;
-  let RoleModel;
+  let findUser;
+  let findRole;
   let getLastVersion;
   beforeEach(() => {
-    UserModel = sinon.mock(User);
-    RoleModel = sinon.mock(Role);
+    findUser = sinon.stub(User, 'find');
+    findRole = sinon.stub(Role, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
-    UserModel.restore();
-    RoleModel.restore();
+    findUser.restore();
+    findRole.restore();
     getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
     const auxiliaries = [];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
+
+    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -216,18 +218,34 @@ describe('exportAuxiliaries', () => {
       'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
       'Date de création']);
-    UserModel.verify();
-    RoleModel.verify();
+    SinonMongoose.calledWithExactly(
+      findRole,
+      [
+        { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should return auxiliary', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
     const auxiliaries = [
       {
         _id: new ObjectID(),
@@ -251,18 +269,9 @@ describe('exportAuxiliaries', () => {
         establishment: { name: 'Test' },
       },
     ];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
+
+    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -290,39 +299,43 @@ describe('exportAuxiliaries', () => {
       '01/02/2019',
       '01/02/2019',
     ]);
-    UserModel.verify();
-    RoleModel.verify();
+    SinonMongoose.calledWithExactly(
+      findRole,
+      [
+        { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 
   it('should return auxiliary with 2 contracts', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
-    RoleModel.expects('find')
-      .withExactArgs({ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } })
-      .chain('lean')
-      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
-
     const auxiliaries = [
       {
         _id: new ObjectID(),
-        contracts: [
-          { _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' },
-          { _id: 1, startDate: '2019-12-02' },
-        ],
+        contracts: [{ _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' }, { _id: 1, startDate: '2019-12-02' }],
       },
     ];
-    UserModel.expects('find')
-      .withExactArgs({ 'role.client': { $in: roleIds }, company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .chain('populate')
-      .withExactArgs({ path: 'contracts', select: '_id startDate endDate' })
-      .chain('populate')
-      .withExactArgs({ path: 'establishment', select: 'name', match: { company: credentials.company._id } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true, virtuals: true })
-      .once()
-      .returns(auxiliaries);
+
+    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -335,24 +348,45 @@ describe('exportAuxiliaries', () => {
     expect(result[2]).toMatchObject([
       '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
     ]);
-    UserModel.verify();
-    RoleModel.verify();
+    SinonMongoose.calledWithExactly(
+      findRole,
+      [
+        { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findUser,
+      [
+        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
   });
 });
 
 describe('exportHelpers', () => {
-  let find;
+  let findUser;
   let findOneRole;
   let getLastVersion;
 
   beforeEach(() => {
-    find = sinon.stub(User, 'find');
+    findUser = sinon.stub(User, 'find');
     findOneRole = sinon.stub(Role, 'findOne');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
-    find.restore();
+    findUser.restore();
     findOneRole.restore();
     getLastVersion.restore();
   });
@@ -363,7 +397,7 @@ describe('exportHelpers', () => {
     const helpers = [];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
+    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -384,8 +418,9 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Statut',
       'Date de création',
     ]);
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
-      find,
+      findUser,
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
@@ -403,7 +438,6 @@ describe('exportHelpers', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 
   it('should return helper info', async () => {
@@ -418,7 +452,7 @@ describe('exportHelpers', () => {
     }];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
+    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -442,8 +476,9 @@ describe('exportHelpers', () => {
         '01/02/2019',
       ]
     );
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
-      find,
+      findUser,
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
@@ -461,7 +496,6 @@ describe('exportHelpers', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 
   it('should return customer helper info', async () => {
@@ -487,7 +521,7 @@ describe('exportHelpers', () => {
     }];
 
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
+    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -509,8 +543,9 @@ describe('exportHelpers', () => {
       'Actif',
       '',
     ]);
+    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
-      find,
+      findUser,
       [
         { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
         {
@@ -528,30 +563,23 @@ describe('exportHelpers', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
   });
 });
 
 describe('exportSectors', () => {
-  let SectorHistoryModel;
+  let findSectorHistory;
   beforeEach(() => {
-    SectorHistoryModel = sinon.mock(SectorHistory);
+    findSectorHistory = sinon.stub(SectorHistory, 'find');
   });
 
   afterEach(() => {
-    SectorHistoryModel.restore();
+    findSectorHistory.restore();
   });
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
-      .chain('lean')
-      .returns([]);
+
+    findSectorHistory.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportSectors(credentials);
 
@@ -564,36 +592,32 @@ describe('exportSectors', () => {
       'Date d\'arrivée dans l\'équipe',
       'Date de départ de l\'équipe',
     ]);
-    SectorHistoryModel.verify();
+    SinonMongoose.calledWithExactly(
+      findSectorHistory,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, startDate: { $exists: true } }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'auxiliary', select: '_id identity.firstname identity.lastname' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return sector info', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const sectorHistories = [{
       sector: { name: 'test' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto', lastname: 'Tutu' },
-      },
+      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'Tutu' } },
       startDate: '2019-11-10',
     },
     {
       sector: { name: 'test2' },
-      auxiliary: {
-        _id: new ObjectID(),
-        identity: { firstname: 'toto2', lastname: 'Tutu2' },
-      },
+      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto2', lastname: 'Tutu2' } },
       startDate: '2019-11-10',
       endDate: '2019-12-10',
     }];
-    SectorHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id, startDate: { $exists: true } })
-      .chain('populate')
-      .withExactArgs({ path: 'sector', select: '_id name' })
-      .chain('populate')
-      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
-      .chain('lean')
-      .returns(sectorHistories);
+
+    findSectorHistory.returns(SinonMongoose.stubChainedQueries([sectorHistories]));
 
     const result = await ExportHelper.exportSectors(credentials);
 
@@ -614,30 +638,32 @@ describe('exportSectors', () => {
       '10/11/2019',
       '10/12/2019',
     ]);
-    SectorHistoryModel.verify();
+    SinonMongoose.calledWithExactly(
+      findSectorHistory,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, startDate: { $exists: true } }] },
+        { query: 'populate', args: [{ path: 'sector', select: '_id name' }] },
+        { query: 'populate', args: [{ path: 'auxiliary', select: '_id identity.firstname identity.lastname' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('exportReferents', () => {
-  let ReferentHistoryModel;
+  let findReferentHistory;
   beforeEach(() => {
-    ReferentHistoryModel = sinon.mock(ReferentHistory);
+    findReferentHistory = sinon.stub(ReferentHistory, 'find');
   });
 
   afterEach(() => {
-    ReferentHistoryModel.restore();
+    findReferentHistory.restore();
   });
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    ReferentHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs('auxiliary')
-      .chain('populate')
-      .withExactArgs('customer')
-      .chain('lean')
-      .returns([]);
+
+    findReferentHistory.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportReferents(credentials);
 
@@ -654,7 +680,15 @@ describe('exportReferents', () => {
       'Date de début',
       'Date de fin',
     ]);
-    ReferentHistoryModel.verify();
+    SinonMongoose.calledWithExactly(
+      findReferentHistory,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: ['auxiliary'] },
+        { query: 'populate', args: ['customer'] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return referent info', async () => {
@@ -673,14 +707,8 @@ describe('exportReferents', () => {
         startDate: '2020-11-10',
       },
     ];
-    ReferentHistoryModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .withExactArgs('auxiliary')
-      .chain('populate')
-      .withExactArgs('customer')
-      .chain('lean')
-      .returns(referentHistories);
+
+    findReferentHistory.returns(SinonMongoose.stubChainedQueries([referentHistories]));
 
     const result = await ExportHelper.exportReferents(credentials);
 
@@ -709,7 +737,15 @@ describe('exportReferents', () => {
       '10/11/2020',
       '',
     ]);
-    ReferentHistoryModel.verify();
+    SinonMongoose.calledWithExactly(
+      findReferentHistory,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: ['auxiliary'] },
+        { query: 'populate', args: ['customer'] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -808,17 +844,17 @@ describe('exportStaffRegister', () => {
 });
 
 describe('exportServices', () => {
-  let ServiceModel;
+  let findService;
   let getLastVersion;
   let formatFloatForExport;
   beforeEach(() => {
-    ServiceModel = sinon.mock(Service);
+    findService = sinon.stub(Service, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
     formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
     formatFloatForExport.callsFake(float => (float != null ? `F-${float}` : ''));
   });
   afterEach(() => {
-    ServiceModel.restore();
+    findService.restore();
     getLastVersion.restore();
     formatFloatForExport.restore();
   });
@@ -826,12 +862,8 @@ describe('exportServices', () => {
   it('should return csv header', async () => {
     const services = [];
     const credentials = { company: { _id: new ObjectID() } };
-    ServiceModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .chain('populate')
-      .once()
-      .returns(services);
+
+    findService.returns(SinonMongoose.stubChainedQueries([services]));
 
     const result = await ExportHelper.exportServices(credentials);
 
@@ -847,6 +879,15 @@ describe('exportServices', () => {
       'Date de création',
       'Date de mise a jour',
     ]);
+    SinonMongoose.calledWithExactly(
+      findService,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: ['company'] },
+        { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: credentials.company._id } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should list services', async () => {
@@ -876,12 +917,8 @@ describe('exportServices', () => {
       },
     ];
     const credentials = { company: { _id: new ObjectID() } };
-    ServiceModel.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('populate')
-      .chain('populate')
-      .once()
-      .returns(services);
+
+    findService.returns(SinonMongoose.stubChainedQueries([services]));
 
     const result = await ExportHelper.exportServices(credentials);
 
@@ -895,22 +932,31 @@ describe('exportServices', () => {
     expect(result[2]).toMatchObject([
       'Forfaitaire', 'Compani', 'kické', 'F-13', 'F-5.5', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019',
     ]);
+    SinonMongoose.calledWithExactly(
+      findService,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        { query: 'populate', args: ['company'] },
+        { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: credentials.company._id } }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('exportSubscriptions', () => {
-  let CustomerModel;
+  let findCustomer;
   let getLastVersion;
   let formatFloatForExport;
   beforeEach(() => {
-    CustomerModel = sinon.mock(Customer);
+    findCustomer = sinon.stub(Customer, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
     formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
     formatFloatForExport.callsFake(float => `F-${float || ''}`);
   });
 
   afterEach(() => {
-    CustomerModel.restore();
+    findCustomer.restore();
     getLastVersion.restore();
     formatFloatForExport.restore();
   });
@@ -918,12 +964,8 @@ describe('exportSubscriptions', () => {
   it('should return csv header', async () => {
     const customers = [];
     const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportSubscriptions(credentials);
@@ -940,6 +982,14 @@ describe('exportSubscriptions', () => {
       'Dont soirées',
       'Dont dimanches',
     ]);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return subscriptions info', async () => {
@@ -954,12 +1004,8 @@ describe('exportSubscriptions', () => {
       },
     ];
     const companyId = new ObjectID();
-    CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportSubscriptions(credentials);
@@ -969,6 +1015,14 @@ describe('exportSubscriptions', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([expect.any(ObjectID), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

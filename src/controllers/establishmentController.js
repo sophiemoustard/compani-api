@@ -56,7 +56,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await EstablishmentsHelper.remove(req.params._id, req.auth.credentials);
+    await EstablishmentsHelper.remove(req.params._id);
 
     return { message: translate[language].establishmentRemoved };
   } catch (e) {
