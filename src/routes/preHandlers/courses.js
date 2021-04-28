@@ -267,3 +267,16 @@ exports.authorizeGetFollowUp = async (req) => {
 
   return null;
 };
+
+exports.authorizeGetQuestionnaires = async (req) => {
+  const course = await Course.findOne({ _id: req.params._id }, { trainer: 1 }).lean();
+  if (!course) throw Boom.notFound();
+
+  const credentials = get(req, 'auth.credentials');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const isCourseTrainer = UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+
+  if (!loggedUserVendorRole || (loggedUserVendorRole === 'trainer' && !isCourseTrainer)) throw Boom.forbidden();
+
+  return null;
+};

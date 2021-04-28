@@ -663,6 +663,68 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
   });
 });
 
+describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should get questionnaires list', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${new ObjectID()}/questionnaires`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 as user is trainer, but not course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id.toHexString()}/questionnaires`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[0]._id.toHexString()}/questionnaires`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('COURSES ROUTES - GET /courses/user', () => {
   let authToken = null;
   beforeEach(populateDB);

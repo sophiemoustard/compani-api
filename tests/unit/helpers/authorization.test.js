@@ -277,6 +277,7 @@ describe('validate', () => {
           'users:exist',
           'users:list',
           'attendancesheets:edit',
+          'questionnaires:read',
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
