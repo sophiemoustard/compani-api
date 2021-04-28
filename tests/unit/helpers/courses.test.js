@@ -2069,15 +2069,18 @@ describe('getQuestionnaires', () => {
     findQuestionnaire.restore();
   });
 
-  it('should return questionnaires', async () => {
+  it('should return questionnaires with answers', async () => {
     const courseId = new ObjectID();
-    const questionnaires = [{ name: 'test', type: 'expectations', historiesCount: 1 }];
+    const questionnaires = [
+      { name: 'test', type: 'expectations', historiesCount: 1 },
+      { name: 'test2', type: 'expectations', historiesCount: 0 },
+    ];
 
     findQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaires], ['select', 'populate', 'lean']));
 
     const result = await CourseHelper.getQuestionnaires(courseId);
 
-    expect(result).toMatchObject(questionnaires);
+    expect(result).toMatchObject([questionnaires[0]]);
     SinonMongoose.calledWithExactly(
       findQuestionnaire,
       [

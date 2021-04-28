@@ -11,6 +11,7 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
+  BLENDED,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -269,7 +270,7 @@ exports.authorizeGetFollowUp = async (req) => {
 };
 
 exports.authorizeGetQuestionnaires = async (req) => {
-  const course = await Course.findOne({ _id: req.params._id }, { trainer: 1 }).lean();
+  const course = await Course.findOne({ _id: req.params._id, format: BLENDED }, { trainer: 1 }).lean();
   if (!course) throw Boom.notFound();
 
   const credentials = get(req, 'auth.credentials');
