@@ -188,7 +188,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            expoToken: Joi.string(),
+            formationExpoToken: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
