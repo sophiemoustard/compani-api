@@ -224,8 +224,8 @@ const formatUpdatePayload = async (updatedUser) => {
 exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
   const companyId = get(credentials, 'company._id', null);
 
-  const query = { _id: userId };
-  if (!canEditWithoutCompany) query.company = companyId;
+  const filterQuery = { _id: userId };
+  if (!canEditWithoutCompany) filterQuery.company = companyId;
 
   const payload = await formatUpdatePayload(userPayload);
 
@@ -235,7 +235,11 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  await User.updateOne(query, { $set: flat(payload) });
+  const updateQuery = userPayload.expoToken
+    ? { $push: { expoTokens: userPayload.expoToken } }
+    : { $set: flat(payload) };
+
+  await User.updateOne(filterQuery, updateQuery);
 };
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
