@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
-const { EXPECTATIONS, PUBLISHED } = require('../../../src/helpers/constants');
+const { EXPECTATIONS, PUBLISHED, END_OF_COURSE } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
@@ -163,13 +163,13 @@ describe('getUserQuestionnaires', () => {
     nowStub.restore();
   });
 
-  it('should return questionnaire', async () => {
+  it('should return expectations questionnaire', async () => {
     const course = {
       _id: new ObjectID(),
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const credentials = { _id: new ObjectID() };
-    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
+    const questionnaire = { _id: new ObjectID(), name: 'test', type: 'expectations', histories: [] };
 
     nowStub.returns(new Date('2021-04-13T15:00:00'));
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
@@ -187,7 +187,31 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return questionnaire if no slots', async () => {
+  it('should return end of course questionnaire', async () => {
+    const course = {
+      _id: new ObjectID(),
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+    };
+    const credentials = { _id: new ObjectID() };
+    const questionnaire = { _id: new ObjectID(), name: 'test', type: 'end_of_course', histories: [] };
+
+    nowStub.returns(new Date('2021-04-23T15:00:00'));
+    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course, credentials);
+
+    expect(result).toMatchObject([questionnaire]);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
+        { query: 'populate', args: [{ path: 'histories', match: { course: course._id, user: credentials._id } }] },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return expectations questionnaire if no slots', async () => {
     const course = { _id: new ObjectID(), slots: [] };
     const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
     const credentials = { _id: new ObjectID() };
@@ -311,7 +335,10 @@ describe('getUserQuestionnaires', () => {
     const course = {
       _id: new ObjectID(),
       format: 'blended',
-      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slots: [
+        { startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') },
+        { startDate: new Date('2021-04-24T09:00:00'), endDate: new Date('2021-04-24T11:00:00') },
+      ],
     };
     const credentials = { _id: new ObjectID() };
 
@@ -325,6 +352,22 @@ describe('getUserQuestionnaires', () => {
 
   it('should return an empty array if course is strictly e-learning', async () => {
     const course = { _id: new ObjectID(), format: 'strictly_e_learning' };
+    const credentials = { _id: new ObjectID() };
+
+    nowStub.returns(new Date('2021-04-13T15:00:00'));
+
+    const result = await QuestionnaireHelper.getUserQuestionnaires(course, credentials);
+
+    expect(result).toMatchObject([]);
+    sinon.assert.notCalled(findOne);
+  });
+
+  it('should return an empty array if course has slots to plan', async () => {
+    const course = {
+      _id: new ObjectID(),
+      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slotsToPlan: [{ _id: new ObjectID() }],
+    };
     const credentials = { _id: new ObjectID() };
 
     nowStub.returns(new Date('2021-04-23T15:00:00'));

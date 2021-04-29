@@ -33,6 +33,7 @@ exports.authorizeQuestionnaireGet = async (req) => {
 exports.authorizeUserQuestionnairesGet = async (req) => {
   const course = await Course.findOne({ _id: req.query.course })
     .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .lean({ virtuals: true });
 
   if (!course) throw Boom.notFound();
