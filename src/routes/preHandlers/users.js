@@ -46,7 +46,7 @@ exports.authorizeUserUpdate = async (req) => {
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
-  if (get(req, 'payload.expoToken')) await checkExpoToken(req.payload);
+  if (get(req, 'payload.formationExpoToken')) await checkExpoToken(req.payload);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateRestrictions(req.payload);
   }
@@ -105,7 +105,7 @@ const checkCustomer = async (userCompany, payload) => {
 };
 
 const checkExpoToken = async (payload) => {
-  const expoTokenAlreadyExists = await User.countDocuments({ expoTokens: payload.expoToken });
+  const expoTokenAlreadyExists = await User.countDocuments({ formationExpoTokens: payload.formationExpoToken });
   if (expoTokenAlreadyExists) throw Boom.forbidden();
 };
 

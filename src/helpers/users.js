@@ -235,8 +235,8 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  const updateQuery = userPayload.expoToken
-    ? { $push: { expoTokens: userPayload.expoToken } }
+  const updateQuery = userPayload.formationExpoToken
+    ? { $push: { formationExpoTokens: userPayload.formationExpoToken } }
     : { $set: flat(payload) };
 
   await User.updateOne(filterQuery, updateQuery);
