@@ -692,14 +692,24 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 as user is trainer, but not course trainer', async () => {
+    it('should return 404 if course is strictly e-learning', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[4]._id.toHexString()}/questionnaires`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 as user is trainer, but not course trainer', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[1]._id.toHexString()}/questionnaires`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
