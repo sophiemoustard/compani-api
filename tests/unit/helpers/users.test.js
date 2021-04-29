@@ -1007,6 +1007,21 @@ describe('updateUser', () => {
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
+  it('should push an expoToken to expoTokens', async () => {
+    const payload = { expoToken: 'ExponentPushToken[skusku]' };
+
+    await UsersHelper.updateUser(userId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id },
+      { $push: { expoTokens: 'ExponentPushToken[skusku]' } }
+    );
+    sinon.assert.notCalled(createHelper);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(roleFindById);
+  });
+
   it('should return a 400 error if role does not exists', async () => {
     const payload = { role: new ObjectID() };
 
