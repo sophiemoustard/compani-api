@@ -1,6 +1,13 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const { DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, PUBLISHED } = require('../../helpers/constants');
+const {
+  DRAFT,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+  PUBLISHED,
+  TRAINER,
+  BLENDED,
+} = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
@@ -67,6 +74,17 @@ exports.authorizeCardDeletion = async (req) => {
 
   const questionnaire = await Questionnaire.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
   if (questionnaire) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetFollowUp = async (req) => {
+  const credentials = get(req, 'auth.credentials');
+  const countQuery = get(credentials, 'role.vendor.name') === TRAINER
+    ? { _id: req.query.course, format: BLENDED, trainer: credentials._id }
+    : { _id: req.query.course, format: BLENDED };
+  const course = await Course.countDocuments(countQuery);
+  if (!course) throw Boom.notFound();
 
   return null;
 };

@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const Questionnaire = require('../models/Questionnaire');
+const Course = require('../models/Course');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING } = require('./constants');
 const DatesHelper = require('./dates');
@@ -33,4 +34,45 @@ exports.getUserQuestionnaires = async (course, credentials) => {
     .lean({ virtuals: true });
 
   return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+};
+
+exports.getFollowUp = async (id, courseId) => {
+  const course = await Course.findOne({ _id: courseId })
+    .select('subProgram company misc')
+    .populate({
+      path: 'subProgram',
+      select: 'program',
+      populate: [
+        { path: 'program', select: 'name' }],
+    })
+    .populate({ path: 'company', select: 'name' })
+    .lean();
+
+  const questionnaire = await Questionnaire.findOne({ _id: id })
+    .select('type name')
+    .populate({
+      path: 'histories',
+      match: { course: courseId },
+      populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+    })
+    .lean();
+
+  const followUp = {};
+  for (const history of questionnaire.histories) {
+    for (const answer of history.questionnaireAnswersList) {
+      const { answerList } = answer;
+      if (answerList.length === 1 && !answerList[0].trim()) continue;
+
+      if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
+      followUp[answer.card._id].answers.push(...answerList);
+    }
+  }
+
+  return {
+    programName: course.subProgram.program.name,
+    companyName: course.company.name,
+    misc: course.misc,
+    questionnaire: { type: questionnaire.type, name: questionnaire.name },
+    followUp: Object.values(followUp),
+  };
 };
