@@ -24,14 +24,17 @@ exports.removeCard = async (cardId) => {
   await CardHelper.removeCard(cardId);
 };
 
+exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
+  .findOne({ type, status: PUBLISHED }, { type: 1, name: 1 })
+  .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
+  .lean({ virtuals: true });
+
 exports.getUserQuestionnaires = async (course, credentials) => {
   if (course.format === STRICTLY_E_LEARNING) return [];
 
   const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
   if (!isCourseStarted) {
-    const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 })
-      .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
-      .lean({ virtuals: true });
+    const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
 
     return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
   }
@@ -41,9 +44,7 @@ exports.getUserQuestionnaires = async (course, credentials) => {
   const isCourseEnded = get(course, 'slots.length') &&
     DatesHelper.isAfter(Date.now(), course.slots[course.slots.length - 1].endDate);
   if (isCourseEnded) {
-    const questionnaire = await Questionnaire.findOne({ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 })
-      .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
-      .lean({ virtuals: true });
+    const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
 
     return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
   }
