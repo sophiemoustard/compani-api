@@ -63,7 +63,20 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
     { $group: { _id: null, docs: { $push: '$$ROOT' } } },
     {
       $addFields: {
-        cesu: { $filter: { input: '$docs', as: 'doc', cond: { $eq: ['$$doc.type', CESU] } } },
+        cesuPayments: {
+          $filter: {
+            input: '$docs',
+            as: 'payment',
+            cond: { $and: [{ $eq: ['$$payment.nature', PAYMENT] }, { $eq: ['$$payment.type', CESU] }] },
+          },
+        },
+        cesuRefunds: {
+          $filter: {
+            input: '$docs',
+            as: 'payment',
+            cond: { $and: [{ $eq: ['$$payment.nature', REFUND] }, { $eq: ['$$payment.type', CESU] }] },
+          },
+        },
         payments: {
           $filter: {
             input: '$docs',
@@ -71,7 +84,13 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
             cond: { $and: [{ $eq: ['$$payment.nature', PAYMENT] }, { $ne: ['$$payment.type', CESU] }] },
           },
         },
-        refunds: { $filter: { input: '$docs', as: 'payment', cond: { $eq: ['$$payment.nature', REFUND] } } },
+        refunds: {
+          $filter: {
+            input: '$docs',
+            as: 'payment',
+            cond: { $and: [{ $eq: ['$$payment.nature', REFUND] }, { $ne: ['$$payment.type', CESU] }] },
+          },
+        },
       },
     },
     {
@@ -80,13 +99,18 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
           $reduce: { input: '$payments', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
         },
         refunds: { $reduce: { input: '$refunds', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } } },
-        cesu: { $reduce: { input: '$cesu', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } } },
+        cesuRefunds: {
+          $reduce: { input: '$cesuRefunds', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
+        },
+        cesuPayments: {
+          $reduce: { input: '$cesuPayments', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
+        },
       },
     },
     {
       $project: {
         paid: { $subtract: ['$payments', '$refunds'] },
-        cesu: 1,
+        cesu: { $subtract: ['$cesuPayments', '$cesuRefunds'] },
       },
     },
   ]).option({ company: companyId });
