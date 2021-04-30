@@ -28,7 +28,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['questionnaires:read'] },
+        auth: { scope: ['questionnaires:edit'] },
       },
       handler: list,
     });

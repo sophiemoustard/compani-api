@@ -22,6 +22,7 @@ const {
   addAccessRule,
   generateConvocationPdf,
   deleteAccessRule,
+  getQuestionnaires,
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
@@ -40,6 +41,7 @@ const {
   authorizeGetCourse,
   authorizeGetFollowUp,
   checkSalesRepresentativeExists,
+  authorizeGetQuestionnaires,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -128,7 +130,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/questionnaires',
+      path: '/{_id}/activities',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
@@ -137,6 +139,19 @@ exports.plugin = {
         pre: [{ method: authorizeGetFollowUp }],
       },
       handler: getQuestionnaireAnswers,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/questionnaires',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['questionnaires:read'] },
+        pre: [{ method: authorizeGetQuestionnaires }],
+      },
+      handler: getQuestionnaires,
     });
 
     server.route({

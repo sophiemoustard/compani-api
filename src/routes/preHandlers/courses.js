@@ -11,6 +11,7 @@ const {
   COACH,
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
+  BLENDED,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -264,6 +265,17 @@ exports.authorizeGetFollowUp = async (req) => {
     UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), req.query.company);
 
   if (!loggedUserVendorRole && !companyQueryIsValid) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetQuestionnaires = async (req) => {
+  const credentials = get(req, 'auth.credentials');
+  const countQuery = get(credentials, 'role.vendor.name') === TRAINER
+    ? { _id: req.params._id, format: BLENDED, trainer: credentials._id }
+    : { _id: req.params._id, format: BLENDED };
+  const course = await Course.countDocuments(countQuery);
+  if (!course) throw Boom.notFound();
 
   return null;
 };
