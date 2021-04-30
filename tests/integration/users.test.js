@@ -1268,6 +1268,17 @@ describe('PUT /users/:id/', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 400 if ExponentPushToken has wrong type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
+        payload: { formationExpoToken: 'skusku' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('VENDOR_ADMIN', () => {
