@@ -10,7 +10,12 @@ exports.list = async (query, credentials) => {
 };
 
 exports.update = async (helperId, payload) => {
-  await Helper.updateOne({ _id: helperId }, { $set: payload });
+  const helper = await Helper.findOneAndUpdate({ _id: helperId }, { $set: payload }).lean();
+
+  await Helper.updateOne(
+    { _id: { $ne: helper._id }, customer: helper.customer, referent: true },
+    { $set: { referent: false } }
+  );
 };
 
 exports.create = async (userId, customerId, companyId) =>
