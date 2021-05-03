@@ -221,7 +221,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   }
 
   const updatePayload = userPayload.formationExpoToken
-    ? { $push: { formationExpoTokenList: userPayload.formationExpoToken } }
+    ? { $addToSet: { formationExpoTokenList: userPayload.formationExpoToken } }
     : { $set: flat(payload) };
 
   await User.updateOne(filterQuery, updatePayload);

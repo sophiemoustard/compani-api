@@ -19,7 +19,7 @@ const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items
 
 const expoTokenValidation = Joi.string().custom((value, helper) => (
   value.substring(0, 18) === 'ExponentPushToken['
-    ? true
+    ? value
     : helper.message('Wrong ExponentPushToken type')
 ));
 
