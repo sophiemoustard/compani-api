@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB, authCustomer, customerFromOtherCompany } = require('./seed/helpersSeed');
+const { populateDB, authCustomer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -69,6 +69,75 @@ describe('GET /helpers', () => {
           method: 'GET',
           url: `/helpers?customer=${customerId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PUT /helpers/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should update referent of helpers', async () => {
+      const helperId = helpersList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/helpers/${helperId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { referent: true },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if params is not an id', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: '/helpers/skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { referent: true },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if payload is not a truthy boolean', async () => {
+      const helperId = helpersList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/helpers/${helperId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { referent: false },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const helperId = helpersList[0]._id;
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/helpers/${helperId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { referent: true },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

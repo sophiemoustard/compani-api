@@ -49,12 +49,19 @@ const usersSeedList = [
 ];
 
 const helpersList = [
-  { _id: new ObjectID(), user: usersSeedList[0]._id, customer: authCustomer._id, company: authCompany._id },
+  {
+    _id: new ObjectID(),
+    user: usersSeedList[0]._id,
+    customer: authCustomer._id,
+    company: authCompany._id,
+    referent: false,
+  },
   {
     _id: new ObjectID(),
     user: helperFromOtherCompany._id,
     customer: customerFromOtherCompany._id,
     company: otherCompany._id,
+    referent: true,
   },
 ];
 
@@ -76,4 +83,5 @@ module.exports = {
   customerFromOtherCompany,
   helperFromOtherCompany,
   authCustomer,
+  helpersList,
 };
