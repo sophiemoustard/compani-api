@@ -17,6 +17,12 @@ const addressValidation = Joi.object().keys({
 
 const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId()));
 
+const expoTokenValidation = Joi.string().custom((value, helper) => (
+  value.substring(0, 18) === 'ExponentPushToken['
+    ? true
+    : helper.message('Wrong ExponentPushToken type')
+));
+
 const formDataPayload = (maxSize = 5242880) => ({
   output: 'stream',
   parse: true,
@@ -30,5 +36,6 @@ module.exports = {
   phoneNumberValidation,
   addressValidation,
   objectIdOrArray,
+  expoTokenValidation,
   formDataPayload,
 };
