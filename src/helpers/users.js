@@ -235,11 +235,11 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  const updateQuery = userPayload.formationExpoToken
-    ? { $push: { formationExpoTokens: userPayload.formationExpoToken } }
+  const updatePayload = userPayload.formationExpoToken
+    ? { $push: { formationExpoTokenList: userPayload.formationExpoToken } }
     : { $set: flat(payload) };
 
-  await User.updateOne(filterQuery, updateQuery);
+  await User.updateOne(filterQuery, updatePayload);
 };
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {

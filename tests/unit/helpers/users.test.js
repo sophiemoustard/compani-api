@@ -1113,7 +1113,7 @@ describe('updateUser', () => {
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
-  it('should push an expoToken to expoTokens', async () => {
+  it('should push an expoToken to formationExpoTokenList', async () => {
     const payload = { formationExpoToken: 'ExponentPushToken[skusku]' };
 
     await UsersHelper.updateUser(userId, payload, credentials, true);
@@ -1121,7 +1121,7 @@ describe('updateUser', () => {
     sinon.assert.calledOnceWithExactly(
       userUpdateOne,
       { _id: userId },
-      { $push: { formationExpoTokens: 'ExponentPushToken[skusku]' } }
+      { $push: { formationExpoTokenList: 'ExponentPushToken[skusku]' } }
     );
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);

@@ -32,7 +32,7 @@ const {
   authorizeLearnersGet,
   getPicturePublicId,
 } = require('./preHandlers/users');
-const { addressValidation, phoneNumberValidation } = require('./validations/utils');
+const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
 
 const driveUploadKeys = [
@@ -187,11 +187,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            formationExpoToken: Joi.string().custom((value, helper) => (
-              value.substring(0, 18) === 'ExponentPushToken['
-                ? true
-                : helper.message('Wrong ExponentPushToken type')
-            )),
+            formationExpoToken: expoTokenValidation,
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case

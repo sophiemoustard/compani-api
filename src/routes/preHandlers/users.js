@@ -105,7 +105,7 @@ const checkCustomer = async (userCompany, payload) => {
 };
 
 const checkExpoToken = async (payload) => {
-  const expoTokenAlreadyExists = await User.countDocuments({ formationExpoTokens: payload.formationExpoToken });
+  const expoTokenAlreadyExists = await User.countDocuments({ formationExpoTokenList: payload.formationExpoToken });
   if (expoTokenAlreadyExists) throw Boom.forbidden();
 };
 
