@@ -1,7 +1,8 @@
 const get = require('lodash/get');
 const Questionnaire = require('../models/Questionnaire');
+const Course = require('../models/Course');
 const CardHelper = require('./cards');
-const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING } = require('./constants');
+const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE } = require('./constants');
 const DatesHelper = require('./dates');
 
 exports.create = async payload => Questionnaire.create(payload);
@@ -24,13 +25,35 @@ exports.removeCard = async (cardId) => {
   await CardHelper.removeCard(cardId);
 };
 
-exports.getUserQuestionnaires = async (course, credentials) => {
-  const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
-  if (course.format === STRICTLY_E_LEARNING || isCourseStarted) return [];
+exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
+  .findOne({ type, status: PUBLISHED }, { type: 1, name: 1 })
+  .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
+  .lean({ virtuals: true });
 
-  const questionnaire = await Questionnaire.findOne({ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 })
-    .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
+exports.getUserQuestionnaires = async (courseId, credentials) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .lean({ virtuals: true });
 
-  return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+  if (course.format === STRICTLY_E_LEARNING) return [];
+
+  const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
+  if (!isCourseStarted) {
+    const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
+
+    return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+  }
+
+  if (get(course, 'slotsToPlan.length')) return [];
+
+  const isCourseEnded = get(course, 'slots.length') &&
+    DatesHelper.isAfter(Date.now(), course.slots[course.slots.length - 1].endDate);
+  if (isCourseEnded) {
+    const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
+
+    return !questionnaire || questionnaire.histories.length ? [] : [questionnaire];
+  }
+
+  return [];
 };

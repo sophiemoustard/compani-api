@@ -31,10 +31,7 @@ exports.authorizeQuestionnaireGet = async (req) => {
 };
 
 exports.authorizeUserQuestionnairesGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course })
-    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
-    .lean({ virtuals: true });
-
+  const course = await Course.countDocuments({ _id: req.query.course });
   if (!course) throw Boom.notFound();
 
   return course;
