@@ -54,7 +54,7 @@ exports.plugin = {
           query: Joi.object({ course: Joi.objectId().required() }),
         },
         auth: { mode: 'required' },
-        pre: [{ method: authorizeUserQuestionnairesGet, assign: 'course' }],
+        pre: [{ method: authorizeUserQuestionnairesGet }],
       },
       handler: getUserQuestionnaires,
     });

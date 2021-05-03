@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const Questionnaire = require('../models/Questionnaire');
+const Course = require('../models/Course');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE } = require('./constants');
 const DatesHelper = require('./dates');
@@ -29,7 +30,12 @@ exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
   .populate({ path: 'histories', match: { course: course._id, user: credentials._id } })
   .lean({ virtuals: true });
 
-exports.getUserQuestionnaires = async (course, credentials) => {
+exports.getUserQuestionnaires = async (courseId, credentials) => {
+  const course = await Course.findOne({ _id: courseId })
+    .populate({ path: 'slots', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .lean({ virtuals: true });
+
   if (course.format === STRICTLY_E_LEARNING) return [];
 
   const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
