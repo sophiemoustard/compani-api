@@ -1121,7 +1121,7 @@ describe('updateUser', () => {
     sinon.assert.calledOnceWithExactly(
       userUpdateOne,
       { _id: userId },
-      { $push: { formationExpoTokenList: 'ExponentPushToken[skusku]' } }
+      { $addToSet: { formationExpoTokenList: 'ExponentPushToken[skusku]' } }
     );
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
