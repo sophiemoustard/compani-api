@@ -1,7 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
-const { list } = require('../controllers/helperController');
+const { list, update } = require('../controllers/helperController');
 const { authorizeHelpersGet } = require('./preHandlers/helpers');
 
 exports.plugin = {
@@ -18,6 +18,21 @@ exports.plugin = {
         pre: [{ method: authorizeHelpersGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            referent: Joi.boolean().valid(true),
+          }),
+        },
+        auth: { scope: ['helpers:edit'] },
+      },
+      handler: update,
     });
   },
 };

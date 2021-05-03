@@ -308,6 +308,7 @@ module.exports = {
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
+    helpersUpdated: 'Helpers updated.',
     /* CustomerPartners */
     customerPartnerCreated: 'Customer partner created.',
     customerPartnersFound: 'Customer partners found.',
@@ -620,6 +621,7 @@ module.exports = {
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
+    helpersUpdated: 'Aidant mis à jour.',
     /* CustomerPartners */
     customerPartnerCreated: 'Partenaire bénéficiaire créé.',
     customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',

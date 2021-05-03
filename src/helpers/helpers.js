@@ -6,7 +6,11 @@ exports.list = async (query, credentials) => {
     .populate({ path: 'user', select: 'identity local contact createdAt' })
     .lean();
 
-  return helpers.map(h => h.user);
+  return helpers.map(h => ({ ...h.user, helperId: h._id }));
+};
+
+exports.update = async (helperId, payload) => {
+  await Helper.updateOne({ _id: helperId }, { $set: payload });
 };
 
 exports.create = async (userId, customerId, companyId) =>
