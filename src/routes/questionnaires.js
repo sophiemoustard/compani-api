@@ -66,6 +66,7 @@ exports.plugin = {
       path: '/{_id}/follow-up',
       options: {
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           query: Joi.object({ course: Joi.objectId().required() }),
         },
         auth: { scope: ['questionnaires:read'] },

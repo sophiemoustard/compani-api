@@ -3,7 +3,9 @@ const Questionnaire = require('../../../src/models/Questionnaire');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const SubProgram = require('../../../src/models/SubProgram');
+const Program = require('../../../src/models/Program');
+const { populateDBForAuthentication, rolesList, userList, authCompany } = require('./authenticationSeed');
 const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
 
 const cardsList = [
@@ -30,13 +32,51 @@ const questionnairesList = [
   },
 ];
 
-const coursesList = [{
-  _id: new ObjectID(),
-  format: 'blended',
-  subProgram: new ObjectID(),
-  type: 'inter_b2b',
-  salesRepresentative: new ObjectID(),
-}];
+const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
+
+const subProgramsList = [
+  {
+    _id: new ObjectID(),
+    name: 'sous-programme',
+    steps: [new ObjectID()],
+  },
+];
+
+const programsList = [
+  {
+    _id: new ObjectID(),
+    name: 'test',
+    subPrograms: [subProgramsList[0]._id],
+  },
+];
+
+const coursesList = [
+  {
+    _id: new ObjectID(),
+    format: 'blended',
+    subProgram: subProgramsList[0]._id,
+    type: 'inter_b2b',
+    salesRepresentative: new ObjectID(),
+    trainer: courseTrainer._id,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    format: 'strictly_e_learning',
+    subProgram: new ObjectID(),
+    type: 'inter_b2b',
+    salesRepresentative: new ObjectID(),
+    trainer: courseTrainer._id,
+  },
+  {
+    _id: new ObjectID(),
+    format: 'blended',
+    subProgram: new ObjectID(),
+    type: 'inter_b2b',
+    salesRepresentative: new ObjectID(),
+    trainer: new ObjectID(),
+  },
+];
 
 const slots = [{
   startDate: new Date('2021-04-20T09:00:00'),
@@ -50,6 +90,8 @@ const populateDB = async () => {
   await Card.deleteMany({});
   await Course.deleteMany({});
   await CourseSlot.deleteMany({});
+  await SubProgram.deleteMany({});
+  await Program.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -57,6 +99,8 @@ const populateDB = async () => {
   await Card.insertMany(cardsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
+  await SubProgram.insertMany(subProgramsList);
+  await Program.insertMany(programsList);
 };
 
 module.exports = {
