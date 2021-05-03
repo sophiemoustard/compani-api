@@ -77,23 +77,43 @@ describe('update', () => {
 
 describe('create', () => {
   let create;
+  let countDocuments;
   beforeEach(() => {
     create = sinon.stub(Helper, 'create');
+    countDocuments = sinon.stub(Helper, 'countDocuments');
   });
   afterEach(() => {
     create.restore();
+    countDocuments.restore();
   });
 
-  it('should create a helper', async () => {
+  it('should create a non referent helper', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const userId = new ObjectID();
     const customerId = new ObjectID();
+
+    countDocuments.returns(1);
 
     await HelpersHelper.create(userId, customerId, credentials.company._id);
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { user: userId, customer: customerId, company: credentials.company._id }
+      { user: userId, customer: customerId, company: credentials.company._id, referent: false }
+    );
+  });
+
+  it('should create a referent helper', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const userId = new ObjectID();
+    const customerId = new ObjectID();
+
+    countDocuments.returns(0);
+
+    await HelpersHelper.create(userId, customerId, credentials.company._id);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { user: userId, customer: customerId, company: credentials.company._id, referent: true }
     );
   });
 });

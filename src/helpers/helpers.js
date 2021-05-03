@@ -18,7 +18,9 @@ exports.update = async (helperId, payload) => {
   );
 };
 
-exports.create = async (userId, customerId, companyId) =>
-  Helper.create({ user: userId, customer: customerId, company: companyId });
+exports.create = async (userId, customerId, companyId) => {
+  const anotherHelperExist = await Helper.countDocuments({ customer: customerId });
+  Helper.create({ user: userId, customer: customerId, company: companyId, referent: !anotherHelperExist });
+};
 
 exports.remove = async userId => Helper.deleteMany({ user: userId });
