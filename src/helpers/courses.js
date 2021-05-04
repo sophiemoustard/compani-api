@@ -540,7 +540,7 @@ exports.generateConvocationPdf = async (courseId) => {
 exports.getQuestionnaires = async (courseId) => {
   const questionnaires = await Questionnaire.find({ status: { $ne: DRAFT } })
     .select('type name')
-    .populate({ path: 'historiesCount', match: { course: courseId } })
+    .populate({ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } })
     .lean();
 
   return questionnaires.filter(questionnaire => questionnaire.historiesCount);
