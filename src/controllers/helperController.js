@@ -22,7 +22,7 @@ const update = async (req) => {
   try {
     await HelpersHelper.update(req.params._id, req.payload);
 
-    return { message: translate[language].helpersUpdated };
+    return { message: translate[language].helperUpdated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
