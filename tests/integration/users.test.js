@@ -1268,6 +1268,39 @@ describe('PUT /users/:id/', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 200 but not update if formationExpoToken already exists on user', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnIdExpo]' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 400 if formationExpoToken has wrong type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
+        payload: { formationExpoToken: 'skusku' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 403 if formationExpoToken already exists on another user', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('VENDOR_ADMIN', () => {

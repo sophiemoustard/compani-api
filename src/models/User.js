@@ -134,6 +134,7 @@ const UserSchema = mongoose.Schema({
   biography: { type: String },
   firstMobileConnection: { type: Date },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
+  formationExpoTokenList: [{ type: String }],
 }, {
   timestamps: true,
   toObject: { virtuals: true },
