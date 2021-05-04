@@ -34,21 +34,9 @@ const questionnairesList = [
 
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
-const subProgramsList = [
-  {
-    _id: new ObjectID(),
-    name: 'sous-programme',
-    steps: [new ObjectID()],
-  },
-];
+const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme', steps: [new ObjectID()] }];
 
-const programsList = [
-  {
-    _id: new ObjectID(),
-    name: 'test',
-    subPrograms: [subProgramsList[0]._id],
-  },
-];
+const programsList = [{ _id: new ObjectID(), name: 'test', subPrograms: [subProgramsList[0]._id] }];
 
 const coursesList = [
   {

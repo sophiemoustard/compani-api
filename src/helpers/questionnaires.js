@@ -39,12 +39,7 @@ exports.getUserQuestionnaires = async (course, credentials) => {
 exports.getFollowUp = async (id, courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .select('subProgram company misc')
-    .populate({
-      path: 'subProgram',
-      select: 'program',
-      populate: [
-        { path: 'program', select: 'name' }],
-    })
+    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
     .populate({ path: 'company', select: 'name' })
     .lean();
 
@@ -69,9 +64,11 @@ exports.getFollowUp = async (id, courseId) => {
   }
 
   return {
-    programName: course.subProgram.program.name,
-    companyName: course.company.name,
-    misc: course.misc,
+    course: {
+      programName: course.subProgram.program.name,
+      companyName: course.company.name,
+      misc: course.misc,
+    },
     questionnaire: { type: questionnaire.type, name: questionnaire.name },
     followUp: Object.values(followUp),
   };

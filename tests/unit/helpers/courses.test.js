@@ -2086,7 +2086,10 @@ describe('getQuestionnaires', () => {
       [
         { query: 'find', args: [{ status: { $ne: DRAFT } }] },
         { query: 'select', args: ['type name'] },
-        { query: 'populate', args: [{ path: 'historiesCount', match: { course: courseId } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } }],
+        },
         { query: 'lean' },
       ]
     );
