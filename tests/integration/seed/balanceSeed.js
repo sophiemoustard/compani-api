@@ -208,6 +208,7 @@ const helpersList = [{
   customer: balanceCustomerList[0]._id,
   user: balanceUserList[0]._id,
   company: authCompany._id,
+  referent: true,
 }];
 
 const customerFromOtherCompany = {

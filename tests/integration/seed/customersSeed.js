@@ -738,11 +738,13 @@ const helpersList = [
     customer: customersList[0]._id,
     user: userList[0]._id,
     company: authCompany._id,
+    referent: true,
   },
   {
     customer: customersList[1]._id,
     user: userList[1]._id,
     company: authCompany._id,
+    referent: true,
   },
 ];
 

@@ -525,6 +525,7 @@ const helpersList = [{
   customer: billCustomerList[0]._id,
   user: billUserList[0]._id,
   company: authCompany._id,
+  referent: true,
 }];
 
 const populateDB = async () => {
