@@ -6,7 +6,7 @@ exports.list = async (query, credentials) => {
     .populate({ path: 'user', select: 'identity local contact createdAt' })
     .lean();
 
-  return helpers.map(h => ({ ...h.user, helperId: h._id, isReferent: h.referent }));
+  return helpers;
 };
 
 exports.update = async (helperId, payload) => {

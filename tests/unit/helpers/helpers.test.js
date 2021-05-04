@@ -28,8 +28,18 @@ describe('list', () => {
     const result = await HelpersHelper.list(query, credentials);
 
     expect(result).toEqual([
-      { local: { email: 'helper1@test.fr' }, helperId: helpers[0]._id, isReferent: helpers[0].referent },
-      { local: { email: 'helper2@test.fr' }, helperId: helpers[1]._id, isReferent: helpers[1].referent },
+      {
+        _id: helpers[0]._id,
+        user: { local: { email: 'helper1@test.fr' } },
+        referent: true,
+        customer: query.customer,
+      },
+      {
+        _id: helpers[1]._id,
+        user: { local: { email: 'helper2@test.fr' } },
+        referent: false,
+        customer: query.customer,
+      },
     ]);
     SinonMongoose.calledWithExactly(
       find,
