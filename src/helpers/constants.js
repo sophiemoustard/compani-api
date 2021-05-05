@@ -389,4 +389,11 @@ module.exports = {
       this.PSYCHOLOGIST,
     ];
   },
+  // NOTIFICATION
+  BLENDED_COURSE_REGISTRATION: 'blendedCourseRegistration',
+  get NOTIFICATION_TYPES() {
+    return [
+      this.BLENDED_COURSE_REGISTRATION,
+    ];
+  },
 };

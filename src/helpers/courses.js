@@ -19,8 +19,17 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
+const {
+  INTRA,
+  INTER_B2B,
+  COURSE_SMS,
+  WEBAPP,
+  STRICTLY_E_LEARNING,
+  DRAFT,
+  BLENDED_COURSE_REGISTRATION,
+} = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
+const NotificationHelper = require('./notifications');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -333,6 +342,19 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
+const sendNotifications = async (trainee, courseId) => {
+  const notifications = [];
+  for (const expoToken of trainee.formationExpoTokenList) {
+    notifications.push(NotificationHelper.sendNotificationToUser({
+      title: 'Une nouvelle formation vous attend',
+      body: 'En vrai je sais pas quoi écrire ici',
+      data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
+      expoToken,
+    }));
+  }
+  await Promise.all(notifications);
+};
+
 exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
   const addedTrainee = trainee || await UsersHelper.createUser({ ...payload, origin: WEBAPP });
 
@@ -342,6 +364,10 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
     { course: courseId, traineeId: addedTrainee._id },
     credentials._id
   );
+
+  if (trainee && trainee.formationExpoTokenList && trainee.formationExpoTokenList.length) {
+    await sendNotifications(trainee, courseId);
+  }
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
     .lean();

@@ -18,7 +18,8 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
-const { COURSE_SMS, BLENDED, DRAFT } = require('../../../src/helpers/constants');
+const NotificationHelper = require('../../../src/helpers/notifications');
+const { COURSE_SMS, BLENDED, DRAFT, BLENDED_COURSE_REGISTRATION } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
@@ -1193,22 +1194,25 @@ describe('getSMSHistory', () => {
   });
 });
 
-describe('addCourseTrainee', () => {
+describe('addCourseTrainee #tag', () => {
   let courseFindOneAndUpdate;
   let createUserStub;
   let updateUserStub;
   let createHistoryOnTraineeAddition;
+  let sendNotificationToUser;
   beforeEach(() => {
     courseFindOneAndUpdate = sinon.stub(Course, 'findOneAndUpdate');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
     updateUserStub = sinon.stub(UsersHelper, 'updateUser');
     createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
+    sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
   });
   afterEach(() => {
     courseFindOneAndUpdate.restore();
     createUserStub.restore();
     updateUserStub.restore();
     createHistoryOnTraineeAddition.restore();
+    sendNotificationToUser.restore();
   });
   const addedBy = { _id: new ObjectID() };
 
@@ -1232,6 +1236,7 @@ describe('addCourseTrainee', () => {
     );
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(updateUserStub);
+    sinon.assert.notCalled(sendNotificationToUser);
   });
 
   it('should add a course trainee creating new user without role', async () => {
@@ -1255,6 +1260,7 @@ describe('addCourseTrainee', () => {
     );
     sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP });
     sinon.assert.notCalled(updateUserStub);
+    sinon.assert.notCalled(sendNotificationToUser);
   });
 
   it('should add a course trainee, and update it by adding his company', async () => {
@@ -1271,6 +1277,52 @@ describe('addCourseTrainee', () => {
       { query: 'lean' },
     ]);
     sinon.assert.notCalled(createUserStub);
+    sinon.assert.notCalled(sendNotificationToUser);
+  });
+
+  it('should add a course trainee and send him a notification', async () => {
+    const user = {
+      _id: new ObjectID(),
+      company: new ObjectID(),
+      formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
+    };
+    const course = { _id: new ObjectID(), misc: 'Test' };
+    const payload = { local: { email: 'toto@toto.com' } };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ ...course, trainee: [user._id] }], ['lean']));
+
+    const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
+
+    expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
+    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
+      { query: 'findOneAndUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
+      { query: 'lean' },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      createHistoryOnTraineeAddition,
+      { course: course._id, traineeId: user._id },
+      addedBy._id
+    );
+    sinon.assert.notCalled(createUserStub);
+    sinon.assert.notCalled(updateUserStub);
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(0),
+      {
+        title: 'Une nouvelle formation vous attend',
+        body: 'En vrai je sais pas quoi écrire ici',
+        data: { _id: course._id, type: BLENDED_COURSE_REGISTRATION },
+        expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
+      }
+    );
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(1),
+      {
+        title: 'Une nouvelle formation vous attend',
+        body: 'En vrai je sais pas quoi écrire ici',
+        data: { _id: course._id, type: BLENDED_COURSE_REGISTRATION },
+        expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
+      }
+    );
   });
 });
 
