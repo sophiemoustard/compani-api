@@ -357,6 +357,7 @@ const helpersList = [{
   customer: creditNoteCustomer._id,
   user: creditNoteUserList[0]._id,
   company: authCompany._id,
+  referent: true,
 }];
 
 const populateDB = async () => {

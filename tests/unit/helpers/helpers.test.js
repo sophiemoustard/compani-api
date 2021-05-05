@@ -19,15 +19,28 @@ describe('list', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const helpers = [
-      { _id: new ObjectID(), user: { local: { email: 'helper1@test.fr' } }, customer: query.customer },
-      { _id: new ObjectID(), user: { local: { email: 'helper2@test.fr' } }, customer: query.customer },
+      { _id: new ObjectID(), user: { local: { email: 'helper1@test.fr' } }, customer: query.customer, referent: true },
+      { _id: new ObjectID(), user: { local: { email: 'helper2@test.fr' } }, customer: query.customer, referent: false },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([helpers]));
 
     const result = await HelpersHelper.list(query, credentials);
 
-    expect(result).toEqual([{ local: { email: 'helper1@test.fr' } }, { local: { email: 'helper2@test.fr' } }]);
+    expect(result).toEqual([
+      {
+        _id: helpers[0]._id,
+        user: { local: { email: 'helper1@test.fr' } },
+        referent: true,
+        customer: query.customer,
+      },
+      {
+        _id: helpers[1]._id,
+        user: { local: { email: 'helper2@test.fr' } },
+        referent: false,
+        customer: query.customer,
+      },
+    ]);
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -39,25 +52,78 @@ describe('list', () => {
   });
 });
 
+describe('update', () => {
+  let findOneAndUpdate;
+  let updateOne;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Helper, 'findOneAndUpdate');
+    updateOne = sinon.stub(Helper, 'updateOne');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+    updateOne.restore();
+  });
+
+  it('should update the referent helper', async () => {
+    const helperId = new ObjectID();
+    const customerId = new ObjectID();
+    const helper = { _id: helperId, customer: customerId };
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([helper], ['lean']));
+
+    await HelpersHelper.update(helperId, { referent: true });
+
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [{ query: 'findOneAndUpdate', args: [{ _id: helperId }, { $set: { referent: true } }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: { $ne: helper._id }, customer: helper.customer, referent: true },
+      { $set: { referent: false } }
+    );
+  });
+});
+
 describe('create', () => {
   let create;
+  let countDocuments;
   beforeEach(() => {
     create = sinon.stub(Helper, 'create');
+    countDocuments = sinon.stub(Helper, 'countDocuments');
   });
   afterEach(() => {
     create.restore();
+    countDocuments.restore();
   });
 
-  it('should create a helper', async () => {
+  it('should create a non referent helper', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const userId = new ObjectID();
     const customerId = new ObjectID();
+
+    countDocuments.returns(1);
 
     await HelpersHelper.create(userId, customerId, credentials.company._id);
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { user: userId, customer: customerId, company: credentials.company._id }
+      { user: userId, customer: customerId, company: credentials.company._id, referent: false }
+    );
+  });
+
+  it('should create a referent helper', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const userId = new ObjectID();
+    const customerId = new ObjectID();
+
+    countDocuments.returns(0);
+
+    await HelpersHelper.create(userId, customerId, credentials.company._id);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { user: userId, customer: customerId, company: credentials.company._id, referent: true }
     );
   });
 });

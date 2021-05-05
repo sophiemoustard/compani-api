@@ -18,4 +18,15 @@ const list = async (req) => {
   }
 };
 
-module.exports = { list };
+const update = async (req) => {
+  try {
+    await HelpersHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].helperUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, update };
