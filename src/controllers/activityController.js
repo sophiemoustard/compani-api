@@ -42,7 +42,7 @@ const addCard = async (req) => {
 
 const removeCard = async (req) => {
   try {
-    await ActivityHelper.removeCard(req.params.cardId);
+    await ActivityHelper.removeCard(req.params.cardId, req.pre.mediaPublicId);
 
     return { message: translate[language].cardDeleted };
   } catch (e) {

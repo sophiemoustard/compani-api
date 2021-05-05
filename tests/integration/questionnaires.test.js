@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
+const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -675,16 +676,21 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
 
 describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => {
   let authToken = null;
+  let deleteProgramMediaStub;
   beforeEach(populateDB);
-  const draftQuestionnaire = questionnairesList.find(activity => activity.status === 'draft');
-  const publishedQuestionnaire = questionnairesList.find(activity => activity.status === 'published');
+  const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
+  const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
+      deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
+    });
+    afterEach(() => {
+      deleteProgramMediaStub.restore();
     });
 
-    it('should delete questionnaire card', async () => {
+    it('should delete questionnaire card without media', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/questionnaires/cards/${draftQuestionnaire.cards[0].toHexString()}`,
@@ -699,6 +705,27 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
       expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);
       expect(questionnaire.cards.includes(draftQuestionnaire.cards[0])).toBeFalsy();
+    });
+
+    it('should delete questionnaire card with media', async () => {
+      const imageExistsBeforeUpdate = await Card
+        .countDocuments({ _id: cardsList[4]._id, 'media.publicId': { $exists: true } });
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/questionnaires/cards/${draftQuestionnaire.cards[2].toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'publicId');
+
+      const cardDeleted = await Card.countDocuments({ _id: cardsList[4]._id });
+      expect(cardDeleted).toBe(0);
+      expect(imageExistsBeforeUpdate).toBeTruthy();
+
+      const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
+      expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);
+      expect(questionnaire.cards.includes(draftQuestionnaire.cards[2])).toBeFalsy();
     });
 
     it('should return 404 if card not found', async () => {

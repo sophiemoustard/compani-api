@@ -20,8 +20,9 @@ exports.addCard = async (questionnaireId, payload) => {
   await Questionnaire.updateOne({ _id: questionnaireId }, { $push: { cards: card._id } });
 };
 
-exports.removeCard = async (cardId) => {
+exports.removeCard = async (cardId, mediaPublicId) => {
   await Questionnaire.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await CardHelper.deleteMedia(cardId, mediaPublicId);
   await CardHelper.removeCard(cardId);
 };
 

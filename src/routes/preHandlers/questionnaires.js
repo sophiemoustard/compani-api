@@ -7,11 +7,14 @@ const {
   PUBLISHED,
   TRAINER,
   BLENDED,
+  TEXT_MEDIA,
+  TITLE_TEXT_MEDIA,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Questionnaire = require('../../models/Questionnaire');
 const Card = require('../../models/Card');
 const Course = require('../../models/Course');
+const { getCardMediaPublicId } = require('./utils');
 
 const { language } = translate;
 
@@ -66,11 +69,14 @@ exports.authorizeQuestionnaireEdit = async (req) => {
 };
 
 exports.authorizeCardDeletion = async (req) => {
-  const card = await Card.countDocuments({ _id: req.params.cardId });
+  const { cardId } = req.params;
+  const card = await Card.findOne({ _id: cardId }).lean();
   if (!card) throw Boom.notFound();
 
-  const questionnaire = await Questionnaire.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
+  const questionnaire = await Questionnaire.countDocuments({ cards: cardId, status: PUBLISHED });
   if (questionnaire) throw Boom.forbidden();
+
+  if ([TEXT_MEDIA, TITLE_TEXT_MEDIA].includes(card.template)) return getCardMediaPublicId({ params: { _id: cardId } });
 
   return null;
 };

@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const Joi = require('joi');
 const Card = require('../../models/Card');
 const Activity = require('../../models/Activity');
@@ -25,4 +26,11 @@ exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, parentI
     const questionnaireCount = await Questionnaire.countDocuments({ _id: parentId, cards: card._id });
     if (!activityCount && !questionnaireCount) throw Boom.notFound();
   }
+};
+
+exports.getCardMediaPublicId = async (req) => {
+  const card = await Card.findOne({ _id: req.params._id }).lean();
+  if (!card) throw Boom.notFound();
+
+  return get(card, 'media.publicId') || '';
 };

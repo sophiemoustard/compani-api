@@ -39,7 +39,8 @@ exports.addCard = async (activityId, payload) => {
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
 
-exports.removeCard = async (cardId) => {
+exports.removeCard = async (cardId, mediaPublicId) => {
   await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
+  await CardHelper.deleteMedia(cardId, mediaPublicId);
   await CardHelper.removeCard(cardId);
 };
