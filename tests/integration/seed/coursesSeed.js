@@ -48,6 +48,19 @@ const traineeFromOtherCompany = {
   origin: WEBAPP,
 };
 
+const traineeFromAuthCompanyWithFormationExpoToken = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  local: { email: 'traineeWithExpoToken@alenvi.io', password: '123456!eR' },
+  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  company: authCompany._id,
+  inactivityDate: null,
+  origin: WEBAPP,
+  formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
+};
+
 const traineeWithoutCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Salut', lastname: 'Toi' },
@@ -303,7 +316,7 @@ const populateDB = async () => {
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
-  await User.create([traineeFromOtherCompany, traineeWithoutCompany]);
+  await User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]);
   await new User(trainerAndCoach).save();
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
@@ -332,4 +345,5 @@ module.exports = {
   slots,
   trainerAndCoach,
   vendorAdmin,
+  traineeFromAuthCompanyWithFormationExpoToken,
 };

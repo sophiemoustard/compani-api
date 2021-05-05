@@ -1194,7 +1194,7 @@ describe('getSMSHistory', () => {
   });
 });
 
-describe('addCourseTrainee #tag', () => {
+describe('addCourseTrainee', () => {
   let courseFindOneAndUpdate;
   let createUserStub;
   let updateUserStub;
