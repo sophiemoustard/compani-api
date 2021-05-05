@@ -118,10 +118,19 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activityId).lean();
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should update activity\'s name if activity is published', async () => {
+      const payload = { name: 'rigoler' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/activities/${activitiesList[3]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
       expect(response.statusCode).toBe(200);
-      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
     it('should update cards', async () => {
@@ -193,7 +202,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
     });
 
     it('should return a 403 if activity is published', async () => {
-      const payload = { name: 'rigoler' };
+      const payload = { type: 'quiz' };
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activitiesList[3]._id.toHexString()}`,
