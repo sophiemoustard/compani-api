@@ -88,7 +88,7 @@ exports.getFollowUp = async (id, courseId) => {
   return {
     course: {
       programName: course.subProgram.program.name,
-      companyName: course.company.name,
+      companyName: get(course, 'company.name') || '',
       misc: course.misc,
     },
     questionnaire: { type: questionnaire.type, name: questionnaire.name },

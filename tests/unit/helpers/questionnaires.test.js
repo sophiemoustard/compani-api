@@ -508,7 +508,7 @@ describe('getFollowUp', () => {
     questionnaireFindOne.restore();
   });
 
-  it('should return follow up', async () => {
+  it('should return follow up for intra course', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
     const course = {
@@ -585,6 +585,132 @@ describe('getFollowUp', () => {
       course: {
         programName: 'test',
         companyName: 'company',
+        misc: 'infos',
+      },
+      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+      followUp: [
+        {
+          answers: ['blabla', 'test test'],
+          isMandatory: true,
+          question: 'aimez-vous ce test ?',
+          template: 'open_question',
+        },
+        {
+          answers: ['3', '2'],
+          isMandatory: true,
+          question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+          template: 'survey',
+          label: { left: '1', right: '5' },
+        },
+      ],
+    });
+    SinonMongoose.calledWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        { query: 'select', args: ['subProgram company misc'] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] }],
+        },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      questionnaireFindOne,
+      [
+        { query: 'findOne', args: [{ _id: questionnaireId }] },
+        { query: 'select', args: ['type name'] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { course: courseId },
+            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return follow up for inter b2b course', async () => {
+    const questionnaireId = new ObjectID();
+    const courseId = new ObjectID();
+    const course = {
+      _id: courseId,
+      subProgram: { program: { name: 'test' } },
+      misc: 'infos',
+    };
+    const cardsIds = [new ObjectID(), new ObjectID()];
+    const questionnaire = {
+      _id: questionnaireId,
+      type: EXPECTATIONS,
+      name: 'questionnaire',
+      histories: [
+        {
+          _id: new ObjectID(),
+          course: course._id,
+          questionnaireAnswersList: [
+            {
+              card: {
+                _id: cardsIds[0],
+                template: 'open_question',
+                isMandatory: true,
+                question: 'aimez-vous ce test ?',
+              },
+              answerList: ['blabla'],
+            },
+            {
+              card: {
+                _id: cardsIds[1],
+                template: 'survey',
+                isMandatory: true,
+                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                label: { left: '1', right: '5' },
+              },
+              answerList: ['3'],
+            },
+          ],
+        },
+        {
+          _id: new ObjectID(),
+          course: course._id,
+          questionnaireAnswersList: [
+            {
+              card: {
+                _id: cardsIds[0],
+                template: 'open_question',
+                isMandatory: true,
+                question: 'aimez-vous ce test ?',
+              },
+              answerList: ['test test'],
+            },
+            {
+              card: {
+                _id: cardsIds[1],
+                template: 'survey',
+                isMandatory: true,
+                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                label: { left: '1', right: '5' },
+              },
+              answerList: ['2'],
+            },
+          ],
+        },
+      ],
+    };
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
+
+    expect(result).toMatchObject({
+      course: {
+        programName: 'test',
+        companyName: '',
         misc: 'infos',
       },
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
