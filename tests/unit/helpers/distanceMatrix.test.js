@@ -6,8 +6,7 @@ const _ = require('lodash');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const maps = require('../../../src/models/Google/Maps');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('getDistanceMatrices', () => {
   const distanceMatrix = {
@@ -17,23 +16,26 @@ describe('getDistanceMatrices', () => {
     status: 200,
   };
   const companyId = new ObjectID();
-  let DistanceMatrixModel;
+  let find;
 
   beforeEach(() => {
-    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+    find = sinon.stub(DistanceMatrix, 'find');
   });
   afterEach(() => {
-    DistanceMatrixModel.restore();
+    find.restore();
   });
 
   it('should return a distance matrix', async () => {
-    DistanceMatrixModel.expects('find').withExactArgs({ company: companyId }).chain('lean').returns(distanceMatrix);
+    find.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const credentials = { company: { _id: companyId } };
     const result = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
     expect(result).toEqual(distanceMatrix);
-    DistanceMatrixModel.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 });
 
