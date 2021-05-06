@@ -11,16 +11,15 @@ const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
-  let TaxCertificateMock;
+  let find;
   beforeEach(() => {
-    TaxCertificateMock = sinon.mock(TaxCertificate);
+    find = sinon.stub(TaxCertificate, 'find');
   });
   afterEach(() => {
-    TaxCertificateMock.restore();
+    find.restore();
   });
   it('should return tax certificates list', async () => {
     const taxCertificates = [
@@ -30,16 +29,15 @@ describe('list', () => {
     const companyId = new ObjectID();
     const customer = new ObjectID();
 
-    TaxCertificateMock.expects('find')
-      .withExactArgs({ customer, company: companyId })
-      .chain('lean')
-      .once()
-      .returns(taxCertificates);
+    find.returns(SinonMongoose.stubChainedQueries([taxCertificates], ['lean']));
 
     const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
     expect(result).toEqual(taxCertificates);
-    TaxCertificateMock.verify();
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ customer, company: companyId }] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -193,20 +191,20 @@ describe('formatPdf', () => {
 
 describe('generateTaxCertificatePdf', () => {
   let generatePdf;
-  let TaxCertificateMock;
+  let findOne;
   let formatPdf;
   let getTaxCertificateInterventions;
   let getTaxCertificatesPayments;
   beforeEach(() => {
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
-    TaxCertificateMock = sinon.mock(TaxCertificate);
+    findOne = sinon.stub(TaxCertificate, 'findOne');
     formatPdf = sinon.stub(TaxCertificateHelper, 'formatPdf');
     getTaxCertificateInterventions = sinon.stub(EventRepository, 'getTaxCertificateInterventions');
     getTaxCertificatesPayments = sinon.stub(PaymentRepository, 'getTaxCertificatesPayments');
   });
   afterEach(() => {
     generatePdf.restore();
-    TaxCertificateMock.restore();
+    findOne.restore();
     formatPdf.restore();
     getTaxCertificateInterventions.restore();
     getTaxCertificatesPayments.restore();
@@ -218,24 +216,15 @@ describe('generateTaxCertificatePdf', () => {
     const credentials = { company: { _id: companyId } };
     const taxCertificate = { _id: taxCertificateId, year: '2019' };
     generatePdf.returns('pdf');
-    TaxCertificateMock.expects('findOne')
-      .withExactArgs({ _id: taxCertificateId })
-      .chain('populate')
-      .withExactArgs({
-        path: 'customer',
-        select: 'identity contact subscriptions',
-        populate: { path: 'subscriptions.service' },
-      })
-      .chain('lean')
-      .withExactArgs()
-      .once()
-      .returns(taxCertificate);
+
+    findOne.returns(SinonMongoose.stubChainedQueries([taxCertificate]));
     formatPdf.returns('data');
     getTaxCertificateInterventions.returns(['interventions']);
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
+    expect(result).toEqual('pdf');
     sinon.assert.calledWithExactly(
       formatPdf,
       taxCertificate,
@@ -245,14 +234,27 @@ describe('generateTaxCertificatePdf', () => {
     );
     sinon.assert.calledWithExactly(generatePdf, 'data', './src/data/taxCertificates.html');
     sinon.assert.calledWithExactly(getTaxCertificateInterventions, taxCertificate, companyId);
-    expect(result).toEqual('pdf');
-    TaxCertificateMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: taxCertificateId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'identity contact subscriptions',
+            populate: { path: 'subscriptions.service' },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('create', () => {
   let addFileStub;
-  let TaxCertificateMock;
+  let create;
   const date = new Date();
   const payload = {
     driveFolderId: '1234567890',
@@ -276,17 +278,16 @@ describe('create', () => {
 
   beforeEach(() => {
     addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
-    TaxCertificateMock = sinon.mock(TaxCertificate);
+    create = sinon.stub(TaxCertificate, 'create');
   });
 
   afterEach(() => {
     addFileStub.restore();
-    TaxCertificateMock.restore();
+    create.restore();
   });
 
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
     addFileStub.returns(null);
-    TaxCertificateMock.expects('create').never();
 
     try {
       await TaxCertificateHelper.create(payload, credentials);
@@ -299,17 +300,14 @@ describe('create', () => {
         type: 'application/pdf',
         body: 'stream',
       });
-      TaxCertificateMock.verify();
+      sinon.assert.notCalled(create);
     }
   });
 
   it('should save document to drive and db', async () => {
     addFileStub.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
-    TaxCertificateMock
-      .expects('create')
-      .withExactArgs(createPayload)
-      .once()
-      .returns(newTaxCertificate);
+
+    create.returns(newTaxCertificate);
 
     const result = await TaxCertificateHelper.create(payload, credentials);
 
@@ -320,49 +318,48 @@ describe('create', () => {
       type: 'application/pdf',
       body: 'stream',
     });
-    TaxCertificateMock.verify();
+    sinon.assert.calledOnceWithExactly(create, createPayload);
   });
 });
 
 describe('remove', () => {
-  let TaxCertificateMock;
+  let findOneAndDelete;
   let deleteFileStub;
   beforeEach(() => {
-    TaxCertificateMock = sinon.mock(TaxCertificate);
+    findOneAndDelete = sinon.stub(TaxCertificate, 'findOneAndDelete');
     deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
   });
   afterEach(() => {
-    TaxCertificateMock.restore();
+    findOneAndDelete.restore();
     deleteFileStub.restore();
   });
 
   it('should delete tax certificate', async () => {
     const taxCertificateId = new ObjectID();
 
-    TaxCertificateMock
-      .expects('findOneAndDelete')
-      .withExactArgs({ _id: taxCertificateId })
-      .chain('lean')
-      .returns({ _id: new ObjectID() });
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectID() }], ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.notCalled(deleteFileStub);
-    TaxCertificateMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndDelete,
+      [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
+    );
   });
 
   it('should delete tax certificate and drive file if there is one', async () => {
     const taxCertificateId = new ObjectID();
     const taxCertificate = { _id: new ObjectID(), driveFile: { driveId: new ObjectID() } };
-    TaxCertificateMock
-      .expects('findOneAndDelete')
-      .withExactArgs({ _id: taxCertificateId })
-      .chain('lean')
-      .returns(taxCertificate);
+
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([taxCertificate], ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.calledWithExactly(deleteFileStub, taxCertificate.driveFile.driveId);
-    TaxCertificateMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndDelete,
+      [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
+    );
   });
 });
