@@ -365,9 +365,7 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
     credentials._id
   );
 
-  if (trainee && trainee.formationExpoTokenList && trainee.formationExpoTokenList.length) {
-    await sendNotifications(trainee, courseId);
-  }
+  if (get(trainee, 'formationExpoTokenList.length')) await sendNotifications(trainee, courseId);
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
     .lean();
