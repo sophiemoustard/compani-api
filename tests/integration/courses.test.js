@@ -34,6 +34,7 @@ const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('
 const { noRoleNoCompany } = require('../seed/userSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
+const NotificationHelper = require('../../src/helpers/notifications');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -1429,8 +1430,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
   describe('intra', () => {
     describe('VENDOR_ADMIN', () => {
+      let sendNotificationToUser;
       beforeEach(async () => {
         authToken = await getToken('vendor_admin');
+        sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+      });
+      afterEach(() => {
+        sendNotificationToUser.restore();
       });
 
       it('should add existing user to course trainees', async () => {
