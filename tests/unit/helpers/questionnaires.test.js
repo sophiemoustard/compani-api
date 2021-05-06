@@ -430,17 +430,17 @@ describe('getUserQuestionnaires', () => {
     );
   });
 
-  it('should return end of course questionnaire if course ended and questionnaire not answered', async () => {
+  it('should return end of course questionnaire if last slot is started and questionnaire not answered', async () => {
     const courseId = new ObjectID();
     const credentials = { _id: new ObjectID() };
     const course = {
       _id: courseId,
-      slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
+      slots: [{ startDate: new Date('2021-04-23T09:00:00'), endDate: new Date('2021-04-23T11:00:00') }],
     };
     const questionnaire = { _id: new ObjectID(), name: 'test', type: 'end_of_course', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
-    nowStub.returns(new Date('2021-04-23T15:00:00'));
+    nowStub.returns(new Date('2021-04-23T10:00:00'));
     findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);

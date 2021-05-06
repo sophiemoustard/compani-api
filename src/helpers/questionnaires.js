@@ -48,7 +48,7 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   if (get(course, 'slotsToPlan.length')) return [];
 
   const isCourseEnded = get(course, 'slots.length') &&
-    DatesHelper.isAfter(Date.now(), course.slots[course.slots.length - 1].endDate);
+    DatesHelper.isAfter(Date.now(), course.slots[course.slots.length - 1].startDate);
   if (isCourseEnded) {
     const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
 
