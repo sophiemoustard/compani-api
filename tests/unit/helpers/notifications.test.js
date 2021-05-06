@@ -19,6 +19,7 @@ describe('sendNotificationToUser', () => {
       title: 'Bonjour, c\'est Philippe Etchebest',
       body: '#TeamMathias',
       data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
+      expoToken: 'ExponentPushToken[JeSuisUnTokenExpo]',
     };
 
     await NotificationHelper.sendNotificationToUser(payload);
@@ -26,7 +27,7 @@ describe('sendNotificationToUser', () => {
     sinon.assert.calledOnceWithExactly(
       sendNotificationToUser,
       {
-        to: 'ExponentPushToken[_UgI-UCZhBhcmvII74H3U2]',
+        to: 'ExponentPushToken[JeSuisUnTokenExpo]',
         title: 'Bonjour, c\'est Philippe Etchebest',
         body: '#TeamMathias',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
