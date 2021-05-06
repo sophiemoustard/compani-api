@@ -390,5 +390,5 @@ module.exports = {
     ];
   },
   // NOTIFICATION
-  BLENDED_COURSE_REGISTRATION: 'blendedCourseRegistration',
+  BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
 };
