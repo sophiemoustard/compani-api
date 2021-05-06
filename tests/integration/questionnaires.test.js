@@ -699,8 +699,8 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
 
       expect(response.statusCode).toBe(200);
 
-      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id });
-      expect(cardDeleted).toBe(0);
+      const remainingCard = await Card.countDocuments({ _id: cardsList[0]._id });
+      expect(remainingCard).toBe(0);
 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
       expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);
@@ -719,8 +719,8 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'publicId');
 
-      const cardDeleted = await Card.countDocuments({ _id: cardsList[4]._id });
-      expect(cardDeleted).toBe(0);
+      const remainingCard = await Card.countDocuments({ _id: cardsList[4]._id });
+      expect(remainingCard).toBe(0);
       expect(imageExistsBeforeUpdate).toBeTruthy();
 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();

@@ -30,7 +30,7 @@ exports.authorizeCardAdd = async (req) => {
 
 exports.authorizeCardDeletion = async (req) => {
   const { cardId } = req.params;
-  const card = await Card.findOne({ _id: cardId }).lean();
+  const card = await Card.findOne({ _id: cardId }, { _id: 1, template: 1 }).lean();
   if (!card) throw Boom.notFound();
 
   const activity = await Activity.countDocuments({ cards: cardId, status: PUBLISHED });

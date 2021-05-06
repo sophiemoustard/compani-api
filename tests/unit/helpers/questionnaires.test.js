@@ -152,7 +152,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(removeCard, cardId);
-    sinon.assert.calledOnceWithExactly(deleteMedia, cardId, null);
+    sinon.assert.notCalled(deleteMedia);
   });
 
   it('should remove card with media from questionnaire', async () => {
