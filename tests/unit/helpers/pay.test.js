@@ -14,8 +14,6 @@ const SectorHistoryRepository = require('../../../src/repositories/SectorHistory
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 const FinalPay = require('../../../src/models/FinalPay');
 
-require('sinon-mongoose');
-
 describe('formatSurchargeDetail', () => {
   it('should return empty array if empty object given', () => {
     const result = PayHelper.formatSurchargeDetail({});
