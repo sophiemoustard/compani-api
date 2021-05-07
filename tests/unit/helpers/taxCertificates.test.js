@@ -21,11 +21,9 @@ describe('list', () => {
   afterEach(() => {
     find.restore();
   });
+
   it('should return tax certificates list', async () => {
-    const taxCertificates = [
-      { _id: new ObjectID() },
-      { _id: new ObjectID() },
-    ];
+    const taxCertificates = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const companyId = new ObjectID();
     const customer = new ObjectID();
 
@@ -215,8 +213,8 @@ describe('generateTaxCertificatePdf', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const taxCertificate = { _id: taxCertificateId, year: '2019' };
-    generatePdf.returns('pdf');
 
+    generatePdf.returns('pdf');
     findOne.returns(SinonMongoose.stubChainedQueries([taxCertificate]));
     formatPdf.returns('data');
     getTaxCertificateInterventions.returns(['interventions']);

@@ -106,6 +106,6 @@ describe('delete', () => {
 
     await ThirdPartyPayersHelper.delete(tppId);
 
-    sinon.assert.calledWithExactly(deleteOne, { _id: tppId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: tppId });
   });
 });
