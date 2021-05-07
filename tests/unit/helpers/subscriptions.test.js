@@ -415,6 +415,7 @@ describe('createSubscriptionHistory', () => {
     findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
     const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
+
     expect(result).toEqual(customer);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
