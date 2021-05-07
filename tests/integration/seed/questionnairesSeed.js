@@ -6,20 +6,13 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const SubProgram = require('../../../src/models/SubProgram');
 const Program = require('../../../src/models/Program');
 const { populateDBForAuthentication, rolesList, userList, authCompany } = require('./authenticationSeed');
-const { TRANSITION, OPEN_QUESTION, TITLE_TEXT_MEDIA } = require('../../../src/helpers/constants');
+const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'test1' },
   { _id: new ObjectID(), template: OPEN_QUESTION, question: 'question?' },
   { _id: new ObjectID(), template: TRANSITION, title: 'test2' },
   { _id: new ObjectID(), template: OPEN_QUESTION, question: 'question?' },
-  {
-    _id: new ObjectID(),
-    template: TITLE_TEXT_MEDIA,
-    title: 'test',
-    text: 'text',
-    media: { type: 'image', link: 'link', publicId: 'publicId' },
-  },
 ];
 
 const questionnairesList = [
@@ -28,7 +21,7 @@ const questionnairesList = [
     name: 'test',
     status: 'draft',
     type: 'expectations',
-    cards: [cardsList[0]._id, cardsList[1]._id, cardsList[4]._id],
+    cards: [cardsList[0]._id, cardsList[1]._id],
   },
   {
     _id: new ObjectID(),

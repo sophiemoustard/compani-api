@@ -16,8 +16,8 @@ const {
   authorizeCardAnswerUpdate,
   authorizeCardAnswerCreation,
   authorizeCardAnswerDeletion,
+  getCardMediaPublicId,
 } = require('./preHandlers/cards');
-const { getCardMediaPublicId } = require('./preHandlers/utils');
 const {
   SURVEY_LABEL_MAX_LENGTH,
   QC_ANSWER_MAX_LENGTH,

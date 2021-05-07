@@ -1,10 +1,8 @@
 const expect = require('expect');
-const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const Card = require('../../src/models/Card');
-const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const {
   populateDB,
   activitiesList,
@@ -335,7 +333,6 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
 
 describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
   let authToken = null;
-  let deleteProgramMediaStub;
   beforeEach(populateDB);
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
   const publishedActivity = activitiesList.find(activity => activity.status === 'published');
@@ -343,13 +340,9 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
       authToken = await getToken('vendor_admin');
-      deleteProgramMediaStub = sinon.stub(GCloudStorageHelper, 'deleteProgramMedia');
-    });
-    afterEach(() => {
-      deleteProgramMediaStub.restore();
     });
 
-    it('should delete activity card without media', async () => {
+    it('should delete activity card', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/activities/cards/${draftActivity.cards[0].toHexString()}`,
@@ -364,28 +357,6 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
       const activity = await Activity.findById(draftActivity._id).lean();
       expect(activity.cards.length).toEqual(draftActivity.cards.length - 1);
       expect(activity.cards.includes(draftActivity.cards[0])).toBeFalsy();
-    });
-
-    it('should delete activity card with media', async () => {
-      const imageExistsBeforeUpdate = await Card
-        .countDocuments({ _id: cardsList[2]._id, 'media.publicId': { $exists: true } });
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/activities/cards/${draftActivity.cards[2].toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'id');
-
-      const remainingCard = await Card.countDocuments({ _id: cardsList[2]._id });
-      expect(remainingCard).toBe(0);
-      expect(imageExistsBeforeUpdate).toBeTruthy();
-
-      const activity = await Activity.findById(draftActivity._id).lean();
-      expect(activity.cards.length).toEqual(draftActivity.cards.length - 1);
-      expect(activity.cards.includes(draftActivity.cards[2])).toBeFalsy();
     });
 
     it('should return 404 if card not found', async () => {

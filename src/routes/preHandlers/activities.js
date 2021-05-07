@@ -1,8 +1,7 @@
 const Boom = require('@hapi/boom');
 const Activity = require('../../models/Activity');
 const Card = require('../../models/Card');
-const { PUBLISHED, TEXT_MEDIA, TITLE_TEXT_MEDIA } = require('../../helpers/constants');
-const { getCardMediaPublicId } = require('./utils');
+const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeActivityUpdate = async (req) => {
   const activity = await Activity.findOne({ _id: req.params._id }).lean();
@@ -29,14 +28,11 @@ exports.authorizeCardAdd = async (req) => {
 };
 
 exports.authorizeCardDeletion = async (req) => {
-  const { cardId } = req.params;
-  const card = await Card.findOne({ _id: cardId }, { _id: 1, template: 1 }).lean();
+  const card = await Card.countDocuments({ _id: req.params.cardId });
   if (!card) throw Boom.notFound();
 
-  const activity = await Activity.countDocuments({ cards: cardId, status: PUBLISHED });
+  const activity = await Activity.countDocuments({ cards: req.params.cardId, status: PUBLISHED });
   if (activity) throw Boom.forbidden();
-
-  if ([TEXT_MEDIA, TITLE_TEXT_MEDIA].includes(card.template)) return getCardMediaPublicId({ params: { _id: cardId } });
 
   return null;
 };

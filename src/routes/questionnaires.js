@@ -112,7 +112,7 @@ exports.plugin = {
       options: {
         validate: { params: Joi.object({ cardId: Joi.objectId().required() }) },
         auth: { scope: ['questionnaires:edit'] },
-        pre: [{ method: authorizeCardDeletion, assign: 'mediaPublicId' }],
+        pre: [{ method: authorizeCardDeletion }],
       },
       handler: removeCard,
     });

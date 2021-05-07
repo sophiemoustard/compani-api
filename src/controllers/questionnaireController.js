@@ -69,7 +69,7 @@ const addCard = async (req) => {
 
 const removeCard = async (req) => {
   try {
-    await QuestionnaireHelper.removeCard(req.params.cardId, req.pre.mediaPublicId);
+    await QuestionnaireHelper.removeCard(req.params.cardId);
 
     return { message: translate[language].cardDeleted };
   } catch (e) {

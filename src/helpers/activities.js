@@ -39,8 +39,10 @@ exports.addCard = async (activityId, payload) => {
   await Activity.updateOne({ _id: activityId }, { $push: { cards: card._id } });
 };
 
-exports.removeCard = async (cardId, mediaPublicId) => {
+exports.removeCard = async (cardId) => {
+  const card = await Card.findOne({ _id: cardId, 'media.publicId': { $exists: true } }, { 'media.publicId': 1 }).lean();
+
   await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
-  if (mediaPublicId) await CardHelper.deleteMedia(cardId, mediaPublicId);
+  if (card) await CardHelper.deleteMedia(cardId, card.media.publicId);
   await CardHelper.removeCard(cardId);
 };
