@@ -360,27 +360,29 @@ describe('deleteSubscription', () => {
   const secondSubId = new ObjectID();
 
   let updateOne;
-  let CustomerMock;
+  let findByIdCustomer;
   beforeEach(() => {
     updateOne = sinon.stub(Customer, 'updateOne');
-    CustomerMock = sinon.mock(Customer);
+    findByIdCustomer = sinon.stub(Customer, 'findById');
   });
   afterEach(() => {
     updateOne.restore();
-    CustomerMock.restore();
+    findByIdCustomer.restore();
   });
 
   it('should delete subscription and the subscriptionhistory associated', async () => {
-    CustomerMock.expects('findById')
-      .chain('lean')
-      .returns({
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
+      [{
         subscriptionsHistory: [
           { subscriptions: [{ subscriptionId }] },
           { subscriptions: [{ subscriptionId }, { subscriptionId: secondSubId }] },
         ],
-      });
+      }],
+      ['lean']
+    ));
 
     await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
+
     sinon.assert.calledWithExactly(
       updateOne,
       { _id: customerId.toHexString() },
@@ -389,17 +391,20 @@ describe('deleteSubscription', () => {
         $set: { subscriptionsHistory: [{ subscriptions: [{ subscriptionId: secondSubId }] }] },
       }
     );
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId.toHexString()] }, { query: 'lean' }]
+    );
   });
 });
 
 describe('createSubscriptionHistory', () => {
-  let CustomerMock;
+  let findOneAndUpdateCustomer;
   beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
+    findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
   });
   afterEach(() => {
-    CustomerMock.restore();
+    findOneAndUpdateCustomer.restore();
   });
 
   it('should create subscription history', async () => {
@@ -407,18 +412,23 @@ describe('createSubscriptionHistory', () => {
     const payload = { evenings: 2 };
     const customer = { _id: customerId };
 
-    CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: customerId.toHexString() },
-        { $push: { subscriptionsHistory: payload } },
-        { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false }
-      )
-      .chain('lean')
-      .once()
-      .returns(customer);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
 
     const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
     expect(result).toEqual(customer);
-    CustomerMock.verify();
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId.toHexString() },
+            { $push: { subscriptionsHistory: payload } },
+            { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
