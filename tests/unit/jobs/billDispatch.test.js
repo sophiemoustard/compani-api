@@ -1,17 +1,17 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-require('sinon-mongoose');
 
 const Bill = require('../../../src/models/Bill');
 const Company = require('../../../src/models/Company');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const EmailHelper = require('../../../src/helpers/email');
 const billDispatch = require('../../../src/jobs/billDispatch');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('method', () => {
-  let BillMock;
-  let CompanyMock;
+  let updateManyBill;
+  let findCompany;
   let findBillsAndHelpersByCustomerStub;
   let billAlertEmailStub;
   let completeBillScriptEmailStub;
@@ -19,8 +19,8 @@ describe('method', () => {
   const fakeDate = new Date('2019-01-03');
 
   beforeEach(() => {
-    BillMock = sinon.mock(Bill);
-    CompanyMock = sinon.mock(Company);
+    updateManyBill = sinon.stub(Bill, 'updateMany');
+    findCompany = sinon.stub(Company, 'find');
     findBillsAndHelpersByCustomerStub = sinon.stub(BillRepository, 'findBillsAndHelpersByCustomer');
     billAlertEmailStub = sinon.stub(EmailHelper, 'billAlertEmail');
     completeBillScriptEmailStub = sinon.stub(EmailHelper, 'completeBillScriptEmail');
@@ -28,8 +28,8 @@ describe('method', () => {
   });
 
   afterEach(() => {
-    BillMock.restore();
-    CompanyMock.restore();
+    updateManyBill.restore();
+    findCompany.restore();
     findBillsAndHelpersByCustomerStub.restore();
     billAlertEmailStub.restore();
     completeBillScriptEmailStub.restore();
@@ -51,22 +51,12 @@ describe('method', () => {
     ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
-    CompanyMock
-      .expects('find')
-      .chain('lean')
-      .once()
-      .returns([{ name: 'Alenvi', _id: companyId }]);
-
+    findCompany.returns(SinonMongoose.stubChainedQueries([[{ name: 'Alenvi', _id: companyId }]], ['lean']));
     billAlertEmailStub
       .onFirstCall()
       .returns(Promise.resolve('leroi@lion.com'))
       .onSecondCall()
       .returns(Promise.resolve('rox@rouky.com'));
-
-    BillMock
-      .expects('updateMany')
-      .withArgs({ _id: { $in: billsIds } }, { $set: { sentAt: fakeDate } })
-      .once();
 
     const result = await billDispatch.method(server);
 
@@ -74,7 +64,8 @@ describe('method', () => {
     expect(billAlertEmailStub.callCount).toBe(2);
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
-    BillMock.verify();
+    sinon.assert.calledOnceWithExactly(updateManyBill, { _id: { $in: billsIds } }, { $set: { sentAt: fakeDate } });
+    SinonMongoose.calledWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
   });
 
   it('should log emails which can not be sent', async () => {
@@ -94,21 +85,12 @@ describe('method', () => {
     ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
-    CompanyMock
-      .expects('find')
-      .chain('lean')
-      .once()
-      .returns([{ name: 'Alenvi', _id: companyId }]);
-
+    findCompany.returns(SinonMongoose.stubChainedQueries([[{ name: 'Alenvi', _id: companyId }]], ['lean']));
     billAlertEmailStub
       .onFirstCall()
       .returns(Promise.resolve('leroi@lion.com'))
       .onSecondCall()
       .returns(Promise.reject(error));
-
-    BillMock
-      .expects('updateMany')
-      .never();
 
     const result = await billDispatch.method(server);
 
@@ -116,9 +98,9 @@ describe('method', () => {
     expect(billAlertEmailStub.callCount).toBe(2);
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
-    BillMock.verify();
-    CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
+    sinon.assert.notCalled(updateManyBill);
+    SinonMongoose.calledWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
     serverLogStub.restore();
   });
 });
