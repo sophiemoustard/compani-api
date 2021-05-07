@@ -710,6 +710,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
     it('should delete questionnaire card with media', async () => {
       const imageExistsBeforeUpdate = await Card
         .countDocuments({ _id: cardsList[4]._id, 'media.publicId': { $exists: true } });
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/questionnaires/cards/${draftQuestionnaire.cards[2].toHexString()}`,

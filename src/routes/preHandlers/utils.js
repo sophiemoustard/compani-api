@@ -29,7 +29,7 @@ exports.checkQuestionnaireAnswersList = async (questionnaireAnswersList, parentI
 };
 
 exports.getCardMediaPublicId = async (req) => {
-  const card = await Card.findOne({ _id: req.params._id }).lean();
+  const card = await Card.findOne({ _id: req.params._id }, { 'media.publicId': 1 }).lean();
   if (!card) throw Boom.notFound();
 
   return get(card, 'media.publicId') || '';
