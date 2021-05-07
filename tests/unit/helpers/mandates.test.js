@@ -12,8 +12,6 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const FileHelper = require('../../../src/helpers/file');
 const SinonMongoose = require('../sinonMongoose');
 
-require('sinon-mongoose');
-
 describe('getMandates', () => {
   let findOneCustomer;
   beforeEach(() => {
