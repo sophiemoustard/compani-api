@@ -19,14 +19,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const {
-  INTRA,
-  INTER_B2B,
-  COURSE_SMS,
-  WEBAPP,
-  STRICTLY_E_LEARNING,
-  DRAFT,
-} = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 

@@ -1,9 +1,44 @@
+const axios = require('axios');
 const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const { BLENDED_COURSE_REGISTRATION } = require('../../../src/helpers/constants');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const Course = require('../../../src/models/Course');
 const SinonMongoose = require('../sinonMongoose');
+
+describe('sendNotificationToAPI', () => {
+  let post;
+  beforeEach(() => {
+    post = sinon.stub(axios, 'post');
+  });
+  afterEach(() => {
+    post.restore();
+  });
+
+  it('should call expo api', async () => {
+    const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send/';
+    const courseId = new ObjectID();
+    const payload = {
+      to: 'ExponentPushToken[JeSuisUnTokenExpo]',
+      title: 'Bonjour, c\'est Philippe Etchebest',
+      body: '#TeamMathias',
+      data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
+    };
+
+    await NotificationHelper.sendNotificationToAPI(payload);
+
+    sinon.assert.calledOnceWithExactly(
+      post,
+      `${EXPO_NOTIFICATION_API_URL}`,
+      {
+        to: 'ExponentPushToken[JeSuisUnTokenExpo]',
+        title: 'Bonjour, c\'est Philippe Etchebest',
+        body: '#TeamMathias',
+        data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
+      }
+    );
+  });
+});
 
 describe('sendNotificationToUser', () => {
   let sendNotificationToAPI;
@@ -80,7 +115,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       sendNotificationToUser.getCall(0),
       {
         title: 'Vous avez été inscrit à une formation',
-        body: 'Rendez-vous sur la page "à propos" de votre formation \'La communication avec Patrick - skusku\''
+        body: 'Rendez-vous sur la page \'à propos\' de votre formation \'La communication avec Patrick - skusku\''
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
@@ -90,7 +125,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       sendNotificationToUser.getCall(1),
       {
         title: 'Vous avez été inscrit à une formation',
-        body: 'Rendez-vous sur la page "à propos" de votre formation \'La communication avec Patrick - skusku\''
+        body: 'Rendez-vous sur la page \'à propos\' de votre formation \'La communication avec Patrick - skusku\''
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
