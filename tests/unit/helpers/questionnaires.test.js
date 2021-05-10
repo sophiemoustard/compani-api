@@ -3,6 +3,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Course = require('../../../src/models/Course');
+const Card = require('../../../src/models/Card');
 const QuestionnaireHelper = require('../../../src/helpers/questionnaires');
 const CardHelper = require('../../../src/helpers/cards');
 const { EXPECTATIONS, PUBLISHED, END_OF_COURSE } = require('../../../src/helpers/constants');
@@ -131,24 +132,55 @@ describe('addCard', () => {
 });
 
 describe('removeCard', () => {
-  let removeCard;
+  let findOneAndRemoveCard;
   let updateOne;
+  let deleteMedia;
   beforeEach(() => {
-    removeCard = sinon.stub(CardHelper, 'removeCard');
+    findOneAndRemoveCard = sinon.stub(Card, 'findOneAndRemove');
     updateOne = sinon.stub(Questionnaire, 'updateOne');
+    deleteMedia = sinon.stub(CardHelper, 'deleteMedia');
   });
   afterEach(() => {
-    removeCard.restore();
+    findOneAndRemoveCard.restore();
     updateOne.restore();
+    deleteMedia.restore();
   });
 
-  it('should remove card from questionnaire', async () => {
+  it('should remove card without media from questionnaire', async () => {
     const cardId = new ObjectID();
+
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     await QuestionnaireHelper.removeCard(cardId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
-    sinon.assert.calledOnceWithExactly(removeCard, cardId);
+    sinon.assert.notCalled(deleteMedia);
+    SinonMongoose.calledWithExactly(
+      findOneAndRemoveCard,
+      [
+        { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should remove card with media from questionnaire', async () => {
+    const cardId = new ObjectID();
+    const card = { _id: cardId, media: { publicId: 'publicId' } };
+
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));
+
+    await QuestionnaireHelper.removeCard(cardId);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
+    SinonMongoose.calledWithExactly(
+      findOneAndRemoveCard,
+      [
+        { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

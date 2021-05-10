@@ -676,8 +676,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
 describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const draftQuestionnaire = questionnairesList.find(activity => activity.status === 'draft');
-  const publishedQuestionnaire = questionnairesList.find(activity => activity.status === 'published');
+  const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
+  const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -693,8 +693,8 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
 
       expect(response.statusCode).toBe(200);
 
-      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id });
-      expect(cardDeleted).toBe(0);
+      const remainingCard = await Card.countDocuments({ _id: cardsList[0]._id });
+      expect(remainingCard).toBe(0);
 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
       expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);

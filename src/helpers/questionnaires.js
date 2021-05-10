@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const Questionnaire = require('../models/Questionnaire');
 const Course = require('../models/Course');
+const Card = require('../models/Card');
 const CardHelper = require('./cards');
 const { EXPECTATIONS, PUBLISHED, STRICTLY_E_LEARNING, END_OF_COURSE } = require('./constants');
 const DatesHelper = require('./dates');
@@ -21,8 +22,9 @@ exports.addCard = async (questionnaireId, payload) => {
 };
 
 exports.removeCard = async (cardId) => {
+  const card = await Card.findOneAndRemove({ _id: cardId }, { 'media.publicId': 1 }).lean();
   await Questionnaire.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
-  await CardHelper.removeCard(cardId);
+  if (get(card, 'media.publicId')) await CardHelper.deleteMedia(cardId, card.media.publicId);
 };
 
 exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
