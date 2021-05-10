@@ -22,11 +22,9 @@ exports.addCard = async (questionnaireId, payload) => {
 };
 
 exports.removeCard = async (cardId) => {
-  const card = await Card.findOne({ _id: cardId, 'media.publicId': { $exists: true } }, { 'media.publicId': 1 }).lean();
-
+  const card = await Card.findOneAndRemove({ _id: cardId }, { 'media.publicId': 1 }).lean();
   await Questionnaire.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
-  if (card) await CardHelper.deleteMedia(cardId, card.media.publicId);
-  await CardHelper.removeCard(cardId);
+  if (get(card, 'media.publicId')) await CardHelper.deleteMedia(cardId, card.media.publicId);
 };
 
 exports.findQuestionnaire = async (course, credentials, type) => Questionnaire
