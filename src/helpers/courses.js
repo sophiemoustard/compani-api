@@ -21,6 +21,7 @@ const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
+const NotificationHelper = require('./notifications');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -342,6 +343,8 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
     { course: courseId, traineeId: addedTrainee._id },
     credentials._id
   );
+
+  await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
   return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
     .lean();

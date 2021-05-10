@@ -18,6 +18,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
+const NotificationHelper = require('../../../src/helpers/notifications');
 const { COURSE_SMS, BLENDED, DRAFT } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
@@ -335,47 +336,56 @@ describe('listUserCourses', () => {
 
     const result = await CourseHelper.listUserCourses(trainee);
 
-    expect(result).toMatchObject(coursesList.map(course => ({ ...course,
-      subProgram: {
-        ...course.subProgram,
-        steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })),
-      },
-      progress: 1 })));
+    expect(result).toMatchObject(coursesList.map(
+      course => (
+        {
+          ...course,
+          subProgram: { ...course.subProgram, steps: course.subProgram.steps.map(step => ({ ...step, progress: 1 })) },
+          progress: 1,
+        }
+      )
+    ));
 
-    SinonMongoose.calledWithExactly(courseFind, [
-      {
-        query: 'find',
-        args: [{ trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] }, { format: 1 }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'program steps',
-          populate: [
-            { path: 'program', select: 'name image description' },
-            {
-              path: 'steps',
-              select: 'name type activities',
-              populate: {
-                path: 'activities',
-                select: 'name type cards activityHistories',
-                populate: [
-                  { path: 'activityHistories', match: { user: trainee._id } },
-                  { path: 'cards', select: 'template' },
-                ],
-              },
-            },
+    SinonMongoose.calledWithExactly(
+      courseFind,
+      [
+        {
+          query: 'find',
+          args: [
+            { trainees: trainee._id, $or: [{ accessRules: [] }, { accessRules: trainee.company }] },
+            { format: 1 },
           ],
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } }],
-      },
-      { query: 'select', args: ['_id misc'] },
-      { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-    ]);
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'program steps',
+            populate: [
+              { path: 'program', select: 'name image description' },
+              {
+                path: 'steps',
+                select: 'name type activities',
+                populate: {
+                  path: 'activities',
+                  select: 'name type cards activityHistories',
+                  populate: [
+                    { path: 'activityHistories', match: { user: trainee._id } },
+                    { path: 'cards', select: 'template' },
+                  ],
+                },
+              },
+            ],
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } }],
+        },
+        { query: 'select', args: ['_id misc'] },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
 
     sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(0), coursesList[0]);
     sinon.assert.calledWithExactly(formatCourseWithProgress.getCall(1), coursesList[1]);
@@ -405,42 +415,45 @@ describe('getCourse', () => {
     );
     expect(result).toMatchObject(course);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'program steps',
-          populate: [
-            { path: 'program', select: 'name learningGoals' },
-            {
-              path: 'steps',
-              select: 'name type',
-              populate: {
-                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'program steps',
+            populate: [
+              { path: 'program', select: 'name learningGoals' },
+              {
+                path: 'steps',
+                select: 'name type',
+                populate: {
+                  path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
+                },
               },
-            },
-          ],
-        }],
-      },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
-      { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'trainees',
-          match: {},
-          select: 'identity.firstname identity.lastname local.email company contact picture.link',
-          populate: { path: 'company', select: 'name' },
-        }],
-      },
-      { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
-      { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
-      { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
-      { query: 'lean' },
-    ]);
+            ],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainees',
+            match: {},
+            select: 'identity.firstname identity.lastname local.email company contact picture.link',
+            populate: { path: 'company', select: 'name' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
+        { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return inter b2b course with trainees filtering', async () => {
@@ -465,41 +478,44 @@ describe('getCourse', () => {
     );
     expect(result).toMatchObject(courseWithFilteredTrainees);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'program steps',
-          populate: [
-            { path: 'program', select: 'name learningGoals' },
-            {
-              path: 'steps',
-              select: 'name type',
-              populate: {
-                path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'program steps',
+            populate: [
+              { path: 'program', select: 'name learningGoals' },
+              {
+                path: 'steps',
+                select: 'name type',
+                populate: {
+                  path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
+                },
               },
-            },
-          ],
-        }],
-      },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
-      { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'trainees',
-          match: { company: authCompanyId },
-          select: 'identity.firstname identity.lastname local.email company contact picture.link',
-          populate: { path: 'company', select: 'name' },
-        }],
-      },
-      { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
-      { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
-      { query: 'lean' },
-    ]);
+            ],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainees',
+            match: { company: authCompanyId },
+            select: 'identity.firstname identity.lastname local.email company contact picture.link',
+            populate: { path: 'company', select: 'name' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
+        { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -635,47 +651,55 @@ describe('getCourseFollowUp', () => {
 
     expect(result).toEqual(course);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'select', args: ['trainees'] },
-      { query: 'lean' },
-    ], 0);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'select', args: ['trainees'] },
+        { query: 'lean' },
+      ],
+      0
+    );
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'select', args: ['subProgram'] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'name steps program',
-          populate: [
-            { path: 'program', select: 'name' },
-            {
-              path: 'steps',
-              select: 'name activities type',
-              populate: {
-                path: 'activities',
-                select: 'name type',
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'select', args: ['subProgram'] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'name steps program',
+            populate: [
+              { path: 'program', select: 'name' },
+              {
+                path: 'steps',
+                select: 'name activities type',
                 populate: {
-                  path: 'activityHistories',
-                  match: { user: { $in: trainees } },
-                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                  path: 'activities',
+                  select: 'name type',
+                  populate: {
+                    path: 'activityHistories',
+                    match: { user: { $in: trainees } },
+                    populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                  },
                 },
               },
-            },
-          ],
-        }],
-      },
-      { query: 'populate',
-        args: [{
-          path: 'trainees',
-          select: 'identity.firstname identity.lastname firstMobileConnection',
-          match: {},
-        }] },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
-      { query: 'lean' },
-    ], 1);
+            ],
+          }],
+        },
+        { query: 'populate',
+          args: [{
+            path: 'trainees',
+            select: 'identity.firstname identity.lastname firstMobileConnection',
+            match: {},
+          }] },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
+        { query: 'lean' },
+      ],
+      1
+    );
   });
 
   it('should return course follow up with trainees from company', async () => {
@@ -696,49 +720,57 @@ describe('getCourseFollowUp', () => {
 
     expect(result).toEqual(course);
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'select', args: ['trainees'] },
-      { query: 'lean' },
-    ], 0);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'select', args: ['trainees'] },
+        { query: 'lean' },
+      ],
+      0
+    );
 
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: 'findOne', args: [{ _id: course._id }] },
-      { query: 'select', args: ['subProgram'] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'name steps program',
-          populate: [
-            { path: 'program', select: 'name' },
-            {
-              path: 'steps',
-              select: 'name activities type',
-              populate: {
-                path: 'activities',
-                select: 'name type',
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: course._id }] },
+        { query: 'select', args: ['subProgram'] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'name steps program',
+            populate: [
+              { path: 'program', select: 'name' },
+              {
+                path: 'steps',
+                select: 'name activities type',
                 populate: {
-                  path: 'activityHistories',
-                  match: { user: { $in: trainees } },
-                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                  path: 'activities',
+                  select: 'name type',
+                  populate: {
+                    path: 'activityHistories',
+                    match: { user: { $in: trainees } },
+                    populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                  },
                 },
               },
-            },
-          ],
-        }],
-      },
-      {
-        query: 'populate',
-        args: [{
-          path: 'trainees',
-          select: 'identity.firstname identity.lastname firstMobileConnection',
-          match: { company: companyId },
-        }],
-      },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
-      { query: 'lean' },
-    ], 1);
+            ],
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainees',
+            select: 'identity.firstname identity.lastname firstMobileConnection',
+            match: { company: companyId },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
+        { query: 'lean' },
+      ],
+      1
+    );
   });
 });
 
@@ -786,28 +818,31 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject(followUps);
-    SinonMongoose.calledWithExactly(findOneCourse, [
-      { query: 'findOne', args: [{ _id: courseId }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'steps',
-          populate: [{
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
+    SinonMongoose.calledWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'steps',
+            populate: [{
+              path: 'steps',
+              select: 'activities',
               populate: {
-                path: 'activityHistories',
-                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
               },
-            },
+            }],
           }],
-        }],
-      },
-      { query: 'lean' },
-    ]);
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(formatActivity.getCall(0), activities[0]);
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
@@ -836,28 +871,31 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(findOneCourse, [
-      { query: 'findOne', args: [{ _id: courseId }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'steps',
-          populate: [{
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
+    SinonMongoose.calledWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'steps',
+            populate: [{
+              path: 'steps',
+              select: 'activities',
               populate: {
-                path: 'activityHistories',
-                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
               },
-            },
+            }],
           }],
-        }],
-      },
-      { query: 'lean' },
-    ]);
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledWithExactly(formatActivity.getCall(0), activities[0]);
     sinon.assert.calledWithExactly(formatActivity.getCall(1), activities[1]);
   });
@@ -878,28 +916,31 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(findOneCourse, [
-      { query: 'findOne', args: [{ _id: courseId }] },
-      {
-        query: 'populate',
-        args: [{
-          path: 'subProgram',
-          select: 'steps',
-          populate: [{
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
+    SinonMongoose.calledWithExactly(
+      findOneCourse,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subProgram',
+            select: 'steps',
+            populate: [{
+              path: 'steps',
+              select: 'activities',
               populate: {
-                path: 'activityHistories',
-                populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                path: 'activities',
+                populate: {
+                  path: 'activityHistories',
+                  populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+                },
               },
-            },
+            }],
           }],
-        }],
-      },
-      { query: 'lean' },
-    ]);
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(formatActivity);
   });
 });
@@ -1076,10 +1117,13 @@ describe('updateCourse', () => {
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.misc).toEqual(payload.misc);
 
-    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
-      { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      courseFindOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -1134,18 +1178,24 @@ describe('sendSMS', () => {
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(courseFindById, [
-      { query: 'findById', args: [courseId] },
-      { query: 'populate', args: [{ path: 'trainees', select: '_id contact' }] },
-      { query: 'lean' },
-    ]);
-    sinon.assert.calledWithExactly(courseSmsHistoryCreate, {
-      type: payload.type,
-      course: courseId,
-      message: payload.content,
-      sender: credentials._id,
-      missingPhones: ['poiuytrewq'],
-    });
+    SinonMongoose.calledWithExactly(
+      courseFindById,
+      [
+        { query: 'findById', args: [courseId] },
+        { query: 'populate', args: [{ path: 'trainees', select: '_id contact' }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      courseSmsHistoryCreate,
+      {
+        type: payload.type,
+        course: courseId,
+        message: payload.content,
+        sender: credentials._id,
+        missingPhones: ['poiuytrewq'],
+      }
+    );
     sinon.assert.calledWith(
       sendStub.getCall(0),
       {
@@ -1184,12 +1234,15 @@ describe('getSMSHistory', () => {
     const result = await CourseHelper.getSMSHistory(courseId);
 
     expect(result).toEqual(sms);
-    SinonMongoose.calledWithExactly(courseSmsHistoryFind, [
-      { query: 'find', args: [{ course: courseId }] },
-      { query: 'populate', args: [{ path: 'sender', select: 'identity.firstname identity.lastname' }] },
-      { query: 'populate', args: [{ path: 'missingPhones', select: 'identity.firstname identity.lastname' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      courseSmsHistoryFind,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'sender', select: 'identity.firstname identity.lastname' }] },
+        { query: 'populate', args: [{ path: 'missingPhones', select: 'identity.firstname identity.lastname' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -1198,17 +1251,23 @@ describe('addCourseTrainee', () => {
   let createUserStub;
   let updateUserStub;
   let createHistoryOnTraineeAddition;
+  let sendBlendedCourseRegistrationNotification;
   beforeEach(() => {
     courseFindOneAndUpdate = sinon.stub(Course, 'findOneAndUpdate');
     createUserStub = sinon.stub(UsersHelper, 'createUser');
     updateUserStub = sinon.stub(UsersHelper, 'updateUser');
     createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
+    sendBlendedCourseRegistrationNotification = sinon.stub(
+      NotificationHelper,
+      'sendBlendedCourseRegistrationNotification'
+    );
   });
   afterEach(() => {
     courseFindOneAndUpdate.restore();
     createUserStub.restore();
     updateUserStub.restore();
     createHistoryOnTraineeAddition.restore();
+    sendBlendedCourseRegistrationNotification.restore();
   });
   const addedBy = { _id: new ObjectID() };
 
@@ -1221,10 +1280,16 @@ describe('addCourseTrainee', () => {
 
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
-    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
-      { query: 'findOneAndUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
@@ -1232,6 +1297,7 @@ describe('addCourseTrainee', () => {
     );
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(updateUserStub);
+    sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
 
   it('should add a course trainee creating new user without role', async () => {
@@ -1244,10 +1310,16 @@ describe('addCourseTrainee', () => {
 
     const result = await CourseHelper.addCourseTrainee(course._id, payload, null, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
-    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
-      { query: 'findOneAndUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
@@ -1255,6 +1327,7 @@ describe('addCourseTrainee', () => {
     );
     sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP });
     sinon.assert.notCalled(updateUserStub);
+    sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, null, course._id);
   });
 
   it('should add a course trainee, and update it by adding his company', async () => {
@@ -1266,11 +1339,18 @@ describe('addCourseTrainee', () => {
     const result = await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
     expect(result.trainee).toEqual(expect.arrayContaining([user._id]));
     sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
-    SinonMongoose.calledWithExactly(courseFindOneAndUpdate, [
-      { query: 'findOneUpdate', args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      courseFindOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: course._id }, { $addToSet: { trainees: user._id } }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.notCalled(createUserStub);
+    sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
 });
 
