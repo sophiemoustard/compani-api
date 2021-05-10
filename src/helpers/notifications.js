@@ -18,16 +18,15 @@ exports.sendBlendedCourseRegistrationNotification = async (trainee, courseId) =>
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean({ virtuals: true });
-  const notificationMessage = 'Rendez-vous sur la page "à propos" de votre formation'
-    + ` '${get(course, 'subProgram.program.name')}${course.misc ? ` - ${course.misc}` : ''}'`
-    + ' pour en découvrir le programme.';
+
+  const courseName = `${get(course, 'subProgram.program.name')}${course.misc ? ` - ${course.misc}` : ''}`;
 
   const notifications = [];
   for (const expoToken of trainee.formationExpoTokenList) {
     notifications.push(
       this.sendNotificationToUser({
         title: 'Vous avez été inscrit à une formation',
-        body: notificationMessage,
+        body: `Rendez-vous sur la page 'à propos' de votre formation '${courseName}' pour en découvrir le programme.`,
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken,
       })
