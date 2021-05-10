@@ -135,6 +135,7 @@ const usersSeedList = [
     establishment: establishmentList[0]._id,
     picture: { publicId: 'a/public/id', link: 'https://the.complete.com/link/to/the/picture/storage/location' },
     origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
   {
     _id: new ObjectID(),
@@ -150,6 +151,7 @@ const usersSeedList = [
     },
     inactivityDate: null,
     origin: WEBAPP,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnAutreIdExpo]'],
   },
   {
     _id: new ObjectID(),

@@ -214,17 +214,23 @@ const helperExportHeader = [
 exports.exportHelpers = async (credentials) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   const companyId = get(credentials, 'company._id', null);
+
   const helpers = await User
     .find({ 'role.client': role._id, company: companyId })
     .populate({
       path: 'customers',
-      populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
+      populate: {
+        path: 'customer',
+        select: 'identity contact',
+        populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
+      },
+      match: { company: companyId },
     })
     .lean();
-  const data = [helperExportHeader];
 
+  const data = [helperExportHeader];
   for (const hel of helpers) {
-    const customer = hel.customers && hel.customers[0];
+    const customer = hel.customers && hel.customers.customer;
     const status = get(customer, 'firstIntervention', null)
       ? 'Actif'
       : 'Inactif';
@@ -373,7 +379,8 @@ exports.exportServices = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const services = await Service.find({ company: companyId })
     .populate('company')
-    .populate({ path: 'versions.surcharge', match: { company: companyId } });
+    .populate({ path: 'versions.surcharge', match: { company: companyId } })
+    .lean();
   const data = [serviceHeader];
 
   for (const service of services) {

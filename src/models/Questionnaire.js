@@ -18,6 +18,13 @@ QuestionnaireSchema.virtual('histories', {
   foreignField: 'questionnaire',
 });
 
+QuestionnaireSchema.virtual('historiesCount', {
+  ref: 'QuestionnaireHistory',
+  localField: '_id',
+  foreignField: 'questionnaire',
+  count: true,
+});
+
 // eslint-disable-next-line consistent-return
 function setAreCardsValid() {
   if (!this.cards || this.cards.length === 0) return false;

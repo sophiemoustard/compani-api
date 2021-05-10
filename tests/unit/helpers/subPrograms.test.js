@@ -8,7 +8,6 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const SubProgramHelper = require('../../../src/helpers/subPrograms');
 const SinonMongoose = require('../sinonMongoose');
-require('sinon-mongoose');
 
 describe('addSubProgram', () => {
   let updateOne;

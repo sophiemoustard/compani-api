@@ -78,10 +78,7 @@ const getQuestionnaireAnswers = async (req) => {
   try {
     const questionnaireAnswers = await CoursesHelper.getQuestionnaireAnswers(req.params._id);
 
-    return {
-      message: translate[language].courseQuestionnairesFound,
-      data: { questionnaireAnswers },
-    };
+    return { message: translate[language].courseQuestionnairesFound, data: { questionnaireAnswers } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -253,6 +250,17 @@ const generateConvocationPdf = async (req, h) => {
   }
 };
 
+const getQuestionnaires = async (req) => {
+  try {
+    const questionnaires = await CoursesHelper.getQuestionnaires(req.params._id);
+
+    return { message: translate[language].questionnairesFound, data: { questionnaires } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listUserCourses,
@@ -273,4 +281,5 @@ module.exports = {
   addAccessRule,
   generateConvocationPdf,
   deleteAccessRule,
+  getQuestionnaires,
 };

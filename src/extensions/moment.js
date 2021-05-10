@@ -12,8 +12,9 @@ const currentHolidays = [
   ...holidays.getHolidays(currentYear - 1),
   ...holidays.getHolidays(currentYear + 1),
 ];
+const omitedHolidays = ['easter 49', 'easter 50', 'sunday before 06-01'];
 moment.updateLocale('fr', {
-  holidays: currentHolidays.map(holiday => holiday.date),
+  holidays: currentHolidays.filter(h => !omitedHolidays.includes(h.rule)).map(holiday => holiday.date),
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6],
 });

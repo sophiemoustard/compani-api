@@ -35,6 +35,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should update step name if step is published', async () => {
+      const payload = { name: 'une nouvelle étape super innovant' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepsList[3]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should update activities', async () => {
       const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
       const response = await app.inject({

@@ -10,6 +10,7 @@ const {
   addCard,
   removeCard,
   getUserQuestionnaires,
+  getFollowUp,
 } = require('../controllers/questionnaireController');
 const {
   authorizeQuestionnaireGet,
@@ -17,6 +18,7 @@ const {
   authorizeQuestionnaireEdit,
   authorizeCardDeletion,
   authorizeUserQuestionnairesGet,
+  authorizeGetFollowUp,
 } = require('./preHandlers/questionnaires');
 const { CARD_TEMPLATES } = require('../models/Card');
 const { PUBLISHED } = require('../helpers/constants');
@@ -28,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['questionnaires:read'] },
+        auth: { scope: ['questionnaires:edit'] },
       },
       handler: list,
     });
@@ -54,9 +56,23 @@ exports.plugin = {
           query: Joi.object({ course: Joi.objectId().required() }),
         },
         auth: { mode: 'required' },
-        pre: [{ method: authorizeUserQuestionnairesGet, assign: 'course' }],
+        pre: [{ method: authorizeUserQuestionnairesGet }],
       },
       handler: getUserQuestionnaires,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/follow-up',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ course: Joi.objectId().required() }),
+        },
+        auth: { scope: ['questionnaires:read'] },
+        pre: [{ method: authorizeGetFollowUp }],
+      },
+      handler: getFollowUp,
     });
 
     server.route({

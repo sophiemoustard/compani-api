@@ -8,6 +8,7 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
+const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
 const UsersHelper = require('./users');
@@ -18,7 +19,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 
 exports.createCourse = payload => (new Course(payload)).save();
@@ -534,4 +535,13 @@ exports.generateConvocationPdf = async (courseId) => {
     ),
     courseName,
   };
+};
+
+exports.getQuestionnaires = async (courseId) => {
+  const questionnaires = await Questionnaire.find({ status: { $ne: DRAFT } })
+    .select('type name')
+    .populate({ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } })
+    .lean();
+
+  return questionnaires.filter(questionnaire => questionnaire.historiesCount);
 };

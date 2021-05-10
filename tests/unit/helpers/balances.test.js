@@ -12,8 +12,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('canBeDirectDebited', () => {
   const bill = {
@@ -271,7 +270,7 @@ describe('getBalance', () => {
     expect(result.toPay).toEqual(70);
     expect(result.participationRate).toEqual(10);
     sinon.assert.notCalled(computePayments);
-    sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, bill, tppList);
   });
 
   it('should format balance for customer with credit notes and without payment', () => {
@@ -304,7 +303,7 @@ describe('getBalance', () => {
     expect(result.toPay).toEqual(20);
     expect(result.participationRate).toEqual(10);
     sinon.assert.notCalled(computePayments);
-    sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, bill, tppList);
   });
 
   it('should format balance for customer with credit notes and payments', () => {
@@ -347,7 +346,7 @@ describe('getBalance', () => {
     expect(result.balance).toEqual(-10);
     expect(result.participationRate).toEqual(10);
     expect(result.toPay).toEqual(10);
-    sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, bill, tppList);
   });
 
   it('should format balance for tpp with credit notes and without payment', () => {
@@ -383,7 +382,7 @@ describe('getBalance', () => {
     expect(result.participationRate).toEqual(10);
     expect(result.lastCesuDate).toEqual(null);
     sinon.assert.notCalled(computePayments);
-    sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, bill, tppList);
   });
 
   it('should format balance for tpp with credit notes and payments', () => {
@@ -435,7 +434,7 @@ describe('getBalance', () => {
     expect(result.toPay).toEqual(0);
     expect(result.participationRate).toEqual(10);
     expect(result.lastCesuDate).toEqual('2021-07-27T14:00:18');
-    sinon.assert.calledWithExactly(formatParticipationRate, bill, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, bill, tppList);
   });
 });
 
@@ -477,8 +476,8 @@ describe('getBalancesFromCreditNotes', () => {
       participationRate: 30,
       balance: 37,
     });
-    sinon.assert.calledWithExactly(computePayments, [{ refund: 12 }]);
-    sinon.assert.calledWithExactly(formatParticipationRate, creditNote, tppList);
+    sinon.assert.calledOnceWithExactly(computePayments, [{ refund: 12 }]);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, creditNote, tppList);
   });
   it('should format balance for tpp credit note', () => {
     const customerId = new ObjectID();
@@ -509,8 +508,8 @@ describe('getBalancesFromCreditNotes', () => {
       balance: 40,
       thirdPartyPayer: { _id: tppId },
     });
-    sinon.assert.calledWithExactly(computePayments, [{ refund: 15 }]);
-    sinon.assert.calledWithExactly(formatParticipationRate, creditNote, tppList);
+    sinon.assert.calledOnceWithExactly(computePayments, [{ refund: 15 }]);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, creditNote, tppList);
   });
   it('should format not call compute payments as no payment', () => {
     const customerId = new ObjectID();
@@ -538,7 +537,7 @@ describe('getBalancesFromCreditNotes', () => {
       balance: 25,
     });
     sinon.assert.notCalled(computePayments);
-    sinon.assert.calledWithExactly(formatParticipationRate, creditNote, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, creditNote, tppList);
   });
 });
 
@@ -574,8 +573,8 @@ describe('getBalancesFromPayments', () => {
       participationRate: 30,
       balance: 12,
     });
-    sinon.assert.calledWithExactly(computePayments, [{ refund: 12 }]);
-    sinon.assert.calledWithExactly(formatParticipationRate, payment, tppList);
+    sinon.assert.calledOnceWithExactly(computePayments, [{ refund: 12 }]);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, payment, tppList);
   });
   it('should format balance for tpp payments', () => {
     const payment = {
@@ -599,8 +598,8 @@ describe('getBalancesFromPayments', () => {
       balance: 12,
       thirdPartyPayer: { isApa: true },
     });
-    sinon.assert.calledWithExactly(computePayments, [{ refund: 12 }]);
-    sinon.assert.calledWithExactly(formatParticipationRate, payment, tppList);
+    sinon.assert.calledOnceWithExactly(computePayments, [{ refund: 12 }]);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, payment, tppList);
   });
   it('should format not call compute payments as no payment', () => {
     const payment = {
@@ -623,7 +622,7 @@ describe('getBalancesFromPayments', () => {
       thirdPartyPayer: { isApa: true },
     });
     sinon.assert.notCalled(computePayments);
-    sinon.assert.calledWithExactly(formatParticipationRate, payment, tppList);
+    sinon.assert.calledOnceWithExactly(formatParticipationRate, payment, tppList);
   });
 });
 
@@ -635,7 +634,7 @@ describe('getBalances', () => {
   let getBalance;
   let getBalancesFromCreditNotes;
   let getBalancesFromPayments;
-  let ThirdPartyPayerMock;
+  let findThirdPartyPayer;
 
   const customers = [new ObjectID(), new ObjectID(), new ObjectID()];
   const tpps = [new ObjectID(), new ObjectID()];
@@ -651,7 +650,7 @@ describe('getBalances', () => {
     getBalance = sinon.stub(BalanceHelper, 'getBalance');
     getBalancesFromCreditNotes = sinon.stub(BalanceHelper, 'getBalancesFromCreditNotes');
     getBalancesFromPayments = sinon.stub(BalanceHelper, 'getBalancesFromPayments');
-    ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
+    findThirdPartyPayer = sinon.stub(ThirdPartyPayer, 'find');
 
     getBalance.returnsArg(0);
     getBalancesFromCreditNotes.returnsArg(0);
@@ -666,7 +665,7 @@ describe('getBalances', () => {
     getBalance.restore();
     getBalancesFromCreditNotes.restore();
     getBalancesFromPayments.restore();
-    ThirdPartyPayerMock.restore();
+    findThirdPartyPayer.restore();
   });
 
   it('should return no balance', async () => {
@@ -674,7 +673,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -683,10 +682,19 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      customerId,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should return balances from bills', async () => {
@@ -695,11 +703,12 @@ describe('getBalances', () => {
       { _id: { customer: customers[1] } },
       { _id: { customer: customers[0], tpp: tpps[0] } },
     ];
+
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -708,10 +717,16 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should return balances from customer credit notes', async () => {
@@ -720,11 +735,12 @@ describe('getBalances', () => {
       { _id: { customer: customers[1] } },
       { _id: { customer: customers[2] } },
     ];
+
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -733,10 +749,19 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      customerId,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should return balances from TPP credit notes', async () => {
@@ -744,11 +769,12 @@ describe('getBalances', () => {
       { _id: { customer: customers[0], tpp: tpps[0] } },
       { _id: { customer: customers[1], tpp: tpps[1] } },
     ];
+
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -757,10 +783,19 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      customerId,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should return balances from payments', async () => {
@@ -775,7 +810,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -784,10 +819,19 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      customerId,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 
   it('should return balances from bills, credit notes and payments', async () => {
@@ -809,11 +853,12 @@ describe('getBalances', () => {
       { _id: { customer: customers[2] } },
       { _id: { customer: customers[0], tpp: tpps[0] } },
     ];
+
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    ThirdPartyPayerMock.expects('find').chain('lean').returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const allAmounts = [
       { _id: { customer: customers[0] } },
@@ -831,10 +876,19 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalance, 3);
     sinon.assert.callCount(getBalancesFromCreditNotes, 1);
     sinon.assert.callCount(getBalancesFromPayments, 1);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      customerId,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -872,9 +926,9 @@ describe('getBalancesWithDetails', () => {
     expect(result.bills).toEqual([{ name: 'bills' }]);
     expect(result.payments).toEqual([{ name: 'payments' }]);
     expect(result.creditNotes).toEqual([{ name: 'creditNotes' }]);
-    getBalancesStub.calledWithExactly(credentials, query.customer, query.startDate);
-    getBillsStub.calledWithExactly(query, credentials);
-    getPaymentsStub.calledWithExactly(query, credentials);
-    getCreditNotesStub.calledWithExactly(query, credentials);
+    getBalancesStub.calledOnceWithExactly(credentials, query.customer, query.startDate);
+    getBillsStub.calledOnceWithExactly(query, credentials);
+    getPaymentsStub.calledOnceWithExactly(query, credentials);
+    getCreditNotesStub.calledOnceWithExactly(query, credentials);
   });
 });

@@ -32,7 +32,7 @@ const {
   authorizeLearnersGet,
   getPicturePublicId,
 } = require('./preHandlers/users');
-const { addressValidation, objectIdOrArray, phoneNumberValidation } = require('./validations/utils');
+const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
 
 const driveUploadKeys = [
@@ -83,7 +83,7 @@ exports.plugin = {
                 transportType: Joi.string(),
               }),
             }),
-            customers: Joi.array(),
+            customer: Joi.objectId(),
           }).required(),
         },
         pre: [{ method: authorizeUserCreation }],
@@ -99,7 +99,6 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             role: [Joi.array(), Joi.string()],
-            customers: objectIdOrArray,
             company: Joi.objectId(),
           }),
         },
@@ -188,6 +187,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
+            formationExpoToken: expoTokenValidation,
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
@@ -282,7 +282,7 @@ exports.plugin = {
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
             biography: Joi.string().allow(''),
-            customers: Joi.array(),
+            customer: Joi.objectId(),
             company: Joi.objectId(),
           }).required(),
         },

@@ -12,6 +12,7 @@ const Bill = require('../../../src/models/Bill');
 const Payment = require('../../../src/models/Payment');
 const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
+const Helper = require('../../../src/models/Helper');
 const {
   FIXED,
   ONCE,
@@ -732,6 +733,21 @@ const eventList = [
   },
 ];
 
+const helpersList = [
+  {
+    customer: customersList[0]._id,
+    user: userList[0]._id,
+    company: authCompany._id,
+    referent: true,
+  },
+  {
+    customer: customersList[1]._id,
+    user: userList[1]._id,
+    company: authCompany._id,
+    referent: true,
+  },
+];
+
 const populateDB = async () => {
   await Service.deleteMany({});
   await Customer.deleteMany({});
@@ -744,6 +760,7 @@ const populateDB = async () => {
   await Payment.deleteMany({});
   await CreditNote.deleteMany({});
   await TaxCertificate.deleteMany({});
+  await Helper.deleteMany({});
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
@@ -751,6 +768,7 @@ const populateDB = async () => {
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentHistories);
+  await Helper.insertMany(helpersList);
   for (const user of userList) {
     await (new User(user).save());
   }

@@ -1,4 +1,5 @@
 const pick = require('lodash/pick');
+const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const Activity = require('../models/Activity');
 const Step = require('../models/Step');
@@ -40,6 +41,7 @@ exports.addCard = async (activityId, payload) => {
 };
 
 exports.removeCard = async (cardId) => {
+  const card = await Card.findOneAndRemove({ _id: cardId }, { 'media.publicId': 1 }).lean();
   await Activity.updateOne({ cards: cardId }, { $pull: { cards: cardId } });
-  await CardHelper.removeCard(cardId);
+  if (get(card, 'media.publicId')) await CardHelper.deleteMedia(cardId, card.media.publicId);
 };

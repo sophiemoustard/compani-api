@@ -3,10 +3,17 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ThirdPartyPayersHelper = require('../../../src/helpers/thirdPartyPayers');
-
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
+  let create;
+  beforeEach(() => {
+    create = sinon.stub(ThirdPartyPayer, 'create');
+  });
+  afterEach(() => {
+    create.restore();
+  });
+
   it('should create a new thirdPartyPayer', async () => {
     const payload = {
       _id: new ObjectID(),
@@ -23,63 +30,82 @@ describe('create', () => {
     };
     const credentials = { company: { _id: new ObjectID() } };
     const payloadWithCompany = { ...payload, company: credentials.company._id };
-    const newThirdPartyPayer = new ThirdPartyPayer(payloadWithCompany);
-    const newThirdPartyPayerMock = sinon.mock(newThirdPartyPayer);
-    const ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
 
-    ThirdPartyPayerMock.expects('create')
-      .withExactArgs(payloadWithCompany)
-      .once()
-      .returns(newThirdPartyPayer);
-    newThirdPartyPayerMock.expects('toObject').once().returns(payloadWithCompany);
+    create.returns(SinonMongoose.stubChainedQueries([payloadWithCompany], ['toObject']));
 
     const result = await ThirdPartyPayersHelper.create(payload, credentials);
 
     expect(result).toMatchObject(payloadWithCompany);
-    ThirdPartyPayerMock.verify();
-    newThirdPartyPayerMock.verify();
+    SinonMongoose.calledWithExactly(create, [{ query: 'create', args: [payloadWithCompany] }, { query: 'toObject' }]);
   });
 });
 
 describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(ThirdPartyPayer, 'find');
+  });
+  afterEach(() => {
+    find.restore();
+  });
+
   it('should list tpp', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
+    const tppList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
 
-    ThirdPartyPayerMock.expects('find')
-      .withExactArgs({ company: credentials.company._id })
-      .chain('lean');
+    find.returns(SinonMongoose.stubChainedQueries([tppList], ['lean']));
 
-    await ThirdPartyPayersHelper.list(credentials);
+    const result = await ThirdPartyPayersHelper.list(credentials);
 
-    ThirdPartyPayerMock.verify();
+    expect(result).toMatchObject(tppList);
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
   });
 });
 
 describe('update', () => {
+  let findOneAndUpdate;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(ThirdPartyPayer, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+  });
+
   it('should update a tpp', async () => {
     const payload = { siret: '13605658901234' };
     const tppId = new ObjectID();
-    const ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
 
-    ThirdPartyPayerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: tppId }, { $set: payload }, { new: true })
-      .chain('lean')
-      .once();
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: tppId }], ['lean']));
 
-    await ThirdPartyPayersHelper.update(tppId, payload);
+    const result = await ThirdPartyPayersHelper.update(tppId, payload);
 
-    ThirdPartyPayerMock.verify();
+    expect(result).toMatchObject({ _id: tppId });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: tppId }, { $set: payload }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('delete', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(ThirdPartyPayer, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
   it('should remove an tpp', async () => {
     const tppId = new ObjectID();
-    const deleteOne = sinon.stub(ThirdPartyPayer, 'deleteOne');
 
     await ThirdPartyPayersHelper.delete(tppId);
 
-    sinon.assert.calledWithExactly(deleteOne, { _id: tppId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: tppId });
   });
 });
