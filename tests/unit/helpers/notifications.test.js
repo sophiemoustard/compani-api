@@ -115,7 +115,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       sendNotificationToUser.getCall(0),
       {
         title: 'Vous avez été inscrit à une formation',
-        body: 'Rendez-vous sur la page \'à propos\' de votre formation La communication avec Patrick - skusku'
+        body: 'Rendez-vous sur la page "à propos" de votre formation La communication avec Patrick - skusku'
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
@@ -125,7 +125,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       sendNotificationToUser.getCall(1),
       {
         title: 'Vous avez été inscrit à une formation',
-        body: 'Rendez-vous sur la page \'à propos\' de votre formation La communication avec Patrick - skusku'
+        body: 'Rendez-vous sur la page "à propos" de votre formation La communication avec Patrick - skusku'
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
