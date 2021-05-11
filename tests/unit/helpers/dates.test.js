@@ -80,3 +80,50 @@ describe('isSameOrAfter', () => {
     expect(isAfter).toBe(true);
   });
 });
+
+describe('format #tag', () => {
+  it('should null if no date', () => {
+    const formattedDate = DatesHelper.format();
+    expect(formattedDate).toBeNull();
+  });
+
+  it('should full date if no format', () => {
+    const formattedDate = DatesHelper.format('2021-04-30T22:00:00.000Z');
+    expect(formattedDate).toEqual('01/05/2021');
+  });
+
+  it('should return numeric day', () => {
+    const formattedDate = DatesHelper.format('2021-04-30T22:00:00.000Z', 'D');
+    expect(formattedDate).toEqual('1');
+  });
+
+  it('should return 2-digit day', () => {
+    const formattedDate = DatesHelper.format('2021-04-30T22:00:00.000Z', 'DD');
+    expect(formattedDate).toEqual('01');
+  });
+
+  it('should return 2-digit month', () => {
+    const formattedDate = DatesHelper.format('2021-04-30T22:00:00.000Z', 'MM');
+    expect(formattedDate).toEqual('05');
+  });
+
+  it('should return short month', () => {
+    const formattedDate = DatesHelper.format('2021-03-31T22:00:00.000Z', 'MMM');
+    expect(formattedDate).toEqual('avr.');
+  });
+
+  it('should return long month', () => {
+    const formattedDate = DatesHelper.format('2021-03-31T22:00:00.000Z', 'MMMM');
+    expect(formattedDate).toEqual('avril');
+  });
+
+  it('should return 2-digit year', () => {
+    const formattedDate = DatesHelper.format('2020-12-31T23:00:00.000Z', 'YY');
+    expect(formattedDate).toEqual('21');
+  });
+
+  it('should return numeric year', () => {
+    const formattedDate = DatesHelper.format('2020-12-31T23:00:00.000Z', 'YYYY');
+    expect(formattedDate).toEqual('2021');
+  });
+});

@@ -4,13 +4,15 @@ const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
+const DateHelper = require('./dates');
 
 exports.create = async (payload) => {
-  let fileName = new Date(payload.date)
-    .toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', year: 'numeric', month: 'long' });
+  let fileName;
   if (payload.trainee) {
     const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
+  } else {
+    fileName = DateHelper.format(payload.date, 'D MMMM YYYY');
   }
 
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
