@@ -77,10 +77,9 @@ const payVariables = [
 const formatPayMonth = (value) => {
   if (!value) return '';
 
-  const month = new Date(value).getMonth() + 1;
-  const formattedMonth = month < 10 ? `0${month}` : month;
-
-  return `${formattedMonth}-${new Date(value).getFullYear()}`;
+  return new Date(value)
+    .toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', month: '2-digit', year: 'numeric' })
+    .replace('/', '-');
 };
 
 const getContractForPay = (pay, contracts) => contracts
