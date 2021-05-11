@@ -44,7 +44,7 @@ describe('list', () => {
 
     const result = await CustomerPartnersHelper.list(customer, credentials);
 
-    expect(result).toMatchObject(customerPartners.map(customerPartner => customerPartner.partner));
+    expect(result).toMatchObject(customerPartners);
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -92,12 +92,7 @@ describe('update', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      {
-        _id: { $ne: customerPartnerId },
-        customer: customerPartner.customer,
-        partner: customerPartner.partner,
-        prescriber: true,
-      },
+      { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
       { $set: { prescriber: false } }
     );
   });

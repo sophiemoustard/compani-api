@@ -12,15 +12,13 @@ exports.list = async (customer, credentials) => {
     })
     .lean();
 
-  return customerPartners.map(customerPartner => customerPartner.partner);
+  return customerPartners;
 };
 
 exports.update = async (customerPartnerId, payload) => {
   const customerPartner = await CustomerPartner.findOneAndUpdate({ _id: customerPartnerId }, { $set: payload }).lean();
-
-  const { partner, customer } = customerPartner;
   await CustomerPartner.updateOne(
-    { _id: { $ne: customerPartnerId }, partner, customer, prescriber: true },
+    { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
     { $set: { prescriber: false } }
   );
 };
