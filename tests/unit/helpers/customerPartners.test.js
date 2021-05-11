@@ -62,3 +62,43 @@ describe('list', () => {
     );
   });
 });
+
+describe('update', () => {
+  let findOneAndUpdate;
+  let updateOne;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(CustomerPartner, 'findOneAndUpdate');
+    updateOne = sinon.stub(CustomerPartner, 'updateOne');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+    updateOne.restore();
+  });
+
+  it('should update the prescriber partner', async () => {
+    const customerPartnerId = new ObjectID();
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectID(), partner: new ObjectID() };
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
+
+    await CustomerPartnersHelper.update(customerPartnerId, { prescriber: true });
+
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      {
+        _id: { $ne: customerPartnerId },
+        customer: customerPartner.customer,
+        partner: customerPartner.partner,
+        prescriber: true,
+      },
+      { $set: { prescriber: false } }
+    );
+  });
+});
