@@ -9,6 +9,7 @@ const moment = require('moment');
 const Course = require('../../../src/models/Course');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const CourseHelper = require('../../../src/helpers/courses');
 const SmsHelper = require('../../../src/helpers/sms');
 const UsersHelper = require('../../../src/helpers/users');
@@ -17,7 +18,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
-const { COURSE_SMS, BLENDED } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED, DRAFT } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const { E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
@@ -2055,6 +2056,42 @@ describe('generateConvocationPdf', () => {
         }],
       },
       './src/data/courseConvocation.html'
+    );
+  });
+});
+
+describe('getQuestionnaires', () => {
+  let findQuestionnaire;
+  beforeEach(() => {
+    findQuestionnaire = sinon.stub(Questionnaire, 'find');
+  });
+  afterEach(() => {
+    findQuestionnaire.restore();
+  });
+
+  it('should return questionnaires with answers', async () => {
+    const courseId = new ObjectID();
+    const questionnaires = [
+      { name: 'test', type: 'expectations', historiesCount: 1 },
+      { name: 'test2', type: 'expectations', historiesCount: 0 },
+    ];
+
+    findQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaires], ['select', 'populate', 'lean']));
+
+    const result = await CourseHelper.getQuestionnaires(courseId);
+
+    expect(result).toMatchObject([questionnaires[0]]);
+    SinonMongoose.calledWithExactly(
+      findQuestionnaire,
+      [
+        { query: 'find', args: [{ status: { $ne: DRAFT } }] },
+        { query: 'select', args: ['type name'] },
+        {
+          query: 'populate',
+          args: [{ path: 'historiesCount', match: { course: courseId, questionnaireAnswersList: { $ne: [] } } }],
+        },
+        { query: 'lean' },
+      ]
     );
   });
 });

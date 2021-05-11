@@ -26,7 +26,7 @@
     "node": "14.16.0"
   },
   "dependencies": {
-    "@google-cloud/storage": "^5.8.3",
+    "@google-cloud/storage": "^5.8.4",
     "@hapi/boom": "^9.1.2",
     "@hapi/good": "^9.0.1",
     "@hapi/good-console": "^9.0.1",
@@ -41,7 +41,7 @@
     "dotenv": "^8.2.0",
     "feedparser-promised": "^2.0.1",
     "flat": "^5.0.2",
-    "googleapis": "^71.0.0",
+    "googleapis": "^72.0.0",
     "handlebars": "^4.7.5",
     "hapi-auth-jwt2": "^10.2.0",
     "hapi-sentry": "^3.2.0",
@@ -56,12 +56,12 @@
     "moment-range": "^4.0.2",
     "moment-timezone": "^0.5.32",
     "mongodb": "^3.6.6",
-    "mongoose": "^5.12.3",
-    "mongoose-autopopulate": "^0.12.3",
-    "mongoose-lean-virtuals": "^0.7.5",
+    "mongoose": "^5.12.5",
+    "mongoose-autopopulate": "^0.13.0",
+    "mongoose-lean-virtuals": "^0.8.0",
     "nodemailer": "^6.5.0",
     "pizzip": "^3.0.6",
-    "puppeteer": "^8.0.0",
+    "puppeteer": "^9.0.0",
     "qs": "^6.10.1",
     "randomatic": "^3.1.1",
     "shelljs": "^0.8.4",
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@hapi/eslint-plugin-hapi": "^4.3.6",
     "code": "^5.2.0",
-    "eslint": "^7.24.0",
+    "eslint": "^7.25.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-mocha": "^8.1.0",
@@ -80,7 +80,6 @@
     "form-data": "^4.0.0",
     "get-stream": "^6.0.0",
     "mocha": "^8.3.2",
-    "sinon": "^7.5.0",
-    "sinon-mongoose": "^2.3.0"
+    "sinon": "^10.0.0"
   }
 }

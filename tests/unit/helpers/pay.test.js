@@ -14,8 +14,6 @@ const SectorHistoryRepository = require('../../../src/repositories/SectorHistory
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 const FinalPay = require('../../../src/models/FinalPay');
 
-require('sinon-mongoose');
-
 describe('formatSurchargeDetail', () => {
   it('should return empty array if empty object given', () => {
     const result = PayHelper.formatSurchargeDetail({});
@@ -100,24 +98,25 @@ describe('formatPay', () => {
 describe('createPayList', () => {
   const credentials = { company: { _id: new ObjectID() } };
   let formatPayStub;
-  let PayModel;
+  let insertMany;
   beforeEach(() => {
     formatPayStub = sinon.stub(PayHelper, 'formatPay');
-    PayModel = sinon.mock(Pay);
+    insertMany = sinon.stub(Pay, 'insertMany');
   });
   afterEach(() => {
     formatPayStub.restore();
-    PayModel.restore();
+    insertMany.restore();
   });
 
   it('should create pay', async () => {
     const payToCreate = [{ _id: new ObjectID() }];
+
     formatPayStub.returns(payToCreate[0]);
-    PayModel.expects('insertMany').withExactArgs([new Pay(payToCreate[0])]);
 
     await PayHelper.createPayList(payToCreate, credentials);
+
     sinon.assert.calledWithExactly(formatPayStub, payToCreate[0], credentials.company._id);
-    PayModel.verify();
+    sinon.assert.calledWithExactly(insertMany, [new Pay(payToCreate[0])]);
   });
 });
 

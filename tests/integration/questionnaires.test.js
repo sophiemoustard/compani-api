@@ -270,6 +270,127 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
   });
 });
 
+describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should get questionnaire answers', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+      const courseId = coursesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${courseId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if questionnaire has invalid type', async () => {
+      const courseId = coursesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/test/follow-up?course=${courseId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if course has invalid type', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=test`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if questionnaire doesn\'t exist', async () => {
+      const courseId = coursesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${new ObjectID()}/follow-up?course=${courseId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if course doesn\'t exist', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if course is strictly e-learning', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+      const courseId = coursesList[1]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${courseId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 as user is trainer, but not course trainer', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+      const courseId = coursesList[2]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${courseId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const questionnaireId = questionnairesList[0]._id;
+        const courseId = coursesList[0]._id;
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${courseId.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -555,8 +676,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
 describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const draftQuestionnaire = questionnairesList.find(activity => activity.status === 'draft');
-  const publishedQuestionnaire = questionnairesList.find(activity => activity.status === 'published');
+  const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
+  const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');
 
   describe('VENDOR_ADMIN', () => {
     beforeEach(async () => {
@@ -572,8 +693,8 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
 
       expect(response.statusCode).toBe(200);
 
-      const cardDeleted = await Card.countDocuments({ _id: cardsList[0]._id });
-      expect(cardDeleted).toBe(0);
+      const remainingCard = await Card.countDocuments({ _id: cardsList[0]._id });
+      expect(remainingCard).toBe(0);
 
       const questionnaire = await Questionnaire.findById(draftQuestionnaire._id).lean();
       expect(questionnaire.cards.length).toEqual(draftQuestionnaire.cards.length - 1);

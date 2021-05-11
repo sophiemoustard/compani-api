@@ -33,10 +33,9 @@ const {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  helper,
 } = require('./seed/exportSeed');
 const { formatPrice } = require('../../src/helpers/utils');
-
-const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

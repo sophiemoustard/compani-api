@@ -8,6 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
+const Helper = require('../../../src/models/Helper');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -352,6 +353,13 @@ const otherCompanyCreditNote = {
   company: otherCompany._id,
 };
 
+const helpersList = [{
+  customer: creditNoteCustomer._id,
+  user: creditNoteUserList[0]._id,
+  company: authCompany._id,
+  referent: true,
+}];
+
 const populateDB = async () => {
   await CreditNote.deleteMany({});
   await Event.deleteMany({});
@@ -360,6 +368,7 @@ const populateDB = async () => {
   await CreditNoteNumber.deleteMany({});
   await User.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
+  await Helper.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.create([creditNoteEvent, otherCompanyEvent]);
@@ -368,6 +377,7 @@ const populateDB = async () => {
   await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
   await CreditNote.insertMany([...creditNotesList, otherCompanyCreditNote]);
   await User.create([...creditNoteUserList, otherCompanyUser]);
+  await Helper.insertMany(helpersList);
 };
 
 module.exports = {

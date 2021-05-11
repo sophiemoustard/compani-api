@@ -175,23 +175,54 @@ describe('addCard', () => {
 });
 
 describe('removeCard', () => {
-  let removeCard;
+  let findOneAndRemoveCard;
   let updateOne;
+  let deleteMedia;
   beforeEach(() => {
-    removeCard = sinon.stub(CardHelper, 'removeCard');
+    findOneAndRemoveCard = sinon.stub(Card, 'findOneAndRemove');
     updateOne = sinon.stub(Activity, 'updateOne');
+    deleteMedia = sinon.stub(CardHelper, 'deleteMedia');
   });
   afterEach(() => {
-    removeCard.restore();
+    findOneAndRemoveCard.restore();
     updateOne.restore();
+    deleteMedia.restore();
   });
 
-  it('should remove card from activity', async () => {
+  it('should remove card without media from activity', async () => {
     const cardId = new ObjectID();
 
-    await ActivityHelper.removeCard(cardId);
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+
+    await ActivityHelper.removeCard(cardId, null);
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
-    sinon.assert.calledOnceWithExactly(removeCard, cardId);
+    sinon.assert.notCalled(deleteMedia);
+    SinonMongoose.calledWithExactly(
+      findOneAndRemoveCard,
+      [
+        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should remove card with media from activity', async () => {
+    const cardId = new ObjectID();
+    const card = { _id: cardId, media: { publicId: 'publicId' } };
+
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));
+
+    await ActivityHelper.removeCard(cardId, 'media-test-20210505104400');
+
+    sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
+    sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
+    SinonMongoose.calledWithExactly(
+      findOneAndRemoveCard,
+      [
+        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });

@@ -23,7 +23,7 @@ const {
 const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
-const User = require('../../src/models/User');
+const Helper = require('../../src/models/Helper');
 const { MONTHLY, FIXED, HOURLY } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
@@ -671,7 +671,7 @@ describe('CUSTOMERS ROUTES', () => {
       deleteFileStub.restore();
     });
     it('should delete a customer without interventions', async () => {
-      const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
+      const customersBefore = await Customer.countDocuments({ company: authCompany._id });
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
@@ -683,8 +683,9 @@ describe('CUSTOMERS ROUTES', () => {
 
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers.length).toBe(customersBefore - 1);
-      const helper = await User.findById(userList[2]._id).lean();
-      expect(helper).toBeNull();
+
+      const helper = await Helper.countDocuments({ _id: userList[2]._id });
+      expect(helper).toBe(0);
     });
 
     it('should return a 404 error if no customer found', async () => {

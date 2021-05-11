@@ -80,7 +80,7 @@ const removeCard = async (req) => {
 
 const getUserQuestionnaires = async (req) => {
   try {
-    const questionnaires = await QuestionnaireHelper.getUserQuestionnaires(req.pre.course, req.auth.credentials);
+    const questionnaires = await QuestionnaireHelper.getUserQuestionnaires(req.query.course, req.auth.credentials);
 
     return {
       message: questionnaires.length
@@ -94,4 +94,15 @@ const getUserQuestionnaires = async (req) => {
   }
 };
 
-module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires };
+const getFollowUp = async (req) => {
+  try {
+    const followUp = await QuestionnaireHelper.getFollowUp(req.params._id, req.query.course);
+
+    return { message: translate[language].questionnaireFound, data: { followUp } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, getById, update, addCard, removeCard, getUserQuestionnaires, getFollowUp };

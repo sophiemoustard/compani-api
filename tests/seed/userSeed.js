@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { rolesList } = require('./roleSeed');
 const { authCompany, companyWithoutSubscription } = require('./companySeed');
-const { authCustomer } = require('./customerSeed');
 const {
   VENDOR_ADMIN,
   CLIENT_ADMIN,
@@ -73,7 +72,6 @@ const userList = [
     role: { client: rolesList.find(role => role.name === HELPER)._id },
     company: authCompany._id,
     origin: WEBAPP,
-    customers: [authCustomer._id],
   },
   {
     _id: new ObjectID(),

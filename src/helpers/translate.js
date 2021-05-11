@@ -66,7 +66,7 @@ module.exports = {
     companyCreated: 'Company created.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
-    companyInternalHourCreated: 'Company internal hour created',
+    companyInternalHourCreated: 'Company internal hour created.',
     companyInternalHourNotFound: 'Company internal hour not found.',
     companyInternalHoursNotFound: 'Company internal hours not found.',
     companyInternalHoursFound: 'Company internal hours found.',
@@ -137,7 +137,7 @@ module.exports = {
     eventDeleted: 'Event deleted.',
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
-    eventsConflict: 'Events in conflict',
+    eventsConflict: 'Events in conflict.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -291,6 +291,7 @@ module.exports = {
     questionnairesFound: 'Questionnaires found.',
     questionnairesNotFound: 'Questionnaires not found.',
     questionnaireCreated: 'Questionnaire created.',
+    questionnaireFound: 'Questionnaire found.',
     draftQuestionnaireAlreadyExists: 'A draft questionnaire with this type already exists.',
     publishedQuestionnaireWithSameTypeExists: 'A questionnaire with the same type is already published.',
     questionnaireUpdated: 'questionnaire updated.',
@@ -302,6 +303,17 @@ module.exports = {
     partnerOrganizationFound: 'Partner organization found.',
     partnerOrganizationUpdated: 'Partner organization updated.',
     partnerCreated: 'Partner created.',
+    partnersFound: 'Partners found.',
+    partnersNotFound: 'Partners not found.',
+    /* Helper */
+    helpersFound: 'Helpers found.',
+    helpersNotFound: 'Helpers not found.',
+    helperUpdated: 'Helper updated.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Customer partner created.',
+    customerPartnersFound: 'Customer partners found.',
+    customerPartnersNotFound: 'Customer partners not found.',
+    customerPartnerAlreadyExists: 'Customer partner already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -592,6 +604,7 @@ module.exports = {
     questionnairesFound: 'Liste des questionnaires trouvée.',
     questionnairesNotFound: 'Liste des questionnaires non trouvée.',
     questionnaireCreated: 'Questionnaire créé.',
+    questionnaireFound: 'Questionnaire trouvé.',
     draftQuestionnaireAlreadyExists: 'Il existe déjà un questionnaire de ce type en brouillon.',
     publishedQuestionnaireWithSameTypeExists: 'Un questionnaire du même type est déjà publié.',
     questionnaireUpdated: 'Questionnaire mis à jour.',
@@ -603,5 +616,17 @@ module.exports = {
     partnerOrganizationFound: 'Structure partenaire trouvée.',
     partnerOrganizationUpdated: 'Structure partenaire mise à jour.',
     partnerCreated: 'Partenaire créé.',
+    partnersFound: 'Liste des partenaires trouvée.',
+    partnersNotFound: 'Liste des partenaires non trouvée.',
+    /* Helper */
+    helpersFound: 'Liste des aidants trouvée.',
+    helpersNotFound: 'Liste des aidants non trouvée.',
+    helperUpdated: 'Aidant mis à jour.',
+    /* CustomerPartners */
+    customerPartnerCreated: 'Partenaire bénéficiaire créé.',
+    customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
+    customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
+    customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
+
   },
 };

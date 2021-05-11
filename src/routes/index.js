@@ -195,4 +195,16 @@ exports.routes = [
     plugin: require('./questionnaireHistories'),
     routes: { prefix: '/questionnairehistories' },
   },
+  {
+    plugin: require('./helpers'),
+    routes: { prefix: '/helpers' },
+  },
+  {
+    plugin: require('./customerPartners'),
+    routes: { prefix: '/customerpartners' },
+  },
+  {
+    plugin: require('./partners'),
+    routes: { prefix: '/partners' },
+  },
 ];

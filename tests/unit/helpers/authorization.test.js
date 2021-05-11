@@ -4,15 +4,15 @@ const { ObjectID } = require('mongodb');
 const AuthorizationHelper = require('../../../src/helpers/authorization');
 const User = require('../../../src/models/User');
 const { AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
-require('sinon-mongoose');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('validate', () => {
-  let UserMock;
+  let findById;
   beforeEach(() => {
-    UserMock = sinon.mock(User);
+    findById = sinon.stub(User, 'findById');
   });
   afterEach(() => {
-    UserMock.restore();
+    findById.restore();
   });
 
   it('should not authenticate as user does not exist', async () => {
@@ -22,20 +22,9 @@ describe('validate', () => {
 
   it('should authenticate user without role and company', async () => {
     const userId = new ObjectID();
-    const user = {
-      _id: userId,
-      identity: { lastname: 'lastname' },
-      local: { email: 'email@email.com' },
-      customers: [],
-    };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
+    const user = { _id: userId, identity: { lastname: 'lastname' }, local: { email: 'email@email.com' } };
+
+    findById.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -51,7 +40,15 @@ describe('validate', () => {
         company: null,
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should authenticate user', async () => {
@@ -60,27 +57,13 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: {
-        client: {
-          name: 'client_admin',
-        },
-        vendor: {
-          name: 'vendor_admin',
-        },
-      },
+      role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       company: { _id: 'company' },
       local: { email: 'email@email.com' },
-      customers: [],
       sector: sectorId,
     };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
+
+    findById.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -109,17 +92,21 @@ describe('validate', () => {
           'customers:create',
           'customers:edit',
           'customers:read',
+          'customerpartners:edit',
           'establishments:edit',
           'establishments:read',
           'events:edit',
           'events:read',
           'exports:edit',
           'exports:read',
+          'helpers:list',
+          'helpers:edit',
           'pay:edit',
           'pay:read',
           'paydocuments:edit',
           'payments:edit',
           'partnerorganizations:edit',
+          'partners:read',
           'roles:read',
           'sms:send',
           'taxcertificates:edit',
@@ -134,15 +121,23 @@ describe('validate', () => {
           'courses:create',
           'programs:edit',
           'programs:read',
-          'scripts:run',
           'questionnaires:edit',
           'questionnaires:read',
+          'scripts:run',
           `company-${user.company._id}`,
         ],
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should authenticate user with customers', async () => {
@@ -152,24 +147,14 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: {
-        client: {
-          name: 'helper',
-        },
-      },
+      role: { client: { name: 'helper' } },
       customers: [customerId],
       company: { _id: 'company' },
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
+
+    findById.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -185,7 +170,15 @@ describe('validate', () => {
         role: { client: { name: 'helper' } },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should authenticate auxiliary without company', async () => {
@@ -194,24 +187,13 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: {
-        client: {
-          name: AUXILIARY_WITHOUT_COMPANY,
-        },
-      },
+      role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       company: { _id: 'company' },
       local: { email: 'email@email.com' },
-      customers: [],
       sector: sectorId,
     };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
+
+    findById.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -227,7 +209,15 @@ describe('validate', () => {
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 
   it('should authenticate a user with coach and trainer role', async () => {
@@ -236,27 +226,13 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: {
-        client: {
-          name: 'coach',
-        },
-        vendor: {
-          name: 'trainer',
-        },
-      },
+      role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       company: { _id: 'company' },
       local: { email: 'email@email.com' },
-      customers: [],
       sector: sectorId,
     };
-    UserMock.expects('findById')
-      .withExactArgs(userId, '_id identity role company local customers')
-      .chain('populate')
-      .withExactArgs({ path: 'sector', options: { requestingOwnInfos: true } })
-      .chain('lean')
-      .withExactArgs({ autopopulate: true })
-      .once()
-      .returns(user);
+
+    findById.returns(SinonMongoose.stubChainedQueries([user]));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -283,14 +259,18 @@ describe('validate', () => {
           'customers:create',
           'customers:edit',
           'customers:read',
+          'customerpartners:edit',
           'establishments:read',
           'events:edit',
           'events:read',
           'exports:edit',
           'exports:read',
+          'helpers:list',
+          'helpers:edit',
           'pay:read',
           'paydocuments:edit',
           'partnerorganizations:edit',
+          'partners:read',
           'roles:read',
           'sms:send',
           'taxcertificates:edit',
@@ -299,10 +279,19 @@ describe('validate', () => {
           'users:exist',
           'users:list',
           'attendancesheets:edit',
+          'questionnaires:read',
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
-    UserMock.verify();
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
   });
 });
