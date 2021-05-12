@@ -123,6 +123,7 @@ const checkUpdateRestrictions = (payload) => {
     'local.email',
     'local.password',
     'origin',
+    'formationExpoToken',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
