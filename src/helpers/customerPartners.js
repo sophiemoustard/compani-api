@@ -20,8 +20,10 @@ exports.update = async (customerPartnerId, payload) => {
     .findOneAndUpdate({ _id: customerPartnerId }, { $set: payload }, { fields: { customer: 1 } })
     .lean();
 
-  await CustomerPartner.updateOne(
-    { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
-    { $set: { prescriber: false } }
-  );
+  if (payload.prescriber) {
+    await CustomerPartner.updateOne(
+      { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
+      { $set: { prescriber: false } }
+    );
+  }
 };

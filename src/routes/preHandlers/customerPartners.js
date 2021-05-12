@@ -33,7 +33,9 @@ exports.authorizeCustomerPartnersGet = async (req) => {
 };
 
 exports.authorizeCustomerPartnersUpdate = async (req) => {
-  const customerPartner = await CustomerPartner.countDocuments({ _id: req.params._id });
+  const { credentials } = req.auth;
+  const loggedUserCompany = get(credentials, 'company._id');
+  const customerPartner = await CustomerPartner.countDocuments({ _id: req.params._id, company: loggedUserCompany });
   if (!customerPartner) throw Boom.notFound();
 
   return null;

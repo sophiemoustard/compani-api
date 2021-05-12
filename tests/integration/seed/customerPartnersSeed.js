@@ -49,14 +49,28 @@ const partnersList = [
     company: otherCompany._id,
     partnerOrganization: new ObjectID(),
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Alain', lastname: 'Terrieur' },
+    company: authCompany._id,
+    partnerOrganization: new ObjectID(),
+  },
 ];
 
-const customerPartnersList = [{
-  _id: new ObjectID(),
-  partner: partnersList[1]._id,
-  customer: customersList[1],
-  company: otherCompany._id,
-}];
+const customerPartnersList = [
+  {
+    _id: new ObjectID(),
+    partner: partnersList[1]._id,
+    customer: customersList[1],
+    company: otherCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    partner: partnersList[2]._id,
+    customer: customersList[0],
+    company: authCompany._id,
+  },
+];
 
 const populateDB = async () => {
   await User.deleteMany({});

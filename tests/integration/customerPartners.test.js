@@ -230,7 +230,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
     });
 
     it('should update prescriber of customer partner', async () => {
-      const customerPartnerId = customerPartnersList[0]._id;
+      const customerPartnerId = customerPartnersList[1]._id;
       const response = await app.inject({
         method: 'PUT',
         url: `/customerpartners/${customerPartnerId}`,
@@ -253,7 +253,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
     });
 
     it('should return 400 if payload is not a boolean', async () => {
-      const customerPartnerId = customerPartnersList[0]._id;
+      const customerPartnerId = customerPartnersList[1]._id;
       const response = await app.inject({
         method: 'PUT',
         url: `/customerpartners/${customerPartnerId}`,
@@ -274,6 +274,17 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+    it('should return 404 if customer partner has wrong company', async () => {
+      const customerPartnerId = customerPartnersList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerpartners/${customerPartnerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { prescriber: true },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
@@ -285,7 +296,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const customerPartnerId = customerPartnersList[0]._id;
+        const customerPartnerId = customerPartnersList[1]._id;
         const response = await app.inject({
           method: 'PUT',
           url: `/customerpartners/${customerPartnerId}`,
