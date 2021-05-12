@@ -1364,3 +1364,25 @@ describe('createDriveFolder', () => {
     }
   });
 });
+
+describe('removeFormationExpoToken', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update user and delete media', async () => {
+    const userId = new ObjectID();
+
+    await UsersHelper.removeFormationExpoToken(userId, 'ExponentPushToken[jeSuisUnIdExpo]');
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      { $pull: { formationExpoTokenList: 'ExponentPushToken[jeSuisUnIdExpo]' } }
+    );
+  });
+});

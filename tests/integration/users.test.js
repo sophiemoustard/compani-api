@@ -1924,3 +1924,72 @@ describe('POST /users/:id/drivefolder', () => {
     });
   });
 });
+
+describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
+  let authToken;
+
+  describe('VENDOR_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+    });
+
+    it('should remove formationExpoToken from formationExpoTokenList', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`
+        + `/formation-expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if _id is not an objectId', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/users/bonjour/formation-expo-token'
+        + `/${usersSeedList[0].formationExpoTokenList[0]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    it('should update user if it is me - no role no company', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${userList[11]._id.toHexString()}/formation-expo-token/${userList[11].formationExpoTokenList[0]}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/users/${usersSeedList[0]._id.toHexString()}`
+          + `/formation-expo-token/${usersSeedList[0].formationExpoToken}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
