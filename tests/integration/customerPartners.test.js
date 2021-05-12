@@ -263,6 +263,17 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 404 if customer partner doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerpartners/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { prescriber: true },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {

@@ -16,7 +16,10 @@ exports.list = async (customer, credentials) => {
 };
 
 exports.update = async (customerPartnerId, payload) => {
-  const customerPartner = await CustomerPartner.findOneAndUpdate({ _id: customerPartnerId }, { $set: payload }).lean();
+  const customerPartner = await CustomerPartner
+    .findOneAndUpdate({ _id: customerPartnerId }, { $set: payload }, { fields: { customer: 1 } })
+    .lean();
+
   await CustomerPartner.updateOne(
     { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
     { $set: { prescriber: false } }

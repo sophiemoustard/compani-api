@@ -31,3 +31,10 @@ exports.authorizeCustomerPartnersGet = async (req) => {
   if (!customer) throw Boom.notFound();
   return null;
 };
+
+exports.authorizeCustomerPartnersUpdate = async (req) => {
+  const customerPartner = await CustomerPartner.countDocuments({ _id: req.params._id });
+  if (!customerPartner) throw Boom.notFound();
+
+  return null;
+};

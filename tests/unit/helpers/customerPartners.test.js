@@ -77,7 +77,7 @@ describe('update', () => {
 
   it('should update the prescriber partner', async () => {
     const customerPartnerId = new ObjectID();
-    const customerPartner = { _id: customerPartnerId, customer: new ObjectID(), partner: new ObjectID() };
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectID() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
 
@@ -86,7 +86,10 @@ describe('update', () => {
     SinonMongoose.calledWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }] },
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }, { fields: { customer: 1 } }],
+        },
         { query: 'lean' },
       ]
     );

@@ -1,6 +1,10 @@
 const Joi = require('joi');
 const { create, list, update } = require('../controllers/customerPartnerController');
-const { authorizeCustomerPartnerCreation, authorizeCustomerPartnersGet } = require('./preHandlers/customerPartners');
+const {
+  authorizeCustomerPartnerCreation,
+  authorizeCustomerPartnersGet,
+  authorizeCustomerPartnersUpdate,
+} = require('./preHandlers/customerPartners');
 
 exports.plugin = {
   name: 'routes-customer-partners',
@@ -43,6 +47,7 @@ exports.plugin = {
           payload: Joi.object({ prescriber: Joi.boolean().required() }),
         },
         auth: { scope: ['customerpartners:edit'] },
+        pre: [{ method: authorizeCustomerPartnersUpdate }],
       },
       handler: update,
     });
