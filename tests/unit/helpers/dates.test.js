@@ -81,7 +81,7 @@ describe('isSameOrAfter', () => {
   });
 });
 
-describe('format #tag', () => {
+describe('format', () => {
   it('should null if no date', () => {
     const formattedDate = DatesHelper.format();
     expect(formattedDate).toBeNull();
