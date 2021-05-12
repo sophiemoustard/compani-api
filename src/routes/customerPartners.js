@@ -1,6 +1,10 @@
 const Joi = require('joi');
-const { create, list } = require('../controllers/customerPartnerController');
-const { authorizeCustomerPartnerCreation, authorizeCustomerPartnersGet } = require('./preHandlers/customerPartners');
+const { create, list, update } = require('../controllers/customerPartnerController');
+const {
+  authorizeCustomerPartnerCreation,
+  authorizeCustomerPartnersGet,
+  authorizeCustomerPartnersUpdate,
+} = require('./preHandlers/customerPartners');
 
 exports.plugin = {
   name: 'routes-customer-partners',
@@ -32,6 +36,20 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerPartnersGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ prescriber: Joi.boolean().required() }),
+        },
+        auth: { scope: ['customerpartners:edit'] },
+        pre: [{ method: authorizeCustomerPartnersUpdate }],
+      },
+      handler: update,
     });
   },
 };
