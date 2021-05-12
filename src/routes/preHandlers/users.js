@@ -117,7 +117,13 @@ const checkExpoToken = async (req) => {
 
 const checkUpdateRestrictions = (payload) => {
   const allowedUpdateKeys = [
-    'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'local.password', 'origin',
+    'identity.firstname',
+    'identity.lastname',
+    'contact.phone',
+    'local.email',
+    'local.password',
+    'origin',
+    'formationExpoToken',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
