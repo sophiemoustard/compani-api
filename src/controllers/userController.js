@@ -202,6 +202,17 @@ const createDriveFolder = async (req) => {
   }
 };
 
+const removeFormationExpoToken = async (req) => {
+  try {
+    await UsersHelper.removeFormationExpoToken(req.params._id, req.params.formationExpoToken);
+
+    return { message: translate[language].userUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   create,
   list,
@@ -217,4 +228,5 @@ module.exports = {
   uploadPicture,
   deletePicture,
   createDriveFolder,
+  removeFormationExpoToken,
 };

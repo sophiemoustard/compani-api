@@ -125,6 +125,7 @@ const userList = [
     contact: { phone: '0798640728' },
     picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
     origin: MOBILE,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
 ];
 
