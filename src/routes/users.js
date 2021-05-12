@@ -18,6 +18,7 @@ const {
   uploadPicture,
   deletePicture,
   createDriveFolder,
+  removeFormationExpoToken,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -397,6 +398,22 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         pre: [{ method: getPicturePublicId, assign: 'publicId' }],
       },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/formation-expo-token/{formationExpoToken}',
+      options: {
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+            formationExpoToken: Joi.string(),
+          }),
+        },
+        pre: [{ method: getUser }],
+      },
+      handler: removeFormationExpoToken,
     });
   },
 };

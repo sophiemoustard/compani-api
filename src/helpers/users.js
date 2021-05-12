@@ -296,3 +296,7 @@ exports.createDriveFolder = async (user) => {
 
   await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
 };
+
+exports.removeFormationExpoToken = async (userId, formationExpoToken) => {
+  await User.updateOne({ _id: userId }, { $pull: { formationExpoTokenList: formationExpoToken } });
+};
