@@ -44,6 +44,7 @@ const EventHistorySchema = mongoose.Schema({
     },
   },
   event: {
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true, immutable: true },
     type: { type: String, enum: EVENT_TYPES },
     startDate: Date,
     endDate: Date,

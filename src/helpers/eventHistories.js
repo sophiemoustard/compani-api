@@ -31,6 +31,7 @@ exports.getListQuery = (query, credentials) => {
 exports.createEventHistory = async (payload, credentials, action) => {
   const { _id: createdBy } = credentials;
   const {
+    _id: eventId,
     customer,
     startDate,
     endDate,
@@ -46,16 +47,7 @@ exports.createEventHistory = async (payload, credentials, action) => {
     company: get(credentials, 'company._id', null),
     createdBy,
     action,
-    event: pickBy({
-      type,
-      startDate,
-      endDate,
-      customer,
-      absence,
-      internalHour,
-      misc,
-      repetition,
-    }),
+    event: pickBy({ eventId, type, startDate, endDate, customer, absence, internalHour, misc, repetition }),
   };
 
   if (address && Object.keys(address).length) eventHistory.event.address = address;
@@ -103,7 +95,7 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
     company: companyId,
     createdBy,
     action: EVENT_UPDATE,
-    event: { type, startDate, endDate, customer, misc },
+    event: { eventId: event._id, type, startDate, endDate, customer, misc },
   };
   if (payload.shouldUpdateRepetition) history.event.repetition = repetition;
   if (event.type === INTERNAL_HOUR) history.event.internalHour = payload.internalHour || event.internalHour;

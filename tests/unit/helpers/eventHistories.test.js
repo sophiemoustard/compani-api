@@ -140,7 +140,7 @@ describe('createEventHistory', () => {
         company: companyId,
         auxiliaries: [auxiliaryId.toHexString()],
         sectors: [sectorId.toHexString()],
-        event: { auxiliary: auxiliaryId.toHexString() },
+        event: { eventId: payload._id, auxiliary: auxiliaryId.toHexString() },
       }
     );
     SinonMongoose.calledWithExactly(
@@ -171,7 +171,7 @@ describe('createEventHistory', () => {
         action: 'event_creation',
         company: companyId,
         sectors: [sectorId.toHexString()],
-        event: { type: 'intervention' },
+        event: { eventId: payload._id, type: 'intervention' },
       }
     );
     sinon.assert.notCalled(findOne);
@@ -243,6 +243,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -260,6 +261,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -284,6 +286,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-22T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
@@ -300,6 +303,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -326,6 +330,7 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -342,6 +347,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -365,6 +371,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T10:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -381,6 +388,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -407,6 +415,7 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -423,6 +432,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -442,6 +452,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -464,6 +475,7 @@ describe('createEventHistoryOnUpdate', () => {
       shouldUpdateRepetition: true,
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -482,6 +494,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -507,6 +520,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -525,6 +539,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: INTERNAL_HOUR,
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -550,6 +565,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -568,6 +584,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'absence',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',

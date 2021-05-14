@@ -69,8 +69,6 @@ exports.createEvent = async (payload, credentials) => {
   let eventPayload = { ...cloneDeep(payload), company: companyId };
   if (!await EventsValidationHelper.isCreationAllowed(eventPayload, credentials)) throw Boom.badData();
 
-  await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
-
   const isRepeatedEvent = exports.isRepetition(eventPayload);
   const hasConflicts = await EventsValidationHelper.hasConflicts(eventPayload);
   if (eventPayload.type === INTERVENTION && eventPayload.auxiliary && isRepeatedEvent && hasConflicts) {
@@ -78,6 +76,9 @@ exports.createEvent = async (payload, credentials) => {
   }
 
   const event = await Event.create(eventPayload);
+
+  await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
+
   const populatedEvent = await EventRepository.getEvent(event._id, credentials);
   if (payload.type === ABSENCE) {
     const { startDate, endDate } = populatedEvent;
