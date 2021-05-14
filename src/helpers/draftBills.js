@@ -212,13 +212,14 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   return { ...billing, customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
-exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
+exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service, funding) => {
   const inclTaxesCustomer = exports.getInclTaxes(eventPrice.customerPrice, service.vat);
+  const { endDate, startDate, _id: eventId, auxiliary } = event;
   const prices = {
-    event: event._id,
-    startDate: event.startDate,
-    endDate: event.endDate,
-    auxiliary: event.auxiliary,
+    event: eventId,
+    startDate,
+    endDate,
+    auxiliary,
     inclTaxesCustomer,
     exclTaxesCustomer: eventPrice.customerPrice,
   };
@@ -230,9 +231,11 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
 
+  const onlyFundingChargedTime = !funding || funding.customerParticipationRate > 0 ? 0 : eventPrice.chargedTime;
+
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
-    hours: customerPrices.hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
+    hours: customerPrices.hours + ((moment(endDate).diff(moment(startDate), 'm') - onlyFundingChargedTime) / 60),
     exclTaxes: customerPrices.exclTaxes + eventPrice.customerPrice,
     inclTaxes: customerPrices.inclTaxes + inclTaxesCustomer,
   };
@@ -281,7 +284,13 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     if (eventPrice.customerPrice) {
-      customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
+      customerPrices = exports.formatDraftBillsForCustomer(
+        customerPrices,
+        event,
+        eventPrice,
+        matchingService,
+        matchingFunding
+      );
     }
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {
       thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
