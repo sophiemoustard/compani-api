@@ -395,4 +395,6 @@ module.exports = {
   ACTIVATED: 'activated',
   STOPPED: 'stopped',
   ARCHIVED: 'archived',
+  // TIMESTAMP
+  MANUAL_TIME_STAMPING: 'manual_time_stamping',
 };
