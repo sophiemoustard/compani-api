@@ -44,6 +44,7 @@ const EventHistorySchema = mongoose.Schema({
     misc: { type: String },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },
+      parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     },
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
