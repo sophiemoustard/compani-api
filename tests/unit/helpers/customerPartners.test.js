@@ -122,19 +122,19 @@ describe('update', () => {
 });
 
 describe('remove', () => {
-  let deleteMany;
+  let deleteOne;
   beforeEach(() => {
-    deleteMany = sinon.stub(CustomerPartner, 'deleteMany');
+    deleteOne = sinon.stub(CustomerPartner, 'deleteOne');
   });
   afterEach(() => {
-    deleteMany.restore();
+    deleteOne.restore();
   });
 
   it('should delete a customer partner', async () => {
-    const id = new ObjectID();
+    const customerPartnerId = new ObjectID();
 
-    await CustomerPartnersHelper.remove(id);
+    await CustomerPartnersHelper.remove(customerPartnerId);
 
-    sinon.assert.calledOnceWithExactly(deleteMany, { _id: id });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerPartnerId });
   });
 });
