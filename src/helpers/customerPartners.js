@@ -27,3 +27,5 @@ exports.update = async (customerPartnerId, payload) => {
     );
   }
 };
+
+exports.remove = async id => CustomerPartner.deleteMany({ _id: id });

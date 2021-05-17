@@ -315,6 +315,8 @@ module.exports = {
     customerPartnersNotFound: 'Customer partners not found.',
     customerPartnerAlreadyExists: 'Customer partner already exists.',
     customerPartnerUpdated: 'Customer partner updated.',
+    customerPartnerRemoved: 'Customer partner removed.',
+
   },
   'fr-FR': {
     /* Global errors */
@@ -629,6 +631,7 @@ module.exports = {
     customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
     customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
     customerPartnerUpdated: 'Partenaire mis à jour.',
+    customerPartnerRemoved: 'Partenaire supprimé.',
 
   },
 };

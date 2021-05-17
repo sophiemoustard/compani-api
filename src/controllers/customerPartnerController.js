@@ -42,4 +42,15 @@ const update = async (req) => {
   }
 };
 
-module.exports = { create, list, update };
+const remove = async (req) => {
+  try {
+    await CustomerPartnerHelper.remove(req.params._id);
+
+    return { message: translate[language].customerPartnerRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, update, remove };
