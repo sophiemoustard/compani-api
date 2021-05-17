@@ -44,7 +44,6 @@ describe('populateSurcharge', () => {
 
     const result = await DraftBillsHelper.populateSurcharge(subscription, companyId);
 
-    expect(result).toBeDefined();
     expect(result._id).toEqual('abc');
     expect(result.versions.length).toEqual(2);
     expect(result.versions[0]._id).toEqual(4);
@@ -94,8 +93,6 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result).toBeDefined();
-    expect(result[0].thirdPartyPayer).toBeDefined();
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledWithExactly(findOneFundingHistory, [
@@ -122,8 +119,6 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result).toBeDefined();
-    expect(result[0].history).toBeDefined();
     expect(result[0].history).toMatchObject([{ careHours: 4, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledWithExactly(findOneFundingHistory, [
@@ -149,8 +144,6 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result).toBeDefined();
-    expect(result[0].history).toBeDefined();
     expect(result[0].history).toMatchObject([{ careHours: 0, amountTTC: 0, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledWithExactly(findOneFundingHistory, [
@@ -180,11 +173,8 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'), tpps, companyId);
 
-    expect(result).toBeDefined();
-    expect(result[0].history).toBeDefined();
     expect(result[0].history.length).toEqual(3);
     const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
-    expect(addedHistory).toBeDefined();
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledWithExactly(findFundingHistory, [
@@ -205,7 +195,6 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual([]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
   });
@@ -247,7 +236,7 @@ describe('getMatchingFunding', () => {
       { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
     ];
     const result = DraftBillsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
-    expect(result).toBeDefined();
+
     expect(result._id).toEqual(2);
   });
 
@@ -257,7 +246,7 @@ describe('getMatchingFunding', () => {
       { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
     ];
     const result = DraftBillsHelper.getMatchingFunding('2022-05-01T09:00:00', fundings);
-    expect(result).toBeDefined();
+
     expect(result._id).toEqual(3);
   });
 
@@ -293,8 +282,9 @@ describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
     const fundingId = new ObjectID();
     const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: 2 }] };
+
     const result = DraftBillsHelper.getMatchingHistory({}, funding);
-    expect(result).toBeDefined();
+
     expect(result.fundingId).toEqual(fundingId);
   });
 
@@ -306,8 +296,9 @@ describe('getMatchingHistory', () => {
       history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
+
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
-    expect(result).toBeDefined();
+
     expect(result).toMatchObject({ fundingId, careHours: 2, month: '03/2019' });
   });
 
@@ -319,8 +310,9 @@ describe('getMatchingHistory', () => {
       history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
+
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
-    expect(result).toBeDefined();
+
     expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
   });
 });
@@ -361,10 +353,9 @@ describe('getHourlyFundingSplit', () => {
     getThirdPartyPayerPrice.returns(28);
 
     const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
-    expect(result).toBeDefined();
+
     expect(result.customerPrice).toEqual(22);
     expect(result.thirdPartyPayerPrice).toEqual(28);
-    expect(result.history).toBeDefined();
     expect(result.history.careHours).toEqual(2);
     sinon.assert.calledWithExactly(
       getThirdPartyPayerPrice,
@@ -389,17 +380,11 @@ describe('getHourlyFundingSplit', () => {
     getThirdPartyPayerPrice.returns(14);
 
     const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
-    expect(result).toBeDefined();
+
     expect(result.customerPrice).toEqual(36);
     expect(result.thirdPartyPayerPrice).toEqual(14);
-    expect(result.history).toBeDefined();
     expect(result.history.careHours).toEqual(1);
-    sinon.assert.calledWithExactly(
-      getThirdPartyPayerPrice,
-      60,
-      17.5,
-      20
-    );
+    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, 60, 17.5, 20);
   });
 });
 
@@ -427,10 +412,9 @@ describe('getFixedFundingSplit', () => {
     getExclTaxes.returns(50);
 
     const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
-    expect(result).toBeDefined();
+
     expect(result.customerPrice).toEqual(0);
     expect(result.thirdPartyPayerPrice).toEqual(50);
-    expect(result.history).toBeDefined();
     expect(result.history.amountTTC).toEqual(60);
     sinon.assert.notCalled(getExclTaxes);
   });
@@ -444,10 +428,9 @@ describe('getFixedFundingSplit', () => {
     getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
-    expect(result).toBeDefined();
+
     expect(result.customerPrice).toEqual(32.5);
     expect(result.thirdPartyPayerPrice).toEqual(17.5);
-    expect(result.history).toBeDefined();
     expect(result.history.amountTTC).toEqual(21);
     sinon.assert.calledWithExactly(getExclTaxes, 21, 20);
   });
@@ -484,7 +467,7 @@ describe('getEventBilling', () => {
     getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
-    expect(result).toBeDefined();
+
     expect(result).toEqual({ customerPrice: 35, thirdPartyPayerPrice: 0 });
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
@@ -499,12 +482,8 @@ describe('getEventBilling', () => {
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
-    expect(result).toBeDefined();
-    expect(result).toEqual({
-      customerPrice: 38.5,
-      thirdPartyPayerPrice: 0,
-      surcharges: [{ percentage: 10 }],
-    });
+
+    expect(result).toEqual({ customerPrice: 38.5, thirdPartyPayerPrice: 0, surcharges: [{ percentage: 10 }] });
     sinon.assert.calledOnce(getEventSurcharges);
     sinon.assert.calledWithExactly(getSurchargedPrice, event, [{ percentage: 10 }], 35);
     sinon.assert.notCalled(getHourlyFundingSplit);
@@ -526,7 +505,7 @@ describe('getEventBilling', () => {
     getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
-    expect(result).toBeDefined();
+
     expect(result).toEqual({ customerPrice: 10, thirdPartyPayerPrice: 25 });
     sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, service, 35);
     sinon.assert.notCalled(getFixedFundingSplit);
@@ -546,7 +525,7 @@ describe('getEventBilling', () => {
     getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
-    expect(result).toBeDefined();
+
     expect(result).toEqual({ customerPrice: 0, thirdPartyPayerPrice: 35 });
     sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, service, 35);
     sinon.assert.notCalled(getHourlyFundingSplit);
@@ -571,12 +550,8 @@ describe('getEventBilling', () => {
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
-    expect(result).toBeDefined();
-    expect(result).toEqual({
-      customerPrice: 10,
-      thirdPartyPayerPrice: 25,
-      surcharges: [{ percentage: 10 }],
-    });
+
+    expect(result).toEqual({ customerPrice: 10, thirdPartyPayerPrice: 25, surcharges: [{ percentage: 10 }] });
     sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, service, 38.5);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.calledOnce(getEventSurcharges);
@@ -597,12 +572,8 @@ describe('getEventBilling', () => {
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
-    expect(result).toBeDefined();
-    expect(result).toEqual({
-      customerPrice: 0,
-      thirdPartyPayerPrice: 35,
-      surcharges: [{ percentage: 10 }],
-    });
+
+    expect(result).toEqual({ customerPrice: 0, thirdPartyPayerPrice: 35, surcharges: [{ percentage: 10 }] });
     sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, service, 38.5);
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.calledOnce(getEventSurcharges);
@@ -614,7 +585,7 @@ describe('getEventBilling', () => {
     getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
-    expect(result).toBeDefined();
+
     result.customerPrice = Number.parseFloat(result.customerPrice.toFixed(2));
     expect(result).toEqual({ customerPrice: 17.5, thirdPartyPayerPrice: 0 });
     sinon.assert.notCalled(getHourlyFundingSplit);
@@ -646,7 +617,7 @@ describe('formatDraftBillsForCustomer', () => {
     getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service, null);
-    expect(result).toBeDefined();
+
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
@@ -671,7 +642,7 @@ describe('formatDraftBillsForCustomer', () => {
     getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service, funding);
-    expect(result).toBeDefined();
+
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
@@ -703,7 +674,7 @@ describe('formatDraftBillsForCustomer', () => {
     getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service, funding);
-    expect(result).toBeDefined();
+
     expect(result).toMatchObject({
       eventsList: [
         {
@@ -753,8 +724,7 @@ describe('formatDraftBillsForTPP', () => {
     getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
 
     const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
-    expect(result).toBeDefined();
-    expect(result[tppId]).toBeDefined();
+
     expect(result[tppId].exclTaxes).toEqual(32.5);
     expect(result[tppId].inclTaxes).toEqual(40);
     expect(result[tppId].hours).toEqual(5);
@@ -821,8 +791,7 @@ describe('getDraftBillsPerSubscription', () => {
     getExclTaxes.returns(70);
 
     const result = DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, query);
-    expect(result).toBeDefined();
-    expect(result.customer).toBeDefined();
+
     expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
     expect(result.customer.exclTaxes).toEqual(70);
     expect(result.customer.inclTaxes).toEqual(84);
@@ -868,13 +837,11 @@ describe('getDraftBillsPerSubscription', () => {
     getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, query);
-    expect(result).toBeDefined();
-    expect(result.customer).toBeDefined();
+
     expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
     expect(result.customer.exclTaxes).toEqual(57.5);
     expect(result.customer.inclTaxes).toEqual(69);
     expect(result.customer.unitExclTaxes).toEqual(17.5);
-    expect(result.thirdPartyPayer).toBeDefined();
     expect(result.thirdPartyPayer[tppId].exclTaxes).toEqual(12.5);
     expect(result.thirdPartyPayer[tppId].inclTaxes).toEqual(15);
   });
