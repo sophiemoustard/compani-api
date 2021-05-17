@@ -1903,7 +1903,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 });
 
-describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
+describe('DELETE /users/:id/expo-token/:expoToken', () => {
   let authToken;
 
   describe('VENDOR_ADMIN', () => {
@@ -1916,7 +1916,7 @@ describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${usersSeedList[0]._id.toHexString()}`
-        + `/formation-expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
+        + `/expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1926,7 +1926,7 @@ describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
     it('should return 400 if _id is not an objectId', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: '/users/bonjour/formation-expo-token'
+        url: '/users/bonjour/expo-token'
         + `/${usersSeedList[0].formationExpoTokenList[0]}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1943,7 +1943,7 @@ describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${userList[11]._id.toHexString()}/formation-expo-token/${userList[11].formationExpoTokenList[0]}`,
+        url: `/users/${userList[11]._id.toHexString()}/expo-token/${userList[11].formationExpoTokenList[0]}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1962,7 +1962,7 @@ describe('DELETE /users/:id/formation-expo-token/:formationExpoToken', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/users/${usersSeedList[0]._id.toHexString()}`
-          + `/formation-expo-token/${usersSeedList[0].formationExpoToken}`,
+          + `/expo-token/${usersSeedList[0].formationExpoToken}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
