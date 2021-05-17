@@ -1,10 +1,59 @@
 const sinon = require('sinon');
+const expect = require('expect');
+const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
 const eventTimeStampingHelper = require('../../../src/helpers/eventTimeStamping');
 const eventHistoryHelper = require('../../../src/helpers/eventHistories');
+const eventValidationHelper = require('../../../src/helpers/eventsValidation');
 const Event = require('../../../src/models/Event');
 
-describe('addTimeStamp #tag', () => {
+describe('isTimeStampAllowed', () => {
+  let hasConflictsStub;
+
+  beforeEach(() => { hasConflictsStub = sinon.stub(eventValidationHelper, 'hasConflicts'); });
+
+  afterEach(() => { hasConflictsStub.restore(); });
+
+  it('should return true if user is allowed to timestamp', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const startDate = '2021-05-01T10:04:00';
+
+    hasConflictsStub.returns(false);
+
+    const result = await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return a 422 if endDate is before timestamping date', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const startDate = '2021-05-01T12:30:00';
+    try {
+      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toEqual(Boom.badData());
+    }
+  });
+
+  it('should return a 409 if new event is in conflict with other events', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const startDate = '2021-05-01T09:45:00';
+    try {
+      hasConflictsStub.returns(true);
+
+      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toEqual(Boom.conflict());
+      sinon.assert.calledOnceWithExactly(hasConflictsStub, { ...event, startDate });
+    }
+  });
+});
+
+describe('addTimeStamp', () => {
   let isTimeStampAllowedStub;
   let createTimeStampHistoryStub;
   let updateOne;
@@ -30,7 +79,7 @@ describe('addTimeStamp #tag', () => {
 
     await eventTimeStampingHelper.addTimeStamp(event, payload);
 
-    sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, payload);
+    sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
     sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate });
   });
@@ -44,7 +93,7 @@ describe('addTimeStamp #tag', () => {
 
     await eventTimeStampingHelper.addTimeStamp(event, payload);
 
-    sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, payload);
+    sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
     sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate });
   });
