@@ -226,3 +226,9 @@ exports.getPicturePublicId = async (req) => {
 
   return get(user, 'picture.publicId') || '';
 };
+
+exports.authorizeExpoTokenEdit = async (req) => {
+  if (!UtilsHelper.areObjectIdsEquals(req.params._id, req.auth.credentials._id)) throw Boom.forbidden();
+
+  return null;
+};
