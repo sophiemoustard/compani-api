@@ -233,12 +233,12 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
   return datesUpdateHistory;
 };
 
-exports.createTimeStampHistory = async (event, timeStamp) => {
+exports.createTimeStampHistory = async (event, payload) => {
   await EventHistory.create({
     event: { ...omit(event, ['_id']) },
     action: MANUAL_TIME_STAMPING,
-    manualTimeStampingReason: 'qrcode',
+    manualTimeStampingReason: payload.reason,
     auxiliaries: [event.auxiliary],
-    update: { startHour: timeStamp },
+    update: { startHour: payload.startDate },
   });
 };

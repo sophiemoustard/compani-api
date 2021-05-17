@@ -954,7 +954,7 @@ describe('formatHistoryForHoursUpdate', () => {
   });
 });
 
-describe('createTimeStampHistory #tag', () => {
+describe('createTimeStampHistory', () => {
   let create;
 
   beforeEach(() => { create = sinon.stub(EventHistory, 'create'); });
@@ -970,9 +970,9 @@ describe('createTimeStampHistory #tag', () => {
       misc: 'test',
       repetition: { frequency: 'every_day', parentID: new ObjectID() },
     };
-    const startDate = '2021-05-01T10:02:00';
+    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode' };
 
-    await EventHistoryHelper.createTimeStampHistory(event, startDate);
+    await EventHistoryHelper.createTimeStampHistory(event, payload);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -981,7 +981,7 @@ describe('createTimeStampHistory #tag', () => {
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
-        update: { startHour: startDate },
+        update: { startHour: '2021-05-01T10:02:00' },
       }
     );
   });

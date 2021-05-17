@@ -12,8 +12,8 @@ exports.isTimeStampAllowed = (event, startDate) => {
 };
 
 exports.addTimeStamp = async (event, payload) => {
-  if (!exports.isTimeStampAllowed(event, payload)) return;
+  if (!exports.isTimeStampAllowed(event, payload.startDate)) return;
 
-  EventHistoriesHelper.createTimeStampHistory(event, payload.startDate);
+  EventHistoriesHelper.createTimeStampHistory(event, payload);
   Event.updateOne({ _id: event._id }, { startDate: payload.startDate });
 };
