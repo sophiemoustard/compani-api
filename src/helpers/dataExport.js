@@ -56,7 +56,6 @@ const customerExportHeader = [
   'Souscriptions',
   'Nombre de financements',
   'Date de création',
-  'Statut',
 ];
 
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
@@ -104,7 +103,6 @@ exports.exportCustomers = async (credentials) => {
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
       cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
-      firstIntervention ? 'Actif' : 'Inactif',
     ];
 
     rows.push(cells);
@@ -207,7 +205,6 @@ const helperExportHeader = [
   'Bénéficiaire - Rue',
   'Bénéficiaire - Code postal',
   'Bénéficiaire - Ville',
-  'Bénéficiaire - Statut',
   'Date de création',
 ];
 
@@ -219,11 +216,7 @@ exports.exportHelpers = async (credentials) => {
     .find({ 'role.client': role._id, company: companyId })
     .populate({
       path: 'customers',
-      populate: {
-        path: 'customer',
-        select: 'identity contact',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
-      },
+      populate: { path: 'customer', select: 'identity contact' },
       match: { company: companyId },
     })
     .lean();
@@ -231,9 +224,6 @@ exports.exportHelpers = async (credentials) => {
   const data = [helperExportHeader];
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers.customer;
-    const status = get(customer, 'firstIntervention', null)
-      ? 'Actif'
-      : 'Inactif';
 
     data.push([
       get(hel, 'local.email') || '',
@@ -248,7 +238,6 @@ exports.exportHelpers = async (credentials) => {
       get(customer, 'contact.primaryAddress.street') || '',
       get(customer, 'contact.primaryAddress.zipCode') || '',
       get(customer, 'contact.primaryAddress.city') || '',
-      status,
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
     ]);
   }
