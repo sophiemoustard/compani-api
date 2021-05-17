@@ -231,11 +231,12 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
 
-  const onlyFundingChargedTime = !funding || funding.customerParticipationRate > 0 ? 0 : eventPrice.chargedTime;
+  const cusParticipationRateIsZero = funding && funding.customerParticipationRate === 0;
+  const timeNotChargedToCustomer = cusParticipationRateIsZero ? eventPrice.chargedTime : 0;
 
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
-    hours: customerPrices.hours + ((moment(endDate).diff(moment(startDate), 'm') - onlyFundingChargedTime) / 60),
+    hours: customerPrices.hours + ((moment(endDate).diff(moment(startDate), 'm') - timeNotChargedToCustomer) / 60),
     exclTaxes: customerPrices.exclTaxes + eventPrice.customerPrice,
     inclTaxes: customerPrices.inclTaxes + inclTaxesCustomer,
   };
