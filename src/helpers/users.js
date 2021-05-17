@@ -235,11 +235,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  const updatePayload = userPayload.formationExpoToken
-    ? { $addToSet: { formationExpoTokenList: userPayload.formationExpoToken } }
-    : { $set: flat(payload) };
-
-  await User.updateOne(filterQuery, updatePayload);
+  await User.updateOne(filterQuery, { $set: flat(payload) });
 };
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
@@ -297,6 +293,18 @@ exports.createDriveFolder = async (user) => {
   await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
 };
 
-exports.removeExpoToken = async (userId, expoToken) => User.updateOne(
-  { _id: userId }, { $pull: { formationExpoTokenList: expoToken } }
-);
+exports.addExpoToken = async (payload, credentials) => {
+  const userId = credentials._id;
+  const companyId = get(credentials, 'company._id', null);
+
+  await User.updateOne(
+    { _id: userId, company: companyId },
+    { $addToSet: { formationExpoTokenList: payload.formationExpoToken } }
+  );
+};
+
+exports.removeExpoToken = async (expoToken, credentials) => {
+  const userId = credentials._id;
+
+  await User.updateOne({ _id: userId }, { $pull: { formationExpoTokenList: expoToken } });
+};

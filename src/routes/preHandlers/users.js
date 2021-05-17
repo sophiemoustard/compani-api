@@ -111,7 +111,6 @@ const checkUpdateRestrictions = (payload) => {
     'local.email',
     'local.password',
     'origin',
-    'formationExpoToken',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
@@ -226,4 +225,10 @@ exports.getPicturePublicId = async (req) => {
   if (!user) throw Boom.notFound();
 
   return get(user, 'picture.publicId') || '';
+};
+
+exports.authorizeExpoTokenEdit = async (req) => {
+  if (!UtilsHelper.areObjectIdsEquals(req.params._id, req.auth.credentials._id)) throw Boom.forbidden();
+
+  return null;
 };
