@@ -1,4 +1,4 @@
-const { ObjectID, ObjectId } = require('mongodb');
+const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
