@@ -216,11 +216,7 @@ exports.exportHelpers = async (credentials) => {
     .find({ 'role.client': role._id, company: companyId })
     .populate({
       path: 'customers',
-      populate: {
-        path: 'customer',
-        select: 'identity contact',
-        populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
-      },
+      populate: { path: 'customer', select: 'identity contact' },
       match: { company: companyId },
     })
     .lean();

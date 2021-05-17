@@ -424,11 +424,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },
@@ -481,11 +477,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },
@@ -501,7 +493,6 @@ describe('exportHelpers', () => {
       customers: {
         customer: {
           _id: new ObjectID(),
-          firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
           identity: { title: 'mr', lastname: 'Patate' },
           local: { phone: '' },
           contact: {
@@ -547,11 +538,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },
