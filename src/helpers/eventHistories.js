@@ -224,3 +224,5 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
 
   return datesUpdateHistory;
 };
+
+exports.createTimeStampHistory = () => {};
