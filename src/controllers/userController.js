@@ -202,9 +202,9 @@ const createDriveFolder = async (req) => {
   }
 };
 
-const removeFormationExpoToken = async (req) => {
+const removeExpoToken = async (req) => {
   try {
-    await UsersHelper.removeFormationExpoToken(req.params._id, req.params.formationExpoToken);
+    await UsersHelper.removeExpoToken(req.params._id, req.params.expoToken);
 
     return { message: translate[language].userUpdated };
   } catch (e) {
@@ -228,5 +228,5 @@ module.exports = {
   uploadPicture,
   deletePicture,
   createDriveFolder,
-  removeFormationExpoToken,
+  removeExpoToken,
 };

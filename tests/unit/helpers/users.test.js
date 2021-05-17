@@ -1365,7 +1365,7 @@ describe('createDriveFolder', () => {
   });
 });
 
-describe('removeFormationExpoToken', () => {
+describe('removeExpoToken', () => {
   let updateOne;
   beforeEach(() => {
     updateOne = sinon.stub(User, 'updateOne');
@@ -1374,10 +1374,10 @@ describe('removeFormationExpoToken', () => {
     updateOne.restore();
   });
 
-  it('should update user and delete media', async () => {
+  it('should remove expoToken from user', async () => {
     const userId = new ObjectID();
 
-    await UsersHelper.removeFormationExpoToken(userId, 'ExponentPushToken[jeSuisUnIdExpo]');
+    await UsersHelper.removeExpoToken(userId, 'ExponentPushToken[jeSuisUnIdExpo]');
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
