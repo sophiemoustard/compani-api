@@ -105,7 +105,12 @@ const checkCustomer = async (userCompany, payload) => {
 
 const checkUpdateRestrictions = (payload) => {
   const allowedUpdateKeys = [
-    'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'local.password', 'origin',
+    'identity.firstname',
+    'identity.lastname',
+    'contact.phone',
+    'local.email',
+    'local.password',
+    'origin',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
