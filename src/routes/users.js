@@ -34,6 +34,7 @@ const {
   authorizeLearnersGet,
   getPicturePublicId,
   authorizeExpoTokenEdit,
+  checkExpoToken,
 } = require('./preHandlers/users');
 const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
@@ -407,14 +408,10 @@ exports.plugin = {
       options: {
         auth: { scope: ['user:edit-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
-          payload: Joi.object({
-            formationExpoToken: expoTokenValidation.required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ formationExpoToken: expoTokenValidation.required() }),
         },
-        pre: [{ method: authorizeExpoTokenEdit }],
+        pre: [{ method: authorizeExpoTokenEdit }, { method: checkExpoToken }],
       },
       handler: addExpoToken,
     });

@@ -1369,7 +1369,7 @@ describe('addExpoToken', () => {
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: userId, company: companyId },
+      { _id: userId },
       { $addToSet: { formationExpoTokenList: 'ExponentPushToken[jeSuisUnIdExpo]' } }
     );
   });

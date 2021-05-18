@@ -295,12 +295,8 @@ exports.createDriveFolder = async (user) => {
 
 exports.addExpoToken = async (payload, credentials) => {
   const userId = credentials._id;
-  const companyId = get(credentials, 'company._id', null);
 
-  await User.updateOne(
-    { _id: userId, company: companyId },
-    { $addToSet: { formationExpoTokenList: payload.formationExpoToken } }
-  );
+  await User.updateOne({ _id: userId }, { $addToSet: { formationExpoTokenList: payload.formationExpoToken } });
 };
 
 exports.removeExpoToken = async (expoToken, credentials) => {

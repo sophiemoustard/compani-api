@@ -105,12 +105,7 @@ const checkCustomer = async (userCompany, payload) => {
 
 const checkUpdateRestrictions = (payload) => {
   const allowedUpdateKeys = [
-    'identity.firstname',
-    'identity.lastname',
-    'contact.phone',
-    'local.email',
-    'local.password',
-    'origin',
+    'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'local.password', 'origin',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
@@ -225,6 +220,17 @@ exports.getPicturePublicId = async (req) => {
   if (!user) throw Boom.notFound();
 
   return get(user, 'picture.publicId') || '';
+};
+
+exports.checkExpoToken = async (req) => {
+  const { params, payload } = req;
+  const expoTokenAlreadyExists = await User.countDocuments({
+    _id: { $ne: params._id },
+    formationExpoTokenList: payload.formationExpoToken,
+  });
+  if (expoTokenAlreadyExists) throw Boom.forbidden();
+
+  return null;
 };
 
 exports.authorizeExpoTokenEdit = async (req) => {
