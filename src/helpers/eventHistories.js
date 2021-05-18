@@ -132,22 +132,27 @@ exports.formatHistoryForAuxiliaryUpdate = async (mainInfo, payload, event, compa
     const auxiliaryList = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
+
     for (const aux of auxiliaryList) {
-      if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector._id)) sectors.push(aux.sector);
+      if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector._id)) sectors.push(aux.sector._id);
     }
   } else if (event.auxiliary) {
     auxiliaries = [event.auxiliary];
     update = { auxiliary: { from: event.auxiliary } };
+
     const aux = await User.findOne({ _id: event.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
+
     if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   } else if (payload.auxiliary) {
     auxiliaries = [payload.auxiliary];
     update = { auxiliary: { to: payload.auxiliary } };
+
     const aux = await User.findOne({ _id: payload.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
+
     if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   }
 

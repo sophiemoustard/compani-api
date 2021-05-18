@@ -1343,7 +1343,7 @@ describe('createEvent', () => {
     await EventHelper.createEvent(newEvent, credentials);
 
     const repetition = { ...newEvent.repetition, parentId: detachedEvent._id };
-    sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, { ...detachedEvent, repetition }, credentials);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, { ...newEvent, repetition }, credentials);
     sinon.assert.calledOnceWithExactly(getEvent, detachedEvent._id, credentials);
     sinon.assert.calledOnceWithExactly(populateEventSubscription, detachedEvent);
     SinonMongoose.calledWithExactly(
