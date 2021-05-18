@@ -22,31 +22,20 @@ const EventHistorySchema = mongoose.Schema({
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     },
-    startDate: {
-      from: Date,
-      to: Date,
-    },
-    endDate: {
-      from: Date,
-      to: Date,
-    },
-    startHour: {
-      from: Date,
-      to: Date,
-    },
-    endHour: {
-      from: Date,
-      to: Date,
-    },
+    startDate: { from: { type: Date }, to: { type: Date } },
+    endDate: { from: { type: Date }, to: { type: Date } },
+    startHour: { from: { type: Date }, to: { type: Date } },
+    endHour: { from: { type: Date }, to: { type: Date } },
     cancel: {
       condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
       reason: { type: String, enum: EVENT_CANCELLATION_REASONS },
     },
   },
   event: {
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true, immutable: true },
     type: { type: String, enum: EVENT_TYPES },
-    startDate: Date,
-    endDate: Date,
+    startDate: { type: Date },
+    endDate: { type: Date },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     absence: { type: String, enum: ABSENCE_TYPES },
@@ -55,6 +44,7 @@ const EventHistorySchema = mongoose.Schema({
     misc: { type: String },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },
+      parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     },
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
