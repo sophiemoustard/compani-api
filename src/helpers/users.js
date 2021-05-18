@@ -293,14 +293,12 @@ exports.createDriveFolder = async (user) => {
   await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
 };
 
-exports.addExpoToken = async (payload, credentials) => {
-  const userId = credentials._id;
+exports.addExpoToken = async (payload, credentials) => User.updateOne(
+  { _id: credentials._id },
+  { $addToSet: { formationExpoTokenList: payload.formationExpoToken } }
+);
 
-  await User.updateOne({ _id: userId }, { $addToSet: { formationExpoTokenList: payload.formationExpoToken } });
-};
-
-exports.removeExpoToken = async (expoToken, credentials) => {
-  const userId = credentials._id;
-
-  await User.updateOne({ _id: userId }, { $pull: { formationExpoTokenList: expoToken } });
-};
+exports.removeExpoToken = async (expoToken, credentials) => User.updateOne(
+  { _id: credentials._id },
+  { $pull: { formationExpoTokenList: expoToken } }
+);
