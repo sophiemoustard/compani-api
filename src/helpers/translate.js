@@ -316,7 +316,6 @@ module.exports = {
     customerPartnerAlreadyExists: 'Customer partner already exists.',
     customerPartnerUpdated: 'Customer partner updated.',
     customerPartnerRemoved: 'Customer partner removed.',
-
   },
   'fr-FR': {
     /* Global errors */
@@ -632,6 +631,5 @@ module.exports = {
     customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
     customerPartnerUpdated: 'Partenaire mis à jour.',
     customerPartnerRemoved: 'Partenaire supprimé.',
-
   },
 };

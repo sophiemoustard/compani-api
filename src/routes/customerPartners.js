@@ -57,9 +57,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         auth: { scope: ['customerpartners:edit'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         pre: [{ method: authorizeCustomerPartnerEdit }],
       },
       handler: remove,

@@ -274,6 +274,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
     it('should return 404 if customer partner has wrong company', async () => {
       const customerPartnerId = customerPartnersList[0]._id;
       const response = await app.inject({
@@ -349,6 +350,7 @@ describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
     it('should return 404 if customer partner has wrong company', async () => {
       const customerPartnerId = customerPartnersList[0]._id;
       const response = await app.inject({
@@ -365,6 +367,7 @@ describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
