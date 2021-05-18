@@ -87,7 +87,7 @@ exports.createEvent = async (payload, credentials) => {
       credentials
     );
 
-    await EventHistoriesHelper.createEventHistoryOnCreate({ ...event, repetition }, credentials);
+    await EventHistoriesHelper.createEventHistoryOnCreate({ ...payload, _id: event._id, repetition }, credentials);
   }
 
   if (payload.type === ABSENCE) {

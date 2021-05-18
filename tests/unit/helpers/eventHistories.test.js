@@ -620,27 +620,20 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
     find.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, sector: sectorId }]]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: {
-        auxiliary: { from: auxiliaryId.toHexString(), to: 'qwertyuiop' },
-      },
+      update: { auxiliary: { from: auxiliaryId, to: 'qwertyuiop' } },
       sectors: [sectorId],
-      auxiliaries: [auxiliaryId.toHexString(), 'qwertyuiop'],
+      auxiliaries: [auxiliaryId, 'qwertyuiop'],
     });
     SinonMongoose.calledWithExactly(
       find,
@@ -657,24 +650,20 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = { sector: sectorId.toHexString() };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { sector: sectorId };
     const event = { auxiliary: auxiliaryId };
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: { auxiliary: { from: auxiliaryId.toHexString() } },
-      sectors: [sectorId.toHexString()],
-      auxiliaries: [auxiliaryId.toHexString()],
+      update: { auxiliary: { from: auxiliaryId } },
+      sectors: [sectorId],
+      auxiliaries: [auxiliaryId],
     });
     SinonMongoose.calledWithExactly(
       findOne,
@@ -692,32 +681,25 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const eventSectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = { auxiliary: auxiliaryId.toHexString() };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { auxiliary: auxiliaryId };
     const event = { sector: eventSectorId };
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: {
-        auxiliary: { to: auxiliaryId.toHexString() },
-      },
-      sectors: [sectorId.toHexString(), eventSectorId.toHexString()],
-      auxiliaries: [auxiliaryId.toHexString()],
+      update: { auxiliary: { to: auxiliaryId } },
+      sectors: [sectorId, eventSectorId],
+      auxiliaries: [auxiliaryId],
     });
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]

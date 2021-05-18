@@ -188,7 +188,7 @@ const populateDB = async () => {
   await (new Customer(customer)).save();
   await Sector.create(sectors);
   await (new Sector(sectorFromOtherCompany)).save();
-  Event.insertMany(events);
+  await Event.insertMany(events);
 };
 
 module.exports = {

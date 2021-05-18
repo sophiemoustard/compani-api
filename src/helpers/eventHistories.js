@@ -74,7 +74,7 @@ const areDaysChanged = (event, payload) => !moment(event.startDate).isSame(paylo
   !moment(event.endDate).isSame(payload.endDate, 'day');
 
 const isAuxiliaryUpdated = (event, payload) => (!event.auxiliary && payload.auxiliary) ||
-  (event.auxiliary && event.auxiliary.toHexString() !== payload.auxiliary);
+  (event.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, payload.auxiliary));
 
 const areHoursChanged = (event, payload) => {
   const eventStartHour = moment(event.startDate).format('HH:mm');
@@ -126,33 +126,33 @@ exports.formatHistoryForAuxiliaryUpdate = async (mainInfo, payload, event, compa
   let auxiliaries = [];
   let update = [];
   if (event.auxiliary && payload.auxiliary) {
-    auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
-    update = { auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary } };
+    auxiliaries = [event.auxiliary, payload.auxiliary];
+    update = { auxiliary: { from: event.auxiliary, to: payload.auxiliary } };
 
     const auxiliaryList = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
     for (const aux of auxiliaryList) {
-      if (!sectors.includes(aux.sector._id)) sectors.push(aux.sector);
+      if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector._id)) sectors.push(aux.sector);
     }
   } else if (event.auxiliary) {
-    auxiliaries = [event.auxiliary.toHexString()];
-    update = { auxiliary: { from: event.auxiliary.toHexString() } };
+    auxiliaries = [event.auxiliary];
+    update = { auxiliary: { from: event.auxiliary } };
     const aux = await User.findOne({ _id: event.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
+    if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   } else if (payload.auxiliary) {
     auxiliaries = [payload.auxiliary];
     update = { auxiliary: { to: payload.auxiliary } };
     const aux = await User.findOne({ _id: payload.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
+    if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   }
 
-  if (payload.sector && !sectors.includes(payload.sector)) sectors.push(payload.sector);
-  if (event.sector && !sectors.includes(event.sector.toHexString())) sectors.push(event.sector.toHexString());
+  if (payload.sector && !UtilsHelper.doesArrayIncludeId(sectors, payload.sector)) sectors.push(payload.sector);
+  if (event.sector && !UtilsHelper.doesArrayIncludeId(sectors, event.sector)) sectors.push(event.sector);
 
   return { ...mainInfo, sectors, auxiliaries, update };
 };

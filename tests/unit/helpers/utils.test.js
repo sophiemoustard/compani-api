@@ -312,3 +312,33 @@ describe('areObjectIdsEquals', () => {
     expect(result).toBe(false);
   });
 });
+
+describe('doesArrayIncludeId', () => {
+  let areObjectIdsEqualStub;
+
+  beforeEach(() => { areObjectIdsEqualStub = sinon.stub(UtilsHelper, 'areObjectIdsEquals'); });
+
+  afterEach(() => { areObjectIdsEqualStub.restore(); });
+
+  it('should return true if the array includes the id', () => {
+    const correctId = new ObjectID();
+    const incorrectId = new ObjectID();
+    areObjectIdsEqualStub.onCall(0).returns(false);
+    areObjectIdsEqualStub.onCall(1).returns(true);
+
+    const result = UtilsHelper.doesArrayIncludeId([incorrectId, correctId], correctId);
+
+    expect(result).toBe(true);
+    sinon.assert.calledWithExactly(areObjectIdsEqualStub.getCall(0), incorrectId, correctId);
+    sinon.assert.calledWithExactly(areObjectIdsEqualStub.getCall(1), correctId, correctId);
+  });
+
+  it('should return false if the array does not include the id', () => {
+    areObjectIdsEqualStub.onCall(0).returns(false);
+    areObjectIdsEqualStub.onCall(1).returns(false);
+
+    const result = UtilsHelper.doesArrayIncludeId([new ObjectID(), new ObjectID()], new ObjectID());
+
+    expect(result).toBe(false);
+  });
+});
