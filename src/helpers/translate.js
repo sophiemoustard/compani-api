@@ -49,6 +49,7 @@ module.exports = {
     unknownRole: 'Role does not exist.',
     /* Email */
     emailSent: 'Email successfully sent.',
+    emailNotSent: 'An error occurred while sending the email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
     resetPasswordTokenNotFound: 'Reset password token not found.',
@@ -366,6 +367,7 @@ module.exports = {
     unknownRole: 'Le rôle n\'existe pas.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
+    emailNotSent: 'Erreur lors de l\'envoi de l\'email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
     resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',

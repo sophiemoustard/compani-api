@@ -18,8 +18,9 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const EmailHelper = require('./email');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT, TRAINEE } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 
@@ -339,15 +340,16 @@ exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
 
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
-  await CourseHistoriesHelper.createHistoryOnTraineeAddition(
-    { course: courseId, traineeId: addedTrainee._id },
-    credentials._id
-  );
+  await Promise.all([
+    Course.updateOne({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true }),
+    CourseHistoriesHelper.createHistoryOnTraineeAddition(
+      { course: courseId, traineeId: addedTrainee._id },
+      credentials._id
+    ),
+    NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId),
+  ]);
 
-  await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
-
-  return Course.findOneAndUpdate({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true })
-    .lean();
+  if (!trainee) await EmailHelper.sendWelcome(TRAINEE, payload.local.email);
 };
 
 exports.registerToELearningCourse = async (courseId, credentials) =>
