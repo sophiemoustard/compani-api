@@ -961,43 +961,43 @@ describe('createUser', () => {
 
 describe('removeHelper', () => {
   let roleFindOne;
-  let userFindOneAndUpdate;
+  let updateOne;
   let removeHelper;
 
-  const user = { _id: new ObjectID() };
+  const userId = new ObjectID();
   const roleId = new ObjectID();
 
   beforeEach(() => {
     roleFindOne = sinon.stub(Role, 'findOne');
-    userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
+    updateOne = sinon.stub(User, 'updateOne');
     removeHelper = sinon.stub(HelpersHelper, 'remove');
   });
   afterEach(() => {
     roleFindOne.restore();
-    userFindOneAndUpdate.restore();
+    updateOne.restore();
     removeHelper.restore();
   });
 
   it('should remove client role and customers', async () => {
-    await UsersHelper.removeHelper({ ...user, role: { vendor: new ObjectID() } });
+    await UsersHelper.removeHelper({ _id: userId, role: { vendor: new ObjectID() } });
 
     sinon.assert.calledOnceWithExactly(
-      userFindOneAndUpdate,
-      { _id: user._id },
+      updateOne,
+      { _id: userId },
       { $unset: { 'role.client': '', company: '' } }
     );
-    sinon.assert.calledOnceWithExactly(removeHelper, user._id);
+    sinon.assert.calledOnceWithExactly(removeHelper, userId);
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
-    await UsersHelper.removeHelper({ ...user, role: { vendor: roleId } });
+    await UsersHelper.removeHelper({ _id: userId, role: { vendor: roleId } });
 
     sinon.assert.calledOnceWithExactly(
-      userFindOneAndUpdate,
-      { _id: user._id },
+      updateOne,
+      { _id: userId },
       { $unset: { 'role.client': '', company: '' } }
     );
-    sinon.assert.calledOnceWithExactly(removeHelper, user._id);
+    sinon.assert.calledOnceWithExactly(removeHelper, userId);
   });
 });
 

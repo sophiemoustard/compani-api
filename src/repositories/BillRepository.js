@@ -16,14 +16,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
         billed: { $sum: '$netInclTaxes' },
       },
     },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {

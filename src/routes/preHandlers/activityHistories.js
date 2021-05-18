@@ -17,7 +17,7 @@ exports.authorizeAddActivityHistory = async (req) => {
       populate: { path: 'subProgram', select: '_id -steps' },
     })
     .lean();
-  const user = await User.findOne({ _id: userId }).lean();
+  const user = await User.countDocuments({ _id: userId });
 
   if (!activity || !user) throw Boom.notFound();
 
