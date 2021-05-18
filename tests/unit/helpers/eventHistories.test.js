@@ -970,7 +970,7 @@ describe('createTimeStampHistory', () => {
       misc: 'test',
       repetition: { frequency: 'every_day', parentID: new ObjectID() },
     };
-    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode' };
+    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload);
 

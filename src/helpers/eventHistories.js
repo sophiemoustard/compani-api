@@ -4,14 +4,7 @@ const pickBy = require('lodash/pickBy');
 const omit = require('lodash/omit');
 const EventHistory = require('../models/EventHistory');
 const User = require('../models/User');
-const {
-  EVENT_CREATION,
-  EVENT_DELETION,
-  EVENT_UPDATE,
-  INTERNAL_HOUR,
-  ABSENCE,
-  MANUAL_TIME_STAMPING,
-} = require('./constants');
+const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
@@ -233,12 +226,10 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
   return datesUpdateHistory;
 };
 
-exports.createTimeStampHistory = async (event, payload) => {
-  await EventHistory.create({
-    event: { ...omit(event, ['_id']) },
-    action: MANUAL_TIME_STAMPING,
-    manualTimeStampingReason: payload.reason,
-    auxiliaries: [event.auxiliary],
-    update: { startHour: payload.startDate },
-  });
-};
+exports.createTimeStampHistory = async (event, payload) => EventHistory.create({
+  event: { ...omit(event, ['_id']) },
+  action: payload.action,
+  manualTimeStampingReason: payload.reason,
+  auxiliaries: [event.auxiliary],
+  update: { startHour: payload.startDate },
+});
