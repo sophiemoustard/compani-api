@@ -108,22 +108,22 @@ exports.authorizeCustomerDelete = async (req) => {
   const customer = await Customer.findOne({ _id: req.params._id }, { company: 1 }).lean();
   if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-  if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
 
-  const interventionCount = await Event.countDocuments({ customer: customer._id, type: INTERVENTION });
-  if (interventionCount > 0) throw Boom.forbidden();
+  const interventionsCount = await Event.countDocuments({ customer: customer._id, type: INTERVENTION });
+  if (interventionsCount) throw Boom.forbidden();
 
   const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId });
-  if (billsCount > 0) throw Boom.forbidden();
+  if (billsCount) throw Boom.forbidden();
 
   const paymentsCount = await Payment.countDocuments({ customer: customer._id, company: companyId });
-  if (paymentsCount > 0) throw Boom.forbidden();
+  if (paymentsCount) throw Boom.forbidden();
 
   const creditNotesCount = await CreditNote.countDocuments({ customer: customer._id, company: companyId });
-  if (creditNotesCount > 0) throw Boom.forbidden();
+  if (creditNotesCount) throw Boom.forbidden();
 
   const taxCertificatesCount = await TaxCertificate.countDocuments({ customer: customer._id, company: companyId });
-  if (taxCertificatesCount > 0) throw Boom.forbidden();
+  if (taxCertificatesCount) throw Boom.forbidden();
 
   return null;
 };

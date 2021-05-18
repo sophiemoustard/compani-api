@@ -898,6 +898,7 @@ describe('removeCustomer', () => {
       { _id: customerId },
       { $unset: { 'role.client': '', company: '' } }
     );
+    sinon.assert.notCalled(deleteFileDrive);
   });
 });
 
