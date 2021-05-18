@@ -1892,7 +1892,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 });
 
-describe('POST /users/:id #tag', () => {
+describe('POST /users/:id', () => {
   let authToken;
 
   describe('LOGGED_USER', () => {
@@ -1906,7 +1906,7 @@ describe('POST /users/:id #tag', () => {
         method: 'POST',
         url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnNouvelIdExpo]' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -1927,6 +1927,17 @@ describe('POST /users/:id #tag', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[1]._id.toHexString()}/expo-token`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisNouvelIdExpo]' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if token already exists for user', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
       });
@@ -1959,7 +1970,7 @@ describe('POST /users/:id #tag', () => {
   });
 });
 
-describe('DELETE /users/:id/expo-token/:expoToken #tag', () => {
+describe('DELETE /users/:id/expo-token/:expoToken', () => {
   let authToken;
 
   describe('LOGGED_USER', () => {
