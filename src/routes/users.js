@@ -18,6 +18,8 @@ const {
   uploadPicture,
   deletePicture,
   createDriveFolder,
+  addExpoToken,
+  removeExpoToken,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 const { ORIGIN_OPTIONS } = require('../models/User');
@@ -31,6 +33,8 @@ const {
   authorizeUserDeletion,
   authorizeLearnersGet,
   getPicturePublicId,
+  authorizeExpoTokenEdit,
+  checkExpoToken,
 } = require('./preHandlers/users');
 const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
 const { formDataPayload } = require('./validations/utils');
@@ -187,7 +191,6 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            formationExpoToken: expoTokenValidation,
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
@@ -397,6 +400,36 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         pre: [{ method: getPicturePublicId, assign: 'publicId' }],
       },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/expo-token',
+      options: {
+        auth: { scope: ['user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ formationExpoToken: expoTokenValidation.required() }),
+        },
+        pre: [{ method: authorizeExpoTokenEdit }, { method: checkExpoToken }],
+      },
+      handler: addExpoToken,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/expo-token/{expoToken}',
+      options: {
+        auth: { scope: ['user:edit-{params._id}'] },
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+            expoToken: Joi.string().required(),
+          }),
+        },
+        pre: [{ method: authorizeExpoTokenEdit }],
+      },
+      handler: removeExpoToken,
     });
   },
 };

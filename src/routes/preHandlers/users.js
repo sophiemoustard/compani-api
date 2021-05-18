@@ -46,7 +46,6 @@ exports.authorizeUserUpdate = async (req) => {
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
-  if (get(req, 'payload.formationExpoToken')) await checkExpoToken(req);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
     checkUpdateRestrictions(req.payload);
   }
@@ -104,20 +103,14 @@ const checkCustomer = async (userCompany, payload) => {
   if (!customerCount) throw Boom.forbidden();
 };
 
-const checkExpoToken = async (req) => {
-  const { params, payload } = req;
-  const expoTokenAlreadyExists = await User.countDocuments({
-    _id: { $ne: params._id },
-    formationExpoTokenList: payload.formationExpoToken,
-  });
-  if (expoTokenAlreadyExists) throw Boom.forbidden();
-
-  return null;
-};
-
 const checkUpdateRestrictions = (payload) => {
   const allowedUpdateKeys = [
-    'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email', 'local.password', 'origin',
+    'identity.firstname',
+    'identity.lastname',
+    'contact.phone',
+    'local.email',
+    'local.password',
+    'origin',
   ];
   const payloadKeys = Object.keys(flat(payload));
 
@@ -232,4 +225,21 @@ exports.getPicturePublicId = async (req) => {
   if (!user) throw Boom.notFound();
 
   return get(user, 'picture.publicId') || '';
+};
+
+exports.checkExpoToken = async (req) => {
+  const { params, payload } = req;
+  const expoTokenAlreadyExists = await User.countDocuments({
+    _id: { $ne: params._id },
+    formationExpoTokenList: payload.formationExpoToken,
+  });
+  if (expoTokenAlreadyExists) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeExpoTokenEdit = async (req) => {
+  if (!UtilsHelper.areObjectIdsEquals(req.params._id, req.auth.credentials._id)) throw Boom.forbidden();
+
+  return null;
 };
