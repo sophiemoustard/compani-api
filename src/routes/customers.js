@@ -32,7 +32,6 @@ const {
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS } = require('../models/Customer');
 const {
-  getCustomer,
   authorizeCustomerDelete,
   authorizeCustomerUpdate,
   authorizeCustomerGet,
@@ -194,7 +193,6 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
-          { method: getCustomer, assign: 'customer' },
           { method: authorizeCustomerDelete },
         ],
       },

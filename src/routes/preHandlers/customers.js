@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const { INTERVENTION } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
@@ -14,19 +15,6 @@ const CreditNote = require('../../models/CreditNote');
 const TaxCertificate = require('../../models/TaxCertificate');
 
 const { language } = translate;
-
-exports.getCustomer = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer
-    .findById(req.params._id)
-    // need the match as it is a virtual populate
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } });
-  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
-
-  if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
-
-  return customer;
-};
 
 exports.validateCustomerCompany = async (params, payload, companyId) => {
   let query = { _id: params._id };
@@ -115,10 +103,15 @@ exports.authorizeCustomerGetBySector = async (req) => {
 };
 
 exports.authorizeCustomerDelete = async (req) => {
-  const { customer } = req.pre;
   const companyId = get(req, 'auth.credentials.company._id', null);
 
-  if (customer.firstIntervention) throw Boom.forbidden();
+  const customer = await Customer.findOne({ _id: req.params._id }, { company: 1 }).lean();
+  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+
+  if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+
+  const interventionCount = await Event.countDocuments({ customer: customer._id, type: INTERVENTION });
+  if (interventionCount > 0) throw Boom.forbidden();
 
   const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId }).lean();
   if (billsCount > 0) throw Boom.forbidden();

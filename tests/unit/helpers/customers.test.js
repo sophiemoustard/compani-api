@@ -8,6 +8,12 @@ const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const Rum = require('../../../src/models/Rum');
 const Drive = require('../../../src/models/Google/Drive');
+const Helper = require('../../../src/models/Helper');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
+const EventHistory = require('../../../src/models/EventHistory');
+const Repetition = require('../../../src/models/Repetition');
+const CustomerPartner = require('../../../src/models/CustomerPartner');
+const User = require('../../../src/models/User');
 const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
@@ -805,6 +811,92 @@ describe('createCustomer', () => {
       updateOne,
       { prefix: rumNumber.prefix, company: credentials.company._id },
       { $set: { seq: 2 } }
+    );
+  });
+});
+
+describe('removeCustomer', () => {
+  let findOne;
+  let deleteOne;
+  let deleteManyHelper;
+  let deleteManyReferentHistory;
+  let deleteManyEventHistory;
+  let deleteManyRepetition;
+  let deleteManyCustomerPartner;
+  let updateOneUser;
+  let deleteFileDrive;
+  beforeEach(() => {
+    findOne = sinon.stub(Customer, 'findOne');
+    deleteOne = sinon.stub(Customer, 'deleteOne');
+    deleteManyHelper = sinon.stub(Helper, 'deleteMany');
+    deleteManyReferentHistory = sinon.stub(ReferentHistory, 'deleteMany');
+    deleteManyEventHistory = sinon.stub(EventHistory, 'deleteMany');
+    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
+    deleteManyCustomerPartner = sinon.stub(CustomerPartner, 'deleteMany');
+    updateOneUser = sinon.stub(User, 'updateOne');
+    deleteFileDrive = sinon.stub(Drive, 'deleteFile');
+  });
+  afterEach(() => {
+    findOne.restore();
+    deleteOne.restore();
+    deleteManyHelper.restore();
+    deleteManyReferentHistory.restore();
+    deleteManyEventHistory.restore();
+    deleteManyRepetition.restore();
+    deleteManyCustomerPartner.restore();
+    updateOneUser.restore();
+    updateOneUser.restore();
+    deleteFileDrive.restore();
+  });
+
+  it('should delete customer and his drive folder', async () => {
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, driveFolder: { driveId: 'https://skusku.com' } };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+
+    await CustomerHelper.removeCustomer(customerId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyHelper, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyReferentHistory, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: customerId },
+      { $unset: { 'role.client': '', company: '' } }
+    );
+    sinon.assert.calledOnceWithExactly(deleteFileDrive, { fileId: customer.driveFolder.driveId });
+  });
+
+  it('should delete customer but not his drive folder', async () => {
+    const customerId = new ObjectID();
+    const customer = { _id: customerId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+
+    await CustomerHelper.removeCustomer(customerId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyHelper, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyReferentHistory, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: customerId },
+      { $unset: { 'role.client': '', company: '' } }
     );
   });
 });
