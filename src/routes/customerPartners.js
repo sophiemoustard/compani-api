@@ -1,9 +1,9 @@
 const Joi = require('joi');
-const { create, list, update } = require('../controllers/customerPartnerController');
+const { create, list, update, remove } = require('../controllers/customerPartnerController');
 const {
   authorizeCustomerPartnerCreation,
   authorizeCustomerPartnersGet,
-  authorizeCustomerPartnersUpdate,
+  authorizeCustomerPartnerEdit,
 } = require('./preHandlers/customerPartners');
 
 exports.plugin = {
@@ -47,9 +47,20 @@ exports.plugin = {
           payload: Joi.object({ prescriber: Joi.boolean().required() }),
         },
         auth: { scope: ['customerpartners:edit'] },
-        pre: [{ method: authorizeCustomerPartnersUpdate }],
+        pre: [{ method: authorizeCustomerPartnerEdit }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['customerpartners:edit'] },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
+        pre: [{ method: authorizeCustomerPartnerEdit }],
+      },
+      handler: remove,
     });
   },
 };

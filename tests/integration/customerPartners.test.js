@@ -274,6 +274,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
     it('should return 404 if customer partner has wrong company', async () => {
       const customerPartnerId = customerPartnersList[0]._id;
       const response = await app.inject({
@@ -299,6 +300,82 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
         const customerPartnerId = customerPartnersList[1]._id;
         const response = await app.inject({
           method: 'PUT',
+          url: `/customerpartners/${customerPartnerId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { prescriber: true },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should remove customer partner', async () => {
+      const customerPartnerId = customerPartnersList[1]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerpartners/${customerPartnerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if params is not an id', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/customerpartners/skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if customer partner doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerpartners/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if customer partner has wrong company', async () => {
+      const customerPartnerId = customerPartnersList[0]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerpartners/${customerPartnerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const customerPartnerId = customerPartnersList[1]._id;
+        const response = await app.inject({
+          method: 'DELETE',
           url: `/customerpartners/${customerPartnerId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { prescriber: true },

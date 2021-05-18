@@ -120,3 +120,21 @@ describe('update', () => {
     );
   });
 });
+
+describe('remove', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(CustomerPartner, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete a customer partner', async () => {
+    const customerPartnerId = new ObjectID();
+
+    await CustomerPartnersHelper.remove(customerPartnerId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerPartnerId });
+  });
+});

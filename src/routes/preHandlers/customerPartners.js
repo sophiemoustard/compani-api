@@ -32,7 +32,7 @@ exports.authorizeCustomerPartnersGet = async (req) => {
   return null;
 };
 
-exports.authorizeCustomerPartnersUpdate = async (req) => {
+exports.authorizeCustomerPartnerEdit = async (req) => {
   const { credentials } = req.auth;
   const loggedUserCompany = get(credentials, 'company._id');
   const customerPartner = await CustomerPartner.countDocuments({ _id: req.params._id, company: loggedUserCompany });
