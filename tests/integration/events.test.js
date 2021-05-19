@@ -1768,16 +1768,13 @@ describe('DELETE /{_id}/repetition', () => {
   });
 });
 
-describe('PUT /{_id}/timestamping #tag', () => {
+describe('PUT /{_id}/timestamping', () => {
+  let authToken;
   describe('AUXILIARY', () => {
-    let authToken;
-
     beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getTokenByCredentials(auxiliaries[0].local);
-    });
 
     it('should timestamp an event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
       const startDate = new Date();
 
       const response = await app.inject({
@@ -1798,24 +1795,95 @@ describe('PUT /{_id}/timestamping #tag', () => {
       expect(timestamp).toBe(1);
     });
 
-    // it('should return a 404 if event does not exist', async () => {
+    it('should return a 404 if event does not exist', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
 
-    // });
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${new ObjectID()}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
 
-    // it('should return a 404 if event is not an intervention', async () => {
+      expect(response.statusCode).toBe(404);
+    });
 
-    // });
+    it('should return a 404 if event is not an intervention', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[1].local);
 
-    // it('should return a 404 if auxiliary is not the one of the intervention', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[22]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
 
-    // });
+      expect(response.statusCode).toBe(404);
+    });
 
-    // it('should return a 404 if the event is not today', async () => {
+    it('should return a 404 if auxiliary is not the one of the intervention', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[1].local);
 
-    // });
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
 
-    // it('should return a 403 if event is already timestamped', async () => {
+      expect(response.statusCode).toBe(404);
+    });
 
-    // });
+    it('should return a 404 if the event is not today', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[2]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if event is already timestamped', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[2].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
-});
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${eventsList[21]._id}/timestamping`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });});

@@ -43,6 +43,7 @@ const {
   authorizeEventDeletionList,
   authorizeEventGet,
   authorizeEventForCreditNoteGet,
+  authorizeTimeStamping,
 } = require('./preHandlers/events');
 const { monthValidation, addressValidation, objectIdOrArray } = require('./validations/utils');
 
@@ -298,7 +299,7 @@ exports.plugin = {
             reason: Joi.string().valid(...MANUAL_TIME_STAMPING_REASONS),
           }),
         },
-        pre: [{ method: getEvent, assign: 'event' }],
+        pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
       },
       handler: timeStampEvent,
     });

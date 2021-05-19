@@ -7,6 +7,7 @@ const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
 const User = require('../../models/User');
+const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -18,6 +19,8 @@ const {
   WORK_ACCIDENT,
   TRANSPORT_ACCIDENT,
   ILLNESS,
+  INTERVENTION,
+  MANUAL_TIME_STAMPING,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -188,5 +191,26 @@ exports.authorizeEventDeletionList = async (req) => {
     company: get(credentials, 'company._id', null),
   }).lean();
   if (!customer) throw Boom.forbidden();
+  return null;
+};
+
+exports.authorizeTimeStamping = async (req) => {
+  const eventCount = await Event.countDocuments({
+    _id: req.params._id,
+    type: INTERVENTION,
+    auxiliary: get(req, 'auth.credentials._id'),
+    startDate: { $gte: (new Date()).setHours(0, 0, 0, 0), $lte: (new Date()).setHours(23, 59, 59, 999) },
+  });
+
+  if (!eventCount) throw Boom.notFound();
+
+  const alreadyTimeStamped = await EventHistory.countDocuments({
+    'event.eventId': req.params._id,
+    action: MANUAL_TIME_STAMPING,
+    'update.startHour': { $exists: true },
+  });
+
+  if (alreadyTimeStamped) throw Boom.conflict();
+
   return null;
 };
