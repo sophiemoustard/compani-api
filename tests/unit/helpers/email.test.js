@@ -226,13 +226,12 @@ describe('sendWelcome', () => {
     sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(coachCustomContent);
   });
+
   it('should send 424 if email sending fails', async () => {
     try {
       welcomeTraineeContent.returns('Bonjour à tous et passez une bonne journée');
 
-      const result = await EmailHelper.sendWelcome('trainee', email);
-
-      expect(result).toEqual(sentObj);
+      await EmailHelper.sendWelcome('trainee', email);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency(translate[language].emailNotSent));
     } finally {
