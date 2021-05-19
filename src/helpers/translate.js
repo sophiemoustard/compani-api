@@ -139,6 +139,7 @@ module.exports = {
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
     eventsConflict: 'Events in conflict.',
+    eventTimeStamped: 'Event timeStamped',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -455,6 +456,7 @@ module.exports = {
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
     eventsConflict: 'Evènement en conflit avec les évènements de l\'auxiliaire.',
+    eventTimeStamped: 'Evènement horodaté',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',

@@ -699,6 +699,26 @@ const eventsList = [
     auxiliary: auxiliaries[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
+  // Timestamp
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliary._id,
+    subscription: customerAuxiliary.subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const eventFromOtherCompany = {

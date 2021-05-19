@@ -13,6 +13,7 @@ const {
   getWorkingStats,
   getPaidTransportStatsBySector,
   getUnassignedHoursBySector,
+  timeStampEvent,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -23,6 +24,7 @@ const {
   ILLNESS,
   OTHER,
   WORK_ACCIDENT,
+  MANUAL_TIME_STAMPING_REASONS,
 } = require('../helpers/constants');
 const {
   EVENT_TYPES,
@@ -32,6 +34,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
+const { EVENTS_HISTORY_ACTIONS } = require('../models/EventHistory');
 const {
   getEvent,
   authorizeEventCreation,
@@ -280,6 +283,24 @@ exports.plugin = {
         pre: [{ method: authorizeEventGet }],
       },
       handler: getUnassignedHoursBySector,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/timestamping',
+      options: {
+        auth: { scope: ['timestamp:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object().keys({
+            action: Joi.string().required().valid(...EVENTS_HISTORY_ACTIONS),
+            startDate: Joi.date().required(),
+            reason: Joi.string().valid(...MANUAL_TIME_STAMPING_REASONS),
+          }),
+        },
+        pre: [{ method: getEvent, assign: 'event' }],
+      },
+      handler: timeStampEvent,
     });
   },
 };

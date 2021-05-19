@@ -228,6 +228,7 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
 
 exports.createTimeStampHistory = async (event, payload) => EventHistory.create({
   event: { ...omit(event, ['_id']) },
+  company: event.company,
   action: payload.action,
   manualTimeStampingReason: payload.reason,
   auxiliaries: [event.auxiliary],

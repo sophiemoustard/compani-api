@@ -968,6 +968,7 @@ describe('createTimeStampHistory', () => {
       endDate: '2021-05-01T12:00:00',
       customer: new ObjectID(),
       misc: 'test',
+      company: new ObjectID(),
       repetition: { frequency: 'every_day', parentID: new ObjectID() },
     };
     const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
@@ -978,6 +979,7 @@ describe('createTimeStampHistory', () => {
       create,
       {
         event: { ...omit(event, ['_id']) },
+        company: event.company,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],

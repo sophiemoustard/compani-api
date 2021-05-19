@@ -19,7 +19,7 @@ const {
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
@@ -1763,6 +1763,48 @@ describe('DELETE /{_id}/repetition', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+  });
+});
+
+describe('PUT /{_id}/timestamping #tag', () => {
+  describe('AUXILIARY', () => {
+    let authToken;
+
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+    });
+
+    it('should timestamp an event', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 404 if event does not exist', async () => {
+
+    });
+
+    it('should return a 404 if event is not an intervention', async () => {
+
+    });
+
+    it('should return a 404 if auxiliary is not the one of the intervention', async () => {
+
+    });
+
+    it('should return a 404 if the event is not today', async () => {
+
+    });
+
+    it('should return a 403 if event is already timestamped', async () => {
+
     });
   });
 });

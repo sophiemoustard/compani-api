@@ -7,11 +7,13 @@ const {
   REPETITION_FREQUENCIES,
   EVENT_CANCELLATION_CONDITIONS,
   EVENT_CANCELLATION_REASONS,
+  MANUAL_TIME_STAMPING,
+  MANUAL_TIME_STAMPING_REASONS,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
-const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
+const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, MANUAL_TIME_STAMPING];
 
 const EventHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -49,9 +51,11 @@ const EventHistorySchema = mongoose.Schema({
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
+  manualTimeStampingReason: { type: String, enum: MANUAL_TIME_STAMPING_REASONS },
 }, { timestamps: true });
 
 EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
+module.exports.EVENTS_HISTORY_ACTIONS = EVENTS_HISTORY_ACTIONS;
