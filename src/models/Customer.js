@@ -184,6 +184,21 @@ function populateReferents(docs, next) {
   return next();
 }
 
+function populateHelpersForList(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.helpers) doc.helpers = doc.helpers.map(h => h.user);
+  }
+
+  return next();
+}
+
+function populateHelpers(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  if (doc && doc.helpers) doc.helpers = doc.helpers.map(h => h.user);
+
+  return next();
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -200,11 +215,21 @@ CustomerSchema.virtual('referent', {
   options: { sort: { startDate: -1 } },
 });
 
+CustomerSchema.virtual('helpers', {
+  ref: 'Helper',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
+
+CustomerSchema.post('findOne', populateHelpers);
+CustomerSchema.post('findOneAndUpdate', populateHelpers);
+CustomerSchema.post('find', populateHelpersForList);
 
 CustomerSchema.post('findOne', populateReferent);
 CustomerSchema.post('findOneAndUpdate', populateReferent);
