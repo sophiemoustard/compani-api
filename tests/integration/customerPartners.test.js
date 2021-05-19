@@ -129,6 +129,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -201,6 +202,7 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -290,6 +292,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
@@ -365,6 +368,7 @@ describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
