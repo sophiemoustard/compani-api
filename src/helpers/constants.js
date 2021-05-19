@@ -389,4 +389,6 @@ module.exports = {
       this.PSYCHOLOGIST,
     ];
   },
+  // NOTIFICATION
+  BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
 };

@@ -1268,39 +1268,6 @@ describe('PUT /users/:id/', () => {
 
       expect(response.statusCode).toBe(400);
     });
-
-    it('should return a 200 but not update if formationExpoToken already exists on user', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id}`,
-        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnIdExpo]' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 400 if formationExpoToken has wrong type', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id}`,
-        payload: { formationExpoToken: 'skusku' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 403 if formationExpoToken already exists on another user', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id}`,
-        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -1916,6 +1883,141 @@ describe('POST /users/:id/drivefolder', () => {
         const response = await app.inject({
           method: 'POST',
           url: `/users/${usersSeedList[1]._id.toHexString()}/drivefolder`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('POST /users/:id', () => {
+  let authToken;
+
+  describe('LOGGED_USER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[0].local);
+    });
+
+    it('should add a formationExpoToken to logged user', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnNouvelIdExpo]' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if formationExpoToken hasn\'t the right type', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { formationExpoToken: 'jeMeFaitPasserPourUnIdExpo' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if user is not loggedUser', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[1]._id.toHexString()}/expo-token`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisNouvelIdExpo]' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if token already exists for user', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/expo-token`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { formationExpoToken: 'ExponentPushToken[jeSuisUnAutreIdExpo]' },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('DELETE /users/:id/expo-token/:expoToken', () => {
+  let authToken;
+
+  describe('LOGGED_USER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[0].local);
+    });
+
+    it('should remove formationExpoToken from formationExpoTokenList', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`
+        + `/expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if user is not loggedUser', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[1]._id.toHexString()}`
+        + `/expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/users/${usersSeedList[0]._id.toHexString()}`
+          + `/expo-token/${usersSeedList[0].formationExpoToken}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

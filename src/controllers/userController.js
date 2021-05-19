@@ -202,6 +202,28 @@ const createDriveFolder = async (req) => {
   }
 };
 
+const addExpoToken = async (req) => {
+  try {
+    await UsersHelper.addExpoToken(req.payload, req.auth.credentials);
+
+    return { message: translate[language].userUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const removeExpoToken = async (req) => {
+  try {
+    await UsersHelper.removeExpoToken(req.params.expoToken, req.auth.credentials);
+
+    return { message: translate[language].userUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   create,
   list,
@@ -217,4 +239,6 @@ module.exports = {
   uploadPicture,
   deletePicture,
   createDriveFolder,
+  removeExpoToken,
+  addExpoToken,
 };

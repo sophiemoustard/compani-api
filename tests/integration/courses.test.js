@@ -28,11 +28,13 @@ const {
   slots,
   trainerAndCoach,
   vendorAdmin,
+  traineeFromAuthCompanyWithFormationExpoToken,
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
+const NotificationHelper = require('../../src/helpers/notifications');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -1428,8 +1430,13 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
   describe('intra', () => {
     describe('VENDOR_ADMIN', () => {
+      let sendNotificationToUser;
       beforeEach(async () => {
         authToken = await getToken('vendor_admin');
+        sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+      });
+      afterEach(() => {
+        sendNotificationToUser.restore();
       });
 
       it('should add existing user to course trainees', async () => {
@@ -1454,6 +1461,22 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           action: TRAINEE_ADDITION,
         });
         expect(courseHistory).toEqual(1);
+      });
+
+      it('should add existing user to course trainees and send them a notification', async () => {
+        const existingUserPayload = {
+          local: { email: traineeFromAuthCompanyWithFormationExpoToken.local.email },
+          company: authCompany._id,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${intraCourseIdFromAuthCompany}/trainees`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: existingUserPayload,
+        });
+
+        expect(response.statusCode).toBe(200);
       });
 
       it('should add new user to course trainees', async () => {
