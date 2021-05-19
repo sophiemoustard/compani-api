@@ -192,9 +192,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: authorizeCustomerDelete },
-        ],
+        pre: [{ method: authorizeCustomerDelete }],
       },
       handler: remove,
     });

@@ -195,17 +195,24 @@ exports.createCustomer = async (payload, credentials) => {
 
 exports.removeCustomer = async (customerId) => {
   const customer = await Customer.findOne({ _id: customerId }, { driveFolder: 1 }).lean();
+  const helpers = await Helper.find({ customer: customerId }, { user: 1 }).lean();
+
+  await Customer.deleteOne({ _id: customerId });
 
   const promises = [];
   promises.push(
-    Customer.deleteOne({ _id: customerId }),
     Helper.deleteMany({ customer: customerId }),
     ReferentHistory.deleteMany({ customer: customerId }),
     EventHistory.deleteMany({ 'event.customer': customerId }),
     Repetition.deleteMany({ customer: customerId }),
-    CustomerPartner.deleteMany({ customer: customerId }),
-    User.updateOne({ _id: customerId }, { $unset: { 'role.client': '', company: '' } })
+    CustomerPartner.deleteMany({ customer: customerId })
   );
+
+  for (const helper of helpers) {
+    if (helper.user) {
+      promises.push(User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '', company: '' } }));
+    }
+  }
 
   if (get(customer, 'driveFolder.driveId')) promises.push(Drive.deleteFile({ fileId: customer.driveFolder.driveId }));
 

@@ -104,25 +104,24 @@ exports.authorizeCustomerGetBySector = async (req) => {
 
 exports.authorizeCustomerDelete = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
+  const customerId = get(req, 'params._id', null);
 
-  const customer = await Customer.findOne({ _id: req.params._id }, { company: 1 }).lean();
+  const customer = await Customer.countDocuments({ _id: customerId, company: companyId });
   if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-  if (!UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
-
-  const interventionsCount = await Event.countDocuments({ customer: customer._id, type: INTERVENTION });
+  const interventionsCount = await Event.countDocuments({ customer: customerId, type: INTERVENTION });
   if (interventionsCount) throw Boom.forbidden();
 
-  const billsCount = await Bill.countDocuments({ customer: customer._id, company: companyId });
+  const billsCount = await Bill.countDocuments({ customer: customerId, company: companyId });
   if (billsCount) throw Boom.forbidden();
 
-  const paymentsCount = await Payment.countDocuments({ customer: customer._id, company: companyId });
+  const paymentsCount = await Payment.countDocuments({ customer: customerId, company: companyId });
   if (paymentsCount) throw Boom.forbidden();
 
-  const creditNotesCount = await CreditNote.countDocuments({ customer: customer._id, company: companyId });
+  const creditNotesCount = await CreditNote.countDocuments({ customer: customerId, company: companyId });
   if (creditNotesCount) throw Boom.forbidden();
 
-  const taxCertificatesCount = await TaxCertificate.countDocuments({ customer: customer._id, company: companyId });
+  const taxCertificatesCount = await TaxCertificate.countDocuments({ customer: customerId, company: companyId });
   if (taxCertificatesCount) throw Boom.forbidden();
 
   return null;
