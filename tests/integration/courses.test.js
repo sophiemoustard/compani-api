@@ -1453,7 +1453,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
           course: intraCourseIdFromAuthCompany,
@@ -1500,7 +1499,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
         expect(newUser.origin).toEqual(WEBAPP);
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
           course: intraCourseIdFromAuthCompany,
@@ -1524,7 +1522,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           .lean({ autopopulate: true });
         expect(updatedUser).toBeDefined();
         expect(updatedUser.company).toBeDefined();
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([updatedUser._id]));
       });
 
       it('should return a 409 error if user is not from the course company', async () => {
@@ -1683,7 +1680,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
     });
 
     it('should return a 400 error if trainee exist, has no company, and missing company parameter', async () => {
