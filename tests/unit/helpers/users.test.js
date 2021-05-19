@@ -1113,21 +1113,6 @@ describe('updateUser', () => {
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
-  it('should push an expoToken to formationExpoTokenList', async () => {
-    const payload = { formationExpoToken: 'ExponentPushToken[skusku]' };
-
-    await UsersHelper.updateUser(userId, payload, credentials, true);
-
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId },
-      { $addToSet: { formationExpoTokenList: 'ExponentPushToken[skusku]' } }
-    );
-    sinon.assert.notCalled(createHelper);
-    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    sinon.assert.notCalled(roleFindById);
-  });
-
   it('should return a 400 error if role does not exists', async () => {
     const payload = { role: new ObjectID() };
 
@@ -1362,5 +1347,54 @@ describe('createDriveFolder', () => {
       sinon.assert.notCalled(createFolder);
       sinon.assert.notCalled(userUpdateOne);
     }
+  });
+});
+
+describe('addExpoToken', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove expoToken from user', async () => {
+    const userId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { _id: userId, company: { _id: companyId } };
+    const payload = { formationExpoToken: 'ExponentPushToken[jeSuisUnIdExpo]' };
+
+    await UsersHelper.addExpoToken(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      { $addToSet: { formationExpoTokenList: 'ExponentPushToken[jeSuisUnIdExpo]' } }
+    );
+  });
+});
+
+describe('removeExpoToken', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should remove expoToken from user', async () => {
+    const userId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { _id: userId, company: { _id: companyId } };
+
+    await UsersHelper.removeExpoToken('ExponentPushToken[jeSuisUnIdExpo]', credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      { $pull: { formationExpoTokenList: 'ExponentPushToken[jeSuisUnIdExpo]' } }
+    );
   });
 });
