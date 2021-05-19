@@ -978,12 +978,12 @@ describe('createTimeStampHistory', () => {
     sinon.assert.calledOnceWithExactly(
       create,
       {
-        event: { ...omit(event, ['_id']) },
+        event: { ...omit(event, ['_id']), eventId: event._id, startDate: '2021-05-01T10:02:00' },
         company: event.company,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
-        update: { startHour: '2021-05-01T10:02:00' },
+        update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
       }
     );
   });

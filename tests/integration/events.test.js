@@ -36,6 +36,7 @@ const {
 } = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
+const EventHistory = require('../../src/models/EventHistory');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -1777,34 +1778,44 @@ describe('PUT /{_id}/timestamping #tag', () => {
     });
 
     it('should timestamp an event', async () => {
+      const startDate = new Date();
+
       const response = await app.inject({
         method: 'PUT',
         url: `/events/${eventsList[21]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(200);
+      const timestamp = await EventHistory.countDocuments({
+        'event.eventId': eventsList[21]._id,
+        'event.startDate': startDate,
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'camera_error',
+
+      });
+      expect(timestamp).toBe(1);
     });
 
-    it('should return a 404 if event does not exist', async () => {
+    // it('should return a 404 if event does not exist', async () => {
 
-    });
+    // });
 
-    it('should return a 404 if event is not an intervention', async () => {
+    // it('should return a 404 if event is not an intervention', async () => {
 
-    });
+    // });
 
-    it('should return a 404 if auxiliary is not the one of the intervention', async () => {
+    // it('should return a 404 if auxiliary is not the one of the intervention', async () => {
 
-    });
+    // });
 
-    it('should return a 404 if the event is not today', async () => {
+    // it('should return a 404 if the event is not today', async () => {
 
-    });
+    // });
 
-    it('should return a 403 if event is already timestamped', async () => {
+    // it('should return a 403 if event is already timestamped', async () => {
 
-    });
+    // });
   });
 });
