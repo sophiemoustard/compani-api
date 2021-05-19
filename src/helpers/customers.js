@@ -194,8 +194,8 @@ exports.createCustomer = async (payload, credentials) => {
 };
 
 exports.removeCustomer = async (customerId) => {
-  const customer = await Customer.findOne({ _id: customerId }, { driveFolder: 1 }).lean();
-  const helpers = await Helper.find({ customer: customerId }, { user: 1 }).lean();
+  const customer = await Customer.findOne({ _id: customerId }, { driveFolder: 1, company: 1 }).lean();
+  const helpers = await Helper.find({ customer: customerId, company: customer.company }, { user: 1 }).lean();
 
   await Customer.deleteOne({ _id: customerId });
 

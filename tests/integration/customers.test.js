@@ -670,6 +670,7 @@ describe('CUSTOMERS ROUTES', () => {
     afterEach(() => {
       deleteFileStub.restore();
     });
+
     it('should delete a customer without interventions', async () => {
       const customersBefore = await Customer.countDocuments({ company: authCompany._id });
       const res = await app.inject({
