@@ -17,9 +17,6 @@ const {
   DECEASED,
 } = require('../helpers/constants');
 const Event = require('./Event');
-const Helper = require('./Helper');
-const Drive = require('./Google/Drive');
-const User = require('./User');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -128,27 +125,6 @@ const countSubscriptionUsage = async (doc) => {
   }
 };
 
-async function removeCustomer(next) {
-  const customer = this;
-  const { _id, driveFolder } = customer;
-
-  try {
-    if (!_id) throw Boom.badRequest('CustomerId is missing.');
-
-    const promises = [
-      Helper.deleteMany({ customer: _id }),
-      User.updateOne({ _id }, { $unset: { 'role.client': '', company: '' } }),
-    ];
-
-    if (driveFolder && driveFolder.driveId) promises.push(Drive.deleteFile({ fileId: driveFolder.driveId }));
-    await Promise.all(promises);
-
-    return next();
-  } catch (e) {
-    return next(e);
-  }
-}
-
 function validateAddress(next) {
   const { $set, $unset } = this.getUpdate();
   const setPrimaryAddressToNull = has($set, 'contact.primaryAddress') &&
@@ -202,7 +178,6 @@ CustomerSchema.virtual('referent', {
 
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
-CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
