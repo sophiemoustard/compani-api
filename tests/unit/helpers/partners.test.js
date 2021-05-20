@@ -26,3 +26,38 @@ describe('list', () => {
     );
   });
 });
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Partner, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should list partner from my company', async () => {
+    const partnerId = new ObjectID();
+    const payload = {
+      identity: { firstname: 'Titouan', lastname: 'Kerouac' },
+      email: 'vive+la+bretagne@alenvi.io',
+      phone: '0712345678',
+    };
+    updateOne.returns();
+
+    await PartnersHelper.update(partnerId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: partnerId },
+      {
+        $set: {
+          'identity.firstname': 'Titouan',
+          'identity.lastname': 'Kerouac',
+          email: 'vive+la+bretagne@alenvi.io',
+          phone: '0712345678',
+        },
+      }
+    );
+  });
+});
