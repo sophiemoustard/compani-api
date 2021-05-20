@@ -54,3 +54,105 @@ describe('PARTNERS ROUTES - GET /partners', () => {
     });
   });
 });
+
+describe('PARTNERS ROUTES - PUT /partners/{_id} #tag', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should update partner', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          identity: { firstname: 'Ulysse', lastname: 'TeDatente' },
+          email: 'skulysse@alenvi.io',
+          phone: '0712345678',
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if empty payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if phone is wrong type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          phone: 'skusku',
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if email is wrong type', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          email: 'skusku',
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if name is null', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          identity: { lastname: '' },
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/partners/${partnersList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: {
+            identity: { firstname: 'Ulysse', lastname: 'SageBrésilien' },
+            email: 'skulysse@alenvi.io',
+            phone: '0712345678',
+          },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});

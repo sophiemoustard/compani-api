@@ -9,6 +9,8 @@ const partnersList = [
     identity: { firstname: 'Anne', lastname: 'Onyme' },
     partnerOrganization: new ObjectID(),
     company: authCompany._id,
+    phone: '0712345678',
+    email: 'onSaitPasDuCoup@alenvi.io',
   },
   {
     _id: new ObjectID(),

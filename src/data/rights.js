@@ -43,6 +43,7 @@ const rights = [
   { permission: 'payments:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Editer un paiement' },
   { permission: 'partnerorganizations:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer une structure partenaire' },
   { permission: 'partners:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter la liste des partenaires' },
+  { permission: 'partners:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer un partenaire' },
   { permission: 'programs:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les programmes' },
   { permission: 'programs:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter les données des programmes' },
   { permission: 'questionnaires:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer les questionnaires' },

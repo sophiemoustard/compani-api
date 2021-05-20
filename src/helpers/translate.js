@@ -306,6 +306,7 @@ module.exports = {
     partnerCreated: 'Partner created.',
     partnersFound: 'Partners found.',
     partnersNotFound: 'Partners not found.',
+    partnerUpdated: 'Partner updated.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
@@ -622,6 +623,7 @@ module.exports = {
     partnerCreated: 'Partenaire créé.',
     partnersFound: 'Liste des partenaires trouvée.',
     partnersNotFound: 'Liste des partenaires non trouvée.',
+    partnerUpdated: 'Partenaire mis à jour.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
