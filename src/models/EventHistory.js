@@ -14,6 +14,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, MANUAL_TIME_STAMPING];
+const TIMESTAMPING_ACTIONS = [MANUAL_TIME_STAMPING];
 
 const EventHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -58,3 +59,4 @@ EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
+module.exports.TIMESTAMPING_ACTIONS = TIMESTAMPING_ACTIONS;

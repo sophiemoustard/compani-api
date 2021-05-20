@@ -22,6 +22,7 @@ const {
   INTERVENTION,
   MANUAL_TIME_STAMPING,
 } = require('../../helpers/constants');
+const DatesHelper = require('../../helpers/dates');
 
 const { language } = translate;
 
@@ -199,9 +200,8 @@ exports.authorizeTimeStamping = async (req) => {
     _id: req.params._id,
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
-    startDate: { $gte: (new Date()).setHours(0, 0, 0, 0), $lte: (new Date()).setHours(23, 59, 59, 999) },
+    startDate: { $gte: DatesHelper.getStartOfDay(new Date()), $lte: DatesHelper.getEndOfDay(new Date()) },
   });
-
   if (!eventCount) throw Boom.notFound();
 
   const alreadyTimeStamped = await EventHistory.countDocuments({
@@ -209,8 +209,7 @@ exports.authorizeTimeStamping = async (req) => {
     action: MANUAL_TIME_STAMPING,
     'update.startHour': { $exists: true },
   });
-
-  if (alreadyTimeStamped) throw Boom.conflict();
+  if (alreadyTimeStamped) throw Boom.conflict(translate[language].alreadyTimeStamped);
 
   return null;
 };

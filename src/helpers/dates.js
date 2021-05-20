@@ -6,6 +6,10 @@ exports.isAfter = (date1, date2) => new Date(date1) > new Date(date2);
 
 exports.isSameOrAfter = (date1, date2) => new Date(date1) >= new Date(date2);
 
+exports.getStartOfDay = date => (new Date(date)).setHours(0, 0, 0, 0);
+
+exports.getEndOfDay = date => (new Date(date)).setHours(23, 59, 59, 999);
+
 const DATE_FORMATS = {
   D: { day: 'numeric' },
   DD: { day: '2-digit' },

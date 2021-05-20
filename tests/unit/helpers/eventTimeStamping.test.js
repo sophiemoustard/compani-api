@@ -33,7 +33,7 @@ describe('isTimeStampAllowed', () => {
 
       expect(true).toBe(false);
     } catch (e) {
-      expect(e).toEqual(Boom.badData());
+      expect(e).toEqual(Boom.badData('Vous ne pouvez pas horodater le début d\'un évènement terminé.'));
     }
   });
 
@@ -47,7 +47,7 @@ describe('isTimeStampAllowed', () => {
 
       expect(true).toBe(false);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict());
+      expect(e).toEqual(Boom.conflict('L\'horodatage est en conflit avec un évènement.'));
       sinon.assert.calledOnceWithExactly(hasConflictsStub, { ...event, startDate });
     }
   });
@@ -94,7 +94,7 @@ describe('addTimeStamp', () => {
       await eventTimeStampingHelper.addTimeStamp(event, payload);
       expect(true).toBe(false);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict());
+      expect(e).toEqual(Boom.conflict('Problème lors de l\'horodatage. Contactez le support technique.'));
       sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
       sinon.assert.notCalled(createTimeStampHistoryStub);
       sinon.assert.notCalled(updateOne);

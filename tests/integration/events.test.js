@@ -1848,7 +1848,7 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 if event is already timestamped', async () => {
+    it('should return a 409 if event is already timestamped', async () => {
       authToken = await getTokenByCredentials(auxiliaries[2].local);
       const startDate = new Date();
 
