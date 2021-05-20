@@ -981,22 +981,14 @@ describe('removeHelper', () => {
   it('should remove client role and customers', async () => {
     await UsersHelper.removeHelper({ _id: userId, role: { vendor: new ObjectID() } });
 
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { _id: userId },
-      { $unset: { 'role.client': '', company: '' } }
-    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: userId }, { $unset: { 'role.client': '', company: '' } });
     sinon.assert.calledOnceWithExactly(removeHelper, userId);
   });
 
   it('should remove client role and customers and company if user is trainer', async () => {
     await UsersHelper.removeHelper({ _id: userId, role: { vendor: roleId } });
 
-    sinon.assert.calledOnceWithExactly(
-      updateOne,
-      { _id: userId },
-      { $unset: { 'role.client': '', company: '' } }
-    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: userId }, { $unset: { 'role.client': '', company: '' } });
     sinon.assert.calledOnceWithExactly(removeHelper, userId);
   });
 });

@@ -33,7 +33,7 @@ exports.checkCategoryExists = async (req) => {
 
 exports.authorizeTesterAddition = async (req) => {
   const { payload } = req;
-  const user = await User.findOne({ 'local.email': payload.local.email }, { _id: 1, contact: 1, identity: 1 }).lean();
+  const user = await User.findOne({ 'local.email': payload.local.email }, { contact: 1, identity: 1 }).lean();
   if (!user && !(get(payload, 'identity.lastname') && get(payload, 'contact.phone'))) throw Boom.badRequest();
 
   if (user) {
