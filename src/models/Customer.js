@@ -15,6 +15,9 @@ const {
   NURSING_HOME,
   HOSPITALIZED,
   DECEASED,
+  ACTIVATED,
+  STOPPED,
+  ARCHIVED,
 } = require('../helpers/constants');
 const Event = require('./Event');
 const { PHONE_VALIDATION } = require('./utils');
@@ -26,6 +29,7 @@ const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription')
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, HOSPITALIZED, DECEASED];
+const STATUS = [ACTIVATED, STOPPED, ARCHIVED];
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -111,6 +115,12 @@ const CustomerSchema = mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     }],
   }],
+  status: {
+    value: { type: String, enum: STATUS, default: ACTIVATED },
+    activatedAt: { type: Date, default: Date.now },
+    stoppedAt: { type: Date },
+    archivedAt: { type: Date },
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

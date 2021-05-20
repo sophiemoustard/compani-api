@@ -391,4 +391,8 @@ module.exports = {
   },
   // NOTIFICATION
   BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
+  // CUSTOMER STATUS
+  ACTIVATED: 'activated',
+  STOPPED: 'stopped',
+  ARCHIVED: 'archived',
 };
