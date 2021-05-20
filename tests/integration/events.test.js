@@ -1861,6 +1861,52 @@ describe('PUT /{_id}/timestamping', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 400 if incorrect action', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'poiu', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if incorrect reason', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'qwer' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    const payload = { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' };
+    const missingFields = ['startDate', 'action', 'reason'];
+
+    missingFields.forEach((field) => {
+      it(`should return a 400 if missing field ${field}`, async () => {
+        authToken = await getTokenByCredentials(auxiliaries[0].local);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${eventsList[21]._id}/timestamping`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: omit(payload, field),
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
   });
 
   describe('Other roles', () => {
@@ -1886,4 +1932,5 @@ describe('PUT /{_id}/timestamping', () => {
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });});
+  });
+});

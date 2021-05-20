@@ -58,4 +58,3 @@ EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
-module.exports.EVENTS_HISTORY_ACTIONS = EVENTS_HISTORY_ACTIONS;

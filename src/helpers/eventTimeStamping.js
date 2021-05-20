@@ -12,7 +12,7 @@ exports.isTimeStampAllowed = async (event, startDate) => {
 };
 
 exports.addTimeStamp = async (event, payload) => {
-  if (!(await exports.isTimeStampAllowed(event, payload.startDate))) return;
+  if (!(await exports.isTimeStampAllowed(event, payload.startDate))) throw Boom.conflict();
 
   await EventHistoriesHelper.createTimeStampHistory(event, payload);
   await Event.updateOne({ _id: event._id }, { startDate: payload.startDate });

@@ -25,6 +25,7 @@ const {
   OTHER,
   WORK_ACCIDENT,
   MANUAL_TIME_STAMPING_REASONS,
+  MANUAL_TIME_STAMPING,
 } = require('../helpers/constants');
 const {
   EVENT_TYPES,
@@ -34,7 +35,6 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { EVENTS_HISTORY_ACTIONS } = require('../models/EventHistory');
 const {
   getEvent,
   authorizeEventCreation,
@@ -294,9 +294,9 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            action: Joi.string().required().valid(...EVENTS_HISTORY_ACTIONS),
+            action: Joi.string().required().valid(MANUAL_TIME_STAMPING),
             startDate: Joi.date().required(),
-            reason: Joi.string().valid(...MANUAL_TIME_STAMPING_REASONS),
+            reason: Joi.string().required().valid(...MANUAL_TIME_STAMPING_REASONS),
           }),
         },
         pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
