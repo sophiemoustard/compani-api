@@ -25,7 +25,9 @@ const formatEvents = (event) => {
   if (auxiliary) {
     formattedEvent.auxiliary = {
       ...omit(auxiliary, 'sectorHistories'),
-      sector: auxiliary.sectorHistories.filter(h => DatesHelper.isBefore(h.startDate, event.startDate))[0],
+      sector: auxiliary.sectorHistories
+        .filter(h => DatesHelper.isBefore(h.startDate, event.startDate))
+        .sort(DatesHelper.descendingSort('startDate'))[0],
     };
   }
 
@@ -37,8 +39,7 @@ const formatEvents = (event) => {
 };
 
 const getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
-  const events = await Event
-    .find(rules, {})
+  const events = await Event.find(rules)
     .populate({
       path: 'auxiliary',
       match: { company: companyId },

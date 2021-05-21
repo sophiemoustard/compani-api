@@ -972,8 +972,9 @@ describe('createTimeStampHistory', () => {
       repetition: { frequency: 'every_day', parentID: new ObjectID() },
     };
     const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
+    const credentials = { _id: new ObjectID() };
 
-    await EventHistoryHelper.createTimeStampHistory(event, payload);
+    await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -984,6 +985,7 @@ describe('createTimeStampHistory', () => {
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
         update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
+        createdBy: credentials._id,
       }
     );
   });

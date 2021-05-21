@@ -74,13 +74,14 @@ describe('addTimeStamp', () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
     const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
+    const credentials = { _id: new ObjectID() };
 
     isTimeStampAllowedStub.returns(true);
 
-    await eventTimeStampingHelper.addTimeStamp(event, payload);
+    await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
-    sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload);
+    sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload, credentials);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate });
   });
 
@@ -88,10 +89,12 @@ describe('addTimeStamp', () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
     const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
+    const credentials = { _id: new ObjectID() };
+
     try {
       isTimeStampAllowedStub.returns(false);
 
-      await eventTimeStampingHelper.addTimeStamp(event, payload);
+      await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
       expect(true).toBe(false);
     } catch (e) {
       expect(e).toEqual(Boom.conflict('Problème lors de l\'horodatage. Contactez le support technique.'));
