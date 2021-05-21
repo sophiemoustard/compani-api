@@ -37,10 +37,11 @@ const {
   INVOICED_AND_PAID,
   AUXILIARY_INITIATIVE,
 } = require('../../src/helpers/constants');
+const UtilsHelper = require('../../src/helpers/utils');
+const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
-const { isSameOrAfter, isSameOrBefore } = require('../../src/helpers/dates');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -69,8 +70,8 @@ describe('GET /events', () => {
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
-        expect(isSameOrAfter(event.endDate, startDate)).toBeTruthy();
-        expect(isSameOrBefore(event.startDate, endDate)).toBeTruthy();
+        expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
+        expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
         expect(event.isCancelled).toEqual(false);
         if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
@@ -85,11 +86,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      response.result.data.events[0].events.forEach((event) => {
-        expect(event.customer._id).toEqual(response.result.data.events[0]._id);
-      });
+      const { events } = response.result.data;
+      const customerId = Object.keys(events)[0];
+      events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
     });
 
     it('should return a list of events groupedBy auxiliaries', async () => {
@@ -101,12 +100,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      const index = response.result.data.events.findIndex(event => event.events[0].auxiliary);
-      response.result.data.events[index].events.forEach((event) => {
-        expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
-      });
+      const { events } = response.result.data;
+      const auxId = Object.keys(events)[0];
+      events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
     });
 
     it('should return a 200 if same id send twice - sectors', async () => {
