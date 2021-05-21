@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { list, update } = require('../controllers/partnerController');
+const { authorizePartnerUpdate } = require('./preHandlers/partners');
 const { phoneNumberValidation } = require('./validations/utils');
 
 exports.plugin = {
@@ -30,6 +31,7 @@ exports.plugin = {
           }).min(1),
         },
         auth: { scope: ['partners:edit'] },
+        pre: [{ method: authorizePartnerUpdate }],
       },
       handler: update,
     });

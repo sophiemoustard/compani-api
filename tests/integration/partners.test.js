@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, partnersList } = require('./seed/partnersSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -55,7 +56,7 @@ describe('PARTNERS ROUTES - GET /partners', () => {
   });
 });
 
-describe('PARTNERS ROUTES - PUT /partners/{_id} #tag', () => {
+describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -127,6 +128,19 @@ describe('PARTNERS ROUTES - PUT /partners/{_id} #tag', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if partner does not exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          identity: { lastname: 'bonjour' },
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
