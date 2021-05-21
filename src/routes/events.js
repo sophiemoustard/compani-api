@@ -295,9 +295,10 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             action: Joi.string().required().valid(...TIMESTAMPING_ACTIONS),
-            startDate: Joi.date().required(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
             reason: Joi.string().required().valid(...MANUAL_TIME_STAMPING_REASONS),
-          }),
+          }).xor('startDate', 'endDate'),
         },
         pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
       },

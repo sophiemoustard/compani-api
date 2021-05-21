@@ -7,7 +7,7 @@ const translate = require('./translate');
 
 const { language } = translate;
 
-exports.isTimeStampAllowed = async (event, startDate) => {
+exports.isStartDateTimeStampAllowed = async (event, startDate) => {
   if (DatesHelper.isSameOrAfter(startDate, event.endDate)) throw Boom.badData(translate[language].timeStampTooLate);
   if (await EventValidationHelper.hasConflicts({ ...event, startDate })) {
     throw Boom.conflict(translate[language].timeStampConflict);
@@ -16,11 +16,24 @@ exports.isTimeStampAllowed = async (event, startDate) => {
   return true;
 };
 
+exports.isEndDateTimeStampAllowed = async (event, endDate) => {
+  if (await EventValidationHelper.hasConflicts({ ...event, endDate })) {
+    throw Boom.conflict(translate[language].timeStampConflict);
+  }
+
+  return true;
+};
+
 exports.addTimeStamp = async (event, payload, credentials) => {
-  if (!(await exports.isTimeStampAllowed(event, payload.startDate))) {
+  if (payload.startDate && !(await exports.isStartDateTimeStampAllowed(event, payload.startDate))) {
+    throw Boom.conflict(translate[language].timeStampOtherConflict);
+  }
+  if (payload.endDate && !(await exports.isEndDateTimeStampAllowed(event, payload.startDate))) {
     throw Boom.conflict(translate[language].timeStampOtherConflict);
   }
 
   await EventHistoriesHelper.createTimeStampHistory(event, payload, credentials);
-  await Event.updateOne({ _id: event._id }, { startDate: payload.startDate });
+
+  const updatePayload = payload.startDate ? { startDate: payload.startDate } : { endDate: payload.endDate };
+  await Event.updateOne({ _id: event._id }, updatePayload);
 };

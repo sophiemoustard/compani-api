@@ -7,7 +7,7 @@ const eventHistoryHelper = require('../../../src/helpers/eventHistories');
 const eventValidationHelper = require('../../../src/helpers/eventsValidation');
 const Event = require('../../../src/models/Event');
 
-describe('isTimeStampAllowed', () => {
+describe('isStartDateTimeStampAllowed', () => {
   let hasConflictsStub;
 
   beforeEach(() => { hasConflictsStub = sinon.stub(eventValidationHelper, 'hasConflicts'); });
@@ -20,7 +20,7 @@ describe('isTimeStampAllowed', () => {
 
     hasConflictsStub.returns(false);
 
-    const result = await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+    const result = await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
     expect(result).toBe(true);
   });
@@ -29,7 +29,7 @@ describe('isTimeStampAllowed', () => {
     const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const startDate = '2021-05-01T12:30:00';
     try {
-      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+      await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
       expect(true).toBe(false);
     } catch (e) {
@@ -43,7 +43,7 @@ describe('isTimeStampAllowed', () => {
     try {
       hasConflictsStub.returns(true);
 
-      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+      await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
       expect(true).toBe(false);
     } catch (e) {
@@ -59,7 +59,7 @@ describe('addTimeStamp', () => {
   let updateOne;
 
   beforeEach(() => {
-    isTimeStampAllowedStub = sinon.stub(eventTimeStampingHelper, 'isTimeStampAllowed');
+    isTimeStampAllowedStub = sinon.stub(eventTimeStampingHelper, 'isStartDateTimeStampAllowed');
     createTimeStampHistoryStub = sinon.stub(eventHistoryHelper, 'createTimeStampHistory');
     updateOne = sinon.stub(Event, 'updateOne');
   });
