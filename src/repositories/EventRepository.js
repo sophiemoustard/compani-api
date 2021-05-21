@@ -54,7 +54,7 @@ const getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
     .populate({ path: 'internalHour', match: { company: companyId } })
     .populate({ path: 'sector', match: { company: companyId } })
     .populate({ path: 'extension', match: { company: companyId } })
-    .populate({ path: 'eventHistories', match: { company: companyId } })
+    .populate({ path: 'histories', match: { company: companyId } })
     .lean();
 
   return groupBy(events.map(formatEvents), groupByFunc);

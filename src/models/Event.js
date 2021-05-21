@@ -114,6 +114,8 @@ const EventSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+EventSchema.virtual('histories', { ref: 'EventHistory', localField: '_id', foreignField: 'event.eventId' });
+
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
 
