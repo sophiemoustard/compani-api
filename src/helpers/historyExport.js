@@ -78,10 +78,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 
   const events = await Event.find(payload)
     .sort({ startDate: -1 })
-    .populate({
-      path: 'customer',
-      populate: { path: 'subscriptions', populate: 'service' },
-    })
+    .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
     .populate('internalHour')
     .populate('sector')
     .lean();

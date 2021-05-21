@@ -18,7 +18,7 @@ const {
 } = require('../helpers/constants');
 const { populateReferentHistories } = require('./utils');
 
-const formatEvents = (event) => {
+exports.formatEvent = (event) => {
   const formattedEvent = cloneDeep(event);
 
   const { auxiliary, subscription, customer } = event;
@@ -38,7 +38,7 @@ const formatEvents = (event) => {
   return formattedEvent;
 };
 
-const getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
+exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
   const events = await Event.find(rules)
     .populate({
       path: 'auxiliary',
@@ -68,13 +68,14 @@ const getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
     })
     .lean();
 
-  return groupBy(events.map(formatEvents), groupByFunc);
+  return groupBy(events.map(exports.formatEvent), groupByFunc);
 };
 
 exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
-  getEventsGroupedBy(rules, ev => (ev.auxiliary ? ev.auxiliary._id : ev.sector._id), companyId);
+  exports.getEventsGroupedBy(rules, ev => (ev.auxiliary ? ev.auxiliary._id : ev.sector._id), companyId);
 
-exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, 'customer._id', companyId);
+exports.getEventsGroupedByCustomers = async (rules, companyId) =>
+  exports.getEventsGroupedBy(rules, 'customer._id', companyId);
 
 exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({
