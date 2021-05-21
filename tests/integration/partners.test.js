@@ -36,6 +36,7 @@ describe('PARTNERS ROUTES - GET /partners', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];

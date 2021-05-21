@@ -395,4 +395,10 @@ module.exports = {
   ACTIVATED: 'activated',
   STOPPED: 'stopped',
   ARCHIVED: 'archived',
+  // TIMESTAMP
+  MANUAL_TIME_STAMPING: 'manual_time_stamping',
+  QRCODE_MISSING: 'qrcode_missing',
+  QRCODE_ERROR: 'qrcode_error',
+  CAMERA_ERROR: 'camera_error',
+  get MANUAL_TIME_STAMPING_REASONS() { return [this.QRCODE_MISSING, this.QRCODE_ERROR, this.CAMERA_ERROR]; },
 };

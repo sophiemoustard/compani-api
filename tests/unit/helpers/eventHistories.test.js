@@ -1,6 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
@@ -950,5 +951,40 @@ describe('formatHistoryForHoursUpdate', () => {
       },
     });
     sinon.assert.notCalled(findOne);
+  });
+});
+
+describe('createTimeStampHistory', () => {
+  let create;
+
+  beforeEach(() => { create = sinon.stub(EventHistory, 'create'); });
+
+  afterEach(() => { create.restore(); });
+
+  it('should create and event history of type timestamp', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2021-05-01T10:00:00',
+      endDate: '2021-05-01T12:00:00',
+      customer: new ObjectID(),
+      misc: 'test',
+      company: new ObjectID(),
+      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+    };
+    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
+
+    await EventHistoryHelper.createTimeStampHistory(event, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        event: { ...omit(event, ['_id']), eventId: event._id, startDate: '2021-05-01T10:02:00' },
+        company: event.company,
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'qrcode',
+        auxiliaries: [event.auxiliary],
+        update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
+      }
+    );
   });
 });

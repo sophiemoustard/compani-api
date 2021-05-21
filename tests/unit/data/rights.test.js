@@ -49,21 +49,6 @@ describe('checking the format of right.js file', () => {
     expect(arePermissionsIncluded).toBeTruthy();
   });
 
-  it('a coach must have the permissions associated with a planning referent', async () => {
-    const planningReferentPermissions = rights
-      .filter(right => right.rolesConcerned.includes(PLANNING_REFERENT))
-      .map(right => right.permission);
-    const coachPermissions = rights
-      .filter(right => right.rolesConcerned.includes(COACH))
-      .map(right => right.permission);
-
-    const arePermissionsIncluded = planningReferentPermissions
-      .map(permission => coachPermissions.includes(permission))
-      .every(value => value);
-
-    expect(arePermissionsIncluded).toBeTruthy();
-  });
-
   it('a client admin must have the permissions associated with a coach', async () => {
     const coachPermissions = rights
       .filter(right => right.rolesConcerned.includes(COACH))
