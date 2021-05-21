@@ -23,7 +23,7 @@ const {
   VIDEO,
   WEBAPP,
   TRAINER,
-} = require('../../../src/helpers/constants.js');
+} = require('../../../src/helpers/constants');
 
 const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
 const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === HELPER)._id);

@@ -8,7 +8,7 @@ const { language } = translate;
 
 exports.authorizePayDocumentCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const user = await User.findOne({ _id: req.payload.user, company: companyId }).lean();
+  const user = await User.countDocuments({ _id: req.payload.user, company: companyId });
   if (!user) throw Boom.forbidden();
 
   return null;
@@ -16,18 +16,15 @@ exports.authorizePayDocumentCreation = async (req) => {
 
 exports.authorizePayDocumentDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const payDocument = await PayDocument.findOne({ _id: req.params._id, company: companyId }).lean();
+  const payDocument = await PayDocument.countDocuments({ _id: req.params._id, company: companyId });
   if (!payDocument) throw Boom.notFound(translate[language].payDocumentsNotFound);
-
-  const user = await User.findOne({ _id: payDocument.user, company: companyId }).lean();
-  if (!user) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeGetPayDocuments = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const user = await User.findOne({ _id: req.query.user, company: companyId }).lean();
+  const user = await User.countDocuments({ _id: req.query.user, company: companyId });
   if (!user) throw Boom.forbidden();
 
   return null;

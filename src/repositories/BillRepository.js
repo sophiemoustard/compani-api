@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-
+const groupBy = require('lodash/groupBy');
 const Bill = require('../models/Bill');
 
 exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
@@ -16,23 +16,9 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
         billed: { $sum: '$netInclTaxes' },
       },
     },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'thirdpartypayers',
-        localField: '_id.tpp',
-        foreignField: '_id',
-        as: 'thirdPartyPayer',
-      },
-    },
+    { $lookup: { from: 'thirdpartypayers', localField: '_id.tpp', foreignField: '_id', as: 'thirdPartyPayer' } },
     { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
     {
       $project: {
@@ -47,9 +33,11 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
   return billsAmounts;
 };
 
-exports.findBillsAndHelpersByCustomer = async date => Bill.aggregate([
-  {
-    $match: {
+exports.findBillsAndHelpersByCustomer = async (date) => {
+  const options = { allCompanies: true };
+
+  const bills = await Bill
+    .find({
       createdAt: {
         $lt: moment(date).startOf('d').toDate(),
         $gte: moment(date).subtract(1, 'd').startOf('d').toDate(),
@@ -57,35 +45,19 @@ exports.findBillsAndHelpersByCustomer = async date => Bill.aggregate([
       thirdPartyPayer: { $exists: false },
       sentAt: { $exists: false },
       shouldBeSent: true,
-    },
-  },
-  { $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } } },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer' } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: '_id',
-      foreignField: 'customers',
-      as: 'helpers',
-    },
-  },
-  {
-    $project: {
-      _id: 0,
-      bills: 1,
-      customer: { _id: 1, identity: 1 },
-      helpers: { identity: 1, local: 1, company: 1 },
-    },
-  },
-]).option({ allCompanies: true });
+    })
+    .populate({
+      path: 'customer',
+      select: 'identity',
+      populate: { path: 'helpers', populate: { path: 'user', select: 'local company', options }, options },
+      options,
+    })
+    .setOptions(options)
+    .lean();
+
+  return Object.values(groupBy(bills, b => b.customer._id))
+    .map(g => ({ bills: g, customer: g[0].customer, helpers: g[0].customer.helpers }));
+};
 
 exports.getBillsSlipList = async companyId => Bill.aggregate([
   { $match: { thirdPartyPayer: { $exists: true } } },
@@ -109,12 +81,7 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
     },
   },
   {
-    $lookup: {
-      from: 'billslips',
-      as: 'billSlips',
-      localField: '_id.thirdPartyPayer',
-      foreignField: 'thirdPartyPayer',
-    },
+    $lookup: { from: 'billslips', as: 'billSlips', localField: '_id.thirdPartyPayer', foreignField: 'thirdPartyPayer' },
   },
   {
     $addFields: { billSlip: { $filter: { input: '$billSlips', as: 'bs', cond: { $eq: ['$$bs.month', '$month'] } } } },
@@ -150,7 +117,5 @@ exports.getBillsFromBillSlip = async (billSlip, companyId) => {
     company: companyId,
   };
 
-  return Bill.find(query)
-    .populate({ path: 'customer', select: 'fundings identity' })
-    .lean();
+  return Bill.find(query).populate({ path: 'customer', select: 'fundings identity' }).lean();
 };

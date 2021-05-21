@@ -138,21 +138,11 @@ exports.userExists = async (email, credentials) => {
     : { exists: !!targetUser, user: {} };
 };
 
-exports.saveCertificateDriveId = async (userId, fileInfo) => {
-  const payload = { 'administrative.certificates': fileInfo };
+exports.saveCertificateDriveId = async (userId, fileInfo) =>
+  User.updateOne({ _id: userId }, { $push: { 'administrative.certificates': fileInfo } });
 
-  await User.findOneAndUpdate(
-    { _id: userId },
-    { $push: payload },
-    { new: true, autopopulate: false }
-  );
-};
-
-exports.saveFile = async (userId, administrativeKey, fileInfo) => {
-  const payload = { administrative: { [administrativeKey]: fileInfo } };
-
-  await User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true, autopopulate: false });
-};
+exports.saveFile = async (userId, administrativeKey, fileInfo) =>
+  User.updateOne({ _id: userId }, { $set: flat({ administrative: { [administrativeKey]: fileInfo } }) });
 
 exports.createAndSaveFile = async (params, payload) => {
   const uploadedFile = await GDriveStorageHelper.addFile({
@@ -264,9 +254,7 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 
 exports.removeHelper = async (user) => {
   await HelpersHelper.remove(user._id);
-
-  const payload = { $unset: { 'role.client': '', company: '' } };
-  await User.findOneAndUpdate({ _id: user._id }, payload);
+  await User.updateOne({ _id: user._id }, { $unset: { 'role.client': '', company: '' } });
 };
 
 exports.uploadPicture = async (userId, payload) => {

@@ -38,7 +38,7 @@ exports.checkAuthorization = async (req) => {
 
   if (req.payload) {
     if (req.payload.referent) {
-      const referent = await User.findOne({ _id: req.payload.referent, company: companyId }).lean();
+      const referent = await User.countDocuments({ _id: req.payload.referent, company: companyId });
       if (!referent) return Boom.forbidden();
     }
 
