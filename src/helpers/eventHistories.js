@@ -228,7 +228,7 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
 
 exports.createTimeStampHistory = async (event, payload, credentials) => {
   const { startDate, endDate } = payload;
-  const eventPayload = { ...omit(event, ['_id', 'startDate']), eventId: event._id };
+  const eventPayload = { ...omit(event, ['_id']), eventId: event._id };
   const updatePayload = {};
 
   if (startDate) {

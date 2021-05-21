@@ -27,7 +27,7 @@ const {
   PARENTAL_LEAVE,
 } = require('../../../src/helpers/constants');
 
-const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID()];
+const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
 
 const contracts = [
   {
@@ -58,6 +58,18 @@ const contracts = [
     _id: new ObjectID(),
     serialNumber: 'dskfajdksjfkjhg',
     user: auxiliariesIds[2],
+    company: authCompany._id,
+    startDate: '2010-09-03T00:00:00',
+    versions: [{
+      startDate: '2010-09-03T00:00:00',
+      grossHourlyRate: 10.43,
+      weeklyHours: 12,
+    }],
+  },
+  {
+    _id: new ObjectID(),
+    serialNumber: 'dskfajdksjwefkjhg',
+    user: auxiliariesIds[3],
     company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
     versions: [{
@@ -111,6 +123,17 @@ const auxiliaries = [
     _id: auxiliariesIds[2],
     identity: { firstname: 'Philippe', lastname: 'Pinot' },
     local: { email: 'p@p.com', password: '123456!eR' },
+    administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [contracts[2]._id],
+    company: authCompany._id,
+    origin: WEBAPP,
+  },
+  {
+    _id: auxiliariesIds[3],
+    identity: { firstname: 'Qertyui', lastname: 'Pinot' },
+    local: { email: 'qwerty@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
@@ -781,6 +804,25 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()).setHours((new Date()).getHours() - 2),
+    endDate: (new Date()),
+    auxiliary: auxiliaries[3]._id,
+    customer: customerAuxiliary._id,
+    subscription: customerAuxiliary.subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const eventFromOtherCompany = {
@@ -846,6 +888,14 @@ const eventHistoriesList = [
     auxiliaries: [eventsList[23].auxiliary],
     update: { startHour: { from: eventsList[23].startDate, to: timeStampingDate } },
   },
+  {
+    event: { eventId: eventsList[24]._id, endDate: timeStampingDate },
+    company: eventsList[24].company,
+    action: 'manual_time_stamping',
+    manualTimeStampingReason: 'qrcode_missing',
+    auxiliaries: [eventsList[24].auxiliary],
+    update: { endHour: { from: eventsList[24].endDate, to: timeStampingDate } },
+  },
 ];
 
 const populateDB = async () => {
@@ -873,6 +923,7 @@ const populateDB = async () => {
   await (new User(auxiliaries[0])).save();
   await (new User(auxiliaries[1])).save();
   await (new User(auxiliaries[2])).save();
+  await (new User(auxiliaries[3])).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await Contract.insertMany(contracts);

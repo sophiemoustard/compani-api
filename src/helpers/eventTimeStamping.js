@@ -17,6 +17,7 @@ exports.isStartDateTimeStampAllowed = async (event, startDate) => {
 };
 
 exports.isEndDateTimeStampAllowed = async (event, endDate) => {
+  if (DatesHelper.isSameOrAfter(event.startDate, endDate)) throw Boom.badData(translate[language].timeStampTooEarly);
   if (await EventValidationHelper.hasConflicts({ ...event, endDate })) {
     throw Boom.conflict(translate[language].timeStampConflict);
   }
@@ -28,7 +29,7 @@ exports.addTimeStamp = async (event, payload, credentials) => {
   if (payload.startDate && !(await exports.isStartDateTimeStampAllowed(event, payload.startDate))) {
     throw Boom.conflict(translate[language].timeStampOtherConflict);
   }
-  if (payload.endDate && !(await exports.isEndDateTimeStampAllowed(event, payload.startDate))) {
+  if (payload.endDate && !(await exports.isEndDateTimeStampAllowed(event, payload.endDate))) {
     throw Boom.conflict(translate[language].timeStampOtherConflict);
   }
 
