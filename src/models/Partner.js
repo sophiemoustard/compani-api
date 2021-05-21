@@ -1,6 +1,29 @@
 const mongoose = require('mongoose');
-const { JOBS } = require('../helpers/constants');
+const {
+  SOCIAL_WORKER,
+  MEDICO_SOCIAL_ASSESSOR,
+  DOCTOR,
+  GERIATRICIAN,
+  COORDINATOR,
+  DIRECTOR,
+  CASE_MANAGER,
+  NURSE,
+  PSYCHOLOGIST,
+} = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
+
+const JOBS = [
+  SOCIAL_WORKER,
+  MEDICO_SOCIAL_ASSESSOR,
+  DOCTOR,
+  GERIATRICIAN,
+  COORDINATOR,
+  DIRECTOR,
+  CASE_MANAGER,
+  NURSE,
+  PSYCHOLOGIST,
+  '',
+];
 
 const PartnerSchema = mongoose.Schema({
   identity: { type: mongoose.Schema({ firstname: { type: String }, lastname: { type: String, required: true } }) },
