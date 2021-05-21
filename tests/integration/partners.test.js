@@ -96,9 +96,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
         method: 'PUT',
         url: `/partners/${partnersList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          phone: 'skusku',
-        },
+        payload: { phone: 'skusku' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -109,9 +107,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
         method: 'PUT',
         url: `/partners/${partnersList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          email: 'skusku',
-        },
+        payload: { email: 'skusku' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -122,9 +118,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
         method: 'PUT',
         url: `/partners/${partnersList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          identity: { lastname: '' },
-        },
+        payload: { identity: { lastname: '' } },
       });
 
       expect(response.statusCode).toBe(400);
@@ -135,9 +129,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
         method: 'PUT',
         url: `/partners/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          identity: { lastname: 'bonjour' },
-        },
+        payload: { identity: { lastname: 'bonjour' } },
       });
 
       expect(response.statusCode).toBe(404);
