@@ -88,9 +88,9 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
     select: 'identity subscriptions contact',
     populate: { path: 'subscriptions.service' },
   })
-  .populate('internalHour')
-  .populate('extension')
-  .populate({ path: 'histories', match: { company: companyId } })
+  .populate({ path: 'internalHour', select: '-__v -createdAt -updatedAt' })
+  .populate({ path: 'extension', select: '-__v -createdAt -updatedAt' })
+  .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
   .lean({ autopopulate: true, viruals: true });
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
