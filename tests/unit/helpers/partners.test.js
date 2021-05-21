@@ -36,13 +36,14 @@ describe('update', () => {
     updateOne.restore();
   });
 
-  it('should list partner from my company', async () => {
+  it('should update a partner', async () => {
     const partnerId = new ObjectID();
     const payload = {
       identity: { firstname: 'Titouan', lastname: 'Kerouac' },
       email: 'vive+la+bretagne@alenvi.io',
       phone: '0712345678',
     };
+
     updateOne.returns();
 
     await PartnersHelper.update(partnerId, payload);

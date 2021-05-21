@@ -148,7 +148,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
