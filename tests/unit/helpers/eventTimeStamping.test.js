@@ -101,7 +101,7 @@ describe('isEndDateTimeStampAllowed', () => {
   });
 });
 
-describe('addTimeStamp #tag', () => {
+describe('addTimeStamp', () => {
   let isStartDateTimeStampAllowedStub;
   let isEndDateTimeStampAllowedStub;
   let createTimeStampHistoryStub;
@@ -157,7 +157,7 @@ describe('addTimeStamp #tag', () => {
     }
   });
 
-  it('should add startDate timestamp and updateEvent', async () => {
+  it('should add endDate timestamp and updateEvent', async () => {
     const event = { _id: new ObjectID() };
     const endDate = new Date();
     const payload = { action: 'manual_timestamping', reason: 'qrcode', endDate };

@@ -1762,7 +1762,7 @@ describe('DELETE /{_id}/repetition', () => {
   });
 });
 
-describe('PUT /{_id}/timestamping #tag', () => {
+describe('PUT /{_id}/timestamping', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -1784,7 +1784,6 @@ describe('PUT /{_id}/timestamping #tag', () => {
         'event.startDate': startDate,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'camera_error',
-
       });
       expect(timestamp).toBe(1);
     });
@@ -1801,14 +1800,6 @@ describe('PUT /{_id}/timestamping #tag', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const timestamp = await EventHistory.countDocuments({
-        'event.eventId': eventsList[21]._id,
-        'event.endDate': endDate,
-        action: 'manual_time_stamping',
-        manualTimeStampingReason: 'camera_error',
-
-      });
-      expect(timestamp).toBe(1);
     });
 
     it('should return a 404 if event does not exist', async () => {
@@ -1879,14 +1870,14 @@ describe('PUT /{_id}/timestamping #tag', () => {
     });
 
     it('should return a 409 if event is already endDate timestamped', async () => {
-      authToken = await getTokenByCredentials(auxiliaries[2].local);
-      const startDate = new Date();
+      authToken = await getTokenByCredentials(auxiliaries[3].local);
+      const endDate = new Date();
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/events/${eventsList[23]._id}/timestamping`,
+        url: `/events/${eventsList[24]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+        payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);

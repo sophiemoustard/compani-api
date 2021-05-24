@@ -28,8 +28,7 @@ exports.isEndDateTimeStampAllowed = async (event, endDate) => {
 exports.addTimeStamp = async (event, payload, credentials) => {
   if (payload.startDate && !(await exports.isStartDateTimeStampAllowed(event, payload.startDate))) {
     throw Boom.conflict(translate[language].timeStampOtherConflict);
-  }
-  if (payload.endDate && !(await exports.isEndDateTimeStampAllowed(event, payload.endDate))) {
+  } else if (payload.endDate && !(await exports.isEndDateTimeStampAllowed(event, payload.endDate))) {
     throw Boom.conflict(translate[language].timeStampOtherConflict);
   }
 
