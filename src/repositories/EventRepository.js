@@ -2,8 +2,11 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const groupBy = require('lodash/groupBy');
+const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
 const UtilsHelper = require('../helpers/utils');
+const DatesHelper = require('../helpers/dates');
 const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
@@ -15,144 +18,64 @@ const {
 } = require('../helpers/constants');
 const { populateReferentHistories } = require('./utils');
 
-const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregate([
-  { $match: rules },
-  {
-    $lookup: {
-      from: 'users',
-      as: 'auxiliary',
-      let: { auxiliaryId: '$auxiliary', eventStartDate: '$startDate' },
-      pipeline: [
-        { $match: { $expr: { $and: [{ $eq: ['$_id', '$$auxiliaryId'] }] } } },
-        {
-          $lookup: {
-            from: 'sectorhistories',
-            as: 'sector',
-            let: { auxiliaryId: '$_id', companyId: '$company', eventStartDate: '$$eventStartDate' },
-            pipeline: [
-              {
-                $match: {
-                  $or: [
-                    {
-                      endDate: { $exists: true },
-                      $expr: {
-                        $and: [
-                          { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                          { $eq: ['$company', '$$companyId'] },
-                          { $lte: ['$startDate', '$$eventStartDate'] },
-                          { $gte: ['$endDate', '$$eventStartDate'] },
-                        ],
-                      },
-                    },
-                    {
-                      endDate: { $exists: false },
-                      $expr: {
-                        $and: [
-                          { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                          { $eq: ['$company', '$$companyId'] },
-                          { $lte: ['$startDate', '$$eventStartDate'] },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-              { $limit: 1 },
-              { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
-              { $unwind: { path: '$lastSector' } },
-              { $replaceRoot: { newRoot: '$lastSector' } },
-            ],
-          },
-        },
-        { $unwind: { path: '$sector' } },
+exports.formatEvent = (event) => {
+  const formattedEvent = cloneDeep(event);
+
+  const { auxiliary, subscription, customer } = event;
+  if (auxiliary) {
+    formattedEvent.auxiliary = {
+      ...omit(auxiliary, 'sectorHistories'),
+      sector: auxiliary.sectorHistories
+        .filter(h => DatesHelper.isBefore(h.startDate, event.startDate))
+        .sort(DatesHelper.descendingSort('startDate'))[0],
+    };
+  }
+
+  if (subscription) {
+    formattedEvent.subscription = customer.subscriptions.find(s => UtilsHelper.areObjectIdsEquals(subscription, s._id));
+  }
+
+  return formattedEvent;
+};
+
+exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
+  const events = await Event.find(rules)
+    .populate({
+      path: 'auxiliary',
+      match: { company: companyId },
+      populate: { path: 'sectorHistories', match: { company: companyId } },
+      select: 'identity administrative.driveFolder: administrative.transportInvoice company picture sectorHistories',
+    })
+    .populate({
+      path: 'customer',
+      match: { company: companyId },
+      populate: { path: 'subscriptions.service', match: { company: companyId } },
+      select: 'identity contact subscriptions',
+    })
+    .populate({ path: 'internalHour', match: { company: companyId } })
+    .populate({ path: 'sector', match: { company: companyId } })
+    .populate({ path: 'extension', match: { company: companyId } })
+    .populate({
+      path: 'histories',
+      match: { company: companyId },
+      populate: [
+        { path: 'event.customer' },
+        { path: 'event.auxiliary' },
+        { path: 'update.auxiliary.to' },
+        { path: 'update.auxiliary.from' },
+        { path: 'createdBy' },
       ],
-    },
-  },
-  { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: 'customer',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      subscription: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$subscription'] } },
-      },
-    },
-  },
-  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'subscription.service',
-      foreignField: '_id',
-      as: 'subscription.service',
-    },
-  },
-  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'internalhours',
-      localField: 'internalHour',
-      foreignField: '_id',
-      as: 'internalHour',
-    },
-  },
-  { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'events',
-      localField: 'extension',
-      foreignField: '_id',
-      as: 'extension',
-    },
-  },
-  { $unwind: { path: '$extension', preserveNullAndEmptyArrays: true } },
-  {
-    $project: {
-      _id: 1,
-      customer: { _id: 1, identity: 1, contact: 1 },
-      auxiliary: {
-        _id: 1,
-        identity: 1,
-        administrative: { driveFolder: 1, transportInvoice: 1 },
-        company: 1,
-        picture: 1,
-        sector: 1,
-      },
-      type: 1,
-      startDate: 1,
-      endDate: 1,
-      subscription: 1,
-      internalHour: 1,
-      absence: 1,
-      absenceNature: 1,
-      extension: 1,
-      address: 1,
-      misc: 1,
-      attachment: 1,
-      repetition: 1,
-      isCancelled: 1,
-      cancel: 1,
-      isBilled: 1,
-      bills: 1,
-      sector: 1,
-    },
-  },
-  {
-    $group: { _id: groupById, events: { $push: '$$ROOT' } },
-  },
-]).option({ company: companyId });
+    })
+    .lean();
+
+  return groupBy(events.map(exports.formatEvent), groupByFunc);
+};
 
 exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
-  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
+  exports.getEventsGroupedBy(rules, ev => (ev.auxiliary ? ev.auxiliary._id : ev.sector._id), companyId);
 
-exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
+exports.getEventsGroupedByCustomers = async (rules, companyId) =>
+  exports.getEventsGroupedBy(rules, 'customer._id', companyId);
 
 exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({
@@ -165,8 +88,9 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
     select: 'identity subscriptions contact',
     populate: { path: 'subscriptions.service' },
   })
-  .populate({ path: 'internalHour' })
-  .populate({ path: 'extension' })
+  .populate({ path: 'internalHour', select: '-__v -createdAt -updatedAt' })
+  .populate({ path: 'extension', select: '-__v -createdAt -updatedAt' })
+  .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
   .lean({ autopopulate: true, viruals: true });
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {

@@ -26,3 +26,5 @@ exports.format = (date, format = '') => {
 
   return new Date(date).toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris', ...Object.assign({}, ...options) });
 };
+
+exports.descendingSort = key => (a, b) => new Date(b[key]) - new Date(a[key]);
