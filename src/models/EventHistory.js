@@ -7,11 +7,14 @@ const {
   REPETITION_FREQUENCIES,
   EVENT_CANCELLATION_CONDITIONS,
   EVENT_CANCELLATION_REASONS,
+  MANUAL_TIME_STAMPING,
+  MANUAL_TIME_STAMPING_REASONS,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
-const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
+const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, MANUAL_TIME_STAMPING];
+const TIMESTAMPING_ACTIONS = [MANUAL_TIME_STAMPING];
 
 const EventHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -22,31 +25,20 @@ const EventHistorySchema = mongoose.Schema({
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     },
-    startDate: {
-      from: Date,
-      to: Date,
-    },
-    endDate: {
-      from: Date,
-      to: Date,
-    },
-    startHour: {
-      from: Date,
-      to: Date,
-    },
-    endHour: {
-      from: Date,
-      to: Date,
-    },
+    startDate: { from: { type: Date }, to: { type: Date } },
+    endDate: { from: { type: Date }, to: { type: Date } },
+    startHour: { from: { type: Date }, to: { type: Date } },
+    endHour: { from: { type: Date }, to: { type: Date } },
     cancel: {
       condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
       reason: { type: String, enum: EVENT_CANCELLATION_REASONS },
     },
   },
   event: {
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true, immutable: true },
     type: { type: String, enum: EVENT_TYPES },
-    startDate: Date,
-    endDate: Date,
+    startDate: { type: Date },
+    endDate: { type: Date },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     absence: { type: String, enum: ABSENCE_TYPES },
@@ -55,13 +47,16 @@ const EventHistorySchema = mongoose.Schema({
     misc: { type: String },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },
+      parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     },
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
+  manualTimeStampingReason: { type: String, enum: MANUAL_TIME_STAMPING_REASONS },
 }, { timestamps: true });
 
 EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
+module.exports.TIMESTAMPING_ACTIONS = TIMESTAMPING_ACTIONS;

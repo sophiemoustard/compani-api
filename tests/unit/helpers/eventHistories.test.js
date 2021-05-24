@@ -1,6 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
@@ -140,7 +141,7 @@ describe('createEventHistory', () => {
         company: companyId,
         auxiliaries: [auxiliaryId.toHexString()],
         sectors: [sectorId.toHexString()],
-        event: { auxiliary: auxiliaryId.toHexString() },
+        event: { eventId: payload._id, auxiliary: auxiliaryId.toHexString() },
       }
     );
     SinonMongoose.calledWithExactly(
@@ -171,7 +172,7 @@ describe('createEventHistory', () => {
         action: 'event_creation',
         company: companyId,
         sectors: [sectorId.toHexString()],
-        event: { type: 'intervention' },
+        event: { eventId: payload._id, type: 'intervention' },
       }
     );
     sinon.assert.notCalled(findOne);
@@ -243,6 +244,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -260,6 +262,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -284,6 +287,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-22T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
@@ -300,6 +304,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -326,6 +331,7 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -342,6 +348,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -365,6 +372,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T10:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -381,6 +389,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -407,6 +416,7 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
+      _id: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
@@ -423,6 +433,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -442,6 +453,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-20T09:38:18',
           endDate: '2019-01-21T11:38:18',
@@ -464,6 +476,7 @@ describe('createEventHistoryOnUpdate', () => {
       shouldUpdateRepetition: true,
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -482,6 +495,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'intervention',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -507,6 +521,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -525,6 +540,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: INTERNAL_HOUR,
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -550,6 +566,7 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
+      _id: new ObjectID(),
       auxiliary: new ObjectID(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
@@ -568,6 +585,7 @@ describe('createEventHistoryOnUpdate', () => {
         createdBy: 'james bond',
         action: 'event_update',
         event: {
+          eventId: event._id,
           type: 'absence',
           startDate: '2019-01-21T09:38:18',
           endDate: '2019-01-22T09:38:18',
@@ -603,27 +621,20 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
     find.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, sector: sectorId }]]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: {
-        auxiliary: { from: auxiliaryId.toHexString(), to: 'qwertyuiop' },
-      },
+      update: { auxiliary: { from: auxiliaryId, to: 'qwertyuiop' } },
       sectors: [sectorId],
-      auxiliaries: [auxiliaryId.toHexString(), 'qwertyuiop'],
+      auxiliaries: [auxiliaryId, 'qwertyuiop'],
     });
     SinonMongoose.calledWithExactly(
       find,
@@ -640,24 +651,20 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = { sector: sectorId.toHexString() };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { sector: sectorId };
     const event = { auxiliary: auxiliaryId };
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: { auxiliary: { from: auxiliaryId.toHexString() } },
-      sectors: [sectorId.toHexString()],
-      auxiliaries: [auxiliaryId.toHexString()],
+      update: { auxiliary: { from: auxiliaryId } },
+      sectors: [sectorId],
+      auxiliaries: [auxiliaryId],
     });
     SinonMongoose.calledWithExactly(
       findOne,
@@ -675,32 +682,25 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const eventSectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
-    const mainInfo = {
-      createdBy: 'james bond',
-      action: 'event_update',
-      event: { type: 'intervention' },
-    };
-    const payload = { auxiliary: auxiliaryId.toHexString() };
+    const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
+    const payload = { auxiliary: auxiliaryId };
     const event = { sector: eventSectorId };
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
-    expect(result).toBeDefined();
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
       event: { type: 'intervention' },
-      update: {
-        auxiliary: { to: auxiliaryId.toHexString() },
-      },
-      sectors: [sectorId.toHexString(), eventSectorId.toHexString()],
-      auxiliaries: [auxiliaryId.toHexString()],
+      update: { auxiliary: { to: auxiliaryId } },
+      sectors: [sectorId, eventSectorId],
+      auxiliaries: [auxiliaryId],
     });
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
@@ -951,5 +951,40 @@ describe('formatHistoryForHoursUpdate', () => {
       },
     });
     sinon.assert.notCalled(findOne);
+  });
+});
+
+describe('createTimeStampHistory', () => {
+  let create;
+
+  beforeEach(() => { create = sinon.stub(EventHistory, 'create'); });
+
+  afterEach(() => { create.restore(); });
+
+  it('should create and event history of type timestamp', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2021-05-01T10:00:00',
+      endDate: '2021-05-01T12:00:00',
+      customer: new ObjectID(),
+      misc: 'test',
+      company: new ObjectID(),
+      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+    };
+    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
+
+    await EventHistoryHelper.createTimeStampHistory(event, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        event: { ...omit(event, ['_id']), eventId: event._id, startDate: '2021-05-01T10:02:00' },
+        company: event.company,
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'qrcode',
+        auxiliaries: [event.auxiliary],
+        update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
+      }
+    );
   });
 });

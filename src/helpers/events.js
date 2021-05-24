@@ -69,16 +69,27 @@ exports.createEvent = async (payload, credentials) => {
   let eventPayload = { ...cloneDeep(payload), company: companyId };
   if (!await EventsValidationHelper.isCreationAllowed(eventPayload, credentials)) throw Boom.badData();
 
-  await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
-
   const isRepeatedEvent = exports.isRepetition(eventPayload);
   const hasConflicts = await EventsValidationHelper.hasConflicts(eventPayload);
   if (eventPayload.type === INTERVENTION && eventPayload.auxiliary && isRepeatedEvent && hasConflicts) {
-    eventPayload = exports.detachAuxiliaryFromEvent(eventPayload, companyId);
+    eventPayload = await exports.detachAuxiliaryFromEvent(eventPayload, companyId);
   }
 
-  const event = await Event.create(eventPayload);
+  const event = (await Event.create(eventPayload)).toObject();
   const populatedEvent = await EventRepository.getEvent(event._id, credentials);
+
+  if (!isRepeatedEvent) await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
+  else {
+    const repetition = { ...payload.repetition, parentId: populatedEvent._id };
+    await EventsRepetitionHelper.createRepetitions(
+      populatedEvent,
+      { ...payload, company: companyId, repetition },
+      credentials
+    );
+
+    await EventHistoriesHelper.createEventHistoryOnCreate({ ...payload, _id: event._id, repetition }, credentials);
+  }
+
   if (payload.type === ABSENCE) {
     const { startDate, endDate } = populatedEvent;
     const dates = { startDate, endDate };
@@ -87,14 +98,6 @@ exports.createEvent = async (payload, credentials) => {
       .lean({ autopopulate: true, virtuals: true });
     await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);
     await exports.unassignConflictInterventions(dates, auxiliary, credentials);
-  }
-
-  if (isRepeatedEvent) {
-    await EventsRepetitionHelper.createRepetitions(
-      populatedEvent,
-      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: populatedEvent._id } },
-      credentials
-    );
   }
 
   return exports.populateEventSubscription(populatedEvent);

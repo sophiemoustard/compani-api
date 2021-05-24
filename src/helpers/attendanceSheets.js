@@ -1,18 +1,19 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
-const moment = require('moment');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const User = require('../models/User');
 const GCloudStorageHelper = require('./gCloudStorage');
 const UtilsHelper = require('./utils');
+const DatesHelper = require('./dates');
 
 exports.create = async (payload) => {
-  let fileName = moment(payload.date).format('DD-MMMM-YYYY');
-  if (payload.trainee) {
-    const { identity } = await User.findOne({ _id: payload.trainee }).lean();
-
+  let fileName;
+  if (payload.date) fileName = DatesHelper.format(payload.date, 'D MMMM YYYY');
+  else {
+    const { identity } = await User.findOne({ _id: payload.trainee }, { identity: 1 }).lean();
     fileName = UtilsHelper.formatIdentity(identity, 'FL');
   }
+
   const fileUploaded = await GCloudStorageHelper.uploadCourseFile({
     fileName: `emargement_${fileName}`,
     file: payload.file,

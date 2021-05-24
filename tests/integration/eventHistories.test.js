@@ -3,7 +3,7 @@ const app = require('../../server');
 const {
   populateDB,
   eventHistoryList,
-  eventHistoryAuxiliaries,
+  auxiliaries,
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
   sectors,
@@ -36,7 +36,7 @@ describe('GET /eventhistories', () => {
   });
 
   it('should return a list of event histories from auxiliaries ids', async () => {
-    const auxiliaryIds = [eventHistoryAuxiliaries[0]._id.toHexString(), eventHistoryAuxiliaries[1]._id.toHexString()];
+    const auxiliaryIds = [auxiliaries[0]._id.toHexString(), auxiliaries[1]._id.toHexString()];
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?auxiliaries=${auxiliaryIds[0]}&auxiliaries=${auxiliaryIds[1]}`,
@@ -68,7 +68,7 @@ describe('GET /eventhistories', () => {
   it('should return a 400 if invalid query', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: `/eventhistories?auxiliary=${eventHistoryAuxiliaries[0]._id.toHexString()}`,
+      url: `/eventhistories?auxiliary=${auxiliaries[0]._id.toHexString()}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 

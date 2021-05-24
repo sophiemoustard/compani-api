@@ -9,6 +9,13 @@ const GDriveStorageHelper = require('./gDriveStorage');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
+const Helper = require('../models/Helper');
+const EventHistory = require('../models/EventHistory');
+const ReferentHistory = require('../models/ReferentHistory');
+const Repetition = require('../models/Repetition');
+const CustomerPartner = require('../models/CustomerPartner');
+const Rum = require('../models/Rum');
+const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
@@ -16,7 +23,6 @@ const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const Rum = require('../models/Rum');
 
 const { language } = translate;
 
@@ -185,6 +191,32 @@ exports.createCustomer = async (payload, credentials) => {
   await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
 
   return newCustomer;
+};
+
+exports.removeCustomer = async (customerId) => {
+  const customer = await Customer.findOne({ _id: customerId }, { driveFolder: 1, company: 1 }).lean();
+  const helpers = await Helper.find({ customer: customerId, company: customer.company }, { user: 1 }).lean();
+
+  await Customer.deleteOne({ _id: customerId });
+
+  const promises = [];
+  promises.push(
+    Helper.deleteMany({ customer: customerId }),
+    ReferentHistory.deleteMany({ customer: customerId }),
+    EventHistory.deleteMany({ 'event.customer': customerId }),
+    Repetition.deleteMany({ customer: customerId }),
+    CustomerPartner.deleteMany({ customer: customerId })
+  );
+
+  for (const helper of helpers) {
+    if (helper.user) {
+      promises.push(User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '', company: '' } }));
+    }
+  }
+
+  if (get(customer, 'driveFolder.driveId')) promises.push(Drive.deleteFile({ fileId: customer.driveFolder.driveId }));
+
+  await Promise.all(promises);
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

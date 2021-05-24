@@ -8,6 +8,12 @@ const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const Rum = require('../../../src/models/Rum');
 const Drive = require('../../../src/models/Google/Drive');
+const Helper = require('../../../src/models/Helper');
+const ReferentHistory = require('../../../src/models/ReferentHistory');
+const EventHistory = require('../../../src/models/EventHistory');
+const Repetition = require('../../../src/models/Repetition');
+const CustomerPartner = require('../../../src/models/CustomerPartner');
+const User = require('../../../src/models/User');
 const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
@@ -806,6 +812,150 @@ describe('createCustomer', () => {
       { prefix: rumNumber.prefix, company: credentials.company._id },
       { $set: { seq: 2 } }
     );
+  });
+});
+
+describe('removeCustomer', () => {
+  let findOne;
+  let findHelper;
+  let deleteOne;
+  let deleteManyHelper;
+  let deleteManyReferentHistory;
+  let deleteManyEventHistory;
+  let deleteManyRepetition;
+  let deleteManyCustomerPartner;
+  let updateOneUser;
+  let deleteFileDrive;
+  beforeEach(() => {
+    findOne = sinon.stub(Customer, 'findOne');
+    findHelper = sinon.stub(Helper, 'find');
+    deleteOne = sinon.stub(Customer, 'deleteOne');
+    deleteManyHelper = sinon.stub(Helper, 'deleteMany');
+    deleteManyReferentHistory = sinon.stub(ReferentHistory, 'deleteMany');
+    deleteManyEventHistory = sinon.stub(EventHistory, 'deleteMany');
+    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
+    deleteManyCustomerPartner = sinon.stub(CustomerPartner, 'deleteMany');
+    updateOneUser = sinon.stub(User, 'updateOne');
+    deleteFileDrive = sinon.stub(Drive, 'deleteFile');
+  });
+  afterEach(() => {
+    findOne.restore();
+    findHelper.restore();
+    deleteOne.restore();
+    deleteManyHelper.restore();
+    deleteManyReferentHistory.restore();
+    deleteManyEventHistory.restore();
+    deleteManyRepetition.restore();
+    deleteManyCustomerPartner.restore();
+    updateOneUser.restore();
+    updateOneUser.restore();
+    deleteFileDrive.restore();
+  });
+
+  it('should delete customer and his drive folder', async () => {
+    const companyId = new ObjectID();
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, driveFolder: { driveId: 'https://skusku.com' }, company: companyId };
+    const helper1Id = new ObjectID();
+    const helper2Id = new ObjectID();
+    const helpers = [
+      { customer: customerId, user: helper1Id, company: companyId },
+      { customer: customerId, user: helper2Id, company: companyId },
+    ];
+
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([helpers], ['lean']));
+
+    await CustomerHelper.removeCustomer(customerId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findHelper,
+      [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyHelper, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyReferentHistory, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.calledWithExactly(
+      updateOneUser.getCall(0),
+      { _id: helper1Id },
+      { $unset: { 'role.client': '', company: '' } }
+    );
+    sinon.assert.calledWithExactly(
+      updateOneUser.getCall(1),
+      { _id: helper2Id },
+      { $unset: { 'role.client': '', company: '' } }
+    );
+    sinon.assert.calledTwice(updateOneUser);
+    sinon.assert.calledOnceWithExactly(deleteFileDrive, { fileId: customer.driveFolder.driveId });
+  });
+
+  it('should delete customer but not his drive folder', async () => {
+    const companyId = new ObjectID();
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, company: companyId };
+    const helperId = new ObjectID();
+    const helper = { customer: customerId, user: helperId, company: companyId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([[helper]], ['lean']));
+
+    await CustomerHelper.removeCustomer(customerId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findHelper,
+      [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyHelper, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyReferentHistory, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(
+      updateOneUser,
+      { _id: helperId },
+      { $unset: { 'role.client': '', company: '' } }
+    );
+    sinon.assert.notCalled(deleteFileDrive);
+  });
+
+  it('should delete customer even without a helper', async () => {
+    const companyId = new ObjectID();
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, company: companyId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+
+    await CustomerHelper.removeCustomer(customerId);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findHelper,
+      [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyHelper, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyReferentHistory, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.notCalled(updateOneUser);
+    sinon.assert.notCalled(deleteFileDrive);
   });
 });
 

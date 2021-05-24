@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const UtilsHelper = require('../utils');
 const FileHelper = require('../file');
-const DateHelper = require('../dates');
+const DatesHelper = require('../dates');
 const Pay = require('../../models/Pay');
 const { PRIVATE_TRANSPORT, PUBLIC_TRANSPORT } = require('../constants');
 
@@ -74,18 +74,15 @@ const payVariables = [
   { code: '489', mode: MODE_RESULTAT, func: computeTransport, name: 'Frais kilométriques' },
 ];
 
-const formatPayMonth = (value) => {
-  if (!value) return '';
+const formatPayMonth = (date) => {
+  if (!date) return '';
 
-  const month = new Date(value).getMonth() + 1;
-  const formattedMonth = month < 10 ? `0${month}` : month;
-
-  return `${formattedMonth}-${new Date(value).getFullYear()}`;
+  return DatesHelper.format(date, 'MM YYYY').replace('/', '-');
 };
 
 const getContractForPay = (pay, contracts) => contracts
-  .find(c => DateHelper.isSameOrBefore(c.startDate, pay.startDate) &&
-    (!c.endDate || DateHelper.isAfter(c.endDate, pay.startDate)));
+  .find(c => DatesHelper.isSameOrBefore(c.startDate, pay.startDate) &&
+    (!c.endDate || DatesHelper.isAfter(c.endDate, pay.startDate)));
 
 exports.exportPay = async (query, credentials) => {
   const month = formatPayMonth(query.startDate);

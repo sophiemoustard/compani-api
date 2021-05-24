@@ -17,5 +17,15 @@ const list = async (req) => {
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
+const update = async (req) => {
+  try {
+    await PartnersHelper.update(req.params._id, req.payload);
 
-module.exports = { list };
+    return { message: translate[language].partnerUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, update };

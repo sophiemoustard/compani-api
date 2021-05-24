@@ -266,7 +266,7 @@ describe('PUT contract/:id', () => {
     expect(moment(response.result.data.contract.endDate).format('YYYY/MM/DD'))
       .toEqual(moment(endDate).format('YYYY/MM/DD'));
 
-    const user = await User.findOne({ _id: contractsList[0].user });
+    const user = await User.findOne({ _id: contractsList[0].user }).lean();
     expect(user.inactivityDate).not.toBeNull();
     expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
       .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
