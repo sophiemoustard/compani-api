@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { list, update } = require('../controllers/partnerController');
+const { JOBS } = require('../helpers/constants');
 const { authorizePartnerUpdate } = require('./preHandlers/partners');
 const { phoneNumberValidation } = require('./validations/utils');
 
@@ -28,6 +29,7 @@ exports.plugin = {
             }),
             phone: phoneNumberValidation.allow(''),
             email: Joi.string().email().allow(''),
+            job: Joi.string().valid(...JOBS).allow(''),
           }).min(1),
         },
         auth: { scope: ['partners:edit'] },

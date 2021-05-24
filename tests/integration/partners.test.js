@@ -74,6 +74,7 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
           identity: { firstname: 'Ulysse', lastname: 'TeDatente' },
           email: 'skulysse@alenvi.io',
           phone: '0712345678',
+          job: 'doctor',
         },
       });
 
@@ -119,6 +120,17 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
         url: `/partners/${partnersList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { lastname: '' } },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if job is invalid', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partners/${partnersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { job: 'happiness_manager' },
       });
 
       expect(response.statusCode).toBe(400);
