@@ -133,7 +133,7 @@ describe('addTimeStamp', () => {
 
     sinon.assert.calledOnceWithExactly(isStartDateTimeStampAllowedStub, event, startDate);
     sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload, credentials);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate, 'repetition.frequency': 'never' });
     sinon.assert.notCalled(isEndDateTimeStampAllowedStub);
   });
 
@@ -169,7 +169,7 @@ describe('addTimeStamp', () => {
 
     sinon.assert.calledOnceWithExactly(isEndDateTimeStampAllowedStub, event, endDate);
     sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload, credentials);
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { endDate });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { endDate, 'repetition.frequency': 'never' });
     sinon.assert.notCalled(isStartDateTimeStampAllowedStub);
   });
 

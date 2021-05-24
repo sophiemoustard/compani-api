@@ -4,6 +4,7 @@ const DatesHelper = require('./dates');
 const EventValidationHelper = require('./eventsValidation');
 const Event = require('../models/Event');
 const translate = require('./translate');
+const { NEVER } = require('./constants');
 
 const { language } = translate;
 
@@ -34,6 +35,8 @@ exports.addTimeStamp = async (event, payload, credentials) => {
 
   await EventHistoriesHelper.createTimeStampHistory(event, payload, credentials);
 
-  const updatePayload = payload.startDate ? { startDate: payload.startDate } : { endDate: payload.endDate };
+  const updatePayload = { 'repetition.frequency': NEVER };
+  if (payload.startDate) updatePayload.startDate = payload.startDate;
+  else updatePayload.endDate = payload.endDate;
   await Event.updateOne({ _id: event._id }, updatePayload);
 };

@@ -680,7 +680,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
-    repetition: { frequency: NEVER },
+    repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
     auxiliary: auxiliaries[0]._id,
@@ -791,7 +791,7 @@ const distanceMatrixList = [
 ];
 
 const helpersList = [
-  { customer: customerAuxiliary._id, user: helpersCustomer._id, company: authCompany._id, referent: true }
+  { customer: customerAuxiliary._id, user: helpersCustomer._id, company: authCompany._id, referent: true },
 ];
 
 const timeStampingDate = new Date();

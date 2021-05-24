@@ -33,6 +33,7 @@ const {
   PAID_LEAVE,
   MATERNITY_LEAVE,
   PARENTAL_LEAVE,
+  NEVER,
 } = require('../../src/helpers/constants');
 const UtilsHelper = require('../../src/helpers/utils');
 const Repetition = require('../../src/models/Repetition');
@@ -1788,18 +1789,22 @@ describe('PUT /{_id}/timestamping', () => {
       expect(timestamp).toBe(1);
     });
 
-    it('should timestamp endDate of an event', async () => {
+    it('should timestamp event endDate and remove event from repetition', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
       const endDate = new Date();
+      const eventId = eventsList[21]._id;
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/events/${eventsList[21]._id}/timestamping`,
+        url: `/events/${eventId}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(200);
+
+      const updatedEvent = await Event.countDocuments({ _id: eventId, 'repetition.frequency': NEVER });
+      expect(updatedEvent).toEqual(1);
     });
 
     it('should return a 404 if event does not exist', async () => {
