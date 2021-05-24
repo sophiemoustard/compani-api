@@ -15,11 +15,11 @@ const {
   NURSING_HOME,
   HOSPITALIZED,
   DECEASED,
+  ACTIVATED,
+  STOPPED,
+  ARCHIVED,
 } = require('../helpers/constants');
 const Event = require('./Event');
-const Helper = require('./Helper');
-const Drive = require('./Google/Drive');
-const User = require('./User');
 const { PHONE_VALIDATION } = require('./utils');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -29,6 +29,7 @@ const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription')
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 const SITUATION_OPTIONS = [UNKNOWN, HOME, NURSING_HOME, HOSPITALIZED, DECEASED];
+const STATUS = [ACTIVATED, STOPPED, ARCHIVED];
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -114,6 +115,12 @@ const CustomerSchema = mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     }],
   }],
+  status: {
+    value: { type: String, enum: STATUS, default: ACTIVATED },
+    activatedAt: { type: Date, default: Date.now },
+    stoppedAt: { type: Date },
+    archivedAt: { type: Date },
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -127,27 +134,6 @@ const countSubscriptionUsage = async (doc) => {
     }
   }
 };
-
-async function removeCustomer(next) {
-  const customer = this;
-  const { _id, driveFolder } = customer;
-
-  try {
-    if (!_id) throw Boom.badRequest('CustomerId is missing.');
-
-    const promises = [
-      Helper.deleteMany({ customer: _id }),
-      User.updateOne({ _id }, { $unset: { 'role.client': '', company: '' } }),
-    ];
-
-    if (driveFolder && driveFolder.driveId) promises.push(Drive.deleteFile({ fileId: driveFolder.driveId }));
-    await Promise.all(promises);
-
-    return next();
-  } catch (e) {
-    return next(e);
-  }
-}
 
 function validateAddress(next) {
   const { $set, $unset } = this.getUpdate();
@@ -184,6 +170,21 @@ function populateReferents(docs, next) {
   return next();
 }
 
+function populateHelpersForList(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.helpers) doc.helpers = doc.helpers.map(h => h.user);
+  }
+
+  return next();
+}
+
+function populateHelpers(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  if (doc && doc.helpers) doc.helpers = doc.helpers.map(h => h.user);
+
+  return next();
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -200,11 +201,20 @@ CustomerSchema.virtual('referent', {
   options: { sort: { startDate: -1 } },
 });
 
+CustomerSchema.virtual('helpers', {
+  ref: 'Helper',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
-CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
+
+CustomerSchema.post('findOne', populateHelpers);
+CustomerSchema.post('findOneAndUpdate', populateHelpers);
+CustomerSchema.post('find', populateHelpersForList);
 
 CustomerSchema.post('findOne', populateReferent);
 CustomerSchema.post('findOneAndUpdate', populateReferent);

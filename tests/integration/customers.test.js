@@ -670,6 +670,7 @@ describe('CUSTOMERS ROUTES', () => {
     afterEach(() => {
       deleteFileStub.restore();
     });
+
     it('should delete a customer without interventions', async () => {
       const customersBefore = await Customer.countDocuments({ company: authCompany._id });
       const res = await app.inject({
@@ -697,13 +698,13 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if customer is not from the same company', async () => {
+    it('should return a 404 error if customer is not from the same company', async () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${otherCompanyCustomer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
 
     it('should return a 403 error if customer has interventions', async () => {

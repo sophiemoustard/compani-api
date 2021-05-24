@@ -27,32 +27,46 @@ const {
   PARENTAL_LEAVE,
 } = require('../../../src/helpers/constants');
 
-const auxiliaryId = new ObjectID();
-const planningReferentId = new ObjectID();
+const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID()];
 
-const contracts = [{
-  _id: new ObjectID(),
-  serialNumber: 'sdfklasdkljfjsldfjksdss',
-  user: auxiliaryId,
-  startDate: '2010-09-03T00:00:00',
-  company: authCompany._id,
-  versions: [{
+const contracts = [
+  {
+    _id: new ObjectID(),
+    serialNumber: 'sdfklasdkljfjsldfjksdss',
+    user: auxiliariesIds[0],
     startDate: '2010-09-03T00:00:00',
-    grossHourlyRate: 10.43,
-    weeklyHours: 12,
-  }],
-}, {
-  _id: new ObjectID(),
-  serialNumber: 'dskfajdksjf',
-  user: planningReferentId,
-  company: authCompany._id,
-  startDate: '2010-09-03T00:00:00',
-  versions: [{
+    company: authCompany._id,
+    versions: [{
+      startDate: '2010-09-03T00:00:00',
+      grossHourlyRate: 10.43,
+      weeklyHours: 12,
+    }],
+  },
+  {
+    _id: new ObjectID(),
+    serialNumber: 'dskfajdksjf',
+    user: auxiliariesIds[1],
+    company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
-    grossHourlyRate: 10.43,
-    weeklyHours: 12,
-  }],
-}];
+    versions: [{
+      startDate: '2010-09-03T00:00:00',
+      grossHourlyRate: 10.43,
+      weeklyHours: 12,
+    }],
+  },
+  {
+    _id: new ObjectID(),
+    serialNumber: 'dskfajdksjfkjhg',
+    user: auxiliariesIds[2],
+    company: authCompany._id,
+    startDate: '2010-09-03T00:00:00',
+    versions: [{
+      startDate: '2010-09-03T00:00:00',
+      grossHourlyRate: 10.43,
+      weeklyHours: 12,
+    }],
+  },
+];
 
 const sectors = [{
   _id: new ObjectID(),
@@ -72,7 +86,7 @@ const sectors = [{
 
 const auxiliaries = [
   {
-    _id: auxiliaryId,
+    _id: auxiliariesIds[0],
     identity: { firstname: 'Thibaut', lastname: 'Pinot' },
     local: { email: 't@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
@@ -83,13 +97,24 @@ const auxiliaries = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: auxiliariesIds[1],
     identity: { firstname: 'Marie', lastname: 'Pinot' },
     local: { email: 'm@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    contracts: [contracts[0]._id],
+    contracts: [contracts[1]._id],
+    company: authCompany._id,
+    origin: WEBAPP,
+  },
+  {
+    _id: auxiliariesIds[2],
+    identity: { firstname: 'Philippe', lastname: 'Pinot' },
+    local: { email: 'p@p.com', password: '123456!eR' },
+    administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [contracts[2]._id],
     company: authCompany._id,
     origin: WEBAPP,
   },
@@ -97,13 +122,19 @@ const auxiliaries = [
 
 const sectorHistories = [
   {
-    auxiliary: auxiliaryId,
+    auxiliary: auxiliariesIds[0],
     sector: sectors[0]._id,
     company: authCompany._id,
     startDate: '2018-12-10',
   },
   {
     auxiliary: auxiliaries[1]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10',
+  },
+  {
+    auxiliary: auxiliaries[2]._id,
     sector: sectors[1]._id,
     company: authCompany._id,
     startDate: '2018-12-10',
@@ -122,7 +153,7 @@ const auxiliaryFromOtherCompany = {
 };
 
 const sectorHistoryFromOtherCompany = {
-  auxiliary: auxiliaryId,
+  auxiliary: auxiliariesIds[0],
   sector: sectors[2]._id,
   company: otherCompany._id,
   startDate: '2018-12-10',
@@ -699,6 +730,57 @@ const eventsList = [
     auxiliary: auxiliaries[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
+  // Timestamp
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliary._id,
+    subscription: customerAuxiliary.subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    repetition: { frequency: NEVER },
+    type: ABSENCE,
+    absence: PARENTAL_LEAVE,
+    absenceNature: DAILY,
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[1]._id,
+    createdAt: '2019-01-11T08:38:18.653Z',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[2]._id,
+    customer: customerAuxiliary._id,
+    subscription: customerAuxiliary.subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const eventFromOtherCompany = {
@@ -754,6 +836,18 @@ const helpersList = [{
   referent: true,
 }];
 
+const timeStampingDate = new Date();
+const eventHistoriesList = [
+  {
+    event: { eventId: eventsList[23]._id, startDate: timeStampingDate },
+    company: eventsList[23].company,
+    action: 'manual_time_stamping',
+    manualTimeStampingReason: 'qrcode_missing',
+    auxiliaries: [eventsList[23].auxiliary],
+    update: { startHour: { from: eventsList[23].startDate, to: timeStampingDate } },
+  },
+];
+
 const populateDB = async () => {
   await Event.deleteMany({});
   await User.deleteMany({});
@@ -778,6 +872,7 @@ const populateDB = async () => {
   await DistanceMatrix.insertMany(distanceMatrixList);
   await (new User(auxiliaries[0])).save();
   await (new User(auxiliaries[1])).save();
+  await (new User(auxiliaries[2])).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await Contract.insertMany(contracts);
@@ -790,6 +885,7 @@ const populateDB = async () => {
   await (new InternalHour(internalHour)).save();
   await (new InternalHour(internalHourFromOtherCompany)).save();
   await Helper.insertMany(helpersList);
+  await EventHistory.insertMany(eventHistoriesList);
 };
 
 const getUserToken = async (userCredentials) => {

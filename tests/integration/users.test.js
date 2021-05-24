@@ -394,8 +394,8 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const users = await User.find({ company: otherCompany._id });
-      expect(res.result.data.users.length).toBe(users.length);
+      const usersCount = await User.countDocuments({ company: otherCompany._id });
+      expect(res.result.data.users.length).toBe(usersCount);
     });
 
     it('should get all coachs users (company A)', async () => {
@@ -452,7 +452,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const usersCount = await User.countDocuments({});
+      const usersCount = await User.countDocuments();
       expect(res.result.data.users.length).toBe(usersCount);
     });
 
@@ -1153,9 +1153,9 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const user = await User.findById(userId);
-      expect(user.identity.lastname).toEqual('Kirk');
-      expect(user.role.vendor._id).toEqual(roleTrainer._id);
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.lastname': 'Kirk', 'role.vendor': roleTrainer._id });
+      expect(userCount).toEqual(1);
     });
 
     it('should update a user who has no role, with auxiliary role', async () => {
@@ -1178,9 +1178,9 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const user = await User.findById(userId);
-      expect(user.identity.lastname).toEqual('Auxiliary');
-      expect(user.role.client._id).toEqual(roleAuxiliary._id);
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.lastname': 'Auxiliary', 'role.client': roleAuxiliary._id });
+      expect(userCount).toEqual(1);
     });
 
     it('should return a 409 if the role switch is not allowed', async () => {
@@ -1578,8 +1578,11 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.uploadedFile).toMatchObject({ id: 'qwerty' });
-      const user = await User.findById(usersSeedList[0]._id, { administrative: 1 }).lean();
-      expect(user.administrative.mutualFund).toMatchObject({ driveId: 'qwerty', link: 'http://test.com/file.pdf' });
+      const userCount = await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        'administrative.mutualFund': { driveId: 'qwerty', link: 'http://test.com/file.pdf' },
+      });
+      expect(userCount).toEqual(1);
       sinon.assert.calledOnce(addFileStub);
     });
 
@@ -1861,8 +1864,11 @@ describe('POST /users/:id/drivefolder', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const updatedUser = await User.findOne({ _id: usersSeedList[0]._id }, { 'administrative.driveFolder': 1 }).lean();
-      expect(updatedUser.administrative.driveFolder).toEqual({ driveId: '1234567890', link: 'http://test.com' });
+      const userCount = await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        'administrative.driveFolder': { driveId: '1234567890', link: 'http://test.com' },
+      });
+      expect(userCount).toEqual(1);
       sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
     });
   });

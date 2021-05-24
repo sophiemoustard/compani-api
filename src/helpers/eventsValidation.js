@@ -8,6 +8,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
+const UtilsHelper = require('./utils');
 const translate = require('./translate');
 
 const { language } = translate;
@@ -37,7 +38,7 @@ exports.hasConflicts = async (event) => {
     : await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company);
 
   return auxiliaryEvents.some((ev) => {
-    if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
+    if ((_id && UtilsHelper.areObjectIdsEquals(_id, ev._id)) || ev.isCancelled) return false;
     return true;
   });
 };

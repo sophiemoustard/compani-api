@@ -19,7 +19,7 @@ const {
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
@@ -36,6 +36,7 @@ const {
 } = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
+const EventHistory = require('../../src/models/EventHistory');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -1759,6 +1760,173 @@ describe('DELETE /{_id}/repetition', () => {
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}/repetition`,
           headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PUT /{_id}/timestamping', () => {
+  let authToken;
+  describe('AUXILIARY', () => {
+    beforeEach(populateDB);
+
+    it('should timestamp an event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const timestamp = await EventHistory.countDocuments({
+        'event.eventId': eventsList[21]._id,
+        'event.startDate': startDate,
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'camera_error',
+
+      });
+      expect(timestamp).toBe(1);
+    });
+
+    it('should return a 404 if event does not exist', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${new ObjectID()}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if event is not an intervention', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[1].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[22]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if auxiliary is not the one of the intervention', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[1].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if the event is not today', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[2]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 409 if event is already timestamped', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[2].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 if incorrect action', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'poiu', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if incorrect reason', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'qwer' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    const payload = { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' };
+    const missingFields = ['startDate', 'action', 'reason'];
+
+    missingFields.forEach((field) => {
+      it(`should return a 400 if missing field ${field}`, async () => {
+        authToken = await getTokenByCredentials(auxiliaries[0].local);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${eventsList[21]._id}/timestamping`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: omit(payload, field),
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${eventsList[21]._id}/timestamping`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

@@ -1,9 +1,13 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const Boom = require('@hapi/boom');
 const EmailHelper = require('../../../src/helpers/email');
 const EmailOptionsHelper = require('../../../src/helpers/emailOptions');
 const AuthenticationHelper = require('../../../src/helpers/authentication');
 const NodemailerHelper = require('../../../src/helpers/nodemailer');
+const translate = require('../../../src/helpers/translate');
+
+const { language } = translate;
 
 describe('sendWelcome', () => {
   let trainerCustomContent;
@@ -221,5 +225,22 @@ describe('sendWelcome', () => {
     sinon.assert.notCalled(helperCustomContent);
     sinon.assert.notCalled(trainerCustomContent);
     sinon.assert.notCalled(coachCustomContent);
+  });
+
+  it('should send 424 if email sending fails', async () => {
+    try {
+      welcomeTraineeContent.returns('Bonjour à tous et passez une bonne journée');
+
+      await EmailHelper.sendWelcome('trainee', email);
+    } catch (e) {
+      expect(e).toEqual(Boom.failedDependency(translate[language].emailNotSent));
+    } finally {
+      sinon.assert.calledOnceWithExactly(welcomeTraineeContent);
+      sinon.assert.calledWithExactly(sendinBlueTransporter);
+      sinon.assert.notCalled(sendMail);
+      sinon.assert.notCalled(helperCustomContent);
+      sinon.assert.notCalled(trainerCustomContent);
+      sinon.assert.notCalled(coachCustomContent);
+    }
   });
 });
