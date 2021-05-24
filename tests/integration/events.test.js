@@ -158,6 +158,26 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(403);
     });
+
+    it('should return 400 if groupBy is an unauthorized string', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=oiuy&type=intervention',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return 400 if type is an unauthorized string', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=customer&type=oiuy',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
 
   describe('Other roles', () => {
