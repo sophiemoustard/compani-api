@@ -1767,7 +1767,7 @@ describe('PUT /{_id}/timestamping', () => {
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
 
-    it('should timestamp an event', async () => {
+    it('should timestamp startDate of an event', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
       const startDate = new Date();
 
@@ -1784,9 +1784,22 @@ describe('PUT /{_id}/timestamping', () => {
         'event.startDate': startDate,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'camera_error',
-
       });
       expect(timestamp).toBe(1);
+    });
+
+    it('should timestamp endDate of an event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return a 404 if event does not exist', async () => {
@@ -1842,7 +1855,7 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 409 if event is already timestamped', async () => {
+    it('should return a 409 if event is already startDate timestamped', async () => {
       authToken = await getTokenByCredentials(auxiliaries[2].local);
       const startDate = new Date();
 
@@ -1851,6 +1864,20 @@ describe('PUT /{_id}/timestamping', () => {
         url: `/events/${eventsList[23]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 409 if event is already endDate timestamped', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[3].local);
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -1884,8 +1911,36 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if no endDate and no startDate', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if endDate and startDate', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' };
-    const missingFields = ['startDate', 'action', 'reason'];
+    const missingFields = ['action', 'reason'];
 
     missingFields.forEach((field) => {
       it(`should return a 400 if missing field ${field}`, async () => {

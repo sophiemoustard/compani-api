@@ -204,11 +204,11 @@ exports.authorizeTimeStamping = async (req) => {
   });
   if (!eventCount) throw Boom.notFound();
 
-  const alreadyTimeStamped = await EventHistory.countDocuments({
-    'event.eventId': req.params._id,
-    action: MANUAL_TIME_STAMPING,
-    'update.startHour': { $exists: true },
-  });
+  const timeStampPayload = { 'event.eventId': req.params._id, action: MANUAL_TIME_STAMPING };
+  if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
+  else timeStampPayload['update.endHour'] = { $exists: true };
+
+  const alreadyTimeStamped = await EventHistory.countDocuments(timeStampPayload);
   if (alreadyTimeStamped) throw Boom.conflict(translate[language].alreadyTimeStamped);
 
   return null;

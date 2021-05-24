@@ -144,6 +144,7 @@ module.exports = {
     timeStampConflict: 'The timestamp is in conflict with an event.',
     timeStampOtherConflict: 'Timestamp error. Contact technical support.',
     timeStampTooLate: 'Can\'t timestamp startDate after event ends.',
+    timeStampTooEarly: 'Can\'t timestamp endDate before event starts.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -465,6 +466,7 @@ module.exports = {
     timeStampConflict: 'L\'horodatage est en conflit avec un évènement.',
     timeStampOtherConflict: 'Problème lors de l\'horodatage. Contactez le support technique.',
     timeStampTooLate: 'Vous ne pouvez pas horodater le début d\'un évènement terminé.',
+    timeStampTooEarly: 'Vous ne pouvez pas horodater la fin d\'un évènement avant son commencement.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',

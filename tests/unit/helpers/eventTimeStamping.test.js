@@ -7,7 +7,7 @@ const eventHistoryHelper = require('../../../src/helpers/eventHistories');
 const eventValidationHelper = require('../../../src/helpers/eventsValidation');
 const Event = require('../../../src/models/Event');
 
-describe('isTimeStampAllowed', () => {
+describe('isStartDateTimeStampAllowed', () => {
   let hasConflictsStub;
 
   beforeEach(() => { hasConflictsStub = sinon.stub(eventValidationHelper, 'hasConflicts'); });
@@ -20,16 +20,17 @@ describe('isTimeStampAllowed', () => {
 
     hasConflictsStub.returns(false);
 
-    const result = await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+    const result = await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
     expect(result).toBe(true);
+    sinon.assert.calledOnceWithExactly(hasConflictsStub, { ...event, startDate });
   });
 
   it('should return a 422 if endDate is before timestamping date', async () => {
     const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const startDate = '2021-05-01T12:30:00';
     try {
-      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+      await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
       expect(true).toBe(false);
     } catch (e) {
@@ -43,7 +44,7 @@ describe('isTimeStampAllowed', () => {
     try {
       hasConflictsStub.returns(true);
 
-      await eventTimeStampingHelper.isTimeStampAllowed(event, startDate);
+      await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
 
       expect(true).toBe(false);
     } catch (e) {
@@ -53,54 +54,142 @@ describe('isTimeStampAllowed', () => {
   });
 });
 
+describe('isEndDateTimeStampAllowed', () => {
+  let hasConflictsStub;
+
+  beforeEach(() => { hasConflictsStub = sinon.stub(eventValidationHelper, 'hasConflicts'); });
+
+  afterEach(() => { hasConflictsStub.restore(); });
+
+  it('should return true if user is allowed to timestamp', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const endDate = '2021-05-01T12:04:00';
+
+    hasConflictsStub.returns(false);
+
+    const result = await eventTimeStampingHelper.isEndDateTimeStampAllowed(event, endDate);
+
+    expect(result).toBe(true);
+    sinon.assert.calledOnceWithExactly(hasConflictsStub, { ...event, endDate });
+  });
+
+  it('should return a 422 if startDate is after timestamping date', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const endDate = '2021-05-01T09:30:00';
+    try {
+      await eventTimeStampingHelper.isEndDateTimeStampAllowed(event, endDate);
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toEqual(Boom.badData('Vous ne pouvez pas horodater la fin d\'un évènement avant son commencement.'));
+    }
+  });
+
+  it('should return a 409 if new event is in conflict with other events', async () => {
+    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const endDate = '2021-05-01T12:45:00';
+    try {
+      hasConflictsStub.returns(true);
+
+      await eventTimeStampingHelper.isEndDateTimeStampAllowed(event, endDate);
+
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toEqual(Boom.conflict('L\'horodatage est en conflit avec un évènement.'));
+      sinon.assert.calledOnceWithExactly(hasConflictsStub, { ...event, endDate });
+    }
+  });
+});
+
 describe('addTimeStamp', () => {
-  let isTimeStampAllowedStub;
+  let isStartDateTimeStampAllowedStub;
+  let isEndDateTimeStampAllowedStub;
   let createTimeStampHistoryStub;
   let updateOne;
 
   beforeEach(() => {
-    isTimeStampAllowedStub = sinon.stub(eventTimeStampingHelper, 'isTimeStampAllowed');
+    isStartDateTimeStampAllowedStub = sinon.stub(eventTimeStampingHelper, 'isStartDateTimeStampAllowed');
+    isEndDateTimeStampAllowedStub = sinon.stub(eventTimeStampingHelper, 'isEndDateTimeStampAllowed');
     createTimeStampHistoryStub = sinon.stub(eventHistoryHelper, 'createTimeStampHistory');
     updateOne = sinon.stub(Event, 'updateOne');
   });
 
   afterEach(() => {
-    isTimeStampAllowedStub.restore();
+    isStartDateTimeStampAllowedStub.restore();
+    isEndDateTimeStampAllowedStub.restore();
     createTimeStampHistoryStub.restore();
     updateOne.restore();
   });
 
-  it('should add timestamp and updateEvent', async () => {
+  it('should add startDate timestamp and updateEvent', async () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
     const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
     const credentials = { _id: new ObjectID() };
 
-    isTimeStampAllowedStub.returns(true);
+    isStartDateTimeStampAllowedStub.returns(true);
 
     await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
+    sinon.assert.calledOnceWithExactly(isStartDateTimeStampAllowedStub, event, startDate);
     sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload, credentials);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { startDate });
+    sinon.assert.notCalled(isEndDateTimeStampAllowedStub);
   });
 
-  it('should return a 409 if timestamp is not allowed', async () => {
+  it('should return a 409 if startDate timestamp is not allowed', async () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
     const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
     const credentials = { _id: new ObjectID() };
 
     try {
-      isTimeStampAllowedStub.returns(false);
+      isStartDateTimeStampAllowedStub.returns(false);
 
       await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
       expect(true).toBe(false);
     } catch (e) {
       expect(e).toEqual(Boom.conflict('Problème lors de l\'horodatage. Contactez le support technique.'));
-      sinon.assert.calledOnceWithExactly(isTimeStampAllowedStub, event, startDate);
+      sinon.assert.calledOnceWithExactly(isStartDateTimeStampAllowedStub, event, startDate);
       sinon.assert.notCalled(createTimeStampHistoryStub);
       sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(isEndDateTimeStampAllowedStub);
+    }
+  });
+
+  it('should add endDate timestamp and updateEvent', async () => {
+    const event = { _id: new ObjectID() };
+    const endDate = new Date();
+    const payload = { action: 'manual_timestamping', reason: 'qrcode', endDate };
+    const credentials = { _id: new ObjectID() };
+
+    isEndDateTimeStampAllowedStub.returns(true);
+
+    await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(isEndDateTimeStampAllowedStub, event, endDate);
+    sinon.assert.calledOnceWithExactly(createTimeStampHistoryStub, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { endDate });
+    sinon.assert.notCalled(isStartDateTimeStampAllowedStub);
+  });
+
+  it('should return a 409 if startDate timestamp is not allowed', async () => {
+    const event = { _id: new ObjectID() };
+    const endDate = new Date();
+    const payload = { action: 'manual_timestamping', reason: 'qrcode', endDate };
+    const credentials = { _id: new ObjectID() };
+
+    try {
+      isEndDateTimeStampAllowedStub.returns(false);
+
+      await eventTimeStampingHelper.addTimeStamp(event, payload, credentials);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e).toEqual(Boom.conflict('Problème lors de l\'horodatage. Contactez le support technique.'));
+      sinon.assert.calledOnceWithExactly(isEndDateTimeStampAllowedStub, event, endDate);
+      sinon.assert.notCalled(createTimeStampHistoryStub);
+      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(isStartDateTimeStampAllowedStub);
     }
   });
 });
