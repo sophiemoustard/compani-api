@@ -36,11 +36,7 @@ const contracts = [
     user: auxiliariesIds[0],
     startDate: '2010-09-03T00:00:00',
     company: authCompany._id,
-    versions: [{
-      startDate: '2010-09-03T00:00:00',
-      grossHourlyRate: 10.43,
-      weeklyHours: 12,
-    }],
+    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectID(),
@@ -48,11 +44,7 @@ const contracts = [
     user: auxiliariesIds[1],
     company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
-    versions: [{
-      startDate: '2010-09-03T00:00:00',
-      grossHourlyRate: 10.43,
-      weeklyHours: 12,
-    }],
+    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectID(),
@@ -60,11 +52,7 @@ const contracts = [
     user: auxiliariesIds[2],
     company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
-    versions: [{
-      startDate: '2010-09-03T00:00:00',
-      grossHourlyRate: 10.43,
-      weeklyHours: 12,
-    }],
+    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectID(),
@@ -72,29 +60,15 @@ const contracts = [
     user: auxiliariesIds[3],
     company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
-    versions: [{
-      startDate: '2010-09-03T00:00:00',
-      grossHourlyRate: 10.43,
-      weeklyHours: 12,
-    }],
+    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
 ];
 
-const sectors = [{
-  _id: new ObjectID(),
-  name: 'Paris',
-  company: authCompany._id,
-},
-{
-  _id: new ObjectID(),
-  name: '',
-  company: authCompany._id,
-},
-{
-  _id: new ObjectID(),
-  name: '',
-  company: otherCompany._id,
-}];
+const sectors = [
+  { _id: new ObjectID(), name: 'Paris', company: authCompany._id },
+  { _id: new ObjectID(), name: '', company: authCompany._id },
+  { _id: new ObjectID(), name: '', company: otherCompany._id },
+];
 
 const auxiliaries = [
   {
@@ -144,24 +118,10 @@ const auxiliaries = [
 ];
 
 const sectorHistories = [
-  {
-    auxiliary: auxiliariesIds[0],
-    sector: sectors[0]._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  },
-  {
-    auxiliary: auxiliaries[1]._id,
-    sector: sectors[1]._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  },
-  {
-    auxiliary: auxiliaries[2]._id,
-    sector: sectors[1]._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  },
+  { auxiliary: auxiliariesIds[0], sector: sectors[0]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
+  { auxiliary: auxiliaries[1]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
+  { auxiliary: auxiliaries[2]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
+  { auxiliary: auxiliaries[3]._id, sector: sectors[2]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
 ];
 
 const auxiliaryFromOtherCompany = {
@@ -182,17 +142,9 @@ const sectorHistoryFromOtherCompany = {
   startDate: '2018-12-10',
 };
 
-const thirdPartyPayer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  isApa: true,
-};
+const thirdPartyPayer = { _id: new ObjectID(), company: authCompany._id, isApa: true };
 
-const thirdPartyPayerFromOtherCompany = {
-  _id: new ObjectID(),
-  company: otherCompany._id,
-  isApa: true,
-};
+const thirdPartyPayerFromOtherCompany = { _id: new ObjectID(), company: otherCompany._id, isApa: true };
 
 const services = [
   {
@@ -429,10 +381,7 @@ const eventsList = [
       city: 'Antony',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
   },
   {
     _id: new ObjectID(),
@@ -458,10 +407,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -506,10 +452,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -530,10 +473,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '42 Rue de la Procession 75015 Paris',
       street: '42 Rue de la Procession',
@@ -571,10 +511,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
       street: '105 BOULEVARD MURAT',
@@ -612,10 +549,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
       street: '105 BOULEVARD MURAT',
@@ -636,10 +570,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
       street: '105 BOULEVARD MURAT',
@@ -660,10 +591,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
       street: '105 BOULEVARD MURAT',
@@ -684,10 +612,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '105 BOULEVARD MURAT 75016 PARIS',
       street: '105 BOULEVARD MURAT',
@@ -709,10 +634,7 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
-    bills: {
-      inclTaxesCustomer: 20,
-      exclTaxesCustomer: 15,
-    },
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -837,10 +759,7 @@ const eventFromOtherCompany = {
   createdAt: '2019-01-16T14:30:19.543Z',
   subscription: customerFromOtherCompany.subscriptions[0]._id,
   isBilled: false,
-  bills: {
-    inclTaxesCustomer: 20,
-    exclTaxesCustomer: 15,
-  },
+  bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
   address: {
     fullAddress: '4 rue du test 92160 Antony',
     street: '4 rue du test',
@@ -871,12 +790,9 @@ const distanceMatrixList = [
   },
 ];
 
-const helpersList = [{
-  customer: customerAuxiliary._id,
-  user: helpersCustomer._id,
-  company: authCompany._id,
-  referent: true,
-}];
+const helpersList = [
+  { customer: customerAuxiliary._id, user: helpersCustomer._id, company: authCompany._id, referent: true }
+];
 
 const timeStampingDate = new Date();
 const eventHistoriesList = [
