@@ -24,7 +24,7 @@ const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
-const { MONTHLY, FIXED, HOURLY } = require('../../src/helpers/constants');
+const { MONTHLY, FIXED, HOURLY, DEATH } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
 const DocxHelper = require('../../src/helpers/docx');
@@ -589,6 +589,18 @@ describe('CUSTOMERS ROUTES', () => {
       expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
     });
 
+    it('should update status', async () => {
+      const customer = customersList[0];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { stoppedAt: new Date(), stopReason: DEATH },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'PUT',
@@ -609,6 +621,42 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
+      const customer = customersList[0];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { stopReason: DEATH },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 403 if already stop', async () => {
+      const customer = customersList[9];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { stoppedAt: new Date(), stopReason: DEATH },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should return 403 if stoppedDate before activatedDate', async () => {
+      const customer = customersList[10];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { stoppedAt: new Date('2021-05-23'), stopReason: DEATH },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {

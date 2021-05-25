@@ -151,25 +151,28 @@ exports.updateCustomerEvents = async (customerId, payload) => {
   }
 };
 
+exports.formatPayload = async (customerId, customerPayload, company) => {
+  if (has(customerPayload, 'payment.iban')) {
+    return exports.formatPaymentPayload(customerId, customerPayload, company);
+  }
+  if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
+    await exports.updateCustomerEvents(customerId, customerPayload);
+  }
+
+  return { $set: flat(customerPayload, { safe: true }) };
+};
+
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
-  let payload;
   const { company } = credentials;
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
 
     return Customer.findOne({ _id: customerId }).lean();
-  } if (has(customerPayload, 'payment.iban')) {
-    payload = await exports.formatPaymentPayload(customerId, customerPayload, company);
-  } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
-    await exports.updateCustomerEvents(customerId, customerPayload);
-    payload = { $set: flat(customerPayload, { safe: true }) };
-  } else {
-    payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  const customer = Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  const payload = await exports.formatPayload(customerId, customerPayload, company);
 
-  return customer;
+  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
 exports.createCustomer = async (payload, credentials) => {

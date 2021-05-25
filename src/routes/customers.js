@@ -30,7 +30,7 @@ const {
   updateFunding,
   deleteFunding,
 } = require('../controllers/customerController');
-const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS } = require('../models/Customer');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS, STOP_REASONS } = require('../models/Customer');
 const {
   authorizeCustomerDelete,
   authorizeCustomerUpdate,
@@ -102,7 +102,10 @@ exports.plugin = {
               iban: Joi.string(),
               bic: Joi.string(),
             }).min(1),
-          }),
+            stoppedAt: Joi.date(),
+            stopReason: Joi.string().valid(...STOP_REASONS),
+          })
+            .and('stoppedAt', 'stopReason'),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
